@@ -27,6 +27,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="memberships">成员关系（Tenancy 实现；没有即只有注册地可进）。</param>
 /// <param name="issuer">令牌签发器。</param>
 /// <param name="guards">登录守卫。</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录。</param>
@@ -38,6 +39,7 @@ public sealed class SwitchTenant(
     IEnumerable<ITenantMembershipResolver> memberships,
     AccessTokenIssuer issuer,
     IEnumerable<ILoginGuard> guards,
+    IEnumerable<ISessionRoleActivator> activators,
     IdentityOptions options,
     TimeProvider clock,
     ITenantStore tenants) : IOperation<SwitchTenantRequest, TokenResponse>
@@ -132,7 +134,8 @@ public sealed class SwitchTenant(
             return securityResult.Error!;
         }
 
-        var access = issuer.Issue(user, session.Id, target, roles);
+        var active = await activators.StartAsync(session.Id, user.Id, target, roles, context).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, target, active);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, target, security.MustChangePassword, UserResponse.From(user), tenantName);
     }
 

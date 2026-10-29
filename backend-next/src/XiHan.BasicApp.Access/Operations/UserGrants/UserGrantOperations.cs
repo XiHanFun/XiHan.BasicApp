@@ -61,8 +61,9 @@ public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastruct
 /// <param name="grants">用户直接授予。</param>
 /// <param name="rules">授予规则。</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）。</param>
+/// <param name="enforcer">约束规则求值（权限互斥）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -87,7 +88,8 @@ public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalo
             (await rules.SetAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Grant, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
             (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Deny, ct).ConfigureAwait(false)).ThrowIfFailure();
             return outcomes;
-        }).ConfigureAwait(false);
+        }, async (user, owner, accepted, ct) =>
+            await enforcer.ScreenPermissionsAsync(owner, [.. await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)], accepted, context, userId: user.Id).ConfigureAwait(false)).ConfigureAwait(false);
     }
 }
 

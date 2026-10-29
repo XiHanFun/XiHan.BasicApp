@@ -519,6 +519,17 @@ export default {
         close: '닫기',
       },
     },
+    switch_roles: {
+      entry: '역할 전환',
+      title: '역할 전환',
+      hint: '이 세션에서 활성화할 역할을 고르세요. 권한은 활성화한 역할로만 계산됩니다. 서로 배타적인 역할은 함께 활성화할 수 없습니다.',
+      empty: '지금 활성화할 수 있는 역할이 없습니다',
+      pick_one: '역할을 하나 이상 고르세요',
+      load_failed: '역할을 불러오지 못했습니다',
+      save_failed: '역할 전환에 실패했습니다',
+      cancel: '취소',
+      save: '전환',
+    },
   },
   island: {
     title: '활동',

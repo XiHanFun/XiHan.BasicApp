@@ -266,6 +266,119 @@
         }
       }
     },
+    "/api/auth:activate-roles": {
+      "post": {
+        "operationId": "auth.activate-roles",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ActivateRolesRequest",
+                "type": "object",
+                "properties": {
+                  "roleIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "roleIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:captcha": {
       "post": {
         "operationId": "auth.captcha",
@@ -794,6 +907,52 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:session-roles": {
+      "get": {
+        "operationId": "auth.session-roles",
+        "tags": [
+          "auth"
+        ],
+        "summary": "The roles the current session holds right now and which of them are activated. Requires signing in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SessionRolesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SessionRoleItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -1951,6 +2110,958 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ConfigResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constraint-rules": {
+      "delete": {
+        "operationId": "constraint-rules.delete",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "Delete constraint rules together with their items. Requires access.constraint-rules.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "constraint-rules.create",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "Create a constraint rule. Requires access.constraint-rules.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateConstraintRuleRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/ConstraintType"
+                  },
+                  "targetType": {
+                    "$ref": "#/components/schemas/ConstraintTargetType"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ConstraintItemRequest"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "maxAllowed": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "conditions": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/AccessPolicyConditionRequest"
+                    },
+                    "maxItems": 100
+                  },
+                  "violationAction": {
+                    "$ref": "#/components/schemas/ConstraintViolationAction"
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ConstraintRuleStatus"
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "type",
+                  "targetType",
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConstraintRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "$ref": "#/components/schemas/ConstraintType"
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/ConstraintTargetType"
+                    },
+                    "maxAllowed": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "violationAction": {
+                      "$ref": "#/components/schemas/ConstraintViolationAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConstraintRuleStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConstraintItemResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "type",
+                    "targetType",
+                    "maxAllowed",
+                    "conditions",
+                    "violationAction",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "items",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constraint-rules/{id}": {
+      "get": {
+        "operationId": "constraint-rules.get",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "Get a constraint rule by ID. Requires access.constraint-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConstraintRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "$ref": "#/components/schemas/ConstraintType"
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/ConstraintTargetType"
+                    },
+                    "maxAllowed": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "violationAction": {
+                      "$ref": "#/components/schemas/ConstraintViolationAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConstraintRuleStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConstraintItemResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "type",
+                    "targetType",
+                    "maxAllowed",
+                    "conditions",
+                    "violationAction",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "items",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "constraint-rules.update",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "Replace a constraint rule, including its status and items. Requires access.constraint-rules.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateConstraintRuleRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "type": {
+                    "$ref": "#/components/schemas/ConstraintType"
+                  },
+                  "targetType": {
+                    "$ref": "#/components/schemas/ConstraintTargetType"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ConstraintItemRequest"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "maxAllowed": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "conditions": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/AccessPolicyConditionRequest"
+                    },
+                    "maxItems": 100
+                  },
+                  "violationAction": {
+                    "$ref": "#/components/schemas/ConstraintViolationAction"
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ConstraintRuleStatus"
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name",
+                  "type",
+                  "targetType",
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConstraintRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "$ref": "#/components/schemas/ConstraintType"
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/ConstraintTargetType"
+                    },
+                    "maxAllowed": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "violationAction": {
+                      "$ref": "#/components/schemas/ConstraintViolationAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConstraintRuleStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConstraintItemResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "type",
+                    "targetType",
+                    "maxAllowed",
+                    "conditions",
+                    "violationAction",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "items",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constraint-rules/{id}:set-status": {
+      "post": {
+        "operationId": "constraint-rules.set-status",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "Enable or disable a constraint rule. Requires access.constraint-rules.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetConstraintRuleStatusRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ConstraintRuleStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConstraintRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "$ref": "#/components/schemas/ConstraintType"
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/ConstraintTargetType"
+                    },
+                    "maxAllowed": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "violationAction": {
+                      "$ref": "#/components/schemas/ConstraintViolationAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConstraintRuleStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConstraintItemResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "type",
+                    "targetType",
+                    "maxAllowed",
+                    "conditions",
+                    "violationAction",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "items",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constraint-rules:list": {
+      "post": {
+        "operationId": "constraint-rules.list",
+        "tags": [
+          "constraint-rules"
+        ],
+        "summary": "List the constraint rules of the current side, by evaluation order by default. Requires access.constraint-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.constraint-rules.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfConstraintRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConstraintRuleResponse"
                       }
                     },
                     "total": {
@@ -14607,6 +15718,207 @@
         }
       }
     },
+    "/api/session-roles/{id}": {
+      "get": {
+        "operationId": "session-roles.get",
+        "tags": [
+          "session-roles"
+        ],
+        "summary": "Get one session role record by ID. Requires access.session-roles.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.session-roles.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SessionRoleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "roleId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "roleName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "roleCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SessionRoleStatus"
+                    },
+                    "activatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "deactivatedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sessionId",
+                    "userId",
+                    "roleId",
+                    "status",
+                    "activatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/session-roles:list": {
+      "post": {
+        "operationId": "session-roles.list",
+        "tags": [
+          "session-roles"
+        ],
+        "summary": "List the roles each session of the current side has activated. Requires access.session-roles.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.session-roles.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfSessionRoleResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SessionRoleResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tenant-members": {
       "delete": {
         "operationId": "tenant-members.delete",
@@ -18683,6 +19995,202 @@
           "createdAt"
         ]
       },
+      "ConstraintItemRequest": {
+        "type": "object",
+        "properties": {
+          "targetId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "groupNo": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "targetId"
+        ]
+      },
+      "ConstraintItemResponse": {
+        "type": "object",
+        "properties": {
+          "targetId": {
+            "type": "string"
+          },
+          "targetName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "groupNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "targetId",
+          "groupNo"
+        ]
+      },
+      "ConstraintRuleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ConstraintType"
+          },
+          "targetType": {
+            "$ref": "#/components/schemas/ConstraintTargetType"
+          },
+          "maxAllowed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+            }
+          },
+          "violationAction": {
+            "$ref": "#/components/schemas/ConstraintViolationAction"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConstraintRuleStatus"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "isEffective": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConstraintItemResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "type",
+          "targetType",
+          "maxAllowed",
+          "conditions",
+          "violationAction",
+          "priority",
+          "status",
+          "isEffective",
+          "items",
+          "createdAt"
+        ]
+      },
+      "ConstraintRuleStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
+      "ConstraintTargetType": {
+        "type": "string",
+        "enum": [
+          "Role",
+          "Permission",
+          "User"
+        ]
+      },
+      "ConstraintType": {
+        "type": "string",
+        "enum": [
+          "Ssd",
+          "Dsd",
+          "MutualExclusion",
+          "Cardinality",
+          "Condition"
+        ]
+      },
+      "ConstraintViolationAction": {
+        "type": "string",
+        "enum": [
+          "Deny",
+          "Warning",
+          "Log",
+          "RequireApproval"
+        ]
+      },
       "DataScope": {
         "type": "string",
         "enum": [
@@ -19583,7 +21091,8 @@
           "TwoFactorChallenge",
           "TwoFactorEnable",
           "TwoFactorDisable",
-          "TwoFactorReset"
+          "TwoFactorReset",
+          "RoleActivation"
         ]
       },
       "LoginLogResponse": {
@@ -20571,7 +22080,8 @@
           "FieldSecurity",
           "RoleInheritance",
           "Delegation",
-          "ConditionChange"
+          "ConditionChange",
+          "ConstraintViolation"
         ]
       },
       "PermissionConditionResponse": {
@@ -20931,6 +22441,105 @@
           "id",
           "code",
           "name"
+        ]
+      },
+      "SessionRoleItemResponse": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "roleId",
+          "code",
+          "name",
+          "isActive"
+        ]
+      },
+      "SessionRoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roleName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roleCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionRoleStatus"
+          },
+          "activatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deactivatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "sessionId",
+          "userId",
+          "roleId",
+          "status",
+          "activatedAt"
+        ]
+      },
+      "SessionRoleStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Inactive",
+          "Expired"
         ]
       },
       "SettingStatus": {
@@ -21414,6 +23023,26 @@
       }
     },
     "x-xihan-permissions": {
+      "access.constraint-rules.create": {
+        "code": "access.constraint-rules.create",
+        "displayName": "Create constraint rules",
+        "description": "Create constraint rules on roles, permissions or users."
+      },
+      "access.constraint-rules.delete": {
+        "code": "access.constraint-rules.delete",
+        "displayName": "Delete constraint rules",
+        "description": "Delete constraint rules together with their items."
+      },
+      "access.constraint-rules.read": {
+        "code": "access.constraint-rules.read",
+        "displayName": "Read constraint rules",
+        "description": "View separation of duty, mutual exclusion, cardinality and condition rules and their items."
+      },
+      "access.constraint-rules.update": {
+        "code": "access.constraint-rules.update",
+        "displayName": "Update constraint rules",
+        "description": "Edit, enable and disable constraint rules."
+      },
       "access.delegations.create": {
         "code": "access.delegations.create",
         "displayName": "Create delegations",
@@ -21573,6 +23202,11 @@
         "code": "access.roles.update",
         "displayName": "Update roles",
         "description": "Edit role names, descriptions, order and status."
+      },
+      "access.session-roles.read": {
+        "code": "access.session-roles.read",
+        "displayName": "Read session roles",
+        "description": "View which roles each session has activated and why roles were deactivated."
       },
       "access.user-data-scopes.read": {
         "code": "access.user-data-scopes.read",

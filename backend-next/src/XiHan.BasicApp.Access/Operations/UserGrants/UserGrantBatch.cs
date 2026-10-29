@@ -33,7 +33,8 @@ internal static class UserGrantBatch
         IRepository<SysUser, Guid> users,
         PermissionCatalog catalog,
         PermissionChangeType change,
-        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply)
+        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,
+        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>>? screen = null)
     {
         var owner = RoleService.OwnerOf(context);
         var found = await FindUserAsync(users, request.UserId, owner, context.CancellationToken).ConfigureAwait(false);
@@ -60,6 +61,13 @@ internal static class UserGrantBatch
             {
                 accepted.Add(code);
             }
+        }
+
+        if (screen is not null && accepted.Count > 0)
+        {
+            var blocked = await screen(user, owner, accepted, context.CancellationToken).ConfigureAwait(false);
+            failed.AddRange(blocked.Select(static code => new PermissionFailure(code, AccessErrors.ConstraintViolated)));
+            accepted.RemoveAll(code => blocked.Contains(code, StringComparer.Ordinal));
         }
 
         var succeeded = new List<string>(accepted.Count);

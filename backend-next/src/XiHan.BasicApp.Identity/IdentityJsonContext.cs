@@ -43,6 +43,7 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(UpdateUserSettingRequest))]
 [JsonSerializable(typeof(UserSettingResponse))]
 [JsonSerializable(typeof(SwitchTenantRequest))]
+[JsonSerializable(typeof(ActivateRolesRequest))]
 [JsonSerializable(typeof(StartImpersonationRequest))]
 [JsonSerializable(typeof(StopImpersonationRequest))]
 [JsonSerializable(typeof(ImpersonationCandidatesRequest))]

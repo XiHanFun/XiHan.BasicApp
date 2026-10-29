@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -26,6 +27,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签。</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Refresh(
     UserAccountService accounts,
@@ -34,7 +36,8 @@ public sealed class Refresh(
     AccessTokenIssuer issuer,
     IdentityOptions options,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<RefreshRequest, TokenResponse>
+    ITenantStore tenants,
+    IEnumerable<ISessionRoleActivator> activators) : IOperation<RefreshRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -109,9 +112,10 @@ public sealed class Refresh(
             return updated.Error!;
         }
 
-        // 角色在每次刷新时重算：角色指派的变化最迟在下一次刷新生效
+        // 角色在每次刷新时重算：角色指派的变化最迟在下一次刷新生效；激活集沿用并按当前的动态职责分离规则重新核对
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles, session.ImpersonatorUserId);
+        var active = await activators.RefreshAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active, session.ImpersonatorUserId);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName, impersonator);
     }
 }

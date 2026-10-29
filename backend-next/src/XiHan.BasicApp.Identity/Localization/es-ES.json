@@ -56,5 +56,6 @@
   "identity.two_factor.totp_already_enabled": "Ya hay un autenticador vinculado; desactívalo primero para cambiar de dispositivo.",
   "identity.two_factor.totp_setup_missing": "La vinculación del autenticador ha caducado o no se ha iniciado. Genera una clave nueva.",
   "identity.field_security.protected": "El campo {field} está protegido por la seguridad de campos y no se puede usar para filtrar ni ordenar.",
-  "identity.field_security.read_only": "El campo {field} es de solo lectura para usted y no se puede rellenar ni cambiar."
+  "identity.field_security.read_only": "El campo {field} es de solo lectura para usted y no se puede rellenar ni cambiar.",
+  "auth.activate_roles.description": "Cambiar los roles activados en la sesión actual (todos en posesión ahora y sin violar la separación dinámica de funciones); devuelve tokens nuevos."
 }

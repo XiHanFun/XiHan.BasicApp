@@ -18,15 +18,16 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
 /// 给角色指派成员：<c>POST /api/roles/{id}:assign</c>。用户须与角色同一侧（注册地 = 角色所属侧）；已是成员的算成功。
-/// 指派最迟在用户下一次刷新令牌时生效（角色进 <c>role</c> 声明）。
+/// 指派最迟在用户下一次刷新令牌时生效（角色进 <c>role</c> 声明）。新成员逐个过约束规则（静态职责分离、基数与条件），拦截类的违规记为这一人失败（<c>ACCESS_CONFLICT_012</c>）。
 /// </summary>
 /// <param name="service">角色域服务。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="assignments">指派缓存（新成员的判定立即看到）。</param>
+/// <param name="enforcer">约束规则求值。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
-public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments) : IOperation<RoleMembersRequest, BatchResult>
+public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments, ConstraintEnforcer enforcer) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -56,6 +57,7 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         var additions = new List<SysUserRole>();
+        var memberCount = await enforcer.MemberCountAsync(owner, roleId, context.CancellationToken).ConfigureAwait(false);
         foreach (var userId in request.UserIds.Distinct())
         {
             if (!found.TryGetValue(userId, out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
@@ -66,6 +68,16 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
 
             if (!existing.Contains(userId))
             {
+                var held = await enforcer.HeldRolesAsync(owner, userId, context.CancellationToken).ConfigureAwait(false);
+                held.Add(roleId);
+                var violations = new List<ConstraintViolation>(await enforcer.CheckUserRolesAsync(owner, userId, user.UserName, held, [roleId], context).ConfigureAwait(false));
+                violations.AddRange(await enforcer.CheckRoleMembersAsync(owner, roleId, memberCount + additions.Count + 1, context.CancellationToken).ConfigureAwait(false));
+                if (ConstraintEnforcer.Settle(context, violations, roleId, userId) is not null)
+                {
+                    failed.Add(new BatchFailure(userId, AccessErrors.ConstraintViolated));
+                    continue;
+                }
+
                 additions.Add(new SysUserRole { Id = ids.NewId(), OwnerTenantId = owner, UserId = userId, RoleId = roleId, EffectiveAt = request.EffectiveAt, ExpiresAt = request.ExpiresAt });
             }
 

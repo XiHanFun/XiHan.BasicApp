@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.MultiTenancy;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -32,6 +33,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="ids">标识生成器。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录。</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class StartImpersonation(
     IRepository<SysUser, Guid> users,
@@ -42,7 +44,8 @@ public sealed class StartImpersonation(
     IdentityOptions options,
     IIdGenerator<Guid> ids,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<StartImpersonationRequest, TokenResponse>
+    ITenantStore tenants,
+    IEnumerable<ISessionRoleActivator> activators) : IOperation<StartImpersonationRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -145,7 +148,8 @@ public sealed class StartImpersonation(
         }
 
         var roles = await accounts.RolesOfAsync(target.Id, requested, context.CancellationToken).ConfigureAwait(false);
-        var access = issuer.Issue(target, session.Id, requested, roles, actor.Id);
+        var active = await activators.StartAsync(session.Id, target.Id, requested, roles, context).ConfigureAwait(false);
+        var access = issuer.Issue(target, session.Id, requested, active, actor.Id);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, requested, targetSecurity.MustChangePassword, UserResponse.From(target), tenantName, actor.UserName);
     }
 

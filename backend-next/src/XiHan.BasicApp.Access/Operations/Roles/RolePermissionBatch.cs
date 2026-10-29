@@ -10,7 +10,7 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 授予 / 撤销的共同骨架：找角色、逐项校验权限码（在目录里、作用侧相符），通过的一次交给框架授予存储，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// 授予 / 撤销的共同骨架：找角色、逐项校验权限码（在目录里、作用侧相符），授予时再过一道筛选（约束规则），通过的一次交给框架授予存储，逐项结果合并；真正生效的权限码登记一条权限变更日志。
 /// </summary>
 internal static class RolePermissionBatch
 {
@@ -23,7 +23,8 @@ internal static class RolePermissionBatch
         RoleService service,
         PermissionCatalog catalog,
         PermissionChangeType change,
-        Func<SysRole, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply)
+        Func<SysRole, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,
+        Func<SysRole, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>>? screen = null)
     {
         var owner = RoleService.OwnerOf(context);
         if (!(await service.FindAsync(request.Id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var role))
@@ -49,6 +50,13 @@ internal static class RolePermissionBatch
             {
                 accepted.Add(code);
             }
+        }
+
+        if (screen is not null && accepted.Count > 0)
+        {
+            var blocked = await screen(role, accepted, context.CancellationToken).ConfigureAwait(false);
+            failed.AddRange(blocked.Select(static code => new PermissionFailure(code, AccessErrors.ConstraintViolated)));
+            accepted.RemoveAll(code => blocked.Contains(code, StringComparer.Ordinal));
         }
 
         var succeeded = new List<string>(accepted.Count);

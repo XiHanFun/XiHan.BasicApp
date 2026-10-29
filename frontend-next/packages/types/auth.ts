@@ -56,6 +56,14 @@ export interface ImpersonationTenantOption {
 }
 
 /** 模仿登录的候选目标 */
+/** 切换角色：当前会话此刻持有的一个角色与是否激活着（在令牌里） */
+export interface SessionRoleOption {
+  roleId: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
 export interface ImpersonationCandidate {
   basicId: string
   userName: string

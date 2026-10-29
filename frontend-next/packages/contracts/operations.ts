@@ -8,6 +8,7 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'auth.activate-roles': { method: 'POST', template: '/api/auth:activate-roles', path: [], query: [], success: 200 },
   'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
   'auth.login-config': { method: 'GET', template: '/api/auth:login-config', path: [], query: [], success: 200 },
@@ -15,6 +16,7 @@ export const routes = {
   'auth.me': { method: 'GET', template: '/api/auth:me', path: [], query: [], success: 200 },
   'auth.permissions': { method: 'GET', template: '/api/auth:permissions', path: [], query: [], success: 200 },
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
+  'auth.session-roles': { method: 'GET', template: '/api/auth:session-roles', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
   'auth.verify-two-factor': { method: 'POST', template: '/api/auth:verify-two-factor', path: [], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
@@ -24,6 +26,12 @@ export const routes = {
   'configs.get': { method: 'GET', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
   'configs.list': { method: 'POST', template: '/api/configs:list', path: [], query: [], success: 200 },
   'configs.update': { method: 'PUT', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
+  'constraint-rules.create': { method: 'POST', template: '/api/constraint-rules', path: [], query: [], success: 201 },
+  'constraint-rules.delete': { method: 'DELETE', template: '/api/constraint-rules', path: [], query: ['ids'], success: 200 },
+  'constraint-rules.get': { method: 'GET', template: '/api/constraint-rules/{id}', path: ['id'], query: [], success: 200 },
+  'constraint-rules.list': { method: 'POST', template: '/api/constraint-rules:list', path: [], query: [], success: 200 },
+  'constraint-rules.set-status': { method: 'POST', template: '/api/constraint-rules/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'constraint-rules.update': { method: 'PUT', template: '/api/constraint-rules/{id}', path: ['id'], query: [], success: 200 },
   'delegations.create': { method: 'POST', template: '/api/delegations', path: [], query: [], success: 201 },
   'delegations.delete': { method: 'DELETE', template: '/api/delegations', path: [], query: ['ids'], success: 200 },
   'delegations.list': { method: 'POST', template: '/api/delegations:list', path: [], query: [], success: 200 },
@@ -137,6 +145,8 @@ export const routes = {
   'roles.unassign': { method: 'POST', template: '/api/roles/{id}:unassign', path: ['id'], query: [], success: 200 },
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
+  'session-roles.get': { method: 'GET', template: '/api/session-roles/{id}', path: ['id'], query: [], success: 200 },
+  'session-roles.list': { method: 'POST', template: '/api/session-roles:list', path: [], query: [], success: 200 },
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
@@ -189,6 +199,7 @@ export const accessLogs = {
 
 /** 资源 `auth` 的操作。 */
 export const auth = {
+  activateRoles: (request: RequestOf<'auth.activate-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.activate-roles'>, ResponseOf<'auth.activate-roles'>>('auth.activate-roles', routes['auth.activate-roles'], request, options),
   captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
   loginConfig: (request: RequestOf<'auth.login-config'>, options?: CallOptions) => invoke<RequestOf<'auth.login-config'>, ResponseOf<'auth.login-config'>>('auth.login-config', routes['auth.login-config'], request, options),
@@ -196,6 +207,7 @@ export const auth = {
   me: (request: RequestOf<'auth.me'>, options?: CallOptions) => invoke<RequestOf<'auth.me'>, ResponseOf<'auth.me'>>('auth.me', routes['auth.me'], request, options),
   permissions: (request: RequestOf<'auth.permissions'>, options?: CallOptions) => invoke<RequestOf<'auth.permissions'>, ResponseOf<'auth.permissions'>>('auth.permissions', routes['auth.permissions'], request, options),
   refresh: (request: RequestOf<'auth.refresh'>, options?: CallOptions) => invoke<RequestOf<'auth.refresh'>, ResponseOf<'auth.refresh'>>('auth.refresh', routes['auth.refresh'], request, options),
+  sessionRoles: (request: RequestOf<'auth.session-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.session-roles'>, ResponseOf<'auth.session-roles'>>('auth.session-roles', routes['auth.session-roles'], request, options),
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
   verifyTwoFactor: (request: RequestOf<'auth.verify-two-factor'>, options?: CallOptions) => invoke<RequestOf<'auth.verify-two-factor'>, ResponseOf<'auth.verify-two-factor'>>('auth.verify-two-factor', routes['auth.verify-two-factor'], request, options),
 }
@@ -213,6 +225,16 @@ export const configs = {
   get: (request: RequestOf<'configs.get'>, options?: CallOptions) => invoke<RequestOf<'configs.get'>, ResponseOf<'configs.get'>>('configs.get', routes['configs.get'], request, options),
   list: (request: RequestOf<'configs.list'>, options?: CallOptions) => invoke<RequestOf<'configs.list'>, ResponseOf<'configs.list'>>('configs.list', routes['configs.list'], request, options),
   update: (request: RequestOf<'configs.update'>, options?: CallOptions) => invoke<RequestOf<'configs.update'>, ResponseOf<'configs.update'>>('configs.update', routes['configs.update'], request, options),
+}
+
+/** 资源 `constraint-rules` 的操作。 */
+export const constraintRules = {
+  create: (request: RequestOf<'constraint-rules.create'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.create'>, ResponseOf<'constraint-rules.create'>>('constraint-rules.create', routes['constraint-rules.create'], request, options),
+  delete: (request: RequestOf<'constraint-rules.delete'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.delete'>, ResponseOf<'constraint-rules.delete'>>('constraint-rules.delete', routes['constraint-rules.delete'], request, options),
+  get: (request: RequestOf<'constraint-rules.get'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.get'>, ResponseOf<'constraint-rules.get'>>('constraint-rules.get', routes['constraint-rules.get'], request, options),
+  list: (request: RequestOf<'constraint-rules.list'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.list'>, ResponseOf<'constraint-rules.list'>>('constraint-rules.list', routes['constraint-rules.list'], request, options),
+  setStatus: (request: RequestOf<'constraint-rules.set-status'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.set-status'>, ResponseOf<'constraint-rules.set-status'>>('constraint-rules.set-status', routes['constraint-rules.set-status'], request, options),
+  update: (request: RequestOf<'constraint-rules.update'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.update'>, ResponseOf<'constraint-rules.update'>>('constraint-rules.update', routes['constraint-rules.update'], request, options),
 }
 
 /** 资源 `delegations` 的操作。 */
@@ -418,6 +440,12 @@ export const roles = {
   unassign: (request: RequestOf<'roles.unassign'>, options?: CallOptions) => invoke<RequestOf<'roles.unassign'>, ResponseOf<'roles.unassign'>>('roles.unassign', routes['roles.unassign'], request, options),
   update: (request: RequestOf<'roles.update'>, options?: CallOptions) => invoke<RequestOf<'roles.update'>, ResponseOf<'roles.update'>>('roles.update', routes['roles.update'], request, options),
   updateMember: (request: RequestOf<'roles.update-member'>, options?: CallOptions) => invoke<RequestOf<'roles.update-member'>, ResponseOf<'roles.update-member'>>('roles.update-member', routes['roles.update-member'], request, options),
+}
+
+/** 资源 `session-roles` 的操作。 */
+export const sessionRoles = {
+  get: (request: RequestOf<'session-roles.get'>, options?: CallOptions) => invoke<RequestOf<'session-roles.get'>, ResponseOf<'session-roles.get'>>('session-roles.get', routes['session-roles.get'], request, options),
+  list: (request: RequestOf<'session-roles.list'>, options?: CallOptions) => invoke<RequestOf<'session-roles.list'>, ResponseOf<'session-roles.list'>>('session-roles.list', routes['session-roles.list'], request, options),
 }
 
 /** 资源 `tenant-members` 的操作。 */

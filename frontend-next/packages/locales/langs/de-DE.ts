@@ -519,6 +519,17 @@ export default {
         close: 'Schließen',
       },
     },
+    switch_roles: {
+      entry: 'Rollen wechseln',
+      title: 'Rollen wechseln',
+      hint: 'Wählen Sie die Rollen, die diese Sitzung aktiviert; Berechtigungen ergeben sich nur aus aktivierten Rollen. Sich ausschließende Rollen können nicht gleichzeitig aktiv sein.',
+      empty: 'Derzeit keine Rollen zum Aktivieren',
+      pick_one: 'Wählen Sie mindestens eine Rolle',
+      load_failed: 'Rollen konnten nicht geladen werden',
+      save_failed: 'Rollenwechsel fehlgeschlagen',
+      cancel: 'Abbrechen',
+      save: 'Wechseln',
+    },
   },
   island: {
     title: 'Aktivität',

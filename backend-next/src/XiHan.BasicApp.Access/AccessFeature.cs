@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Middleware;
+using XiHan.BasicApp.Access.Operations.ConstraintRules;
 using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
@@ -87,6 +88,14 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<AccessPolicyProjection>();
         context.Services.AddScoped<AccessPolicyQueries>();
         context.Services.AddSingleton<LoginBans>();
+        context.Services.AddSingleton<ConstraintRules>();
+        context.Services.AddScoped<ConstraintEnforcer>();
+        context.Services.AddScoped<ConstraintRuleService>();
+        context.Services.AddScoped<ConstraintRuleProjection>();
+        context.Services.AddScoped<ConstraintRuleQueries>();
+        context.Services.AddScoped<SessionRoleQueries>();
+        // 会话的角色激活（动态职责分离）：Identity 在每个签发令牌的地方调用
+        context.Services.AddScoped<ISessionRoleActivator, SessionRoleActivator>();
         // 登录时机的访问策略与登录失败自动封禁：Identity 在登录链路上调用
         context.Services.AddScoped<ILoginGuard, LoginDefense>();
         context.Services.AddGeneratedRepositories();

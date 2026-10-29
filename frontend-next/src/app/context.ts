@@ -141,6 +141,11 @@ export function registerApplicationContext(router: Router): void {
       myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isCurrent: tenant.isCurrent })),
       switchTenant: input => authOps.switchTenant({ tenantId: input.tenantId ?? null }),
     },
+    // 切换角色：auth.session-roles 列出持有与激活，auth.activate-roles 换激活集并续接会话（Access 的动态职责分离在服务端判定）
+    sessionRoleApi: {
+      list: async () => (await authOps.sessionRoles({})).items.map(role => ({ roleId: role.roleId, code: role.code, name: role.name, isActive: role.isActive })),
+      activate: roleIds => authOps.activateRoles({ roleIds }),
+    },
     getFilePresignedUrlApi: () => notAvailable('getFilePresignedUrlApi'),
     timeZoneApi: { options: timeZoneOptions },
     // 导入历史与导出中心归 Files 批次；导入历史失败时导入弹窗本就静默为空，导出只在页面声明 resource.export 时才走导出中心

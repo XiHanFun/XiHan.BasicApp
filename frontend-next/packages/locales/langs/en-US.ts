@@ -519,6 +519,17 @@ export default {
         close: 'Close',
       },
     },
+    switch_roles: {
+      entry: 'Switch roles',
+      title: 'Switch roles',
+      hint: 'Choose the roles this session activates; permissions come only from activated roles. Mutually exclusive roles cannot be active together.',
+      empty: 'No roles to activate right now',
+      pick_one: 'Select at least one role',
+      load_failed: 'Failed to load roles',
+      save_failed: 'Failed to switch roles',
+      cancel: 'Cancel',
+      save: 'Switch',
+    },
   },
   island: {
     title: 'Activity',

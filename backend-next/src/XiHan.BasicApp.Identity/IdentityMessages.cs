@@ -182,6 +182,11 @@ public static class IdentityMessages
     public const string SwitchTenantDescription = "auth.switch_tenant.description";
 
     /// <summary>
+    /// 操作 <c>auth.activate-roles</c> 的说明。
+    /// </summary>
+    public const string ActivateRolesDescription = "auth.activate_roles.description";
+
+    /// <summary>
     /// 操作 <c>impersonation.start</c> 的说明。
     /// </summary>
     public const string StartImpersonationDescription = "impersonation.start.description";

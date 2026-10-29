@@ -35,6 +35,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:activate-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens. */
+        post: operations["auth.activate-roles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:captcha": {
         parameters: {
             query?: never;
@@ -148,6 +165,23 @@ export interface paths {
         put?: never;
         /** Exchange a refresh token for new tokens; the refresh token rotates and the old one stops working. */
         post: operations["auth.refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:session-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The roles the current session holds right now and which of them are activated. Requires signing in only. */
+        get: operations["auth.session-roles"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -269,6 +303,76 @@ export interface paths {
         put?: never;
         /** List configuration entries page by page: platform principals see platform entries, tenant principals see platform entries plus their own; encrypted values are never returned. Requires settings.configs.read. */
         post: operations["configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/constraint-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a constraint rule. Requires access.constraint-rules.create. */
+        post: operations["constraint-rules.create"];
+        /** Delete constraint rules together with their items. Requires access.constraint-rules.delete. */
+        delete: operations["constraint-rules.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/constraint-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a constraint rule by ID. Requires access.constraint-rules.read. */
+        get: operations["constraint-rules.get"];
+        /** Replace a constraint rule, including its status and items. Requires access.constraint-rules.update. */
+        put: operations["constraint-rules.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/constraint-rules/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable or disable a constraint rule. Requires access.constraint-rules.update. */
+        post: operations["constraint-rules.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/constraint-rules:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the constraint rules of the current side, by evaluation order by default. Requires access.constraint-rules.read. */
+        post: operations["constraint-rules.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1764,6 +1868,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/session-roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one session role record by ID. Requires access.session-roles.read. */
+        get: operations["session-roles.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/session-roles:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the roles each session of the current side has activated. Requires access.session-roles.read. */
+        post: operations["session-roles.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenant-members": {
         parameters: {
             query?: never;
@@ -2452,6 +2590,55 @@ export interface components {
             /** Format: date-time */
             modifiedAt?: string | null;
         };
+        ConstraintItemRequest: {
+            targetId: string;
+            /** Format: int32 */
+            groupNo?: number;
+            remark?: string | null;
+        };
+        ConstraintItemResponse: {
+            targetId: string;
+            targetName?: string | null;
+            targetCode?: string | null;
+            /** Format: int32 */
+            groupNo: number;
+            remark?: string | null;
+        };
+        ConstraintRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            type: components["schemas"]["ConstraintType"];
+            targetType: components["schemas"]["ConstraintTargetType"];
+            /** Format: int32 */
+            maxAllowed: number;
+            conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+            violationAction: components["schemas"]["ConstraintViolationAction"];
+            /** Format: int32 */
+            priority: number;
+            status: components["schemas"]["ConstraintRuleStatus"];
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            isEffective: boolean;
+            description?: string | null;
+            remark?: string | null;
+            items: components["schemas"]["ConstraintItemResponse"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        ConstraintRuleStatus: "Active" | "Disabled";
+        /** @enum {string} */
+        ConstraintTargetType: "Role" | "Permission" | "User";
+        /** @enum {string} */
+        ConstraintType: "Ssd" | "Dsd" | "MutualExclusion" | "Cardinality" | "Condition";
+        /** @enum {string} */
+        ConstraintViolationAction: "Deny" | "Warning" | "Log" | "RequireApproval";
         /** @enum {string} */
         DataScope: "SelfOnly" | "DepartmentOnly" | "DepartmentAndChildren" | "All" | "Custom";
         DataScopeDepartmentRequest: {
@@ -2691,7 +2878,7 @@ export interface components {
             remainingSeconds: number;
         };
         /** @enum {string} */
-        LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset";
+        LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset" | "RoleActivation";
         LoginLogResponse: {
             /** Format: uuid */
             id: string;
@@ -2938,7 +3125,7 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange" | "ConstraintViolation";
         PermissionConditionResponse: {
             /** Format: uuid */
             id: string;
@@ -3039,6 +3226,34 @@ export interface components {
             code: string;
             name: string;
         };
+        SessionRoleItemResponse: {
+            /** Format: uuid */
+            roleId: string;
+            code: string;
+            name: string;
+            isActive: boolean;
+        };
+        SessionRoleResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            userId: string;
+            userName?: string | null;
+            /** Format: uuid */
+            roleId: string;
+            roleName?: string | null;
+            roleCode?: string | null;
+            status: components["schemas"]["SessionRoleStatus"];
+            /** Format: date-time */
+            activatedAt: string;
+            /** Format: date-time */
+            deactivatedAt?: string | null;
+            reason?: string | null;
+        };
+        /** @enum {string} */
+        SessionRoleStatus: "Active" | "Inactive" | "Expired";
         /** @enum {string} */
         SettingStatus: "Active" | "Disabled";
         TenantMemberResponse: {
@@ -3260,6 +3475,55 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.activate-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    roleIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accessToken: string;
+                        /** Format: date-time */
+                        accessExpiresAt: string;
+                        refreshToken: string;
+                        /** Format: date-time */
+                        refreshExpiresAt: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        tenantId?: string | null;
+                        mustChangePassword: boolean;
+                        user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
                     };
                 };
             };
@@ -3533,6 +3797,37 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.session-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SessionRoleItemResponse"][];
                     };
                 };
             };
@@ -4002,6 +4297,365 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    type: components["schemas"]["ConstraintType"];
+                    targetType: components["schemas"]["ConstraintTargetType"];
+                    items: components["schemas"]["ConstraintItemRequest"][];
+                    /** Format: int32 */
+                    maxAllowed?: number;
+                    conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    violationAction?: components["schemas"]["ConstraintViolationAction"];
+                    /** Format: int32 */
+                    priority?: number;
+                    status?: components["schemas"]["ConstraintRuleStatus"];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    description?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["ConstraintType"];
+                        targetType: components["schemas"]["ConstraintTargetType"];
+                        /** Format: int32 */
+                        maxAllowed: number;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        violationAction: components["schemas"]["ConstraintViolationAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["ConstraintRuleStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        description?: string | null;
+                        remark?: string | null;
+                        items: components["schemas"]["ConstraintItemResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["ConstraintType"];
+                        targetType: components["schemas"]["ConstraintTargetType"];
+                        /** Format: int32 */
+                        maxAllowed: number;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        violationAction: components["schemas"]["ConstraintViolationAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["ConstraintRuleStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        description?: string | null;
+                        remark?: string | null;
+                        items: components["schemas"]["ConstraintItemResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    code: string;
+                    name: string;
+                    type: components["schemas"]["ConstraintType"];
+                    targetType: components["schemas"]["ConstraintTargetType"];
+                    items: components["schemas"]["ConstraintItemRequest"][];
+                    /** Format: int32 */
+                    maxAllowed?: number;
+                    conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    violationAction?: components["schemas"]["ConstraintViolationAction"];
+                    /** Format: int32 */
+                    priority?: number;
+                    status?: components["schemas"]["ConstraintRuleStatus"];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    description?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["ConstraintType"];
+                        targetType: components["schemas"]["ConstraintTargetType"];
+                        /** Format: int32 */
+                        maxAllowed: number;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        violationAction: components["schemas"]["ConstraintViolationAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["ConstraintRuleStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        description?: string | null;
+                        remark?: string | null;
+                        items: components["schemas"]["ConstraintItemResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    status: components["schemas"]["ConstraintRuleStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["ConstraintType"];
+                        targetType: components["schemas"]["ConstraintTargetType"];
+                        /** Format: int32 */
+                        maxAllowed: number;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        violationAction: components["schemas"]["ConstraintViolationAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["ConstraintRuleStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        description?: string | null;
+                        remark?: string | null;
+                        items: components["schemas"]["ConstraintItemResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "constraint-rules.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConstraintRuleResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
@@ -9386,6 +10040,98 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["RoleResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "session-roles.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        /** Format: uuid */
+                        userId: string;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        roleId: string;
+                        roleName?: string | null;
+                        roleCode?: string | null;
+                        status: components["schemas"]["SessionRoleStatus"];
+                        /** Format: date-time */
+                        activatedAt: string;
+                        /** Format: date-time */
+                        deactivatedAt?: string | null;
+                        reason?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "session-roles.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SessionRoleResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

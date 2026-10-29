@@ -44,6 +44,18 @@ export type ConditionVerdict = (typeof ConditionVerdict)[number]
 export const ConfigDataType = ['Text', 'Number', 'Boolean', 'Json', 'Array'] as const
 export type ConfigDataType = (typeof ConfigDataType)[number]
 
+export const ConstraintRuleStatus = ['Active', 'Disabled'] as const
+export type ConstraintRuleStatus = (typeof ConstraintRuleStatus)[number]
+
+export const ConstraintTargetType = ['Role', 'Permission', 'User'] as const
+export type ConstraintTargetType = (typeof ConstraintTargetType)[number]
+
+export const ConstraintType = ['Ssd', 'Dsd', 'MutualExclusion', 'Cardinality', 'Condition'] as const
+export type ConstraintType = (typeof ConstraintType)[number]
+
+export const ConstraintViolationAction = ['Deny', 'Warning', 'Log', 'RequireApproval'] as const
+export type ConstraintViolationAction = (typeof ConstraintViolationAction)[number]
+
 export const DataScope = ['SelfOnly', 'DepartmentOnly', 'DepartmentAndChildren', 'All', 'Custom'] as const
 export type DataScope = (typeof DataScope)[number]
 
@@ -65,7 +77,7 @@ export type FieldSecurityTargetKind = (typeof FieldSecurityTargetKind)[number]
 export const GrantSubjectKind = ['Role', 'User'] as const
 export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
-export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset'] as const
+export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset', 'RoleActivation'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
 export const MenuKind = ['Page', 'Directory', 'Link'] as const
@@ -86,7 +98,7 @@ export type OrganizationStatus = (typeof OrganizationStatus)[number]
 export const PermissionAction = ['Grant', 'Deny'] as const
 export type PermissionAction = (typeof PermissionAction)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange'] as const
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange', 'ConstraintViolation'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -94,6 +106,9 @@ export type PermissionScope = (typeof PermissionScope)[number]
 
 export const RoleStatus = ['Active', 'Disabled'] as const
 export type RoleStatus = (typeof RoleStatus)[number]
+
+export const SessionRoleStatus = ['Active', 'Inactive', 'Expired'] as const
+export type SessionRoleStatus = (typeof SessionRoleStatus)[number]
 
 export const SettingStatus = ['Active', 'Disabled'] as const
 export type SettingStatus = (typeof SettingStatus)[number]
@@ -138,6 +153,10 @@ export const enums = {
   ConditionValueKind,
   ConditionVerdict,
   ConfigDataType,
+  ConstraintRuleStatus,
+  ConstraintTargetType,
+  ConstraintType,
+  ConstraintViolationAction,
   DataScope,
   DelegationStatus,
   DiffKind,
@@ -155,6 +174,7 @@ export const enums = {
   PermissionChangeType,
   PermissionScope,
   RoleStatus,
+  SessionRoleStatus,
   SettingStatus,
   TenantMemberType,
   TenantStatus,

@@ -44,6 +44,7 @@ export function loginEventLabel(t: Translate, value: LoginEvent): string {
     case 'TwoFactorEnable': return t('auditing.login_logs.events.two_factor_enable')
     case 'TwoFactorDisable': return t('auditing.login_logs.events.two_factor_disable')
     case 'TwoFactorReset': return t('auditing.login_logs.events.two_factor_reset')
+    case 'RoleActivation': return t('auditing.login_logs.events.role_activation')
   }
 }
 
@@ -75,6 +76,7 @@ export function permissionChangeLabel(t: Translate, value: PermissionChangeType)
     case 'RoleInheritance': return t('auditing.permission_change_logs.types.role_inheritance')
     case 'Delegation': return t('auditing.permission_change_logs.types.delegation')
     case 'ConditionChange': return t('auditing.permission_change_logs.types.condition_change')
+    case 'ConstraintViolation': return t('auditing.permission_change_logs.types.constraint_violation')
   }
 }
 

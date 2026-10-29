@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Auth;
+using XiHan.BasicApp.Access.Operations.ConstraintRules;
 using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
 using XiHan.BasicApp.Access.Operations.LoginBans;
@@ -12,6 +13,7 @@ using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
+using XiHan.BasicApp.Access.Operations.SessionRoles;
 using XiHan.BasicApp.Access.Operations.UserDataScopes;
 using XiHan.BasicApp.Access.Operations.UserGrants;
 using XiHan.BasicApp.Contracts.Batch;
@@ -116,4 +118,17 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(LoginBansResponse))]
 [JsonSerializable(typeof(LiftLoginBanRequest))]
 [JsonSerializable(typeof(LiftLoginBanResponse))]
+[JsonSerializable(typeof(List<ConstraintRuleView>))]
+[JsonSerializable(typeof(ConstraintRuleResponse))]
+[JsonSerializable(typeof(PageResult<ConstraintRuleResponse>))]
+[JsonSerializable(typeof(GetConstraintRuleRequest))]
+[JsonSerializable(typeof(CreateConstraintRuleRequest))]
+[JsonSerializable(typeof(UpdateConstraintRuleRequest))]
+[JsonSerializable(typeof(SetConstraintRuleStatusRequest))]
+[JsonSerializable(typeof(ConstraintRuleIdsRequest))]
+[JsonSerializable(typeof(SessionRoleResponse))]
+[JsonSerializable(typeof(PageResult<SessionRoleResponse>))]
+[JsonSerializable(typeof(GetSessionRoleRequest))]
+[JsonSerializable(typeof(SessionRolesRequest))]
+[JsonSerializable(typeof(SessionRolesResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

@@ -16,6 +16,7 @@ import HeaderToolbar from './header/HeaderToolbar.vue'
 import HeaderTopMenu from './header/HeaderTopMenu.vue'
 import ImpersonationDialog from './ImpersonationDialog.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
+import SwitchRolesDialog from './SwitchRolesDialog.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
 interface Props {
@@ -36,6 +37,7 @@ const { t, te } = useI18n()
 const { isMobile } = useIsMobile()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const showImpersonationDialog = ref(false)
+const showSwitchRolesDialog = ref(false)
 const {
   route,
   router,
@@ -225,6 +227,14 @@ const userOptions = computed<AppDropdownOption[]>(() => [
       }]
     : []),
   // 能否发起模仿由服务端判定后随用户信息下发；模仿态下服务端恒返回 false，此时只出「退出模仿」
+  // 切换本会话激活的角色；模仿态的会话服务端不让切，这里也不出
+  ...(!userStore.userInfo?.isImpersonating && appContext.apis.sessionRoleApi
+    ? [{
+        label: t('header.switch_roles.entry'),
+        key: 'switch-roles',
+        icon: () => h(Icon, { icon: 'lucide:users-round' }),
+      }]
+    : []),
   ...(userStore.userInfo?.canImpersonate
     ? [{
         label: t('header.impersonation.entry'),
@@ -283,6 +293,10 @@ async function handleUserAction(key: string) {
   }
   if (key === 'impersonate') {
     showImpersonationDialog.value = true
+    return
+  }
+  if (key === 'switch-roles') {
+    showSwitchRolesDialog.value = true
     return
   }
   if (key === 'stop-impersonation') {
@@ -563,4 +577,5 @@ watch(() => route.fullPath, () => {
 
   <!-- 模仿登录：由用户菜单打开，选中目标即以其身份重建会话 -->
   <ImpersonationDialog v-model:show="showImpersonationDialog" />
+  <SwitchRolesDialog v-model:show="showSwitchRolesDialog" />
 </template>

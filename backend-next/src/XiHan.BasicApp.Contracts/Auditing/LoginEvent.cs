@@ -62,4 +62,9 @@ public enum LoginEvent
     /// 管理员重置用户的双因素设置（日志的用户是被重置的账号）。
     /// </summary>
     TwoFactorReset = 10,
+
+    /// <summary>
+    /// 会话换了激活的角色：本人在 <c>auth.activate-roles</c> 换激活集，或续签时按动态职责分离规则停掉了冲突的角色（说明里是激活与停用的角色）。
+    /// </summary>
+    RoleActivation = 11,
 }

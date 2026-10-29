@@ -519,6 +519,17 @@ export default {
         close: 'Fechar',
       },
     },
+    switch_roles: {
+      entry: 'Trocar funções',
+      title: 'Trocar funções',
+      hint: 'Escolha as funções que esta sessão ativa; as permissões vêm só das funções ativadas. Funções mutuamente exclusivas não podem ficar ativas juntas.',
+      empty: 'Nenhuma função para ativar agora',
+      pick_one: 'Selecione pelo menos uma função',
+      load_failed: 'Falha ao carregar as funções',
+      save_failed: 'Falha ao trocar as funções',
+      cancel: 'Cancelar',
+      save: 'Trocar',
+    },
   },
   island: {
     title: 'Atividade',

@@ -347,4 +347,59 @@ public static class AccessErrors
     /// 来源地址因登录失败次数过多被暂时封禁；参数 <c>retryAfter</c>（秒）。
     /// </summary>
     public const string LoginBanned = "ACCESS_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 约束规则编码含空白；参数 <c>code</c>。
+    /// </summary>
+    public const string ConstraintCodeInvalid = "ACCESS_VALIDATION_044";
+
+    /// <summary>
+    /// 约束类型用不了这种目标类型；参数 <c>type</c>、<c>targetType</c>。
+    /// </summary>
+    public const string ConstraintTargetMismatch = "ACCESS_VALIDATION_045";
+
+    /// <summary>
+    /// 规则项太少；参数 <c>min</c>。
+    /// </summary>
+    public const string ConstraintItemsTooFew = "ACCESS_VALIDATION_046";
+
+    /// <summary>
+    /// 规则项目标重复；参数 <c>target</c>。
+    /// </summary>
+    public const string ConstraintItemDuplicate = "ACCESS_VALIDATION_047";
+
+    /// <summary>
+    /// 规则项目标不在这一侧或不可用；参数 <c>target</c>。
+    /// </summary>
+    public const string ConstraintTargetInvalid = "ACCESS_VALIDATION_048";
+
+    /// <summary>
+    /// 条件类约束没有条件，或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </summary>
+    public const string ConstraintConditionsRequired = "ACCESS_VALIDATION_049";
+
+    /// <summary>
+    /// 要激活的角色此刻不持有；参数 <c>id</c>。
+    /// </summary>
+    public const string ActivationRoleNotHeld = "ACCESS_VALIDATION_050";
+
+    /// <summary>
+    /// 约束规则编码在这一侧已存在；参数 <c>code</c>。
+    /// </summary>
+    public const string ConstraintCodeTaken = "ACCESS_CONFLICT_011";
+
+    /// <summary>
+    /// 违反了拦截类的约束规则，这次变更没做；参数 <c>code</c>、<c>name</c>。
+    /// </summary>
+    public const string ConstraintViolated = "ACCESS_CONFLICT_012";
+
+    /// <summary>
+    /// 约束规则不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string ConstraintRuleNotFound = "ACCESS_NOTFOUND_010";
+
+    /// <summary>
+    /// 会话角色记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SessionRoleNotFound = "ACCESS_NOTFOUND_011";
 }

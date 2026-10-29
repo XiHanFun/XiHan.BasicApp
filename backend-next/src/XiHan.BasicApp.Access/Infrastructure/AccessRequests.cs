@@ -77,6 +77,24 @@ public static class AccessRequests
     }
 
     /// <summary>
+    /// 约束规则的条件类看到的一次指派：主体是被指派的用户（变更之后持有的角色），环境是发起这次指派的请求。
+    /// </summary>
+    /// <param name="context">调用上下文。</param>
+    /// <param name="owner">所属侧。</param>
+    /// <param name="userId">被指派的用户。</param>
+    /// <param name="userName">登录名。</param>
+    /// <param name="roleIds">变更之后持有的角色。</param>
+    /// <param name="now">判定时刻。</param>
+    public static ConditionRequest ForAssignment(InvocationContext context, string owner, Guid userId, string? userName, IEnumerable<Guid> roleIds, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(roleIds);
+        var (origin, method, path) = TargetOf(context);
+        var operation = context.GetOperation().TryGetValue(out var found) ? found : null;
+        return new ConditionRequest(owner, userId, userName, false, [.. roleIds], [], path, method, operation?.Id, origin?.RemoteAddress, origin?.UserAgent, origin?.Protocol, now);
+    }
+
+    /// <summary>
     /// 访问策略看到的这次调用：角色取令牌声明，权限码取操作契约声明的那一个。
     /// </summary>
     /// <param name="context">调用上下文。</param>
