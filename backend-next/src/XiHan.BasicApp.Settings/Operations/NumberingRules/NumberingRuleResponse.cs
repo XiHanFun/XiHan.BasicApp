@@ -142,8 +142,11 @@ public sealed record CreateNumberingRuleRequest(
 public sealed record GetNumberingRuleRequest(Guid Id);
 
 /// <summary>
-/// <c>numbering-rules.update</c> 的请求：编码不在这里改；发过号后格式字段必须与原值相同。
+/// <c>numbering-rules.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码不在这里改；发过号后格式字段必须与原值相同。
+/// </remarks>
 /// <param name="Id">规则主键。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Prefix">前缀。</param>
@@ -190,8 +193,11 @@ public sealed record ResetNumberingRuleRequest(
     [StringLength(100)] string? ConfirmCode = null);
 
 /// <summary>
-/// <c>numbering-rules.preview</c> 的请求：按给定格式在当前时刻预览，不发号。
+/// <c>numbering-rules.preview</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 按给定格式在当前时刻预览，不发号。
+/// </remarks>
 /// <param name="Prefix">前缀。</param>
 /// <param name="Separator">分隔符。</param>
 /// <param name="DateFormat">日期格式。</param>

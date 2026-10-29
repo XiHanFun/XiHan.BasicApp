@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段的 <c>-</c> 换成 <c>_</c>）。
+/// 设置包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段的 <c>-</c> 换成 <c>_</c>）。
+/// </remarks>
 public static class SettingsMessages
 {
     /// <summary>

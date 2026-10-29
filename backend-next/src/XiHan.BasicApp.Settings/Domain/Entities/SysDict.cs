@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
 /// <summary>
-/// 字典（平台库实体）：<see cref="OwnerTenantId"/> 分平台字典与租户字典。字典不覆盖：平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
-/// 选项由 <see cref="SysDictItem"/> 承载；停用的字典不再给出选项。
+/// 字典（平台库实体）。
 /// </summary>
+/// <remarks>
+/// <see cref="OwnerTenantId"/> 分平台字典与租户字典。字典不覆盖：平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
+/// 选项由 <see cref="SysDictItem"/> 承载；停用的字典不再给出选项。
+/// </remarks>
 public sealed class SysDict : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

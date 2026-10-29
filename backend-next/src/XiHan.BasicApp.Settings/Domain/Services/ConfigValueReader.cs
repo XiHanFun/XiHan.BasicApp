@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// <see cref="IConfigValueReader"/> 的实现：只看启用的参数；当前租户的同键参数优先，其次平台参数；值为空回落缺省值。
+/// <see cref="IConfigValueReader"/> 的实现。
 /// </summary>
+/// <remarks>
+/// 只看启用的参数；当前租户的同键参数优先，其次平台参数；值为空回落缺省值。
+/// </remarks>
 /// <param name="configs">参数仓储。</param>
 /// <param name="values">参数值规则。</param>
 public sealed class ConfigValueReader(IRepository<SysConfig, Guid> configs, ConfigValues values) : IConfigValueReader

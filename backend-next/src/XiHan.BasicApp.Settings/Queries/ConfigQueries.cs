@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Queries;
 
 /// <summary>
-/// 参数列表查询（SqlSugar 直查，平台库，读共享）：关键字匹配键、名称与分组；筛选 <c>key</c>、<c>name</c>、<c>group</c>、<c>dataType</c>、<c>status</c>、
-/// <c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>isEncrypted</c>、<c>isBuiltIn</c>；排序 <c>key</c>、<c>name</c>、<c>group</c>、<c>order</c>、<c>createdAt</c>。
+/// 参数列表查询（SqlSugar 直查，平台库，读共享）。
 /// </summary>
+/// <remarks>
+/// 关键字匹配键、名称与分组；筛选 <c>key</c>、<c>name</c>、<c>group</c>、<c>dataType</c>、<c>status</c>、
+/// <c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>isEncrypted</c>、<c>isBuiltIn</c>；排序 <c>key</c>、<c>name</c>、<c>group</c>、<c>order</c>、<c>createdAt</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class ConfigQueries(SqlSugarUnitOfWork unitOfWork)
 {

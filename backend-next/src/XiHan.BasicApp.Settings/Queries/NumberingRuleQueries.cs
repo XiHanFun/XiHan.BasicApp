@@ -14,9 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Queries;
 
 /// <summary>
-/// 编号规则列表查询（SqlSugar 直查，平台库）：平台主体只看平台规则；租户主体看自己的规则与 <c>AllowTenantUse</c> 的平台规则。
-/// 关键字匹配编码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>、<c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>resetCycle</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// 编号规则列表查询（SqlSugar 直查，平台库）。
 /// </summary>
+/// <remarks>
+/// 平台主体只看平台规则；租户主体看自己的规则与 <c>AllowTenantUse</c> 的平台规则。
+/// 关键字匹配编码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>、<c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>resetCycle</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class NumberingRuleQueries(SqlSugarUnitOfWork unitOfWork)
 {

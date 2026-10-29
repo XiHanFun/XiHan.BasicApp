@@ -9,8 +9,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 编号规则列表：<c>POST /api/numbering-rules:list</c>。平台主体看平台规则；租户主体看自己的规则与供租户使用的平台规则。
+/// 编号规则列表。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/numbering-rules:list</c>。平台主体看平台规则；租户主体看自己的规则与供租户使用的平台规则。
+/// </remarks>
 /// <param name="queries">规则查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
 public sealed class ListNumberingRules(NumberingRuleQueries queries) : IOperation<PageRequest, PageResult<NumberingRuleResponse>>

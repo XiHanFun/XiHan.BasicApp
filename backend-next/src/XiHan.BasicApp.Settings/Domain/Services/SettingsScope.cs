@@ -9,8 +9,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 本包数据的两侧规则：读共享（平台的加当前租户自己的），写不共享（只写自己这一侧）。
+/// 本包数据的两侧规则。
 /// </summary>
+/// <remarks>
+/// 读共享（平台的加当前租户自己的），写不共享（只写自己这一侧）。
+/// </remarks>
 public static class SettingsScope
 {
     /// <summary>

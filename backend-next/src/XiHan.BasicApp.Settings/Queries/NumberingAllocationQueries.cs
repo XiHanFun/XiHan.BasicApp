@@ -12,14 +12,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Queries;
 
 /// <summary>
-/// 发号记录查询（SqlSugar 直查，平台库）：一条规则的记录按发号时刻倒序；关键字匹配幂等键、业务类型与业务单据。
+/// 发号记录查询（SqlSugar 直查，平台库）。
 /// </summary>
+/// <remarks>
+/// 一条规则的记录按发号时刻倒序；关键字匹配幂等键、业务类型与业务单据。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class NumberingAllocationQueries(SqlSugarUnitOfWork unitOfWork)
 {
     /// <summary>
-    /// 分页列出一条规则的发号记录；<paramref name="requester"/> 不为空时只列这一侧发起的。
+    /// 分页列出一条规则的发号记录。
     /// </summary>
+    /// <remarks>
+    /// <paramref name="requester"/> 不为空时只列这一侧发起的。
+    /// </remarks>
     public async ValueTask<Result<PageResult<NumberingAllocationResponse>>> ListAsync(Guid ruleId, string? requester, string? keyword, PageInfo page, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(page);

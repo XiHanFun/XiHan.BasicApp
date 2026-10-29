@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.DictItems;
 
 /// <summary>
-/// 修改字典项：<c>PUT /api/dict-items/{id}</c>（上级、名称、附加值、说明、元数据、缺省、排序、状态；编码不可改）。
-/// 只能改本侧的；上级不能是自己或下级（<c>SETTINGS_VALIDATION_004</c>）；设为缺省会取消其他缺省项。
+/// 修改字典项。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/dict-items/{id}</c>（上级、名称、附加值、说明、元数据、缺省、排序、状态；编码不可改）。
+/// 只能改本侧的；上级不能是自己或下级（<c>SETTINGS_VALIDATION_004</c>）；设为缺省会取消其他缺省项。
+/// </remarks>
 /// <param name="items">字典项仓储。</param>
 /// <param name="service">字典域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsUpdate)]

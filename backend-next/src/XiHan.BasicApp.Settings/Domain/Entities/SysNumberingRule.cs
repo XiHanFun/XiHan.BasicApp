@@ -6,15 +6,21 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
 /// <summary>
-/// 业务编号规则（平台库实体）：<see cref="OwnerTenantId"/> 分平台规则与租户规则；平台规则 <see cref="AllowTenantUse"/> 时租户也能用它发号（共享一条流水）。
+/// 业务编号规则（平台库实体）。
+/// </summary>
+/// <remarks>
+/// <see cref="OwnerTenantId"/> 分平台规则与租户规则；平台规则 <see cref="AllowTenantUse"/> 时租户也能用它发号（共享一条流水）。
 /// 规则行同时保存当前周期与最后发出的流水值；发号在独立事务里先锁住规则行再推进，发出的号永久消耗（可以有空洞，不会重用）。
 /// 首次发号后格式（前缀、分隔符、日期格式、流水位数、重置周期、时区）冻结。
-/// </summary>
+/// </remarks>
 public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
-    /// 还没有周期基线时 <see cref="CurrentPeriodOrdinal"/> 的值：任何真实序号都不小于 0，首次发号必能通过「只前进」的翻转判断。
+    /// 还没有周期基线时 <see cref="CurrentPeriodOrdinal"/> 的值。
     /// </summary>
+    /// <remarks>
+    /// 任何真实序号都不小于 0，首次发号必能通过「只前进」的翻转判断。
+    /// </remarks>
     public const long NoPeriodBaseline = -1;
 
     /// <inheritdoc />
@@ -31,8 +37,11 @@ public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 前缀（如 ORD）；空即不输出。
+    /// 前缀（如 ORD）。
     /// </summary>
+    /// <remarks>
+    /// 空即不输出。
+    /// </remarks>
     public string? Prefix { get; set; }
 
     /// <summary>
@@ -61,13 +70,19 @@ public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
     public string TimeZoneId { get; set; } = "UTC";
 
     /// <summary>
-    /// 当前周期里最后发出的流水值；0 表示本周期还没发号。
+    /// 当前周期里最后发出的流水值。
     /// </summary>
+    /// <remarks>
+    /// 0 表示本周期还没发号。
+    /// </remarks>
     public long CurrentValue { get; set; }
 
     /// <summary>
-    /// 当前周期键（<c>never</c> / <c>yyyyMMdd</c> / <c>yyyyMM</c> / <c>yyyy</c>）；还没有基线时为空串。
+    /// 当前周期键。
     /// </summary>
+    /// <remarks>
+    /// 取值为 <c>never</c> / <c>yyyyMMdd</c> / <c>yyyyMM</c> / <c>yyyy</c>；还没有基线时为空串。
+    /// </remarks>
     public string CurrentPeriod { get; set; } = string.Empty;
 
     /// <summary>
@@ -81,8 +96,11 @@ public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
     public bool HasAllocated { get; set; }
 
     /// <summary>
-    /// 平台规则是否供租户使用；租户规则恒为 <c>false</c>。
+    /// 平台规则是否供租户使用。
     /// </summary>
+    /// <remarks>
+    /// 租户规则恒为 <c>false</c>。
+    /// </remarks>
     public bool AllowTenantUse { get; set; }
 
     /// <summary>

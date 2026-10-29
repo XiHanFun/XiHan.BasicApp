@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
 /// <summary>
-/// 发号的永久记录（平台库实体，只追加）：兼作幂等事实与审计。<see cref="OwnerTenantId"/> 是规则所属一侧，<see cref="RequestTenantId"/> 是发起调用的一侧，两者在租户共用平台规则时不同。
-/// 号码按格式快照与流水区间重建，不存号码列表。
+/// 发号的永久记录（平台库实体，只追加）。
 /// </summary>
+/// <remarks>
+/// 兼作幂等事实与审计。<see cref="OwnerTenantId"/> 是规则所属一侧，<see cref="RequestTenantId"/> 是发起调用的一侧，两者在租户共用平台规则时不同。
+/// 号码按格式快照与流水区间重建，不存号码列表。
+/// </remarks>
 public sealed class SysNumberingAllocation : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

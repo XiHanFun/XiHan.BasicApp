@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包的权限码：全部两侧都有（平台维护平台数据，租户维护自己的覆盖与数据；只能写本侧，由操作按属主判定）。
-/// 字典选项（<c>dicts.options</c>）只要求已登录，不在这里。
+/// 设置包的权限码。
 /// </summary>
+/// <remarks>
+/// 全部两侧都有（平台维护平台数据，租户维护自己的覆盖与数据；只能写本侧，由操作按属主判定）。
+/// 字典选项（<c>dicts.options</c>）只要求已登录，不在这里。
+/// </remarks>
 public static class SettingsPermissions
 {
     /// <summary>

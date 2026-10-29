@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Queries;
 
 /// <summary>
-/// 字典列表查询（SqlSugar 直查，平台库，读共享）：关键字匹配编码、名称与分类；筛选 <c>code</c>、<c>name</c>、<c>category</c>、<c>status</c>、<c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>isBuiltIn</c>；
-/// 排序 <c>code</c>、<c>name</c>、<c>category</c>、<c>order</c>、<c>createdAt</c>。
+/// 字典列表查询（SqlSugar 直查，平台库，读共享）。
 /// </summary>
+/// <remarks>
+/// 关键字匹配编码、名称与分类；筛选 <c>code</c>、<c>name</c>、<c>category</c>、<c>status</c>、<c>owner</c>（<c>platform</c> / <c>tenant</c>）、<c>isBuiltIn</c>；
+/// 排序 <c>code</c>、<c>name</c>、<c>category</c>、<c>order</c>、<c>createdAt</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class DictQueries(SqlSugarUnitOfWork unitOfWork)
 {

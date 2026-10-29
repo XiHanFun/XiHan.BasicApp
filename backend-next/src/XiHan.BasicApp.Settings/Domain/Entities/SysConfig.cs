@@ -7,17 +7,23 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
 /// <summary>
-/// 系统参数（平台库实体，不实现 <c>IMultiTenant</c>）：<see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数。
-/// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在。
+/// 系统参数（平台库实体，不实现 <c>IMultiTenant</c>）。
 /// </summary>
+/// <remarks>
+/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数。
+/// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在。
+/// </remarks>
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 参数键：点分小写（如 <c>auditing.retention-days</c>），所属一侧内唯一，创建后不可改。
+    /// 参数键。
     /// </summary>
+    /// <remarks>
+    /// 点分小写（如 <c>auditing.retention-days</c>），所属一侧内唯一，创建后不可改。
+    /// </remarks>
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
@@ -31,8 +37,11 @@ public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
     public string? Group { get; set; }
 
     /// <summary>
-    /// 参数值；<see cref="IsEncrypted"/> 时是数据保护的密文。
+    /// 参数值。
     /// </summary>
+    /// <remarks>
+    /// <see cref="IsEncrypted"/> 时是数据保护的密文。
+    /// </remarks>
     [LongText]
     public string? Value { get; set; }
 
@@ -58,8 +67,11 @@ public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
     public bool IsBuiltIn { get; set; }
 
     /// <summary>
-    /// 平台参数是否允许租户同键覆盖；租户参数恒为 <c>false</c>。
+    /// 平台参数是否允许租户同键覆盖。
     /// </summary>
+    /// <remarks>
+    /// 租户参数恒为 <c>false</c>。
+    /// </remarks>
     public bool AllowTenantOverride { get; set; }
 
     /// <summary>

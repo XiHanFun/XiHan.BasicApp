@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 批量删除字典：<c>DELETE /api/dicts?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_002</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，
-/// 内建的 <c>SETTINGS_CONFLICT_006</c>，还有字典项的 <c>SETTINGS_CONFLICT_004</c>（先删项，不级联）。
+/// 批量删除字典。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/dicts?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_002</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，
+/// 内建的 <c>SETTINGS_CONFLICT_006</c>，还有字典项的 <c>SETTINGS_CONFLICT_004</c>（先删项，不级联）。
+/// </remarks>
 /// <param name="dicts">字典仓储。</param>
 /// <param name="items">字典项仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsDelete)]
