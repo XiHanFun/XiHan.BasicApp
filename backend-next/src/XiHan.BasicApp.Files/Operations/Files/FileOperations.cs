@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
 using XiHan.BasicApp.Files.Queries;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -131,7 +133,8 @@ public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, 
 }
 
 /// <summary>
-/// 换取签名下载地址：<c>GET /api/files/{id}:presign</c>。访问级别「已登录」的同一侧已登录即可，「需要授权」的要持有 <c>files.files.read</c>；
+/// 换取签名下载地址：<c>GET /api/files/{id}:presign</c>。访问级别「已登录」的同一侧已登录即可，「需要授权」的要持有 <c>files.files.read</c>，
+/// 「公开」的（头像，固定在平台侧）任何已登录主体不分侧都能换（本侧找不到再到平台侧找，只认公开级别）；
 /// 地址在有效期内不再校验身份（给图片、链接与新窗口用），文件归档或损坏后地址随之失效。
 /// </summary>
 /// <param name="files">文件服务。</param>
@@ -148,10 +151,18 @@ public sealed class PresignFile(FileService files) : IOperation<PresignFileReque
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var side = SideRows.SideOf(context);
+        var found = await files.FindAsync(side, request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
-            return found.Error!;
+            if (string.Equals(side, TenantIds.Platform, StringComparison.Ordinal)
+                || !(await files.FindAsync(TenantIds.Platform, request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var shared)
+                || shared.AccessLevel != FileAccessLevel.Public)
+            {
+                return found.Error!;
+            }
+
+            file = shared;
         }
 
         var allowed = await files.CheckAccessAsync(context, file).ConfigureAwait(false);

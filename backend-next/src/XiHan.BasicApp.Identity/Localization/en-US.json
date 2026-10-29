@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "Sign out one of your devices; use sign-out for the current one. Requires sign-in only.",
   "profile.revoke_other_sessions.description": "Sign out all your devices except the current one, including impersonation sessions you started that are still open. Requires sign-in only.",
   "profile.notification_preference.description": "Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them. Requires sign-in only.",
-  "profile.update_notification_preference.description": "Save your notification preferences (replaces them as a whole). Requires sign-in only."
+  "profile.update_notification_preference.description": "Save your notification preferences (replaces them as a whole). Requires sign-in only.",
+  "profile.update.description": "Save your profile: display name, real name, gender, birthday, country or region and bio (replaced as a whole; blanks count as empty). Requires sign-in only.",
+  "profile.change_username.description": "Change your username: requires your current password, once every 90 days, unique within your home tenant. Not available in impersonation sessions.",
+  "profile.remove_avatar.description": "Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar. Requires sign-in only.",
+  "identity.avatar.invalid": "The avatar must be a JPEG or PNG image of at most {max} MB.",
+  "identity.user_name.unchanged": "The new username is the same as the current one.",
+  "identity.user_name.too_soon": "The username can be changed once every 90 days; try again in {days} days."
 }

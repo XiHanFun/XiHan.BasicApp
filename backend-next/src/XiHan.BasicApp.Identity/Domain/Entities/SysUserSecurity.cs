@@ -28,6 +28,11 @@ public sealed class SysUserSecurity : AppAuditedEntity
     public DateTimeOffset? PasswordChangedAt { get; set; }
 
     /// <summary>
+    /// 最近一次本人改用户名的时间（90 天一次，4.x 同）。
+    /// </summary>
+    public DateTimeOffset? UserNameChangedAt { get; set; }
+
+    /// <summary>
     /// 自上次成功登录以来的连续失败次数。
     /// </summary>
     public int FailedAccessCount { get; set; }

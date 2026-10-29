@@ -19,6 +19,7 @@ export default {
       access_levels: {
         authenticated: 'Requer autenticação',
         authorized: 'Requer autorização',
+        public: 'Público (qualquer usuário conectado)',
       },
       sources: {
         upload: 'Upload',

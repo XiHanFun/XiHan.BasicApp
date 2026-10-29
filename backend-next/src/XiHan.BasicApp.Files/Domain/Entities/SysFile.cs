@@ -173,4 +173,9 @@ public enum FileAccessLevel
     /// 还要持有 <c>files.files.read</c>。
     /// </summary>
     Authorized = 2,
+
+    /// <summary>
+    /// 公开：任何已登录主体（不分侧）都能换签名地址，匿名不行，签名地址照常限时（4.x 同为头像这类跟着用户走的文件用；头像固定存平台侧）。
+    /// </summary>
+    Public = 3,
 }

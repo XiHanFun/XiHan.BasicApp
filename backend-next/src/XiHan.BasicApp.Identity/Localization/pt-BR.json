@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "Desconecta um de seus dispositivos; para o atual, use sair. Requer apenas login.",
   "profile.revoke_other_sessions.description": "Desconecta todos os seus dispositivos, exceto o atual, incluindo personificações iniciadas por você que ainda estão abertas. Requer apenas login.",
   "profile.notification_preference.description": "Suas preferências de notificação: canais no aplicativo, e-mail e SMS, e temas aviso, tarefa e segurança; tudo é recebido até salvar. Notificações obrigatórias e de emergência não são afetadas. Requer apenas login.",
-  "profile.update_notification_preference.description": "Salva suas preferências de notificação (substitui por completo). Requer apenas login."
+  "profile.update_notification_preference.description": "Salva suas preferências de notificação (substitui por completo). Requer apenas login.",
+  "profile.update.description": "Salva seu perfil: nome de exibição, nome real, gênero, aniversário, país ou região e biografia (substituído por completo; vazios contam como não preenchidos). Requer apenas login.",
+  "profile.change_username.description": "Altera seu nome de usuário: exige a senha atual, uma vez a cada 90 dias, único no seu locatário de origem. Indisponível em personificação.",
+  "profile.remove_avatar.description": "Remove seu avatar; o arquivo é recuperado. Envie um novo com POST /api/profile/avatar. Requer apenas login.",
+  "identity.avatar.invalid": "O avatar deve ser uma imagem JPEG ou PNG de no máximo {max} MB.",
+  "identity.user_name.unchanged": "O novo nome de usuário é igual ao atual.",
+  "identity.user_name.too_soon": "O nome de usuário só pode ser alterado uma vez a cada 90 dias; tente novamente em {days} dias."
 }

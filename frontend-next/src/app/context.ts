@@ -1,9 +1,9 @@
 import type { Router } from 'vue-router'
-import type { LoginEvent, ResponseOf, TwoFactorMethod } from '~/contracts'
+import type { components, LoginEvent, ResponseOf, TwoFactorMethod, UserGender } from '~/contracts'
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
 import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
-import { endpointUrl } from '~/request'
+import { endpointUrl, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 壳层导出菜单的范围编号（4.x：0 当前页、1 搜索结果、2 全部）对应的契约名称 */
@@ -80,19 +80,39 @@ function twoFactorMethodOf(flag: number | string): TwoFactorMethod {
   return found
 }
 
+/** 性别：壳层（4.x 个人中心）按数字传，0 未设置、1 男、2 女，契约是字面量 */
+const GENDER_CODES: Record<UserGender, number> = { Unknown: 0, Male: 1, Female: 2 }
+
+function genderOf(code: number): UserGender {
+  const found = (Object.keys(GENDER_CODES) as UserGender[]).find(gender => GENDER_CODES[gender] === code)
+  if (!found)
+    throw new Error(`未知的性别 ${code}`)
+  return found
+}
+
+/** 本人资料（`profile.get` / `update` / `change-username` / `remove-avatar` 与头像上传端点回的都是这一份） */
+type ProfileResponse = components['schemas']['ProfileResponse']
+
 /**
- * `profile.get` → 4.x 个人中心的 UserProfile：6.0 还没有的资料字段（性别、生日、头像、联系方式验证、改用户名）按「没有」给，
- * 这些随个人中心批次补全；锁定取账号状态与登录失败锁定期。
+ * 本人资料 → 4.x 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
+ * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）。
+ * 6.0 没有系统账号（isSystemAccount 恒为否），邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
+ * 锁定取账号状态与登录失败锁定期。
  */
-function toShellProfile(profile: ResponseOf<'profile.get'>): UserProfile {
+function toShellProfile(profile: ProfileResponse): UserProfile {
   const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now() ? profile.lockoutEndAt : null
   return {
     userId: profile.user.id,
     userName: profile.user.userName,
+    ...(profile.realName ? { realName: profile.realName } : {}),
     nickName: profile.user.displayName,
+    ...(profile.user.avatarFileId ? { avatar: profile.user.avatarFileId } : {}),
     ...(profile.user.email ? { email: profile.user.email } : {}),
     ...(profile.user.phoneNumber ? { phone: profile.user.phoneNumber } : {}),
-    gender: 0,
+    gender: GENDER_CODES[profile.gender],
+    ...(profile.birthday ? { birthday: profile.birthday } : {}),
+    ...(profile.country ? { country: profile.country } : {}),
+    ...(profile.remark ? { remark: profile.remark } : {}),
     tenantId: profile.user.homeTenantId === 'platform' ? null : profile.user.homeTenantId,
     ...(profile.user.lastLoginAt ? { lastLoginTime: profile.user.lastLoginAt } : {}),
     isSystemAccount: false,
@@ -101,11 +121,18 @@ function toShellProfile(profile: ResponseOf<'profile.get'>): UserProfile {
     emailVerified: false,
     phoneVerified: false,
     ...(profile.passwordChangedAt ? { lastPasswordChangeTime: profile.passwordChangedAt } : {}),
-    canChangeUserName: false,
+    ...(profile.userNameChangedAt ? { lastUserNameChangeTime: profile.userNameChangedAt } : {}),
+    canChangeUserName: !profile.userNameChangeableAt || Date.parse(profile.userNameChangeableAt) <= Date.now(),
     isLocked: profile.user.status === 'Locked' || lockedUntil !== null,
     ...(lockedUntil ? { lockoutEndTime: lockedUntil } : {}),
     failedLoginAttempts: profile.failedAccessCount,
   }
+}
+
+/** 本人改了资料（显示名、用户名、头像）：会话里的用户换成回来的那份（顶栏、用户菜单与个人中心侧栏的名字和头像随之刷新），再投影成壳层的资料 */
+function applyProfile(profile: ProfileResponse): UserProfile {
+  useAuthStore().applyUser(profile.user)
+  return toShellProfile(profile)
 }
 
 /** `profile.external-logins` / `link-external` / `unlink-external` → 4.x 个人中心「账号绑定」的条目：第三方账号的显示名沿用 providerDisplayName，最近登录换成 *Time 命名，没有的字段不给 */
@@ -304,6 +331,28 @@ export function registerApplicationContext(router: Router): void {
     },
     // 个人中心：资料与账号安全概况、认证器双因素；邮箱 / 短信双因素要等 Notification 发码，停用与注销账号随个人中心批次
     getProfileApi: async () => toShellProfile(await profileOps.get({})),
+    // 个人资料（Identity 的 profile.update / change-username / remove-avatar 与宿主的头像上传端点，只要求已登录）：都回整份资料，会话里的用户随之换掉。
+    // 资料整体覆盖、空白当作没填，不收头像；改用户名凭当前密码、90 天一次（模仿会话被拒）
+    updateProfileApi: async input => applyProfile(await profileOps.update({
+      displayName: input.nickName,
+      realName: input.realName ?? null,
+      gender: genderOf(input.gender),
+      birthday: input.birthday ?? null,
+      country: input.country ?? null,
+      remark: input.remark ?? null,
+    })),
+    // 头像：普通端点 POST /api/profile/avatar（multipart 字段 file，带上传进度），后端按文件头只认 JPEG / PNG、不超过 2 MB，上传即换成本人的头像并回收旧的
+    uploadAvatarApi: async (file, onProgress) => {
+      const form = new FormData()
+      form.append('file', file, file.name)
+      const profile = await uploadForm<ProfileResponse>('/api/profile/avatar', form, { onProgress })
+      applyProfile(profile)
+      if (!profile.user.avatarFileId)
+        throw new Error('头像上传后的资料里没有头像')
+      return { fileId: profile.user.avatarFileId }
+    },
+    removeAvatarApi: async () => applyProfile(await profileOps.removeAvatar({})),
+    changeUserNameApi: async input => applyProfile(await profileOps.changeUsername({ userName: input.userName, password: input.password })),
     setup2FAApi: async () => {
       const setup = await profileOps.setupTotp({})
       return { sharedKey: setup.sharedKey, authenticatorUri: setup.authenticatorUri }

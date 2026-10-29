@@ -14,6 +14,7 @@ import { SessionStorage } from '~/utils'
 import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
+import ProfileTabInfo from './ProfileTabInfo.vue'
 import ProfileTabLoginLogs from './ProfileTabLoginLogs.vue'
 import ProfileTabNotifications from './ProfileTabNotifications.vue'
 import ProfileTabOAuth from './ProfileTabOAuth.vue'
@@ -39,12 +40,12 @@ const userStore = useUserStore()
 const route = useRoute()
 const { t } = useI18n()
 
-const activeTab = ref('security')
+const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
 
-/** GitHub 风格分组导航：顶部资料项 + 按主题分组（4.x 原样）；还没接入 6.0 的页签不显示，见 tabComponents */
-const allNavGroups = computed<ProfileNavGroup[]>(() => [
+/** GitHub 风格分组导航：顶部资料项 + 按主题分组 */
+const navGroups = computed<ProfileNavGroup[]>(() => [
   {
     title: null,
     items: [
@@ -82,26 +83,18 @@ const allNavGroups = computed<ProfileNavGroup[]>(() => [
   },
 ])
 
-// 6.0 已接入的页签（按 4.x 的顺序）：账号安全（改密、认证器双因素）、账号绑定（第三方账号）、登录设备（本人在线的会话与下线）、登录日志（本人的认证事件）、
-// 通知（本人的接收渠道与通知类型）、我的租户（注册地与成员租户、切换）、统计（本人的活跃度与操作趋势）、开放接口（API 凭证与调用安全设置）、OAuth 应用（我的 OAuth 应用）；
-// 资料随个人中心批次（N2 第六批）从 4.x 搬入
 const tabComponents: Record<string, Component> = {
+  profile: markRaw(ProfileTabInfo),
   security: markRaw(ProfileTabSecurity),
+  loginLogs: markRaw(ProfileTabLoginLogs),
   binding: markRaw(ProfileTabBinding),
   devices: markRaw(ProfileTabDevices),
-  loginLogs: markRaw(ProfileTabLoginLogs),
-  notifications: markRaw(ProfileTabNotifications),
   tenants: markRaw(ProfileTabTenants),
   stats: markRaw(ProfileTabStats),
+  notifications: markRaw(ProfileTabNotifications),
   developer: markRaw(ProfileTabDeveloper),
   oauth: markRaw(ProfileTabOAuth),
 }
-
-const navGroups = computed<ProfileNavGroup[]>(() => allNavGroups.value
-  .map(group => ({ ...group, items: group.items.filter(item => item.key in tabComponents) }))
-  .filter(group => group.items.length > 0))
-
-const DEFAULT_TAB = Object.keys(tabComponents)[0]!
 
 // 初始选中页签：URL ?tab=（深链兼容）> 会话记忆 > 默认「个人资料」。
 // 注意：个人中心是「一个页面」，子页签切换只改内部状态，不再写入路由 query，
@@ -115,10 +108,10 @@ activeTab.value = (() => {
   if (stored && stored in tabComponents) {
     return stored
   }
-  return DEFAULT_TAB
+  return 'profile'
 })()
 
-const activeComponent = computed(() => tabComponents[activeTab.value] ?? tabComponents[DEFAULT_TAB])
+const activeComponent = computed(() => tabComponents[activeTab.value] ?? tabComponents.profile)
 const currentComponentProps = computed(() =>
   activeTab.value === 'profile' || activeTab.value === 'security'
     ? { profile: profile.value }

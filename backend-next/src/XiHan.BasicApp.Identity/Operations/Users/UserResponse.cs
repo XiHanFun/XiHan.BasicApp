@@ -19,6 +19,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="LastLoginAt">最近登录时间（UTC）。</param>
 /// <param name="CreatedAt">创建时间（UTC）。</param>
 /// <param name="CreatedBy">创建人（主体 ID）。</param>
+/// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空。</param>
 public sealed record UserResponse(
     Guid Id,
     string UserName,
@@ -29,7 +30,8 @@ public sealed record UserResponse(
     UserStatus Status,
     DateTimeOffset? LastLoginAt,
     DateTimeOffset CreatedAt,
-    string? CreatedBy)
+    string? CreatedBy,
+    Guid? AvatarFileId)
 {
     /// <summary>
     /// 由实体投影。
@@ -37,7 +39,7 @@ public sealed record UserResponse(
     public static UserResponse From(SysUser user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy);
+        return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy, user.AvatarFileId);
     }
 
     /// <summary>
@@ -57,6 +59,7 @@ public sealed record UserResponse(
             user.Status,
             rules.Mask(IdentityFieldSecurity.LastLoginAt, user.LastLoginAt),
             user.CreatedAt,
-            user.CreatedBy);
+            user.CreatedBy,
+            user.AvatarFileId);
     }
 }

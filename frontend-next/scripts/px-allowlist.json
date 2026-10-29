@@ -45,6 +45,7 @@
   "packages/views/_core/authentication/login.vue": 4,
   "packages/views/_core/control-center/index.vue": 60,
   "packages/views/_core/profile/ProfileTabDeveloper.vue": 11,
+  "packages/views/_core/profile/ProfileTabInfo.vue": 1,
   "packages/views/_core/profile/ProfileTabLoginLogs.vue": 6,
   "packages/views/_core/profile/ProfileTabOAuth.vue": 11,
   "packages/views/_core/profile/ProfileTabSecurity.vue": 22,

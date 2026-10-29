@@ -3,11 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { toPageRequest } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
 import {
+  accessLevelLabel,
   batchFailureMessage,
   canPreview,
   canSetPrimary,
   defaultExpiry,
   emptyDetailsForm,
+  FILE_ACCESS_LEVELS,
   FILE_QUERY,
   isTextPreview,
   normalizeExtension,
@@ -110,6 +112,14 @@ describe('上传与元数据', () => {
       remark: '',
     })
     expect(defaultExpiry(0)).toBe(7 * 24 * 60 * 60 * 1000)
+  })
+
+  it('访问级别三档（含头像用的公开）各有文案，上传与修改的下拉照此列出', () => {
+    expect(FILE_ACCESS_LEVELS.map(level => accessLevelLabel(t, level))).toEqual([
+      'files.library.access_levels.authenticated',
+      'files.library.access_levels.authorized',
+      'files.library.access_levels.public',
+    ])
   })
 })
 

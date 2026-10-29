@@ -17,7 +17,8 @@ export type FileTone = 'danger' | 'info' | 'neutral' | 'success' | 'warning'
 
 export const FILE_KINDS: readonly FileKind[] = ['Image', 'Document', 'Video', 'Audio', 'Archive', 'Other']
 export const FILE_STATUSES: readonly FileStatus[] = ['Normal', 'Archived', 'Corrupted']
-export const FILE_ACCESS_LEVELS: readonly FileAccessLevel[] = ['Authenticated', 'Authorized']
+/** 访问级别：同一侧已登录即可、还要持有 files.files.read、公开（任何已登录主体不分侧都能换签名地址，头像用） */
+export const FILE_ACCESS_LEVELS: readonly FileAccessLevel[] = ['Authenticated', 'Authorized', 'Public']
 /** 来源（后端写入的字面量） */
 export const FILE_SOURCES = ['upload', 'fast-upload'] as const
 
@@ -265,7 +266,11 @@ export function fileStatusLabel(t: Translate, status: FileStatus): string {
 }
 
 export function accessLevelLabel(t: Translate, level: FileAccessLevel): string {
-  return level === 'Authenticated' ? t('files.library.access_levels.authenticated') : t('files.library.access_levels.authorized')
+  switch (level) {
+    case 'Authenticated': return t('files.library.access_levels.authenticated')
+    case 'Public': return t('files.library.access_levels.public')
+    default: return t('files.library.access_levels.authorized')
+  }
 }
 
 /** 来源是字符串：认得的翻成文案，其余原样 */

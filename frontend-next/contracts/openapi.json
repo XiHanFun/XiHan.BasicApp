@@ -23854,6 +23854,48 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -23861,8 +23903,229 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "mustChangePassword",
-                    "failedAccessCount"
+                    "failedAccessCount",
+                    "gender"
                   ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "profile.update",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Save your profile: display name, real name, gender, birthday, country or region and bio (replaced as a whole; blanks count as empty). Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateProfileRequest",
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "realName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "gender": {
+                    "$ref": "#/components/schemas/UserGender"
+                  },
+                  "birthday": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "country": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "gender"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount",
+                    "gender"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile/avatar": {
+      "post": {
+        "operationId": "profile.upload-avatar",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Upload the signed-in user\u0027s avatar (JPEG or PNG, at most 2 MB) as multipart form data (field \u0060file\u0060).",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
                 }
               }
             }
@@ -24024,6 +24287,68 @@
         }
       }
     },
+    "/api/profile:change-username": {
+      "post": {
+        "operationId": "profile.change-username",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Change your username: requires your current password, once every 90 days, unique within your home tenant. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ChangeUserNameRequest",
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 64,
+                    "pattern": "^[a-z][a-z0-9._-]*$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "userName",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile:disable-two-factor": {
       "post": {
         "operationId": "profile.disable-two-factor",
@@ -24100,6 +24425,48 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -24107,7 +24474,8 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "mustChangePassword",
-                    "failedAccessCount"
+                    "failedAccessCount",
+                    "gender"
                   ]
                 }
               }
@@ -24202,6 +24570,48 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -24209,7 +24619,8 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "mustChangePassword",
-                    "failedAccessCount"
+                    "failedAccessCount",
+                    "gender"
                   ]
                 }
               }
@@ -24413,6 +24824,138 @@
                     "typeAnnouncement",
                     "typeTask",
                     "typeSecurity"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:remove-avatar": {
+      "post": {
+        "operationId": "profile.remove-avatar",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ProfileRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount",
+                    "gender"
                   ]
                 }
               }
@@ -30822,6 +31365,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "avatarFileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -32252,6 +32802,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "avatarFileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -32352,6 +32909,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "avatarFileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -32490,6 +33054,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "avatarFileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -35579,7 +36150,8 @@
         "type": "string",
         "enum": [
           "Authenticated",
-          "Authorized"
+          "Authorized",
+          "Public"
         ]
       },
       "FileKind": {
@@ -38018,6 +38590,95 @@
           "createdAt"
         ]
       },
+      "ProfileResponse": {
+        "title": "ProfileResponse",
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "twoFactorMethods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwoFactorMethod"
+            }
+          },
+          "passwordChangedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "mustChangePassword": {
+            "type": "boolean"
+          },
+          "failedAccessCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lockoutEndAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "realName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gender": {
+            "$ref": "#/components/schemas/UserGender"
+          },
+          "birthday": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userNameChangedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "userNameChangeableAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "user",
+          "twoFactorEnabled",
+          "twoFactorMethods",
+          "mustChangePassword",
+          "failedAccessCount",
+          "gender"
+        ]
+      },
       "RoleMemberResponse": {
         "type": "object",
         "properties": {
@@ -39108,6 +39769,14 @@
           "Phone"
         ]
       },
+      "UserGender": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "Male",
+          "Female"
+        ]
+      },
       "UserGrantResponse": {
         "type": "object",
         "properties": {
@@ -39197,6 +39866,13 @@
               "string",
               "null"
             ]
+          },
+          "avatarFileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [

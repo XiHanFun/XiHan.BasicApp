@@ -1,4 +1,4 @@
-import type { Permissions } from './auth'
+import type { Permissions, Session } from './auth'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useAuthStore } from './auth'
@@ -37,6 +37,17 @@ describe('user store（auth 会话的壳层投影）', () => {
     const info = useUserStore().userInfo!
     expect(info).toMatchObject({ tenantId: 'acme', tenantName: 'Acme', isPlatform: false, canAccessPlatform: false, canImpersonate: true, permissions: ['identity.impersonation.start'] })
     expect(useUserStore().hasPermission('identity.impersonation.start')).toBe(true)
+  })
+
+  it('头像取会话用户的头像文件主键，没有即空；本人改了资料后 applyUser 换掉会话里的用户（令牌不变、写回本地），投影随之刷新', () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session()))
+    const userStore = useUserStore()
+    expect(userStore.avatar).toBe('')
+
+    useAuthStore().applyUser({ ...user, userName: 'alice2', displayName: 'Alice Z', avatarFileId: 'f-1' } as Session['user'])
+    expect(userStore.userInfo).toMatchObject({ userName: 'alice2', nickName: 'Alice Z', avatar: 'f-1' })
+    expect(useAuthStore().accessToken).toBe('a-1')
+    expect(JSON.parse(localStorage.getItem('xihan.next.session')!).user).toMatchObject({ userName: 'alice2', avatarFileId: 'f-1' })
   })
 
   it('模仿态：横幅字段齐、即使有权限也收起模仿入口', () => {

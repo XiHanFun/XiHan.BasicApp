@@ -227,4 +227,19 @@ public static class IdentityErrors
     /// 这个第三方登录方式不存在或没有启用；参数 <c>provider</c>。
     /// </summary>
     public const string ExternalProviderNotFound = "IDENTITY_NOTFOUND_005";
+
+    /// <summary>
+    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限；参数 <c>max</c>（MB）。
+    /// </summary>
+    public const string AvatarInvalid = "IDENTITY_VALIDATION_016";
+
+    /// <summary>
+    /// 新用户名与现在的相同。
+    /// </summary>
+    public const string UserNameUnchanged = "IDENTITY_VALIDATION_017";
+
+    /// <summary>
+    /// 距上次改用户名不到 90 天；参数 <c>days</c>（还要等几天）。
+    /// </summary>
+    public const string UserNameChangeTooSoon = "IDENTITY_CONFLICT_009";
 }
