@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "凭证不存在或无权操作。",
   "identity.api_credentials.algorithm_invalid": "不支持的签名算法：{value}。",
   "identity.api_credentials.ip_invalid": "IP 白名单格式无效：{value}",
-  "identity.api_credentials.ip_too_many": "IP 白名单最多 {max} 条。"
+  "identity.api_credentials.ip_too_many": "IP 白名单最多 {max} 条。",
+  "auth.external_login.description": "第三方登录：凭回调发的一次性票据，在登录页选的注册地里找绑定的账号；没绑定即拒绝（先用账号密码登录、到个人中心绑定）。与密码登录同样过账号状态、锁定与双因素。",
+  "profile.external_logins.description": "列出本人绑定的第三方账号。已登录即可。",
+  "profile.link_external.description": "确认绑定：凭绑定流程的一次性票据，把第三方账号绑到当前登录的人；票据只能由发起绑定的本人确认，已被别人绑定即拒绝。模仿会话不能用。",
+  "profile.unlink_external.description": "解绑本人的一个第三方账号。模仿会话不能用。",
+  "identity.external.ticket_invalid": "第三方登录已过期，请重新发起。",
+  "identity.external.not_bound": "这个第三方账号还没有绑定，请先用账号密码登录，再到个人中心绑定。",
+  "identity.external.taken": "该第三方账号已被其他用户绑定。",
+  "identity.external.not_found": "第三方账号绑定不存在。",
+  "profile.begin_external_bind.description": "发起绑定：为当前登录的人领一个绑定意图（十分钟、用一次），返回去第三方授权的地址；回调的票据只能由本人确认。模仿会话不能用。",
+  "identity.external.provider_not_found": "该第三方登录方式不存在或未启用。"
 }

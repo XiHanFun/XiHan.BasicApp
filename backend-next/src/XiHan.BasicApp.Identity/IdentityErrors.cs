@@ -202,4 +202,29 @@ public static class IdentityErrors
     /// IP 白名单条数超过上限；参数 <c>max</c>。
     /// </summary>
     public const string ApiIpAllowListTooLong = "IDENTITY_VALIDATION_014";
+
+    /// <summary>
+    /// 第三方登录的票据不存在、过期、已用过或用途不符。
+    /// </summary>
+    public const string ExternalTicketInvalid = "IDENTITY_VALIDATION_015";
+
+    /// <summary>
+    /// 这个第三方账号在所选注册地没有绑定账号；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginNotBound = "IDENTITY_DENIED_015";
+
+    /// <summary>
+    /// 这个第三方账号已被同一注册地的别人绑定；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginTaken = "IDENTITY_CONFLICT_008";
+
+    /// <summary>
+    /// 本人没有绑定这个提供商；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginNotFound = "IDENTITY_NOTFOUND_004";
+
+    /// <summary>
+    /// 这个第三方登录方式不存在或没有启用；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalProviderNotFound = "IDENTITY_NOTFOUND_005";
 }

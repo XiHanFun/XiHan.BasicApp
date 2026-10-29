@@ -136,6 +136,11 @@ export interface NotificationPreference {
   typeMarketing: boolean
 }
 
+/**
+ * 绑定的第三方账号（个人中心「账号绑定」；后端 `ExternalLoginResponse` 的投影）：
+ * provider 是规范的提供方类型（github / gitee / google / qq / wechat / wecom / lark / dingtalk），登录配置里的名称可能是自定义的；
+ * providerDisplayName 是第三方账号自己的显示名（4.x 同义），最近一次用它登录的时间沿用 *Time 命名
+ */
 export interface ExternalLoginItem {
   provider: string
   providerDisplayName?: string

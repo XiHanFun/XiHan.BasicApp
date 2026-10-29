@@ -443,6 +443,84 @@
         }
       }
     },
+    "/api/auth:external-login": {
+      "post": {
+        "operationId": "auth.external-login",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Third-party sign-in: exchanges the one-time ticket from the callback for the account bound in the chosen home tenant; unbound identities are rejected (sign in with a password and bind it in your profile first). Account status, lockout and two-factor apply as for password sign-in.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ExternalLoginRequest",
+                "type": "object",
+                "properties": {
+                  "ticket": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "ticket"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LoginResponse",
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TokenResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "twoFactor": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TwoFactorChallengeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:lock": {
       "post": {
         "operationId": "auth.lock",
@@ -23632,6 +23710,70 @@
         }
       }
     },
+    "/api/profile:begin-external-bind": {
+      "post": {
+        "operationId": "profile.begin-external-bind",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Start a binding: issues a binding intent for the signed-in user (10 minutes, single use) and returns the URL to the third-party authorization; only that user can confirm the resulting ticket. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "BeginExternalBindRequest",
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "provider"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BeginExternalBindResponse",
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile:change-password": {
       "post": {
         "operationId": "profile.change-password",
@@ -23916,6 +24058,146 @@
         }
       }
     },
+    "/api/profile:external-logins": {
+      "get": {
+        "operationId": "profile.external-logins",
+        "tags": [
+          "profile"
+        ],
+        "summary": "List the third-party accounts bound to you. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExternalLoginsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExternalLoginResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:link-external": {
+      "post": {
+        "operationId": "profile.link-external",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LinkExternalLoginRequest",
+                "type": "object",
+                "properties": {
+                  "ticket": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "ticket"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExternalLoginResponse",
+                  "type": "object",
+                  "properties": {
+                    "provider": {
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "email": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "avatarUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "boundAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "lastLoginAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "provider",
+                    "boundAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile:setup-totp": {
       "post": {
         "operationId": "profile.setup-totp",
@@ -23962,6 +24244,73 @@
                     "sharedKey",
                     "authenticatorUri",
                     "expiresAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:unlink-external": {
+      "post": {
+        "operationId": "profile.unlink-external",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Unbind one of your third-party accounts. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UnlinkExternalLoginRequest",
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "provider"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExternalLoginsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExternalLoginResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -34482,6 +34831,47 @@
           "Failed"
         ]
       },
+      "ExternalLoginResponse": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatarUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "boundAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastLoginAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "provider",
+          "boundAt"
+        ]
+      },
       "FieldMaskStrategy": {
         "type": "string",
         "enum": [
@@ -35251,11 +35641,15 @@
           },
           "displayName": {
             "type": "string"
+          },
+          "type": {
+            "type": "string"
           }
         },
         "required": [
           "name",
-          "displayName"
+          "displayName",
+          "type"
         ]
       },
       "MembershipResponse": {

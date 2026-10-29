@@ -69,6 +69,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:external-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Third-party sign-in: exchanges the one-time ticket from the callback for the account bound in the chosen home tenant; unbound identities are rejected (sign in with a password and bind it in your profile first). Account status, lockout and two-factor apply as for password sign-in. */
+        post: operations["auth.external-login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:lock": {
         parameters: {
             query?: never;
@@ -2834,6 +2851,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:begin-external-bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a binding: issues a binding intent for the signed-in user (10 minutes, single use) and returns the URL to the third-party authorization; only that user can confirm the resulting ticket. Not available in impersonation sessions. */
+        post: operations["profile.begin-external-bind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:change-password": {
         parameters: {
             query?: never;
@@ -2885,6 +2919,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:external-logins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the third-party accounts bound to you. Requires sign-in only. */
+        get: operations["profile.external-logins"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:link-external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions. */
+        post: operations["profile.link-external"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:setup-totp": {
         parameters: {
             query?: never;
@@ -2896,6 +2964,23 @@ export interface paths {
         put?: never;
         /** Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating. */
         post: operations["profile.setup-totp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:unlink-external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unbind one of your third-party accounts. Not available in impersonation sessions. */
+        post: operations["profile.unlink-external"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4563,6 +4648,16 @@ export interface components {
         };
         /** @enum {string} */
         ExportTaskStatus: "Pending" | "Processing" | "Success" | "Failed";
+        ExternalLoginResponse: {
+            provider: string;
+            displayName?: string | null;
+            email?: string | null;
+            avatarUrl?: string | null;
+            /** Format: date-time */
+            boundAt: string;
+            /** Format: date-time */
+            lastLoginAt?: string | null;
+        };
         /** @enum {string} */
         FieldMaskStrategy: "None" | "Hidden" | "FullMask" | "PartialMask" | "Hash" | "Redact";
         /** @enum {string} */
@@ -4768,6 +4863,7 @@ export interface components {
         LoginProviderResponse: {
             name: string;
             displayName: string;
+            type: string;
         };
         MembershipResponse: {
             /** Format: uuid */
@@ -5705,6 +5801,44 @@ export interface operations {
                         image: string;
                         /** Format: int32 */
                         expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.external-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ticket: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token?: components["schemas"]["TokenResponse"] | null;
+                        twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
                     };
                 };
             };
@@ -15563,6 +15697,43 @@ export interface operations {
             };
         };
     };
+    "profile.begin-external-bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    provider: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.change-password": {
         parameters: {
             query?: never;
@@ -15699,6 +15870,81 @@ export interface operations {
             };
         };
     };
+    "profile.external-logins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ExternalLoginResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.link-external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ticket: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        provider: string;
+                        displayName?: string | null;
+                        email?: string | null;
+                        avatarUrl?: string | null;
+                        /** Format: date-time */
+                        boundAt: string;
+                        /** Format: date-time */
+                        lastLoginAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.setup-totp": {
         parameters: {
             query?: never;
@@ -15723,6 +15969,43 @@ export interface operations {
                         authenticatorUri: string;
                         /** Format: date-time */
                         expiresAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.unlink-external": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    provider: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ExternalLoginResponse"][];
                     };
                 };
             };

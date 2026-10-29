@@ -25,7 +25,7 @@ public sealed record LoginConfigRequest;
 /// 登录页的配置：可用的登录方式、第三方登录与是否要求图形验证码。
 /// </summary>
 /// <param name="LoginMethods">登录方式（目前只有 <c>password</c>；验证码登录随 Notification、第三方登录随 OpenPlatform 加入）。</param>
-/// <param name="OAuthProviders">第三方登录提供方（目前为空）。</param>
+/// <param name="OAuthProviders">第三方登录提供方（配置 <c>BasicApp:Auth:OAuth</c> 里启用且填了 ClientId 的）。</param>
 /// <param name="CaptchaEnabled">密码登录是否要求图形验证码。</param>
 public sealed record LoginConfigResponse(IReadOnlyList<string> LoginMethods, IReadOnlyList<LoginProviderResponse> OAuthProviders, bool CaptchaEnabled);
 
@@ -34,4 +34,5 @@ public sealed record LoginConfigResponse(IReadOnlyList<string> LoginMethods, IRe
 /// </summary>
 /// <param name="Name">提供方标识。</param>
 /// <param name="DisplayName">显示名。</param>
-public sealed record LoginProviderResponse(string Name, string DisplayName);
+/// <param name="Type">提供商类型（<c>github</c>、<c>wechat</c> 等规范名，前端据此选图标）。</param>
+public sealed record LoginProviderResponse(string Name, string DisplayName, string Type);

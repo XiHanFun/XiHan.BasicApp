@@ -156,6 +156,40 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[1]).toEqual({ method: 'POST', url: '/api/oauth-consents:revoke', body: { clientId: 'cid_x' } })
   })
 
+  it('登录配置：第三方登录提供方原样给登录页（名称、显示名与类型）', async () => {
+    const calls: Call[] = []
+    record(calls, () => json(200, { loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true }))
+    expect(await useAppContext().apis.getLoginConfigApi()).toEqual({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true })
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/auth:login-config', body: null })
+  })
+
+  it('账号绑定：发起返回 profile.begin-external-bind 给的地址；profile.external-logins / link-external / unlink-external 投影成 4.x 的条目（账号显示名进 providerDisplayName、最近登录换成 lastLoginTime，没有的字段不给）', async () => {
+    const calls: Call[] = []
+    const github = { provider: 'github', displayName: 'octocat', email: 'octo@example.com', avatarUrl: 'https://a.example/o.png', boundAt: '2026-10-30T00:00:00Z', lastLoginAt: '2026-10-30T01:00:00Z' }
+    const wecom = { provider: 'wecom', displayName: null, email: null, avatarUrl: null, boundAt: '2026-10-30T02:00:00Z', lastLoginAt: null }
+    record(calls, (url) => {
+      if (url.endsWith(':begin-external-bind'))
+        return json(200, { url: '/api/oauth/wecom/challenge?mode=bind&intent=i-1' })
+      if (url.endsWith(':link-external'))
+        return json(200, wecom)
+      if (url.endsWith(':unlink-external'))
+        return json(200, { items: [wecom] })
+      return json(200, { items: [github, wecom] })
+    })
+    const apis = useAppContext().apis
+    expect(await apis.getLinkedAccountsApi()).toEqual([
+      { provider: 'github', providerDisplayName: 'octocat', email: 'octo@example.com', avatarUrl: 'https://a.example/o.png', lastLoginTime: '2026-10-30T01:00:00Z' },
+      { provider: 'wecom' },
+    ])
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/profile:external-logins', body: null })
+    expect(await apis.linkAccountApi('x-1')).toEqual({ provider: 'wecom' })
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:link-external', body: { ticket: 'x-1' } })
+    expect(await apis.unlinkAccountApi('github')).toEqual([{ provider: 'wecom' }])
+    expect(calls[2]).toEqual({ method: 'POST', url: '/api/profile:unlink-external', body: { provider: 'github' } })
+    expect(await apis.beginOAuthBindApi('wecom')).toBe('/api/oauth/wecom/challenge?mode=bind&intent=i-1')
+    expect(calls[3]).toEqual({ method: 'POST', url: '/api/profile:begin-external-bind', body: { provider: 'wecom' } })
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {

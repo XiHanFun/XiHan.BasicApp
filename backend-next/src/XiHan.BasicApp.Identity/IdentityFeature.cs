@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
+using XiHan.BasicApp.Identity.Infrastructure.External;
 using XiHan.BasicApp.Identity.Middleware;
 using XiHan.BasicApp.Identity.Queries;
 using XiHan.BasicApp.Identity.Seeds;
@@ -88,6 +89,19 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
         context.Services.AddScoped<IUserDirectory, UserDirectory>();
         context.Services.AddScoped<ApiCredentialService>();
+        context.Services.AddSingleton(ExternalLoginOptions.FromConfiguration(context.Configuration));
+        context.Services.AddHttpClient(ExternalLoginFlow.HttpClientName, static client =>
+        {
+            // GitHub 不带 User-Agent 即 403（4.x 用 ASP.NET 认证处理器的缺省 UA）
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("XiHan.BasicApp");
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        foreach (var provider in (IExternalLoginProvider[])[new GoogleProvider(), new GitHubProvider(), new GiteeProvider(), new QqProvider(), new WeChatProvider(), new WeComProvider(), new LarkProvider(), new DingTalkProvider()])
+        {
+            context.Services.AddSingleton(provider);
+        }
+
+        context.Services.AddSingleton<ExternalLoginProviders>();
         context.Services.AddSingleton<IApiCredentialDirectory, ApiCredentialDirectory>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树

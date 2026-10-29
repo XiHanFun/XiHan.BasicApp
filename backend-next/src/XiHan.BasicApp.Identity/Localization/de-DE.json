@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "Die Zugangsdaten existieren nicht oder gehören nicht Ihnen.",
   "identity.api_credentials.algorithm_invalid": "Nicht unterstützter Signaturalgorithmus: {value}.",
   "identity.api_credentials.ip_invalid": "Ungültiger Eintrag in der IP-Zulassungsliste: {value}",
-  "identity.api_credentials.ip_too_many": "Die IP-Zulassungsliste darf höchstens {max} Einträge haben."
+  "identity.api_credentials.ip_too_many": "Die IP-Zulassungsliste darf höchstens {max} Einträge haben.",
+  "auth.external_login.description": "Drittanbieter-Anmeldung: tauscht das einmalige Ticket aus dem Callback gegen das im gewählten Stammmandanten verknüpfte Konto; nicht verknüpfte Identitäten werden abgelehnt (zuerst mit Kennwort anmelden und im Profil verknüpfen). Kontostatus, Sperre und Zwei-Faktor gelten wie bei der Kennwortanmeldung.",
+  "profile.external_logins.description": "Listet die mit Ihnen verknüpften Drittanbieter-Konten auf. Erfordert nur die Anmeldung.",
+  "profile.link_external.description": "Bestätigt eine Verknüpfung: verknüpft das Drittanbieter-Konto aus dem einmaligen Ticket mit dem angemeldeten Benutzer; nur wer die Verknüpfung gestartet hat, kann sie bestätigen, und sie wird abgelehnt, wenn bereits jemand anderes das Konto verknüpft hat. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "profile.unlink_external.description": "Hebt die Verknüpfung eines Ihrer Drittanbieter-Konten auf. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "identity.external.ticket_invalid": "Die Drittanbieter-Anmeldung ist abgelaufen; bitte erneut starten.",
+  "identity.external.not_bound": "Dieses Drittanbieter-Konto ist noch nicht verknüpft. Melden Sie sich zuerst mit Kennwort an und verknüpfen Sie es im Profil.",
+  "identity.external.taken": "Dieses Drittanbieter-Konto ist bereits mit einem anderen Benutzer verknüpft.",
+  "identity.external.not_found": "Für diesen Drittanbieter besteht keine Verknüpfung.",
+  "profile.begin_external_bind.description": "Startet eine Verknüpfung: stellt dem angemeldeten Benutzer eine Verknüpfungsabsicht aus (10 Minuten, einmalig) und gibt die URL zur Drittanbieter-Autorisierung zurück; nur dieser Benutzer kann das Ticket bestätigen. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "identity.external.provider_not_found": "Diese Drittanbieter-Anmeldemethode existiert nicht oder ist nicht aktiviert."
 }

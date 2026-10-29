@@ -124,7 +124,8 @@ const oauthProviderIcons: Record<string, string> = {
   wechat: 'mdi:wechat',
   dingtalk: 'tabler:brand-dingtalk',
   wecom: 'mdi:briefcase-account',
-  feishu: 'lucide:send',
+  // 按后端给的规范类型取（6.0 飞书的规范名是 lark，配置里的名称可能是别名 feishu 或自定义名）
+  lark: 'lucide:send',
 }
 
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
@@ -147,13 +148,14 @@ const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, oauthI
 const moreOauthProviders = computed(() => oauthProviders.value.slice(oauthInlineCount.value))
 const showMoreOauth = ref(false)
 
-function getOauthProviderIcon(name: string) {
-  return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
+function getOauthProviderIcon(type: string) {
+  return oauthProviderIcons[type] ?? 'lucide:link-2'
 }
 
+/** 第三方登录：带上「租户」一栏（用户名在注册地租户内唯一，第三方账号也按注册地找绑定；平台账号留空）与回跳地址 */
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
   showMoreOauth.value = false
-  authStore.startOAuthLogin(provider)
+  authStore.startOAuthLogin(provider, { tenant: formData.value.tenant, redirect: redirect.value })
 }
 
 async function loadLoginConfig() {
@@ -213,6 +215,34 @@ function handleTicketExpired(error: unknown) {
 }
 
 /**
+ * 服务端返回需要 2FA（密码登录的首段，或第三方登录回调换票据时）：先记票据，再决定下一阶段——
+ * 唯一方式时会立刻发起第二段请求，届时必须已持票
+ */
+async function applyTwoFactorChallenge(result: LoginResponse) {
+  rememberTwoFactorTicket(result)
+  if (result.availableTwoFactorMethods?.length) {
+    availableMethods.value = result.availableTwoFactorMethods
+  }
+
+  if (result.twoFactorMethod) {
+    // 服务端已确认方式（可能已发送验证码）
+    selectedMethod.value = result.twoFactorMethod
+    codeSent.value = result.codeSent ?? false
+    tfStage.value = 'code-input'
+  }
+  else if (availableMethods.value.length === 1) {
+    // 仅一种方式可用，自动选中并进入下一步
+    selectedMethod.value = availableMethods.value[0]!
+    await handleSelectMethod()
+  }
+  else if (availableMethods.value.length > 1) {
+    // 配置了多种双因素方式：全部列出，由用户任选一种进行验证
+    tfStage.value = 'method-select'
+    selectedMethod.value = availableMethods.value[0] ?? ''
+  }
+}
+
+/**
  * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」。
  * 入口先同步看 loginLoading：XhButton 的 loading 拦截读的是渲染期状态，首个 click 到重渲染之间的
  * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途。
@@ -235,28 +265,7 @@ async function onSubmit() {
       return
     }
 
-    // 服务端返回需要 2FA：先记票据，再决定下一阶段——唯一方式时会立刻发起第二段请求，届时必须已持票
-    rememberTwoFactorTicket(result)
-    if (result.availableTwoFactorMethods?.length) {
-      availableMethods.value = result.availableTwoFactorMethods
-    }
-
-    if (result.twoFactorMethod) {
-      // 服务端已确认方式（可能已发送验证码）
-      selectedMethod.value = result.twoFactorMethod
-      codeSent.value = result.codeSent ?? false
-      tfStage.value = 'code-input'
-    }
-    else if (availableMethods.value.length === 1) {
-      // 仅一种方式可用，自动选中并进入下一步
-      selectedMethod.value = availableMethods.value[0]!
-      await handleSelectMethod()
-    }
-    else if (availableMethods.value.length > 1) {
-      // 配置了多种双因素方式：全部列出，由用户任选一种进行验证
-      tfStage.value = 'method-select'
-      selectedMethod.value = availableMethods.value[0] ?? ''
-    }
+    await applyTwoFactorChallenge(result)
   }
   catch (err: unknown) {
     if (tfStage.value === 'code-input') {
@@ -356,6 +365,12 @@ function handleBackToMethodSelect() {
   tfStage.value = 'method-select'
   twoFactorCode.value = []
   codeSent.value = false
+}
+
+// 第三方登录回调换票据时账号开了双因素：回调页经 store 把挑战带回这里，直接从验证阶段接着走（与密码登录首段返回挑战之后同一条路）
+const oauthChallenge = authStore.takePendingTwoFactor()
+if (oauthChallenge) {
+  void applyTwoFactorChallenge(oauthChallenge)
 }
 
 function goTo(path: string) {
@@ -680,7 +695,7 @@ const onAuthInvalid = useAuthFormInvalid()
             size="md"
             @click="handleOAuthLogin(provider)"
           >
-            <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
+            <Icon :icon="getOauthProviderIcon(provider.type)" width="16" />
             {{ provider.displayName }}
           </XhButton>
 
@@ -707,7 +722,7 @@ const onAuthInvalid = useAuthFormInvalid()
                     class="!justify-start"
                     @click="handleOAuthLogin(provider)"
                   >
-                    <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
+                    <Icon :icon="getOauthProviderIcon(provider.type)" width="16" />
                     {{ provider.displayName }}
                   </XhButton>
                 </div>

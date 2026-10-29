@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "자격 증명이 없거나 조작할 권한이 없습니다.",
   "identity.api_credentials.algorithm_invalid": "지원하지 않는 서명 알고리즘입니다: {value}.",
   "identity.api_credentials.ip_invalid": "IP 허용 목록 형식이 잘못되었습니다: {value}",
-  "identity.api_credentials.ip_too_many": "IP 허용 목록은 최대 {max}개입니다."
+  "identity.api_credentials.ip_too_many": "IP 허용 목록은 최대 {max}개입니다.",
+  "auth.external_login.description": "서드파티 로그인: 콜백에서 발급한 일회용 티켓으로 로그인 화면에서 고른 등록지에 연결된 계정을 찾습니다. 연결이 없으면 거부합니다(먼저 비밀번호로 로그인해 개인 센터에서 연결하세요). 계정 상태, 잠금, 2단계 인증은 비밀번호 로그인과 같습니다.",
+  "profile.external_logins.description": "나에게 연결된 서드파티 계정을 나열합니다. 로그인만 필요합니다.",
+  "profile.link_external.description": "연결을 확정합니다. 연결 흐름의 일회용 티켓으로 서드파티 계정을 지금 로그인한 사람에게 연결합니다. 티켓은 연결을 시작한 본인만 확정할 수 있고, 다른 사람이 이미 연결했으면 거부합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "profile.unlink_external.description": "내 서드파티 계정 연결을 해제합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "identity.external.ticket_invalid": "서드파티 로그인이 만료되었습니다. 다시 시작하세요.",
+  "identity.external.not_bound": "이 서드파티 계정은 아직 연결되지 않았습니다. 먼저 비밀번호로 로그인한 뒤 개인 센터에서 연결하세요.",
+  "identity.external.taken": "이 서드파티 계정은 이미 다른 사용자에게 연결되어 있습니다.",
+  "identity.external.not_found": "이 서드파티 연결이 없습니다.",
+  "profile.begin_external_bind.description": "연결을 시작합니다. 로그인한 본인에게 연결 의도(10분, 일회용)를 발급하고 서드파티 인증으로 가는 URL을 반환합니다. 콜백 티켓은 본인만 확정할 수 있습니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "identity.external.provider_not_found": "이 서드파티 로그인 방식은 없거나 사용하도록 설정되지 않았습니다."
 }

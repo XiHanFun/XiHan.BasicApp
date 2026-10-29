@@ -26,6 +26,7 @@ import {
   HOME_PATH,
   LOGIN_PATH,
   NOT_FOUND_PATH,
+  OAUTH_CALLBACK_PATH,
   QRCODE_LOGIN_PATH,
   SERVER_ERROR_PATH,
 } from './route'
@@ -151,6 +152,7 @@ describe('路由路径常量', () => {
       CODE_LOGIN_PATH,
       EMAIL_LOGIN_PATH,
       QRCODE_LOGIN_PATH,
+      OAUTH_CALLBACK_PATH,
       NOT_FOUND_PATH,
       FORBIDDEN_PATH,
       SERVER_ERROR_PATH,
@@ -158,6 +160,10 @@ describe('路由路径常量', () => {
 
     expect(paths.filter(path => !path.startsWith('/'))).toEqual([])
     expect(new Set(paths).size).toBe(paths.length)
+  })
+
+  it('第三方登录回调页挂在 /auth 之下，与后端缺省的回跳地址（/#/auth/oauth-callback）同一路径', () => {
+    expect(OAUTH_CALLBACK_PATH).toBe(`${AUTH_PATH}/oauth-callback`)
   })
 
   it('首页兜底路径取 .env 的 VITE_HOME_PATH，没配即根路径（6.0 的首页由守卫落到第一个菜单）', () => {

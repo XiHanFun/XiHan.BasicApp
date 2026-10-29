@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "憑證不存在或無權操作。",
   "identity.api_credentials.algorithm_invalid": "不支援的簽章演算法：{value}。",
   "identity.api_credentials.ip_invalid": "IP 白名單格式無效：{value}",
-  "identity.api_credentials.ip_too_many": "IP 白名單最多 {max} 條。"
+  "identity.api_credentials.ip_too_many": "IP 白名單最多 {max} 條。",
+  "auth.external_login.description": "第三方登入：憑回呼發的一次性票據，在登入頁選的註冊地裡找綁定的帳號；沒綁定即拒絕（先用帳號密碼登入、到個人中心綁定）。與密碼登入同樣過帳號狀態、鎖定與雙重驗證。",
+  "profile.external_logins.description": "列出本人綁定的第三方帳號。已登入即可。",
+  "profile.link_external.description": "確認綁定：憑綁定流程的一次性票據，把第三方帳號綁到目前登入的人；票據只能由發起綁定的本人確認，已被別人綁定即拒絕。模擬工作階段不能用。",
+  "profile.unlink_external.description": "解除綁定本人的一個第三方帳號。模擬工作階段不能用。",
+  "identity.external.ticket_invalid": "第三方登入已過期，請重新發起。",
+  "identity.external.not_bound": "這個第三方帳號還沒有綁定，請先用帳號密碼登入，再到個人中心綁定。",
+  "identity.external.taken": "該第三方帳號已被其他使用者綁定。",
+  "identity.external.not_found": "第三方帳號綁定不存在。",
+  "profile.begin_external_bind.description": "發起綁定：為目前登入的人領一個綁定意圖（十分鐘、用一次），回傳前往第三方授權的網址；回呼的票據只能由本人確認。模擬工作階段不能用。",
+  "identity.external.provider_not_found": "該第三方登入方式不存在或未啟用。"
 }

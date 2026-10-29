@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "L’identifiant n’existe pas ou ne vous appartient pas.",
   "identity.api_credentials.algorithm_invalid": "Algorithme de signature non pris en charge : {value}.",
   "identity.api_credentials.ip_invalid": "Entrée de liste d’IP autorisées invalide : {value}",
-  "identity.api_credentials.ip_too_many": "La liste d’IP autorisées compte au plus {max} entrées."
+  "identity.api_credentials.ip_too_many": "La liste d’IP autorisées compte au plus {max} entrées.",
+  "auth.external_login.description": "Connexion tierce : échange le ticket à usage unique du rappel contre le compte lié dans le locataire d’origine choisi ; les identités non liées sont refusées (connectez-vous d’abord par mot de passe et liez-la dans votre profil). L’état du compte, le verrouillage et la double authentification s’appliquent comme pour la connexion par mot de passe.",
+  "profile.external_logins.description": "Liste les comptes tiers liés à vous. Requiert seulement la connexion.",
+  "profile.link_external.description": "Confirme une liaison : lie le compte tiers du ticket à usage unique à l’utilisateur connecté ; seul l’utilisateur qui a démarré la liaison peut la confirmer, et elle est refusée si le compte est déjà lié par quelqu’un d’autre. Indisponible en emprunt d’identité.",
+  "profile.unlink_external.description": "Délie l’un de vos comptes tiers. Indisponible en emprunt d’identité.",
+  "identity.external.ticket_invalid": "La connexion tierce a expiré ; veuillez recommencer.",
+  "identity.external.not_bound": "Ce compte tiers n’est pas encore lié. Connectez-vous d’abord par mot de passe, puis liez-le dans votre profil.",
+  "identity.external.taken": "Ce compte tiers est déjà lié à un autre utilisateur.",
+  "identity.external.not_found": "Aucune liaison pour ce fournisseur tiers.",
+  "profile.begin_external_bind.description": "Démarre une liaison : émet une intention de liaison pour l’utilisateur connecté (10 minutes, usage unique) et renvoie l’URL d’autorisation tierce ; seul cet utilisateur peut confirmer le ticket obtenu. Indisponible en emprunt d’identité.",
+  "identity.external.provider_not_found": "Cette méthode de connexion tierce n’existe pas ou n’est pas activée."
 }
