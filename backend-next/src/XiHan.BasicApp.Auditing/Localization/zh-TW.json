@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "篩選 '{field}' 的值 '{value}' 不合法。",
   "auditing.trace.value_required": "請填寫要追蹤的值。",
   "auditing.trace.range_invalid": "時間範圍的開始不能晚於結束。",
-  "auditing.retention.invalid": "參數 'auditing.retention-days' 必須是 1 到 3650 的整數，目前為 '{value}'。"
+  "auditing.retention.invalid": "參數 'auditing.retention-days' 必須是 1 到 3650 的整數，目前為 '{value}'。",
+  "my_login_logs.list.description": "分頁列出本人的登入日誌（登入、重新整理、登出、切換租戶、模擬與改密等事件，成功失敗都在），依時間倒序，每頁最多 50 筆。已登入即可。"
 }

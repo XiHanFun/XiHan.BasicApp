@@ -92,5 +92,8 @@
   "identity.external.taken": "Ce compte tiers est déjà lié à un autre utilisateur.",
   "identity.external.not_found": "Aucune liaison pour ce fournisseur tiers.",
   "profile.begin_external_bind.description": "Démarre une liaison : émet une intention de liaison pour l’utilisateur connecté (10 minutes, usage unique) et renvoie l’URL d’autorisation tierce ; seul cet utilisateur peut confirmer le ticket obtenu. Indisponible en emprunt d’identité.",
-  "identity.external.provider_not_found": "Cette méthode de connexion tierce n’existe pas ou n’est pas activée."
+  "identity.external.provider_not_found": "Cette méthode de connexion tierce n’existe pas ou n’est pas activée.",
+  "profile.sessions.description": "Liste vos appareils connectés : toutes vos sessions actives (plateforme comme locataires), la session actuelle en premier. Requiert seulement la connexion.",
+  "profile.revoke_session.description": "Déconnecte l’un de vos appareils ; pour l’appareil actuel, utilisez la déconnexion. Requiert seulement la connexion.",
+  "profile.revoke_other_sessions.description": "Déconnecte tous vos appareils sauf l’actuel, y compris les emprunts d’identité que vous avez lancés et qui sont encore ouverts. Requiert seulement la connexion."
 }

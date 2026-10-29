@@ -92,5 +92,8 @@
   "identity.external.taken": "이 서드파티 계정은 이미 다른 사용자에게 연결되어 있습니다.",
   "identity.external.not_found": "이 서드파티 연결이 없습니다.",
   "profile.begin_external_bind.description": "연결을 시작합니다. 로그인한 본인에게 연결 의도(10분, 일회용)를 발급하고 서드파티 인증으로 가는 URL을 반환합니다. 콜백 티켓은 본인만 확정할 수 있습니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
-  "identity.external.provider_not_found": "이 서드파티 로그인 방식은 없거나 사용하도록 설정되지 않았습니다."
+  "identity.external.provider_not_found": "이 서드파티 로그인 방식은 없거나 사용하도록 설정되지 않았습니다.",
+  "profile.sessions.description": "내 로그인 기기를 나열합니다. 플랫폼과 테넌트를 가리지 않고 내 유효한 세션 전체이며 현재 세션이 맨 앞입니다. 로그인만 필요합니다.",
+  "profile.revoke_session.description": "내 기기 한 대를 로그아웃시킵니다. 현재 기기는 로그아웃을 사용하세요. 로그인만 필요합니다.",
+  "profile.revoke_other_sessions.description": "현재 기기를 제외한 내 모든 기기를 로그아웃시킵니다. 내가 시작해 아직 끝나지 않은 대리 로그인 세션도 포함합니다. 로그인만 필요합니다."
 }

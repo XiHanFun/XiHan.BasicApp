@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "La valeur '{value}' n’est pas valide pour le filtre '{field}'.",
   "auditing.trace.value_required": "Saisissez une valeur à suivre.",
   "auditing.trace.range_invalid": "Le début de la plage de temps ne doit pas être postérieur à sa fin.",
-  "auditing.retention.invalid": "La configuration 'auditing.retention-days' doit être un nombre entier de 1 à 3650, mais valait '{value}'."
+  "auditing.retention.invalid": "La configuration 'auditing.retention-days' doit être un nombre entier de 1 à 3650, mais valait '{value}'.",
+  "my_login_logs.list.description": "Liste vos propres journaux de connexion page par page (connexion, actualisation, déconnexion, changement de locataire, emprunt d’identité, changement de mot de passe, etc., réussis ou non), du plus récent au plus ancien, 50 au plus par page. Requiert seulement la connexion."
 }

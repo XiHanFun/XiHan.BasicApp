@@ -13,10 +13,11 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile, UserSessionItem } from './profile'
 /**
- * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
- * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
+ * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
+ * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户；
+ * `joinedTime` 沿用 4.x 的字段名（后端 joinedAt）：成员是成为成员的时间，注册地是账号建立的时间。
  */
 export interface AppTenantSwitcherItem {
   tenantId: string
@@ -24,6 +25,7 @@ export interface AppTenantSwitcherItem {
   isHome: boolean
   memberType: null | TenantMemberType
   isCurrent: boolean
+  joinedTime: string
 }
 
 /**
@@ -149,6 +151,14 @@ export interface AppContextApis {
   linkAccountApi: (ticket: string) => Promise<ExternalLoginItem>
   /** 解绑本人的一个第三方账号（按提供方类型），返回剩下的绑定 */
   unlinkAccountApi: (provider: string) => Promise<ExternalLoginItem[]>
+  /** 登录设备（个人中心「登录设备」）：本人全部在线的会话（平台与各租户），当前会话在最前 */
+  getSessionsApi: () => Promise<UserSessionItem[]>
+  /** 下线本人的一个会话（当前会话不能这样下线，要走注销） */
+  revokeSessionApi: (sessionId: string) => Promise<unknown>
+  /** 下线本人除当前会话外的全部会话 */
+  revokeOtherSessionsApi: () => Promise<unknown>
+  /** 登录日志（个人中心「登录日志」）：本人的认证事件按时间倒序分页，page 从 1 起 */
+  getLoginLogsApi: (page: number, pageSize: number) => Promise<LoginLogPage & { page: number, pageSize: number }>
   /** 锁屏（服务端强制）：设置会话级一次性口令并置位锁屏标记 */
   lockSessionApi: (input: { password: string }) => Promise<unknown>
   /** 解锁：口令由服务端校验；连续失败 5 次服务端会直接吊销会话 */

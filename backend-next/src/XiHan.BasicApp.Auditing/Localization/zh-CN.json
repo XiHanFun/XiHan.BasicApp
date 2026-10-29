@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "筛选 '{field}' 的值 '{value}' 不合法。",
   "auditing.trace.value_required": "请填写要追踪的值。",
   "auditing.trace.range_invalid": "时间范围的开始不能晚于结束。",
-  "auditing.retention.invalid": "参数 'auditing.retention-days' 必须是 1 到 3650 的整数，当前为 '{value}'。"
+  "auditing.retention.invalid": "参数 'auditing.retention-days' 必须是 1 到 3650 的整数，当前为 '{value}'。",
+  "my_login_logs.list.description": "分页列出本人的登录日志（登录、刷新、退出、切换租户、模仿与改密等事件，成功失败都在），按时间倒序，每页最多 50 条。已登录即可。"
 }

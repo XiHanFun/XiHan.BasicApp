@@ -486,6 +486,21 @@ public static class IdentityMessages
     /// </summary>
     public const string ExternalProviderNotFound = "identity.external.provider_not_found";
 
+    /// <summary>
+    /// 操作 <c>profile.sessions</c> 的说明。
+    /// </summary>
+    public const string MySessionsDescription = "profile.sessions.description";
+
+    /// <summary>
+    /// 操作 <c>profile.revoke-session</c> 的说明。
+    /// </summary>
+    public const string RevokeMySessionDescription = "profile.revoke_session.description";
+
+    /// <summary>
+    /// 操作 <c>profile.revoke-other-sessions</c> 的说明。
+    /// </summary>
+    public const string RevokeMyOtherSessionsDescription = "profile.revoke_other_sessions.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

@@ -53,6 +53,8 @@ public sealed class TenantSwitchTests : IDisposable
         Assert.True(mineBody.GetProperty("platformIsCurrent").GetBoolean());
         Assert.Equal(["demo"], mineBody.GetProperty("tenants").EnumerateArray().Select(static t => t.GetProperty("tenantId").GetString()).ToList());
         Assert.Equal("Owner", mineBody.GetProperty("tenants")[0].GetProperty("memberType").GetString());
+        // 加入时间：成员是成为成员的时间
+        Assert.True(mineBody.GetProperty("tenants")[0].GetProperty("joinedAt").GetDateTimeOffset() > DateTimeOffset.UnixEpoch);
 
         // 加成员：operator 进 contoso；重复与注册地用户都是冲突；租户 / 用户不存在各自 404
         var (added, addedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}"}""", superadmin));
@@ -127,6 +129,11 @@ public sealed class TenantSwitchTests : IDisposable
         var (adminHome, adminHomeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:switch-tenant", """{"tenantId":"contoso"}""", contosoAdmin));
         Assert.Equal(HttpStatusCode.OK, adminHome.StatusCode);
         Assert.Equal("contoso", adminHomeBody.GetProperty("tenantId").GetString());
+        // 注册地租户的加入时间是账号建立的时间
+        var (_, adminMine) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/tenants:mine", token: contosoAdmin));
+        var home = Assert.Single(adminMine.GetProperty("tenants").EnumerateArray());
+        Assert.True(home.GetProperty("isHome").GetBoolean());
+        Assert.True(home.GetProperty("joinedAt").GetDateTimeOffset() > DateTimeOffset.UnixEpoch);
 
         // 移除成员后不能再进；成员行不存在逐项报错
         var (removed, removedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/tenant-members?ids={memberId}&ids={Guid.NewGuid()}", token: superadmin));

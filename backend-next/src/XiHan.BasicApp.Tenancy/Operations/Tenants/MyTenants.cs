@@ -56,11 +56,11 @@ public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysT
             var rows = await tenants.ListAsync(
                 EntityQuery.All<SysTenant>().Where(new Specification<SysTenant>(t => ids.Contains(t.TenantId) && t.Status == TenantStatus.Active)).OrderBy(static t => t.Order).OrderBy(static t => t.TenantId),
                 context.CancellationToken).ConfigureAwait(false);
-            var types = memberships.ToDictionary(static m => m.TenantId, static m => m.MemberType);
+            var joined = memberships.ToDictionary(static m => m.TenantId);
             foreach (var tenant in rows)
             {
                 var isHome = string.Equals(tenant.TenantId, user.HomeTenantId, StringComparison.Ordinal);
-                items.Add(new AvailableTenantResponse(tenant.TenantId, tenant.Name, isHome, isHome ? null : types[tenant.TenantId], string.Equals(tenant.TenantId, current, StringComparison.Ordinal)));
+                items.Add(new AvailableTenantResponse(tenant.TenantId, tenant.Name, isHome, isHome ? null : joined[tenant.TenantId].MemberType, string.Equals(tenant.TenantId, current, StringComparison.Ordinal), isHome ? user.CreatedAt : joined[tenant.TenantId].CreatedAt));
             }
         }
 

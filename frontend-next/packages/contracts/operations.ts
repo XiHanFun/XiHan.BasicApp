@@ -145,6 +145,7 @@ export const routes = {
   'my-api-credentials.settings': { method: 'GET', template: '/api/my-api-credentials:settings', path: [], query: [], success: 200 },
   'my-api-credentials.update': { method: 'PUT', template: '/api/my-api-credentials/{id}', path: ['id'], query: [], success: 200 },
   'my-api-credentials.update-settings': { method: 'POST', template: '/api/my-api-credentials:update-settings', path: [], query: [], success: 200 },
+  'my-login-logs.list': { method: 'GET', template: '/api/my-login-logs', path: [], query: ['page', 'pageSize'], success: 200 },
   'my-oauth-apps.create': { method: 'POST', template: '/api/my-oauth-apps', path: [], query: [], success: 201 },
   'my-oauth-apps.delete': { method: 'DELETE', template: '/api/my-oauth-apps', path: [], query: ['ids'], success: 200 },
   'my-oauth-apps.get': { method: 'GET', template: '/api/my-oauth-apps/{id}', path: ['id'], query: [], success: 200 },
@@ -219,6 +220,9 @@ export const routes = {
   'profile.external-logins': { method: 'GET', template: '/api/profile:external-logins', path: [], query: [], success: 200 },
   'profile.get': { method: 'GET', template: '/api/profile', path: [], query: [], success: 200 },
   'profile.link-external': { method: 'POST', template: '/api/profile:link-external', path: [], query: [], success: 200 },
+  'profile.revoke-other-sessions': { method: 'POST', template: '/api/profile:revoke-other-sessions', path: [], query: [], success: 200 },
+  'profile.revoke-session': { method: 'POST', template: '/api/profile:revoke-session', path: [], query: [], success: 200 },
+  'profile.sessions': { method: 'GET', template: '/api/profile:sessions', path: [], query: [], success: 200 },
   'profile.setup-totp': { method: 'POST', template: '/api/profile:setup-totp', path: [], query: [], success: 200 },
   'profile.unlink-external': { method: 'POST', template: '/api/profile:unlink-external', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
@@ -557,6 +561,11 @@ export const myApiCredentials = {
   updateSettings: (request: RequestOf<'my-api-credentials.update-settings'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.update-settings'>, ResponseOf<'my-api-credentials.update-settings'>>('my-api-credentials.update-settings', routes['my-api-credentials.update-settings'], request, options),
 }
 
+/** 资源 `my-login-logs` 的操作。 */
+export const myLoginLogs = {
+  list: (request: RequestOf<'my-login-logs.list'>, options?: CallOptions) => invoke<RequestOf<'my-login-logs.list'>, ResponseOf<'my-login-logs.list'>>('my-login-logs.list', routes['my-login-logs.list'], request, options),
+}
+
 /** 资源 `my-oauth-apps` 的操作。 */
 export const myOauthApps = {
   create: (request: RequestOf<'my-oauth-apps.create'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.create'>, ResponseOf<'my-oauth-apps.create'>>('my-oauth-apps.create', routes['my-oauth-apps.create'], request, options),
@@ -685,6 +694,9 @@ export const profile = {
   externalLogins: (request: RequestOf<'profile.external-logins'>, options?: CallOptions) => invoke<RequestOf<'profile.external-logins'>, ResponseOf<'profile.external-logins'>>('profile.external-logins', routes['profile.external-logins'], request, options),
   get: (request: RequestOf<'profile.get'>, options?: CallOptions) => invoke<RequestOf<'profile.get'>, ResponseOf<'profile.get'>>('profile.get', routes['profile.get'], request, options),
   linkExternal: (request: RequestOf<'profile.link-external'>, options?: CallOptions) => invoke<RequestOf<'profile.link-external'>, ResponseOf<'profile.link-external'>>('profile.link-external', routes['profile.link-external'], request, options),
+  revokeOtherSessions: (request: RequestOf<'profile.revoke-other-sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-other-sessions'>, ResponseOf<'profile.revoke-other-sessions'>>('profile.revoke-other-sessions', routes['profile.revoke-other-sessions'], request, options),
+  revokeSession: (request: RequestOf<'profile.revoke-session'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-session'>, ResponseOf<'profile.revoke-session'>>('profile.revoke-session', routes['profile.revoke-session'], request, options),
+  sessions: (request: RequestOf<'profile.sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.sessions'>, ResponseOf<'profile.sessions'>>('profile.sessions', routes['profile.sessions'], request, options),
   setupTotp: (request: RequestOf<'profile.setup-totp'>, options?: CallOptions) => invoke<RequestOf<'profile.setup-totp'>, ResponseOf<'profile.setup-totp'>>('profile.setup-totp', routes['profile.setup-totp'], request, options),
   unlinkExternal: (request: RequestOf<'profile.unlink-external'>, options?: CallOptions) => invoke<RequestOf<'profile.unlink-external'>, ResponseOf<'profile.unlink-external'>>('profile.unlink-external', routes['profile.unlink-external'], request, options),
 }

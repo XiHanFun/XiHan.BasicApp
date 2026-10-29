@@ -92,5 +92,8 @@
   "identity.external.taken": "該第三方帳號已被其他使用者綁定。",
   "identity.external.not_found": "第三方帳號綁定不存在。",
   "profile.begin_external_bind.description": "發起綁定：為目前登入的人領一個綁定意圖（十分鐘、用一次），回傳前往第三方授權的網址；回呼的票據只能由本人確認。模擬工作階段不能用。",
-  "identity.external.provider_not_found": "該第三方登入方式不存在或未啟用。"
+  "identity.external.provider_not_found": "該第三方登入方式不存在或未啟用。",
+  "profile.sessions.description": "列出本人的登入裝置：本人全部有效工作階段（不分平台與租戶），目前工作階段在最前。已登入即可。",
+  "profile.revoke_session.description": "登出本人的一台裝置；目前裝置請用登出。已登入即可。",
+  "profile.revoke_other_sessions.description": "登出本人除目前裝置外的全部裝置，連同本人發起、尚未結束的模擬工作階段。已登入即可。"
 }

@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "Значение '{value}' недопустимо для фильтра '{field}'.",
   "auditing.trace.value_required": "Введите значение для трассировки.",
   "auditing.trace.range_invalid": "Начало интервала времени не может быть позже его конца.",
-  "auditing.retention.invalid": "Параметр 'auditing.retention-days' должен быть целым числом от 1 до 3650, но равен '{value}'."
+  "auditing.retention.invalid": "Параметр 'auditing.retention-days' должен быть целым числом от 1 до 3650, но равен '{value}'.",
+  "my_login_logs.list.description": "Постраничный список ваших журналов входа (вход, обновление, выход, смена арендатора, олицетворение, смена пароля и др., успешные и нет), сначала новые, не более 50 на странице. Требуется только вход."
 }

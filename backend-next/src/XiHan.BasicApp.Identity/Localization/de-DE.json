@@ -92,5 +92,8 @@
   "identity.external.taken": "Dieses Drittanbieter-Konto ist bereits mit einem anderen Benutzer verknüpft.",
   "identity.external.not_found": "Für diesen Drittanbieter besteht keine Verknüpfung.",
   "profile.begin_external_bind.description": "Startet eine Verknüpfung: stellt dem angemeldeten Benutzer eine Verknüpfungsabsicht aus (10 Minuten, einmalig) und gibt die URL zur Drittanbieter-Autorisierung zurück; nur dieser Benutzer kann das Ticket bestätigen. In Identitätswechsel-Sitzungen nicht verfügbar.",
-  "identity.external.provider_not_found": "Diese Drittanbieter-Anmeldemethode existiert nicht oder ist nicht aktiviert."
+  "identity.external.provider_not_found": "Diese Drittanbieter-Anmeldemethode existiert nicht oder ist nicht aktiviert.",
+  "profile.sessions.description": "Listet Ihre angemeldeten Geräte auf: alle Ihre aktiven Sitzungen (Plattform wie Mandanten), die aktuelle zuerst. Erfordert nur die Anmeldung.",
+  "profile.revoke_session.description": "Meldet eines Ihrer Geräte ab; für das aktuelle die Abmeldung verwenden. Erfordert nur die Anmeldung.",
+  "profile.revoke_other_sessions.description": "Meldet alle Ihre Geräte außer dem aktuellen ab, einschließlich noch offener, von Ihnen gestarteter Identitätswechsel-Sitzungen. Erfordert nur die Anmeldung."
 }

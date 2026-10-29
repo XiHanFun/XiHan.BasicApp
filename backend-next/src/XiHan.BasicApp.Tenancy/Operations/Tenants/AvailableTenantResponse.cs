@@ -13,4 +13,5 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="IsHome">是否注册地租户。</param>
 /// <param name="MemberType">成员类型；注册地租户为空。</param>
 /// <param name="IsCurrent">是否当前所在租户。</param>
-public sealed record AvailableTenantResponse(string TenantId, string Name, bool IsHome, TenantMemberType? MemberType, bool IsCurrent);
+/// <param name="JoinedAt">加入时间：成员是成为成员的时间，注册地租户是账号建立的时间。</param>
+public sealed record AvailableTenantResponse(string TenantId, string Name, bool IsHome, TenantMemberType? MemberType, bool IsCurrent, DateTimeOffset JoinedAt);
