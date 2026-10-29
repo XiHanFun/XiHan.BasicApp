@@ -131,6 +131,31 @@ public static class AccessPermissions
     public const string PermissionConditionsTrial = "access.permission-conditions.trial";
 
     /// <summary>
+    /// 查看访问策略与模板：<c>policies.list / get / templates</c>。
+    /// </summary>
+    public const string PoliciesRead = "access.policies.read";
+
+    /// <summary>
+    /// 新建访问策略（一律只记录）：<c>policies.create</c>。
+    /// </summary>
+    public const string PoliciesCreate = "access.policies.create";
+
+    /// <summary>
+    /// 修改访问策略、改动作与启停：<c>policies.update / set-action / set-status</c>。
+    /// </summary>
+    public const string PoliciesUpdate = "access.policies.update";
+
+    /// <summary>
+    /// 删除访问策略：<c>policies.delete</c>。
+    /// </summary>
+    public const string PoliciesDelete = "access.policies.delete";
+
+    /// <summary>
+    /// 试运行访问策略：<c>policies.trial</c>。
+    /// </summary>
+    public const string PoliciesTrial = "access.policies.trial";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -184,6 +209,11 @@ public static class AccessPermissions
         new(PermissionConditionsUpdate, "Update permission conditions", PermissionScope.Both, audited: true, description: "Edit, enable and disable permission conditions."),
         new(PermissionConditionsDelete, "Delete permission conditions", PermissionScope.Both, audited: true, description: "Delete permission conditions."),
         new(PermissionConditionsTrial, "Trial permission conditions", PermissionScope.Both, description: "Try how conditions decide for a user and a request, list who a grant affects, and inventory the conditions of the current side."),
+        new(PoliciesRead, "Read access policies", PermissionScope.Both, description: "View the access policies of the current side and the preset templates."),
+        new(PoliciesCreate, "Create access policies", PermissionScope.Both, audited: true, description: "Create access policies; a new policy only logs its hits until its action is changed."),
+        new(PoliciesUpdate, "Update access policies", PermissionScope.Both, audited: true, description: "Edit access policies, switch them between log only, deny and allow, and enable or disable them."),
+        new(PoliciesDelete, "Delete access policies", PermissionScope.Both, audited: true, description: "Delete access policies."),
+        new(PoliciesTrial, "Trial access policies", PermissionScope.Both, description: "Try how a saved or draft access policy decides for a given request."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

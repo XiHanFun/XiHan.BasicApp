@@ -36,7 +36,12 @@ public static class AccessPages
     public static PageDescriptor Delegations { get; } = new("access.delegations", "/access/delegations", "access.delegations.title", "lucide:file-key", 206, AccessPermissions.DelegationsRead);
 
     /// <summary>
+    /// 访问策略页（Access 包）。
+    /// </summary>
+    public static PageDescriptor Policies { get; } = new("access.policies", "/access/policies", "access.policies.title", "lucide:shield-alert", 208, AccessPermissions.PoliciesRead);
+
+    /// <summary>
     /// 全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Menus];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Policies, Menus];
 }

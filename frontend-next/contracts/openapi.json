@@ -10768,6 +10768,1329 @@
         }
       }
     },
+    "/api/policies": {
+      "delete": {
+        "operationId": "policies.delete",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Delete access policies. Requires access.policies.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "policies.create",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Create an access policy; it always starts as log only and enabled. Requires access.policies.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateAccessPolicyRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AccessPolicyConditionRequest"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "templateCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "conditions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/AccessPolicyStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "action",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "phase",
+                    "conditions",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies/{id}": {
+      "get": {
+        "operationId": "policies.get",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Get an access policy by ID. Requires access.policies.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/AccessPolicyStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "action",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "phase",
+                    "conditions",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "policies.update",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Replace the content and conditions of an access policy; its action and status stay. Requires access.policies.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateAccessPolicyRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AccessPolicyConditionRequest"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "templateCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name",
+                  "conditions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/AccessPolicyStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "action",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "phase",
+                    "conditions",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies/{id}:set-action": {
+      "post": {
+        "operationId": "policies.set-action",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Change the action of an access policy: log only, deny or allow. Requires access.policies.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetAccessPolicyActionRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "action": {
+                    "$ref": "#/components/schemas/AccessPolicyAction"
+                  }
+                },
+                "required": [
+                  "id",
+                  "action"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/AccessPolicyStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "action",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "phase",
+                    "conditions",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies/{id}:set-status": {
+      "post": {
+        "operationId": "policies.set-status",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Enable or disable an access policy. Requires access.policies.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetAccessPolicyStatusRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/AccessPolicyStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "priority": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/AccessPolicyStatus"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isEffective": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+                      }
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "action",
+                    "priority",
+                    "status",
+                    "isEffective",
+                    "phase",
+                    "conditions",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies:attributes": {
+      "get": {
+        "operationId": "policies.attributes",
+        "tags": [
+          "policies"
+        ],
+        "summary": "The condition attributes available to access policies, with the operators each allows and whether it is known before authentication. Requires access.policies.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionAttributesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionAttributeResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies:list": {
+      "post": {
+        "operationId": "policies.list",
+        "tags": [
+          "policies"
+        ],
+        "summary": "List the access policies of the current side, by evaluation order by default. Requires access.policies.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfAccessPolicyResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies:templates": {
+      "get": {
+        "operationId": "policies.templates",
+        "tags": [
+          "policies"
+        ],
+        "summary": "List the preset access policy templates. Requires access.policies.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyTemplatesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessPolicyTemplateResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies:trial": {
+      "post": {
+        "operationId": "policies.trial",
+        "tags": [
+          "policies"
+        ],
+        "summary": "Trial an access policy: evaluate a saved policy or draft conditions under the given request, explained group by group and condition by condition. Requires access.policies.trial.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.policies.trial",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TrialAccessPolicyRequest",
+                "type": "object",
+                "properties": {
+                  "policyId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "action": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/AccessPolicyAction"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "conditions": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/AccessPolicyConditionRequest"
+                    },
+                    "maxItems": 100
+                  },
+                  "ip": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "time": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "userAgent": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "path": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "method": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 16
+                  },
+                  "userId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "permissionCodes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessPolicyTrialResponse",
+                  "type": "object",
+                  "properties": {
+                    "outcome": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ConditionOutcome"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/AccessPolicyAction"
+                    },
+                    "wouldBlock": {
+                      "type": "boolean"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "ip": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "location": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "timeZone": {
+                      "type": "string"
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionTrialGroupResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "action",
+                    "wouldBlock",
+                    "phase",
+                    "errors",
+                    "time",
+                    "timeZone",
+                    "groups"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/positions": {
       "delete": {
         "operationId": "positions.delete",
@@ -16298,6 +17621,232 @@
           "durationMs"
         ]
       },
+      "AccessPolicyAction": {
+        "type": "string",
+        "enum": [
+          "LogOnly",
+          "Deny",
+          "Allow"
+        ]
+      },
+      "AccessPolicyConditionRequest": {
+        "type": "object",
+        "properties": {
+          "attributeName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "operator": {
+            "$ref": "#/components/schemas/ConditionOperator"
+          },
+          "groupNo": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "isNegated": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "attributeName",
+          "operator"
+        ]
+      },
+      "AccessPolicyConditionResponse": {
+        "type": "object",
+        "properties": {
+          "groupNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/ConditionOperator"
+          },
+          "isNegated": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "groupNo",
+          "attributeName",
+          "operator",
+          "isNegated"
+        ]
+      },
+      "AccessPolicyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "action": {
+            "$ref": "#/components/schemas/AccessPolicyAction"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AccessPolicyStatus"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "isEffective": {
+            "type": "boolean"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ConditionHitPhase"
+          },
+          "templateCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "action",
+          "priority",
+          "status",
+          "isEffective",
+          "phase",
+          "conditions",
+          "createdAt"
+        ]
+      },
+      "AccessPolicyStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
+      "AccessPolicyTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/AccessPolicyAction"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AccessPolicyStatus"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ConditionHitPhase"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessPolicyConditionResponse"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "description",
+          "action",
+          "status",
+          "priority",
+          "phase",
+          "conditions"
+        ]
+      },
       "AccessResult": {
         "type": "string",
         "enum": [
@@ -19778,6 +21327,31 @@
         "code": "access.permissions.read",
         "displayName": "Read permissions",
         "description": "View the permission catalog of the current side."
+      },
+      "access.policies.create": {
+        "code": "access.policies.create",
+        "displayName": "Create access policies",
+        "description": "Create access policies; a new policy only logs its hits until its action is changed."
+      },
+      "access.policies.delete": {
+        "code": "access.policies.delete",
+        "displayName": "Delete access policies",
+        "description": "Delete access policies."
+      },
+      "access.policies.read": {
+        "code": "access.policies.read",
+        "displayName": "Read access policies",
+        "description": "View the access policies of the current side and the preset templates."
+      },
+      "access.policies.trial": {
+        "code": "access.policies.trial",
+        "displayName": "Trial access policies",
+        "description": "Try how a saved or draft access policy decides for a given request."
+      },
+      "access.policies.update": {
+        "code": "access.policies.update",
+        "displayName": "Update access policies",
+        "description": "Edit access policies, switch them between log only, deny and allow, and enable or disable them."
       },
       "access.roles.assign": {
         "code": "access.roles.assign",

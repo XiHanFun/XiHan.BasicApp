@@ -7,6 +7,7 @@ using XiHan.BasicApp.Access.Operations.Auth;
 using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
 using XiHan.BasicApp.Access.Operations.PermissionConditions;
+using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
@@ -93,4 +94,19 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(ConditionBatchTrialResponse))]
 [JsonSerializable(typeof(ConditionInventoryRequest))]
 [JsonSerializable(typeof(ConditionInventoryResponse))]
+[JsonSerializable(typeof(List<AccessPolicyView>))]
+[JsonSerializable(typeof(List<PolicyClauseView>))]
+[JsonSerializable(typeof(AccessPolicyResponse))]
+[JsonSerializable(typeof(PageResult<AccessPolicyResponse>))]
+[JsonSerializable(typeof(GetAccessPolicyRequest))]
+[JsonSerializable(typeof(CreateAccessPolicyRequest))]
+[JsonSerializable(typeof(UpdateAccessPolicyRequest))]
+[JsonSerializable(typeof(SetAccessPolicyActionRequest))]
+[JsonSerializable(typeof(SetAccessPolicyStatusRequest))]
+[JsonSerializable(typeof(AccessPolicyIdsRequest))]
+[JsonSerializable(typeof(AccessPolicyAttributesRequest))]
+[JsonSerializable(typeof(AccessPolicyTemplatesRequest))]
+[JsonSerializable(typeof(AccessPolicyTemplatesResponse))]
+[JsonSerializable(typeof(TrialAccessPolicyRequest))]
+[JsonSerializable(typeof(AccessPolicyTrialResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

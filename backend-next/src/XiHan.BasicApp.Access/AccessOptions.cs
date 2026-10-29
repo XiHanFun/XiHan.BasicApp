@@ -47,6 +47,11 @@ public sealed record AccessOptions
     public PermissionConditionMode PermissionConditionMode { get; init; } = PermissionConditionMode.Enforce;
 
     /// <summary>
+    /// 访问策略是否判定（<c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉）。
+    /// </summary>
+    public bool AccessPolicyEnabled { get; init; } = true;
+
+    /// <summary>
     /// 条件里时刻、小时、星期与日期所按的时区（<c>ConditionTimeZone</c>，缺省 Asia/Shanghai）。
     /// </summary>
     public TimeZoneInfo ConditionTimeZone { get; init; } = Resolve(DefaultTimeZoneId);
@@ -66,6 +71,16 @@ public sealed record AccessOptions
                 PermissionConditionMode = Enum.TryParse<PermissionConditionMode>(mode, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
                     ? parsed
                     : throw new ArgumentException($"'{ConfigurationSection}:PermissionConditionMode' must be Disabled, LogOnly or Enforce, but was '{mode}'."),
+            };
+        }
+
+        if (section["AccessPolicyEnabled"] is { } enabled)
+        {
+            options = options with
+            {
+                AccessPolicyEnabled = bool.TryParse(enabled, out var parsed)
+                    ? parsed
+                    : throw new ArgumentException($"'{ConfigurationSection}:AccessPolicyEnabled' must be true or false, but was '{enabled}'."),
             };
         }
 

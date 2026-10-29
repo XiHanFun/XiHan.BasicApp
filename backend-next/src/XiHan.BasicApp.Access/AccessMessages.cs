@@ -530,6 +530,101 @@ public static class AccessMessages
     /// </summary>
     public const string PermissionConditionInventoryDescription = "permission_conditions.inventory.description";
 
+    /// <summary>
+    /// 访问策略编码含空白；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyCodeInvalid = "access.policy.code_invalid";
+
+    /// <summary>
+    /// 访问策略没有条件。
+    /// </summary>
+    public const string PolicyConditionsRequired = "access.policy.conditions_required";
+
+    /// <summary>
+    /// 访问策略的条件组或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </summary>
+    public const string PolicyConditionsExceeded = "access.policy.conditions_exceeded";
+
+    /// <summary>
+    /// 访问策略的失效时间不晚于生效时间。
+    /// </summary>
+    public const string PolicyWindowInvalid = "access.policy.window_invalid";
+
+    /// <summary>
+    /// 启用中的拒绝策略会拦下当前这次请求；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicySelfLockout = "access.policy.self_lockout";
+
+    /// <summary>
+    /// 访问策略的模板不存在；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyTemplateUnknown = "access.policy.template_unknown";
+
+    /// <summary>
+    /// 访问策略编码在这一侧已存在；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyCodeTaken = "access.policy.code_taken";
+
+    /// <summary>
+    /// 访问策略不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string PolicyNotFound = "access.policy.not_found";
+
+    /// <summary>
+    /// 调用被访问策略拒绝。
+    /// </summary>
+    public const string PolicyDenied = "access.policy.denied";
+
+    /// <summary>
+    /// 操作 <c>policies.list</c> 的说明。
+    /// </summary>
+    public const string ListAccessPoliciesDescription = "policies.list.description";
+
+    /// <summary>
+    /// 操作 <c>policies.get</c> 的说明。
+    /// </summary>
+    public const string GetAccessPolicyDescription = "policies.get.description";
+
+    /// <summary>
+    /// 操作 <c>policies.create</c> 的说明。
+    /// </summary>
+    public const string CreateAccessPolicyDescription = "policies.create.description";
+
+    /// <summary>
+    /// 操作 <c>policies.update</c> 的说明。
+    /// </summary>
+    public const string UpdateAccessPolicyDescription = "policies.update.description";
+
+    /// <summary>
+    /// 操作 <c>policies.set-action</c> 的说明。
+    /// </summary>
+    public const string SetAccessPolicyActionDescription = "policies.set_action.description";
+
+    /// <summary>
+    /// 操作 <c>policies.set-status</c> 的说明。
+    /// </summary>
+    public const string SetAccessPolicyStatusDescription = "policies.set_status.description";
+
+    /// <summary>
+    /// 操作 <c>policies.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteAccessPoliciesDescription = "policies.delete.description";
+
+    /// <summary>
+    /// 操作 <c>policies.attributes</c> 的说明。
+    /// </summary>
+    public const string ListAccessPolicyAttributesDescription = "policies.attributes.description";
+
+    /// <summary>
+    /// 操作 <c>policies.templates</c> 的说明。
+    /// </summary>
+    public const string ListAccessPolicyTemplatesDescription = "policies.templates.description";
+
+    /// <summary>
+    /// 操作 <c>policies.trial</c> 的说明。
+    /// </summary>
+    public const string TrialAccessPolicyDescription = "policies.trial.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

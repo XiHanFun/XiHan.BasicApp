@@ -2,9 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Access.Infrastructure;
-using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
-using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Kernel.Security;
@@ -40,7 +38,7 @@ public sealed class PermissionConditionMiddleware(GrantEvaluator evaluator, Cond
             return;
         }
 
-        var source = ConditionAttributeSource.Create(RequestOf(context, security, view, permission, operation.Id), context.Services, options);
+        var source = ConditionAttributeSource.Create(AccessRequests.From(context, [.. view.Roles.Select(static r => r.RoleId)], [permission], operation.Id, clock.GetUtcNow()), context.Services, options);
         var decision = await decider.DecideAsync(view, permission, source, explain: false, context.CancellationToken).ConfigureAwait(false);
         if (decision.Verdict is ConditionVerdict.Granted or ConditionVerdict.Unconditional)
         {
@@ -63,35 +61,5 @@ public sealed class PermissionConditionMiddleware(GrantEvaluator evaluator, Cond
         }
 
         await nextStep(context).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// 调用上下文 → 请求事实：HTTP 的请求目标是「方法 路径」，其他协议只有目标（gRPC 方法全名、MCP 工具名等）。
-    /// </summary>
-    private ConditionRequest RequestOf(InvocationContext context, SecurityContext security, GrantView view, string permission, string operationId)
-    {
-        var origin = context.GetOrigin().TryGetValue(out var found) ? found : null;
-        string? method = null;
-        var path = origin?.Target;
-        if (origin is not null && origin.Protocol == InvocationProtocols.Http && origin.Target.IndexOf(' ', StringComparison.Ordinal) is var space and > 0)
-        {
-            method = origin.Target[..space];
-            path = origin.Target[(space + 1)..];
-        }
-
-        return new ConditionRequest(
-            security.Tenant?.Id ?? TenantIds.Platform,
-            Guid.TryParse(security.Principal.Id, out var userId) ? userId : null,
-            security.Principal.ClaimValues(IdentityClaims.UserName).FirstOrDefault(),
-            security.Principal.ClaimValues(IdentityClaims.Actor).Any(),
-            [.. view.Roles.Select(static r => r.RoleId)],
-            [permission],
-            path,
-            method,
-            operationId,
-            origin?.RemoteAddress,
-            origin?.UserAgent,
-            origin?.Protocol,
-            clock.GetUtcNow());
     }
 }

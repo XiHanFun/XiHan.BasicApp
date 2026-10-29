@@ -2,6 +2,12 @@
 
 // 枚举文案由后端消息目录按语言提供（随 N1 的 metadata.enums.list 接入）；这里只有成员与类型。
 
+export const AccessPolicyAction = ['LogOnly', 'Deny', 'Allow'] as const
+export type AccessPolicyAction = (typeof AccessPolicyAction)[number]
+
+export const AccessPolicyStatus = ['Active', 'Disabled'] as const
+export type AccessPolicyStatus = (typeof AccessPolicyStatus)[number]
+
 export const AccessResult = ['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'] as const
 export type AccessResult = (typeof AccessResult)[number]
 
@@ -118,6 +124,8 @@ export type UserStatus = (typeof UserStatus)[number]
 
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
+  AccessPolicyAction,
+  AccessPolicyStatus,
   AccessResult,
   ConditionDiagnostic,
   ConditionGroupConclusion,
