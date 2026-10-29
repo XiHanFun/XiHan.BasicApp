@@ -63,6 +63,7 @@
   "notification.target.department_platform": "На стороне платформы нет отделов: рассылать по отделам нельзя.",
   "notification.window.invalid": "Срок окончания должен быть позже начала.",
   "notification.recipients.none": "По адресатам не найдено ни одного активного получателя.",
+  "notification.telegram.settings_invalid": "JSON параметра {key} неверен: {detail}",
   "notification.telegram_bot.not_found": "Бот Telegram {id} не существует.",
   "notification.telegram_bot.name_taken": "Бот Telegram с именем {name} уже существует.",
   "notification.telegram_bot.token_invalid": "Неверный формат токена; используйте токен вида «цифры:строка», выданный BotFather.",

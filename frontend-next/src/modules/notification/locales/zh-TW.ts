@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: '廣播群組',
         broadcast_chat_ids_placeholder: '以逗號分隔的群組 ChatId，例如 -1001234567890（選填）',
         broadcast_chat_ids_hint: '平台依「機器人」管道發布的通知會發到這些對話',
+        platform_settings_hint: '總開關、Webhook 根位址（留空即長輪詢）、重新整理週期、兜底回覆與網路在參數設定的 {settingsKey}（JSON），Webhook 密鑰在 {secretKey}（加密參數）',
         enable_fallback_reply: '備援回覆',
         sort: '排序',
         is_enabled: '是否啟用',

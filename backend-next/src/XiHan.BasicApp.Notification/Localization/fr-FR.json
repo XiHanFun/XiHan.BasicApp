@@ -63,6 +63,7 @@
   "notification.target.department_platform": "Le côté plateforme n’a pas de services : impossible d’y cibler des services.",
   "notification.window.invalid": "L’expiration doit être postérieure au début.",
   "notification.recipients.none": "Les cibles de diffusion ne donnent aucun destinataire actif.",
+  "notification.telegram.settings_invalid": "Le JSON du paramètre {key} est invalide : {detail}",
   "notification.telegram_bot.not_found": "Le bot Telegram {id} n’existe pas.",
   "notification.telegram_bot.name_taken": "Un bot Telegram nommé {name} existe déjà.",
   "notification.telegram_bot.token_invalid": "Le jeton est mal formé ; utilisez le jeton « chiffres:chaîne » fourni par BotFather.",

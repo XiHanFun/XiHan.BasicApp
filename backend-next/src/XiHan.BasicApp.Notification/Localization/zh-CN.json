@@ -63,6 +63,7 @@
   "notification.target.department_platform": "平台一侧没有部门，不能按部门投递。",
   "notification.window.invalid": "到期时间须晚于开始时间。",
   "notification.recipients.none": "按投递目标找不到任何正常的接收人。",
+  "notification.telegram.settings_invalid": "系统参数 {key} 的 JSON 有误：{detail}",
   "notification.telegram_bot.not_found": "Telegram 机器人 {id} 不存在。",
   "notification.telegram_bot.name_taken": "已有名为 {name} 的 Telegram 机器人。",
   "notification.telegram_bot.token_invalid": "令牌格式不正确，应为 BotFather 给出的「数字:字符串」。",

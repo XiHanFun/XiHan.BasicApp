@@ -9,6 +9,7 @@ using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Notification;
+using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
@@ -125,6 +126,7 @@ public static class BasicAppHost
         PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapGet("/", () => info).ExcludeFromDescription());
         endpoints.MapFileEndpoints();
         endpoints.MapRealtimeHubs();
+        endpoints.MapTelegramWebhook();
         return endpoints;
     }
 }

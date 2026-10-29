@@ -580,6 +580,7 @@ export default {
         broadcast_chat_ids: '广播群',
         broadcast_chat_ids_placeholder: '逗号分隔的群组 ChatId，如 -1001234567890（可选）',
         broadcast_chat_ids_hint: '平台按「机器人」渠道发布的通知会发到这些会话',
+        platform_settings_hint: '总开关、Webhook 根地址（留空即长轮询）、刷新周期、兜底回复与网络在参数配置的 {settingsKey}（JSON），Webhook 密钥在 {secretKey}（加密参数）',
         enable_fallback_reply: '兜底回复',
         sort: '排序',
         is_enabled: '是否启用',

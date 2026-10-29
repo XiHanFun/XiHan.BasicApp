@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: 'Chats de transmissão',
         broadcast_chat_ids_placeholder: 'ChatIds de grupo separados por vírgula, ex.: -1001234567890 (opcional)',
         broadcast_chat_ids_hint: 'As notificações que a plataforma publica pelo canal Bot são enviadas a estes chats',
+        platform_settings_hint: 'A chave geral, o endereço base do webhook (vazio = long polling), o intervalo de atualização, a resposta padrão e a rede ficam no parâmetro {settingsKey} (JSON); o segredo do webhook, em {secretKey} (criptografado)',
         enable_fallback_reply: 'Resposta padrão',
         sort: 'Ordem',
         is_enabled: 'Ativado',

@@ -63,6 +63,7 @@
   "notification.target.department_platform": "The platform side has no departments; notifications cannot target departments there.",
   "notification.window.invalid": "The expiry must be later than the start.",
   "notification.recipients.none": "The delivery targets resolve to no active recipients.",
+  "notification.telegram.settings_invalid": "The JSON of setting {key} is invalid: {detail}",
   "notification.telegram_bot.not_found": "Telegram bot {id} does not exist.",
   "notification.telegram_bot.name_taken": "A Telegram bot named {name} already exists.",
   "notification.telegram_bot.token_invalid": "The token is malformed; use the \"digits:string\" token BotFather gave you.",

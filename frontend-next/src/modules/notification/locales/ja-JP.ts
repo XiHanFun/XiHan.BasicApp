@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: 'ブロードキャストチャット',
         broadcast_chat_ids_placeholder: 'カンマ区切りのグループ ChatId。例: -1001234567890（任意）',
         broadcast_chat_ids_hint: 'プラットフォームが「ボット」チャネルで公開した通知はこれらのチャットに送られます',
+        platform_settings_hint: '全体スイッチ・Webhook のベース URL（空欄はロングポーリング）・更新間隔・フォールバック返信・ネットワークはパラメーター {settingsKey}（JSON）、Webhook シークレットは {secretKey}（暗号化パラメーター）で設定します',
         enable_fallback_reply: 'フォールバック返信',
         sort: '並び順',
         is_enabled: '有効にする',

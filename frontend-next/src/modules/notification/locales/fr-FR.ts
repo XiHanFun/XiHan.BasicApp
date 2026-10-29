@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: 'Chats de diffusion',
         broadcast_chat_ids_placeholder: 'ChatIds de groupe séparés par des virgules, ex. -1001234567890 (facultatif)',
         broadcast_chat_ids_hint: 'Les notifications publiées par la plateforme via le canal Bot sont envoyées à ces chats',
+        platform_settings_hint: 'L’interrupteur général, l’adresse de base du webhook (vide = long polling), l’intervalle de rafraîchissement, la réponse de secours et le réseau se règlent dans le paramètre {settingsKey} (JSON), le secret du webhook dans {secretKey} (chiffré)',
         enable_fallback_reply: 'Réponse de secours',
         sort: 'Ordre',
         is_enabled: 'Activé',
