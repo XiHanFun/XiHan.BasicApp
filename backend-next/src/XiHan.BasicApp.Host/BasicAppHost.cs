@@ -38,14 +38,19 @@ using XiHan.Framework.Security.Jwt;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 宿主装配（方案 5.13）：Full Profile + 显式 Provider + 全部能力包，可选模块按 <see cref="HostModules"/> 的开关装配；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
+/// 宿主的装配与端点映射。
 /// </summary>
+/// <remarks>
+/// 方案 5.13：Full Profile + 显式 Provider + 全部能力包，可选模块按 <see cref="HostModules"/> 的开关装配；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
+/// </remarks>
 public static class BasicAppHost
 {
     /// <summary>
-    /// 建应用：装配框架与能力包、映射端点；不启动。<paramref name="configure"/> 在 <c>Build()</c> 之前执行，供测试换成 TestServer 并注入配置；
-    /// <paramref name="configureApp"/> 在 <c>UseXiHan()</c> 之前执行，供要排在内核桥接之前的中间件（静态文件、ASP.NET Core 认证）接入。
+    /// 建应用：装配框架与能力包、映射端点，但不启动。
     /// </summary>
+    /// <param name="args">命令行参数。</param>
+    /// <param name="configure">在 <c>Build()</c> 之前执行，供测试换成 TestServer 并注入配置。</param>
+    /// <param name="configureApp">在 <c>UseXiHan()</c> 之前执行，供要排在内核桥接之前的中间件（静态文件、ASP.NET Core 认证）接入。</param>
     public static WebApplication Create(string[] args, Action<WebApplicationBuilder>? configure = null, Action<WebApplication>? configureApp = null)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -93,9 +98,12 @@ public static class BasicAppHost
     }
 
     /// <summary>
-    /// 映射全部端点：探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、普通端点。
-    /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（它的 JWT 方案不设为缺省），操作照旧由内核认证。
+    /// 映射全部端点。
     /// </summary>
+    /// <remarks>
+    /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、普通端点。
+    /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（它的 JWT 方案不设为缺省），操作照旧由内核认证。
+    /// </remarks>
     public static void Map(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -122,8 +130,11 @@ public static class BasicAppHost
     }
 
     /// <summary>
-    /// 不能用操作表达的普通端点：根路径的应用信息、文件的上传与下载、实时 Hub；OAuth 重定向、Webhook 随各包补入。
+    /// 映射不能用操作表达的普通端点。
     /// </summary>
+    /// <remarks>
+    /// 包括根路径的应用信息、文件的上传与下载、实时 Hub；OAuth 重定向、Webhook 随各包补入。
+    /// </remarks>
     public static IEndpointRouteBuilder MapBasicAppEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);

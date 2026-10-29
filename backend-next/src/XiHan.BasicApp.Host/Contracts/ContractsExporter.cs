@@ -10,11 +10,14 @@ using XiHan.Framework.Protocols.Http.OpenApi;
 namespace XiHan.BasicApp.Host.Contracts;
 
 /// <summary>
+/// <c>contracts export</c> 命令：把接口文档与推送方法清单写到目录。
+/// </summary>
+/// <remarks>
 /// <c>contracts export --out &lt;目录&gt;</c>：把宿主装配后的接口文档（<c>openapi.json</c>，含操作、权限码扩展与普通端点）写到目录，不启动应用、不连数据库。
 /// 文档输入由框架 <see cref="OpenApiDocumentSource.FromServices"/> 组装，与 <c>MapXiHanOpenApi</c> 服务的 <c>/openapi.json</c> 同源（集成测试逐字节比对）。
 /// 同目录另出 <c>realtime.json</c>：Hub 路径与服务端推送的方法名清单（方案 5.11，不是第二份 API 文档）。
 /// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这两个文件。
-/// </summary>
+/// </remarks>
 public static class ContractsExporter
 {
     /// <summary>
@@ -28,8 +31,13 @@ public static class ContractsExporter
     public const string RealtimeFileName = "realtime.json";
 
     /// <summary>
-    /// 解析命令行：<c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）。不是这条命令返回假；是但缺 <c>--out</c> 抛出用法错误。
+    /// 解析 <c>contracts export</c> 命令行。
     /// </summary>
+    /// <remarks>
+    /// 写法 <c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）。
+    /// </remarks>
+    /// <returns>是这条命令即为真，不是这条命令返回假。</returns>
+    /// <exception cref="ArgumentException">是这条命令但缺 <c>--out</c>（用法错误）。</exception>
     public static bool TryParse(IReadOnlyList<string> args, [NotNullWhen(true)] out string? outputDirectory)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -58,8 +66,12 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成文档与推送方法清单并写到 <paramref name="outputDirectory"/>，把完整路径打到 stdout；返回进程退出码。
+    /// 生成文档与推送方法清单并写到 <paramref name="outputDirectory"/>。
     /// </summary>
+    /// <remarks>
+    /// 把完整路径打到 stdout。
+    /// </remarks>
+    /// <returns>进程退出码。</returns>
     public static int Export(WebApplication app, string outputDirectory)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -76,8 +88,11 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 推送方法清单：<c>{"hubs":[{"path":"/hubs/notification","methods":[...]}]}</c>，方法按字母序，缩进两格、LF 换行。
+    /// 生成推送方法清单。
     /// </summary>
+    /// <remarks>
+    /// 格式 <c>{"hubs":[{"path":"/hubs/notification","methods":[...]}]}</c>，方法按字母序，缩进两格、LF 换行。
+    /// </remarks>
     public static byte[] BuildRealtime()
     {
         using var buffer = new MemoryStream();
@@ -104,8 +119,11 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成文档字节：标题与版本取 <see cref="AppInfo"/>，端点取宿主全部数据源，摘要按默认区域。
+    /// 生成接口文档的字节。
     /// </summary>
+    /// <remarks>
+    /// 标题与版本取 <see cref="AppInfo"/>，端点取宿主全部数据源，摘要按默认区域。
+    /// </remarks>
     public static byte[] Build(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);

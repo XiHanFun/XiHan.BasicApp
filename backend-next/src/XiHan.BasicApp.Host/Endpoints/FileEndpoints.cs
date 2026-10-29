@@ -18,14 +18,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 文件的普通端点（方案 5.4：只有 JSON 能进操作，上传与下载内容是普通端点，元数据管理是操作）：
+/// 文件的普通端点。
+/// </summary>
+/// <remarks>
+/// 方案 5.4：只有 JSON 能进操作，上传与下载内容是普通端点，元数据管理是操作。
 /// <list type="bullet">
 /// <item><c>POST /api/files/upload</c>：multipart 表单上传一个文件（字段 <c>file</c>，可选 <c>accessLevel</c>、<c>isTemporary</c>、<c>expiresAt</c>、<c>tags</c>、<c>remark</c>），要 <c>files.files.create</c>，返回文件。</item>
 /// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用）。</item>
 /// <item><c>GET /api/files/content/{token}</c>：签名地址，不再校验身份（浏览器的图片、链接与新窗口用），令牌由 <c>files.presign</c> 签发。</item>
 /// </list>
 /// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。三者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c>、<c>files.signed-content</c> 记录。
-/// </summary>
+/// </remarks>
 internal static class FileEndpoints
 {
     /// <summary>
