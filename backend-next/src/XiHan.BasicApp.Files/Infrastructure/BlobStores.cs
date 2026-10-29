@@ -13,11 +13,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 按存储配置给出对象存储实例（框架只按启动配置装一个 <see cref="IBlobStore"/>，存储配置是运行时数据，实例由这里建）：
+/// 按存储配置给出对象存储实例。
+/// </summary>
+/// <remarks>
+/// 框架只按启动配置装一个 <see cref="IBlobStore"/>，存储配置是运行时数据，实例由这里建：
 /// 本地存储共用一个以 <see cref="FilesOptions.LocalRootPath"/> 为根的目录存储，桶是根下的子目录；S3 兼容存储每条配置一个客户端，配置改了（地址、区域、桶、密钥）就重建。
 /// 换下来的客户端可能还有进行中的读写，不立即释放，随应用停止一并释放。容量由租户配额管，不用目录存储自己的总量上限。
 /// 过渡实现：框架的命名存储实例（开发计划 P5-31）推送、锁定升上去后改用框架的，这个类随之拿掉。
-/// </summary>
+/// </remarks>
 /// <param name="options">文件包配置。</param>
 /// <param name="secrets">密钥保护（解开访问密钥）。</param>
 /// <param name="clock">时钟。</param>

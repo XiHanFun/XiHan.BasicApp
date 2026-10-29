@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件包的错误码：<c>FILES_&lt;KIND&gt;_&lt;NNN&gt;</c>。对象存储本身的失败沿用框架的 <c>OBJECTSTORAGE_*</c>。
+/// 文件包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>FILES_&lt;KIND&gt;_&lt;NNN&gt;</c>。对象存储本身的失败沿用框架的 <c>OBJECTSTORAGE_*</c>。
+/// </remarks>
 public static class FilesErrors
 {
     /// <summary>

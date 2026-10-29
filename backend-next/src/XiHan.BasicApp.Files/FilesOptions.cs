@@ -17,8 +17,11 @@ public sealed class FilesOptions
     public const string Section = "BasicApp:Files";
 
     /// <summary>
-    /// 本地存储的根目录；相对路径按内容根目录解析。缺省 <c>App_Data/files</c>。各本地存储配置的桶是它下面的子目录。
+    /// 本地存储的根目录。
     /// </summary>
+    /// <remarks>
+    /// 相对路径按内容根目录解析。缺省 <c>App_Data/files</c>。各本地存储配置的桶是它下面的子目录。
+    /// </remarks>
     public string LocalRootPath { get; init; } = "App_Data/files";
 
     /// <summary>
@@ -27,8 +30,11 @@ public sealed class FilesOptions
     public long MaxUploadBytes { get; init; } = 100L * 1024 * 1024;
 
     /// <summary>
-    /// 签名下载地址的缺省有效期，缺省 30 分钟（4.x 同）。
+    /// 签名下载地址的缺省有效期，缺省 30 分钟。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public TimeSpan LinkLifetime { get; init; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
@@ -37,8 +43,11 @@ public sealed class FilesOptions
     public TimeSpan MaxLinkLifetime { get; init; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 从配置读取；本地根目录按宿主的内容根目录解析成绝对路径。
+    /// 从配置读取文件包选项。
     /// </summary>
+    /// <remarks>
+    /// 本地根目录按宿主的内容根目录解析成绝对路径。
+    /// </remarks>
     /// <param name="configuration">配置。</param>
     /// <param name="environment">宿主环境（没有时按当前目录解析）。</param>
     /// <returns>选项。</returns>

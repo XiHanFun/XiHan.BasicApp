@@ -13,8 +13,11 @@ using StorageType = XiHan.BasicApp.Files.Domain.Entities.StorageType;
 namespace XiHan.BasicApp.Files.Queries;
 
 /// <summary>
-/// 存储配置列表（当前一侧）：关键字匹配编码、名称、桶与备注；按类型、状态多选，按是否缺省筛选；缺省按缺省在前、再按排序与创建时间（4.x 同）。
+/// 当前一侧的存储配置列表查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配编码、名称、桶与备注；按类型、状态多选，按是否缺省筛选；缺省按缺省在前、再按排序与创建时间（4.x 同）。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 public sealed class StorageConfigQueries(SqlSugarUnitOfWork unitOfWork)
 {

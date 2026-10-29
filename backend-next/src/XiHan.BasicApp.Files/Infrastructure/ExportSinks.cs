@@ -9,8 +9,11 @@ using XiHan.BasicApp.Files.Domain.Entities;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 导出文件的写入端：先写表头，再一行一行写，最后收尾；内容直接写进调用方给的流（导出时是临时文件），不在内存里攒整份结果。
+/// 导出文件的写入端。
 /// </summary>
+/// <remarks>
+/// 先写表头，再一行一行写，最后收尾；内容直接写进调用方给的流（导出时是临时文件），不在内存里攒整份结果。
+/// </remarks>
 public interface IExportSink : IAsyncDisposable
 {
     /// <summary>
@@ -58,8 +61,11 @@ public static class ExportSinks
 }
 
 /// <summary>
-/// CSV（4.x 同）：UTF-8 带 BOM（Excel 直接打开不乱码），CRLF 换行，含逗号、引号或换行的单元格加引号、引号成对转义。
+/// CSV 写入端。
 /// </summary>
+/// <remarks>
+/// 4.x 同：UTF-8 带 BOM（Excel 直接打开不乱码），CRLF 换行，含逗号、引号或换行的单元格加引号、引号成对转义。
+/// </remarks>
 /// <param name="output">输出流。</param>
 internal sealed class CsvExportSink(Stream output) : IExportSink
 {
@@ -92,8 +98,11 @@ internal sealed class CsvExportSink(Stream output) : IExportSink
 }
 
 /// <summary>
-/// XLSX（4.x 同）：一个工作表、内联字符串，直接写 OOXML 的五个部件；工作表部件最后写，行随到随写。
+/// XLSX 写入端。
 /// </summary>
+/// <remarks>
+/// 4.x 同：一个工作表、内联字符串，直接写 OOXML 的五个部件；工作表部件最后写，行随到随写。
+/// </remarks>
 internal sealed class XlsxExportSink : IExportSink
 {
     private readonly ZipArchive _archive;

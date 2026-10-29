@@ -30,8 +30,11 @@ namespace XiHan.BasicApp.Files.Infrastructure;
 public sealed record ExportJob(Guid TaskId, string Side, AuthenticationCredential Credential);
 
 /// <summary>
-/// 导出队列（进程内）：提交时入队，后台循环取出执行。进程重启时队列里的作业随之丢失，对应任务在启动时记为中断。
+/// 导出队列（进程内）：提交时入队，后台循环取出执行。
 /// </summary>
+/// <remarks>
+/// 进程重启时队列里的作业随之丢失，对应任务在启动时记为中断。
+/// </remarks>
 public sealed class ExportJobs
 {
     private readonly Channel<ExportJob> _channel = Channel.CreateUnbounded<ExportJob>(new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
@@ -52,10 +55,13 @@ public sealed class ExportJobs
 }
 
 /// <summary>
-/// 导出执行（4.x 同至多并发 2）：以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
+/// 导出执行：以发起人的身份在后台逐页调列表操作并写出结果文件。
+/// </summary>
+/// <remarks>
+/// 4.x 同至多并发 2。以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
 /// 行随到随写进临时文件，写完经 <see cref="FileService"/> 存成临时文件（7 天到期，访问级别「已登录」），任务记下结果文件。
 /// 凭据过期或会话吊销即失败；失败与中断经独立的短事务记到任务上（那时发起人的凭据可能已经用不了）。
-/// </summary>
+/// </remarks>
 /// <param name="queue">导出队列。</param>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="app">应用（执行管道）。</param>
@@ -69,8 +75,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     public const int PageSize = 500;
 
     /// <summary>
-    /// 一次导出至多多少行（4.x 同）。
+    /// 一次导出至多多少行。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const long MaxRows = 1_000_000;
 
     /// <summary>
@@ -107,8 +116,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 启动时把上次没执行完的任务（排队中、执行中）记为中断：它们的凭据只在上个进程的内存里。
+    /// 启动时把上次没执行完的任务记为中断。
     /// </summary>
+    /// <remarks>
+    /// 没执行完即排队中、执行中：它们的凭据只在上个进程的内存里。
+    /// </remarks>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>结果。</returns>
     public Task<Result> InterruptLeftoversAsync(CancellationToken cancellationToken)
@@ -161,8 +173,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 领取：任务可能还没随提交调用一起提交，读不到时稍等再读；只领排队中的（取消的不再执行）。
+    /// 领取一个排队中的任务。
     /// </summary>
+    /// <remarks>
+    /// 任务可能还没随提交调用一起提交，读不到时稍等再读；只领排队中的（取消的不再执行）。
+    /// </remarks>
     private async Task<(SysExportTask Task, IReadOnlyList<ExportColumn> Columns)?> ClaimAsync(ExportJob job, CancellationToken cancellationToken)
     {
         for (var attempt = 0; attempt < 40; attempt++)
@@ -337,8 +352,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 以发起人的身份开一次调用（全管道、自带工作单元）执行 <paramref name="action"/>；失败时错误信息按默认区域翻译。
+    /// 以发起人的身份开一次调用执行 <paramref name="action"/>。
     /// </summary>
+    /// <remarks>
+    /// 全管道、自带工作单元；失败时错误信息按默认区域翻译。
+    /// </remarks>
     private async Task<Result> InCallAsync(ExportJob job, Func<InvocationContext, Task<Result>> action, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();

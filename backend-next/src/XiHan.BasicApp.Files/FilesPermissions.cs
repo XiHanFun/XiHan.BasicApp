@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件包的权限码：两侧都有，各自管理本侧的文件与存储配置。
-/// 换取访问级别为「已登录」的文件的下载地址只要求已登录，不在这里。
+/// 文件包的权限码。
 /// </summary>
+/// <remarks>
+/// 两侧都有，各自管理本侧的文件与存储配置。
+/// 换取访问级别为「已登录」的文件的下载地址只要求已登录，不在这里。
+/// </remarks>
 public static class FilesPermissions
 {
     /// <summary>

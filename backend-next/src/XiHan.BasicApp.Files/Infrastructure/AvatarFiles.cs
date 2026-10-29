@@ -8,8 +8,11 @@ using XiHan.BasicApp.Files.Domain.Services;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 头像文件的回收：头像固定存平台侧，按平台侧删除（副本软删除，对象不再被引用即删）。
+/// 头像文件的回收。
 /// </summary>
+/// <remarks>
+/// 头像固定存平台侧，按平台侧删除（副本软删除，对象不再被引用即删）。
+/// </remarks>
 /// <param name="files">文件服务。</param>
 public sealed class AvatarFiles(FileService files) : IAvatarFiles
 {

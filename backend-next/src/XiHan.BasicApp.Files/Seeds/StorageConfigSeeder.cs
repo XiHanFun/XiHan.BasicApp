@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Seeds;
 
 /// <summary>
-/// 平台的缺省存储配置 <c>local-default</c>（本地目录、桶 <c>files</c>，4.x 同）：编码不存在才写入，之后由运营维护。
+/// 写入平台的缺省存储配置 <c>local-default</c>。
 /// </summary>
+/// <remarks>
+/// 本地目录、桶 <c>files</c>，4.x 同。编码不存在才写入，之后由运营维护。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 public sealed class StorageConfigSeeder(StorageConfigService service) : ISeeder
 {

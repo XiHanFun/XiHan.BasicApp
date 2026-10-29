@@ -8,8 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Files.Domain.Entities;
 
 /// <summary>
-/// 导出任务（租户库实体，平台一侧租户为 <c>platform</c>；4.x 同）：把某个列表操作的查询结果按发起人的身份导成 CSV 或 XLSX，结果存成临时文件。
+/// 导出任务：把某个列表操作的查询结果导成 CSV 或 XLSX 文件。
 /// </summary>
+/// <remarks>
+/// 租户库实体，平台一侧租户为 <c>platform</c>；4.x 同。
+/// 按发起人的身份导出，结果存成临时文件。
+/// </remarks>
 public sealed class SysExportTask : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -105,8 +109,11 @@ public sealed class SysExportTask : TenantScopedAuditedEntity
 }
 
 /// <summary>
-/// 导出范围（4.x 同）。
+/// 导出范围。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum ExportScope
 {
     /// <summary>
@@ -126,8 +133,11 @@ public enum ExportScope
 }
 
 /// <summary>
-/// 导出格式（4.x 同）。
+/// 导出格式。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum ExportFormat
 {
     /// <summary>
@@ -142,8 +152,11 @@ public enum ExportFormat
 }
 
 /// <summary>
-/// 导出任务状态（4.x 同；取消记为失败并写明已取消）。
+/// 导出任务状态。
 /// </summary>
+/// <remarks>
+/// 4.x 同；取消记为失败并写明已取消。
+/// </remarks>
 public enum ExportTaskStatus
 {
     /// <summary>
