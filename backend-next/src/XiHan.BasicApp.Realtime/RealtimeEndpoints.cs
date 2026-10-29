@@ -15,9 +15,12 @@ namespace XiHan.BasicApp.Realtime;
 public static class RealtimeEndpoints
 {
     /// <summary>
-    /// 映射通知 Hub：绕过内核管道（长连接不受 <c>xihan-deadline</c> 约束，内核停止后不被 503 打断），由 ASP.NET Core 的 JWT 认证与授权把关。
-    /// 宿主须在 <c>UseXiHan()</c> 之前 <c>UseAuthentication()</c> / <c>UseAuthorization()</c>。
+    /// 映射通知 Hub。
     /// </summary>
+    /// <remarks>
+    /// 绕过内核管道（长连接不受 <c>xihan-deadline</c> 约束，内核停止后不被 503 打断），由 ASP.NET Core 的 JWT 认证与授权把关。
+    /// 宿主须在 <c>UseXiHan()</c> 之前 <c>UseAuthentication()</c> / <c>UseAuthorization()</c>。
+    /// </remarks>
     public static IEndpointRouteBuilder MapRealtimeHubs(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);

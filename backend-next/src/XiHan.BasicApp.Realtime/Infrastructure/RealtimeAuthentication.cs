@@ -11,9 +11,12 @@ using XiHan.Framework.Security.Jwt;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// Hub 的 ASP.NET Core 认证（方案 5.11）：内核管道的认证管不到绕过管道的 Hub，这里用 JWT Bearer 方案按 <see cref="JwtOptions"/> 校验同一份访问令牌，
-/// 校验项与框架的 <see cref="JwtAuthenticationHandler"/> 一致。方案不设为缺省：只有带 <see cref="Policy"/> 的端点（Hub）走它，操作与其他普通端点照旧由内核认证。
+/// Hub 的 ASP.NET Core 认证。
 /// </summary>
+/// <remarks>
+/// 方案 5.11：内核管道的认证管不到绕过管道的 Hub，这里用 JWT Bearer 方案按 <see cref="JwtOptions"/> 校验同一份访问令牌，
+/// 校验项与框架的 <see cref="JwtAuthenticationHandler"/> 一致。方案不设为缺省：只有带 <see cref="Policy"/> 的端点（Hub）走它，操作与其他普通端点照旧由内核认证。
+/// </remarks>
 internal static class RealtimeAuthentication
 {
     /// <summary>

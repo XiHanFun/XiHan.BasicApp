@@ -9,10 +9,13 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// 通知 Hub（<c>/hubs/notification</c>）：只推不收，客户端没有可调用的方法。连接经 ASP.NET Core 的 JWT 认证后，
+/// 通知 Hub（<c>/hubs/notification</c>）。
+/// </summary>
+/// <remarks>
+/// 只推不收，客户端没有可调用的方法。连接经 ASP.NET Core 的 JWT 认证后，
 /// 再按令牌的 <c>sid</c> 经 <see cref="ISessionStatus"/> 核对会话仍有效（Hub 绕过内核管道，HTTP 调用的会话门禁管不到这里），无效即断开；
 /// 有效则加入会话 / 用户 / 侧的组，再登记连接（在线状态显示为在线时一定已经收得到推送）。
-/// </summary>
+/// </remarks>
 /// <param name="registry">连接登记。</param>
 /// <param name="sessions">会话状态。</param>
 internal sealed class NotificationHub(ConnectionRegistry registry, ISessionStatus sessions) : Hub
