@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "Informe um valor para rastrear.",
   "auditing.trace.range_invalid": "O início do intervalo de tempo não pode ser posterior ao fim.",
   "auditing.retention.invalid": "A configuração 'auditing.retention-days' deve ser um número inteiro de 1 a 3650, mas era '{value}'.",
-  "my_login_logs.list.description": "Lista seus próprios registros de login por página (login, atualização, saída, troca de locatário, personificação, troca de senha etc., com ou sem sucesso), do mais recente ao mais antigo, até 50 por página. Requer apenas login."
+  "my_login_logs.list.description": "Lista seus próprios registros de login por página (login, atualização, saída, troca de locatário, personificação, troca de senha etc., com ou sem sucesso), do mais recente ao mais antigo, até 50 por página. Requer apenas login.",
+  "my_activity.summary.description": "Sua atividade: logins, acessos e operações de hoje, desta semana e deste mês, o último de cada, e operações e acessos por dia nos últimos 371 dias, divididos pelo fuso horário pedido. Requer apenas login.",
+  "auditing.time_zone.invalid": "O fuso horário \"{timeZone}\" é inválido."
 }

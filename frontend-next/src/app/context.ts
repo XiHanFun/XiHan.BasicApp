@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
 import type { LoginEvent, ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile, UserSessionItem } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
@@ -178,6 +178,37 @@ function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   }
 }
 
+/** `profile.notification-preference` / `update-notification-preference` → 4.x 个人中心「通知」的偏好：六个开关与 4.x 同名，逐项给（4.x 的推送、机器人、审批、营销 6.0 没有） */
+function toShellNotificationPreference(preference: ResponseOf<'profile.notification-preference'>): NotificationPreference {
+  return {
+    channelInApp: preference.channelInApp,
+    channelEmail: preference.channelEmail,
+    channelSms: preference.channelSms,
+    typeAnnouncement: preference.typeAnnouncement,
+    typeTask: preference.typeTask,
+    typeSecurity: preference.typeSecurity,
+  }
+}
+
+type MyActivity = ResponseOf<'my-activity.summary'>
+
+function toShellActivityPeriod(counts: MyActivity['today']): UserActivityPeriod {
+  return { loginCount: counts.logins, accessCount: counts.accesses, operationCount: counts.operations }
+}
+
+/** `my-activity.summary` → 4.x 个人中心「统计」的活跃度：次数与时间换成 4.x 的 *Count / *Time 字段名，没有的最近时间不给；6.0 不记在线时长，没有 4.x 的在线字段 */
+function toShellActivity(activity: MyActivity): UserActivity {
+  return {
+    today: toShellActivityPeriod(activity.today),
+    thisWeek: toShellActivityPeriod(activity.thisWeek),
+    thisMonth: toShellActivityPeriod(activity.thisMonth),
+    ...(activity.lastLoginAt ? { lastLoginTime: activity.lastLoginAt } : {}),
+    ...(activity.lastAccessAt ? { lastAccessTime: activity.lastAccessAt } : {}),
+    ...(activity.lastOperationAt ? { lastOperationTime: activity.lastOperationAt } : {}),
+    trend: activity.trend.map(day => ({ date: day.date, accessCount: day.accesses, operationCount: day.operations })),
+  }
+}
+
 /** `my-api-credentials.*` → 4.x 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
@@ -298,6 +329,18 @@ export function registerApplicationContext(router: Router): void {
       const result = await myLoginLogOps.list({ page, pageSize })
       return { items: result.items.map(toShellLoginLog), total: result.total, page, pageSize }
     },
+    // 通知偏好（Identity 的 profile.notification-preference / update-notification-preference，只要求已登录）：整体覆盖，没保存过即全收；强制阅读与紧急通知不受偏好影响
+    getNotificationPreferenceApi: async () => toShellNotificationPreference(await profileOps.notificationPreference({})),
+    updateNotificationPreferenceApi: async input => toShellNotificationPreference(await profileOps.updateNotificationPreference({
+      channelInApp: input.channelInApp,
+      channelEmail: input.channelEmail,
+      channelSms: input.channelSms,
+      typeAnnouncement: input.typeAnnouncement,
+      typeTask: input.typeTask,
+      typeSecurity: input.typeSecurity,
+    })),
+    // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按浏览器的 IANA 时区分天（4.x 按 UTC），本周从周一算
+    getActivityApi: async () => toShellActivity(await myActivityOps.summary({ timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone })),
     // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
     lockSessionApi: input => authOps.lock({ password: input.password }),
     unlockSessionApi: input => authOps.unlock({ password: input.password }),

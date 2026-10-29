@@ -140,6 +140,16 @@ public static class AuditingMessages
     /// </summary>
     public const string ListMyLoginLogsDescription = "my_login_logs.list.description";
 
+    /// <summary>
+    /// 操作 <c>my-activity.summary</c> 的说明。
+    /// </summary>
+    public const string MyActivityDescription = "my_activity.summary.description";
+
+    /// <summary>
+    /// 时区不是认得的 IANA 名称；参数 <c>timeZone</c>。
+    /// </summary>
+    public const string TimeZoneInvalid = "auditing.time_zone.invalid";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AuditingMessages)));
 
     /// <summary>

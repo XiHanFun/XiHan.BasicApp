@@ -501,6 +501,16 @@ public static class IdentityMessages
     /// </summary>
     public const string RevokeMyOtherSessionsDescription = "profile.revoke_other_sessions.description";
 
+    /// <summary>
+    /// 操作 <c>profile.notification-preference</c> 的说明。
+    /// </summary>
+    public const string NotificationPreferenceDescription = "profile.notification_preference.description";
+
+    /// <summary>
+    /// 操作 <c>profile.update-notification-preference</c> 的说明。
+    /// </summary>
+    public const string UpdateNotificationPreferenceDescription = "profile.update_notification_preference.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

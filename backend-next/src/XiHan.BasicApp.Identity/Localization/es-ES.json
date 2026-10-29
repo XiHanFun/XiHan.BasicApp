@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "Este método de inicio de sesión con terceros no existe o no está habilitado.",
   "profile.sessions.description": "Lista sus dispositivos con sesión iniciada: todas sus sesiones activas (plataforma e inquilinos), la actual primero. Solo requiere iniciar sesión.",
   "profile.revoke_session.description": "Cierra la sesión de uno de sus dispositivos; para el actual use cerrar sesión. Solo requiere iniciar sesión.",
-  "profile.revoke_other_sessions.description": "Cierra la sesión de todos sus dispositivos salvo el actual, incluidas las suplantaciones que inició y siguen abiertas. Solo requiere iniciar sesión."
+  "profile.revoke_other_sessions.description": "Cierra la sesión de todos sus dispositivos salvo el actual, incluidas las suplantaciones que inició y siguen abiertas. Solo requiere iniciar sesión.",
+  "profile.notification_preference.description": "Sus preferencias de notificación: canales en la aplicación, correo y SMS, y temas anuncio, tarea y seguridad; se recibe todo hasta guardarlas. Las notificaciones obligatorias y de emergencia no se ven afectadas. Solo requiere iniciar sesión.",
+  "profile.update_notification_preference.description": "Guarda sus preferencias de notificación (las reemplaza por completo). Solo requiere iniciar sesión."
 }

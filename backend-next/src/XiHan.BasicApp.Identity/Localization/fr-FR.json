@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "Cette méthode de connexion tierce n’existe pas ou n’est pas activée.",
   "profile.sessions.description": "Liste vos appareils connectés : toutes vos sessions actives (plateforme comme locataires), la session actuelle en premier. Requiert seulement la connexion.",
   "profile.revoke_session.description": "Déconnecte l’un de vos appareils ; pour l’appareil actuel, utilisez la déconnexion. Requiert seulement la connexion.",
-  "profile.revoke_other_sessions.description": "Déconnecte tous vos appareils sauf l’actuel, y compris les emprunts d’identité que vous avez lancés et qui sont encore ouverts. Requiert seulement la connexion."
+  "profile.revoke_other_sessions.description": "Déconnecte tous vos appareils sauf l’actuel, y compris les emprunts d’identité que vous avez lancés et qui sont encore ouverts. Requiert seulement la connexion.",
+  "profile.notification_preference.description": "Vos préférences de notification : canaux dans l’application, e-mail et SMS, sujets annonce, tâche et sécurité ; tout est reçu tant que rien n’est enregistré. Les notifications obligatoires et urgentes ne sont pas concernées. Requiert seulement la connexion.",
+  "profile.update_notification_preference.description": "Enregistre vos préférences de notification (remplacement complet). Requiert seulement la connexion."
 }

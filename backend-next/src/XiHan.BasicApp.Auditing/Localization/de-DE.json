@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "Geben Sie einen Wert für die Verfolgung ein.",
   "auditing.trace.range_invalid": "Der Beginn des Zeitraums darf nicht nach seinem Ende liegen.",
   "auditing.retention.invalid": "Die Konfiguration 'auditing.retention-days' muss eine ganze Zahl von 1 bis 3650 sein, war aber '{value}'.",
-  "my_login_logs.list.description": "Listet Ihre eigenen Anmeldeprotokolle seitenweise auf (Anmeldung, Aktualisierung, Abmeldung, Mandantenwechsel, Identitätswechsel, Kennwortänderung u. a., erfolgreich oder nicht), neueste zuerst, höchstens 50 pro Seite. Erfordert nur die Anmeldung."
+  "my_login_logs.list.description": "Listet Ihre eigenen Anmeldeprotokolle seitenweise auf (Anmeldung, Aktualisierung, Abmeldung, Mandantenwechsel, Identitätswechsel, Kennwortänderung u. a., erfolgreich oder nicht), neueste zuerst, höchstens 50 pro Seite. Erfordert nur die Anmeldung.",
+  "my_activity.summary.description": "Ihre Aktivität: Anmeldungen, Zugriffe und Vorgänge heute, diese Woche und diesen Monat, jeweils der letzte Zeitpunkt sowie tägliche Vorgänge und Zugriffe der letzten 371 Tage, nach der angefragten Zeitzone aufgeteilt. Erfordert nur die Anmeldung.",
+  "auditing.time_zone.invalid": "Die Zeitzone „{timeZone}“ ist ungültig."
 }

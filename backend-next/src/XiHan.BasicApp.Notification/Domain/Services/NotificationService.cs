@@ -146,7 +146,8 @@ public sealed record NotificationPushPayload(string Type, string Title, string? 
 /// <param name="sender">邮件与短信的发送（扇出）。</param>
 /// <param name="directory">用户目录（接收人的邮箱与手机号）。</param>
 /// <param name="bots">机器人渠道的广播。</param>
-public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory, BotBroadcaster bots)
+/// <param name="preferences">用户的通知偏好（没装 Identity 即不过滤）。</param>
+public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory, BotBroadcaster bots, IEnumerable<INotificationPreferences> preferences)
 {
     /// <summary>
     /// 通知邮件的模板编码（4.x 同）。
@@ -161,6 +162,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     private readonly IRecipientSource[] _sources = sources.ToArray();
     private readonly IRealtimePush? _push = pushes.FirstOrDefault();
     private readonly IUserDirectory? _directory = directory.FirstOrDefault();
+    private readonly INotificationPreferences? _preferences = preferences.FirstOrDefault();
 
     /// <summary>
     /// 调用方本人（访问令牌的 <c>sub</c>）。
@@ -315,13 +317,19 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", "Bot")));
         }
 
+        // 通知偏好（4.x 同）：站内信只发给愿意收站内信的人，邮件与短信在扇出时各按自己的渠道筛；强制阅读与紧急通知不筛
         var side = SideRows.SideOf(context);
-        var inbox = recipients.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
-        await rows.InsertRangeAsync(inbox, context.CancellationToken).ConfigureAwait(false);
+        var readers = await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.InApp, context.CancellationToken).ConfigureAwait(false);
+        var inbox = readers.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
+        if (inbox.Count > 0)
+        {
+            await rows.InsertRangeAsync(inbox, context.CancellationToken).ConfigureAwait(false);
+        }
+
         notification.IsPublished = true;
         notification.PublishedAt = clock.GetUtcNow();
         notification.PublisherId = CallerOf(context);
-        notification.RecipientCount = recipients.Count;
+        notification.RecipientCount = readers.Count;
         await rows.UpdateAsync(notification, context.CancellationToken).ConfigureAwait(false);
         var fanned = await FanOutAsync(context, notification, channels, recipients).ConfigureAwait(false);
         if (fanned.IsFailure)
@@ -329,8 +337,8 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return fanned.Error!;
         }
 
-        await PushAsync(context, notification, recipients).ConfigureAwait(false);
-        return recipients.Count;
+        await PushAsync(context, notification, readers).ConfigureAwait(false);
+        return readers.Count;
     }
 
     /// <summary>
@@ -501,11 +509,14 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return Result.Success();
         }
 
-        var contacts = _directory is null ? new Dictionary<Guid, UserSummary>() : await _directory.FindAsync(recipients, context.CancellationToken).ConfigureAwait(false);
+        var byEmail = channels.HasFlag(MessageChannels.Email) ? (await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.Email, context.CancellationToken).ConfigureAwait(false)).ToHashSet() : [];
+        var bySms = channels.HasFlag(MessageChannels.Sms) ? (await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.Sms, context.CancellationToken).ConfigureAwait(false)).ToHashSet() : [];
+        var wanted = byEmail.Union(bySms).ToList();
+        var contacts = _directory is null || wanted.Count == 0 ? new Dictionary<Guid, UserSummary>() : await _directory.FindAsync(wanted, context.CancellationToken).ConfigureAwait(false);
         var id = notification.Id.ToString("D");
         foreach (var user in contacts.Values)
         {
-            if (channels.HasFlag(MessageChannels.Email) && !string.IsNullOrWhiteSpace(user.Email))
+            if (byEmail.Contains(user.Id) && !string.IsNullOrWhiteSpace(user.Email))
             {
                 var queued = await sender.EnqueueAsync(context, new OutgoingMessage(MessageKind.Email, user.Email, EmailTemplate, [new("title", notification.Title), new("content", notification.Content), new("link", notification.Link)], user.Id, "notification", id)).ConfigureAwait(false);
                 if (queued.IsFailure)
@@ -514,7 +525,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
                 }
             }
 
-            if (channels.HasFlag(MessageChannels.Sms) && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            if (bySms.Contains(user.Id) && !string.IsNullOrWhiteSpace(user.PhoneNumber))
             {
                 var queued = await sender.EnqueueAsync(context, new OutgoingMessage(MessageKind.Sms, user.PhoneNumber, SmsTemplate, [new("title", notification.Title)], user.Id, "notification", id)).ConfigureAwait(false);
                 if (queued.IsFailure)
@@ -525,6 +536,26 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         }
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// 接收人里愿意从这个渠道收这类通知的那些（保持原顺序）：强制阅读、紧急通知或没装偏好即全部。
+    /// </summary>
+    private async Task<IReadOnlyCollection<Guid>> AcceptingAsync(SysNotification notification, IReadOnlyCollection<Guid> users, NotificationPreferenceChannel channel, CancellationToken cancellationToken)
+    {
+        if (_preferences is null || users.Count == 0 || notification.IsMandatory || notification.NotificationType == NotificationType.Emergency)
+        {
+            return users;
+        }
+
+        var topic = notification.NotificationType switch
+        {
+            NotificationType.Security => NotificationPreferenceTopic.Security,
+            NotificationType.Todo => NotificationPreferenceTopic.Task,
+            _ => NotificationPreferenceTopic.Announcement,
+        };
+        var accepting = await _preferences.AcceptingAsync(users, channel, topic, cancellationToken).ConfigureAwait(false);
+        return [.. users.Where(accepting.Contains)];
     }
 
     private async Task PushAsync(InvocationContext context, SysNotification notification, IReadOnlyCollection<Guid> users)

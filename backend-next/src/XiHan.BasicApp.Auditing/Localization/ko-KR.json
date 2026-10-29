@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "추적할 값을 입력하세요.",
   "auditing.trace.range_invalid": "시간 범위의 시작은 끝보다 늦을 수 없습니다.",
   "auditing.retention.invalid": "설정 'auditing.retention-days'는 1에서 3650 사이의 정수여야 하지만 현재 '{value}'입니다.",
-  "my_login_logs.list.description": "내 로그인 기록을 페이지별로 나열합니다(로그인, 갱신, 로그아웃, 테넌트 전환, 대리 로그인, 비밀번호 변경 등 성공과 실패 포함). 최신순이며 페이지당 최대 50건입니다. 로그인만 필요합니다."
+  "my_login_logs.list.description": "내 로그인 기록을 페이지별로 나열합니다(로그인, 갱신, 로그아웃, 테넌트 전환, 대리 로그인, 비밀번호 변경 등 성공과 실패 포함). 최신순이며 페이지당 최대 50건입니다. 로그인만 필요합니다.",
+  "my_activity.summary.description": "내 활동입니다. 오늘·이번 주·이번 달의 로그인·접근·작업 횟수, 각각의 최근 시각, 최근 371일의 일별 작업과 접근이며 요청한 시간대로 날짜를 나눕니다. 로그인만 필요합니다.",
+  "auditing.time_zone.invalid": "시간대 '{timeZone}'이(가) 올바르지 않습니다."
 }

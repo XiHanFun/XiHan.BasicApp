@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "请填写要追踪的值。",
   "auditing.trace.range_invalid": "时间范围的开始不能晚于结束。",
   "auditing.retention.invalid": "参数 'auditing.retention-days' 必须是 1 到 3650 的整数，当前为 '{value}'。",
-  "my_login_logs.list.description": "分页列出本人的登录日志（登录、刷新、退出、切换租户、模仿与改密等事件，成功失败都在），按时间倒序，每页最多 50 条。已登录即可。"
+  "my_login_logs.list.description": "分页列出本人的登录日志（登录、刷新、退出、切换租户、模仿与改密等事件，成功失败都在），按时间倒序，每页最多 50 条。已登录即可。",
+  "my_activity.summary.description": "本人的活跃度：今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；按请求的时区分天。已登录即可。",
+  "auditing.time_zone.invalid": "时区“{timeZone}”无效。"
 }

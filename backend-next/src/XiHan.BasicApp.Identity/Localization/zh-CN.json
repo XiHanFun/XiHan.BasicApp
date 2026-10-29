@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "该第三方登录方式不存在或未启用。",
   "profile.sessions.description": "列出本人的登录设备：本人全部有效会话（不分平台与租户），当前会话在最前。已登录即可。",
   "profile.revoke_session.description": "下线本人的一台设备；当前设备请用退出登录。已登录即可。",
-  "profile.revoke_other_sessions.description": "下线本人除当前设备外的全部设备，连同本人发起、还没结束的模仿会话。已登录即可。"
+  "profile.revoke_other_sessions.description": "下线本人除当前设备外的全部设备，连同本人发起、还没结束的模仿会话。已登录即可。",
+  "profile.notification_preference.description": "本人的通知偏好：站内信 / 邮件 / 短信三个渠道与公告 / 待办 / 安全三类，没保存过即全收；强制阅读与紧急通知不受影响。已登录即可。",
+  "profile.update_notification_preference.description": "保存本人的通知偏好（整体覆盖）。已登录即可。"
 }

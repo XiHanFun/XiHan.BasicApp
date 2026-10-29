@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "This third-party sign-in method does not exist or is not enabled.",
   "profile.sessions.description": "List your signed-in devices: all your active sessions (platform and tenants alike), the current one first. Requires sign-in only.",
   "profile.revoke_session.description": "Sign out one of your devices; use sign-out for the current one. Requires sign-in only.",
-  "profile.revoke_other_sessions.description": "Sign out all your devices except the current one, including impersonation sessions you started that are still open. Requires sign-in only."
+  "profile.revoke_other_sessions.description": "Sign out all your devices except the current one, including impersonation sessions you started that are still open. Requires sign-in only.",
+  "profile.notification_preference.description": "Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them. Requires sign-in only.",
+  "profile.update_notification_preference.description": "Save your notification preferences (replaces them as a whole). Requires sign-in only."
 }

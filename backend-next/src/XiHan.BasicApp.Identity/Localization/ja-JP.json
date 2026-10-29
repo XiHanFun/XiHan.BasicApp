@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "このサードパーティーログイン方法は存在しないか、有効になっていません。",
   "profile.sessions.description": "自分のログイン端末を一覧します。自分の有効なセッションすべて（プラットフォームとテナントを問わず）で、現在のセッションが先頭です。ログインのみ必要です。",
   "profile.revoke_session.description": "自分の端末を 1 台ログアウトさせます。現在の端末はログアウトを使ってください。ログインのみ必要です。",
-  "profile.revoke_other_sessions.description": "現在の端末以外の自分の端末をすべてログアウトさせます。自分が開始してまだ終わっていない代理ログインも含みます。ログインのみ必要です。"
+  "profile.revoke_other_sessions.description": "現在の端末以外の自分の端末をすべてログアウトさせます。自分が開始してまだ終わっていない代理ログインも含みます。ログインのみ必要です。",
+  "profile.notification_preference.description": "自分の通知設定です。アプリ内・メール・SMS の 3 チャネルとお知らせ・タスク・セキュリティの 3 種類で、保存するまではすべて受け取ります。必読と緊急の通知には影響しません。ログインのみ必要です。",
+  "profile.update_notification_preference.description": "自分の通知設定を保存します（全体を上書き）。ログインのみ必要です。"
 }

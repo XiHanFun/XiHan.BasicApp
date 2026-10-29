@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "Enter a value to trace by.",
   "auditing.trace.range_invalid": "The start of the time range must not be later than its end.",
   "auditing.retention.invalid": "The configuration 'auditing.retention-days' must be a whole number from 1 to 3650, but was '{value}'.",
-  "my_login_logs.list.description": "List your own sign-in logs page by page (sign-in, refresh, sign-out, tenant switch, impersonation, password change and more, successful or not), newest first, up to 50 per page. Requires sign-in only."
+  "my_login_logs.list.description": "List your own sign-in logs page by page (sign-in, refresh, sign-out, tenant switch, impersonation, password change and more, successful or not), newest first, up to 50 per page. Requires sign-in only.",
+  "my_activity.summary.description": "Your activity: sign-ins, accesses and operations today, this week and this month, the latest of each, and daily operations and accesses over the last 371 days, split by the requested time zone. Requires sign-in only.",
+  "auditing.time_zone.invalid": "The time zone '{timeZone}' is not valid."
 }

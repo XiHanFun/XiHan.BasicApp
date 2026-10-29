@@ -23,5 +23,7 @@
   "auditing.trace.value_required": "Introduzca un valor para rastrear.",
   "auditing.trace.range_invalid": "El inicio del intervalo de tiempo no puede ser posterior a su fin.",
   "auditing.retention.invalid": "La configuración 'auditing.retention-days' debe ser un número entero de 1 a 3650, pero era '{value}'.",
-  "my_login_logs.list.description": "Lista sus propios registros de inicio de sesión por páginas (inicio, actualización, cierre, cambio de inquilino, suplantación, cambio de contraseña, etc., con o sin éxito), del más reciente al más antiguo, hasta 50 por página. Solo requiere iniciar sesión."
+  "my_login_logs.list.description": "Lista sus propios registros de inicio de sesión por páginas (inicio, actualización, cierre, cambio de inquilino, suplantación, cambio de contraseña, etc., con o sin éxito), del más reciente al más antiguo, hasta 50 por página. Solo requiere iniciar sesión.",
+  "my_activity.summary.description": "Su actividad: inicios de sesión, accesos y operaciones de hoy, esta semana y este mes, la última de cada uno, y las operaciones y accesos por día de los últimos 371 días, divididos según la zona horaria pedida. Solo requiere iniciar sesión.",
+  "auditing.time_zone.invalid": "La zona horaria «{timeZone}» no es válida."
 }

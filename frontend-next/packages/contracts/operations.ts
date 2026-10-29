@@ -138,6 +138,7 @@ export const routes = {
   'message-templates.get': { method: 'GET', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
   'message-templates.list': { method: 'POST', template: '/api/message-templates:list', path: [], query: [], success: 200 },
   'message-templates.update': { method: 'PUT', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
+  'my-activity.summary': { method: 'GET', template: '/api/my-activity:summary', path: [], query: ['timeZone'], success: 200 },
   'my-api-credentials.create': { method: 'POST', template: '/api/my-api-credentials', path: [], query: [], success: 201 },
   'my-api-credentials.delete': { method: 'DELETE', template: '/api/my-api-credentials', path: [], query: ['ids'], success: 200 },
   'my-api-credentials.list': { method: 'GET', template: '/api/my-api-credentials', path: [], query: [], success: 200 },
@@ -220,11 +221,13 @@ export const routes = {
   'profile.external-logins': { method: 'GET', template: '/api/profile:external-logins', path: [], query: [], success: 200 },
   'profile.get': { method: 'GET', template: '/api/profile', path: [], query: [], success: 200 },
   'profile.link-external': { method: 'POST', template: '/api/profile:link-external', path: [], query: [], success: 200 },
+  'profile.notification-preference': { method: 'GET', template: '/api/profile:notification-preference', path: [], query: [], success: 200 },
   'profile.revoke-other-sessions': { method: 'POST', template: '/api/profile:revoke-other-sessions', path: [], query: [], success: 200 },
   'profile.revoke-session': { method: 'POST', template: '/api/profile:revoke-session', path: [], query: [], success: 200 },
   'profile.sessions': { method: 'GET', template: '/api/profile:sessions', path: [], query: [], success: 200 },
   'profile.setup-totp': { method: 'POST', template: '/api/profile:setup-totp', path: [], query: [], success: 200 },
   'profile.unlink-external': { method: 'POST', template: '/api/profile:unlink-external', path: [], query: [], success: 200 },
+  'profile.update-notification-preference': { method: 'POST', template: '/api/profile:update-notification-preference', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
   'roles.by-user': { method: 'GET', template: '/api/roles:by-user', path: [], query: ['userId'], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
@@ -550,6 +553,11 @@ export const messageTemplates = {
   update: (request: RequestOf<'message-templates.update'>, options?: CallOptions) => invoke<RequestOf<'message-templates.update'>, ResponseOf<'message-templates.update'>>('message-templates.update', routes['message-templates.update'], request, options),
 }
 
+/** 资源 `my-activity` 的操作。 */
+export const myActivity = {
+  summary: (request: RequestOf<'my-activity.summary'>, options?: CallOptions) => invoke<RequestOf<'my-activity.summary'>, ResponseOf<'my-activity.summary'>>('my-activity.summary', routes['my-activity.summary'], request, options),
+}
+
 /** 资源 `my-api-credentials` 的操作。 */
 export const myApiCredentials = {
   create: (request: RequestOf<'my-api-credentials.create'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.create'>, ResponseOf<'my-api-credentials.create'>>('my-api-credentials.create', routes['my-api-credentials.create'], request, options),
@@ -694,11 +702,13 @@ export const profile = {
   externalLogins: (request: RequestOf<'profile.external-logins'>, options?: CallOptions) => invoke<RequestOf<'profile.external-logins'>, ResponseOf<'profile.external-logins'>>('profile.external-logins', routes['profile.external-logins'], request, options),
   get: (request: RequestOf<'profile.get'>, options?: CallOptions) => invoke<RequestOf<'profile.get'>, ResponseOf<'profile.get'>>('profile.get', routes['profile.get'], request, options),
   linkExternal: (request: RequestOf<'profile.link-external'>, options?: CallOptions) => invoke<RequestOf<'profile.link-external'>, ResponseOf<'profile.link-external'>>('profile.link-external', routes['profile.link-external'], request, options),
+  notificationPreference: (request: RequestOf<'profile.notification-preference'>, options?: CallOptions) => invoke<RequestOf<'profile.notification-preference'>, ResponseOf<'profile.notification-preference'>>('profile.notification-preference', routes['profile.notification-preference'], request, options),
   revokeOtherSessions: (request: RequestOf<'profile.revoke-other-sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-other-sessions'>, ResponseOf<'profile.revoke-other-sessions'>>('profile.revoke-other-sessions', routes['profile.revoke-other-sessions'], request, options),
   revokeSession: (request: RequestOf<'profile.revoke-session'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-session'>, ResponseOf<'profile.revoke-session'>>('profile.revoke-session', routes['profile.revoke-session'], request, options),
   sessions: (request: RequestOf<'profile.sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.sessions'>, ResponseOf<'profile.sessions'>>('profile.sessions', routes['profile.sessions'], request, options),
   setupTotp: (request: RequestOf<'profile.setup-totp'>, options?: CallOptions) => invoke<RequestOf<'profile.setup-totp'>, ResponseOf<'profile.setup-totp'>>('profile.setup-totp', routes['profile.setup-totp'], request, options),
   unlinkExternal: (request: RequestOf<'profile.unlink-external'>, options?: CallOptions) => invoke<RequestOf<'profile.unlink-external'>, ResponseOf<'profile.unlink-external'>>('profile.unlink-external', routes['profile.unlink-external'], request, options),
+  updateNotificationPreference: (request: RequestOf<'profile.update-notification-preference'>, options?: CallOptions) => invoke<RequestOf<'profile.update-notification-preference'>, ResponseOf<'profile.update-notification-preference'>>('profile.update-notification-preference', routes['profile.update-notification-preference'], request, options),
 }
 
 /** 资源 `roles` 的操作。 */

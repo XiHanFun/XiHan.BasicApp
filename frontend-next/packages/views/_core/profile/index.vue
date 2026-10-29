@@ -15,8 +15,10 @@ import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
 import ProfileTabLoginLogs from './ProfileTabLoginLogs.vue'
+import ProfileTabNotifications from './ProfileTabNotifications.vue'
 import ProfileTabOAuth from './ProfileTabOAuth.vue'
 import ProfileTabSecurity from './ProfileTabSecurity.vue'
+import ProfileTabStats from './ProfileTabStats.vue'
 import ProfileTabTenants from './ProfileTabTenants.vue'
 
 defineOptions({ name: 'ProfilePage' })
@@ -81,13 +83,16 @@ const allNavGroups = computed<ProfileNavGroup[]>(() => [
 ])
 
 // 6.0 已接入的页签（按 4.x 的顺序）：账号安全（改密、认证器双因素）、账号绑定（第三方账号）、登录设备（本人在线的会话与下线）、登录日志（本人的认证事件）、
-// 我的租户（注册地与成员租户、切换）、开放接口（API 凭证与调用安全设置）、OAuth 应用（我的 OAuth 应用）；资料、通知、统计随个人中心批次（N2 第六批）从 4.x 搬入
+// 通知（本人的接收渠道与通知类型）、我的租户（注册地与成员租户、切换）、统计（本人的活跃度与操作趋势）、开放接口（API 凭证与调用安全设置）、OAuth 应用（我的 OAuth 应用）；
+// 资料随个人中心批次（N2 第六批）从 4.x 搬入
 const tabComponents: Record<string, Component> = {
   security: markRaw(ProfileTabSecurity),
   binding: markRaw(ProfileTabBinding),
   devices: markRaw(ProfileTabDevices),
   loginLogs: markRaw(ProfileTabLoginLogs),
+  notifications: markRaw(ProfileTabNotifications),
   tenants: markRaw(ProfileTabTenants),
+  stats: markRaw(ProfileTabStats),
   developer: markRaw(ProfileTabDeveloper),
   oauth: markRaw(ProfileTabOAuth),
 }

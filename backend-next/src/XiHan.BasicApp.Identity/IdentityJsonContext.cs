@@ -82,6 +82,8 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(MySessionResponse))]
 [JsonSerializable(typeof(MySessionsResponse))]
 [JsonSerializable(typeof(RevokeMySessionRequest))]
+[JsonSerializable(typeof(NotificationPreferenceResponse))]
+[JsonSerializable(typeof(UpdateNotificationPreferenceRequest))]
 [JsonSerializable(typeof(UnlinkExternalLoginRequest))]
 [JsonSerializable(typeof(MyApiCredentialsRequest))]
 [JsonSerializable(typeof(MyApiCredentialResponse))]

@@ -32,4 +32,9 @@ public static class AuditingErrors
     /// 保留天数参数不合法。
     /// </summary>
     public const string RetentionInvalid = "AUDITING_VALIDATION_004";
+
+    /// <summary>
+    /// 时区不是认得的 IANA 名称；参数 <c>timeZone</c>。
+    /// </summary>
+    public const string TimeZoneInvalid = "AUDITING_VALIDATION_005";
 }
