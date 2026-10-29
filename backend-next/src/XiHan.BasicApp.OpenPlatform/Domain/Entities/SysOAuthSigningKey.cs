@@ -8,8 +8,11 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
 /// <summary>
-/// id_token 的签名密钥（平台库实体）：RSA 2048，私钥经 <c>ISecretProtector</c> 加密存库，多个实例共用（4.x 在本机生成 PEM 文件，多实例各签各的）。第一次用到时生成。
+/// id_token 的签名密钥（RSA 2048）。
 /// </summary>
+/// <remarks>
+/// 平台库实体。私钥经 <c>ISecretProtector</c> 加密存库，多个实例共用（4.x 在本机生成 PEM 文件，多实例各签各的）。第一次用到时生成。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysOAuthSigningKey : AppAuditedEntity
 {

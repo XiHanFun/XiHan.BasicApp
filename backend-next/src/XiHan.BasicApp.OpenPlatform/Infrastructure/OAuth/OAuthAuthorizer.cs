@@ -16,8 +16,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 
 /// <summary>
-/// 一次授权请求（<c>/api/oauth2/authorize</c> 的查询参数，同意页原样上送）。
+/// 一次授权请求。
 /// </summary>
+/// <remarks>
+/// <c>/api/oauth2/authorize</c> 的查询参数，同意页原样上送。
+/// </remarks>
 /// <param name="ResponseType">response_type。</param>
 /// <param name="ClientId">client_id。</param>
 /// <param name="RedirectUri">redirect_uri。</param>
@@ -43,16 +46,22 @@ public sealed record OAuthAuthorizeCheck(SysOAuthApp? App, IReadOnlyList<string>
     public bool IsValid => Error is null;
 
     /// <summary>
-    /// 出错时能否带着错误跳回应用（客户端与回调地址都对上了才能跳，否则只在同意页上显示，RFC 6749 §4.1.2.1）。
+    /// 出错时能否带着错误跳回应用。
     /// </summary>
+    /// <remarks>
+    /// 客户端与回调地址都对上了才能跳，否则只在同意页上显示，RFC 6749 §4.1.2.1。
+    /// </remarks>
     public bool CanRedirect => App is not null;
 }
 
 /// <summary>
+/// OAuth 授权端点：校验授权请求，同意后发授权码。
+/// </summary>
+/// <remarks>
 /// 授权端点的规则（4.x 的校验顺序）：client_id 缺失、客户端不存在或停用、回调地址没登记（逐字匹配）都不跳回应用；
 /// response_type 只认 <c>code</c>、应用须开着授权码模式、公开客户端须带 PKCE、PKCE 方法只认 <c>S256</c> / <c>plain</c>（不写即 plain）、范围取请求与登记的交集（请求为空即全部登记的）且须含 <c>openid</c>，这些错带着错误跳回应用。
 /// 同意即发授权码（256 位随机数、只存散列）并累积同意记录；同意过的范围覆盖本次请求的就不再弹同意页（4.x 不记同意，除了跳过同意页的应用每次都要确认）。
-/// </summary>
+/// </remarks>
 /// <param name="apps">应用仓储。</param>
 /// <param name="codes">授权码仓储。</param>
 /// <param name="consents">同意记录仓储。</param>
@@ -201,8 +210,11 @@ public sealed partial class OAuthAuthorizer(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 带着错误跳回应用的地址（<c>error</c>、<c>error_description</c>、<c>state</c>）。
+    /// 拼出带着错误跳回应用的地址。
     /// </summary>
+    /// <remarks>
+    /// 地址带 <c>error</c>、<c>error_description</c>、<c>state</c>。
+    /// </remarks>
     /// <param name="redirectUri">登记过的回调地址。</param>
     /// <param name="error">错误码。</param>
     /// <param name="description">说明。</param>

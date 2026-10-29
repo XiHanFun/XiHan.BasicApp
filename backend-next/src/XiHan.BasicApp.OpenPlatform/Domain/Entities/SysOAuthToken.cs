@@ -7,10 +7,13 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
 /// <summary>
-/// 发给第三方应用的令牌（平台库实体）：访问令牌与刷新令牌都是不透明随机串、只存散列，撤销立即生效（4.x 发 JWT，撤销后在过期前仍能用）。
+/// 发给第三方应用的访问令牌与刷新令牌。
+/// </summary>
+/// <remarks>
+/// 平台库实体。访问令牌与刷新令牌都是不透明随机串、只存散列，撤销立即生效（4.x 发 JWT，撤销后在过期前仍能用）。
 /// 同一次授权码兑换出来的令牌属于一个族（<see cref="FamilyId"/>）：刷新令牌轮换时旧的作废，作废的刷新令牌再被使用即整族吊销（4.x 注释说按族吊销，实际没做）。
 /// 只用于身份：只认 userinfo，后台接口不认。
-/// </summary>
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysOAuthToken : AppAuditedEntity
 {

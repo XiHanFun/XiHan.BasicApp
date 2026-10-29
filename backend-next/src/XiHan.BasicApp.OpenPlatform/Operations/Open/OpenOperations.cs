@@ -42,8 +42,11 @@ public sealed record OpenEchoRequest([StringLength(4096)] string? Message, int? 
 public sealed record OpenEchoResponse(bool Ok, string Message, string AppKey, OpenEchoRequest Echo, DateTimeOffset ServerTime);
 
 /// <summary>
-/// 签名自检：<c>GET /api/open:ping</c>（4.x <c>OpenApi/Ping</c>）。只能签名调用，验签由 Authenticate 阶段的 <c>RequestSigningMiddleware</c> 做。
+/// 签名自检。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/open:ping</c>（4.x <c>OpenApi/Ping</c>）。只能签名调用，验签由 Authenticate 阶段的 <c>RequestSigningMiddleware</c> 做。
+/// </remarks>
 /// <param name="request">本次开放接口请求。</param>
 /// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http)]
@@ -69,8 +72,11 @@ public sealed class OpenPing(OpenApiRequest request, TimeProvider clock) : IOper
 }
 
 /// <summary>
-/// 回显：<c>POST /api/open:echo</c>（4.x <c>OpenApi/Echo</c>）。只能签名调用；请求体可以加密，响应随之加密。
+/// 回显请求。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/open:echo</c>（4.x <c>OpenApi/Echo</c>）。只能签名调用；请求体可以加密，响应随之加密。
+/// </remarks>
 /// <param name="request">本次开放接口请求。</param>
 /// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]

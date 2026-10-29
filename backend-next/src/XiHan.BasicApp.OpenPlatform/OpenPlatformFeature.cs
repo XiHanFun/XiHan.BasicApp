@@ -28,10 +28,13 @@ using XiHan.Framework.Security.Abstractions.Authentication;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台能力包（Tier 2）：签名开放接口（<c>open.*</c> 操作）。宿主在 <c>UseXiHan()</c> 之前装 <see cref="OpenApiRequestBuffer.UseOpenApiRequestBuffer"/> 留下请求体原文，
+/// 开放平台能力包：签名开放接口与 OAuth / OIDC 服务端。
+/// </summary>
+/// <remarks>
+/// Tier 2：签名开放接口（<c>open.*</c> 操作）。宿主在 <c>UseXiHan()</c> 之前装 <see cref="OpenApiRequestBuffer.UseOpenApiRequestBuffer"/> 留下请求体原文，
 /// Authenticate 阶段的 <see cref="RequestSigningMiddleware"/> 验签、解密与加密响应，凭证经 Contracts 的 <see cref="Contracts.Security.IApiCredentialDirectory"/> 取（Identity 实现），
 /// 开放接口日志经 <see cref="Contracts.Auditing.OpenApiLogEntry"/> 交给 Auditing 落库。OAuth 应用（平台库实体）：平台的「应用管理」与个人中心的「我的应用」；OAuth 2.0 / OIDC 服务端（宿主映射 <see cref="OAuthEndpoints.MapOAuthServer"/>，同意经 <c>oauth-consents.*</c>，令牌只用于身份）。
-/// </summary>
+/// </remarks>
 public sealed class OpenPlatformFeature : IFeature
 {
     /// <inheritdoc />

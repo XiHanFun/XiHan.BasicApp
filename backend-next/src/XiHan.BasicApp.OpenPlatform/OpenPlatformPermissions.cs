@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包的权限码：OAuth 应用只在平台一侧管理（4.x 同）。签名开放接口不走权限（调用方不成为主体），我的应用是自助的、只要求已登录，都不在这里。
+/// 开放平台包的权限码。
 /// </summary>
+/// <remarks>
+/// OAuth 应用只在平台一侧管理（4.x 同）。签名开放接口不走权限（调用方不成为主体），我的应用是自助的、只要求已登录，都不在这里。
+/// </remarks>
 public static class OpenPlatformPermissions
 {
     /// <summary>

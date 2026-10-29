@@ -15,8 +15,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Domain.Services;
 
 /// <summary>
-/// OAuth 应用的内容（新建与修改共用；ClientId 与客户端类型只在新建时定）。
+/// OAuth 应用的内容（新建与修改共用）。
 /// </summary>
+/// <remarks>
+/// ClientId 与客户端类型只在新建时定。
+/// </remarks>
 /// <param name="AppName">应用名称。</param>
 /// <param name="AppDescription">描述。</param>
 /// <param name="AppType">应用类型。</param>
@@ -48,9 +51,12 @@ public sealed record OAuthAppDraft(
     string? Remark);
 
 /// <summary>
-/// OAuth 应用的规则：授权类型只有授权码与刷新令牌（令牌只用于身份，没有用户的客户端凭证模式用不上，4.x 有）、授权范围只有身份类的 <c>openid profile email phone</c>（且须带 <c>openid</c>）；
-/// 回调地址须是绝对地址、不带片段，http 只认本机回环（原生应用的自定义协议照收，RFC 8252）；ClientId 全局唯一（新建不填即 32 位十六进制）；机密客户端的密钥是 64 位十六进制、只返回一次、只存 SHA-256。
+/// OAuth 应用的维护与规则校验。
 /// </summary>
+/// <remarks>
+/// 授权类型只有授权码与刷新令牌（令牌只用于身份，没有用户的客户端凭证模式用不上，4.x 有）、授权范围只有身份类的 <c>openid profile email phone</c>（且须带 <c>openid</c>）；
+/// 回调地址须是绝对地址、不带片段，http 只认本机回环（原生应用的自定义协议照收，RFC 8252）；ClientId 全局唯一（新建不填即 32 位十六进制）；机密客户端的密钥是 64 位十六进制、只返回一次、只存 SHA-256。
+/// </remarks>
 /// <param name="apps">应用仓储。</param>
 /// <param name="ids">标识生成器。</param>
 public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps, IIdGenerator<Guid> ids)
@@ -81,21 +87,27 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     public static IReadOnlyList<string> SupportedScopes { get; } = ["openid", "profile", "email", "phone"];
 
     /// <summary>
-    /// 我的应用的固定授权类型（4.x 同）。
+    /// 我的应用的固定授权类型。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public static IReadOnlyList<string> PersonalGrantTypes { get; } = [AuthorizationCode, RefreshToken];
 
     /// <summary>
-    /// 我的应用的固定授权范围（4.x 是 <c>basicapp</c>，6.0 的令牌只用于身份）。
+    /// 我的应用的固定授权范围。
     /// </summary>
+    /// <remarks>
+    /// 4.x 是 <c>basicapp</c>，6.0 的令牌只用于身份。
+    /// </remarks>
     public static IReadOnlyList<string> PersonalScopes { get; } = ["openid", "profile", "email"];
 
     /// <summary>
-    /// 取一个应用；不存在即 <c>OPENPLATFORM_NOTFOUND_001</c>。
+    /// 取一个应用。
     /// </summary>
     /// <param name="id">应用 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用。</returns>
+    /// <returns>应用；不存在即 <c>OPENPLATFORM_NOTFOUND_001</c>。</returns>
     public async Task<Result<SysOAuthApp>> FindAsync(Guid id, CancellationToken cancellationToken)
     {
         var found = await apps.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -103,8 +115,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 取本人的一个应用；别人的与平台的都当作不存在。
+    /// 取本人的一个应用。
     /// </summary>
+    /// <remarks>
+    /// 别人的与平台的都当作不存在。
+    /// </remarks>
     /// <param name="userId">用户。</param>
     /// <param name="id">应用 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -128,8 +143,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 新建应用：ClientId 不填即生成；机密客户端返回密钥明文（只此一次）。
+    /// 新建应用。
     /// </summary>
+    /// <remarks>
+    /// ClientId 不填即生成；机密客户端返回密钥明文（只此一次）。
+    /// </remarks>
     /// <param name="clientId">ClientId；为空即生成。</param>
     /// <param name="clientType">客户端类型。</param>
     /// <param name="draft">内容。</param>
@@ -170,8 +188,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 修改（整体覆盖；ClientId、客户端类型与密钥不变）。
+    /// 修改应用（整体覆盖）。
     /// </summary>
+    /// <remarks>
+    /// ClientId、客户端类型与密钥不变。
+    /// </remarks>
     /// <param name="app">应用。</param>
     /// <param name="draft">内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -184,8 +205,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 重置密钥：旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>（4.x 会把公开客户端重置成机密客户端）。
+    /// 重置客户端密钥。
     /// </summary>
+    /// <remarks>
+    /// 旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>（4.x 会把公开客户端重置成机密客户端）。
+    /// </remarks>
     /// <param name="app">应用。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>新密钥明文。</returns>
@@ -204,8 +228,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 批量删除（软删除，发出的令牌随应用失效）；<paramref name="ownerUserId"/> 不为空时只删本人的，别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>。
+    /// 批量删除应用（软删除）。
     /// </summary>
+    /// <remarks>
+    /// 发出的令牌随应用失效；<paramref name="ownerUserId"/> 不为空时只删本人的，别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>。
+    /// </remarks>
     /// <param name="appIds">应用 ID。</param>
     /// <param name="ownerUserId">只删这个人的；平台管理为空。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -326,8 +353,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 回调地址：绝对地址、不带片段与凭据；http 只认本机回环，<c>javascript</c> / <c>data</c> / <c>file</c> 不收，其余协议（含原生应用的自定义协议）照收。
+    /// 判定能否用作回调地址。
     /// </summary>
+    /// <remarks>
+    /// 须是绝对地址、不带片段与凭据；http 只认本机回环，<c>javascript</c> / <c>data</c> / <c>file</c> 不收，其余协议（含原生应用的自定义协议）照收。
+    /// </remarks>
     private static bool IsRedirectUri(string value)
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Fragment.Length > 0 || uri.UserInfo.Length > 0 || value.Length > 500)

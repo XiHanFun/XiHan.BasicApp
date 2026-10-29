@@ -27,8 +27,11 @@ public sealed record MyOAuthAppsRequest;
 public sealed record MyOAuthAppsResponse(IReadOnlyList<OAuthAppResponse> Items);
 
 /// <summary>
-/// <c>my-oauth-apps.create</c> 的请求（4.x 同：授权类型、范围与有效期固定，不跳过同意页）。
+/// <c>my-oauth-apps.create</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 4.x 同：授权类型、范围与有效期固定，不跳过同意页。
+/// </remarks>
 /// <param name="AppName">应用名称。</param>
 /// <param name="ClientType">客户端类型（新建后不能改）。</param>
 /// <param name="Homepage">主页。</param>
@@ -44,8 +47,11 @@ public sealed record CreateMyOAuthAppRequest(
     [StringLength(500)] string? Logo);
 
 /// <summary>
-/// <c>my-oauth-apps.update</c> 的请求（只能改名称、主页、描述、回调地址、Logo 与启停，4.x 同）。
+/// <c>my-oauth-apps.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 只能改名称、主页、描述、回调地址、Logo 与启停，4.x 同。
+/// </remarks>
 /// <param name="Id">应用 ID。</param>
 /// <param name="AppName">应用名称。</param>
 /// <param name="Homepage">主页。</param>
@@ -63,8 +69,11 @@ public sealed record UpdateMyOAuthAppRequest(
     bool IsEnabled);
 
 /// <summary>
-/// 我的应用的主体：当前令牌的用户；写操作模仿会话一律拒绝（<c>IDENTITY_CONFLICT_003</c>，4.x 同）。
+/// 我的应用的主体：当前令牌的用户。
 /// </summary>
+/// <remarks>
+/// 写操作模仿会话一律拒绝（<c>IDENTITY_CONFLICT_003</c>，4.x 同）。
+/// </remarks>
 internal static class MyOAuthAppSubject
 {
     public static Result<(Guid UserId, string? UserName)> Resolve(InvocationContext context, bool rejectImpersonation)
@@ -81,15 +90,21 @@ internal static class MyOAuthAppSubject
     }
 
     /// <summary>
-    /// 我的应用的固定内容（4.x 同）。
+    /// 我的应用的固定内容。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public static OAuthAppDraft Draft(string appName, string? homepage, string? description, IReadOnlyList<string> redirectUris, string? logo, bool isEnabled)
         => new(appName, description, OAuthAppType.Web, OAuthAppService.PersonalGrantTypes, redirectUris, OAuthAppService.PersonalScopes, 3600, 2592000, 300, logo, homepage, SkipConsent: false, isEnabled, Remark: null);
 }
 
 /// <summary>
-/// 本人的 OAuth 应用：<c>GET /api/my-oauth-apps</c>。已登录即可。
+/// 列出本人的 OAuth 应用。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/my-oauth-apps</c>。已登录即可。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyOAuthApps(OAuthAppService service) : IOperation<MyOAuthAppsRequest, MyOAuthAppsResponse>
@@ -116,8 +131,11 @@ public sealed class ListMyOAuthApps(OAuthAppService service) : IOperation<MyOAut
 }
 
 /// <summary>
-/// 取本人的一个 OAuth 应用：<c>GET /api/my-oauth-apps/{id}</c>（别人的与平台的当作不存在）。
+/// 取本人的一个 OAuth 应用。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/my-oauth-apps/{id}</c>（别人的与平台的当作不存在）。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetMyOAuthApp(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppResponse>
@@ -144,8 +162,11 @@ public sealed class GetMyOAuthApp(OAuthAppService service) : IOperation<OAuthApp
 }
 
 /// <summary>
-/// 新建本人的 OAuth 应用：<c>POST /api/my-oauth-apps</c>（ClientId 为 32 位十六进制；机密客户端的密钥只在这一次返回）。模仿会话不能做。
+/// 新建本人的 OAuth 应用。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/my-oauth-apps</c>（ClientId 为 32 位十六进制；机密客户端的密钥只在这一次返回）。模仿会话不能做。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CreateMyOAuthApp(OAuthAppService service) : IOperation<CreateMyOAuthAppRequest, OAuthAppSecretResponse>
@@ -173,8 +194,11 @@ public sealed class CreateMyOAuthApp(OAuthAppService service) : IOperation<Creat
 }
 
 /// <summary>
-/// 修改本人的 OAuth 应用：<c>PUT /api/my-oauth-apps/{id}</c>（名称、主页、描述、回调地址、Logo 与启停；授权类型、范围与有效期不变）。模仿会话不能做。
+/// 修改本人的 OAuth 应用。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/my-oauth-apps/{id}</c>（名称、主页、描述、回调地址、Logo 与启停；授权类型、范围与有效期不变）。模仿会话不能做。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateMyOAuthApp(OAuthAppService service) : IOperation<UpdateMyOAuthAppRequest, OAuthAppResponse>
@@ -209,8 +233,11 @@ public sealed class UpdateMyOAuthApp(OAuthAppService service) : IOperation<Updat
 }
 
 /// <summary>
-/// 重置本人 OAuth 应用的密钥：<c>POST /api/my-oauth-apps/{id}:reset-secret</c>（公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）。模仿会话不能做。
+/// 重置本人 OAuth 应用的密钥。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/my-oauth-apps/{id}:reset-secret</c>（公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）。模仿会话不能做。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ResetMyOAuthAppSecret(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppSecretResponse>
@@ -243,8 +270,11 @@ public sealed class ResetMyOAuthAppSecret(OAuthAppService service) : IOperation<
 }
 
 /// <summary>
-/// 删除本人的 OAuth 应用：<c>DELETE /api/my-oauth-apps?ids=</c>（别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>）。模仿会话不能做。
+/// 删除本人的 OAuth 应用。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/my-oauth-apps?ids=</c>（别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>）。模仿会话不能做。
+/// </remarks>
 /// <param name="service">应用服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteMyOAuthApps(OAuthAppService service) : IOperation<OAuthAppIdsRequest, BatchResult>

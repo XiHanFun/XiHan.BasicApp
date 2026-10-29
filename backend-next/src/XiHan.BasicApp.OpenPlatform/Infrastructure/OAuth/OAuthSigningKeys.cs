@@ -15,9 +15,12 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 
 /// <summary>
-/// id_token 的签名密钥（单例）：从库里读在用的密钥（私钥解密后放内存，十分钟重读一次），一把都没有就生成一把 RSA 2048 写进库（独立事务）。
-/// 签名取最早的在用密钥（几个实例同时生成也只用同一把），JWKS 公布全部在用的。
+/// id_token 的签名密钥（单例）。
 /// </summary>
+/// <remarks>
+/// 从库里读在用的密钥（私钥解密后放内存，十分钟重读一次），一把都没有就生成一把 RSA 2048 写进库（独立事务）。
+/// 签名取最早的在用密钥（几个实例同时生成也只用同一把），JWKS 公布全部在用的。
+/// </remarks>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">标识生成器。</param>
