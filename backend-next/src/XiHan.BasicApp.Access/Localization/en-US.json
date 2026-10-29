@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "A grant can have at most {max} condition groups.",
   "access.condition.clauses_exceeded": "A condition group can have at most {max} conditions.",
   "access.condition.not_found": "Permission condition {id} does not exist.",
-  "access.condition.not_met": "This operation is not allowed under the current conditions."
+  "access.condition.not_met": "This operation is not allowed under the current conditions.",
+  "access.condition.trial_ip_invalid": "Invalid IP address: {ip}",
+  "permission_conditions.trial.description": "Condition trial: decide one permission for one user under the given request, explained group by group and clause by clause. Requires access.permission-conditions.trial.",
+  "permission_conditions.batch_trial.description": "Impact trial: the current verdict for everyone a grant affects, up to 200 people. Requires access.permission-conditions.trial.",
+  "permission_conditions.inventory.description": "Condition inventory: diagnostics for every condition on the current side and the conclusion of its group. Requires access.permission-conditions.trial."
 }

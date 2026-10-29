@@ -277,4 +277,9 @@ public static class AccessErrors
     /// 当前条件下不允许此操作；参数 <c>permission</c>。
     /// </summary>
     public const string ConditionNotMet = "ACCESS_DENIED_003";
+
+    /// <summary>
+    /// 试算的客户端地址写错；参数 <c>ip</c>。
+    /// </summary>
+    public const string TrialIpInvalid = "ACCESS_VALIDATION_036";
 }

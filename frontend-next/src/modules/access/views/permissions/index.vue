@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import type { PermissionRow, PermissionScope } from './use-permissions'
-import type { ListFieldSchema, PageSchema } from '~/components'
-import { computed } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { renderTag, SchemaPage } from '~/components'
 import { permissions as permissionsApi } from '~/contracts'
+import ConditionInventoryDrawer from './components/ConditionInventoryDrawer.vue'
+import ConditionTrialDrawer from './components/ConditionTrialDrawer.vue'
 import { packagesOf, PERMISSION_SCOPES, permissionsResource } from './use-permissions'
 
 defineOptions({ name: 'AccessPermissionsView' })
@@ -84,10 +86,27 @@ const schema = computed<PageSchema>(() => ({
   rowKey: 'code',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
-  actions: [],
+  actions: [
+    { key: 'conditionTrial', title: t('access.conditions.action_trial'), scope: 'page', icon: 'lucide:flask-conical', permission: 'access.permission-conditions.trial' },
+    { key: 'conditionInventory', title: t('access.conditions.action_inventory'), scope: 'page', icon: 'lucide:clipboard-check', permission: 'access.permission-conditions.trial' },
+  ],
 }))
+
+/** 条件试算与盘点两个抽屉（4.x 同挂在权限页） */
+const trialVisible = ref(false)
+const inventoryVisible = ref(false)
+
+function onAction(payload: SchemaActionPayload) {
+  if (payload.key === 'conditionTrial')
+    trialVisible.value = true
+  else if (payload.key === 'conditionInventory')
+    inventoryVisible.value = true
+}
 </script>
 
 <template>
-  <SchemaPage :schema="schema" />
+  <SchemaPage :schema="schema" @action="onAction">
+    <ConditionTrialDrawer v-model:open="trialVisible" />
+    <ConditionInventoryDrawer v-model:open="inventoryVisible" />
+  </SchemaPage>
 </template>

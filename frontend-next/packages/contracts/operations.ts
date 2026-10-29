@@ -92,9 +92,12 @@ export const routes = {
   'permission-change-logs.get': { method: 'GET', template: '/api/permission-change-logs/{id}', path: ['id'], query: [], success: 200 },
   'permission-change-logs.list': { method: 'POST', template: '/api/permission-change-logs:list', path: [], query: [], success: 200 },
   'permission-conditions.attributes': { method: 'GET', template: '/api/permission-conditions:attributes', path: [], query: [], success: 200 },
+  'permission-conditions.batch-trial': { method: 'GET', template: '/api/permission-conditions:batch-trial', path: [], query: ['subjectKind', 'subjectId', 'permission', 'ip', 'time', 'userAgent', 'path', 'method'], success: 200 },
   'permission-conditions.create': { method: 'POST', template: '/api/permission-conditions', path: [], query: [], success: 201 },
   'permission-conditions.delete': { method: 'DELETE', template: '/api/permission-conditions', path: [], query: ['ids'], success: 200 },
+  'permission-conditions.inventory': { method: 'GET', template: '/api/permission-conditions:inventory', path: [], query: [], success: 200 },
   'permission-conditions.list': { method: 'GET', template: '/api/permission-conditions', path: [], query: ['subjectKind', 'subjectId'], success: 200 },
+  'permission-conditions.trial': { method: 'GET', template: '/api/permission-conditions:trial', path: [], query: ['userId', 'permission', 'ip', 'time', 'userAgent', 'path', 'method', 'isImpersonating'], success: 200 },
   'permission-conditions.update': { method: 'PUT', template: '/api/permission-conditions/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
@@ -334,9 +337,12 @@ export const permissionChangeLogs = {
 /** 资源 `permission-conditions` 的操作。 */
 export const permissionConditions = {
   attributes: (request: RequestOf<'permission-conditions.attributes'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.attributes'>, ResponseOf<'permission-conditions.attributes'>>('permission-conditions.attributes', routes['permission-conditions.attributes'], request, options),
+  batchTrial: (request: RequestOf<'permission-conditions.batch-trial'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.batch-trial'>, ResponseOf<'permission-conditions.batch-trial'>>('permission-conditions.batch-trial', routes['permission-conditions.batch-trial'], request, options),
   create: (request: RequestOf<'permission-conditions.create'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.create'>, ResponseOf<'permission-conditions.create'>>('permission-conditions.create', routes['permission-conditions.create'], request, options),
   delete: (request: RequestOf<'permission-conditions.delete'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.delete'>, ResponseOf<'permission-conditions.delete'>>('permission-conditions.delete', routes['permission-conditions.delete'], request, options),
+  inventory: (request: RequestOf<'permission-conditions.inventory'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.inventory'>, ResponseOf<'permission-conditions.inventory'>>('permission-conditions.inventory', routes['permission-conditions.inventory'], request, options),
   list: (request: RequestOf<'permission-conditions.list'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.list'>, ResponseOf<'permission-conditions.list'>>('permission-conditions.list', routes['permission-conditions.list'], request, options),
+  trial: (request: RequestOf<'permission-conditions.trial'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.trial'>, ResponseOf<'permission-conditions.trial'>>('permission-conditions.trial', routes['permission-conditions.trial'], request, options),
   update: (request: RequestOf<'permission-conditions.update'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.update'>, ResponseOf<'permission-conditions.update'>>('permission-conditions.update', routes['permission-conditions.update'], request, options),
 }
 

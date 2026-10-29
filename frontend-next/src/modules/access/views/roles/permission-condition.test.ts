@@ -69,3 +69,18 @@ describe('属性与运算符', () => {
     expect(describeCondition(t, { attributeName: 'custom.thing', operator: 'IsNull', isNegated: false, value: 'x' })).toBe('custom.thing access.conditions.operators.is_null')
   })
 })
+
+describe('试算与盘点的展示', () => {
+  it('结果排成块：有用户本身的拒绝才列，再逐条路径；CSV 带 BOM 并转义', async () => {
+    const { inventoryToCsv, trialBlocks } = await import('./condition-trial')
+    const set = { subjectKind: 'Role' as const, subjectId: 'r-1', subjectName: 'Viewer', binding: 'identity.users.read', action: 'Grant' as const, applies: true, outcome: 'Matched' as const, groups: [], errors: [] }
+    const base = { verdict: 'Granted' as const, userId: 'u-1', userName: 'dana', permission: 'identity.users.read', ip: null, time: '2026-10-29T00:00:00Z', timeZone: 'Asia/Shanghai' }
+    const blocks = trialBlocks({ ...base, denies: [], paths: [{ source: 'role', roleId: 'r-1', roleName: 'Viewer', hasUnconditionalGrant: false, grantSets: [set], denySets: [], holds: true }] })
+    expect(blocks.map(b => [b.key, b.holds, b.sets.length])).toEqual([['role-r-1', true, 1]])
+    const withDenies = trialBlocks({ ...base, denies: [{ ...set, action: 'Deny' }], paths: [] })
+    expect(withDenies.map(b => [b.source, b.holds])).toEqual([['denies', null]])
+
+    const csv = inventoryToCsv([], ['a', 'b,c'], () => [])
+    expect(csv).toBe('\uFEFFa,"b,c"')
+  })
+})

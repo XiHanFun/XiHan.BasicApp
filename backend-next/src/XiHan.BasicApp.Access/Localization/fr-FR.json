@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "Une autorisation peut avoir au plus {max} groupes de conditions.",
   "access.condition.clauses_exceeded": "Un groupe de conditions peut contenir au plus {max} conditions.",
   "access.condition.not_found": "La condition de permission {id} n’existe pas.",
-  "access.condition.not_met": "Cette opération n’est pas autorisée dans les conditions actuelles."
+  "access.condition.not_met": "Cette opération n’est pas autorisée dans les conditions actuelles.",
+  "access.condition.trial_ip_invalid": "Adresse IP non valide : {ip}",
+  "permission_conditions.trial.description": "Essai des conditions : décider une permission pour un utilisateur dans la requête donnée, expliqué groupe par groupe et condition par condition. Requiert access.permission-conditions.trial.",
+  "permission_conditions.batch_trial.description": "Essai d’impact : le verdict actuel pour toutes les personnes concernées par une autorisation, jusqu’à 200. Requiert access.permission-conditions.trial.",
+  "permission_conditions.inventory.description": "Inventaire des conditions : diagnostics de chaque condition du côté courant et conclusion de son groupe. Requiert access.permission-conditions.trial."
 }

@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "Un permiso admite como máximo {max} grupos de condiciones.",
   "access.condition.clauses_exceeded": "Un grupo de condiciones admite como máximo {max} condiciones.",
   "access.condition.not_found": "La condición de permiso {id} no existe.",
-  "access.condition.not_met": "Esta operación no está permitida con las condiciones actuales."
+  "access.condition.not_met": "Esta operación no está permitida con las condiciones actuales.",
+  "access.condition.trial_ip_invalid": "Dirección IP no válida: {ip}",
+  "permission_conditions.trial.description": "Prueba de condiciones: decidir un permiso para un usuario con la solicitud indicada, explicado grupo a grupo y condición a condición. Requiere access.permission-conditions.trial.",
+  "permission_conditions.batch_trial.description": "Prueba de impacto: el resultado actual para todas las personas a las que afecta un permiso, hasta 200. Requiere access.permission-conditions.trial.",
+  "permission_conditions.inventory.description": "Inventario de condiciones: diagnósticos de cada condición del lado actual y la conclusión de su grupo. Requiere access.permission-conditions.trial."
 }

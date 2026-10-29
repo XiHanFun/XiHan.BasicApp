@@ -5,6 +5,12 @@
 export const AccessResult = ['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'] as const
 export type AccessResult = (typeof AccessResult)[number]
 
+export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
+export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
+
+export const ConditionGroupConclusion = ['Evaluable', 'NeverMatches', 'BindingInactive', 'Disabled'] as const
+export type ConditionGroupConclusion = (typeof ConditionGroupConclusion)[number]
+
 export const ConditionHitAction = ['LogOnly', 'Deny', 'Allow'] as const
 export type ConditionHitAction = (typeof ConditionHitAction)[number]
 
@@ -17,11 +23,17 @@ export type ConditionHitSource = (typeof ConditionHitSource)[number]
 export const ConditionOperator = ['Equals', 'NotEquals', 'GreaterThan', 'GreaterThanOrEquals', 'LessThan', 'LessThanOrEquals', 'Contains', 'NotContains', 'In', 'NotIn', 'Between', 'StartsWith', 'EndsWith', 'IsNull', 'IsNotNull'] as const
 export type ConditionOperator = (typeof ConditionOperator)[number]
 
+export const ConditionOutcome = ['Matched', 'NotMatched', 'Indeterminate', 'Pending'] as const
+export type ConditionOutcome = (typeof ConditionOutcome)[number]
+
 export const ConditionStatus = ['Active', 'Disabled'] as const
 export type ConditionStatus = (typeof ConditionStatus)[number]
 
 export const ConditionValueKind = ['String', 'Number', 'Boolean', 'DateTime', 'Date', 'TimeOfDay', 'IpAddress'] as const
 export type ConditionValueKind = (typeof ConditionValueKind)[number]
+
+export const ConditionVerdict = ['NotGranted', 'Unconditional', 'Granted', 'Denied'] as const
+export type ConditionVerdict = (typeof ConditionVerdict)[number]
 
 export const ConfigDataType = ['Text', 'Number', 'Boolean', 'Json', 'Array'] as const
 export type ConfigDataType = (typeof ConfigDataType)[number]
@@ -107,12 +119,16 @@ export type UserStatus = (typeof UserStatus)[number]
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
   AccessResult,
+  ConditionDiagnostic,
+  ConditionGroupConclusion,
   ConditionHitAction,
   ConditionHitPhase,
   ConditionHitSource,
   ConditionOperator,
+  ConditionOutcome,
   ConditionStatus,
   ConditionValueKind,
+  ConditionVerdict,
   ConfigDataType,
   DataScope,
   DelegationStatus,

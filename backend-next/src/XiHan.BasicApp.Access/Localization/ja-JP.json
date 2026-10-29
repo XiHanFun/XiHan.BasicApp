@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "1 つの権限に付けられる条件グループは最大 {max} 個です。",
   "access.condition.clauses_exceeded": "1 つの条件グループに入れられる条件は最大 {max} 件です。",
   "access.condition.not_found": "権限条件 {id} は存在しません。",
-  "access.condition.not_met": "現在の条件ではこの操作は許可されていません。"
+  "access.condition.not_met": "現在の条件ではこの操作は許可されていません。",
+  "access.condition.trial_ip_invalid": "IP アドレスの形式が正しくありません：{ip}",
+  "permission_conditions.trial.description": "条件の試算：1 人のユーザーの 1 つの権限を、指定したリクエスト状況で判定し、グループと条件ごとに説明します。access.permission-conditions.trial 権限が必要です。",
+  "permission_conditions.batch_trial.description": "影響の試算：1 つの権限が影響する人ごとの現在の結論を、最大 200 人まで一覧します。access.permission-conditions.trial 権限が必要です。",
+  "permission_conditions.inventory.description": "条件の棚卸し：現在の側の各条件の診断と、所属グループの結論を返します。access.permission-conditions.trial 権限が必要です。"
 }

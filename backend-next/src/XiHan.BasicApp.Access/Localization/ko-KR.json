@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "하나의 권한에는 조건 그룹을 최대 {max}개까지 둘 수 있습니다.",
   "access.condition.clauses_exceeded": "하나의 조건 그룹에는 조건을 최대 {max}개까지 둘 수 있습니다.",
   "access.condition.not_found": "권한 조건 {id}이(가) 없습니다.",
-  "access.condition.not_met": "현재 조건에서는 이 작업을 할 수 없습니다."
+  "access.condition.not_met": "현재 조건에서는 이 작업을 할 수 없습니다.",
+  "access.condition.trial_ip_invalid": "IP 주소 형식이 올바르지 않습니다: {ip}",
+  "permission_conditions.trial.description": "조건 시험: 한 사용자의 한 권한을 지정한 요청 상황에서 판단하고 그룹·조건별로 설명합니다. access.permission-conditions.trial 권한이 필요합니다.",
+  "permission_conditions.batch_trial.description": "영향 시험: 한 권한이 영향을 주는 사람마다의 현재 결론을 최대 200명까지 나열합니다. access.permission-conditions.trial 권한이 필요합니다.",
+  "permission_conditions.inventory.description": "조건 점검: 현재 쪽의 모든 조건에 대한 진단과 소속 그룹의 결론을 반환합니다. access.permission-conditions.trial 권한이 필요합니다."
 }
