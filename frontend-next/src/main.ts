@@ -1,5 +1,6 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { markLockedFromServer } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { setupIconifyOffline } from '~/iconify'
 import { DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
@@ -46,6 +47,8 @@ async function bootstrap() {
       },
       // 会话被吊销（注销、改密、锁定、重置密码）：刷新令牌同样失效，直接回登录页
       onSessionInvalid: toLogin,
+      // 会话被锁屏（IDENTITY_DENIED_002，带锁定原因）：拉回锁定态，锁屏遮罩接管
+      onLocked: error => markLockedFromServer(typeof error.details?.reason === 'string' ? error.details.reason : null),
     },
   })
   // 首屏文案先装好再挂载，否则会先渲一帧裸 key；之后切语言由偏好 store 的 locale 监听驱动

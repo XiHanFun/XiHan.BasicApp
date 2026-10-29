@@ -152,8 +152,9 @@ export function registerApplicationContext(router: Router): void {
     send2FASetupCodeApi: () => notAvailable('send2FASetupCodeApi'),
     deactivateAccountApi: () => notAvailable('deactivateAccountApi'),
     deleteAccountApi: () => notAvailable('deleteAccountApi'),
-    lockSessionApi: () => notAvailable('lockSessionApi'),
-    unlockSessionApi: () => notAvailable('unlockSessionApi'),
+    // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
+    lockSessionApi: input => authOps.lock({ password: input.password }),
+    unlockSessionApi: input => authOps.unlock({ password: input.password }),
     // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 随实时回推（UserSettingChanged）原样转给其他端
     userSettingApi: {
       get: async input => toShellSetting(await userSettingOps.get({ scene: sceneOf(input.scene), key: input.settingKey })),

@@ -336,6 +336,41 @@ public static class IdentityMessages
     /// </summary>
     public const string FieldReadOnly = "identity.field_security.read_only";
 
+    /// <summary>
+    /// 操作 <c>auth.lock</c> 的说明。
+    /// </summary>
+    public const string LockDescription = "auth.lock.description";
+
+    /// <summary>
+    /// 操作 <c>auth.unlock</c> 的说明。
+    /// </summary>
+    public const string UnlockDescription = "auth.unlock.description";
+
+    /// <summary>
+    /// 会话已锁定，只放行解锁与注销；参数 <c>reason</c>（锁定原因，锁屏为 <c>ScreenLock</c>）。
+    /// </summary>
+    public const string SessionLocked = "identity.auth.session_locked";
+
+    /// <summary>
+    /// 锁屏密码不能为空（没有密码的锁屏谁都能解开）。
+    /// </summary>
+    public const string LockPasswordRequired = "identity.auth.lock_password_required";
+
+    /// <summary>
+    /// 锁屏密码不对；参数 <c>remaining</c>（还能试几次）。
+    /// </summary>
+    public const string UnlockPasswordWrong = "identity.auth.unlock_password_wrong";
+
+    /// <summary>
+    /// 解锁连错 5 次，会话已吊销。
+    /// </summary>
+    public const string UnlockExhausted = "identity.auth.unlock_exhausted";
+
+    /// <summary>
+    /// 会话的锁定原因不是锁屏，不能用锁屏密码解开；参数 <c>reason</c>。
+    /// </summary>
+    public const string LockReasonUnsupported = "identity.auth.lock_reason_unsupported";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

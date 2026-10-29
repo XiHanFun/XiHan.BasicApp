@@ -62,5 +62,12 @@
   "sessions.summary.description": "Online overview of the current tenant: active sessions, users with an active session and users connected in real time. Requires identity.sessions.read.",
   "sessions.revoke.description": "Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here. Requires identity.sessions.revoke.",
   "identity.session.not_found": "Session {id} does not exist or is no longer active.",
-  "identity.session.current": "You cannot force your own current session to sign out; sign out instead."
+  "identity.session.current": "You cannot force your own current session to sign out; sign out instead.",
+  "auth.lock.description": "Lock the current session (screen lock) with a one-off lock password; afterwards every request of this session except unlock and logout is rejected with IDENTITY_DENIED_002. Requires sign-in only.",
+  "auth.unlock.description": "Unlock the current session with its lock password; five wrong attempts in a row revoke the session (a forced sign-out). Requires sign-in only and works while locked.",
+  "identity.auth.session_locked": "This session is locked; unlock it first.",
+  "identity.auth.lock_password_required": "The lock password must not be empty.",
+  "identity.auth.unlock_password_wrong": "Wrong lock password; {remaining} attempts left.",
+  "identity.auth.unlock_exhausted": "Too many failed unlock attempts; the session has ended. Please sign in again.",
+  "identity.auth.lock_reason_unsupported": "The session is locked for a reason that a lock password cannot clear."
 }

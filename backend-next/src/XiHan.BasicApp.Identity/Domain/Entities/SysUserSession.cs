@@ -97,7 +97,45 @@ public sealed class SysUserSession : AppAuditedEntity
     public Guid? ImpersonatorSessionId { get; set; }
 
     /// <summary>
+    /// 锁定原因（为空即没锁；锁屏为 <see cref="SessionLockReasons.ScreenLock"/>，4.x 同）。锁定的会话只放行解锁与注销。
+    /// </summary>
+    [StringLength(32)]
+    public string? LockReason { get; set; }
+
+    /// <summary>
+    /// 锁定时间。
+    /// </summary>
+    public DateTimeOffset? LockedAt { get; set; }
+
+    /// <summary>
+    /// 锁屏密码的哈希（本会话一次性，解锁即清除）。
+    /// </summary>
+    [StringLength(256)]
+    public string? LockPasswordHash { get; set; }
+
+    /// <summary>
+    /// 本次锁屏连续解锁失败的次数。
+    /// </summary>
+    public int UnlockFailedAttempts { get; set; }
+
+    /// <summary>
     /// 当前是否有效：未吊销且未过期。
     /// </summary>
     public bool IsActive(DateTimeOffset now) => RevokedAt is null && RefreshExpiresAt > now;
+}
+
+/// <summary>
+/// 会话的锁定原因（与前端 <c>session-lock.ts</c> 的常量一致）。锁定是通用能力，锁屏只是一种；别的原因不能用锁屏密码解开。
+/// </summary>
+public static class SessionLockReasons
+{
+    /// <summary>
+    /// 锁屏。
+    /// </summary>
+    public const string ScreenLock = "ScreenLock";
+
+    /// <summary>
+    /// 锁屏连错几次即吊销会话（4.x 同 5 次）。
+    /// </summary>
+    public const int MaxUnlockAttempts = 5;
 }

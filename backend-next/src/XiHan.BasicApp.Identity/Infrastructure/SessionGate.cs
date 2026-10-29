@@ -19,6 +19,7 @@ public sealed class SessionGate
 {
     private const string Valid = "valid";
     private const string Invalid = "invalid";
+    private const string LockedPrefix = "locked:";
 
     private readonly ISharedCache _cache;
     private readonly IServiceScopeFactory _scopes;
@@ -37,13 +38,18 @@ public sealed class SessionGate
     }
 
     /// <summary>
-    /// 会话是否仍可用；不可用返回 <c>IDENTITY_DENIED_001</c>。
+    /// 会话是否仍可用；不可用返回 <c>IDENTITY_DENIED_001</c>，锁定返回 <c>IDENTITY_DENIED_002</c>（参数 <c>reason</c>）。
     /// </summary>
     public async ValueTask<Result> ValidateAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         var state = await _cache.GetOrCreateAsync(KeyOf(sessionId), ct => LoadAsync(sessionId, ct), CacheEntryOptions.Expires(_options.SessionCacheTimeToLive), cancellationToken).ConfigureAwait(false);
-        return string.Equals(state, Valid, StringComparison.Ordinal)
-            ? Result.Success()
+        if (string.Equals(state, Valid, StringComparison.Ordinal))
+        {
+            return Result.Success();
+        }
+
+        return state.StartsWith(LockedPrefix, StringComparison.Ordinal)
+            ? Error.Denied(IdentityErrors.SessionLocked, IdentityMessages.SessionLocked, MessageArguments.Of(("reason", state[LockedPrefix.Length..])))
             : Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
     }
 
@@ -77,7 +83,12 @@ public sealed class SessionGate
             }
 
             var user = await services.GetRequiredService<IRepository<SysUser, Guid>>().FindAsync(row.UserId, ct).ConfigureAwait(false);
-            return user.TryGetValue(out var account) && account.Status == UserStatus.Active ? Valid : Invalid;
+            if (!user.TryGetValue(out var account) || account.Status != UserStatus.Active)
+            {
+                return Invalid;
+            }
+
+            return row.LockReason is { } reason ? LockedPrefix + reason : Valid;
         }, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -1,6 +1,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH, LOCK_STATE_KEY } from '~/constants'
+import { ApiError } from '~/request'
 import { useAccessStore, useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import {
   clearLockState,
@@ -11,6 +12,11 @@ import {
 } from './session-lock'
 
 export type LockMode = 'off' | 'setting' | 'locked' | 'password-change'
+
+/** 后端错误只显示文案（不带错误码前缀），其他错误照旧显示消息 */
+function errorText(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.detail : (error as Error)?.message
+}
 
 /**
  * 锁屏：**服务端强制**。
@@ -99,7 +105,7 @@ export function useLockScreen() {
       lockAttempts.value = 0
     }
     catch (error) {
-      lockPwdError.value = (error as Error)?.message || t('component.lock_screen.lock_failed')
+      lockPwdError.value = errorText(error) || t('component.lock_screen.lock_failed')
     }
     finally {
       lockLoading.value = false
@@ -125,6 +131,12 @@ export function useLockScreen() {
     try {
       await ctx.apis.unlockSessionApi({ password: unlockPwd.value })
       releaseLock()
+      // 锁定中整页刷新过：权限与菜单在锁定期间拿不到（守卫放行挂壳），解锁后在当前地址重走一次守卫装载；同一地址要 force（4.x 漏了这步，停在 404）
+      if (!accessStore.isRoutesLoaded) {
+        const router = await ctx.getRouter()
+        const { path, query, hash } = router.currentRoute.value
+        await router.replace({ path, query, hash, force: true })
+      }
     }
     catch (error) {
       // 会话本身已失效（被其它设备登出、令牌过期）：请求层收到 401 已强制登出并跳登录页。
@@ -141,7 +153,7 @@ export function useLockScreen() {
         void authStore.logout()
         return
       }
-      unlockError.value = (error as Error)?.message || t('component.lock_screen.unlock_failed')
+      unlockError.value = errorText(error) || t('component.lock_screen.unlock_failed')
     }
     finally {
       unlockLoading.value = false
@@ -177,7 +189,7 @@ export function useLockScreen() {
         releaseLock()
         return
       }
-      changePwdError.value = (error as Error)?.message || t('component.lock_screen.change_password_failed')
+      changePwdError.value = errorText(error) || t('component.lock_screen.change_password_failed')
     }
     finally {
       changePwdLoading.value = false

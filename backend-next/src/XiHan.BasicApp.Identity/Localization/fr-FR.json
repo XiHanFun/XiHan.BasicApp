@@ -62,5 +62,12 @@
   "sessions.summary.description": "Vue d’ensemble en ligne du locataire courant : sessions actives, utilisateurs ayant une session active et utilisateurs connectés en temps réel. Requiert identity.sessions.read.",
   "sessions.revoke.description": "Déconnexion forcée : révoque des sessions actives du locataire courant ; les clients sont notifiés en temps réel et se déconnectent. Votre propre session courante ne peut pas être révoquée ici. Requiert identity.sessions.revoke.",
   "identity.session.not_found": "La session {id} n’existe pas ou n’est plus active.",
-  "identity.session.current": "Vous ne pouvez pas forcer la déconnexion de votre propre session courante ; déconnectez-vous plutôt."
+  "identity.session.current": "Vous ne pouvez pas forcer la déconnexion de votre propre session courante ; déconnectez-vous plutôt.",
+  "auth.lock.description": "Verrouille la session courante (écran verrouillé) avec un mot de passe de verrouillage à usage unique ; ensuite toute requête de cette session hors déverrouillage et déconnexion est refusée avec IDENTITY_DENIED_002. Requiert seulement la connexion.",
+  "auth.unlock.description": "Déverrouille la session courante avec son mot de passe de verrouillage ; cinq erreurs d’affilée révoquent la session (déconnexion forcée). Requiert seulement la connexion et fonctionne pendant le verrouillage.",
+  "identity.auth.session_locked": "Cette session est verrouillée ; déverrouillez-la d’abord.",
+  "identity.auth.lock_password_required": "Le mot de passe de verrouillage ne peut pas être vide.",
+  "identity.auth.unlock_password_wrong": "Mot de passe de verrouillage incorrect ; encore {remaining} essais.",
+  "identity.auth.unlock_exhausted": "Trop d’échecs de déverrouillage ; la session a pris fin. Veuillez vous reconnecter.",
+  "identity.auth.lock_reason_unsupported": "La session est verrouillée pour une raison qu’un mot de passe ne peut pas lever."
 }

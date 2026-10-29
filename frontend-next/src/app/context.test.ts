@@ -74,6 +74,17 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(new Set(calls.map(call => call.url))).toEqual(new Set(['/api/auth:switch-tenant']))
   })
 
+  it('锁屏：锁定与解锁把密码交给 auth.lock / auth.unlock', async () => {
+    const calls: Call[] = []
+    record(calls, url => json(200, url.endsWith(':lock') ? { reason: 'ScreenLock', lockedAt: '2026-10-29T00:00:00Z' } : { unlocked: true }))
+    await useAppContext().apis.lockSessionApi({ password: 'open-sesame' })
+    await useAppContext().apis.unlockSessionApi({ password: 'open-sesame' })
+    expect(calls).toEqual([
+      { method: 'POST', url: '/api/auth:lock', body: { password: 'open-sesame' } },
+      { method: 'POST', url: '/api/auth:unlock', body: { password: 'open-sesame' } },
+    ])
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {
