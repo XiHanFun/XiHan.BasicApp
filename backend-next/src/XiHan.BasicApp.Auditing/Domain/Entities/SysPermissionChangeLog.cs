@@ -9,9 +9,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 权限变更日志：角色授予与撤销、成员加入与移出、数据范围、删除角色、套餐白名单与租户换套餐。
-/// 由 Access / Tenancy 在调用里登记（<see cref="PermissionChangeLogEntry"/>），只在调用成功时落库；操作人是公共列里的用户。
+/// 权限变更日志。
 /// </summary>
+/// <remarks>
+/// 记角色授予与撤销、成员加入与移出、数据范围、删除角色、套餐白名单与租户换套餐。
+/// 由 Access / Tenancy 在调用里登记（<see cref="PermissionChangeLogEntry"/>），只在调用成功时落库；操作人是公共列里的用户。
+/// </remarks>
 [SugarTable("sys_permission_change_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysPermissionChangeLog : AuditLogRecord

@@ -6,9 +6,12 @@ using System.ComponentModel.DataAnnotations;
 namespace XiHan.BasicApp.Auditing.Operations.Traces;
 
 /// <summary>
-/// <c>traces.timeline</c> 的请求：按一个维度取当前一侧的各类日志。
-/// 有缺省值的属性用 <c>set</c>：源生成的序列化把 init 属性当构造参数，没写的成员会以 <see langword="null"/> 覆盖缺省值。
+/// <c>traces.timeline</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 按一个维度取当前一侧的各类日志。
+/// 有缺省值的属性用 <c>set</c>：源生成的序列化把 init 属性当构造参数，没写的成员会以 <see langword="null"/> 覆盖缺省值。
+/// </remarks>
 public sealed record TraceTimelineRequest
 {
     /// <summary>
@@ -29,24 +32,36 @@ public sealed record TraceTimelineRequest
     public string Value { get; set; } = string.Empty;
 
     /// <summary>
-    /// 起始时间（含）；不填不限。
+    /// 起始时间（含）。
     /// </summary>
+    /// <remarks>
+    /// 不填不限。
+    /// </remarks>
     public DateTimeOffset? From { get; set; }
 
     /// <summary>
-    /// 结束时间（含）；不填不限。
+    /// 结束时间（含）。
     /// </summary>
+    /// <remarks>
+    /// 不填不限。
+    /// </remarks>
     public DateTimeOffset? To { get; set; }
 
     /// <summary>
-    /// 只取这几类日志；不填取全部。
+    /// 只取这几类日志。
     /// </summary>
+    /// <remarks>
+    /// 不填取全部。
+    /// </remarks>
     [MaxLength(8)]
     public IReadOnlyList<TraceLogType>? LogTypes { get; set; }
 
     /// <summary>
-    /// 每类日志最多取多少条（1 到 <see cref="MaxTake"/>，缺省 200）；超出即标记截断。
+    /// 每类日志最多取多少条（1 到 <see cref="MaxTake"/>，缺省 200）。
     /// </summary>
+    /// <remarks>
+    /// 超出即标记截断。
+    /// </remarks>
     [Range(1, MaxTake)]
     public int MaxPerType { get; set; } = 200;
 }

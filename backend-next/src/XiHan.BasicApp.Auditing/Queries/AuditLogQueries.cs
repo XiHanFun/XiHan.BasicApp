@@ -13,10 +13,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 分表日志查询的公共部分（SqlSugar 直查）：日志严格按上下文隔离——租户主体只看本租户的行，平台主体只看平台一侧（租户列 <c>platform</c>）的行。
+/// 分表日志查询的公共部分（SqlSugar 直查）。
+/// </summary>
+/// <remarks>
+/// 日志严格按上下文隔离——租户主体只看本租户的行，平台主体只看平台一侧（租户列 <c>platform</c>）的行。
 /// 公共筛选：<c>occurredAt</c>（<c>ge</c> / <c>gt</c> / <c>le</c> / <c>lt</c>，ISO 8601，同时限定扫描的月表）、<c>traceId</c>、<c>userId</c>、<c>userName</c>、<c>sessionId</c>、<c>clientIp</c>；
 /// 公共排序：<c>occurredAt</c>（缺省倒序）、<c>userName</c>。没有时间范围即扫全部月表（ADR-0023）。
-/// </summary>
+/// </remarks>
 /// <typeparam name="TEntity">日志实体。</typeparam>
 /// <typeparam name="TItem">列表项。</typeparam>
 /// <typeparam name="TDetail">详情。</typeparam>
@@ -143,8 +146,11 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     }
 
     /// <summary>
-    /// 按主键取一条（扫全部月表）；不在当前一侧即找不到。
+    /// 按主键取一条（扫全部月表）。
     /// </summary>
+    /// <remarks>
+    /// 不在当前一侧即找不到。
+    /// </remarks>
     public async ValueTask<Result<TDetail>> GetAsync(Guid id, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -169,13 +175,15 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     protected abstract ISugarQueryable<TEntity> ApplyKeyword(ISugarQueryable<TEntity> query, string keyword);
 
     /// <summary>
-    /// 本类日志特有的筛选；不认识的返回 <see cref="Unsupported()"/>。
+    /// 本类日志特有的筛选。
     /// </summary>
+    /// <returns>筛选后的查询；不认识的返回 <see cref="Unsupported()"/>。</returns>
     protected abstract Result<ISugarQueryable<TEntity>> ApplyFilter(ISugarQueryable<TEntity> query, string field, string op, string value);
 
     /// <summary>
-    /// 本类日志特有的排序；不认识的返回 <see langword="null"/>。
+    /// 本类日志特有的排序。
     /// </summary>
+    /// <returns>排序后的查询；不认识的返回 <see langword="null"/>。</returns>
     protected abstract ISugarQueryable<TEntity>? ApplySort(ISugarQueryable<TEntity> query, string field, OrderByType direction);
 
     /// <summary>
@@ -207,8 +215,10 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
         => Error.Validation(AuditingErrors.FilterValueInvalid, AuditingMessages.FilterValueInvalid, MessageArguments.Of(("field", field), ("value", value)));
 
     /// <summary>
-    /// <c>in</c> 的值：逗号分隔的枚举名；有一个不认识即 <see langword="null"/>。
+    /// 解析 <c>in</c> 筛选的值。
     /// </summary>
+    /// <param name="value">逗号分隔的枚举名。</param>
+    /// <returns>解析出的枚举；有一个不认识即 <see langword="null"/>。</returns>
     protected static TEnum[]? ParseEnums<TEnum>(string value)
         where TEnum : struct, Enum
     {

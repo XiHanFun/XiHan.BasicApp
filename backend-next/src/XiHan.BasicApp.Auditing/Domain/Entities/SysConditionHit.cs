@@ -8,9 +8,12 @@ using XiHan.BasicApp.Contracts.Auditing;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 条件命中记录：访问策略的命中（拒绝、放行、只记录）与权限条件的拒绝；同一规则对同一来源一分钟内的命中合并成一行。
-/// 写入方是 Access 的访问策略与权限条件（「N1 四包深化」，排在本批之后），本批只有查询面。
+/// 条件命中记录。
 /// </summary>
+/// <remarks>
+/// 访问策略的命中（拒绝、放行、只记录）与权限条件的拒绝；同一规则对同一来源一分钟内的命中合并成一行。
+/// 写入方是 Access 的访问策略与权限条件（「N1 四包深化」，排在本批之后），本批只有查询面。
+/// </remarks>
 [SugarTable("sys_condition_hit_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysConditionHit : AuditLogRecord
@@ -21,13 +24,19 @@ public sealed class SysConditionHit : AuditLogRecord
     public ConditionHitSource Source { get; set; }
 
     /// <summary>
-    /// 访问策略；权限条件的命中为空。
+    /// 访问策略。
     /// </summary>
+    /// <remarks>
+    /// 权限条件的命中为空。
+    /// </remarks>
     public Guid? PolicyId { get; set; }
 
     /// <summary>
-    /// 策略编码；权限条件的命中记权限码。
+    /// 策略编码。
     /// </summary>
+    /// <remarks>
+    /// 权限条件的命中记权限码。
+    /// </remarks>
     [StringLength(128)]
     public string PolicyCode { get; set; } = string.Empty;
 

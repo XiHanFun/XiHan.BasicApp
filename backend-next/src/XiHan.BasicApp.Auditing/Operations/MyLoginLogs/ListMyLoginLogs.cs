@@ -39,9 +39,12 @@ public sealed record MyLoginLogsRequest([Range(1, 10000)] int Page = 1, [Range(1
 public sealed record MyLoginLogResponse(Guid Id, DateTimeOffset OccurredAt, LoginEvent Event, bool Succeeded, string? ErrorCode, string? ErrorMessage, string? ClientIp, string? Browser, string? Os, string? Device, bool Impersonated);
 
 /// <summary>
-/// 本人的登录日志：<c>GET /api/my-login-logs</c>（4.x <c>Profile/LoginLogs</c>）。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可。
-/// 模仿会话里看到的是被模仿的人的日志（4.x 同）。
+/// 本人的登录日志。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/my-login-logs</c>（4.x <c>Profile/LoginLogs</c>）。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可。
+/// 模仿会话里看到的是被模仿的人的日志（4.x 同）。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyLoginLogs(SqlSugarUnitOfWork unitOfWork) : IOperation<MyLoginLogsRequest, PageResult<MyLoginLogResponse>>

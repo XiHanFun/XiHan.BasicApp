@@ -25,11 +25,14 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Auditing.Middleware;
 
 /// <summary>
-/// Observe 阶段的审计日志中间件，排在框架 <c>AuditMiddleware</c> 里面：
+/// Observe 阶段的审计日志中间件。
+/// </summary>
+/// <remarks>
+/// 排在框架 <c>AuditMiddleware</c> 里面：
 /// 调用开始前对标了审计的操作显式声明审计动作（操作日志）；调用结束后补上耗时、登录名与会话等细节（框架随即把操作审计落库），
 /// 再按最终结果写访问日志、异常日志、调用里登记的登录日志与权限变更日志（只在成功时记），以及仓储写入的数据变更（只在成功时记）。
 /// 客户端地址、User-Agent、协议与请求目标取调用来源（ADR-0043）。日志只进有界队列，不影响调用结果。
-/// </summary>
+/// </remarks>
 /// <param name="queue">日志队列。</param>
 /// <param name="options">日志选项。</param>
 /// <param name="audited">进操作日志的操作。</param>
@@ -248,8 +251,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 调用结果：管道里已写入的优先；抛出了异常而没写结果，按内核的转换记（取消是取消，其余是未处理异常）；正常返回却没写结果视为成功。
+    /// 取调用结果。
     /// </summary>
+    /// <remarks>
+    /// 管道里已写入的优先；抛出了异常而没写结果，按内核的转换记（取消是取消，其余是未处理异常）；正常返回却没写结果视为成功。
+    /// </remarks>
     private static Result OutcomeOf(InvocationContext context, Exception? thrown)
     {
         if (context.GetOutcome().TryGetValue(out var written))
@@ -266,8 +272,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 访问结果按错误类别归并：认证失败与越权分开，找不到单列，未处理异常与依赖不可用是服务端故障，其余是业务失败。
+    /// 访问结果按错误类别归并。
     /// </summary>
+    /// <remarks>
+    /// 认证失败与越权分开，找不到单列，未处理异常与依赖不可用是服务端故障，其余是业务失败。
+    /// </remarks>
     private static AccessResult ResultOf(Result outcome)
     {
         if (outcome.IsSuccess)
@@ -287,8 +296,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 请求目标拆成方法与路径：HTTP 的目标是「方法 路径」，其他协议（gRPC 方法全名、MCP 工具名、作业名…）整段当路径。
+    /// 请求目标拆成方法与路径。
     /// </summary>
+    /// <remarks>
+    /// HTTP 的目标是「方法 路径」，其他协议（gRPC 方法全名、MCP 工具名、作业名…）整段当路径。
+    /// </remarks>
     private static (string? Method, string? Path) TargetOf(InvocationOrigin? origin)
     {
         if (origin is null)
@@ -305,8 +317,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// HTTP 状态码：按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则；普通端点成功时取它实际写出的状态码。
+    /// 取 HTTP 状态码。
     /// </summary>
+    /// <remarks>
+    /// 按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则；普通端点成功时取它实际写出的状态码。
+    /// </remarks>
     private static int StatusCodeOf(OperationDescriptor? operation, AuditedEndpoint? endpoint, Result outcome)
         => outcome.IsFailure
             ? ProblemResponse.StatusCodeFor(outcome.Error!)

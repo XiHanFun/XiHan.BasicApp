@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包的页面登记：链路追踪与八类日志，两侧都有。页面平铺登记，归到哪个目录由运营在菜单管理里定（修订（十四））。
+/// 审计包的页面登记。
 /// </summary>
+/// <remarks>
+/// 链路追踪与八类日志，两侧都有。页面平铺登记，归到哪个目录由运营在菜单管理里定（修订（十四））。
+/// </remarks>
 public static class AuditingPages
 {
     /// <summary>

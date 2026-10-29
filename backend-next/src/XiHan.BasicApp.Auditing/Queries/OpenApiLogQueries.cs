@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 开放接口日志查询：关键字匹配路径、客户端标识与应用名称；另有筛选 <c>clientId</c>、<c>method</c>、<c>path</c>（contains）、<c>statusCode</c>、<c>succeeded</c>、
-/// <c>signatureValid</c>、<c>durationMs</c>（ge / le）；另有排序 <c>durationMs</c>、<c>statusCode</c>、<c>path</c>。列表项不含正文摘要，详情才有。
+/// 开放接口日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配路径、客户端标识与应用名称；另有筛选 <c>clientId</c>、<c>method</c>、<c>path</c>（contains）、<c>statusCode</c>、<c>succeeded</c>、
+/// <c>signatureValid</c>、<c>durationMs</c>（ge / le）；另有排序 <c>durationMs</c>、<c>statusCode</c>、<c>path</c>。列表项不含正文摘要，详情才有。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class OpenApiLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysOpenApiLog, OpenApiLogResponse, OpenApiLogDetailResponse>(unitOfWork)
 {

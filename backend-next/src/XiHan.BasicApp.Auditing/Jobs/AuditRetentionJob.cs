@@ -19,10 +19,13 @@ using XiHan.Framework.Scheduling.Abstractions.Jobs;
 namespace XiHan.BasicApp.Auditing.Jobs;
 
 /// <summary>
-/// 日志保留清理（内建作业，方案 5.12）：删除早于保留期的日志。保留天数读平台参数 <c>auditing.retention-days</c>（1 到 3650），没建即用 <see cref="AuditLogOptions.DefaultRetentionDays"/>，
+/// 日志保留清理：删除早于保留期的日志。
+/// </summary>
+/// <remarks>
+/// 内建作业（方案 5.12）。保留天数读平台参数 <c>auditing.retention-days</c>（1 到 3650），没建即用 <see cref="AuditLogOptions.DefaultRetentionDays"/>，
 /// 参数值不合法直接失败（不按错误的保留期删数据）。七类分表日志按平台与目录里的每个租户逐个作用域、逐批（每批 <see cref="BatchSize"/> 条，一批一个工作单元）删除；
 /// 框架的操作审计表不分租户，单独一遍。一个作用域或一类失败只记日志、计入失败，不影响其他。
-/// </summary>
+/// </remarks>
 /// <param name="configs">参数读取。</param>
 /// <param name="options">日志选项。</param>
 /// <param name="tenants">租户目录。</param>
@@ -109,8 +112,11 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 保留天数：参数没建用缺省值；建了必须是 1 到 <see cref="MaxRetentionDays"/> 的整数。
+    /// 读取保留天数。
     /// </summary>
+    /// <remarks>
+    /// 参数没建用缺省值；建了必须是 1 到 <see cref="MaxRetentionDays"/> 的整数。
+    /// </remarks>
     private async ValueTask<Result<int>> RetentionDaysAsync(InvocationContext context)
     {
         var configured = await configs.GetAsync(AuditLogOptions.RetentionDaysConfigKey, context).ConfigureAwait(false);
@@ -188,8 +194,11 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 在独立作用域、带租户的工作单元里执行一批；成功即提交，抛出即回滚。
+    /// 在独立作用域、带租户的工作单元里执行一批。
     /// </summary>
+    /// <remarks>
+    /// 成功即提交，抛出即回滚。
+    /// </remarks>
     private async Task<int> InScopeAsync(string? tenant, Func<IServiceProvider, CancellationToken, Task<int>> work, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();

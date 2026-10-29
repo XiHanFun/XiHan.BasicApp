@@ -7,8 +7,11 @@ using XiHan.BasicApp.Contracts.Auditing;
 namespace XiHan.BasicApp.Auditing.Operations.PermissionChangeLogs;
 
 /// <summary>
-/// 一条权限变更日志；操作人是公共列里的用户。
+/// 一条权限变更日志。
 /// </summary>
+/// <remarks>
+/// 操作人是公共列里的用户。
+/// </remarks>
 /// <param name="Id">主键。</param>
 /// <param name="OccurredAt">发生时间。</param>
 /// <param name="TraceId">trace-id。</param>

@@ -8,8 +8,11 @@ using XiHan.BasicApp.Contracts.Auditing;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 登录日志：登录、刷新、退出、切换租户、模仿与本人改密，成功失败都记。由 Identity 在调用里登记（<see cref="LoginLogEntry"/>），调用结束后按结果落库。
+/// 登录日志：登录、刷新、退出、切换租户、模仿与本人改密。
 /// </summary>
+/// <remarks>
+/// 成功失败都记。由 Identity 在调用里登记（<see cref="LoginLogEntry"/>），调用结束后按结果落库。
+/// </remarks>
 [SugarTable("sys_login_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysLoginLog : AuditLogRecord

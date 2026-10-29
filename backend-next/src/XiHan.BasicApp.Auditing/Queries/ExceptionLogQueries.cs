@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 异常日志查询：关键字匹配异常类型、消息与操作 ID；另有筛选 <c>exceptionType</c>（eq / contains）、<c>operationId</c>、<c>path</c>（contains）、<c>machineName</c>、<c>environmentName</c>；
-/// 另有排序 <c>exceptionType</c>、<c>operationId</c>。列表项不含堆栈，详情才有。
+/// 异常日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配异常类型、消息与操作 ID；另有筛选 <c>exceptionType</c>（eq / contains）、<c>operationId</c>、<c>path</c>（contains）、<c>machineName</c>、<c>environmentName</c>；
+/// 另有排序 <c>exceptionType</c>、<c>operationId</c>。列表项不含堆栈，详情才有。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class ExceptionLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysExceptionLog, ExceptionLogResponse, ExceptionLogDetailResponse>(unitOfWork)
 {

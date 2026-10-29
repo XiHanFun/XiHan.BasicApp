@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 访问日志查询：关键字匹配操作 ID、路径与错误码；另有筛选 <c>operationId</c>（eq / contains）、<c>method</c>、<c>path</c>（contains）、<c>result</c>（eq / in）、
-/// <c>statusCode</c>、<c>errorCode</c>、<c>durationMs</c>（ge / le）；另有排序 <c>durationMs</c>、<c>statusCode</c>、<c>operationId</c>。
+/// 访问日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配操作 ID、路径与错误码；另有筛选 <c>operationId</c>（eq / contains）、<c>method</c>、<c>path</c>（contains）、<c>result</c>（eq / in）、
+/// <c>statusCode</c>、<c>errorCode</c>、<c>durationMs</c>（ge / le）；另有排序 <c>durationMs</c>、<c>statusCode</c>、<c>operationId</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class AccessLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysAccessLog, AccessLogResponse, AccessLogResponse>(unitOfWork)
 {

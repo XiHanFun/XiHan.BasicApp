@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包的权限码：只有查看，两侧都有。日志严格按上下文隔离：平台主体看平台一侧的日志，租户主体看本租户的；要看某个租户的日志先切换到它。
+/// 审计包的权限码。
 /// </summary>
+/// <remarks>
+/// 只有查看，两侧都有。日志严格按上下文隔离：平台主体看平台一侧的日志，租户主体看本租户的；要看某个租户的日志先切换到它。
+/// </remarks>
 public static class AuditingPermissions
 {
     /// <summary>

@@ -8,8 +8,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.OpenApiLogs;
 
 /// <summary>
-/// 开放接口日志详情：<c>GET /api/open-api-logs/{id}</c>。不在当前一侧即找不到。
+/// 开放接口日志详情。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/open-api-logs/{id}</c>。不在当前一侧即找不到。
+/// </remarks>
 /// <param name="queries">开放接口日志查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.OpenApiLogsRead)]
 public sealed class GetOpenApiLog(OpenApiLogQueries queries) : IOperation<GetOpenApiLogRequest, OpenApiLogDetailResponse>

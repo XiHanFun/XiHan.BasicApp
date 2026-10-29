@@ -7,8 +7,11 @@ using SqlSugar;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 访问日志：每次操作调用一条（含认证失败与越权的尝试），由 Observe 阶段的中间件在调用结束时写入。
+/// 访问日志：每次操作调用一条（含认证失败与越权的尝试）。
 /// </summary>
+/// <remarks>
+/// 由 Observe 阶段的中间件在调用结束时写入。
+/// </remarks>
 [SugarTable("sys_access_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysAccessLog : AuditLogRecord
@@ -43,8 +46,11 @@ public sealed class SysAccessLog : AuditLogRecord
     public AccessResult Result { get; set; }
 
     /// <summary>
-    /// HTTP 状态码；不是 HTTP 调用为 <see langword="null"/>。
+    /// HTTP 状态码。
     /// </summary>
+    /// <remarks>
+    /// 不是 HTTP 调用为 <see langword="null"/>。
+    /// </remarks>
     public int? StatusCode { get; set; }
 
     /// <summary>
