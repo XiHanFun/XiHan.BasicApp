@@ -1,13 +1,19 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Notification.Domain.Services;
+using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Notification.Queries;
+using XiHan.BasicApp.Notification.Seeds;
 using XiHan.BasicApp.Runtime;
+using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
@@ -21,10 +27,14 @@ namespace XiHan.BasicApp.Notification;
 
 /// <summary>
 /// 通知能力包（Tier 2）：通知公告（租户库实体，平台一侧租户为 <c>platform</c>）与收件箱。接收人经 Contracts 的 <see cref="Contracts.Users.IRecipientSource"/> 解析
-/// （Identity、Access、Organization 实现），推送经 <see cref="Contracts.Realtime.IRealtimePush"/>；邮件、短信与机器人渠道、模板随第五批后续步骤补入。
+/// （Identity、Access、Organization 实现），推送经 <see cref="Contracts.Realtime.IRealtimePush"/>。
+/// 邮件与短信：消息模板、渠道配置（平台库实体，随所属侧）与发送记录，经 Contracts 的 <see cref="IMessageSender"/> 入队，由后台循环（<see cref="MessageDispatcher"/>）发出；机器人渠道随第五批后续步骤补入。
 /// </summary>
-public sealed class NotificationFeature : IFeature
+public sealed class NotificationFeature : IHostedFeature, IDisposable
 {
+    private CancellationTokenSource? _stopping;
+    private Task? _loop;
+
     /// <inheritdoc />
     public Manifest Manifest { get; } = new()
     {
@@ -60,6 +70,20 @@ public sealed class NotificationFeature : IFeature
         context.Services.AddScoped<InboxService>();
         context.Services.AddScoped<NotificationQueries>();
         context.Services.AddScoped<InboxQueries>();
+        context.Services.AddSingleton(static services => NotificationOptions.FromConfiguration(services.GetRequiredService<IConfiguration>()));
+        context.Services.AddHttpClient();
+        context.Services.AddScoped<MessageTemplateService>();
+        context.Services.AddScoped<ChannelConfigService>();
+        context.Services.AddScoped<MessageRecordService>();
+        context.Services.AddScoped<MessagingQueries>();
+        context.Services.AddSingleton<MessageDispatchSignal>();
+        context.Services.AddScoped<IMessageSender, MessageSender>();
+        // 测试与宿主可先登记自己的通道替换真实的 SMTP / 云厂商
+        context.Services.TryAddSingleton<IEmailTransport, SmtpEmailTransport>();
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ISmsTransport, AliyunSmsTransport>());
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ISmsTransport, TencentSmsTransport>());
+        context.Services.AddSingleton<MessageDispatcher>();
+        context.Services.AddSeeder<MessageTemplateSeeder>();
         context.Services.AddPermissionCatalog("notification", NotificationPermissions.All);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
         foreach (var permission in NotificationPermissions.All)
@@ -68,5 +92,38 @@ public sealed class NotificationFeature : IFeature
         }
 
         context.AddGeneratedOperations();
+    }
+
+    /// <inheritdoc />
+    public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        var dispatcher = services.GetRequiredService<MessageDispatcher>();
+        // 上个进程发到一半的记录改回排队中
+        await dispatcher.RecoverAsync(cancellationToken).ConfigureAwait(false);
+        _stopping = new CancellationTokenSource();
+        _loop = dispatcher.RunAsync(_stopping.Token);
+    }
+
+    /// <inheritdoc />
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_stopping is null || _loop is null)
+        {
+            return;
+        }
+
+        await _stopping.CancelAsync().ConfigureAwait(false);
+        await _loop.ConfigureAwait(false);
+        _stopping.Dispose();
+        _stopping = null;
+        _loop = null;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _stopping?.Dispose();
+        _stopping = null;
     }
 }

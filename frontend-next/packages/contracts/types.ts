@@ -696,6 +696,161 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/email-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create email configurations on the caller's side; codes are unique per side. Requires notification.email-configs.create. */
+        post: operations["email-configs.create"];
+        /** Delete email configurations in bulk. Requires notification.email-configs.delete. */
+        delete: operations["email-configs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the email configurations. Requires notification.email-configs.read. */
+        get: operations["email-configs.get"];
+        /** Edit email configurations; the code does not change. Requires notification.email-configs.update. */
+        put: operations["email-configs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-configs/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an enabled entry of the email configurations the caller's side default used for sending. Requires notification.email-configs.update. */
+        post: operations["email-configs.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/email-configs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the email configurations of the caller's side. Requires notification.email-configs.read. */
+        post: operations["email-configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete email send records in bulk. Requires notification.emails.delete. */
+        delete: operations["emails.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the email send records. Requires notification.emails.read. */
+        get: operations["emails.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel queued email send records. Requires notification.emails.resend. */
+        post: operations["emails.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the email send records of the caller's side. Requires notification.emails.read. */
+        post: operations["emails.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/emails:resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend email send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.emails.resend. */
+        post: operations["emails.resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/exception-logs/{id}": {
         parameters: {
             query?: never;
@@ -1513,6 +1668,59 @@ export interface paths {
         put?: never;
         /** Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update. */
         post: operations["menus.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/message-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create message templates on the caller's side; codes are unique per side. Requires notification.message-templates.create. */
+        post: operations["message-templates.create"];
+        /** Delete message templates in bulk. Requires notification.message-templates.delete. */
+        delete: operations["message-templates.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/message-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the message templates. Requires notification.message-templates.read. */
+        get: operations["message-templates.get"];
+        /** Edit message templates; the code does not change. Requires notification.message-templates.update. */
+        put: operations["message-templates.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/message-templates:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the message templates of the caller's side. Requires notification.message-templates.read. */
+        post: operations["message-templates.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2568,6 +2776,161 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete SMS send records in bulk. Requires notification.sms.delete. */
+        delete: operations["sms.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create SMS configurations on the caller's side; codes are unique per side. Requires notification.sms-configs.create. */
+        post: operations["sms-configs.create"];
+        /** Delete SMS configurations in bulk. Requires notification.sms-configs.delete. */
+        delete: operations["sms-configs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the SMS configurations. Requires notification.sms-configs.read. */
+        get: operations["sms-configs.get"];
+        /** Edit SMS configurations; the code does not change. Requires notification.sms-configs.update. */
+        put: operations["sms-configs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-configs/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an enabled entry of the SMS configurations the caller's side default used for sending. Requires notification.sms-configs.update. */
+        post: operations["sms-configs.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms-configs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the SMS configurations of the caller's side. Requires notification.sms-configs.read. */
+        post: operations["sms-configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the SMS send records. Requires notification.sms.read. */
+        get: operations["sms.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel queued SMS send records. Requires notification.sms.resend. */
+        post: operations["sms.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the SMS send records of the caller's side. Requires notification.sms.read. */
+        post: operations["sms.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sms:resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend SMS send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.sms.resend. */
+        post: operations["sms.resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/storage-configs": {
         parameters: {
             query?: never;
@@ -3459,6 +3822,8 @@ export interface components {
         };
         /** @enum {string} */
         DelegationStatus: "Pending" | "Active" | "Expired" | "Revoked";
+        /** @enum {string} */
+        DeliveryChannel: "InApp" | "Email" | "Sms";
         DepartmentNode: {
             department: components["schemas"]["DepartmentResponse"];
             /** Format: int64 */
@@ -3571,6 +3936,59 @@ export interface components {
             /** Format: int32 */
             billingPeriodMonths?: number | null;
             isFree: boolean;
+        };
+        EmailConfigResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            smtpHost: string;
+            /** Format: int32 */
+            smtpPort: number;
+            useSsl: boolean;
+            acceptInvalidCertificate: boolean;
+            fromEmail: string;
+            fromName?: string | null;
+            userName?: string | null;
+            hasPassword: boolean;
+            isDefault: boolean;
+            isEnabled: boolean;
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        EmailRecordResponse: {
+            /** Format: uuid */
+            id: string;
+            toEmail: string;
+            subject: string;
+            content?: string | null;
+            isHtml: boolean;
+            templateCode?: string | null;
+            status: components["schemas"]["MessageSendStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            maxAttempts: number;
+            /** Format: date-time */
+            nextAttemptAt?: string | null;
+            /** Format: date-time */
+            sentAt?: string | null;
+            errorMessage?: string | null;
+            /** Format: uuid */
+            configId?: string | null;
+            /** Format: uuid */
+            senderId?: string | null;
+            /** Format: uuid */
+            receiverId?: string | null;
+            businessType?: string | null;
+            businessId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         ExceptionLogResponse: {
             /** Format: uuid */
@@ -3909,6 +4327,27 @@ export interface components {
             children: components["schemas"]["MenuResponse"][];
         };
         /** @enum {string} */
+        MessageSendStatus: "Pending" | "Sending" | "Success" | "Failed" | "Cancelled";
+        MessageTemplateResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            channel: components["schemas"]["TemplateChannel"];
+            name: string;
+            subject?: string | null;
+            content: string;
+            isHtml: boolean;
+            description?: string | null;
+            isEnabled: boolean;
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
         NotificationContentFormat: "Text" | "Markdown" | "Html";
         /** @enum {string} */
         NotificationPriority: "Low" | "Normal" | "High" | "Urgent";
@@ -3939,6 +4378,7 @@ export interface components {
             link?: string | null;
             businessType?: string | null;
             businessId?: string | null;
+            deliveryChannels: components["schemas"]["DeliveryChannel"][];
             targetType: components["schemas"]["NotificationTargetType"];
             targetIds: string[];
             needConfirm: boolean;
@@ -4270,6 +4710,60 @@ export interface components {
         SessionRoleStatus: "Active" | "Inactive" | "Expired";
         /** @enum {string} */
         SettingStatus: "Active" | "Disabled";
+        SmsConfigResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            provider: components["schemas"]["SmsProvider"];
+            accessKeyId: string;
+            hasAccessKeySecret: boolean;
+            sdkAppId?: string | null;
+            signName: string;
+            region?: string | null;
+            templateMap?: string | null;
+            isDefault: boolean;
+            isEnabled: boolean;
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        SmsProvider: "Aliyun" | "Tencent";
+        SmsRecordResponse: {
+            /** Format: uuid */
+            id: string;
+            toPhone: string;
+            content: string;
+            templateCode?: string | null;
+            templateParams?: string | null;
+            provider?: components["schemas"]["SmsProvider"] | null;
+            providerMessageId?: string | null;
+            status: components["schemas"]["MessageSendStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            maxAttempts: number;
+            /** Format: date-time */
+            nextAttemptAt?: string | null;
+            /** Format: date-time */
+            sentAt?: string | null;
+            errorMessage?: string | null;
+            /** Format: uuid */
+            configId?: string | null;
+            /** Format: uuid */
+            senderId?: string | null;
+            /** Format: uuid */
+            receiverId?: string | null;
+            businessType?: string | null;
+            businessId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         StorageConfigResponse: {
             /** Format: uuid */
             id: string;
@@ -4295,6 +4789,8 @@ export interface components {
         StorageConfigStatus: "Active" | "Disabled";
         /** @enum {string} */
         StorageType: "Local" | "S3" | "Oss" | "Cos" | "MinIO";
+        /** @enum {string} */
+        TemplateChannel: "Email" | "Sms";
         TenantMemberResponse: {
             /** Format: uuid */
             id: string;
@@ -7086,6 +7582,557 @@ export interface operations {
             };
         };
     };
+    "email-configs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    smtpHost: string;
+                    fromEmail: string;
+                    /** Format: int32 */
+                    smtpPort?: number;
+                    useSsl?: boolean;
+                    acceptInvalidCertificate?: boolean;
+                    fromName?: string | null;
+                    userName?: string | null;
+                    password?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        smtpHost: string;
+                        /** Format: int32 */
+                        smtpPort: number;
+                        useSsl: boolean;
+                        acceptInvalidCertificate: boolean;
+                        fromEmail: string;
+                        fromName?: string | null;
+                        userName?: string | null;
+                        hasPassword: boolean;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "email-configs.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "email-configs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        smtpHost: string;
+                        /** Format: int32 */
+                        smtpPort: number;
+                        useSsl: boolean;
+                        acceptInvalidCertificate: boolean;
+                        fromEmail: string;
+                        fromName?: string | null;
+                        userName?: string | null;
+                        hasPassword: boolean;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "email-configs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    smtpHost: string;
+                    fromEmail: string;
+                    /** Format: int32 */
+                    smtpPort?: number;
+                    useSsl?: boolean;
+                    acceptInvalidCertificate?: boolean;
+                    fromName?: string | null;
+                    userName?: string | null;
+                    password?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        smtpHost: string;
+                        /** Format: int32 */
+                        smtpPort: number;
+                        useSsl: boolean;
+                        acceptInvalidCertificate: boolean;
+                        fromEmail: string;
+                        fromName?: string | null;
+                        userName?: string | null;
+                        hasPassword: boolean;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "email-configs.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        smtpHost: string;
+                        /** Format: int32 */
+                        smtpPort: number;
+                        useSsl: boolean;
+                        acceptInvalidCertificate: boolean;
+                        fromEmail: string;
+                        fromName?: string | null;
+                        userName?: string | null;
+                        hasPassword: boolean;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "email-configs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmailConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "emails.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "emails.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        toEmail: string;
+                        subject: string;
+                        content?: string | null;
+                        isHtml: boolean;
+                        templateCode?: string | null;
+                        status: components["schemas"]["MessageSendStatus"];
+                        /** Format: int32 */
+                        attempts: number;
+                        /** Format: int32 */
+                        maxAttempts: number;
+                        /** Format: date-time */
+                        nextAttemptAt?: string | null;
+                        /** Format: date-time */
+                        sentAt?: string | null;
+                        errorMessage?: string | null;
+                        /** Format: uuid */
+                        configId?: string | null;
+                        /** Format: uuid */
+                        senderId?: string | null;
+                        /** Format: uuid */
+                        receiverId?: string | null;
+                        businessType?: string | null;
+                        businessId?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "emails.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "emails.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmailRecordResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "emails.resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "exception-logs.get": {
         parameters: {
             query?: never;
@@ -9637,6 +10684,260 @@ export interface operations {
             };
         };
     };
+    "message-templates.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    channel: components["schemas"]["TemplateChannel"];
+                    name: string;
+                    content: string;
+                    subject?: string | null;
+                    isHtml?: boolean;
+                    description?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        channel: components["schemas"]["TemplateChannel"];
+                        name: string;
+                        subject?: string | null;
+                        content: string;
+                        isHtml: boolean;
+                        description?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "message-templates.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "message-templates.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        channel: components["schemas"]["TemplateChannel"];
+                        name: string;
+                        subject?: string | null;
+                        content: string;
+                        isHtml: boolean;
+                        description?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "message-templates.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    content: string;
+                    subject?: string | null;
+                    isHtml?: boolean;
+                    description?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        channel: components["schemas"]["TemplateChannel"];
+                        name: string;
+                        subject?: string | null;
+                        content: string;
+                        isHtml: boolean;
+                        description?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "message-templates.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MessageTemplateResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "notifications.create": {
         parameters: {
             query?: never;
@@ -9667,6 +10968,7 @@ export interface operations {
                     /** Format: date-time */
                     expiresAt?: string | null;
                     remark?: string | null;
+                    deliveryChannels?: components["schemas"]["DeliveryChannel"][] | null;
                     publishImmediately?: boolean;
                 };
             };
@@ -9690,6 +10992,7 @@ export interface operations {
                         link?: string | null;
                         businessType?: string | null;
                         businessId?: string | null;
+                        deliveryChannels: components["schemas"]["DeliveryChannel"][];
                         targetType: components["schemas"]["NotificationTargetType"];
                         targetIds: string[];
                         needConfirm: boolean;
@@ -9789,6 +11092,7 @@ export interface operations {
                         link?: string | null;
                         businessType?: string | null;
                         businessId?: string | null;
+                        deliveryChannels: components["schemas"]["DeliveryChannel"][];
                         targetType: components["schemas"]["NotificationTargetType"];
                         targetIds: string[];
                         needConfirm: boolean;
@@ -9859,6 +11163,7 @@ export interface operations {
                     /** Format: date-time */
                     expiresAt?: string | null;
                     remark?: string | null;
+                    deliveryChannels?: components["schemas"]["DeliveryChannel"][] | null;
                 };
             };
         };
@@ -9881,6 +11186,7 @@ export interface operations {
                         link?: string | null;
                         businessType?: string | null;
                         businessId?: string | null;
+                        deliveryChannels: components["schemas"]["DeliveryChannel"][];
                         targetType: components["schemas"]["NotificationTargetType"];
                         targetIds: string[];
                         needConfirm: boolean;
@@ -13155,6 +14461,546 @@ export interface operations {
                         activeUsers: number;
                         /** Format: int32 */
                         realtimeOnlineUsers: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    provider: components["schemas"]["SmsProvider"];
+                    accessKeyId: string;
+                    signName: string;
+                    accessKeySecret?: string | null;
+                    sdkAppId?: string | null;
+                    region?: string | null;
+                    templateMap?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["SmsProvider"];
+                        accessKeyId: string;
+                        hasAccessKeySecret: boolean;
+                        sdkAppId?: string | null;
+                        signName: string;
+                        region?: string | null;
+                        templateMap?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["SmsProvider"];
+                        accessKeyId: string;
+                        hasAccessKeySecret: boolean;
+                        sdkAppId?: string | null;
+                        signName: string;
+                        region?: string | null;
+                        templateMap?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    provider: components["schemas"]["SmsProvider"];
+                    accessKeyId: string;
+                    signName: string;
+                    accessKeySecret?: string | null;
+                    sdkAppId?: string | null;
+                    region?: string | null;
+                    templateMap?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["SmsProvider"];
+                        accessKeyId: string;
+                        hasAccessKeySecret: boolean;
+                        sdkAppId?: string | null;
+                        signName: string;
+                        region?: string | null;
+                        templateMap?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["SmsProvider"];
+                        accessKeyId: string;
+                        hasAccessKeySecret: boolean;
+                        sdkAppId?: string | null;
+                        signName: string;
+                        region?: string | null;
+                        templateMap?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms-configs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SmsConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        toPhone: string;
+                        content: string;
+                        templateCode?: string | null;
+                        templateParams?: string | null;
+                        provider?: components["schemas"]["SmsProvider"] | null;
+                        providerMessageId?: string | null;
+                        status: components["schemas"]["MessageSendStatus"];
+                        /** Format: int32 */
+                        attempts: number;
+                        /** Format: int32 */
+                        maxAttempts: number;
+                        /** Format: date-time */
+                        nextAttemptAt?: string | null;
+                        /** Format: date-time */
+                        sentAt?: string | null;
+                        errorMessage?: string | null;
+                        /** Format: uuid */
+                        configId?: string | null;
+                        /** Format: uuid */
+                        senderId?: string | null;
+                        /** Format: uuid */
+                        receiverId?: string | null;
+                        businessType?: string | null;
+                        businessId?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SmsRecordResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sms.resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };

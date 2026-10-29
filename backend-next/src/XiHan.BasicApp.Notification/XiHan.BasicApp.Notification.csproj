@@ -1,12 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Notification</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 通知能力包（Tier 2）：通知公告（草稿、发布、提醒、阅读统计，按全部 / 角色 / 部门 / 用户投递）与收件箱（已读、确认、横幅、弹窗、强制阅读），发布后经实时连接推送。</Description>
+    <Description>XiHan.BasicApp 6.0 通知能力包（Tier 2）：通知公告（草稿、发布、提醒、阅读统计，按全部 / 角色 / 部门 / 用户投递）与收件箱（已读、确认、横幅、弹窗、强制阅读），发布后经实时连接推送；消息模板（Scriban）、邮件与短信配置、发送记录（发件箱，后台发送与重试）。</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Scriban" />
   </ItemGroup>
 
   <ItemGroup>

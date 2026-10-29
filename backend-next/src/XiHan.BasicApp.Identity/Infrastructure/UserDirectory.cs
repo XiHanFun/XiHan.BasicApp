@@ -24,6 +24,6 @@ public sealed class UserDirectory(SqlSugarUnitOfWork unitOfWork) : IUserDirector
         }
 
         var rows = await unitOfWork.ConnectionFor(typeof(SysUser)).Queryable<SysUser>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken).ConfigureAwait(false);
-        return rows.ToDictionary(static u => u.Id, static u => new UserSummary(u.Id, u.UserName, u.DisplayName));
+        return rows.ToDictionary(static u => u.Id, static u => new UserSummary(u.Id, u.UserName, u.DisplayName, u.Email, u.PhoneNumber));
     }
 }

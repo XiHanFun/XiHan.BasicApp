@@ -64,6 +64,11 @@ public sealed class SysNotification : TenantScopedAuditedEntity
     public string? BusinessId { get; set; }
 
     /// <summary>
+    /// 投递渠道（按位组合，站内信必有）。
+    /// </summary>
+    public MessageChannels DeliveryChannels { get; set; } = MessageChannels.InApp;
+
+    /// <summary>
     /// 投递目标。
     /// </summary>
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;

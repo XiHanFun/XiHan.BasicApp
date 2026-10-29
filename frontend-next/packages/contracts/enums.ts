@@ -62,6 +62,9 @@ export type DataScope = (typeof DataScope)[number]
 export const DelegationStatus = ['Pending', 'Active', 'Expired', 'Revoked'] as const
 export type DelegationStatus = (typeof DelegationStatus)[number]
 
+export const DeliveryChannel = ['InApp', 'Email', 'Sms'] as const
+export type DeliveryChannel = (typeof DeliveryChannel)[number]
+
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
@@ -103,6 +106,9 @@ export type LoginEvent = (typeof LoginEvent)[number]
 
 export const MenuKind = ['Page', 'Directory', 'Link'] as const
 export type MenuKind = (typeof MenuKind)[number]
+
+export const MessageSendStatus = ['Pending', 'Sending', 'Success', 'Failed', 'Cancelled'] as const
+export type MessageSendStatus = (typeof MessageSendStatus)[number]
 
 export const NotificationContentFormat = ['Text', 'Markdown', 'Html'] as const
 export type NotificationContentFormat = (typeof NotificationContentFormat)[number]
@@ -149,11 +155,17 @@ export type SessionRoleStatus = (typeof SessionRoleStatus)[number]
 export const SettingStatus = ['Active', 'Disabled'] as const
 export type SettingStatus = (typeof SettingStatus)[number]
 
+export const SmsProvider = ['Aliyun', 'Tencent'] as const
+export type SmsProvider = (typeof SmsProvider)[number]
+
 export const StorageConfigStatus = ['Active', 'Disabled'] as const
 export type StorageConfigStatus = (typeof StorageConfigStatus)[number]
 
 export const StorageType = ['Local', 'S3', 'Oss', 'Cos', 'MinIO'] as const
 export type StorageType = (typeof StorageType)[number]
+
+export const TemplateChannel = ['Email', 'Sms'] as const
+export type TemplateChannel = (typeof TemplateChannel)[number]
 
 export const TenantMemberType = ['Member', 'Owner'] as const
 export type TenantMemberType = (typeof TenantMemberType)[number]
@@ -204,6 +216,7 @@ export const enums = {
   ConstraintViolationAction,
   DataScope,
   DelegationStatus,
+  DeliveryChannel,
   DiffKind,
   ExportFormat,
   ExportScope,
@@ -218,6 +231,7 @@ export const enums = {
   GrantSubjectKind,
   LoginEvent,
   MenuKind,
+  MessageSendStatus,
   NotificationContentFormat,
   NotificationPriority,
   NotificationRecipientFilter,
@@ -233,8 +247,10 @@ export const enums = {
   RoleStatus,
   SessionRoleStatus,
   SettingStatus,
+  SmsProvider,
   StorageConfigStatus,
   StorageType,
+  TemplateChannel,
   TenantMemberType,
   TenantStatus,
   TraceDimension,

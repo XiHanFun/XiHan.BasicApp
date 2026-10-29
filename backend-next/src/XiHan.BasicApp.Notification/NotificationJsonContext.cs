@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Operations.Inbox;
+using XiHan.BasicApp.Notification.Operations.Messaging;
 using XiHan.BasicApp.Notification.Operations.Notifications;
 
 namespace XiHan.BasicApp.Notification;
@@ -21,6 +22,7 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
 [JsonSerializable(typeof(List<Guid>))]
+[JsonSerializable(typeof(Dictionary<string, string>))]
 [JsonSerializable(typeof(NotificationResponse))]
 [JsonSerializable(typeof(PageResult<NotificationResponse>))]
 [JsonSerializable(typeof(CreateNotificationRequest))]
@@ -41,4 +43,22 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(MarkAllInboxReadRequest))]
 [JsonSerializable(typeof(InboxCountResponse))]
 [JsonSerializable(typeof(NotificationPushPayload))]
+[JsonSerializable(typeof(MessagingIdRequest))]
+[JsonSerializable(typeof(MessagingIdsRequest))]
+[JsonSerializable(typeof(MessageTemplateResponse))]
+[JsonSerializable(typeof(PageResult<MessageTemplateResponse>))]
+[JsonSerializable(typeof(CreateMessageTemplateRequest))]
+[JsonSerializable(typeof(UpdateMessageTemplateRequest))]
+[JsonSerializable(typeof(EmailConfigResponse))]
+[JsonSerializable(typeof(PageResult<EmailConfigResponse>))]
+[JsonSerializable(typeof(CreateEmailConfigRequest))]
+[JsonSerializable(typeof(UpdateEmailConfigRequest))]
+[JsonSerializable(typeof(SmsConfigResponse))]
+[JsonSerializable(typeof(PageResult<SmsConfigResponse>))]
+[JsonSerializable(typeof(CreateSmsConfigRequest))]
+[JsonSerializable(typeof(UpdateSmsConfigRequest))]
+[JsonSerializable(typeof(EmailRecordResponse))]
+[JsonSerializable(typeof(PageResult<EmailRecordResponse>))]
+[JsonSerializable(typeof(SmsRecordResponse))]
+[JsonSerializable(typeof(PageResult<SmsRecordResponse>))]
 public sealed partial class NotificationJsonContext : JsonSerializerContext;
