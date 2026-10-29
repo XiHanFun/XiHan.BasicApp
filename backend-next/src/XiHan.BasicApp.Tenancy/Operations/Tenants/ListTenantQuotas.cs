@@ -60,8 +60,11 @@ public sealed record ListTenantQuotasRequest(bool OverOnly = false);
 public sealed record TenantQuotasResponse(IReadOnlyList<TenantQuotaResponse> Items);
 
 /// <summary>
-/// 各租户的有效配额与用量：<c>GET /api/tenants:quotas</c>（4.x 的租户列表用量列与配额审计）。只在平台侧。
+/// 各租户的有效配额与用量。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/tenants:quotas</c>（4.x 的租户列表用量列与配额审计）。只在平台侧。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="quotas">租户配额。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]

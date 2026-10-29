@@ -6,8 +6,11 @@ using System.ComponentModel.DataAnnotations;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// <c>tenants.update</c> 的请求：改名称、说明、到期与排序（租户 ID 不可改，状态走 suspend / resume）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>tenants.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 改名称、说明、到期与排序（租户 ID 不可改，状态走 suspend / resume）。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">租户主键。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Description">说明，可空。</param>

@@ -14,10 +14,13 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Tenancy.Infrastructure;
 
 /// <summary>
-/// 套餐门控（单例，与框架权限检查器同寿命）：租户 → 套餐 → 白名单。在权限判定的热路径上，所以结果进共享缓存（<see cref="CacheTimeToLive"/>），
+/// 套餐门控（单例，与框架权限检查器同寿命）。
+/// </summary>
+/// <remarks>
+/// 租户 → 套餐 → 白名单。在权限判定的热路径上，所以结果进共享缓存（<see cref="CacheTimeToLive"/>），
 /// 套餐白名单、租户换套餐、删套餐时由写路径主动失效，跨实例靠 TTL 收敛。读库经 <see cref="StoreScope"/> 在独立作用域里只读（判定时可能还没有工作单元）。
 /// 语义：没有业务租户行（不经 Tenancy 开通的目录租户）或未绑定套餐即不受限；绑定的套餐不存在（悬空引用）按空白名单处理，宁可拒绝。
-/// </summary>
+/// </remarks>
 public sealed class EditionGate : IEditionGate
 {
     /// <summary>

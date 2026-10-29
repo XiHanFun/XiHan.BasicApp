@@ -12,9 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Domain.Services;
 
 /// <summary>
-/// 套餐域服务：按编码 / 缺省查找、白名单的校验与整体替换、缺省标记互斥、哪些租户在用。
-/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取各包登记的 <see cref="PermissionCatalogSection"/>（Tenancy 不引用 Access）。
+/// 套餐域服务。
 /// </summary>
+/// <remarks>
+/// 按编码 / 缺省查找、白名单的校验与整体替换、缺省标记互斥、哪些租户在用。
+/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取各包登记的 <see cref="PermissionCatalogSection"/>（Tenancy 不引用 Access）。
+/// </remarks>
 /// <param name="editions">套餐仓储。</param>
 /// <param name="permissions">白名单仓储。</param>
 /// <param name="tenants">租户仓储。</param>
@@ -56,8 +59,9 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 缺省套餐；没有即空。
+    /// 查找缺省套餐。
     /// </summary>
+    /// <returns>缺省套餐；没有即空。</returns>
     public async Task<Maybe<SysEdition>> FindDefaultAsync(CancellationToken cancellationToken)
     {
         var rows = await editions.ListAsync(EntityQuery.All<SysEdition>().Where(new Specification<SysEdition>(e => e.IsDefault)).OrderBy(static e => e.Order).Page(0, 1), cancellationToken).ConfigureAwait(false);
@@ -74,8 +78,11 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 校验白名单：去重后每个码都须是租户能生效的权限；第一个不合格的码返回 <c>TENANCY_VALIDATION_002</c>。
+    /// 校验白名单。
     /// </summary>
+    /// <remarks>
+    /// 去重后每个码都须是租户能生效的权限；第一个不合格的码返回 <c>TENANCY_VALIDATION_002</c>。
+    /// </remarks>
     public Result<IReadOnlyList<string>> Normalize(IReadOnlyList<string> codes)
     {
         ArgumentNullException.ThrowIfNull(codes);

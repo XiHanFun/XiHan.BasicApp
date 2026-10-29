@@ -66,8 +66,11 @@ public static class TenancyPermissions
     public const string EditionsCreate = "tenancy.editions.create";
 
     /// <summary>
-    /// 修改套餐与白名单：<c>editions.update / set-permissions</c>。
+    /// 修改套餐与白名单。
     /// </summary>
+    /// <remarks>
+    /// <c>editions.update / set-permissions</c>。
+    /// </remarks>
     public const string EditionsUpdate = "tenancy.editions.update";
 
     /// <summary>

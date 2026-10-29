@@ -16,9 +16,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 我能进入的租户：<c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 成员租户，只列正常状态的；平台账号另告知能进入平台。
-/// 控制中心据此画卡片，切换走 <c>auth.switch-tenant</c>。
+/// 我能进入的租户。
 /// </summary>
+/// <remarks>
+/// <c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 成员租户，只列正常状态的；平台账号另告知能进入平台。
+/// 控制中心据此画卡片，切换走 <c>auth.switch-tenant</c>。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="members">成员仓储。</param>

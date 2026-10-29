@@ -21,9 +21,6 @@ public static class TenancyPages
     public static PageDescriptor Editions { get; } = new("tenancy.editions", "/tenancy/editions", "tenancy.editions.title", "lucide:package", 310, TenancyPermissions.EditionsRead);
 
     /// <summary>
-    /// 全部顶层页面。
-    /// </summary>
-    /// <summary>
     /// 我的订阅页（只在租户侧）。
     /// </summary>
     public static PageDescriptor Subscription { get; } = new("tenancy.subscription", "/tenancy/subscription", "tenancy.subscription.title", "lucide:receipt", 320, TenancyPermissions.SubscriptionRead);

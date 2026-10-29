@@ -10,8 +10,11 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Tenancy.Infrastructure;
 
 /// <summary>
-/// 成员关系查询（作用域，用调用方的工作单元）：给 Identity 的切换租户与模仿登录判断用户能否进入某个租户。
+/// 成员关系查询（作用域，用调用方的工作单元）。
 /// </summary>
+/// <remarks>
+/// 给 Identity 的切换租户与模仿登录判断用户能否进入某个租户。
+/// </remarks>
 /// <param name="members">成员仓储。</param>
 public sealed class TenantMembershipResolver(IRepository<SysTenantMember, Guid> members) : ITenantMembershipResolver
 {

@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Tenancy;
 
 /// <summary>
-/// 租户包的错误码：<c>TENANCY_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 租户包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>TENANCY_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class TenancyErrors
 {
     /// <summary>

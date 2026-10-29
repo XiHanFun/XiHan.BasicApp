@@ -56,8 +56,11 @@ public sealed record EditionResponse(
 public sealed record EditionsResponse(IReadOnlyList<EditionResponse> Items);
 
 /// <summary>
-/// 套餐详情：<c>editions.get / create / set-permissions</c> 的响应。
+/// 套餐详情。
 /// </summary>
+/// <remarks>
+/// <c>editions.get / create / set-permissions</c> 的响应。
+/// </remarks>
 /// <param name="Edition">套餐。</param>
 /// <param name="Permissions">白名单（权限码，排序）。</param>
 public sealed record EditionDetailResponse(EditionResponse Edition, IReadOnlyList<string> Permissions)

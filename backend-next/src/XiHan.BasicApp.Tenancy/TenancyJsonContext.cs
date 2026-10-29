@@ -13,8 +13,11 @@ using XiHan.BasicApp.Tenancy.Operations.Tenants;
 namespace XiHan.BasicApp.Tenancy;
 
 /// <summary>
-/// 租户包操作的请求 / 响应序列化上下文（源生成；枚举按字符串）。
+/// 租户包操作的请求 / 响应序列化上下文。
 /// </summary>
+/// <remarks>
+/// 源生成；枚举按字符串。
+/// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     PropertyNameCaseInsensitive = true,

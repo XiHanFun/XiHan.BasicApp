@@ -50,8 +50,11 @@ public sealed record SubscriptionResponse(
     long UsedStorageBytes);
 
 /// <summary>
-/// 本租户的订阅：<c>GET /api/subscription</c>（4.x 的「我的订阅」）。只在租户侧；价格与周期只作展示，没有续费与付款流程。
+/// 本租户的订阅。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/subscription</c>（4.x 的「我的订阅」）。只在租户侧；价格与周期只作展示，没有续费与付款流程。
+/// </remarks>
 /// <param name="service">租户域服务。</param>
 /// <param name="quotas">租户配额。</param>
 /// <param name="clock">时钟。</param>

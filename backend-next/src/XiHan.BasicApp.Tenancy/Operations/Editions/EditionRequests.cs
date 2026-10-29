@@ -44,8 +44,11 @@ public sealed record CreateEditionRequest(
     bool IsFree = false);
 
 /// <summary>
-/// <c>editions.update</c> 的请求：改名称、说明、缺省标记与排序（编码不可改，白名单走 <c>editions.set-permissions</c>）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>editions.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 改名称、说明、缺省标记与排序（编码不可改，白名单走 <c>editions.set-permissions</c>）。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">套餐主键。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Description">说明，可空。</param>
@@ -69,8 +72,11 @@ public sealed record UpdateEditionRequest(
     bool IsFree = false);
 
 /// <summary>
-/// <c>editions.set-permissions</c> 的请求：整体替换白名单。标识由路由值 <c>{id}</c> 绑定。
+/// <c>editions.set-permissions</c> 的请求：整体替换白名单。
 /// </summary>
+/// <remarks>
+/// 标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">套餐主键。</param>
 /// <param name="Permissions">白名单：租户能生效的权限码，0 到 500 个；空即什么都不放行。</param>
 public sealed record SetEditionPermissionsRequest(Guid Id, [Required, MaxLength(500)] IReadOnlyList<string> Permissions);

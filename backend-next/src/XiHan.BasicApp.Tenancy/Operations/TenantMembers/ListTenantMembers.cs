@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// 某租户的成员：<c>tenant-members.list</c>（平台侧）。成员行在平台库、用户也在平台库，按主键一次取回补登录名与显示名。
+/// 某租户的成员列表。
 /// </summary>
+/// <remarks>
+/// <c>tenant-members.list</c>（平台侧）。成员行在平台库、用户也在平台库，按主键一次取回补登录名与显示名。
+/// </remarks>
 /// <param name="members">成员仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="service">租户域服务。</param>

@@ -14,8 +14,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// 加成员：<c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行。
+/// 给租户加成员。
 /// </summary>
+/// <remarks>
+/// <c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行。
+/// </remarks>
 /// <param name="members">成员仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="service">租户域服务。</param>

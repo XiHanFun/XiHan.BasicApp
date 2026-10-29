@@ -44,9 +44,13 @@ public sealed record TenantQuotaView(SysTenant Tenant, SysEdition? Edition, int?
 }
 
 /// <summary>
-/// 租户配额（4.x 同）：有效上限 = 租户自己的 → 套餐的 → 不限；席位按注册地是该租户的用户（未删除）加租户成员计，存储按 Files 报的用量计（没装 Files 即 0）。
-/// 只约束租户主体的调用，平台主体代租户办事不受限；已经超额的租户只在审计里报告。
+/// 租户配额。
 /// </summary>
+/// <remarks>
+/// 与 4.x 同。
+/// 有效上限 = 租户自己的 → 套餐的 → 不限；席位按注册地是该租户的用户（未删除）加租户成员计，存储按 Files 报的用量计（没装 Files 即 0）。
+/// 只约束租户主体的调用，平台主体代租户办事不受限；已经超额的租户只在审计里报告。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="editions">套餐仓储。</param>
 /// <param name="unitOfWork">工作单元（分组计数）。</param>

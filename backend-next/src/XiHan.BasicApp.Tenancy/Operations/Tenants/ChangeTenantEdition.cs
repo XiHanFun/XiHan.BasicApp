@@ -12,9 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 给租户换套餐：<c>POST /api/tenants/{id}:change-edition</c>（平台侧，<c>tenancy.tenants.update</c>）。
-/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算。
+/// 给租户换套餐。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/tenants/{id}:change-edition</c>（平台侧，<c>tenancy.tenants.update</c>）。
+/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="service">租户域服务。</param>
 /// <param name="editions">套餐域服务。</param>
