@@ -12,9 +12,13 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 字段安全（方案 5.9，语义沿用 4.x）：规则按角色、用户、部门（含下级部门）命中，只在所属一侧生效；用户目录在投影时打码，按受保护字段筛选排序被拒、关键字不再覆盖它们；
-/// 修改时交回脱敏值或空值即保留原值，改只读字段被拒，只写字段可填新值；多条规则取最严；写规则的校验与冲突；删角色连同删规则；变更进权限变更日志。
+/// 验证字段安全规则的命中、打码与写入保护。
 /// </summary>
+/// <remarks>
+/// 方案 5.9，语义沿用 4.x。
+/// 规则按角色、用户、部门（含下级部门）命中，只在所属一侧生效；用户目录在投影时打码，按受保护字段筛选排序被拒、关键字不再覆盖它们；
+/// 修改时交回脱敏值或空值即保留原值，改只读字段被拒，只写字段可填新值；多条规则取最严；写规则的校验与冲突；删角色连同删规则；变更进权限变更日志。
+/// </remarks>
 public sealed class FieldSecurityTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

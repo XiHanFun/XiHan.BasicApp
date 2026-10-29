@@ -11,9 +11,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 授予规则：角色 Deny 只拿走本角色的授予、用户 Deny 压过一切、撤销连同规则解除；授予与指派的有效期在判定时按当前时间比较（到点即失效，不必重建缓存、不等令牌刷新）；
-/// 用户级数据范围覆盖完全取代角色的数据范围、只在租户侧；这些变更都进权限变更日志。
+/// 验证授予规则的拒绝、有效期与用户级数据范围覆盖。
 /// </summary>
+/// <remarks>
+/// 角色 Deny 只拿走本角色的授予、用户 Deny 压过一切、撤销连同规则解除；授予与指派的有效期在判定时按当前时间比较（到点即失效，不必重建缓存、不等令牌刷新）；
+/// 用户级数据范围覆盖完全取代角色的数据范围、只在租户侧；这些变更都进权限变更日志。
+/// </remarks>
 public sealed class AccessRulesTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

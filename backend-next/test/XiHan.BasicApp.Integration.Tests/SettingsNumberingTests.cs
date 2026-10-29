@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 业务编号：格式计算（与 4.x 同规则）、规则的维护（日期格式与周期的安全组合、时区、发号后格式冻结、只有没发过号的能删）、
-/// 发号（连续区间、幂等重放与同键异参冲突、新周期从 1 开始、时钟落后拒绝、流水用尽、停用）、安全重置、预览、租户与平台规则的找法、发号记录的可见范围。
+/// 验证业务编号的格式、规则维护与发号。
 /// </summary>
+/// <remarks>
+/// 格式计算（与 4.x 同规则）、规则的维护（日期格式与周期的安全组合、时区、发号后格式冻结、只有没发过号的能删）、
+/// 发号（连续区间、幂等重放与同键异参冲突、新周期从 1 开始、时钟落后拒绝、流水用尽、停用）、安全重置、预览、租户与平台规则的找法、发号记录的可见范围。
+/// </remarks>
 public sealed class SettingsNumberingTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

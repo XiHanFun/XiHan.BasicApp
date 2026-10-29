@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 设置包用例的起手：跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）。
+/// 设置包用例的起手。
 /// </summary>
+/// <remarks>
+/// 跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）。
+/// </remarks>
 public static class SettingsTestHost
 {
     /// <summary>

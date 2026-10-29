@@ -13,10 +13,13 @@ using XiHan.Framework.Security.Conformance;
 namespace XiHan.BasicApp.Integration.Tests.Conformance;
 
 /// <summary>
-/// 一致性套件的宿主：每个用例一个空库（SQLite 临时文件，或 PostgreSQL 临时库——<see cref="PostgresDatabase.Variable"/> 没设即跳过）上的完整 BasicApp 宿主，
+/// 一致性套件的宿主。
+/// </summary>
+/// <remarks>
+/// 每个用例一个空库（SQLite 临时文件，或 PostgreSQL 临时库——<see cref="PostgresDatabase.Variable"/> 没设即跳过）上的完整 BasicApp 宿主，
 /// 数据经 <see cref="BasicAppTestServer.SeedAsync"/>（框架的 <c>TenantRecordStore</c> / <c>PermissionGrantRecordStore</c>）写入；用例结束先停宿主再删库。
 /// 方案 N1 退出条件：BasicApp 装配出的租户存储、分片解析与授予存储通过框架的 <c>MultiTenancy.Conformance</c> 与 <c>Security.Conformance</c>。
-/// </summary>
+/// </remarks>
 /// <param name="postgres">是否用 PostgreSQL。</param>
 internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
 {
@@ -63,8 +66,11 @@ internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
 }
 
 /// <summary>
-/// 授予存储（框架 <c>Security.Database</c> 装在 BasicApp 的 SqlSugar 持久化上，SQLite）。
+/// 授予存储的一致性测试（SQLite）。
 /// </summary>
+/// <remarks>
+/// 框架 <c>Security.Database</c> 装在 BasicApp 的 SqlSugar 持久化上。
+/// </remarks>
 public sealed class SqlitePermissionGrantStoreConformanceTests : PermissionGrantStoreConformance, IAsyncDisposable
 {
     private readonly ConformanceHosts _hosts = new(postgres: false);
@@ -101,8 +107,11 @@ public sealed class PostgresPermissionGrantStoreConformanceTests : PermissionGra
 }
 
 /// <summary>
-/// 租户目录（框架 <c>MultiTenancy.Database</c> 装在 BasicApp 的持久化上，SQLite）。
+/// 租户目录的一致性测试（SQLite）。
 /// </summary>
+/// <remarks>
+/// 框架 <c>MultiTenancy.Database</c> 装在 BasicApp 的持久化上。
+/// </remarks>
 public sealed class SqliteTenantStoreConformanceTests : TenantStoreConformance, IAsyncDisposable
 {
     private readonly ConformanceHosts _hosts = new(postgres: false);

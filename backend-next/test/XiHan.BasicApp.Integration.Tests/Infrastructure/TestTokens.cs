@@ -8,8 +8,11 @@ using Microsoft.IdentityModel.Tokens;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 用测试密钥自签 HS256 令牌：<c>sub</c> 主体、<c>tenant</c> 当前租户、<c>role</c> 角色，与 <c>Security.Jwt</c> 的校验参数对齐。N1 的 <c>auth.login</c> 落地前，测试与前端联调都用它。
+/// 用测试密钥自签 HS256 令牌。
 /// </summary>
+/// <remarks>
+/// <c>sub</c> 主体、<c>tenant</c> 当前租户、<c>role</c> 角色，与 <c>Security.Jwt</c> 的校验参数对齐。N1 的 <c>auth.login</c> 落地前，测试与前端联调都用它。
+/// </remarks>
 public static class TestTokens
 {
     public const string Secret = "integration-tests-only-jwt-secret-of-at-least-32-bytes";

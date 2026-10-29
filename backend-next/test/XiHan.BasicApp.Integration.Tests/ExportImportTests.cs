@@ -10,9 +10,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 导出中心与导入历史：导出某个列表操作的查询结果（后台以发起人的身份逐页调用，CSV 带 BOM、XLSX 是 OOXML 包），结果存成临时文件经签名地址下载；
-/// 发起人没有列表操作的权限即任务失败；任务与导入历史都只看得到自己的；删除任务连同结果文件。
+/// 验证导出中心与导入历史。
 /// </summary>
+/// <remarks>
+/// 导出某个列表操作的查询结果（后台以发起人的身份逐页调用，CSV 带 BOM、XLSX 是 OOXML 包），结果存成临时文件经签名地址下载；
+/// 发起人没有列表操作的权限即任务失败；任务与导入历史都只看得到自己的；删除任务连同结果文件。
+/// </remarks>
 public sealed class ExportImportTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

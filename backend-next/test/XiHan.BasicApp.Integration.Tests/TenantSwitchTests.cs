@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 租户成员与切换租户：平台侧管理成员（加、重复、列、移除）；<c>tenants.mine</c> 列出注册地与成员租户；
-/// <c>auth.switch-tenant</c> 只放行注册地 / 成员 / 平台账号回平台，切换后同一会话换上下文、旧刷新令牌失效、权限按新租户重算。
+/// 验证租户成员与切换租户。
 /// </summary>
+/// <remarks>
+/// 平台侧管理成员（加、重复、列、移除）；<c>tenants.mine</c> 列出注册地与成员租户；
+/// <c>auth.switch-tenant</c> 只放行注册地 / 成员 / 平台账号回平台，切换后同一会话换上下文、旧刷新令牌失效、权限按新租户重算。
+/// </remarks>
 public sealed class TenantSwitchTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

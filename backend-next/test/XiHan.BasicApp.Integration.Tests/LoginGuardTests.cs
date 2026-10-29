@@ -12,9 +12,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 登录守卫：凭据都核对之后、签发令牌之前按登录时机的访问策略判定（拒绝即不签发，命中记为登录时）；
-/// 登录失败自动封禁按来源地址数认证失败，达到上限即封、封禁中的地址一切调用 503，平台可查看与解封；参数缺省关。
+/// 验证登录守卫的策略判定与登录失败自动封禁。
 /// </summary>
+/// <remarks>
+/// 凭据都核对之后、签发令牌之前按登录时机的访问策略判定（拒绝即不签发，命中记为登录时）；
+/// 登录失败自动封禁按来源地址数认证失败，达到上限即封、封禁中的地址一切调用 503，平台可查看与解封；参数缺省关。
+/// </remarks>
 public sealed class LoginGuardTests : IDisposable
 {
     private const string ClientIpHeader = "X-Test-Client-Ip";

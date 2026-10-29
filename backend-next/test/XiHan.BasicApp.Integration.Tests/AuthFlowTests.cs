@@ -8,8 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 身份链路：密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、当前主体、租户账号登录与本人改密。
+/// 验证身份链路的登录、令牌、会话、刷新、注销与改密。
 /// </summary>
+/// <remarks>
+/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、当前主体、租户账号登录与本人改密。
+/// </remarks>
 public sealed class AuthFlowTests : IDisposable
 {
     private const string SuperAdminLogin = """{"userName":"superadmin","password":"SuperAdmin@123"}""";

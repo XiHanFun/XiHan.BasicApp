@@ -11,9 +11,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 权限条件：挂在授予上满足才授予、挂在拒绝上满足才拒绝，调用时按请求属性判定（<c>auth.permissions</c> 照旧列出），
-/// 不满足即 403 并记一条条件命中；只挂在确实存在的绑定上、每个绑定的组数有上限、子句按条件引擎编译；绑定没了连同删除；只记录模式放行但照记命中。
+/// 验证权限条件的判定、命中记录与挂载约束。
 /// </summary>
+/// <remarks>
+/// 挂在授予上满足才授予、挂在拒绝上满足才拒绝，调用时按请求属性判定（<c>auth.permissions</c> 照旧列出），
+/// 不满足即 403 并记一条条件命中；只挂在确实存在的绑定上、每个绑定的组数有上限、子句按条件引擎编译；绑定没了连同删除；只记录模式放行但照记命中。
+/// </remarks>
 public sealed class PermissionConditionTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

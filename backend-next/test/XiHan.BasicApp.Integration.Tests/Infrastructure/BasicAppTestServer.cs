@@ -24,8 +24,11 @@ using XiHanApp = XiHan.Framework.Kernel.Hosting.App;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 用宿主的真实装配（<see cref="BasicAppHost.Create"/>）在 TestServer 里启动应用：数据库换成 SQLite 文件或测试 PostgreSQL，JWT 用测试密钥。
+/// 用宿主的真实装配（<see cref="BasicAppHost.Create"/>）在 TestServer 里启动应用。
 /// </summary>
+/// <remarks>
+/// 数据库换成 SQLite 文件或测试 PostgreSQL，JWT 用测试密钥。
+/// </remarks>
 public sealed class BasicAppTestServer : IAsyncDisposable
 {
     public const string ApiPrefix = "/api";
@@ -92,8 +95,11 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     ];
 
     /// <summary>
-    /// 在一次独立调用（完整内核管道：认证、租户、授权、工作单元）里执行；带令牌时主体由 JWT 处理器解析。
+    /// 在一次独立调用（完整内核管道）里执行。
     /// </summary>
+    /// <remarks>
+    /// 完整内核管道：认证、租户、授权、工作单元。带令牌时主体由 JWT 处理器解析。
+    /// </remarks>
     public async Task<Result> InvokeAsync(Func<InvocationContext, Task<Result>> action, string? token = null, IReadOnlyDictionary<string, string>? baggage = null)
     {
         await using var scope = Services.CreateAsyncScope();
@@ -107,8 +113,11 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 写入租户目录与权限授予（经框架的数据库 Provider 存储，在 Transaction 阶段内）。
+    /// 写入租户目录与权限授予。
     /// </summary>
+    /// <remarks>
+    /// 经框架的数据库 Provider 存储，在 Transaction 阶段内。
+    /// </remarks>
     public async Task SeedAsync(IReadOnlyList<TenantInfo> tenants, IReadOnlyList<PermissionGrant> grants)
     {
         var result = await InvokeAsync(async ctx =>
@@ -135,14 +144,20 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 执行各包登记的种子（超级管理员 <c>superadmin</c> 与它的全局授予等），与 <c>seed</c> 命令同一条路径。
+    /// 执行各包登记的种子。
     /// </summary>
+    /// <remarks>
+    /// 包括超级管理员 <c>superadmin</c> 与它的全局授予等，与 <c>seed</c> 命令同一条路径。
+    /// </remarks>
     public async Task RunSeedersAsync(IReadOnlyCollection<string>? only = null)
         => (await Services.GetRequiredService<SeedRunner>().RunAsync(only, CancellationToken.None)).ThrowIfFailure();
 
     /// <summary>
-    /// 缺省的测试数据：租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读。
+    /// 写入缺省的测试数据。
     /// </summary>
+    /// <remarks>
+    /// 租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读。
+    /// </remarks>
     public Task SeedDefaultsAsync(IReadOnlyDictionary<string, string>? acmeProperties = null) => SeedAsync(
         [
             new TenantInfo { Id = "acme", DisplayName = "Acme", Properties = acmeProperties ?? new Dictionary<string, string>(StringComparer.Ordinal) },

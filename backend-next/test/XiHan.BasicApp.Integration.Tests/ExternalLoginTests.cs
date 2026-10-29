@@ -12,9 +12,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 第三方登录（假的 GitHub）：登录页列出配置的提供商；发起即带 state 跳去授权页并种 Cookie；回调 state 与 Cookie 都对上才换身份、发一次性票据（用户拒绝、Cookie 不对都带错误回前端）；
-/// 没绑定的不能登录（拍板，不自动建号）；绑定要本人先领意图才能发起、票据只能由本人确认，票据分登录与绑定、只能用一次；绑定按注册地分开；绑定后能登录、资料随登录刷新；解绑后又不能登录。
+/// 验证第三方登录与账号绑定（假的 GitHub）。
 /// </summary>
+/// <remarks>
+/// 登录页列出配置的提供商；发起即带 state 跳去授权页并种 Cookie；回调 state 与 Cookie 都对上才换身份、发一次性票据（用户拒绝、Cookie 不对都带错误回前端）；
+/// 没绑定的不能登录（拍板，不自动建号）；绑定要本人先领意图才能发起、票据只能由本人确认，票据分登录与绑定、只能用一次；绑定按注册地分开；绑定后能登录、资料随登录刷新；解绑后又不能登录。
+/// </remarks>
 public sealed class ExternalLoginTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

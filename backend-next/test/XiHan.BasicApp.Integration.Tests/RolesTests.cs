@@ -9,8 +9,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 角色：创建 / 唯一码 / 授予与撤销（目录校验、逐项结果）/ 指派与解除（角色进令牌、刷新后生效）/ 成员 / 删除（内建不可删）；租户侧角色只在本租户可见。
+/// 验证角色的管理、授予与指派。
 /// </summary>
+/// <remarks>
+/// 创建 / 唯一码 / 授予与撤销（目录校验、逐项结果）/ 指派与解除（角色进令牌、刷新后生效）/ 成员 / 删除（内建不可删）；租户侧角色只在本租户可见。
+/// </remarks>
 public sealed class RolesTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

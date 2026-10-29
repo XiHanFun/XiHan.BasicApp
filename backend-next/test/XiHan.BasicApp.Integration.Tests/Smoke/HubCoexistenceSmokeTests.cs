@@ -18,10 +18,13 @@ using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 namespace XiHan.BasicApp.Integration.Tests.Smoke;
 
 /// <summary>
-/// 方案 9.1 第二项：Hub / 静态资源与 <c>UseXiHan</c> 的共存。
+/// 验证 Hub / 静态资源与 <c>UseXiHan</c> 的共存。
+/// </summary>
+/// <remarks>
+/// 方案 9.1 第二项。
 /// 结论：Hub 端点 <c>BypassXiHanPipeline()</c> + ASP.NET Core <c>AddJwtBearer</c>（与 <c>Security.Jwt</c> 共用密钥）排在 <c>UseXiHan()</c> 之前；静态文件中间件也排在它之前。
 /// 绕过的端点没有调用上下文：不受截止时间约束，内核应用停止后仍可用；<c>/api</c> 照旧受管。
-/// </summary>
+/// </remarks>
 public sealed class HubCoexistenceSmokeTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

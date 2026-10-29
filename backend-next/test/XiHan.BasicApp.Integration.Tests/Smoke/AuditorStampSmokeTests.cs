@@ -12,9 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests.Smoke;
 
 /// <summary>
-/// 方案 9.1 第一项：方式一回调里 <c>ConnectionConfig.AopEvents.DataExecuting</c> 能否读到当前主体并填 <c>CreatedBy</c> / <c>ModifiedBy</c> / <c>DeletedBy</c>。
-/// 结论：回调没有作用域，主体经 Transaction 阶段中间件放进异步本地值后回调能读到；插入、更新、软删除三条路径都填上了。
+/// 验证 SqlSugar 执行回调能否读到当前主体并填审计人。
 /// </summary>
+/// <remarks>
+/// 方案 9.1 第一项。
+/// 方式一回调里 <c>ConnectionConfig.AopEvents.DataExecuting</c> 能否读到当前主体并填 <c>CreatedBy</c> / <c>ModifiedBy</c> / <c>DeletedBy</c>。
+/// 结论：回调没有作用域，主体经 Transaction 阶段中间件放进异步本地值后回调能读到；插入、更新、软删除三条路径都填上了。
+/// </remarks>
 public sealed class AuditorStampSmokeTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 手动拨的时钟：在宿主装配前登记为 <see cref="TimeProvider"/>（框架用 TryAdd，先登记的生效）。
-/// 令牌校验走真实时间，所以拨动时钟的用例只在进程内调用，不走 HTTP。
+/// 手动拨的时钟。
 /// </summary>
+/// <remarks>
+/// 在宿主装配前登记为 <see cref="TimeProvider"/>（框架用 TryAdd，先登记的生效）。
+/// 令牌校验走真实时间，所以拨动时钟的用例只在进程内调用，不走 HTTP。
+/// </remarks>
 /// <param name="start">起始时刻。</param>
 public sealed class ManualClock(DateTimeOffset start) : TimeProvider
 {

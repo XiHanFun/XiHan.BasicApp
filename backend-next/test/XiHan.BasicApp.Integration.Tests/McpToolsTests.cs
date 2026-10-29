@@ -8,9 +8,13 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 操作表里带 <c>Expose.Mcp</c> 的只读目录类操作作为 MCP tool：<c>tools/list</c> 只列它们，复用生成的 Schema 与消息目录描述，行为提示为只读；
-/// <c>tools/call</c> 经完整管道、按与 HTTP 相同的授权判定，失败按 <c>isError</c>。
+/// 验证只读目录类操作作为 MCP tool 的列出与调用。
 /// </summary>
+/// <remarks>
+/// 操作表里带 <c>Expose.Mcp</c> 的只读目录类操作作为 MCP tool。
+/// <c>tools/list</c> 只列它们，复用生成的 Schema 与消息目录描述，行为提示为只读；
+/// <c>tools/call</c> 经完整管道、按与 HTTP 相同的授权判定，失败按 <c>isError</c>。
+/// </remarks>
 public sealed class McpToolsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

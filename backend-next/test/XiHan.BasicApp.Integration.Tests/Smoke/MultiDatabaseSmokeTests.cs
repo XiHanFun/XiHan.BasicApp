@@ -16,10 +16,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests.Smoke;
 
 /// <summary>
-/// 方案 9.1 第三项：一次租户调用同时写默认连接（平台库 <c>sys_user</c>）与 <c>shard</c> 连接（租户库 <c>sys_user_statistics</c>），失败时一起回滚。
+/// 验证一次租户调用同时写平台库与租户库时一起提交或回滚。
+/// </summary>
+/// <remarks>
+/// 方案 9.1 第三项。
+/// 一次租户调用同时写默认连接（平台库 <c>sys_user</c>）与 <c>shard</c> 连接（租户库 <c>sys_user_statistics</c>），失败时一起回滚。
 /// 框架用例是 SQLite 双文件，这里用真实 PostgreSQL 两个库再跑一遍；需要环境变量 <c>XIHAN_TEST_POSTGRES</c>（服务器连接串，不含 Database），没有即跳过。
 /// 结论：两边同一调用一起提交或一起回滚；顺序提交、非两阶段。
-/// </summary>
+/// </remarks>
 public sealed class MultiDatabaseSmokeTests
 {
     private const string Variable = "XIHAN_TEST_POSTGRES";

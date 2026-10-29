@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 字典与字典项：编码平台与租户之间也不重、树形项（同字典、无环）、缺省项唯一、元数据必须是 JSON、选项深度优先展平且停用项标出、
-/// 停用字典没有选项也不能加项、删除的守护（有项的字典、有下级的项、另一侧的字典）、选项只要求已登录。
+/// 验证字典与字典项的约束、选项与删除守护。
 /// </summary>
+/// <remarks>
+/// 编码平台与租户之间也不重、树形项（同字典、无环）、缺省项唯一、元数据必须是 JSON、选项深度优先展平且停用项标出、
+/// 停用字典没有选项也不能加项、删除的守护（有项的字典、有下级的项、另一侧的字典）、选项只要求已登录。
+/// </remarks>
 public sealed class SettingsDictsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

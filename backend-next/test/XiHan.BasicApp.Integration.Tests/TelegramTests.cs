@@ -17,10 +17,14 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// Telegram 机器人的交互（4.x 行为）：平台参数打开后 Webhook 注册（带密钥与订阅种类）、<c>getMe</c> 回填用户名、同步命令菜单；Webhook 的密钥校验与 200；
+/// 验证 Telegram 机器人的交互。
+/// </summary>
+/// <remarks>
+/// 4.x 行为。
+/// 平台参数打开后 Webhook 注册（带密钥与订阅种类）、<c>getMe</c> 回填用户名、同步命令菜单；Webhook 的密钥校验与 200；
 /// 内置 <c>/start</c> <c>/help</c> <c>/myid</c>、去重、群组白名单（fail-closed，常驻命令例外）、命令白名单、只给管理员的命令与回调、回调总会应答、内联查询、会话状态、兜底回复；
 /// 出站重试与审计、最终失败告警管理员；Telegram 广播走同一出站；关掉总开关删 Webhook；长轮询。
-/// </summary>
+/// </remarks>
 public sealed class TelegramTests : IDisposable
 {
     private const string Token = "123456789:AAEexampleTOKEN_for-tests-only0";
@@ -226,8 +230,11 @@ public sealed class TelegramTests : IDisposable
     }
 
     /// <summary>
-    /// 假的 Bot API：记下每次调用，按方法回应；可排失败与长轮询的 Update。
+    /// 假的 Bot API。
     /// </summary>
+    /// <remarks>
+    /// 记下每次调用，按方法回应；可排失败与长轮询的 Update。
+    /// </remarks>
     private sealed class FakeBotApi : HttpMessageHandler, ITelegramHttp
     {
         private readonly ConcurrentQueue<(string Method, int Code)> _failures = new();

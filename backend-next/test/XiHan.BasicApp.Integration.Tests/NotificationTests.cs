@@ -10,9 +10,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 通知公告与收件箱：草稿可改、发布后不能改也不能再发；按全部 / 用户 / 角色 / 部门找人且只留当前一侧的正常账号；发布后接收人实时收到推送；
-/// 收件箱的已读、确认、横幅、弹窗与强制阅读，可见期（开始时间未到的看不到）；提醒、阅读统计与接收人；删除已发布的连同收件箱。
+/// 验证通知公告与收件箱。
 /// </summary>
+/// <remarks>
+/// 草稿可改、发布后不能改也不能再发；按全部 / 用户 / 角色 / 部门找人且只留当前一侧的正常账号；发布后接收人实时收到推送；
+/// 收件箱的已读、确认、横幅、弹窗与强制阅读，可见期（开始时间未到的看不到）；提醒、阅读统计与接收人；删除已发布的连同收件箱。
+/// </remarks>
 public sealed class NotificationTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();
