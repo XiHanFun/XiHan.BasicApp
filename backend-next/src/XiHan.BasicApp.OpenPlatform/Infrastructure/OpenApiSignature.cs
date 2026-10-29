@@ -9,12 +9,15 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure;
 
 /// <summary>
-/// 签名开放接口的协议（4.x 的请求头与规范串，接入方不用改）：
+/// 签名开放接口的协议。
+/// </summary>
+/// <remarks>
+/// 沿用 4.x 的请求头与规范串，接入方不用改：
 /// 规范串为「方法大写 \n 路径 \n 规范查询串 \n 内容签名 \n X-Timestamp 原文 \n X-Nonce」，用凭证密钥（UTF-8）做 HMAC，签名写十六进制或 Base64。
 /// 规范查询串：键按序数排序、同键的值也排序，键与值都做 <see cref="Uri.EscapeDataString(string)"/>，<c>&amp;</c> 连接，没有值写 <c>key=</c>。
 /// 内容签名是请求体明文（加密的先解密）的 SHA256 / SHA512 小写十六进制，空体即空串的散列，GET 也要带。
 /// 加密为 AES-CBC + PKCS7：密钥是凭证密钥的 UTF-8 字节（正好 16 / 24 / 32 字节直接用，否则取 SHA256），IV 依次取 <c>X-Encrypt-Iv</c>、信封的 <c>iv</c>、SHA256(随机串) 的前 16 字节。
-/// </summary>
+/// </remarks>
 public static class OpenApiSignature
 {
     /// <summary>
@@ -53,8 +56,11 @@ public static class OpenApiSignature
     public const string ContentSignAlgorithmHeader = "X-Content-Sign-Algorithm";
 
     /// <summary>
-    /// 请求体加密算法（可选，<c>AES-CBC</c> 或 <c>NONE</c>；不带即明文）。
+    /// 请求体加密算法（可选）。
     /// </summary>
+    /// <remarks>
+    /// <c>AES-CBC</c> 或 <c>NONE</c>；不带即明文。
+    /// </remarks>
     public const string EncryptAlgorithmHeader = "X-Encrypt-Algorithm";
 
     /// <summary>
@@ -63,8 +69,11 @@ public static class OpenApiSignature
     public const string EncryptIvHeader = "X-Encrypt-Iv";
 
     /// <summary>
-    /// 要求加密响应（<c>1</c> / <c>true</c> / <c>yes</c>）；请求本身加密了也加密响应。
+    /// 要求加密响应。
     /// </summary>
+    /// <remarks>
+    /// 值为 <c>1</c> / <c>true</c> / <c>yes</c>；请求本身加密了也加密响应。
+    /// </remarks>
     public const string EncryptResponseHeader = "X-Encrypt-Response";
 
     /// <summary>
@@ -121,8 +130,9 @@ public static class OpenApiSignature
         => string.Join('\n', method.ToUpperInvariant(), path, canonicalQuery, contentSign, timestamp, nonce);
 
     /// <summary>
-    /// 规整内容签名算法；不认识的为 <see langword="null"/>。
+    /// 规整内容签名算法。
     /// </summary>
+    /// <returns>规整后的算法；不认识的为 <see langword="null"/>。</returns>
     public static string? NormalizeContentAlgorithm(string? value)
         => string.IsNullOrWhiteSpace(value) ? Sha256
             : value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToUpperInvariant() switch
@@ -149,8 +159,11 @@ public static class OpenApiSignature
     }
 
     /// <summary>
-    /// 请求带的签名与算出的是否一致：签名写十六进制（不区分大小写）或 Base64，恒定时间比较。
+    /// 判定请求带的签名与算出的是否一致。
     /// </summary>
+    /// <remarks>
+    /// 签名写十六进制（不区分大小写）或 Base64，恒定时间比较。
+    /// </remarks>
     public static bool Matches(string presented, byte[] expected)
     {
         ArgumentNullException.ThrowIfNull(expected);
@@ -184,8 +197,9 @@ public static class OpenApiSignature
         => CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(presented.Trim().ToLowerInvariant()), Encoding.ASCII.GetBytes(expected));
 
     /// <summary>
-    /// 规整加密算法：不带或 <c>NONE</c> 即不加密（<see cref="None"/>），<c>AES</c> / <c>AES-CBC</c> 即 <see cref="AesCbc"/>，其余为 <see langword="null"/>。
+    /// 规整加密算法。
     /// </summary>
+    /// <returns>不带或 <c>NONE</c> 即不加密（<see cref="None"/>），<c>AES</c> / <c>AES-CBC</c> 即 <see cref="AesCbc"/>，其余为 <see langword="null"/>。</returns>
     public static string? NormalizeEncryption(string? value)
         => string.IsNullOrWhiteSpace(value) ? None
             : value.Trim().ToUpperInvariant() switch

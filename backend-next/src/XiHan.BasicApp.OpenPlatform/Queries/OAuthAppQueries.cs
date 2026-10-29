@@ -17,9 +17,12 @@ namespace XiHan.BasicApp.OpenPlatform.Queries;
 public sealed class OAuthAppQueries(SqlSugarUnitOfWork unitOfWork)
 {
     /// <summary>
+    /// 分页查询 OAuth 应用。
+    /// </summary>
+    /// <remarks>
     /// 关键字匹配名称、描述、ClientId、主页与备注；筛选应用类型 <c>eq / in</c>、客户端类型、启停、跳过同意页 <c>eq</c>，<c>personal eq</c> 只看我的应用（或只看平台的）；
     /// 缺省按启停（启用在前）、创建时间倒序、名称排（4.x 同）。
-    /// </summary>
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页应用。</returns>

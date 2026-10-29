@@ -138,8 +138,11 @@ public sealed record CreateOAuthAppRequest(
 }
 
 /// <summary>
-/// <c>oauth-apps.update</c> 的请求（整体覆盖；ClientId 与客户端类型不能改）。
+/// <c>oauth-apps.update</c> 的请求（整体覆盖）。
 /// </summary>
+/// <remarks>
+/// ClientId 与客户端类型不能改。
+/// </remarks>
 /// <param name="Id">应用 ID。</param>
 /// <param name="AppName">应用名称。</param>
 /// <param name="AppDescription">描述。</param>

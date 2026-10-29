@@ -16,8 +16,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Operations.OauthConsents;
 
 /// <summary>
-/// 授权请求（同意页把 <c>/api/oauth2/authorize</c> 的查询参数原样上送；4.x 漏了 nonce，id_token 里永远没有它）。
+/// 授权请求。
 /// </summary>
+/// <remarks>
+/// 同意页把 <c>/api/oauth2/authorize</c> 的查询参数原样上送；4.x 漏了 nonce，id_token 里永远没有它。
+/// </remarks>
 /// <param name="ResponseType">response_type。</param>
 /// <param name="ClientId">client_id。</param>
 /// <param name="RedirectUri">redirect_uri。</param>
@@ -43,8 +46,11 @@ public sealed record OAuthAuthorizeRequest(
 }
 
 /// <summary>
-/// 同意页的预览：应用信息与本次的范围；请求不对即带 OAuth 错误码。
+/// 同意页的预览：应用信息与本次的范围。
 /// </summary>
+/// <remarks>
+/// 请求不对即带 OAuth 错误码。
+/// </remarks>
 /// <param name="Valid">请求是否有效。</param>
 /// <param name="Error">OAuth 错误码。</param>
 /// <param name="ErrorDescription">错误说明。</param>
@@ -58,8 +64,11 @@ public sealed record OAuthAuthorizeRequest(
 public sealed record OAuthConsentPreviewResponse(bool Valid, string? Error, string? ErrorDescription, string? ClientId, string? AppName, string? AppDescription, string? Logo, string? Homepage, bool SkipConsent, IReadOnlyList<string> Scopes);
 
 /// <summary>
-/// 同意或拒绝之后要整页跳去的地址（应用的回调地址，带 code / error 与 state）。
+/// 同意或拒绝之后要整页跳去的地址。
 /// </summary>
+/// <remarks>
+/// 即应用的回调地址，带 code / error 与 state。
+/// </remarks>
 /// <param name="RedirectUri">地址。</param>
 public sealed record OAuthConsentRedirectResponse(string RedirectUri);
 
@@ -98,8 +107,11 @@ public sealed record RevokeOAuthConsentRequest([Required, StringLength(100)] str
 public sealed record RevokeOAuthConsentResponse(bool Revoked);
 
 /// <summary>
-/// 同意页的预览：<c>GET /api/oauth-consents:resolve</c>（4.x <c>OAuthConnect/ResolveAuthorization</c>）。已登录即可，模仿会话不能授权第三方应用（4.x 同）。
+/// 同意页的预览。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/oauth-consents:resolve</c>（4.x <c>OAuthConnect/ResolveAuthorization</c>）。已登录即可，模仿会话不能授权第三方应用（4.x 同）。
+/// </remarks>
 /// <param name="authorizer">授权端点的规则。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ResolveOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentPreviewResponse>
@@ -128,8 +140,11 @@ public sealed class ResolveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 }
 
 /// <summary>
-/// 同意授权：<c>POST /api/oauth-consents:approve</c>（4.x <c>OAuthConnect/Authorize</c>）。发授权码、记下同意，返回带 code 与 state 的回调地址；请求不对即 <c>OPENPLATFORM_VALIDATION_014</c>。模仿会话不能做。
+/// 同意授权。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/oauth-consents:approve</c>（4.x <c>OAuthConnect/Authorize</c>）。发授权码、记下同意，返回带 code 与 state 的回调地址；请求不对即 <c>OPENPLATFORM_VALIDATION_014</c>。模仿会话不能做。
+/// </remarks>
 /// <param name="authorizer">授权端点的规则。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ApproveOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentRedirectResponse>
@@ -163,8 +178,11 @@ public sealed class ApproveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 }
 
 /// <summary>
-/// 拒绝授权：<c>POST /api/oauth-consents:deny</c>。客户端与回调地址都对上了才返回 <c>error=access_denied</c> 的回调地址（4.x 在页面上自己拼，没校验过的地址也会跳）；对不上即 <c>OPENPLATFORM_VALIDATION_014</c>。
+/// 拒绝授权。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/oauth-consents:deny</c>。客户端与回调地址都对上了才返回 <c>error=access_denied</c> 的回调地址（4.x 在页面上自己拼，没校验过的地址也会跳）；对不上即 <c>OPENPLATFORM_VALIDATION_014</c>。
+/// </remarks>
 /// <param name="authorizer">授权端点的规则。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DenyOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentRedirectResponse>
@@ -190,8 +208,11 @@ public sealed class DenyOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OA
 }
 
 /// <summary>
-/// 本人授权过的应用：<c>GET /api/oauth-consents</c>。已登录即可。
+/// 列出本人授权过的应用。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/oauth-consents</c>。已登录即可。
+/// </remarks>
 /// <param name="consents">同意记录仓储。</param>
 /// <param name="apps">应用仓储。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -228,8 +249,11 @@ public sealed class ListOAuthConsents(IRepository<SysOAuthConsent, Guid> consent
 }
 
 /// <summary>
-/// 撤销对一个应用的授权：<c>POST /api/oauth-consents:revoke</c>。删掉同意记录并吊销这个应用拿到的本人的全部令牌；没授权过即 <c>OPENPLATFORM_NOTFOUND_002</c>。模仿会话不能做。
+/// 撤销对一个应用的授权。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/oauth-consents:revoke</c>。删掉同意记录并吊销这个应用拿到的本人的全部令牌；没授权过即 <c>OPENPLATFORM_NOTFOUND_002</c>。模仿会话不能做。
+/// </remarks>
 /// <param name="consents">同意记录仓储。</param>
 /// <param name="tokens">令牌服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]

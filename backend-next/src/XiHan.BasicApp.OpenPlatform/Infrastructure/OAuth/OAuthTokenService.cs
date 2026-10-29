@@ -17,8 +17,11 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 
 /// <summary>
-/// 令牌端点的一次结果：成功即令牌对，失败即 OAuth 错误（401 只给客户端认证失败）。
+/// 令牌端点的一次结果。
 /// </summary>
+/// <remarks>
+/// 成功即令牌对，失败即 OAuth 错误（401 只给客户端认证失败）。
+/// </remarks>
 /// <param name="Tokens">令牌。</param>
 /// <param name="Error">错误码。</param>
 /// <param name="Description">说明。</param>
@@ -41,9 +44,12 @@ public sealed record OAuthTokenResult(OAuthIssuedTokens? Tokens, string? Error, 
 public sealed record OAuthIssuedTokens(string AccessToken, int ExpiresIn, string? RefreshToken, string Scope, string? IdToken);
 
 /// <summary>
-/// 令牌服务（在一次平台调用里用）：客户端认证、授权码兑换（PKCE、回调地址一致、原子消费，重放即吊销这次授权码发出的整族令牌）、刷新令牌轮换（作废的再被使用即整族吊销）、撤销与 userinfo。
-/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明（4.x 不按范围收窄）。
+/// 令牌服务：客户端认证、授权码兑换、刷新、撤销与 userinfo。
 /// </summary>
+/// <remarks>
+/// 在一次平台调用里用：客户端认证、授权码兑换（PKCE、回调地址一致、原子消费，重放即吊销这次授权码发出的整族令牌）、刷新令牌轮换（作废的再被使用即整族吊销）、撤销与 userinfo。
+/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明（4.x 不按范围收窄）。
+/// </remarks>
 /// <param name="apps">应用仓储。</param>
 /// <param name="codes">授权码仓储。</param>
 /// <param name="tokens">令牌仓储。</param>
@@ -67,8 +73,11 @@ public sealed class OAuthTokenService(
     private readonly JsonWebTokenHandler _handler = new() { SetDefaultTimesOnTokenCreation = false };
 
     /// <summary>
-    /// 客户端认证：<c>Authorization: Basic</c>（先 form-url 解码）优先，其次表单的 client_id / client_secret；机密客户端须核对密钥，公开客户端只认 client_id。
+    /// 认证客户端。
     /// </summary>
+    /// <remarks>
+    /// <c>Authorization: Basic</c>（先 form-url 解码）优先，其次表单的 client_id / client_secret；机密客户端须核对密钥，公开客户端只认 client_id。
+    /// </remarks>
     /// <param name="clientId">ClientId。</param>
     /// <param name="clientSecret">密钥。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -169,8 +178,11 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 刷新令牌轮换：旧的作废、同族发新的一对；作废的刷新令牌再被使用即整族吊销。
+    /// 刷新令牌轮换：旧的作废、同族发新的一对。
     /// </summary>
+    /// <remarks>
+    /// 作废的刷新令牌再被使用即整族吊销。
+    /// </remarks>
     /// <param name="app">已认证的应用。</param>
     /// <param name="refreshToken">刷新令牌。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -220,8 +232,11 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 撤销（RFC 7009）：令牌属于这个客户端才撤；刷新令牌连同整族，访问令牌只撤自己；不认识的令牌静默成功。
+    /// 撤销令牌（RFC 7009）。
     /// </summary>
+    /// <remarks>
+    /// 令牌属于这个客户端才撤；刷新令牌连同整族，访问令牌只撤自己；不认识的令牌静默成功。
+    /// </remarks>
     /// <param name="app">已认证的应用。</param>
     /// <param name="token">令牌。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -352,8 +367,11 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 按范围给的身份声明：<c>sub</c> 总有；profile → name、preferred_username；email → email；phone → phone_number。
+    /// 按范围给出身份声明。
     /// </summary>
+    /// <remarks>
+    /// <c>sub</c> 总有；profile → name、preferred_username；email → email；phone → phone_number。
+    /// </remarks>
     private static Dictionary<string, string> Claims(SysUser user, IReadOnlyList<string> scopes)
     {
         var claims = new Dictionary<string, string>(StringComparer.Ordinal) { ["sub"] = user.Id.ToString("D") };

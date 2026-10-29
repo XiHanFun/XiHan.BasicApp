@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包的消息键：操作说明与错误文案，十种区域文件在 <c>Localization/</c>。
+/// 开放平台包的消息键：操作说明与错误文案。
 /// </summary>
+/// <remarks>
+/// 十种区域文件在 <c>Localization/</c>。
+/// </remarks>
 public static class OpenPlatformMessages
 {
     /// <summary>
@@ -31,13 +34,19 @@ public static class OpenPlatformMessages
     public const string SignatureVerified = "openplatform.signing.verified";
 
     /// <summary>
-    /// 缺少签名请求头；参数 <c>headers</c>（缺的头）。
+    /// 缺少签名请求头。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>headers</c>（缺的头）。
+    /// </remarks>
     public const string SignatureHeadersMissing = "openplatform.signing.headers_missing";
 
     /// <summary>
-    /// 时间戳超出时间窗；参数 <c>seconds</c>（允许的偏差秒数）。
+    /// 时间戳超出时间窗。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>seconds</c>（允许的偏差秒数）。
+    /// </remarks>
     public const string TimestampExpired = "openplatform.signing.timestamp_expired";
 
     /// <summary>
@@ -46,8 +55,11 @@ public static class OpenPlatformMessages
     public const string AccessKeyInvalid = "openplatform.signing.access_key_invalid";
 
     /// <summary>
-    /// 客户端地址不在凭证归属人设定的 IP 白名单内；参数 <c>ip</c>。
+    /// 客户端地址不在凭证归属人设定的 IP 白名单内。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>ip</c>。
+    /// </remarks>
     public const string IpNotAllowed = "openplatform.signing.ip_not_allowed";
 
     /// <summary>
@@ -76,23 +88,35 @@ public static class OpenPlatformMessages
     public const string NonceInvalid = "openplatform.signing.nonce_invalid";
 
     /// <summary>
-    /// <c>X-Sign-Algorithm</c> 与凭证归属人设定的算法不一致；参数 <c>value</c>、<c>expected</c>。
+    /// <c>X-Sign-Algorithm</c> 与凭证归属人设定的算法不一致。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>、<c>expected</c>。
+    /// </remarks>
     public const string SignAlgorithmMismatch = "openplatform.signing.algorithm_mismatch";
 
     /// <summary>
-    /// 内容签名算法不认识；参数 <c>value</c>。
+    /// 内容签名算法不认识。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string ContentAlgorithmUnsupported = "openplatform.signing.content_algorithm_unsupported";
 
     /// <summary>
-    /// 加密算法不认识；参数 <c>value</c>。
+    /// 加密算法不认识。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string EncryptAlgorithmUnsupported = "openplatform.signing.encrypt_algorithm_unsupported";
 
     /// <summary>
-    /// 请求体超过上限；参数 <c>max</c>（字节）。
+    /// 请求体超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>（字节）。
+    /// </remarks>
     public const string BodyTooLarge = "openplatform.signing.body_too_large";
 
     /// <summary>
@@ -166,23 +190,35 @@ public static class OpenPlatformMessages
     public const string MyOAuthAppsDeleteDescription = "my_oauth_apps.delete.description";
 
     /// <summary>
-    /// 不支持的筛选；参数 <c>field</c>、<c>operator</c>。
+    /// 不支持的筛选。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>operator</c>。
+    /// </remarks>
     public const string FilterUnsupported = "openplatform.query.filter_unsupported";
 
     /// <summary>
-    /// 不支持的排序；参数 <c>field</c>。
+    /// 不支持的排序。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string SortUnsupported = "openplatform.query.sort_unsupported";
 
     /// <summary>
-    /// OAuth 应用不存在（我的应用里也指别人的与平台的）；参数 <c>id</c>。
+    /// OAuth 应用不存在。
     /// </summary>
+    /// <remarks>
+    /// 我的应用里也指别人的与平台的。参数 <c>id</c>。
+    /// </remarks>
     public const string OAuthAppNotFound = "openplatform.oauth_apps.not_found";
 
     /// <summary>
-    /// ClientId 已被占用（全局唯一）；参数 <c>clientId</c>。
+    /// ClientId 已被占用（全局唯一）。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>clientId</c>。
+    /// </remarks>
     public const string ClientIdTaken = "openplatform.oauth_apps.client_id_taken";
 
     /// <summary>
@@ -191,28 +227,43 @@ public static class OpenPlatformMessages
     public const string PublicClientHasNoSecret = "openplatform.oauth_apps.public_client_no_secret";
 
     /// <summary>
-    /// ClientId 格式不对（3 到 100 位字母、数字、<c>. _ -</c>）；参数 <c>value</c>。
+    /// ClientId 格式不对。
     /// </summary>
+    /// <remarks>
+    /// 须是 3 到 100 位字母、数字、<c>. _ -</c>。参数 <c>value</c>。
+    /// </remarks>
     public const string ClientIdInvalid = "openplatform.oauth_apps.client_id_invalid";
 
     /// <summary>
-    /// 授权类型不支持（须含 <c>authorization_code</c>，可加 <c>refresh_token</c>）；参数 <c>value</c>。
+    /// 授权类型不支持。
     /// </summary>
+    /// <remarks>
+    /// 须含 <c>authorization_code</c>，可加 <c>refresh_token</c>。参数 <c>value</c>。
+    /// </remarks>
     public const string GrantTypeUnsupported = "openplatform.oauth_apps.grant_type_unsupported";
 
     /// <summary>
-    /// 授权范围不支持（须含 <c>openid</c>，可加 <c>profile email phone</c>）；参数 <c>value</c>。
+    /// 授权范围不支持。
     /// </summary>
+    /// <remarks>
+    /// 须含 <c>openid</c>，可加 <c>profile email phone</c>。参数 <c>value</c>。
+    /// </remarks>
     public const string ScopeUnsupported = "openplatform.oauth_apps.scope_unsupported";
 
     /// <summary>
-    /// 回调地址不对（1 到 10 条绝对地址、不带片段，http 只限本机）；参数 <c>value</c>。
+    /// 回调地址不对。
     /// </summary>
+    /// <remarks>
+    /// 须是 1 到 10 条绝对地址、不带片段，http 只限本机。参数 <c>value</c>。
+    /// </remarks>
     public const string RedirectUriInvalid = "openplatform.oauth_apps.redirect_uri_invalid";
 
     /// <summary>
-    /// 主页或 Logo 不是 http / https 地址；参数 <c>value</c>。
+    /// 主页或 Logo 不是 http / https 地址。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string UrlInvalid = "openplatform.oauth_apps.url_invalid";
 
     /// <summary>
@@ -241,13 +292,19 @@ public static class OpenPlatformMessages
     public const string OAuthConsentsRevokeDescription = "oauth_consents.revoke.description";
 
     /// <summary>
-    /// 没有授权过这个应用；参数 <c>clientId</c>。
+    /// 没有授权过这个应用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>clientId</c>。
+    /// </remarks>
     public const string ConsentNotFound = "openplatform.oauth_consents.not_found";
 
     /// <summary>
-    /// 授权请求不对；参数 <c>error</c>（OAuth 错误码）、<c>description</c>。
+    /// 授权请求不对。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>error</c>（OAuth 错误码）、<c>description</c>。
+    /// </remarks>
     public const string AuthorizeRequestInvalid = "openplatform.oauth.authorize_invalid";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(OpenPlatformMessages)));

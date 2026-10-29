@@ -7,9 +7,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
 /// <summary>
-/// OAuth 应用（平台库实体）：接入本系统单点登录的第三方应用。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到（4.x 平台页看不到租户用户建的应用，ClientId 查重也只查平台的）。
-/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列；4.x 用 60 万次 PBKDF2，令牌端点可被当成耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE。
+/// OAuth 应用：接入本系统单点登录的第三方应用。
 /// </summary>
+/// <remarks>
+/// 平台库实体。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到（4.x 平台页看不到租户用户建的应用，ClientId 查重也只查平台的）。
+/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列；4.x 用 60 万次 PBKDF2，令牌端点可被当成耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE。
+/// </remarks>
 public sealed class SysOAuthApp : AppAuditedEntity
 {
     /// <summary>
@@ -36,14 +39,20 @@ public sealed class SysOAuthApp : AppAuditedEntity
     public OAuthClientType ClientType { get; set; } = OAuthClientType.Confidential;
 
     /// <summary>
-    /// 客户端密钥的 SHA-256（小写十六进制）；公开客户端为空。
+    /// 客户端密钥的 SHA-256（小写十六进制）。
     /// </summary>
+    /// <remarks>
+    /// 公开客户端为空。
+    /// </remarks>
     [StringLength(64)]
     public string? ClientSecretHash { get; set; }
 
     /// <summary>
-    /// 应用类型（只用于展示，4.x 同）。
+    /// 应用类型（只用于展示）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
     /// <summary>
@@ -102,8 +111,11 @@ public sealed class SysOAuthApp : AppAuditedEntity
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>
-    /// 归属人（个人中心「我的应用」建的）；平台建的为空。
+    /// 归属人（个人中心「我的应用」建的）。
     /// </summary>
+    /// <remarks>
+    /// 平台建的为空。
+    /// </remarks>
     public Guid? OwnerUserId { get; set; }
 
     /// <summary>
@@ -136,8 +148,11 @@ public enum OAuthClientType
 }
 
 /// <summary>
-/// OAuth 应用类型（4.x 同值，只用于展示）。
+/// OAuth 应用类型（只用于展示）。
 /// </summary>
+/// <remarks>
+/// 4.x 同值。
+/// </remarks>
 public enum OAuthAppType
 {
     /// <summary>
