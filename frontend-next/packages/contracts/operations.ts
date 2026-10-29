@@ -100,6 +100,16 @@ export const routes = {
   'permission-conditions.trial': { method: 'GET', template: '/api/permission-conditions:trial', path: [], query: ['userId', 'permission', 'ip', 'time', 'userAgent', 'path', 'method', 'isImpersonating'], success: 200 },
   'permission-conditions.update': { method: 'PUT', template: '/api/permission-conditions/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
+  'policies.attributes': { method: 'GET', template: '/api/policies:attributes', path: [], query: [], success: 200 },
+  'policies.create': { method: 'POST', template: '/api/policies', path: [], query: [], success: 201 },
+  'policies.delete': { method: 'DELETE', template: '/api/policies', path: [], query: ['ids'], success: 200 },
+  'policies.get': { method: 'GET', template: '/api/policies/{id}', path: ['id'], query: [], success: 200 },
+  'policies.list': { method: 'POST', template: '/api/policies:list', path: [], query: [], success: 200 },
+  'policies.set-action': { method: 'POST', template: '/api/policies/{id}:set-action', path: ['id'], query: [], success: 200 },
+  'policies.set-status': { method: 'POST', template: '/api/policies/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'policies.templates': { method: 'GET', template: '/api/policies:templates', path: [], query: [], success: 200 },
+  'policies.trial': { method: 'POST', template: '/api/policies:trial', path: [], query: [], success: 200 },
+  'policies.update': { method: 'PUT', template: '/api/policies/{id}', path: ['id'], query: [], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
   'positions.get': { method: 'GET', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
@@ -349,6 +359,20 @@ export const permissionConditions = {
 /** 资源 `permissions` 的操作。 */
 export const permissions = {
   list: (request: RequestOf<'permissions.list'>, options?: CallOptions) => invoke<RequestOf<'permissions.list'>, ResponseOf<'permissions.list'>>('permissions.list', routes['permissions.list'], request, options),
+}
+
+/** 资源 `policies` 的操作。 */
+export const policies = {
+  attributes: (request: RequestOf<'policies.attributes'>, options?: CallOptions) => invoke<RequestOf<'policies.attributes'>, ResponseOf<'policies.attributes'>>('policies.attributes', routes['policies.attributes'], request, options),
+  create: (request: RequestOf<'policies.create'>, options?: CallOptions) => invoke<RequestOf<'policies.create'>, ResponseOf<'policies.create'>>('policies.create', routes['policies.create'], request, options),
+  delete: (request: RequestOf<'policies.delete'>, options?: CallOptions) => invoke<RequestOf<'policies.delete'>, ResponseOf<'policies.delete'>>('policies.delete', routes['policies.delete'], request, options),
+  get: (request: RequestOf<'policies.get'>, options?: CallOptions) => invoke<RequestOf<'policies.get'>, ResponseOf<'policies.get'>>('policies.get', routes['policies.get'], request, options),
+  list: (request: RequestOf<'policies.list'>, options?: CallOptions) => invoke<RequestOf<'policies.list'>, ResponseOf<'policies.list'>>('policies.list', routes['policies.list'], request, options),
+  setAction: (request: RequestOf<'policies.set-action'>, options?: CallOptions) => invoke<RequestOf<'policies.set-action'>, ResponseOf<'policies.set-action'>>('policies.set-action', routes['policies.set-action'], request, options),
+  setStatus: (request: RequestOf<'policies.set-status'>, options?: CallOptions) => invoke<RequestOf<'policies.set-status'>, ResponseOf<'policies.set-status'>>('policies.set-status', routes['policies.set-status'], request, options),
+  templates: (request: RequestOf<'policies.templates'>, options?: CallOptions) => invoke<RequestOf<'policies.templates'>, ResponseOf<'policies.templates'>>('policies.templates', routes['policies.templates'], request, options),
+  trial: (request: RequestOf<'policies.trial'>, options?: CallOptions) => invoke<RequestOf<'policies.trial'>, ResponseOf<'policies.trial'>>('policies.trial', routes['policies.trial'], request, options),
+  update: (request: RequestOf<'policies.update'>, options?: CallOptions) => invoke<RequestOf<'policies.update'>, ResponseOf<'policies.update'>>('policies.update', routes['policies.update'], request, options),
 }
 
 /** 资源 `positions` 的操作。 */

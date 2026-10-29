@@ -282,4 +282,49 @@ public static class AccessErrors
     /// 试算的客户端地址写错；参数 <c>ip</c>。
     /// </summary>
     public const string TrialIpInvalid = "ACCESS_VALIDATION_036";
+
+    /// <summary>
+    /// 访问策略编码含空白；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyCodeInvalid = "ACCESS_VALIDATION_037";
+
+    /// <summary>
+    /// 访问策略没有条件。
+    /// </summary>
+    public const string PolicyConditionsRequired = "ACCESS_VALIDATION_038";
+
+    /// <summary>
+    /// 访问策略的条件组或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </summary>
+    public const string PolicyConditionsExceeded = "ACCESS_VALIDATION_039";
+
+    /// <summary>
+    /// 访问策略的失效时间不晚于生效时间。
+    /// </summary>
+    public const string PolicyWindowInvalid = "ACCESS_VALIDATION_040";
+
+    /// <summary>
+    /// 启用中的拒绝策略会拦下当前这次请求（防自锁）；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicySelfLockout = "ACCESS_VALIDATION_041";
+
+    /// <summary>
+    /// 访问策略的模板不存在；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyTemplateUnknown = "ACCESS_VALIDATION_042";
+
+    /// <summary>
+    /// 访问策略编码在这一侧已存在；参数 <c>code</c>。
+    /// </summary>
+    public const string PolicyCodeTaken = "ACCESS_CONFLICT_010";
+
+    /// <summary>
+    /// 访问策略不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string PolicyNotFound = "ACCESS_NOTFOUND_008";
+
+    /// <summary>
+    /// 调用被访问策略拒绝。
+    /// </summary>
+    public const string PolicyDenied = "ACCESS_DENIED_004";
 }

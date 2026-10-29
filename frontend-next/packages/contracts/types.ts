@@ -1231,6 +1231,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an access policy; it always starts as log only and enabled. Requires access.policies.create. */
+        post: operations["policies.create"];
+        /** Delete access policies. Requires access.policies.delete. */
+        delete: operations["policies.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an access policy by ID. Requires access.policies.read. */
+        get: operations["policies.get"];
+        /** Replace the content and conditions of an access policy; its action and status stay. Requires access.policies.update. */
+        put: operations["policies.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies/{id}:set-action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the action of an access policy: log only, deny or allow. Requires access.policies.update. */
+        post: operations["policies.set-action"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable or disable an access policy. Requires access.policies.update. */
+        post: operations["policies.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies:attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The condition attributes available to access policies, with the operators each allows and whether it is known before authentication. Requires access.policies.read. */
+        get: operations["policies.attributes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the access policies of the current side, by evaluation order by default. Requires access.policies.read. */
+        post: operations["policies.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies:templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the preset access policy templates. Requires access.policies.read. */
+        get: operations["policies.templates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/policies:trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trial an access policy: evaluate a saved policy or draft conditions under the given request, explained group by group and condition by condition. Requires access.policies.trial. */
+        post: operations["policies.trial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/positions": {
         parameters: {
             query?: never;
@@ -2054,6 +2192,63 @@ export interface components {
             os?: string | null;
             device?: string | null;
             referer?: string | null;
+        };
+        /** @enum {string} */
+        AccessPolicyAction: "LogOnly" | "Deny" | "Allow";
+        AccessPolicyConditionRequest: {
+            attributeName: string;
+            operator: components["schemas"]["ConditionOperator"];
+            /** Format: int32 */
+            groupNo?: number;
+            isNegated?: boolean;
+            value?: string | null;
+            description?: string | null;
+        };
+        AccessPolicyConditionResponse: {
+            /** Format: int32 */
+            groupNo: number;
+            attributeName: string;
+            operator: components["schemas"]["ConditionOperator"];
+            isNegated: boolean;
+            value?: string | null;
+            description?: string | null;
+        };
+        AccessPolicyResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            description?: string | null;
+            action: components["schemas"]["AccessPolicyAction"];
+            /** Format: int32 */
+            priority: number;
+            status: components["schemas"]["AccessPolicyStatus"];
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            isEffective: boolean;
+            phase: components["schemas"]["ConditionHitPhase"];
+            templateCode?: string | null;
+            remark?: string | null;
+            conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        AccessPolicyStatus: "Active" | "Disabled";
+        AccessPolicyTemplateResponse: {
+            code: string;
+            name: string;
+            description: string;
+            action: components["schemas"]["AccessPolicyAction"];
+            status: components["schemas"]["AccessPolicyStatus"];
+            /** Format: int32 */
+            priority: number;
+            phase: components["schemas"]["ConditionHitPhase"];
+            conditions: components["schemas"]["AccessPolicyConditionResponse"][];
         };
         /** @enum {string} */
         AccessResult: "Success" | "Failed" | "Forbidden" | "Unauthorized" | "NotFound" | "ServerError";
@@ -7445,6 +7640,528 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["PermissionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    conditions: components["schemas"]["AccessPolicyConditionRequest"][];
+                    description?: string | null;
+                    /** Format: int32 */
+                    priority?: number;
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    templateCode?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        description?: string | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["AccessPolicyStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        templateCode?: string | null;
+                        remark?: string | null;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        description?: string | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["AccessPolicyStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        templateCode?: string | null;
+                        remark?: string | null;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    code: string;
+                    name: string;
+                    conditions: components["schemas"]["AccessPolicyConditionRequest"][];
+                    description?: string | null;
+                    /** Format: int32 */
+                    priority?: number;
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    templateCode?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        description?: string | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["AccessPolicyStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        templateCode?: string | null;
+                        remark?: string | null;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.set-action": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    action: components["schemas"]["AccessPolicyAction"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        description?: string | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["AccessPolicyStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        templateCode?: string | null;
+                        remark?: string | null;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    status: components["schemas"]["AccessPolicyStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        description?: string | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        /** Format: int32 */
+                        priority: number;
+                        status: components["schemas"]["AccessPolicyStatus"];
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isEffective: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        templateCode?: string | null;
+                        remark?: string | null;
+                        conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConditionAttributeResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccessPolicyResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccessPolicyTemplateResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "policies.trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    policyId?: string | null;
+                    action?: components["schemas"]["AccessPolicyAction"] | null;
+                    conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    ip?: string | null;
+                    /** Format: date-time */
+                    time?: string | null;
+                    userAgent?: string | null;
+                    path?: string | null;
+                    method?: string | null;
+                    /** Format: uuid */
+                    userId?: string | null;
+                    permissionCodes?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        outcome?: components["schemas"]["ConditionOutcome"] | null;
+                        action: components["schemas"]["AccessPolicyAction"];
+                        wouldBlock: boolean;
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        errors: string[];
+                        ip?: string | null;
+                        location?: string | null;
+                        /** Format: date-time */
+                        time: string;
+                        timeZone: string;
+                        userAgent?: string | null;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        groups: components["schemas"]["ConditionTrialGroupResponse"][];
                     };
                 };
             };

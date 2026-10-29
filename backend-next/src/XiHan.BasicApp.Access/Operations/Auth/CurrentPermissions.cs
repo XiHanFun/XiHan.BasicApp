@@ -4,7 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
-using XiHan.BasicApp.Contracts.Security;
+using SecurityPolicies = XiHan.BasicApp.Contracts.Security.Policies;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Access.Operations.Auth;
 /// <param name="roles">角色仓储。</param>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="options">安全选项（角色声明名）。</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
 public sealed class CurrentPermissions(EffectivePermissions effective, GrantEvaluator evaluator, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
 {
     /// <summary>

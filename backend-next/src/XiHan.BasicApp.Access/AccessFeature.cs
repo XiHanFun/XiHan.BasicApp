@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Middleware;
+using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
@@ -19,6 +20,7 @@ using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.MultiTenancy.Abstractions.Resolution;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
@@ -57,7 +59,11 @@ public sealed class AccessFeature : IFeature
         ],
         Contributes = new Contributions
         {
-            Pipeline = [new PipelineContribution(typeof(PermissionConditionMiddleware).FullName!, PipelineStage.Authorize, After: [typeof(AuthorizationMiddleware).FullName!])],
+            Pipeline =
+            [
+                new PipelineContribution(typeof(AccessPolicyMiddleware).FullName!, PipelineStage.Tenant, After: [typeof(TenantResolutionMiddleware).FullName!]),
+                new PipelineContribution(typeof(PermissionConditionMiddleware).FullName!, PipelineStage.Authorize, After: [typeof(AuthorizationMiddleware).FullName!]),
+            ],
             Permissions = AccessPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(AccessFeature).FullName,
@@ -74,6 +80,12 @@ public sealed class AccessFeature : IFeature
         context.Services.AddSingleton<ConditionDecider>();
         context.Services.AddScoped<PermissionConditionService>();
         context.Services.AddScoped<ConditionInsightService>();
+        context.Services.AddSingleton<AccessPolicies>();
+        context.Services.AddSingleton<AccessPolicyEvaluator>();
+        context.Services.AddScoped<AccessPolicyService>();
+        context.Services.AddScoped<AccessPolicyTrialService>();
+        context.Services.AddScoped<AccessPolicyProjection>();
+        context.Services.AddScoped<AccessPolicyQueries>();
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();
@@ -109,12 +121,17 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<ITenantInitializer, TenantRoleInitializer>();
         context.Services.AddSeeder<PlatformRoleSeeder>();
         context.Services.AddSeeder<MenuSeeder>();
+        context.Services.AddSeeder<AccessPolicySeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);
         context.Services.AddPageCatalog("access", AccessPages.All);
         foreach (var permission in AccessPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());
         }
+
+        // 访问策略：认证与租户解析之后（平台层先判，平台拦下不看租户层）
+        context.AddMiddleware<AccessPolicyMiddleware>(PipelineStage.Tenant);
+        context.Pipeline.After<AccessPolicyMiddleware, TenantResolutionMiddleware>();
 
         // 权限条件按请求属性判定：框架授权之后、校验之前
         context.AddMiddleware<PermissionConditionMiddleware>(PipelineStage.Authorize);

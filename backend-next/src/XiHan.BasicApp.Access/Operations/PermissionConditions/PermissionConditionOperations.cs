@@ -29,10 +29,18 @@ public sealed class ListConditionAttributes(IConditionAttributeRegistry registry
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var items = registry.Attributes
+        return ValueTask.FromResult<Result<ConditionAttributesResponse>>(Of(registry));
+    }
+
+    /// <summary>
+    /// 登记表投影成目录（访问策略的 <c>policies.attributes</c> 共用）。
+    /// </summary>
+    public static ConditionAttributesResponse Of(IConditionAttributeRegistry registry)
+    {
+        ArgumentNullException.ThrowIfNull(registry);
+        return new ConditionAttributesResponse(registry.Attributes
             .Select(static a => new ConditionAttributeResponse(a.Name, a.Kind, a.IsMultiValued, a.IsFamily, a.Aliases ?? [], ConditionOperatorRules.AllowedFor(a), AccessConditionAttributes.BeforeAuthentication.Contains(a.Name)))
-            .ToList();
-        return ValueTask.FromResult<Result<ConditionAttributesResponse>>(new ConditionAttributesResponse(items));
+            .ToList());
     }
 }
 

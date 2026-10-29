@@ -124,7 +124,7 @@ public sealed class PermissionConditionTests : IDisposable
 
         // 命中：拒绝的那几次都记下了，来源是权限条件、拦截、时机为授权
         await Flush(server);
-        var (_, hits) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/condition-hits:list", """{"page":{"index":1,"size":50}}""", admin));
+        var (_, hits) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/condition-hits:list", """{"page":{"index":1,"size":50},"filters":[{"field":"source","operator":"eq","value":"PermissionCondition"}]}""", admin));
         var hit = hits.GetProperty("items").EnumerateArray().First();
         Assert.Equal("PermissionCondition", hit.GetProperty("source").GetString());
         Assert.Equal("identity.users.read", hit.GetProperty("policyCode").GetString());
@@ -200,7 +200,7 @@ public sealed class PermissionConditionTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         await Flush(server);
-        var (_, hits) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/condition-hits:list", """{"page":{"index":1,"size":50}}""", admin));
+        var (_, hits) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/condition-hits:list", """{"page":{"index":1,"size":50},"filters":[{"field":"source","operator":"eq","value":"PermissionCondition"}]}""", admin));
         var hit = Assert.Single(hits.GetProperty("items").EnumerateArray());
         Assert.Equal("LogOnly", hit.GetProperty("action").GetString());
         Assert.False(hit.GetProperty("isBlocked").GetBoolean());
