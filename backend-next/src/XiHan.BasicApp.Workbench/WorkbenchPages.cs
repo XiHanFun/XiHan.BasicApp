@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Workbench;
 
 /// <summary>
-/// 工作台模块的页面登记。工作台不要求权限（登录即可见，两侧都有），排序 0：菜单树的第一页就是登录后的落点。
+/// 工作台模块的页面登记。
 /// </summary>
+/// <remarks>
+/// 工作台不要求权限（登录即可见，两侧都有），排序 0：菜单树的第一页就是登录后的落点。
+/// </remarks>
 public static class WorkbenchPages
 {
     /// <summary>
