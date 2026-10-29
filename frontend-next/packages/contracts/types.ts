@@ -1163,6 +1163,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/permission-conditions:batch-trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Impact trial: the current verdict for everyone a grant affects, up to 200 people. Requires access.permission-conditions.trial. */
+        get: operations["permission-conditions.batch-trial"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-conditions:inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Condition inventory: diagnostics for every condition on the current side and the conclusion of its group. Requires access.permission-conditions.trial. */
+        get: operations["permission-conditions.inventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-conditions:trial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Condition trial: decide one permission for one user under the given request, explained group by group and clause by clause. Requires access.permission-conditions.trial. */
+        get: operations["permission-conditions.trial"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -2027,6 +2078,12 @@ export interface components {
             operators: components["schemas"]["ConditionOperator"][];
             isBeforeAuthentication: boolean;
         };
+        ConditionBatchTrialItemResponse: {
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            verdict: components["schemas"]["ConditionVerdict"];
+        };
         ConditionBindingResponse: {
             permission: string;
             action: components["schemas"]["PermissionAction"];
@@ -2035,6 +2092,10 @@ export interface components {
             /** Format: date-time */
             expiresAt?: string | null;
         };
+        /** @enum {string} */
+        ConditionDiagnostic: "UnregisteredAttribute" | "LegacyName" | "InvalidCondition" | "BindingInactive";
+        /** @enum {string} */
+        ConditionGroupConclusion: "Evaluable" | "NeverMatches" | "BindingInactive" | "Disabled";
         /** @enum {string} */
         ConditionHitAction: "LogOnly" | "Deny" | "Allow";
         /** @enum {string} */
@@ -2069,12 +2130,73 @@ export interface components {
         };
         /** @enum {string} */
         ConditionHitSource: "AccessPolicy" | "PermissionCondition";
+        ConditionInventoryItemResponse: {
+            /** Format: uuid */
+            conditionId: string;
+            subjectKind: components["schemas"]["GrantSubjectKind"];
+            /** Format: uuid */
+            subjectId: string;
+            subjectName?: string | null;
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: int32 */
+            groupNo: number;
+            attributeName: string;
+            operator: components["schemas"]["ConditionOperator"];
+            isNegated: boolean;
+            value?: string | null;
+            status: components["schemas"]["ConditionStatus"];
+            diagnostics: components["schemas"]["ConditionDiagnostic"][];
+            message?: string | null;
+            groupConclusion: components["schemas"]["ConditionGroupConclusion"];
+        };
         /** @enum {string} */
         ConditionOperator: "Equals" | "NotEquals" | "GreaterThan" | "GreaterThanOrEquals" | "LessThan" | "LessThanOrEquals" | "Contains" | "NotContains" | "In" | "NotIn" | "Between" | "StartsWith" | "EndsWith" | "IsNull" | "IsNotNull";
         /** @enum {string} */
+        ConditionOutcome: "Matched" | "NotMatched" | "Indeterminate" | "Pending";
+        /** @enum {string} */
         ConditionStatus: "Active" | "Disabled";
+        ConditionTrialClauseResponse: {
+            key?: string | null;
+            attributeName: string;
+            operator: components["schemas"]["ConditionOperator"];
+            isNegated: boolean;
+            value?: string | null;
+            outcome: components["schemas"]["ConditionOutcome"];
+            attributeValues: string[];
+            reason?: string | null;
+        };
+        ConditionTrialGroupResponse: {
+            key?: string | null;
+            outcome: components["schemas"]["ConditionOutcome"];
+            clauses: components["schemas"]["ConditionTrialClauseResponse"][];
+        };
+        ConditionTrialPathResponse: {
+            source: string;
+            /** Format: uuid */
+            roleId?: string | null;
+            roleName?: string | null;
+            hasUnconditionalGrant: boolean;
+            grantSets: components["schemas"]["ConditionTrialSetResponse"][];
+            denySets: components["schemas"]["ConditionTrialSetResponse"][];
+            holds: boolean;
+        };
+        ConditionTrialSetResponse: {
+            subjectKind: components["schemas"]["GrantSubjectKind"];
+            /** Format: uuid */
+            subjectId: string;
+            subjectName?: string | null;
+            binding: string;
+            action: components["schemas"]["PermissionAction"];
+            applies: boolean;
+            outcome?: components["schemas"]["ConditionOutcome"] | null;
+            groups: components["schemas"]["ConditionTrialGroupResponse"][];
+            errors: string[];
+        };
         /** @enum {string} */
         ConditionValueKind: "String" | "Number" | "Boolean" | "DateTime" | "Date" | "TimeOfDay" | "IpAddress";
+        /** @enum {string} */
+        ConditionVerdict: "NotGranted" | "Unconditional" | "Granted" | "Denied";
         /** @enum {string} */
         ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
         ConfigResponse: {
@@ -7159,6 +7281,137 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ConditionAttributeResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.batch-trial": {
+        parameters: {
+            query: {
+                subjectKind: components["schemas"]["GrantSubjectKind"];
+                subjectId: string;
+                permission: string;
+                ip?: string | null;
+                time?: string | null;
+                userAgent?: string | null;
+                path?: string | null;
+                method?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        permission: string;
+                        /** Format: int32 */
+                        totalUsers: number;
+                        truncated: boolean;
+                        items: components["schemas"]["ConditionBatchTrialItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: date-time */
+                        generatedAt: string;
+                        /** Format: int32 */
+                        conditionCount: number;
+                        /** Format: int32 */
+                        bindingCount: number;
+                        items: components["schemas"]["ConditionInventoryItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.trial": {
+        parameters: {
+            query: {
+                userId: string;
+                permission: string;
+                ip?: string | null;
+                time?: string | null;
+                userAgent?: string | null;
+                path?: string | null;
+                method?: string | null;
+                isImpersonating?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        verdict: components["schemas"]["ConditionVerdict"];
+                        /** Format: uuid */
+                        userId: string;
+                        userName: string;
+                        permission: string;
+                        ip?: string | null;
+                        /** Format: date-time */
+                        time: string;
+                        timeZone: string;
+                        denies: components["schemas"]["ConditionTrialSetResponse"][];
+                        paths: components["schemas"]["ConditionTrialPathResponse"][];
                     };
                 };
             };

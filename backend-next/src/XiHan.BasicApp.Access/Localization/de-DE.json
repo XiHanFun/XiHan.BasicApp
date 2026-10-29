@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "Eine Berechtigung kann höchstens {max} Bedingungsgruppen haben.",
   "access.condition.clauses_exceeded": "Eine Bedingungsgruppe kann höchstens {max} Bedingungen haben.",
   "access.condition.not_found": "Die Berechtigungsbedingung {id} existiert nicht.",
-  "access.condition.not_met": "Dieser Vorgang ist unter den aktuellen Bedingungen nicht erlaubt."
+  "access.condition.not_met": "Dieser Vorgang ist unter den aktuellen Bedingungen nicht erlaubt.",
+  "access.condition.trial_ip_invalid": "Ungültige IP-Adresse: {ip}",
+  "permission_conditions.trial.description": "Bedingungstest: eine Berechtigung für einen Benutzer unter der angegebenen Anfrage entscheiden, Gruppe für Gruppe und Bedingung für Bedingung erklärt. Erfordert access.permission-conditions.trial.",
+  "permission_conditions.batch_trial.description": "Auswirkungstest: das aktuelle Ergebnis für alle, die eine Berechtigung betrifft, bis zu 200 Personen. Erfordert access.permission-conditions.trial.",
+  "permission_conditions.inventory.description": "Bedingungsinventur: Diagnosen zu jeder Bedingung der aktuellen Seite und das Ergebnis ihrer Gruppe. Erfordert access.permission-conditions.trial."
 }

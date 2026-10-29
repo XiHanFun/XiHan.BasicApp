@@ -73,6 +73,7 @@ public sealed class AccessFeature : IFeature
         context.Services.AddSingleton<PermissionConditions>();
         context.Services.AddSingleton<ConditionDecider>();
         context.Services.AddScoped<PermissionConditionService>();
+        context.Services.AddScoped<ConditionInsightService>();
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();

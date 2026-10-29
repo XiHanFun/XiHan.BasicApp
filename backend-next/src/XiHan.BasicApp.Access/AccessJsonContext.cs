@@ -87,4 +87,10 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(UpdatePermissionConditionRequest))]
 [JsonSerializable(typeof(PermissionConditionIdsRequest))]
 [JsonSerializable(typeof(PermissionConditionResponse))]
+[JsonSerializable(typeof(ConditionTrialRequest))]
+[JsonSerializable(typeof(ConditionTrialResponse))]
+[JsonSerializable(typeof(ConditionBatchTrialRequest))]
+[JsonSerializable(typeof(ConditionBatchTrialResponse))]
+[JsonSerializable(typeof(ConditionInventoryRequest))]
+[JsonSerializable(typeof(ConditionInventoryResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

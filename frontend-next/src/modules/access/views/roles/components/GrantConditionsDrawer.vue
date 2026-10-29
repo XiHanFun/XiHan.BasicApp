@@ -35,6 +35,7 @@ const can = computed(() => ({
   create: auth.can('access.permission-conditions.create'),
   update: auth.can('access.permission-conditions.update'),
   delete: auth.can('access.permission-conditions.delete'),
+  trial: auth.can('access.permission-conditions.trial'),
 }))
 
 const loading = ref(false)

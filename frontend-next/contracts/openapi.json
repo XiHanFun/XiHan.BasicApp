@@ -10328,6 +10328,387 @@
         }
       }
     },
+    "/api/permission-conditions:batch-trial": {
+      "get": {
+        "operationId": "permission-conditions.batch-trial",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Impact trial: the current verdict for everyone a grant affects, up to 200 people. Requires access.permission-conditions.trial.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.trial",
+        "parameters": [
+          {
+            "name": "subjectKind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GrantSubjectKind"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "permission",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "userAgent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 16
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionBatchTrialResponse",
+                  "type": "object",
+                  "properties": {
+                    "permission": {
+                      "type": "string"
+                    },
+                    "totalUsers": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionBatchTrialItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "permission",
+                    "totalUsers",
+                    "truncated",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-conditions:inventory": {
+      "get": {
+        "operationId": "permission-conditions.inventory",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Condition inventory: diagnostics for every condition on the current side and the conclusion of its group. Requires access.permission-conditions.trial.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.trial",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionInventoryResponse",
+                  "type": "object",
+                  "properties": {
+                    "generatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "conditionCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "bindingCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionInventoryItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "generatedAt",
+                    "conditionCount",
+                    "bindingCount",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-conditions:trial": {
+      "get": {
+        "operationId": "permission-conditions.trial",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Condition trial: decide one permission for one user under the given request, explained group by group and clause by clause. Requires access.permission-conditions.trial.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.trial",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "permission",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "ip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "userAgent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 16
+            }
+          },
+          {
+            "name": "isImpersonating",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionTrialResponse",
+                  "type": "object",
+                  "properties": {
+                    "verdict": {
+                      "$ref": "#/components/schemas/ConditionVerdict"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": "string"
+                    },
+                    "permission": {
+                      "type": "string"
+                    },
+                    "ip": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "timeZone": {
+                      "type": "string"
+                    },
+                    "denies": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionTrialSetResponse"
+                      }
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionTrialPathResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "verdict",
+                    "userId",
+                    "userName",
+                    "permission",
+                    "time",
+                    "timeZone",
+                    "denies",
+                    "paths"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/permissions": {
       "get": {
         "operationId": "permissions.list",
@@ -16018,6 +16399,26 @@
           "isBeforeAuthentication"
         ]
       },
+      "ConditionBatchTrialItemResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/ConditionVerdict"
+          }
+        },
+        "required": [
+          "userId",
+          "userName",
+          "verdict"
+        ]
+      },
       "ConditionBindingResponse": {
         "type": "object",
         "properties": {
@@ -16045,6 +16446,24 @@
         "required": [
           "permission",
           "action"
+        ]
+      },
+      "ConditionDiagnostic": {
+        "type": "string",
+        "enum": [
+          "UnregisteredAttribute",
+          "LegacyName",
+          "InvalidCondition",
+          "BindingInactive"
+        ]
+      },
+      "ConditionGroupConclusion": {
+        "type": "string",
+        "enum": [
+          "Evaluable",
+          "NeverMatches",
+          "BindingInactive",
+          "Disabled"
         ]
       },
       "ConditionHitAction": {
@@ -16186,6 +16605,85 @@
           "PermissionCondition"
         ]
       },
+      "ConditionInventoryItemResponse": {
+        "type": "object",
+        "properties": {
+          "conditionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectKind": {
+            "$ref": "#/components/schemas/GrantSubjectKind"
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "groupNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/ConditionOperator"
+          },
+          "isNegated": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConditionStatus"
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionDiagnostic"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "groupConclusion": {
+            "$ref": "#/components/schemas/ConditionGroupConclusion"
+          }
+        },
+        "required": [
+          "conditionId",
+          "subjectKind",
+          "subjectId",
+          "permission",
+          "action",
+          "groupNo",
+          "attributeName",
+          "operator",
+          "isNegated",
+          "status",
+          "diagnostics",
+          "groupConclusion"
+        ]
+      },
       "ConditionOperator": {
         "type": "string",
         "enum": [
@@ -16206,11 +16704,196 @@
           "IsNotNull"
         ]
       },
+      "ConditionOutcome": {
+        "type": "string",
+        "enum": [
+          "Matched",
+          "NotMatched",
+          "Indeterminate",
+          "Pending"
+        ]
+      },
       "ConditionStatus": {
         "type": "string",
         "enum": [
           "Active",
           "Disabled"
+        ]
+      },
+      "ConditionTrialClauseResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/ConditionOperator"
+          },
+          "isNegated": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ConditionOutcome"
+          },
+          "attributeValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "attributeName",
+          "operator",
+          "isNegated",
+          "outcome",
+          "attributeValues"
+        ]
+      },
+      "ConditionTrialGroupResponse": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/ConditionOutcome"
+          },
+          "clauses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionTrialClauseResponse"
+            }
+          }
+        },
+        "required": [
+          "outcome",
+          "clauses"
+        ]
+      },
+      "ConditionTrialPathResponse": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "roleName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasUnconditionalGrant": {
+            "type": "boolean"
+          },
+          "grantSets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionTrialSetResponse"
+            }
+          },
+          "denySets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionTrialSetResponse"
+            }
+          },
+          "holds": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "hasUnconditionalGrant",
+          "grantSets",
+          "denySets",
+          "holds"
+        ]
+      },
+      "ConditionTrialSetResponse": {
+        "type": "object",
+        "properties": {
+          "subjectKind": {
+            "$ref": "#/components/schemas/GrantSubjectKind"
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "binding": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "applies": {
+            "type": "boolean"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConditionOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionTrialGroupResponse"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "subjectKind",
+          "subjectId",
+          "binding",
+          "action",
+          "applies",
+          "groups",
+          "errors"
         ]
       },
       "ConditionValueKind": {
@@ -16223,6 +16906,15 @@
           "Date",
           "TimeOfDay",
           "IpAddress"
+        ]
+      },
+      "ConditionVerdict": {
+        "type": "string",
+        "enum": [
+          "NotGranted",
+          "Unconditional",
+          "Granted",
+          "Denied"
         ]
       },
       "ConfigDataType": {
@@ -19071,6 +19763,11 @@
         "code": "access.permission-conditions.read",
         "displayName": "Read permission conditions",
         "description": "View the conditions on role and user grants and the condition attribute catalog."
+      },
+      "access.permission-conditions.trial": {
+        "code": "access.permission-conditions.trial",
+        "displayName": "Trial permission conditions",
+        "description": "Try how conditions decide for a user and a request, list who a grant affects, and inventory the conditions of the current side."
       },
       "access.permission-conditions.update": {
         "code": "access.permission-conditions.update",

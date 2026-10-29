@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "У разрешения может быть не больше {max} групп условий.",
   "access.condition.clauses_exceeded": "В группе условий может быть не больше {max} условий.",
   "access.condition.not_found": "Условие разрешения {id} не существует.",
-  "access.condition.not_met": "При текущих условиях эта операция не разрешена."
+  "access.condition.not_met": "При текущих условиях эта операция не разрешена.",
+  "access.condition.trial_ip_invalid": "Неверный IP-адрес: {ip}",
+  "permission_conditions.trial.description": "Проверка условий: решение по одному разрешению для одного пользователя в заданной ситуации запроса с пояснением по группам и условиям. Требуется access.permission-conditions.trial.",
+  "permission_conditions.batch_trial.description": "Проверка влияния: текущий итог для всех, кого затрагивает разрешение, не больше 200 человек. Требуется access.permission-conditions.trial.",
+  "permission_conditions.inventory.description": "Инвентаризация условий: диагностика каждого условия текущей стороны и итог его группы. Требуется access.permission-conditions.trial."
 }

@@ -510,6 +510,26 @@ public static class AccessMessages
     /// </summary>
     public const string ConditionNotMet = "access.condition.not_met";
 
+    /// <summary>
+    /// 试算的客户端地址写错；参数 <c>ip</c>。
+    /// </summary>
+    public const string TrialIpInvalid = "access.condition.trial_ip_invalid";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.trial</c> 的说明。
+    /// </summary>
+    public const string TrialPermissionConditionDescription = "permission_conditions.trial.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.batch-trial</c> 的说明。
+    /// </summary>
+    public const string BatchTrialPermissionConditionDescription = "permission_conditions.batch_trial.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.inventory</c> 的说明。
+    /// </summary>
+    public const string PermissionConditionInventoryDescription = "permission_conditions.inventory.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

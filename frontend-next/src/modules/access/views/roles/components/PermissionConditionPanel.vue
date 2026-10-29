@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ConditionBatchTrial } from '../condition-trial'
 import type { ConditionAttribute, ConditionOperator, GrantConditionTarget, PermissionConditionItem } from '../permission-condition'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
@@ -7,6 +8,7 @@ import { Icon, XEditModal, XInput, XNumberInput, XSegmented, XSelect } from '~/c
 import { dialog, toast } from '~/composables'
 import { permissionConditions as conditionsApi } from '~/contracts'
 import { attributeLabel, operatorLabel, valueHint } from '../condition-labels'
+import { verdictLabel, verdictTone } from '../condition-trial'
 import { composeAttributeName, CONDITION_OPERATORS, groupConditions, nextGroupNumber, requiresValue, resolveAttribute } from '../permission-condition'
 
 /**
@@ -18,7 +20,7 @@ const props = defineProps<{
   target: GrantConditionTarget
   conditions: readonly PermissionConditionItem[]
   catalog: readonly ConditionAttribute[]
-  can: { create: boolean, update: boolean, delete: boolean }
+  can: { create: boolean, update: boolean, delete: boolean, trial: boolean }
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +47,9 @@ const formVisible = ref(false)
 const submitting = ref(false)
 const formNote = ref<null | string>(null)
 const form = ref<ConditionFormModel>(emptyForm(0))
+const batchResult = ref<ConditionBatchTrial | null>(null)
+const batchLoading = ref(false)
+const batchDenied = computed(() => batchResult.value?.items.filter(item => item.verdict === 'Denied').length ?? 0)
 
 const groups = computed(() => groupConditions(props.conditions))
 const attributeOptions = computed(() => props.catalog.map(item => ({ value: item.name, label: `${attributeLabel(t, item.name)} · ${item.name}` })))
@@ -59,6 +64,11 @@ const negateOptions = computed(() => [
 function emptyForm(group: number): ConditionFormModel {
   return { id: null, groupNo: group, attribute: '', familySuffix: '', operator: 'Equals', negated: 'plain', value: '', description: '', status: 'Active' }
 }
+
+/** 换了一条授权，上一条的影响试算不再适用 */
+watch(() => props.target.key, () => {
+  batchResult.value = null
+})
 
 /** 换属性后，运算符不再适用的改成可用的第一项 */
 watch(selectedAttribute, (attribute) => {
@@ -168,6 +178,20 @@ function toggleStatus(item: PermissionConditionItem) {
   })
 }
 
+/** 影响试算：这条授权影响到的人此刻各自的结论（不带请求情形，最多 200 人） */
+async function runBatchTrial() {
+  batchLoading.value = true
+  try {
+    batchResult.value = await conditionsApi.batchTrial({ subjectKind: props.target.subjectKind, subjectId: props.target.subjectId, permission: props.target.permission })
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('access.conditions.msg_trial_failed'))
+  }
+  finally {
+    batchLoading.value = false
+  }
+}
+
 function remove(item: PermissionConditionItem) {
   void dialog.confirm({
     badge: 'warning',
@@ -198,12 +222,18 @@ function remove(item: PermissionConditionItem) {
       {{ target.action === 'Deny' ? t('access.conditions.semantics_deny') : t('access.conditions.semantics_grant') }}{{ t('access.conditions.rules_tip') }}
     </p>
 
-    <div v-if="can.create" class="condition-panel__toolbar">
-      <XhButton variant="subtle" tone="brand" size="sm" @click="openCreate()">
+    <div v-if="can.create || can.trial" class="condition-panel__toolbar">
+      <XhButton v-if="can.create" variant="subtle" tone="brand" size="sm" @click="openCreate()">
         <XhButtonIndicator>
           <Icon icon="lucide:plus" width="14" />
         </XhButtonIndicator>
         <XhButtonLabel>{{ t('access.conditions.action_add_group') }}</XhButtonLabel>
+      </XhButton>
+      <XhButton v-if="can.trial" variant="subtle" size="sm" :loading="batchLoading" @click="runBatchTrial">
+        <XhButtonIndicator>
+          <Icon icon="lucide:users-round" width="14" />
+        </XhButtonIndicator>
+        <XhButtonLabel>{{ t('access.conditions.action_batch_trial') }}</XhButtonLabel>
       </XhButton>
     </div>
 
@@ -272,6 +302,37 @@ function remove(item: PermissionConditionItem) {
       <XhEmptyStateTitle>{{ t('access.conditions.empty_title') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('access.conditions.empty_description') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>
+
+    <section v-if="batchResult" class="condition-group" :aria-label="t('access.conditions.batch_title')">
+      <header class="condition-group__header">
+        <span class="condition-group__title">{{ t('access.conditions.batch_title') }}</span>
+        <span class="condition-group__hint">{{ t('access.conditions.batch_summary', { total: batchResult.totalUsers, denied: batchDenied }) }}</span>
+      </header>
+      <p class="condition-panel__tip">
+        {{ t('access.conditions.batch_tip') }}
+        <template v-if="batchResult.truncated">
+          {{ t('access.conditions.batch_truncated', { count: batchResult.items.length }) }}
+        </template>
+      </p>
+      <table v-if="batchResult.items.length" class="xh-detail-table">
+        <thead>
+          <tr>
+            <th>{{ t('access.conditions.th_user') }}</th>
+            <th>{{ t('access.conditions.th_verdict') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in batchResult.items" :key="item.userId">
+            <td>{{ item.userName }}</td>
+            <td>
+              <XhTagRoot variant="subtle" size="sm" :tone="verdictTone(item.verdict)">
+                <XhTagLabel>{{ verdictLabel(t, item.verdict) }}</XhTagLabel>
+              </XhTagRoot>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
     <XEditModal
       v-model:show="formVisible"

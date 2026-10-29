@@ -213,6 +213,26 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
             }
         }
 
+        return await BuildAsync(owner, tenant, userId, held, now, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 按用户此刻的有效指派组装全貌（不看令牌）：条件试算与影响试算用。
+    /// </summary>
+    /// <param name="owner">所属侧。</param>
+    /// <param name="userId">用户。</param>
+    /// <param name="now">判定时刻（试算可以给别的时刻）。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task<GrantView> ViewOfAsync(string owner, Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(owner);
+        var tenant = string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal) ? null : owner;
+        var holding = await HoldingAsync(owner, userId, now, cancellationToken).ConfigureAwait(false);
+        return await BuildAsync(owner, tenant, userId, [.. holding], now, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<GrantView> BuildAsync(string owner, string? tenant, Guid userId, List<Guid> held, DateTimeOffset now, CancellationToken cancellationToken)
+    {
         var context = new ViewBuilder(store, rules, conditions, owner, tenant, now, await hierarchy.GraphOfAsync(owner, cancellationToken).ConfigureAwait(false));
         var user = await context.SourceAsync(GrantSubjectKind.User, userId, cancellationToken).ConfigureAwait(false);
         var roles = await context.ChainsAsync(held, cancellationToken).ConfigureAwait(false);

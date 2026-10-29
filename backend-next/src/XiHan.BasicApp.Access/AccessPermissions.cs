@@ -126,6 +126,11 @@ public static class AccessPermissions
     public const string PermissionConditionsDelete = "access.permission-conditions.delete";
 
     /// <summary>
+    /// 条件试算、影响试算与盘点。
+    /// </summary>
+    public const string PermissionConditionsTrial = "access.permission-conditions.trial";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -178,6 +183,7 @@ public static class AccessPermissions
         new(PermissionConditionsCreate, "Create permission conditions", PermissionScope.Both, audited: true, description: "Add conditions to a role or user grant or denial: met to grant, or met to deny."),
         new(PermissionConditionsUpdate, "Update permission conditions", PermissionScope.Both, audited: true, description: "Edit, enable and disable permission conditions."),
         new(PermissionConditionsDelete, "Delete permission conditions", PermissionScope.Both, audited: true, description: "Delete permission conditions."),
+        new(PermissionConditionsTrial, "Trial permission conditions", PermissionScope.Both, description: "Try how conditions decide for a user and a request, list who a grant affects, and inventory the conditions of the current side."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

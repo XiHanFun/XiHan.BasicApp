@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "一条授权最多 {max} 个条件组。",
   "access.condition.clauses_exceeded": "一个条件组最多 {max} 条条件。",
   "access.condition.not_found": "权限条件 {id} 不存在。",
-  "access.condition.not_met": "当前条件下不允许此操作。"
+  "access.condition.not_met": "当前条件下不允许此操作。",
+  "access.condition.trial_ip_invalid": "IP 地址格式不正确：{ip}",
+  "permission_conditions.trial.description": "条件试算：一个用户在一个权限码上按给定的请求情形判定，逐组逐子句说明。需要 access.permission-conditions.trial 权限。",
+  "permission_conditions.batch_trial.description": "影响试算：一条授权影响到的人此刻各自的结论，最多列 200 人。需要 access.permission-conditions.trial 权限。",
+  "permission_conditions.inventory.description": "条件盘点：当前一侧每条条件的诊断与所在组的结论。需要 access.permission-conditions.trial 权限。"
 }

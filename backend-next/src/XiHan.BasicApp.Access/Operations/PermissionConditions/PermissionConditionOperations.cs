@@ -6,6 +6,7 @@ using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Conditions;
 
@@ -189,5 +190,68 @@ internal static class ConditionLog
             PermissionCodes = [condition.Permission],
             Detail = $"{action} {condition.Action} group:{condition.GroupNo} {(condition.IsNegated ? "not " : string.Empty)}{condition.AttributeName} {condition.Operator} {condition.Value} {condition.Status}",
         });
+    }
+}
+
+/// <summary>
+/// 条件试算：<c>GET /api/permission-conditions:trial</c>。一个用户在一个权限码上按给定的请求情形判定，逐组逐子句说明；按他此刻的有效指派与委托，不看令牌。
+/// </summary>
+/// <param name="insight">试算与盘点。</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+public sealed class TrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionTrialRequest, ConditionTrialResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "permission-conditions.trial";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ConditionTrialResponse>> HandleAsync(ConditionTrialRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return await insight.TrialAsync(RoleService.OwnerOf(context), request, e => context.Localize(e), context.CancellationToken).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 影响试算：<c>GET /api/permission-conditions:batch-trial</c>。一个绑定影响到的人此刻各自的结论（角色即它及其下级角色的有效成员，最多 200 人）。
+/// </summary>
+/// <param name="insight">试算与盘点。</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+public sealed class BatchTrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionBatchTrialRequest, ConditionBatchTrialResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "permission-conditions.batch-trial";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ConditionBatchTrialResponse>> HandleAsync(ConditionBatchTrialRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return await insight.BatchTrialAsync(RoleService.OwnerOf(context), request, context.CancellationToken).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 条件盘点：<c>GET /api/permission-conditions:inventory</c>。这一侧每条子句的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论。
+/// </summary>
+/// <param name="insight">试算与盘点。</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+public sealed class PermissionConditionInventory(ConditionInsightService insight) : IOperation<ConditionInventoryRequest, ConditionInventoryResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "permission-conditions.inventory";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ConditionInventoryResponse>> HandleAsync(ConditionInventoryRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return await insight.InventoryAsync(RoleService.OwnerOf(context), e => context.Localize(e), context.CancellationToken).ConfigureAwait(false);
     }
 }

@@ -135,6 +135,61 @@ public sealed class PermissionConditionTests : IDisposable
     }
 
     [Fact]
+    public async Task Trial_BatchTrial_AndInventory_ExplainTheDecision()
+    {
+        var (server, admin, danaId, roleId, _) = await StartAsync(_database);
+        await using var running = server;
+        var (_, condition) = await CreateAsync(server, admin, new { subjectKind = "Role", subjectId = roleId, permission = "identity.users.read", action = "Grant", attributeName = "subject.userName", @operator = "Equals", value = "dana" });
+        var conditionId = condition.GetProperty("id").GetString()!;
+        async Task<JsonElement> TrialAsync(string query)
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/permission-conditions:trial?userId={danaId}&{query}", token: admin));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return body;
+        }
+
+        // 满足即授予：路径是角色链，授予条件集命中，子句带属性此刻的取值
+        var granted = await TrialAsync("permission=identity.users.read&ip=10.0.0.8");
+        Assert.Equal("Granted", granted.GetProperty("verdict").GetString());
+        Assert.Equal("10.0.0.8", granted.GetProperty("ip").GetString());
+        var path = Assert.Single(granted.GetProperty("paths").EnumerateArray());
+        Assert.Equal("role", path.GetProperty("source").GetString());
+        Assert.Equal("Viewer", path.GetProperty("roleName").GetString());
+        var set = Assert.Single(path.GetProperty("grantSets").EnumerateArray());
+        Assert.True(set.GetProperty("applies").GetBoolean());
+        var clause = set.GetProperty("groups")[0].GetProperty("clauses")[0];
+        Assert.Equal("Matched", clause.GetProperty("outcome").GetString());
+        Assert.Equal(["dana"], clause.GetProperty("attributeValues").EnumerateArray().Select(static v => v.GetString()));
+
+        // 没有授予即 NotGranted；地址写错即拒绝
+        Assert.Equal("NotGranted", (await TrialAsync("permission=identity.users.update")).GetProperty("verdict").GetString());
+        var (badIp, badIpBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/permission-conditions:trial?userId={danaId}&permission=identity.users.read&ip=not-an-ip", token: admin));
+        Assert.Equal(HttpStatusCode.BadRequest, badIp.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_036", badIpBody.GetProperty("code").GetString());
+
+        // 改成不满足：试算为 Denied，影响试算列出角色的成员
+        await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/permission-conditions/{conditionId}", """{"attributeName":"subject.userName","operator":"Equals","value":"erin"}""", admin));
+        Assert.Equal("Denied", (await TrialAsync("permission=identity.users.read")).GetProperty("verdict").GetString());
+        var (_, batch) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/permission-conditions:batch-trial?subjectKind=Role&subjectId={roleId}&permission=identity.users.read", token: admin));
+        Assert.Equal(1, batch.GetProperty("totalUsers").GetInt32());
+        Assert.False(batch.GetProperty("truncated").GetBoolean());
+        var person = Assert.Single(batch.GetProperty("items").EnumerateArray());
+        Assert.Equal("dana", person.GetProperty("userName").GetString());
+        Assert.Equal("Denied", person.GetProperty("verdict").GetString());
+
+        // 盘点：旧写法给诊断，组照常参与；全部停用的组标停用
+        await CreateAsync(server, admin, new { subjectKind = "Role", subjectId = roleId, permission = "identity.users.read", action = "Grant", attributeName = "subject.role", @operator = "Contains", value = "viewer", groupNo = 1 });
+        await CreateAsync(server, admin, new { subjectKind = "Role", subjectId = roleId, permission = "identity.users.read", action = "Grant", attributeName = "environment.hour", @operator = "GreaterThan", value = "3", groupNo = 2, status = "Disabled" });
+        var (_, inventory) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permission-conditions:inventory", token: admin));
+        Assert.Equal(3, inventory.GetProperty("conditionCount").GetInt32());
+        Assert.Equal(1, inventory.GetProperty("bindingCount").GetInt32());
+        var items = inventory.GetProperty("items").EnumerateArray().ToList();
+        Assert.Equal(["Evaluable", "Evaluable", "Disabled"], items.Select(static i => i.GetProperty("groupConclusion").GetString()));
+        Assert.Equal(["LegacyName"], items[1].GetProperty("diagnostics").EnumerateArray().Select(static d => d.GetString()));
+        Assert.Equal("Viewer", items[0].GetProperty("subjectName").GetString());
+    }
+
+    [Fact]
     public async Task LogOnlyMode_LetsTheCallThrough_ButRecordsTheHit()
     {
         var (server, admin, _, roleId, dana) = await StartAsync(_database, [new("BasicApp:Access:PermissionConditionMode", "LogOnly")]);

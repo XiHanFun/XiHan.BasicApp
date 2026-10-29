@@ -97,5 +97,9 @@
   "access.condition.groups_exceeded": "一條授權最多 {max} 個條件組。",
   "access.condition.clauses_exceeded": "一個條件組最多 {max} 條條件。",
   "access.condition.not_found": "權限條件 {id} 不存在。",
-  "access.condition.not_met": "目前條件下不允許此操作。"
+  "access.condition.not_met": "目前條件下不允許此操作。",
+  "access.condition.trial_ip_invalid": "IP 位址格式不正確：{ip}",
+  "permission_conditions.trial.description": "條件試算：一個使用者在一個權限碼上依給定的請求情形判定，逐組逐子句說明。需要 access.permission-conditions.trial 權限。",
+  "permission_conditions.batch_trial.description": "影響試算：一條授權影響到的人此刻各自的結論，最多列 200 人。需要 access.permission-conditions.trial 權限。",
+  "permission_conditions.inventory.description": "條件盤點：目前這一側每條條件的診斷與所在組的結論。需要 access.permission-conditions.trial 權限。"
 }
