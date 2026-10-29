@@ -28,9 +28,11 @@ catalog:
   '@vitejs/plugin-vue': ^6.0.10
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
+  '@xihan-ui/code-highlight': ^5.1.0
   '@xihan-ui/core': ^5.1.0
   '@xihan-ui/headless': ^5.1.0
   '@xihan-ui/icons': ^5.1.0
+  '@xihan-ui/markdown': ^5.1.0
   '@xihan-ui/motion': ^5.1.0
   '@xihan-ui/sound': ^5.1.0
   '@xihan-ui/styles': ^5.1.0
