@@ -15,15 +15,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 个人中心的头像上传：<c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（4.x 同，资料不拦）。
+/// 个人中心的头像上传端点。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（4.x 同，资料不拦）。
 /// 按文件头认 JPEG / PNG（不信扩展名与上传方给的内容类型），不超过 2 MB；存平台侧、公开级别（6.0 的用户跨租户，头像跟着用户走、不属于某个租户，所以不计入租户的存储配额），
 /// 随即换成本人的头像并回收旧的头像文件，回本人的资料。去掉头像走 <c>profile.remove-avatar</c>。
-/// </summary>
+/// </remarks>
 internal static class ProfileEndpoints
 {
     /// <summary>
-    /// 头像的大小上限（4.x 同）。
+    /// 头像的大小上限。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const long MaxAvatarBytes = 2 * 1024 * 1024;
 
     private const long FormOverhead = 64 * 1024;
@@ -110,8 +116,11 @@ internal static class ProfileEndpoints
     }
 
     /// <summary>
-    /// 按文件头认图片：JPEG 以 <c>FF D8 FF</c> 开头，PNG 以 8 字节签名开头；别的一律不认。
+    /// 按文件头认图片。
     /// </summary>
+    /// <remarks>
+    /// JPEG 以 <c>FF D8 FF</c> 开头，PNG 以 8 字节签名开头；别的一律不认。
+    /// </remarks>
     private static async Task<(string Extension, string ContentType)?> SniffAsync(IFormFile file, CancellationToken cancellationToken)
     {
         var head = new byte[_png.Length];

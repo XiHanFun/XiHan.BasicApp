@@ -7,8 +7,11 @@ using XiHan.BasicApp.Host.Commands;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 宿主自有端点与命令输出的源生成序列化上下文（应用自述、种子报告）。操作的请求 / 响应由各包的 JsonContext 经登记表处理。
+/// 宿主自有端点与命令输出的源生成序列化上下文（应用自述、种子报告）。
 /// </summary>
+/// <remarks>
+/// 操作的请求 / 响应由各包的 JsonContext 经登记表处理。
+/// </remarks>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(HostInfo))]
 [JsonSerializable(typeof(SeedReport))]

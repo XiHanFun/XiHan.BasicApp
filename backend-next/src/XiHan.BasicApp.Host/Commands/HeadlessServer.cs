@@ -7,8 +7,11 @@ using Microsoft.AspNetCore.Http.Features;
 namespace XiHan.BasicApp.Host.Commands;
 
 /// <summary>
-/// 命令模式的服务器：不监听任何端口。宿主仍按完整装配启动（数据库、特性、内核），命令经内核管道执行，但不与正在运行的应用实例争抢端口。
+/// 命令模式的服务器：不监听任何端口。
 /// </summary>
+/// <remarks>
+/// 宿主仍按完整装配启动（数据库、特性、内核），命令经内核管道执行，但不与正在运行的应用实例争抢端口。
+/// </remarks>
 internal sealed class HeadlessServer : IServer
 {
     /// <inheritdoc />

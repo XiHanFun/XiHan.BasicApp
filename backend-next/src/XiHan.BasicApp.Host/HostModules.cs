@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 可选模块的开关 <c>BasicApp:Modules:&lt;名&gt;:Enabled</c>（方案 5.12）：宿主据此决定是否 <c>UseFeature</c>；前端以菜单是否下发为准，同一开关语义。
-/// 没写即开启；写了必须是 <c>true</c> / <c>false</c>。
+/// 可选模块的开关。
 /// </summary>
+/// <remarks>
+/// 配置键 <c>BasicApp:Modules:&lt;名&gt;:Enabled</c>（方案 5.12）：宿主据此决定是否 <c>UseFeature</c>；前端以菜单是否下发为准，同一开关语义。
+/// 没写即开启；写了必须是 <c>true</c> / <c>false</c>。
+/// </remarks>
 public sealed record HostModules
 {
     /// <summary>

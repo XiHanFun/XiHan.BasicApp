@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 宿主的消息键（命令说明与命令错误）；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。
+/// 宿主的消息键（命令说明与命令错误）。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。
+/// </remarks>
 public static class HostMessages
 {
     /// <summary>
@@ -21,8 +24,11 @@ public static class HostMessages
     public const string SeedDescription = "host.commands.seed_description";
 
     /// <summary>
-    /// <c>--only</c> 指定了不存在的种子；参数 <c>name</c>。
+    /// <c>--only</c> 指定了不存在的种子。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string SeederUnknown = "host.commands.seeder_unknown";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(HostMessages)));

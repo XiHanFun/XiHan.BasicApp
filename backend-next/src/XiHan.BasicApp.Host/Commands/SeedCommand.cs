@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Commands;
 
 /// <summary>
-/// <c>seed [--only &lt;名,...&gt;] [--list]</c>：按号段顺序执行各包登记的种子（每个种子一次独立的内核调用与工作单元）。
-/// 成功把 <see cref="SeedReport"/> 写到 stdout；失败按框架命令行约定把 <c>{"code","detail"}</c> 写到 stderr，退出码按错误 KIND。
+/// <c>seed</c> 命令：按号段顺序执行各包登记的种子。
 /// </summary>
+/// <remarks>
+/// 用法 <c>seed [--only &lt;名,...&gt;] [--list]</c>；每个种子一次独立的内核调用与工作单元。
+/// 成功把 <see cref="SeedReport"/> 写到 stdout；失败按框架命令行约定把 <c>{"code","detail"}</c> 写到 stderr，退出码按错误 KIND。
+/// </remarks>
 public sealed class SeedCommand : ICommand
 {
     /// <summary>
