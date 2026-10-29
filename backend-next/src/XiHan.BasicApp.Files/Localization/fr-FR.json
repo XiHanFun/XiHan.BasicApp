@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "Une configuration de stockage désactivée ne peut pas être celle par défaut.",
   "files.file.access_denied": "Ce fichier exige files.files.read pour être téléchargé.",
   "files.storage.none": "Ni votre côté ni la plateforme n’ont de configuration de stockage par défaut utilisable.",
-  "files.storage_config.undecryptable": "La clé d’accès de la configuration de stockage {code} ne peut pas être déchiffrée (le trousseau de protection des données a peut-être changé) ; saisissez de nouveau la clé d’accès."
+  "files.storage_config.undecryptable": "La clé d’accès de la configuration de stockage {code} ne peut pas être déchiffrée (le trousseau de protection des données a peut-être changé) ; saisissez de nouveau la clé d’accès.",
+  "export_tasks.submit.description": "Lancer un export : exécuter la requête d’une opération de liste en arrière-plan sous votre identité et écrire un CSV ou un XLSX, conservé 7 jours comme fichier temporaire. Connexion requise ; l’opération de liste vérifie sa permission comme d’habitude.",
+  "export_tasks.list.description": "Lister par page vos tâches d’export. Connexion requise.",
+  "export_tasks.get.description": "Obtenir une de vos tâches d’export. Connexion requise.",
+  "export_tasks.cancel.description": "Annuler une de vos tâches d’export en attente. Connexion requise.",
+  "export_tasks.delete.description": "Supprimer vos tâches d’export avec leurs fichiers de résultat ; celles en cours sont refusées une par une. Connexion requise.",
+  "import_histories.create.description": "Enregistrer le résultat d’un import (la page crée les lignes une par une). Connexion requise.",
+  "import_histories.recent.description": "Lister vos imports récents sur une page. Connexion requise.",
+  "files.export.not_found": "La tâche d’export {id} n’existe pas.",
+  "files.export.target_invalid": "{businessType} n’est pas une opération de liste exportable.",
+  "files.export.columns_required": "Choisissez au moins une colonne à exporter.",
+  "files.export.query_invalid": "L’instantané de requête doit être un objet JSON.",
+  "files.export.not_pending": "La tâche d’export est {status} ; seules les tâches en attente peuvent être annulées et celles en cours ne peuvent pas être supprimées.",
+  "files.export.credential_missing": "Cet appel ne porte aucun identifiant de connexion ; l’export ne peut pas s’exécuter en arrière-plan sous votre identité.",
+  "files.export.cancelled": "Annulé",
+  "files.export.result_remark": "Résultat d’export : {name}"
 }

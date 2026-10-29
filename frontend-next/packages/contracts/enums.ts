@@ -65,6 +65,15 @@ export type DelegationStatus = (typeof DelegationStatus)[number]
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
+export const ExportFormat = ['Csv', 'Xlsx'] as const
+export type ExportFormat = (typeof ExportFormat)[number]
+
+export const ExportScope = ['CurrentPage', 'SearchResult', 'All'] as const
+export type ExportScope = (typeof ExportScope)[number]
+
+export const ExportTaskStatus = ['Pending', 'Processing', 'Success', 'Failed'] as const
+export type ExportTaskStatus = (typeof ExportTaskStatus)[number]
+
 export const FieldMaskStrategy = ['None', 'Hidden', 'FullMask', 'PartialMask', 'Hash', 'Redact'] as const
 export type FieldMaskStrategy = (typeof FieldMaskStrategy)[number]
 
@@ -178,6 +187,9 @@ export const enums = {
   DataScope,
   DelegationStatus,
   DiffKind,
+  ExportFormat,
+  ExportScope,
+  ExportTaskStatus,
   FieldMaskStrategy,
   FieldRuleStatus,
   FieldSecurityTargetKind,

@@ -27,10 +27,15 @@ namespace XiHan.BasicApp.Files;
 
 /// <summary>
 /// 文件能力包（Tier 2）：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
+/// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行。
 /// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与下载（<c>GET /api/files/{id}/content</c>、签名地址 <c>GET /api/files/content/{token}</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
 /// </summary>
-public sealed class FilesFeature : IFeature
+public sealed class FilesFeature : IHostedFeature, IDisposable
 {
+    private ExportRunner? _runner;
+    private CancellationTokenSource? _stopping;
+    private Task? _loop;
+
     /// <inheritdoc />
     public Manifest Manifest { get; } = new()
     {
@@ -71,6 +76,10 @@ public sealed class FilesFeature : IFeature
         context.Services.AddScoped<FileQueries>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
         context.Services.AddScoped<StorageConfigQueries>();
+        context.Services.AddSingleton<ExportJobs>();
+        context.Services.AddSingleton<ExportRunner>();
+        context.Services.AddScoped<ExportTaskService>();
+        context.Services.AddScoped<ExportTaskQueries>();
         context.Services.AddSeeder<StorageConfigSeeder>();
         context.Services.AddPermissionCatalog("files", FilesPermissions.All);
         context.Services.AddPageCatalog("files", FilesPages.All);
@@ -80,5 +89,39 @@ public sealed class FilesFeature : IFeature
         }
 
         context.AddGeneratedOperations();
+    }
+
+    /// <inheritdoc />
+    public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        _runner = services.GetRequiredService<ExportRunner>();
+        // 上个进程没执行完的导出：凭据随进程丢了，记为中断
+        await _runner.InterruptLeftoversAsync(cancellationToken).ConfigureAwait(false);
+        _stopping = new CancellationTokenSource();
+        _loop = _runner.RunAsync(_stopping.Token);
+    }
+
+    /// <inheritdoc />
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_stopping is null || _loop is null)
+        {
+            return;
+        }
+
+        await _stopping.CancelAsync().ConfigureAwait(false);
+        await _loop.ConfigureAwait(false);
+        _stopping.Dispose();
+        _stopping = null;
+        _loop = null;
+        _runner = null;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _stopping?.Dispose();
+        _stopping = null;
     }
 }

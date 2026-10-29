@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "停用的存储配置不能设为缺省。",
   "files.file.access_denied": "这个文件要求持有 files.files.read 才能下载。",
   "files.storage.none": "当前一侧与平台都没有可用的缺省存储配置。",
-  "files.storage_config.undecryptable": "存储配置 {code} 的访问密钥解不开（数据保护的密钥环可能换过），请重新填写访问密钥。"
+  "files.storage_config.undecryptable": "存储配置 {code} 的访问密钥解不开（数据保护的密钥环可能换过），请重新填写访问密钥。",
+  "export_tasks.submit.description": "提交导出：把某个列表操作的查询结果按自己的身份在后台导成 CSV 或 XLSX，结果存成临时文件（7 天）。只要求登录；导出时按那个列表操作照常判定权限。",
+  "export_tasks.list.description": "分页列出自己的导出任务。只要求登录。",
+  "export_tasks.get.description": "取自己的一个导出任务。只要求登录。",
+  "export_tasks.cancel.description": "取消自己排队中的导出任务。只要求登录。",
+  "export_tasks.delete.description": "删除自己的导出任务，连同结果文件；执行中的逐项拒绝。只要求登录。",
+  "import_histories.create.description": "记一次导入的结果（导入由页面逐行调新建操作完成）。只要求登录。",
+  "import_histories.recent.description": "列出本人在某页最近的导入记录。只要求登录。",
+  "files.export.not_found": "导出任务 {id} 不存在。",
+  "files.export.target_invalid": "{businessType} 不是可以导出的列表操作。",
+  "files.export.columns_required": "导出至少要选一列。",
+  "files.export.query_invalid": "查询快照要是 JSON 对象。",
+  "files.export.not_pending": "导出任务处于 {status} 状态，只有排队中的能取消，执行中的不能删除。",
+  "files.export.credential_missing": "这次调用没有登录凭据，导出无法在后台以你的身份执行。",
+  "files.export.cancelled": "已取消",
+  "files.export.result_remark": "导出结果：{name}"
 }

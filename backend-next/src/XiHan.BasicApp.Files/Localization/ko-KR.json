@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "사용 중지된 저장소 설정은 기본값이 될 수 없습니다.",
   "files.file.access_denied": "이 파일을 다운로드하려면 files.files.read가 필요합니다.",
   "files.storage.none": "이쪽과 플랫폼 모두 사용할 수 있는 기본 저장소 설정이 없습니다.",
-  "files.storage_config.undecryptable": "저장소 설정 {code}의 액세스 키를 복호화할 수 없습니다(데이터 보호 키 링이 바뀌었을 수 있음). 액세스 키를 다시 입력하세요."
+  "files.storage_config.undecryptable": "저장소 설정 {code}의 액세스 키를 복호화할 수 없습니다(데이터 보호 키 링이 바뀌었을 수 있음). 액세스 키를 다시 입력하세요.",
+  "export_tasks.submit.description": "내보내기 제출: 목록 작업의 조회 결과를 내 권한으로 백그라운드에서 CSV 또는 XLSX로 내보내고 임시 파일(7일)로 저장합니다. 로그인이 필요하며 목록 작업이 평소처럼 권한을 판정합니다.",
+  "export_tasks.list.description": "내 내보내기 작업을 페이지 단위로 나열합니다. 로그인이 필요합니다.",
+  "export_tasks.get.description": "내 내보내기 작업 하나를 가져옵니다. 로그인이 필요합니다.",
+  "export_tasks.cancel.description": "대기 중인 내 내보내기 작업을 취소합니다. 로그인이 필요합니다.",
+  "export_tasks.delete.description": "내 내보내기 작업을 결과 파일과 함께 삭제합니다. 실행 중인 것은 항목별로 거부됩니다. 로그인이 필요합니다.",
+  "import_histories.create.description": "가져오기 결과를 기록합니다(행은 페이지가 하나씩 만듭니다). 로그인이 필요합니다.",
+  "import_histories.recent.description": "한 페이지에서 내 최근 가져오기를 나열합니다. 로그인이 필요합니다.",
+  "files.export.not_found": "내보내기 작업 {id}이(가) 없습니다.",
+  "files.export.target_invalid": "{businessType}은(는) 내보낼 수 있는 목록 작업이 아닙니다.",
+  "files.export.columns_required": "내보낼 열을 하나 이상 고르세요.",
+  "files.export.query_invalid": "조회 스냅숏은 JSON 객체여야 합니다.",
+  "files.export.not_pending": "내보내기 작업이 {status} 상태입니다. 대기 중인 것만 취소할 수 있고 실행 중인 것은 삭제할 수 없습니다.",
+  "files.export.credential_missing": "이 호출에 로그인 자격 증명이 없어 내보내기를 백그라운드에서 내 신원으로 실행할 수 없습니다.",
+  "files.export.cancelled": "취소됨",
+  "files.export.result_remark": "내보내기 결과: {name}"
 }

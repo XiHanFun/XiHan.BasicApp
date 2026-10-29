@@ -6395,6 +6395,629 @@
         }
       }
     },
+    "/api/export-tasks": {
+      "delete": {
+        "operationId": "export-tasks.delete",
+        "tags": [
+          "export-tasks"
+        ],
+        "summary": "Delete your export tasks together with their result files; running ones are rejected one by one. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export-tasks/{id}": {
+      "get": {
+        "operationId": "export-tasks.get",
+        "tags": [
+          "export-tasks"
+        ],
+        "summary": "Get one of your export tasks. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExportTaskResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "businessType": {
+                      "type": "string"
+                    },
+                    "taskName": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "$ref": "#/components/schemas/ExportScope"
+                    },
+                    "format": {
+                      "$ref": "#/components/schemas/ExportFormat"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ExportTaskStatus"
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "processedCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "fileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "fileName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileSize": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "startedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "finishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "businessType",
+                    "taskName",
+                    "scope",
+                    "format",
+                    "status",
+                    "progress",
+                    "totalCount",
+                    "processedCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export-tasks/{id}:cancel": {
+      "post": {
+        "operationId": "export-tasks.cancel",
+        "tags": [
+          "export-tasks"
+        ],
+        "summary": "Cancel one of your queued export tasks. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ExportTaskIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExportTaskResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "businessType": {
+                      "type": "string"
+                    },
+                    "taskName": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "$ref": "#/components/schemas/ExportScope"
+                    },
+                    "format": {
+                      "$ref": "#/components/schemas/ExportFormat"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ExportTaskStatus"
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "processedCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "fileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "fileName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileSize": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "startedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "finishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "businessType",
+                    "taskName",
+                    "scope",
+                    "format",
+                    "status",
+                    "progress",
+                    "totalCount",
+                    "processedCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export-tasks:list": {
+      "post": {
+        "operationId": "export-tasks.list",
+        "tags": [
+          "export-tasks"
+        ],
+        "summary": "Page through your own export tasks. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfExportTaskResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExportTaskResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export-tasks:submit": {
+      "post": {
+        "operationId": "export-tasks.submit",
+        "tags": [
+          "export-tasks"
+        ],
+        "summary": "Submit an export: run a list operation\u0027s query as yourself in the background and write CSV or XLSX, kept as a temporary file for 7 days. Requires sign-in; the list operation checks its own permission as usual.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SubmitExportTaskRequest",
+                "type": "object",
+                "properties": {
+                  "businessType": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "columns": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ExportColumnRequest"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "taskName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "scope": {
+                    "$ref": "#/components/schemas/ExportScope"
+                  },
+                  "format": {
+                    "$ref": "#/components/schemas/ExportFormat"
+                  },
+                  "querySnapshot": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20000
+                  }
+                },
+                "required": [
+                  "businessType",
+                  "columns"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExportTaskResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "businessType": {
+                      "type": "string"
+                    },
+                    "taskName": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "$ref": "#/components/schemas/ExportScope"
+                    },
+                    "format": {
+                      "$ref": "#/components/schemas/ExportFormat"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ExportTaskStatus"
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "processedCount": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "fileId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "fileName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileSize": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "startedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "finishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "businessType",
+                    "taskName",
+                    "scope",
+                    "format",
+                    "status",
+                    "progress",
+                    "totalCount",
+                    "processedCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/field-security": {
       "delete": {
         "operationId": "field-security.delete",
@@ -8774,6 +9397,219 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import-histories": {
+      "post": {
+        "operationId": "import-histories.create",
+        "tags": [
+          "import-histories"
+        ],
+        "summary": "Record the result of an import (the page creates the rows one by one). Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateImportHistoryRequest",
+                "type": "object",
+                "properties": {
+                  "pageCode": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "totalCount": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "successCount": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "failCount": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "resourceCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "errorSummary": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "pageCode",
+                  "fileName",
+                  "totalCount",
+                  "successCount",
+                  "failCount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ImportHistoryResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "pageCode": {
+                      "type": "string"
+                    },
+                    "resourceCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "successCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "failCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "errorSummary": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "pageCode",
+                    "fileName",
+                    "totalCount",
+                    "successCount",
+                    "failCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import-histories:recent": {
+      "get": {
+        "operationId": "import-histories.recent",
+        "tags": [
+          "import-histories"
+        ],
+        "summary": "List your most recent imports on a page. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "pageCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ImportHistoriesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ImportHistoryResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -23529,6 +24365,150 @@
           "message"
         ]
       },
+      "ExportColumnRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "valueMap": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "title"
+        ]
+      },
+      "ExportFormat": {
+        "type": "string",
+        "enum": [
+          "Csv",
+          "Xlsx"
+        ]
+      },
+      "ExportScope": {
+        "type": "string",
+        "enum": [
+          "CurrentPage",
+          "SearchResult",
+          "All"
+        ]
+      },
+      "ExportTaskResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "businessType": {
+            "type": "string"
+          },
+          "taskName": {
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/ExportScope"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ExportFormat"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ExportTaskStatus"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "processedCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fileId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fileSize": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "businessType",
+          "taskName",
+          "scope",
+          "format",
+          "status",
+          "progress",
+          "totalCount",
+          "processedCount",
+          "createdAt"
+        ]
+      },
+      "ExportTaskStatus": {
+        "type": "string",
+        "enum": [
+          "Pending",
+          "Processing",
+          "Success",
+          "Failed"
+        ]
+      },
       "FieldMaskStrategy": {
         "type": "string",
         "enum": [
@@ -23917,6 +24897,58 @@
           "userName",
           "displayName",
           "homeTenantId"
+        ]
+      },
+      "ImportHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pageCode": {
+            "type": "string"
+          },
+          "resourceCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "successCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errorSummary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "pageCode",
+          "fileName",
+          "totalCount",
+          "successCount",
+          "failCount",
+          "createdAt"
         ]
       },
       "InheritedPermissionResponse": {

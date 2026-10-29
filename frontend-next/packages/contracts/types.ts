@@ -730,6 +730,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/export-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete your export tasks together with their result files; running ones are rejected one by one. Requires sign-in. */
+        delete: operations["export-tasks.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export-tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of your export tasks. Requires sign-in. */
+        get: operations["export-tasks.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export-tasks/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel one of your queued export tasks. Requires sign-in. */
+        post: operations["export-tasks.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export-tasks:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through your own export tasks. Requires sign-in. */
+        post: operations["export-tasks.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export-tasks:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an export: run a list operation's query as yourself in the background and write CSV or XLSX, kept as a temporary file for 7 days. Requires sign-in; the list operation checks its own permission as usual. */
+        post: operations["export-tasks.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/field-security": {
         parameters: {
             query?: never;
@@ -1067,6 +1152,40 @@ export interface paths {
         put?: never;
         /** End impersonation: revokes the impersonation session and returns tokens for the actor's original session. */
         post: operations["impersonation.stop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/import-histories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the result of an import (the page creates the rows one by one). Requires sign-in. */
+        post: operations["import-histories.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/import-histories:recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your most recent imports on a page. Requires sign-in. */
+        get: operations["import-histories.recent"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3153,6 +3272,46 @@ export interface components {
             environmentName?: string | null;
             appVersion?: string | null;
         };
+        ExportColumnRequest: {
+            key: string;
+            title: string;
+            valueMap?: {
+                [key: string]: string;
+            } | null;
+        };
+        /** @enum {string} */
+        ExportFormat: "Csv" | "Xlsx";
+        /** @enum {string} */
+        ExportScope: "CurrentPage" | "SearchResult" | "All";
+        ExportTaskResponse: {
+            /** Format: uuid */
+            id: string;
+            businessType: string;
+            taskName: string;
+            scope: components["schemas"]["ExportScope"];
+            format: components["schemas"]["ExportFormat"];
+            status: components["schemas"]["ExportTaskStatus"];
+            /** Format: int32 */
+            progress: number;
+            /** Format: int64 */
+            totalCount: number;
+            /** Format: int64 */
+            processedCount: number;
+            /** Format: uuid */
+            fileId?: string | null;
+            fileName?: string | null;
+            /** Format: int64 */
+            fileSize?: number | null;
+            errorMessage?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        ExportTaskStatus: "Pending" | "Processing" | "Success" | "Failed";
         /** @enum {string} */
         FieldMaskStrategy: "None" | "Hidden" | "FullMask" | "PartialMask" | "Hash" | "Redact";
         /** @enum {string} */
@@ -3255,6 +3414,22 @@ export interface components {
             userName: string;
             displayName: string;
             homeTenantId: string;
+        };
+        ImportHistoryResponse: {
+            /** Format: uuid */
+            id: string;
+            pageCode: string;
+            resourceCode?: string | null;
+            fileName: string;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            successCount: number;
+            /** Format: int32 */
+            failCount: number;
+            errorSummary?: string | null;
+            /** Format: date-time */
+            createdAt: string;
         };
         InheritedPermissionResponse: {
             permission: string;
@@ -6577,6 +6752,270 @@ export interface operations {
             };
         };
     };
+    "export-tasks.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "export-tasks.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        businessType: string;
+                        taskName: string;
+                        scope: components["schemas"]["ExportScope"];
+                        format: components["schemas"]["ExportFormat"];
+                        status: components["schemas"]["ExportTaskStatus"];
+                        /** Format: int32 */
+                        progress: number;
+                        /** Format: int64 */
+                        totalCount: number;
+                        /** Format: int64 */
+                        processedCount: number;
+                        /** Format: uuid */
+                        fileId?: string | null;
+                        fileName?: string | null;
+                        /** Format: int64 */
+                        fileSize?: number | null;
+                        errorMessage?: string | null;
+                        /** Format: date-time */
+                        startedAt?: string | null;
+                        /** Format: date-time */
+                        finishedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "export-tasks.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        businessType: string;
+                        taskName: string;
+                        scope: components["schemas"]["ExportScope"];
+                        format: components["schemas"]["ExportFormat"];
+                        status: components["schemas"]["ExportTaskStatus"];
+                        /** Format: int32 */
+                        progress: number;
+                        /** Format: int64 */
+                        totalCount: number;
+                        /** Format: int64 */
+                        processedCount: number;
+                        /** Format: uuid */
+                        fileId?: string | null;
+                        fileName?: string | null;
+                        /** Format: int64 */
+                        fileSize?: number | null;
+                        errorMessage?: string | null;
+                        /** Format: date-time */
+                        startedAt?: string | null;
+                        /** Format: date-time */
+                        finishedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "export-tasks.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ExportTaskResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "export-tasks.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    businessType: string;
+                    columns: components["schemas"]["ExportColumnRequest"][];
+                    taskName?: string | null;
+                    scope?: components["schemas"]["ExportScope"];
+                    format?: components["schemas"]["ExportFormat"];
+                    querySnapshot?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        businessType: string;
+                        taskName: string;
+                        scope: components["schemas"]["ExportScope"];
+                        format: components["schemas"]["ExportFormat"];
+                        status: components["schemas"]["ExportTaskStatus"];
+                        /** Format: int32 */
+                        progress: number;
+                        /** Format: int64 */
+                        totalCount: number;
+                        /** Format: int64 */
+                        processedCount: number;
+                        /** Format: uuid */
+                        fileId?: string | null;
+                        fileName?: string | null;
+                        /** Format: int64 */
+                        fileSize?: number | null;
+                        errorMessage?: string | null;
+                        /** Format: date-time */
+                        startedAt?: string | null;
+                        /** Format: date-time */
+                        finishedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "field-security.create": {
         parameters: {
             query?: never;
@@ -7634,6 +8073,99 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "import-histories.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    pageCode: string;
+                    fileName: string;
+                    /** Format: int32 */
+                    totalCount: number;
+                    /** Format: int32 */
+                    successCount: number;
+                    /** Format: int32 */
+                    failCount: number;
+                    resourceCode?: string | null;
+                    errorSummary?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        pageCode: string;
+                        resourceCode?: string | null;
+                        fileName: string;
+                        /** Format: int32 */
+                        totalCount: number;
+                        /** Format: int32 */
+                        successCount: number;
+                        /** Format: int32 */
+                        failCount: number;
+                        errorSummary?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "import-histories.recent": {
+        parameters: {
+            query: {
+                pageCode: string;
+                count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ImportHistoryResponse"][];
                     };
                 };
             };

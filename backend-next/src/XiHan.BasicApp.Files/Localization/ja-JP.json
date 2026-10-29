@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "無効なストレージ設定は既定にできません。",
   "files.file.access_denied": "このファイルをダウンロードするには files.files.read が必要です。",
   "files.storage.none": "この側にもプラットフォームにも利用できる既定のストレージ設定がありません。",
-  "files.storage_config.undecryptable": "ストレージ設定 {code} のアクセスキーを復号できません（データ保護のキーリングが変わった可能性があります）。アクセスキーを入力し直してください。"
+  "files.storage_config.undecryptable": "ストレージ設定 {code} のアクセスキーを復号できません（データ保護のキーリングが変わった可能性があります）。アクセスキーを入力し直してください。",
+  "export_tasks.submit.description": "エクスポートを登録：一覧操作の検索結果を自分の権限でバックグラウンドに CSV または XLSX へ出力し、一時ファイル（7 日）として保存します。サインインが必要で、一覧操作がいつもどおり権限を判定します。",
+  "export_tasks.list.description": "自分のエクスポートタスクをページ単位で一覧表示します。サインインが必要です。",
+  "export_tasks.get.description": "自分のエクスポートタスクを取得します。サインインが必要です。",
+  "export_tasks.cancel.description": "待機中の自分のエクスポートタスクを取り消します。サインインが必要です。",
+  "export_tasks.delete.description": "自分のエクスポートタスクを結果ファイルごと削除します。実行中のものは個別に拒否されます。サインインが必要です。",
+  "import_histories.create.description": "インポートの結果を記録します（行の作成はページが 1 件ずつ行います）。サインインが必要です。",
+  "import_histories.recent.description": "ページでの自分の最近のインポートを一覧表示します。サインインが必要です。",
+  "files.export.not_found": "エクスポートタスク {id} は存在しません。",
+  "files.export.target_invalid": "{businessType} はエクスポートできる一覧操作ではありません。",
+  "files.export.columns_required": "エクスポートする列を 1 つ以上選んでください。",
+  "files.export.query_invalid": "検索スナップショットは JSON オブジェクトにしてください。",
+  "files.export.not_pending": "エクスポートタスクは {status} 状態です。取り消せるのは待機中だけで、実行中は削除できません。",
+  "files.export.credential_missing": "この呼び出しにはサインインの資格情報がないため、エクスポートをあなたとしてバックグラウンドで実行できません。",
+  "files.export.cancelled": "取り消し済み",
+  "files.export.result_remark": "エクスポート結果：{name}"
 }

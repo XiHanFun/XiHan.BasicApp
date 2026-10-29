@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "A disabled storage configuration cannot be the default.",
   "files.file.access_denied": "This file requires files.files.read to download.",
   "files.storage.none": "Neither the caller's side nor the platform has a usable default storage configuration.",
-  "files.storage_config.undecryptable": "The access key of storage configuration {code} cannot be decrypted (the data protection key ring may have changed); enter the access key again."
+  "files.storage_config.undecryptable": "The access key of storage configuration {code} cannot be decrypted (the data protection key ring may have changed); enter the access key again.",
+  "export_tasks.submit.description": "Submit an export: run a list operation's query as yourself in the background and write CSV or XLSX, kept as a temporary file for 7 days. Requires sign-in; the list operation checks its own permission as usual.",
+  "export_tasks.list.description": "Page through your own export tasks. Requires sign-in.",
+  "export_tasks.get.description": "Get one of your export tasks. Requires sign-in.",
+  "export_tasks.cancel.description": "Cancel one of your queued export tasks. Requires sign-in.",
+  "export_tasks.delete.description": "Delete your export tasks together with their result files; running ones are rejected one by one. Requires sign-in.",
+  "import_histories.create.description": "Record the result of an import (the page creates the rows one by one). Requires sign-in.",
+  "import_histories.recent.description": "List your most recent imports on a page. Requires sign-in.",
+  "files.export.not_found": "Export task {id} does not exist.",
+  "files.export.target_invalid": "{businessType} is not a list operation that can be exported.",
+  "files.export.columns_required": "Choose at least one column to export.",
+  "files.export.query_invalid": "The query snapshot must be a JSON object.",
+  "files.export.not_pending": "The export task is {status}; only queued tasks can be cancelled and running tasks cannot be deleted.",
+  "files.export.credential_missing": "This call carries no sign-in credential, so the export cannot run in the background as you.",
+  "files.export.cancelled": "Cancelled",
+  "files.export.result_remark": "Export result: {name}"
 }

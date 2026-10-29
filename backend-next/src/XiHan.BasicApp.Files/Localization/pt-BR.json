@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "Uma configuração de armazenamento desativada não pode ser a padrão.",
   "files.file.access_denied": "Este arquivo exige files.files.read para ser baixado.",
   "files.storage.none": "Nem o seu lado nem a plataforma têm uma configuração de armazenamento padrão utilizável.",
-  "files.storage_config.undecryptable": "A chave de acesso da configuração de armazenamento {code} não pode ser descriptografada (o chaveiro de proteção de dados pode ter mudado); informe a chave de acesso novamente."
+  "files.storage_config.undecryptable": "A chave de acesso da configuração de armazenamento {code} não pode ser descriptografada (o chaveiro de proteção de dados pode ter mudado); informe a chave de acesso novamente.",
+  "export_tasks.submit.description": "Enviar uma exportação: executar em segundo plano a consulta de uma operação de lista com a sua identidade e gerar CSV ou XLSX, guardado 7 dias como arquivo temporário. Requer login; a operação de lista verifica a permissão como sempre.",
+  "export_tasks.list.description": "Listar por página as suas tarefas de exportação. Requer login.",
+  "export_tasks.get.description": "Obter uma das suas tarefas de exportação. Requer login.",
+  "export_tasks.cancel.description": "Cancelar uma das suas tarefas de exportação na fila. Requer login.",
+  "export_tasks.delete.description": "Excluir as suas tarefas de exportação junto com os arquivos de resultado; as em execução são recusadas uma a uma. Requer login.",
+  "import_histories.create.description": "Registrar o resultado de uma importação (a página cria as linhas uma a uma). Requer login.",
+  "import_histories.recent.description": "Listar as suas importações recentes em uma página. Requer login.",
+  "files.export.not_found": "A tarefa de exportação {id} não existe.",
+  "files.export.target_invalid": "{businessType} não é uma operação de lista exportável.",
+  "files.export.columns_required": "Escolha pelo menos uma coluna para exportar.",
+  "files.export.query_invalid": "O instantâneo da consulta deve ser um objeto JSON.",
+  "files.export.not_pending": "A tarefa de exportação está {status}; só as na fila podem ser canceladas e as em execução não podem ser excluídas.",
+  "files.export.credential_missing": "Esta chamada não traz credencial de login, então a exportação não pode rodar em segundo plano com a sua identidade.",
+  "files.export.cancelled": "Cancelada",
+  "files.export.result_remark": "Resultado da exportação: {name}"
 }

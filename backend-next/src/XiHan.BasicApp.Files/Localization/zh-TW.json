@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "停用的儲存設定不能設為預設。",
   "files.file.access_denied": "這個檔案要求持有 files.files.read 才能下載。",
   "files.storage.none": "目前一側與平台都沒有可用的預設儲存設定。",
-  "files.storage_config.undecryptable": "儲存設定 {code} 的存取金鑰解不開（資料保護的金鑰環可能已更換），請重新填寫存取金鑰。"
+  "files.storage_config.undecryptable": "儲存設定 {code} 的存取金鑰解不開（資料保護的金鑰環可能已更換），請重新填寫存取金鑰。",
+  "export_tasks.submit.description": "提交匯出：把某個列表操作的查詢結果依自己的身分在背景匯出成 CSV 或 XLSX，結果存成暫存檔（7 天）。只要求登入；匯出時依該列表操作照常判定權限。",
+  "export_tasks.list.description": "分頁列出自己的匯出任務。只要求登入。",
+  "export_tasks.get.description": "取得自己的一個匯出任務。只要求登入。",
+  "export_tasks.cancel.description": "取消自己排隊中的匯出任務。只要求登入。",
+  "export_tasks.delete.description": "刪除自己的匯出任務，連同結果檔；執行中的逐項拒絕。只要求登入。",
+  "import_histories.create.description": "記錄一次匯入的結果（匯入由頁面逐列呼叫新建操作完成）。只要求登入。",
+  "import_histories.recent.description": "列出本人在某頁最近的匯入紀錄。只要求登入。",
+  "files.export.not_found": "匯出任務 {id} 不存在。",
+  "files.export.target_invalid": "{businessType} 不是可以匯出的列表操作。",
+  "files.export.columns_required": "匯出至少要選一欄。",
+  "files.export.query_invalid": "查詢快照須為 JSON 物件。",
+  "files.export.not_pending": "匯出任務處於 {status} 狀態，只有排隊中的能取消，執行中的不能刪除。",
+  "files.export.credential_missing": "這次呼叫沒有登入憑證，匯出無法在背景以你的身分執行。",
+  "files.export.cancelled": "已取消",
+  "files.export.result_remark": "匯出結果：{name}"
 }

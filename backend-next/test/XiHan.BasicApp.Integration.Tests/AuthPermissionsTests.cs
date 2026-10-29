@@ -44,13 +44,13 @@ public sealed class AuthPermissionsTests : IDisposable
 
         var menus = body.GetProperty("menus").EnumerateArray().ToList();
         // 工作台（Tier 3 模块，排序 0、登录即可见）是第一页：登录后的落点
-        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
         Assert.Equal("Page", menus[0].GetProperty("kind").GetString());
         Assert.Equal(JsonValueKind.Null, menus[0].GetProperty("permission").ValueKind);
         Assert.Equal("identity/users/index", menus[1].GetProperty("component").GetString());
         Assert.Equal("/access/roles", menus[2].GetProperty("route").GetString());
         Assert.Equal("access.roles.read", menus[2].GetProperty("permission").GetString());
-        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, catalog.StatusCode);
@@ -78,8 +78,8 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(["viewer"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
-        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
-        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users", "files.export-center"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users", "files.export-center"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         // 没有 access.permissions.read 的主体看不到权限目录
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: token));
@@ -97,7 +97,7 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.False(body.GetProperty("isPlatform").GetBoolean());
         Assert.Equal(["identity.users.create", "identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(0, body.GetProperty("roles").GetArrayLength());
-        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users", "files.export-center"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
 
         var (anonymous, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions"));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
