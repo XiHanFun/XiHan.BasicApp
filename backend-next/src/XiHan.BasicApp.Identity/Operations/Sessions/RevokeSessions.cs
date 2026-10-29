@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Sessions;
 
 /// <summary>
-/// 强制下线：<c>POST /api/sessions:revoke</c>。吊销一批有效会话（只限当前一侧、数据范围内的），提交后经实时连接通知客户端退出登录并断开它们的连接；
-/// 不存在或看不到的会话逐项 <c>IDENTITY_NOTFOUND_002</c>，调用方自己当前的会话逐项 <c>IDENTITY_VALIDATION_011</c>（用退出登录）。
+/// 强制下线一批会话。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/sessions:revoke</c>。吊销一批有效会话（只限当前一侧、数据范围内的），提交后经实时连接通知客户端退出登录并断开它们的连接；
+/// 不存在或看不到的会话逐项 <c>IDENTITY_NOTFOUND_002</c>，调用方自己当前的会话逐项 <c>IDENTITY_VALIDATION_011</c>（用退出登录）。
+/// </remarks>
 /// <param name="queries">会话查询（取当前一侧、数据范围内的有效会话）。</param>
 /// <param name="accounts">账号域服务（吊销与推送）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRevoke)]

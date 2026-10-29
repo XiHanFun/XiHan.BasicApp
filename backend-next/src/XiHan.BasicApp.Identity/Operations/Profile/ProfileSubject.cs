@@ -11,13 +11,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 个人中心操作的主体：当前令牌的用户与他的账号安全。改账号安全的操作不许在模仿会话里做——模仿者不能替别人开关双因素。
+/// 个人中心操作的主体：当前令牌的用户与他的账号安全。
 /// </summary>
+/// <remarks>
+/// 改账号安全的操作不许在模仿会话里做——模仿者不能替别人开关双因素。
+/// </remarks>
 internal static class ProfileSubject
 {
     /// <summary>
-    /// 取当前用户与账号安全；<paramref name="rejectImpersonation"/> 时模仿会话直接拒绝。
+    /// 取当前用户与账号安全。
     /// </summary>
+    /// <remarks>
+    /// <paramref name="rejectImpersonation"/> 时模仿会话直接拒绝。
+    /// </remarks>
     public static async Task<Result<(SysUser User, SysUserSecurity Security)>> ResolveAsync(IRepository<SysUser, Guid> users, UserAccountService accounts, InvocationContext context, bool rejectImpersonation)
     {
         var principal = context.GetSecurity().Principal;

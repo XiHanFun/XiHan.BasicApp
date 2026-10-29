@@ -8,8 +8,11 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// <see cref="IUserDirectory"/> 的实现：在调用的工作单元里直接查用户表（含已删除的）。
+/// <see cref="IUserDirectory"/> 的实现。
 /// </summary>
+/// <remarks>
+/// 在调用的工作单元里直接查用户表（含已删除的）。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 public sealed class UserDirectory(SqlSugarUnitOfWork unitOfWork) : IUserDirectory
 {

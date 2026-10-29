@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 邮箱格式（<c>[EmailAddress]</c> 不折进 Schema，格式自己判）：只要求形如 local@domain，不做完整的 RFC 5322。
+/// 邮箱格式校验。
 /// </summary>
+/// <remarks>
+/// <c>[EmailAddress]</c> 不折进 Schema，格式自己判。只要求形如 local@domain，不做完整的 RFC 5322。
+/// </remarks>
 internal static class UserEmail
 {
     /// <summary>

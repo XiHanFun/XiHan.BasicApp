@@ -14,9 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 关闭一种双因素方式：<c>POST /api/profile:disable-two-factor</c>。认证器要用当前认证器的码确认（防重放），通过即清掉密钥；
-/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做。
+/// 关闭一种双因素方式。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/profile:disable-two-factor</c>。认证器要用当前认证器的码确认（防重放），通过即清掉密钥；
+/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="securities">账号安全仓储。</param>
 /// <param name="accounts">账号域服务。</param>

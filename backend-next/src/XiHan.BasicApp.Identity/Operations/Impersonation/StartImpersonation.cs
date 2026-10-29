@@ -20,10 +20,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// 发起模仿登录 <c>impersonation.start</c>：以目标用户的身份另开一个会话并签发令牌（<c>sub</c> 是目标、<c>act</c> 是发起人），客户端换令牌后整页重载。
-/// 不是目标用户的一次登录：不写登录痕迹。发起人的会话保留，<c>impersonation.stop</c> 时回到它。
-/// 范围：不填租户即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户（目标须是该租户的注册地用户或成员）或平台（目标须是平台账号）。不能模仿自己，不能在模仿态里再模仿。
+/// 发起模仿登录。
 /// </summary>
+/// <remarks>
+/// 操作 <c>impersonation.start</c>。以目标用户的身份另开一个会话并签发令牌（<c>sub</c> 是目标、<c>act</c> 是发起人），客户端换令牌后整页重载。
+/// 不是目标用户的一次登录：不写登录痕迹。发起人的会话保留，<c>impersonation.stop</c> 时回到它。
+/// 范围：不填租户即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户（目标须是该租户的注册地用户或成员）或平台（目标须是平台账号）。
+/// 不能模仿自己，不能在模仿态里再模仿。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="accounts">账号域服务。</param>

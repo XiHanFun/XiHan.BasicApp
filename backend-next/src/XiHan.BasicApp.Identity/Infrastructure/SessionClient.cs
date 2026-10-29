@@ -12,8 +12,11 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 开会话时记下的客户端：取调用来源（框架协议适配器填入的远端地址与 User-Agent，ADR-0043）；没有网络对端的调用（命令行、消息派发）为 <see langword="null"/>。
+/// 开会话时记下的客户端。
 /// </summary>
+/// <remarks>
+/// 取调用来源（框架协议适配器填入的远端地址与 User-Agent，ADR-0043）；没有网络对端的调用（命令行、消息派发）为 <see langword="null"/>。
+/// </remarks>
 public static class SessionClient
 {
     /// <summary>
@@ -40,8 +43,11 @@ public static class SessionClient
     }
 
     /// <summary>
-    /// 按会话已记下的 User-Agent 与 IP 填浏览器、操作系统、设备类型与登录地点（在线用户页的列）。
+    /// 填会话的浏览器、操作系统、设备类型与登录地点。
     /// </summary>
+    /// <remarks>
+    /// 按会话已记下的 User-Agent 与 IP 解析（在线用户页的列）。
+    /// </remarks>
     public static void Describe(SysUserSession session, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(session);

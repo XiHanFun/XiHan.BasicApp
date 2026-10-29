@@ -6,8 +6,11 @@ using System.Security.Cryptography;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 图形验证码的码源：缺省是密码学随机的数字；测试可以换成固定码。
+/// 图形验证码的码源。
 /// </summary>
+/// <remarks>
+/// 缺省是密码学随机的数字；测试可以换成固定码。
+/// </remarks>
 public interface ICaptchaCodeSource
 {
     /// <summary>

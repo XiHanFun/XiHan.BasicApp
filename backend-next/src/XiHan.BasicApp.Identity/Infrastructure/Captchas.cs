@@ -10,9 +10,12 @@ using XiHan.Framework.Caching.Abstractions.Stores;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 图形验证码（单例）：4 位数字，共享缓存里只存码的 SHA-256，有效期 <see cref="IdentityOptions.CaptchaLifetime"/>。
-/// 一次性：校验先删再比，删除失败（已被别的请求拿走或已过期）即不通过，无论对错都不能再用；比较用常数时间。
+/// 图形验证码的签发与校验。
 /// </summary>
+/// <remarks>
+/// 单例服务。4 位数字，共享缓存里只存码的 SHA-256，有效期 <see cref="IdentityOptions.CaptchaLifetime"/>。
+/// 一次性：校验先删再比，删除失败（已被别的请求拿走或已过期）即不通过，无论对错都不能再用；比较用常数时间。
+/// </remarks>
 /// <param name="cache">共享缓存（多实例共用）。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="codes">码源。</param>

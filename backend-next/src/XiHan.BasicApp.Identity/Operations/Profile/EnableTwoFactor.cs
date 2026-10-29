@@ -15,9 +15,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 开启一种双因素方式：<c>POST /api/profile:enable-two-factor</c>。目前只有认证器——用 <c>profile.setup-totp</c> 暂存的密钥校验认证器算出的码，
-/// 通过才把密钥加密落库、开启双因素（这一步就算用过一次，同一步的码不能再用来登录）。登录日志记为 <see cref="LoginEvent.TwoFactorEnable"/>。模仿会话不能做。
+/// 开启一种双因素方式。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/profile:enable-two-factor</c>。目前只有认证器——用 <c>profile.setup-totp</c> 暂存的密钥校验认证器算出的码，
+/// 通过才把密钥加密落库、开启双因素（这一步就算用过一次，同一步的码不能再用来登录）。登录日志记为 <see cref="LoginEvent.TwoFactorEnable"/>。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="securities">账号安全仓储。</param>
 /// <param name="accounts">账号域服务。</param>

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 用户统计（租户库，表 <c>sys_user_statistics</c>）：随用户创建在其注册地租户初始化一行，由框架仓储按租户过滤并随租户分库落到 <c>shard</c> 连接。
+/// 用户统计。
 /// </summary>
+/// <remarks>
+/// 租户库，表 <c>sys_user_statistics</c>。随用户创建在其注册地租户初始化一行，由框架仓储按租户过滤并随租户分库落到 <c>shard</c> 连接。
+/// </remarks>
 public sealed class SysUserStatistics : TenantScopedAuditedEntity
 {
     /// <summary>

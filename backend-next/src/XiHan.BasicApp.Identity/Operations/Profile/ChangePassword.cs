@@ -15,8 +15,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 本人改密（自助操作，只要求已认证）：<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话。
+/// 修改本人的密码。
 /// </summary>
+/// <remarks>
+/// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="clock">时间源。</param>

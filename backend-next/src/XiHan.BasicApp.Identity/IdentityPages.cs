@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包的页面登记（方案 D4）：菜单种子与前端路由从这里派生；组件路径 = 路由去前导斜杠 + <c>/index</c>。
+/// 身份包的页面登记。
 /// </summary>
+/// <remarks>
+/// 见方案 D4。菜单种子与前端路由从这里派生；组件路径 = 路由去前导斜杠 + <c>/index</c>。
+/// </remarks>
 public static class IdentityPages
 {
     /// <summary>

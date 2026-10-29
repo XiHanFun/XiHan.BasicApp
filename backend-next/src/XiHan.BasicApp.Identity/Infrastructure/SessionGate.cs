@@ -12,9 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 会话门禁（单例）：按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）。
-/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效。
+/// 会话门禁：核对令牌的会话仍然有效。
 /// </summary>
+/// <remarks>
+/// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）。
+/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效。
+/// </remarks>
 public sealed class SessionGate
 {
     private const string Valid = "valid";
@@ -38,8 +41,9 @@ public sealed class SessionGate
     }
 
     /// <summary>
-    /// 会话是否仍可用；不可用返回 <c>IDENTITY_DENIED_001</c>，锁定返回 <c>IDENTITY_DENIED_002</c>（参数 <c>reason</c>）。
+    /// 检查会话是否仍可用。
     /// </summary>
+    /// <returns>不可用返回 <c>IDENTITY_DENIED_001</c>，锁定返回 <c>IDENTITY_DENIED_002</c>（参数 <c>reason</c>）。</returns>
     public async ValueTask<Result> ValidateAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         var state = await _cache.GetOrCreateAsync(KeyOf(sessionId), ct => LoadAsync(sessionId, ct), CacheEntryOptions.Expires(_options.SessionCacheTimeToLive), cancellationToken).ConfigureAwait(false);

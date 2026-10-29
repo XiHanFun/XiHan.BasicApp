@@ -7,8 +7,13 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 登录会话（平台库，表 <c>sys_user_session</c>）：会话 ID 即访问令牌的 <c>sid</c> 声明，刷新令牌不透明、只存散列。吊销即置 <see cref="RevokedAt"/>，由会话门禁在 Authenticate 阶段拒绝。
+/// 登录会话。
 /// </summary>
+/// <remarks>
+/// 平台库，表 <c>sys_user_session</c>。
+/// 会话 ID 即访问令牌的 <c>sid</c> 声明，刷新令牌不透明、只存散列。
+/// 吊销即置 <see cref="RevokedAt"/>，由会话门禁在 Authenticate 阶段拒绝。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysUserSession : AppAuditedEntity
 {
@@ -18,8 +23,11 @@ public sealed class SysUserSession : AppAuditedEntity
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 本会话的当前租户；平台账号为 <see langword="null"/>。
+    /// 本会话的当前租户。
     /// </summary>
+    /// <remarks>
+    /// 平台账号为 <see langword="null"/>。
+    /// </remarks>
     public string? ActiveTenantId { get; set; }
 
     /// <summary>
@@ -33,8 +41,11 @@ public sealed class SysUserSession : AppAuditedEntity
     public DateTimeOffset IssuedAt { get; set; }
 
     /// <summary>
-    /// 刷新令牌（会话）过期时间；之后必须重新登录。
+    /// 刷新令牌（会话）过期时间。
     /// </summary>
+    /// <remarks>
+    /// 之后必须重新登录。
+    /// </remarks>
     public DateTimeOffset RefreshExpiresAt { get; set; }
 
     /// <summary>
@@ -43,13 +54,19 @@ public sealed class SysUserSession : AppAuditedEntity
     public DateTimeOffset? LastSeenAt { get; set; }
 
     /// <summary>
-    /// 吊销时间；为 <see langword="null"/> 即有效。
+    /// 吊销时间。
     /// </summary>
+    /// <remarks>
+    /// 为 <see langword="null"/> 即有效。
+    /// </remarks>
     public DateTimeOffset? RevokedAt { get; set; }
 
     /// <summary>
-    /// 吊销原因（<c>logout</c>、<c>password-changed</c>、<c>locked</c>、<c>revoked</c>）。
+    /// 吊销原因。
     /// </summary>
+    /// <remarks>
+    /// 取值：<c>logout</c>、<c>password-changed</c>、<c>locked</c>、<c>revoked</c>。
+    /// </remarks>
     public string? RevokeReason { get; set; }
 
     /// <summary>
@@ -81,24 +98,36 @@ public sealed class SysUserSession : AppAuditedEntity
     public string? Device { get; set; }
 
     /// <summary>
-    /// 登录地点（开会话时按 IP 归属地解析；没装 IP 归属地库即为 <see langword="null"/>）。
+    /// 登录地点。
     /// </summary>
+    /// <remarks>
+    /// 开会话时按 IP 归属地解析。没装 IP 归属地库即为 <see langword="null"/>。
+    /// </remarks>
     [StringLength(128)]
     public string? Location { get; set; }
 
     /// <summary>
-    /// 模仿会话：发起模仿的用户 ID（令牌的 <c>act</c>）；普通会话为 <see langword="null"/>。
+    /// 模仿会话中发起模仿的用户 ID。
     /// </summary>
+    /// <remarks>
+    /// 令牌的 <c>act</c>。普通会话为 <see langword="null"/>。
+    /// </remarks>
     public Guid? ImpersonatorUserId { get; set; }
 
     /// <summary>
-    /// 模仿会话：发起人当时的会话；结束模仿时回到它，它失效时模仿会话也失效。
+    /// 模仿会话中发起人当时的会话。
     /// </summary>
+    /// <remarks>
+    /// 结束模仿时回到它，它失效时模仿会话也失效。
+    /// </remarks>
     public Guid? ImpersonatorSessionId { get; set; }
 
     /// <summary>
-    /// 锁定原因（为空即没锁；锁屏为 <see cref="SessionLockReasons.ScreenLock"/>，4.x 同）。锁定的会话只放行解锁与注销。
+    /// 锁定原因。
     /// </summary>
+    /// <remarks>
+    /// 为空即没锁。锁屏为 <see cref="SessionLockReasons.ScreenLock"/>，4.x 同。锁定的会话只放行解锁与注销。
+    /// </remarks>
     [StringLength(32)]
     public string? LockReason { get; set; }
 
@@ -125,8 +154,11 @@ public sealed class SysUserSession : AppAuditedEntity
 }
 
 /// <summary>
-/// 会话的锁定原因（与前端 <c>session-lock.ts</c> 的常量一致）。锁定是通用能力，锁屏只是一种；别的原因不能用锁屏密码解开。
+/// 会话的锁定原因。
 /// </summary>
+/// <remarks>
+/// 与前端 <c>session-lock.ts</c> 的常量一致。锁定是通用能力，锁屏只是一种；别的原因不能用锁屏密码解开。
+/// </remarks>
 public static class SessionLockReasons
 {
     /// <summary>
@@ -135,7 +167,10 @@ public static class SessionLockReasons
     public const string ScreenLock = "ScreenLock";
 
     /// <summary>
-    /// 锁屏连错几次即吊销会话（4.x 同 5 次）。
+    /// 锁屏连错几次即吊销会话。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同 5 次。
+    /// </remarks>
     public const int MaxUnlockAttempts = 5;
 }

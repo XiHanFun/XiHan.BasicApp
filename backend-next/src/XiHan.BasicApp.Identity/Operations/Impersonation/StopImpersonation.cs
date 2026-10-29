@@ -17,9 +17,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// 结束模仿登录 <c>impersonation.stop</c>（自助操作：模仿态的主体是被模仿者，不持有模仿权限；准入靠令牌 <c>act</c> 与会话行上的发起人相等）。
-/// 吊销模仿会话，在发起人原会话上轮换刷新令牌并签发其本人身份的令牌；原会话已失效即要求重新登录。
+/// 结束模仿登录。
 /// </summary>
+/// <remarks>
+/// 操作 <c>impersonation.stop</c>（自助操作：模仿态的主体是被模仿者，不持有模仿权限；准入靠令牌 <c>act</c> 与会话行上的发起人相等）。
+/// 吊销模仿会话，在发起人原会话上轮换刷新令牌并签发其本人身份的令牌；原会话已失效即要求重新登录。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="accounts">账号域服务。</param>

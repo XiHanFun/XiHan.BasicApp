@@ -24,8 +24,11 @@ public static class TwoFactorSettings
     public static TwoFactorMethods FlagOf(TwoFactorMethod method) => (TwoFactorMethods)(int)method;
 
     /// <summary>
-    /// 登录第二步可用的方式：认证器要有密钥；邮箱与短信要等 Notification 能发码，目前一律不可用。
+    /// 登录第二步可用的方式。
     /// </summary>
+    /// <remarks>
+    /// 认证器要有密钥；邮箱与短信要等 Notification 能发码，目前一律不可用。
+    /// </remarks>
     public static IReadOnlyList<TwoFactorMethod> UsableAt(SysUserSecurity security)
     {
         ArgumentNullException.ThrowIfNull(security);

@@ -4,7 +4,10 @@
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// <c>impersonation.candidates</c> 的响应：最多 20 个候选，按登录名排序。
+/// <c>impersonation.candidates</c> 的响应。
 /// </summary>
+/// <remarks>
+/// 最多 20 个候选，按登录名排序。
+/// </remarks>
 /// <param name="Items">候选用户。</param>
 public sealed record ImpersonationCandidatesResponse(IReadOnlyList<ImpersonationCandidateResponse> Items);

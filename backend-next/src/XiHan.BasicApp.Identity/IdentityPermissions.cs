@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包的权限码：<c>identity.&lt;资源&gt;.&lt;动作&gt;</c>。操作的 <c>Permission</c> 引用这里的常量，权限目录种子从 <see cref="All"/> 派生。
+/// 身份包的权限码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>identity.&lt;资源&gt;.&lt;动作&gt;</c>。操作的 <c>Permission</c> 引用这里的常量，权限目录种子从 <see cref="All"/> 派生。
+/// </remarks>
 public static class IdentityPermissions
 {
     /// <summary>
@@ -46,8 +49,11 @@ public static class IdentityPermissions
     public const string UsersResetTwoFactor = "identity.users.reset-two-factor";
 
     /// <summary>
-    /// 模仿登录：<c>impersonation.start</c>、<c>impersonation.candidates</c>（结束模仿是自助操作）。
+    /// 模仿登录。
     /// </summary>
+    /// <remarks>
+    /// 用于 <c>impersonation.start</c>、<c>impersonation.candidates</c>（结束模仿是自助操作）。
+    /// </remarks>
     public const string ImpersonationStart = "identity.impersonation.start";
 
     /// <summary>

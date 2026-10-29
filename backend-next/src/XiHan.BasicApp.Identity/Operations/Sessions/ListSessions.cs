@@ -9,9 +9,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Sessions;
 
 /// <summary>
-/// 分页列出在线用户：<c>POST /api/sessions:list</c>。一行一个有效会话，带设备、浏览器、遮掩过的 IP、登录地点、登录与最后活动时间、是否持有实时连接；
-/// 只看当前一侧，租户一侧再按数据范围收窄。
+/// 分页列出在线用户。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/sessions:list</c>。一行一个有效会话，带设备、浏览器、遮掩过的 IP、登录地点、登录与最后活动时间、是否持有实时连接；
+/// 只看当前一侧，租户一侧再按数据范围收窄。
+/// </remarks>
 /// <param name="queries">会话查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRead)]
 public sealed class ListSessions(SessionQueries queries) : IOperation<PageRequest, PageResult<OnlineSessionResponse>>

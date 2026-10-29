@@ -8,8 +8,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 登录页配置（匿名只读操作，登记在架构测试的匿名白名单）：<c>GET /api/auth:login-config</c>。登录页据此决定显示哪些入口、要不要图形验证码。
+/// 取登录页配置。
 /// </summary>
+/// <remarks>
+/// 匿名只读操作，登记在架构测试的匿名白名单。<c>GET /api/auth:login-config</c>。登录页据此决定显示哪些入口、要不要图形验证码。
+/// </remarks>
 /// <param name="options">身份配置。</param>
 /// <param name="external">第三方登录配置（登录页上的提供方）。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http)]

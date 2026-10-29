@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 本人的头像：换上新传的或去掉，旧的头像文件随之回收（经 Contracts 的 <see cref="IAvatarFiles"/>，没装 Files 即不回收）。
-/// 上传在宿主的头像端点里做（校验文件头、存平台侧公开级别），这里只记引用。
+/// 换上新传的或去掉本人的头像。
 /// </summary>
+/// <remarks>
+/// 旧的头像文件随之回收（经 Contracts 的 <see cref="IAvatarFiles"/>，没装 Files 即不回收）。
+/// 上传在宿主的头像端点里做（校验文件头、存平台侧公开级别），这里只记引用。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="files">头像文件。</param>
@@ -21,8 +24,11 @@ public sealed class ProfileAvatars(IRepository<SysUser, Guid> users, UserAccount
     private readonly IAvatarFiles? _files = files.FirstOrDefault();
 
     /// <summary>
-    /// 调用方本人与账号安全（头像端点上传之前先认人；模仿会话不拒绝，4.x 同）。
+    /// 取调用方本人与账号安全。
     /// </summary>
+    /// <remarks>
+    /// 头像端点上传之前先认人。模仿会话不拒绝，4.x 同。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     public Task<Result<(SysUser User, SysUserSecurity Security)>> CallerAsync(InvocationContext context)
         => ProfileSubject.ResolveAsync(users, accounts, context, rejectImpersonation: false);

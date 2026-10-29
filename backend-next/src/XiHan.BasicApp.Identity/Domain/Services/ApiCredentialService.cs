@@ -15,17 +15,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 个人的开放接口凭证（4.x 个人中心「开放接口」）：每人最多 5 个；AppKey 为 <c>ak_</c> + 24 位、密钥为 <c>sk_</c> + 43 位字母数字，密钥加密存、只在创建与滚动时返回一次。
-/// 签名算法与 IP 白名单在账号安全上，作用于本人全部凭证（4.x 页面上的「调用安全设置」存进了用户设置、验签不读，这里改为真正生效）。
+/// 个人的开放接口凭证服务。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 个人中心「开放接口」。每人最多 5 个；AppKey 为 <c>ak_</c> + 24 位、密钥为 <c>sk_</c> + 43 位字母数字，密钥加密存、只在创建与滚动时返回一次。
+/// 签名算法与 IP 白名单在账号安全上，作用于本人全部凭证（4.x 页面上的「调用安全设置」存进了用户设置、验签不读，这里改为真正生效）。
+/// </remarks>
 /// <param name="credentials">凭证仓储。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">标识生成器。</param>
 public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid> credentials, ISecretProtector secrets, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 每人的凭证上限（4.x 同）。
+    /// 每人的凭证上限。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int Limit = 5;
 
     /// <summary>
@@ -48,8 +54,11 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
     }
 
     /// <summary>
-    /// 取本人的一个凭证；别人的与不存在的一样是 <c>IDENTITY_NOTFOUND_003</c>。
+    /// 取本人的一个凭证。
     /// </summary>
+    /// <remarks>
+    /// 别人的与不存在的一样是 <c>IDENTITY_NOTFOUND_003</c>。
+    /// </remarks>
     /// <param name="userId">用户。</param>
     /// <param name="id">凭证 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -122,8 +131,11 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
     }
 
     /// <summary>
-    /// 批量删除本人的凭证（软删除，AppKey 立即不能用）；别人的逐项 <c>IDENTITY_NOTFOUND_003</c>。
+    /// 批量删除本人的凭证。
     /// </summary>
+    /// <remarks>
+    /// 软删除，AppKey 立即不能用。别人的逐项 <c>IDENTITY_NOTFOUND_003</c>。
+    /// </remarks>
     /// <param name="userId">用户。</param>
     /// <param name="credentialIds">凭证 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -154,9 +166,12 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
     }
 
     /// <summary>
-    /// 写调用安全设置：算法须是 <see cref="ApiSignatureAlgorithms.All"/> 之一（<c>IDENTITY_VALIDATION_012</c>），白名单每条须是 IP 或 CIDR（<c>IDENTITY_VALIDATION_013</c>）。
-    /// 不在这里保存，由调用方连同账号安全一起更新。
+    /// 写调用安全设置。
     /// </summary>
+    /// <remarks>
+    /// 算法须是 <see cref="ApiSignatureAlgorithms.All"/> 之一（<c>IDENTITY_VALIDATION_012</c>），白名单每条须是 IP 或 CIDR（<c>IDENTITY_VALIDATION_013</c>）。
+    /// 不在这里保存，由调用方连同账号安全一起更新。
+    /// </remarks>
     /// <param name="security">账号安全。</param>
     /// <param name="algorithm">签名算法。</param>
     /// <param name="ipAllowList">白名单。</param>

@@ -6,13 +6,17 @@ using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 从框架租户目录取租户显示名（登录 / 刷新 / 切换 / 模仿的响应与 <c>auth.me</c> 都带它，顶栏按它显示当前上下文）。
+/// 从框架租户目录取租户显示名。
 /// </summary>
+/// <remarks>
+/// 登录 / 刷新 / 切换 / 模仿的响应与 <c>auth.me</c> 都带它，顶栏按它显示当前上下文。
+/// </remarks>
 public static class TenantNames
 {
     /// <summary>
-    /// <paramref name="tenantId"/> 的显示名；平台（<see langword="null"/>）或目录里没有即 <see langword="null"/>。
+    /// 取 <paramref name="tenantId"/> 的显示名。
     /// </summary>
+    /// <returns>显示名；平台（<see langword="null"/>）或目录里没有即 <see langword="null"/>。</returns>
     public static async ValueTask<string?> ResolveAsync(ITenantStore tenants, string? tenantId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tenants);

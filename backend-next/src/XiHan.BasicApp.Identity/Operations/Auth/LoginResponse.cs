@@ -6,15 +6,21 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.login</c> 的响应：要么直接拿到令牌，要么账号开了双因素、拿到第二步的挑战（二者恰有一个）。
+/// <c>auth.login</c> 的响应。
 /// </summary>
+/// <remarks>
+/// 要么直接拿到令牌，要么账号开了双因素、拿到第二步的挑战（二者恰有一个）。
+/// </remarks>
 /// <param name="Token">令牌对与会话；需要第二步时为 <see langword="null"/>。</param>
 /// <param name="TwoFactor">第二步的挑战；不需要时为 <see langword="null"/>。</param>
 public sealed record LoginResponse(TokenResponse? Token, TwoFactorChallengeResponse? TwoFactor);
 
 /// <summary>
-/// 两步验证的挑战：凭票据调 <c>auth.verify-two-factor</c>，不必再输密码；票据过期或输错次数用完须重新登录。
+/// 两步验证的挑战。
 /// </summary>
+/// <remarks>
+/// 凭票据调 <c>auth.verify-two-factor</c>，不必再输密码；票据过期或输错次数用完须重新登录。
+/// </remarks>
 /// <param name="Ticket">两步验证票据（只出现这一次）。</param>
 /// <param name="Methods">可用的方式。</param>
 /// <param name="Method">只有一种方式时就是它；有多种时为 <see langword="null"/>，由用户选。</param>

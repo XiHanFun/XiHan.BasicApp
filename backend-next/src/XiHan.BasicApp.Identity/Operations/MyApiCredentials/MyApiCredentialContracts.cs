@@ -7,8 +7,11 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.MyApiCredentials;
 
 /// <summary>
-/// <c>my-api-credentials.list</c> 与 <c>my-api-credentials.settings</c> 的请求：没有输入。
+/// 开放接口凭证没有输入的请求。
 /// </summary>
+/// <remarks>
+/// <c>my-api-credentials.list</c> 与 <c>my-api-credentials.settings</c> 的请求：没有输入。
+/// </remarks>
 public sealed record MyApiCredentialsRequest;
 
 /// <summary>
@@ -80,8 +83,11 @@ public sealed record ApiCredentialSecretResponse(Guid Id, string AppKey, string 
 public sealed record MyApiSettingsResponse(string SignatureAlgorithm, IReadOnlyList<string> IpAllowList, IReadOnlyList<string> Algorithms);
 
 /// <summary>
-/// <c>my-api-credentials.update-settings</c> 的请求（整体覆盖）。
+/// 写调用安全设置的请求。
 /// </summary>
+/// <remarks>
+/// <c>my-api-credentials.update-settings</c> 的请求，整体覆盖。
+/// </remarks>
 /// <param name="SignatureAlgorithm">签名算法（<c>HmacSHA256</c> / <c>HmacSHA512</c>）。</param>
 /// <param name="IpAllowList">IP 白名单（每条一个 IP 或 CIDR，最多 50 条）；空即不限。</param>
 public sealed record UpdateMyApiSettingsRequest([Required, StringLength(32)] string SignatureAlgorithm, [MaxLength(50)] IReadOnlyList<string>? IpAllowList);

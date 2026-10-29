@@ -18,9 +18,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 切换租户 <c>auth.switch-tenant</c>（自助操作，只要求已认证）：当前会话换到目标上下文——注册地租户、成员租户，或平台（平台账号）。
-/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。换上下文之前先过登录守卫（目标一侧的登录时机访问策略）。
+/// 把当前会话切换到目标租户或平台。
 /// </summary>
+/// <remarks>
+/// 操作 <c>auth.switch-tenant</c>（自助操作，只要求已认证）。当前会话换到目标上下文——注册地租户、成员租户，或平台（平台账号）。
+/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。换上下文之前先过登录守卫（目标一侧的登录时机访问策略）。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="accounts">账号域服务。</param>

@@ -14,8 +14,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.MyApiCredentials;
 
 /// <summary>
-/// 本人的开放接口凭证：<c>GET /api/my-api-credentials</c>（密钥不回显）。已登录即可；模仿会话看到的是被模仿人的。
+/// 列出本人的开放接口凭证。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/my-api-credentials</c>（密钥不回显）。已登录即可；模仿会话看到的是被模仿人的。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="service">凭证服务。</param>
@@ -44,8 +47,11 @@ public sealed class ListMyApiCredentials(IRepository<SysUser, Guid> users, UserA
 }
 
 /// <summary>
-/// 新建开放接口凭证：<c>POST /api/my-api-credentials</c>。密钥只在这一次返回；每人最多 5 个（<c>IDENTITY_CONFLICT_007</c>）。模仿会话不能做。
+/// 新建开放接口凭证。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/my-api-credentials</c>。密钥只在这一次返回；每人最多 5 个（<c>IDENTITY_CONFLICT_007</c>）。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="service">凭证服务。</param>
@@ -75,8 +81,11 @@ public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, User
 }
 
 /// <summary>
-/// 启用或停用本人的一个凭证：<c>PUT /api/my-api-credentials/{id}</c>。模仿会话不能做。
+/// 启用或停用本人的一个凭证。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/my-api-credentials/{id}</c>。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="service">凭证服务。</param>
@@ -111,8 +120,11 @@ public sealed class UpdateMyApiCredential(IRepository<SysUser, Guid> users, User
 }
 
 /// <summary>
-/// 滚动本人一个凭证的密钥：<c>POST /api/my-api-credentials/{id}:rotate-secret</c>。旧密钥立即失效，新密钥只在这一次返回。模仿会话不能做。
+/// 滚动本人一个凭证的密钥。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/my-api-credentials/{id}:rotate-secret</c>。旧密钥立即失效，新密钥只在这一次返回。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="service">凭证服务。</param>
@@ -147,8 +159,11 @@ public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users
 }
 
 /// <summary>
-/// 删除本人的凭证：<c>DELETE /api/my-api-credentials?ids=</c>（AppKey 立即不能用）。模仿会话不能做。
+/// 删除本人的凭证。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/my-api-credentials?ids=</c>（AppKey 立即不能用）。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="service">凭证服务。</param>
@@ -176,8 +191,11 @@ public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, Use
 }
 
 /// <summary>
-/// 本人的调用安全设置：<c>GET /api/my-api-credentials:settings</c>（签名算法与 IP 白名单，作用于本人全部凭证）。已登录即可。
+/// 读本人的调用安全设置。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/my-api-credentials:settings</c>（签名算法与 IP 白名单，作用于本人全部凭证）。已登录即可。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -201,9 +219,12 @@ public sealed class GetMyApiSettings(IRepository<SysUser, Guid> users, UserAccou
 }
 
 /// <summary>
-/// 写本人的调用安全设置：<c>POST /api/my-api-credentials:update-settings</c>（整体覆盖；算法不认识 <c>IDENTITY_VALIDATION_012</c>，白名单有一条不是 IP 或 CIDR <c>IDENTITY_VALIDATION_013</c>）。
-/// 立即作用于本人全部凭证。模仿会话不能做。
+/// 写本人的调用安全设置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/my-api-credentials:update-settings</c>（整体覆盖；算法不认识 <c>IDENTITY_VALIDATION_012</c>，白名单有一条不是 IP 或 CIDR <c>IDENTITY_VALIDATION_013</c>）。
+/// 立即作用于本人全部凭证。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="securities">账号安全仓储。</param>

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Identity.Operations.Users;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.me</c> 的响应：当前主体的资料、租户、会话与角色（权限码与菜单随 Access 包的 <c>auth.permissions</c> 下发）。
+/// <c>auth.me</c> 的响应：当前主体的资料、租户、会话与角色。
 /// </summary>
+/// <remarks>
+/// 权限码与菜单随 Access 包的 <c>auth.permissions</c> 下发。
+/// </remarks>
 /// <param name="User">用户资料。</param>
 /// <param name="TenantId">当前租户；平台账号为 <see langword="null"/>。</param>
 /// <param name="SessionId">会话 ID；非本应用签发的令牌没有。</param>

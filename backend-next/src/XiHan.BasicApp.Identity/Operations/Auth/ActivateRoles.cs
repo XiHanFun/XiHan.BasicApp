@@ -24,9 +24,14 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 public sealed record ActivateRolesRequest([Required, MinLength(1), MaxLength(100)] IReadOnlyList<Guid> RoleIds);
 
 /// <summary>
-/// 切换角色 <c>auth.activate-roles</c>（自助操作，只要求已认证）：换本会话激活的角色并换签令牌（同 <c>auth.switch-tenant</c> 的续接方式：会话续用、刷新令牌轮换）。
-/// 要激活的须都此刻持有、且不违反动态职责分离（拦截类违规即 <c>ACCESS_CONFLICT_012</c>）；其余持有的记停用。模仿态的会话不能切换。登录日志记为 <see cref="LoginEvent.RoleActivation"/>。
+/// 切换本会话激活的角色并换签令牌。
 /// </summary>
+/// <remarks>
+/// 操作 <c>auth.activate-roles</c>（自助操作，只要求已认证）。换签同 <c>auth.switch-tenant</c> 的续接方式：会话续用、刷新令牌轮换。
+/// 要激活的须都此刻持有、且不违反动态职责分离（拦截类违规即 <c>ACCESS_CONFLICT_012</c>）；其余持有的记停用。
+/// 模仿态的会话不能切换。
+/// 登录日志记为 <see cref="LoginEvent.RoleActivation"/>。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="accounts">账号域服务。</param>

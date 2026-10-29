@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包的错误码：<c>IDENTITY_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 身份包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>IDENTITY_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class IdentityErrors
 {
     /// <summary>
@@ -59,8 +62,11 @@ public static class IdentityErrors
     public const string NotImpersonating = "IDENTITY_VALIDATION_006";
 
     /// <summary>
-    /// 会话已吊销、已过期或不存在；客户端应重新登录。
+    /// 会话已吊销、已过期或不存在。
     /// </summary>
+    /// <remarks>
+    /// 客户端应重新登录。
+    /// </remarks>
     public const string SessionInvalid = "IDENTITY_DENIED_001";
 
     /// <summary>
@@ -129,23 +135,35 @@ public static class IdentityErrors
     public const string TwoFactorUnavailable = "IDENTITY_DENIED_010";
 
     /// <summary>
-    /// 按字段安全读受保护的字段筛选或排序；参数 <c>field</c>。
+    /// 按字段安全读受保护的字段筛选或排序。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string FieldProtected = "IDENTITY_DENIED_011";
 
     /// <summary>
-    /// 填写或改动了字段安全里只读的字段；参数 <c>field</c>。
+    /// 填写或改动了字段安全里只读的字段。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string FieldReadOnly = "IDENTITY_DENIED_012";
 
     /// <summary>
-    /// 登录失败太频繁，本窗口内暂停尝试；参数 <c>retryAfter</c> 秒。
+    /// 登录失败太频繁，本窗口内暂停尝试。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>retryAfter</c> 秒。
+    /// </remarks>
     public const string LoginThrottled = "IDENTITY_UNAVAILABLE_001";
 
     /// <summary>
-    /// 会话不存在、已失效或不在当前一侧与数据范围内；参数 <c>id</c>。
+    /// 会话不存在、已失效或不在当前一侧与数据范围内。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string SessionNotFound = "IDENTITY_NOTFOUND_002";
 
     /// <summary>
@@ -154,8 +172,11 @@ public static class IdentityErrors
     public const string CurrentSessionNotRevocable = "IDENTITY_CONFLICT_005";
 
     /// <summary>
-    /// 会话已锁定，只放行解锁与注销；参数 <c>reason</c>（锁定原因，锁屏为 <c>ScreenLock</c>）。
+    /// 会话已锁定，只放行解锁与注销。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>reason</c>（锁定原因，锁屏为 <c>ScreenLock</c>）。
+    /// </remarks>
     public const string SessionLocked = "IDENTITY_DENIED_002";
 
     /// <summary>
@@ -164,8 +185,11 @@ public static class IdentityErrors
     public const string LockPasswordRequired = "IDENTITY_VALIDATION_011";
 
     /// <summary>
-    /// 锁屏密码不对；参数 <c>remaining</c>（还能试几次）。
+    /// 锁屏密码不对。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>remaining</c>（还能试几次）。
+    /// </remarks>
     public const string UnlockPasswordWrong = "IDENTITY_DENIED_013";
 
     /// <summary>
@@ -174,33 +198,51 @@ public static class IdentityErrors
     public const string UnlockExhausted = "IDENTITY_DENIED_014";
 
     /// <summary>
-    /// 会话的锁定原因不是锁屏，不能用锁屏密码解开；参数 <c>reason</c>。
+    /// 会话的锁定原因不是锁屏，不能用锁屏密码解开。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>reason</c>。
+    /// </remarks>
     public const string LockReasonUnsupported = "IDENTITY_CONFLICT_006";
 
     /// <summary>
-    /// 开放接口凭证到了上限；参数 <c>max</c>。
+    /// 开放接口凭证到了上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ApiCredentialLimitReached = "IDENTITY_CONFLICT_007";
 
     /// <summary>
-    /// 开放接口凭证不存在或不是本人的；参数 <c>id</c>。
+    /// 开放接口凭证不存在或不是本人的。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ApiCredentialNotFound = "IDENTITY_NOTFOUND_003";
 
     /// <summary>
-    /// 签名算法不认识；参数 <c>value</c>。
+    /// 签名算法不认识。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string ApiSignatureAlgorithmInvalid = "IDENTITY_VALIDATION_012";
 
     /// <summary>
-    /// IP 白名单有一条不是 IP 或 CIDR；参数 <c>value</c>。
+    /// IP 白名单有一条不是 IP 或 CIDR。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string ApiIpAllowListInvalid = "IDENTITY_VALIDATION_013";
 
     /// <summary>
-    /// IP 白名单条数超过上限；参数 <c>max</c>。
+    /// IP 白名单条数超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ApiIpAllowListTooLong = "IDENTITY_VALIDATION_014";
 
     /// <summary>
@@ -209,28 +251,43 @@ public static class IdentityErrors
     public const string ExternalTicketInvalid = "IDENTITY_VALIDATION_015";
 
     /// <summary>
-    /// 这个第三方账号在所选注册地没有绑定账号；参数 <c>provider</c>。
+    /// 这个第三方账号在所选注册地没有绑定账号。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginNotBound = "IDENTITY_DENIED_015";
 
     /// <summary>
-    /// 这个第三方账号已被同一注册地的别人绑定；参数 <c>provider</c>。
+    /// 这个第三方账号已被同一注册地的别人绑定。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginTaken = "IDENTITY_CONFLICT_008";
 
     /// <summary>
-    /// 本人没有绑定这个提供商；参数 <c>provider</c>。
+    /// 本人没有绑定这个提供商。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginNotFound = "IDENTITY_NOTFOUND_004";
 
     /// <summary>
-    /// 这个第三方登录方式不存在或没有启用；参数 <c>provider</c>。
+    /// 这个第三方登录方式不存在或没有启用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalProviderNotFound = "IDENTITY_NOTFOUND_005";
 
     /// <summary>
-    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限；参数 <c>max</c>（MB）。
+    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>（MB）。
+    /// </remarks>
     public const string AvatarInvalid = "IDENTITY_VALIDATION_016";
 
     /// <summary>
@@ -239,7 +296,10 @@ public static class IdentityErrors
     public const string UserNameUnchanged = "IDENTITY_VALIDATION_017";
 
     /// <summary>
-    /// 距上次改用户名不到 90 天；参数 <c>days</c>（还要等几天）。
+    /// 距上次改用户名不到 90 天。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>days</c>（还要等几天）。
+    /// </remarks>
     public const string UserNameChangeTooSoon = "IDENTITY_CONFLICT_009";
 }

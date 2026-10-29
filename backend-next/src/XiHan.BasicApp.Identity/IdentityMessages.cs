@@ -6,9 +6,12 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。文案不进代码：错误只带键与参数，由宿主在 Egress 按调用方区域翻译。
-/// 操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>），接口文档摘要与 MCP tool 描述共用。
+/// 身份包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。文案不进代码：错误只带键与参数，由宿主在 Egress 按调用方区域翻译。
+/// 操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>），接口文档摘要与 MCP tool 描述共用。
+/// </remarks>
 public static class IdentityMessages
 {
     /// <summary>
@@ -107,8 +110,11 @@ public static class IdentityMessages
     public const string RevokeSessionsDescription = "sessions.revoke.description";
 
     /// <summary>
-    /// 会话不存在；参数 <c>id</c>。
+    /// 会话不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string SessionNotFound = "identity.session.not_found";
 
     /// <summary>
@@ -117,43 +123,67 @@ public static class IdentityMessages
     public const string CurrentSessionNotRevocable = "identity.session.current";
 
     /// <summary>
-    /// 用户不存在；参数 <c>id</c>。
+    /// 用户不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string UserNotFound = "identity.user.not_found";
 
     /// <summary>
-    /// 用户名已被占用；参数 <c>userName</c>、<c>tenant</c>。
+    /// 用户名已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>userName</c>、<c>tenant</c>。
+    /// </remarks>
     public const string UserNameTaken = "identity.user.name_taken";
 
     /// <summary>
-    /// 请求的注册地租户与当前租户不一致；参数 <c>requested</c>、<c>current</c>。
+    /// 请求的注册地租户与当前租户不一致。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>requested</c>、<c>current</c>。
+    /// </remarks>
     public const string TenantMismatch = "identity.user.tenant_mismatch";
 
     /// <summary>
-    /// 不能对自己的账号执行该操作（批量结果的逐项错误码 <c>IDENTITY_CONFLICT_002</c> 的文案）。
+    /// 不能对自己的账号执行该操作。
     /// </summary>
+    /// <remarks>
+    /// 批量结果的逐项错误码 <c>IDENTITY_CONFLICT_002</c> 的文案。
+    /// </remarks>
     public const string SelfOperation = "identity.user.self_operation";
 
     /// <summary>
-    /// 显示名只有空白；<c>CreateUserRequest</c> 自校验的文案。
+    /// 显示名只有空白。
     /// </summary>
+    /// <remarks>
+    /// <c>CreateUserRequest</c> 自校验的文案。
+    /// </remarks>
     public const string DisplayNameBlank = "identity.user.display_name_blank";
 
     /// <summary>
-    /// 邮箱格式不对；自校验的文案。
+    /// 邮箱格式不对。
     /// </summary>
+    /// <remarks>
+    /// 自校验的文案。
+    /// </remarks>
     public const string EmailInvalid = "identity.user.email_invalid";
 
     /// <summary>
-    /// 列表筛选不受支持；参数 <c>field</c>、<c>operator</c>。
+    /// 列表筛选不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>operator</c>。
+    /// </remarks>
     public const string FilterUnsupported = "identity.user.filter_unsupported";
 
     /// <summary>
-    /// 列表排序字段不受支持；参数 <c>field</c>。
+    /// 列表排序字段不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string SortUnsupported = "identity.user.sort_unsupported";
 
     /// <summary>
@@ -162,13 +192,19 @@ public static class IdentityMessages
     public const string InvalidCredentials = "identity.auth.invalid_credentials";
 
     /// <summary>
-    /// 账号不可用；参数 <c>status</c>。
+    /// 账号不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>status</c>。
+    /// </remarks>
     public const string AccountUnavailable = "identity.auth.account_unavailable";
 
     /// <summary>
-    /// 登录失败次数过多，暂时锁定；参数 <c>seconds</c>。
+    /// 登录失败次数过多，暂时锁定。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>seconds</c>。
+    /// </remarks>
     public const string LockedOut = "identity.auth.locked_out";
 
     /// <summary>
@@ -182,13 +218,19 @@ public static class IdentityMessages
     public const string NoSession = "identity.auth.no_session";
 
     /// <summary>
-    /// 租户不存在或已停用；参数 <c>tenantId</c>。
+    /// 租户不存在或已停用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
     public const string TenantUnavailable = "identity.auth.tenant_unavailable";
 
     /// <summary>
-    /// 密码太短；参数 <c>min</c>。
+    /// 密码太短。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>min</c>。
+    /// </remarks>
     public const string PasswordTooShort = "identity.password.too_short";
 
     /// <summary>
@@ -197,8 +239,11 @@ public static class IdentityMessages
     public const string PasswordTooSimple = "identity.password.too_simple";
 
     /// <summary>
-    /// 密码与最近的历史密码相同；参数 <c>depth</c>。
+    /// 密码与最近的历史密码相同。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>depth</c>。
+    /// </remarks>
     public const string PasswordReused = "identity.password.reused";
 
     /// <summary>
@@ -227,8 +272,11 @@ public static class IdentityMessages
     public const string ImpersonationCandidatesDescription = "impersonation.candidates.description";
 
     /// <summary>
-    /// 不能进入该租户；参数 <c>tenantId</c>。
+    /// 不能进入该租户。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
     public const string TenantNotAccessible = "identity.auth.tenant_not_accessible";
 
     /// <summary>
@@ -242,8 +290,11 @@ public static class IdentityMessages
     public const string NotImpersonating = "identity.impersonation.not_active";
 
     /// <summary>
-    /// 模仿目标不可用；参数 <c>id</c>。
+    /// 模仿目标不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ImpersonationTargetUnavailable = "identity.impersonation.target_unavailable";
 
     /// <summary>
@@ -292,8 +343,11 @@ public static class IdentityMessages
     public const string CaptchaInvalid = "identity.auth.captcha_invalid";
 
     /// <summary>
-    /// 登录被节流；参数 <c>retryAfter</c>。
+    /// 登录被节流。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>retryAfter</c>。
+    /// </remarks>
     public const string LoginThrottled = "identity.auth.login_throttled";
 
     /// <summary>
@@ -307,8 +361,11 @@ public static class IdentityMessages
     public const string TwoFactorCodeInvalid = "identity.two_factor.code_invalid";
 
     /// <summary>
-    /// 双因素方式不可用；参数 <c>method</c>。
+    /// 双因素方式不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>。
+    /// </remarks>
     public const string TwoFactorMethodUnavailable = "identity.two_factor.method_unavailable";
 
     /// <summary>
@@ -327,13 +384,19 @@ public static class IdentityMessages
     public const string TotpSetupMissing = "identity.two_factor.totp_setup_missing";
 
     /// <summary>
-    /// 不能按读受保护的字段筛选或排序；参数 <c>field</c>。
+    /// 不能按读受保护的字段筛选或排序。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string FieldProtected = "identity.field_security.protected";
 
     /// <summary>
-    /// 只读字段不能填写或改动；参数 <c>field</c>。
+    /// 只读字段不能填写或改动。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string FieldReadOnly = "identity.field_security.read_only";
 
     /// <summary>
@@ -347,8 +410,11 @@ public static class IdentityMessages
     public const string UnlockDescription = "auth.unlock.description";
 
     /// <summary>
-    /// 会话已锁定，只放行解锁与注销；参数 <c>reason</c>（锁定原因，锁屏为 <c>ScreenLock</c>）。
+    /// 会话已锁定，只放行解锁与注销。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>reason</c>（锁定原因，锁屏为 <c>ScreenLock</c>）。
+    /// </remarks>
     public const string SessionLocked = "identity.auth.session_locked";
 
     /// <summary>
@@ -357,8 +423,11 @@ public static class IdentityMessages
     public const string LockPasswordRequired = "identity.auth.lock_password_required";
 
     /// <summary>
-    /// 锁屏密码不对；参数 <c>remaining</c>（还能试几次）。
+    /// 锁屏密码不对。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>remaining</c>（还能试几次）。
+    /// </remarks>
     public const string UnlockPasswordWrong = "identity.auth.unlock_password_wrong";
 
     /// <summary>
@@ -367,8 +436,11 @@ public static class IdentityMessages
     public const string UnlockExhausted = "identity.auth.unlock_exhausted";
 
     /// <summary>
-    /// 会话的锁定原因不是锁屏，不能用锁屏密码解开；参数 <c>reason</c>。
+    /// 会话的锁定原因不是锁屏，不能用锁屏密码解开。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>reason</c>。
+    /// </remarks>
     public const string LockReasonUnsupported = "identity.auth.lock_reason_unsupported";
 
     /// <summary>
@@ -402,8 +474,11 @@ public static class IdentityMessages
     public const string MyApiCredentialsSettingsDescription = "my_api_credentials.settings.description";
 
     /// <summary>
-    /// 操作 <c>my-api-credentials.update-settings</c> 的说明。
+    /// 写本人调用安全设置的操作说明。
     /// </summary>
+    /// <remarks>
+    /// 操作 <c>my-api-credentials.update-settings</c> 的说明。
+    /// </remarks>
     public const string MyApiCredentialsUpdateSettingsDescription = "my_api_credentials.update_settings.description";
 
     /// <summary>
@@ -412,28 +487,43 @@ public static class IdentityMessages
     public const string ApiCredentialDefaultName = "identity.api_credentials.default_name";
 
     /// <summary>
-    /// 开放接口凭证到了上限；参数 <c>max</c>。
+    /// 开放接口凭证到了上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ApiCredentialLimitReached = "identity.api_credentials.limit_reached";
 
     /// <summary>
-    /// 开放接口凭证不存在或不是本人的；参数 <c>id</c>。
+    /// 开放接口凭证不存在或不是本人的。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ApiCredentialNotFound = "identity.api_credentials.not_found";
 
     /// <summary>
-    /// 签名算法不认识；参数 <c>value</c>。
+    /// 签名算法不认识。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string ApiSignatureAlgorithmInvalid = "identity.api_credentials.algorithm_invalid";
 
     /// <summary>
-    /// IP 白名单有一条不是 IP 或 CIDR；参数 <c>value</c>。
+    /// IP 白名单有一条不是 IP 或 CIDR。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>。
+    /// </remarks>
     public const string ApiIpAllowListInvalid = "identity.api_credentials.ip_invalid";
 
     /// <summary>
-    /// IP 白名单条数超过上限；参数 <c>max</c>。
+    /// IP 白名单条数超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ApiIpAllowListTooLong = "identity.api_credentials.ip_too_many";
 
     /// <summary>
@@ -462,18 +552,27 @@ public static class IdentityMessages
     public const string ExternalTicketInvalid = "identity.external.ticket_invalid";
 
     /// <summary>
-    /// 这个第三方账号在所选注册地没有绑定账号；参数 <c>provider</c>。
+    /// 这个第三方账号在所选注册地没有绑定账号。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginNotBound = "identity.external.not_bound";
 
     /// <summary>
-    /// 这个第三方账号已被同一注册地的别人绑定；参数 <c>provider</c>。
+    /// 这个第三方账号已被同一注册地的别人绑定。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginTaken = "identity.external.taken";
 
     /// <summary>
-    /// 本人没有绑定这个提供商；参数 <c>provider</c>。
+    /// 本人没有绑定这个提供商。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalLoginNotFound = "identity.external.not_found";
 
     /// <summary>
@@ -482,8 +581,11 @@ public static class IdentityMessages
     public const string BeginExternalBindDescription = "profile.begin_external_bind.description";
 
     /// <summary>
-    /// 这个第三方登录方式不存在或没有启用；参数 <c>provider</c>。
+    /// 这个第三方登录方式不存在或没有启用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>。
+    /// </remarks>
     public const string ExternalProviderNotFound = "identity.external.provider_not_found";
 
     /// <summary>
@@ -507,8 +609,11 @@ public static class IdentityMessages
     public const string NotificationPreferenceDescription = "profile.notification_preference.description";
 
     /// <summary>
-    /// 操作 <c>profile.update-notification-preference</c> 的说明。
+    /// 保存本人通知偏好的操作说明。
     /// </summary>
+    /// <remarks>
+    /// 操作 <c>profile.update-notification-preference</c> 的说明。
+    /// </remarks>
     public const string UpdateNotificationPreferenceDescription = "profile.update_notification_preference.description";
 
     /// <summary>
@@ -527,8 +632,11 @@ public static class IdentityMessages
     public const string RemoveAvatarDescription = "profile.remove_avatar.description";
 
     /// <summary>
-    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限；参数 <c>max</c>（MB）。
+    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>（MB）。
+    /// </remarks>
     public const string AvatarInvalid = "identity.avatar.invalid";
 
     /// <summary>
@@ -537,8 +645,11 @@ public static class IdentityMessages
     public const string UserNameUnchanged = "identity.user_name.unchanged";
 
     /// <summary>
-    /// 距上次改用户名不到 90 天；参数 <c>days</c>（还要等几天）。
+    /// 距上次改用户名不到 90 天。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>days</c>（还要等几天）。
+    /// </remarks>
     public const string UserNameChangeTooSoon = "identity.user_name.too_soon";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));

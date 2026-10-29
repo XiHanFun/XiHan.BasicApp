@@ -6,8 +6,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 密码策略（沿用 4.x：最短 8 位，须同时含字母与数字）；业务规则返回 <see cref="Result"/>，不抛异常。
+/// 密码策略。
 /// </summary>
+/// <remarks>
+/// 沿用 4.x：最短 8 位，须同时含字母与数字。业务规则返回 <see cref="Result"/>，不抛异常。
+/// </remarks>
 public static class PasswordPolicy
 {
     /// <summary>

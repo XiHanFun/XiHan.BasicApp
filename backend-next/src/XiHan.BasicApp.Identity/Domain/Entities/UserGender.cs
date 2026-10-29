@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 性别（个人资料，4.x 同）。JSON 上是字符串枚举。
+/// 性别。
 /// </summary>
+/// <remarks>
+/// 个人资料，4.x 同。JSON 上是字符串枚举。
+/// </remarks>
 public enum UserGender
 {
     /// <summary>

@@ -7,8 +7,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录守卫的调用（Access 实现 <see cref="ILoginGuard"/>；没装即没有守卫，全部放行、不计数）。
+/// 登录守卫的调用。
 /// </summary>
+/// <remarks>
+/// Access 实现 <see cref="ILoginGuard"/>。没装即没有守卫，全部放行、不计数。
+/// </remarks>
 internal static class LoginGuards
 {
     /// <summary>
