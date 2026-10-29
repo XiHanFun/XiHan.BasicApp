@@ -222,6 +222,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bot-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create bot configurations on the caller's side; codes are unique per side. Requires notification.bot-configs.create. */
+        post: operations["bot-configs.create"];
+        /** Delete bot configurations in bulk. Requires notification.bot-configs.delete. */
+        delete: operations["bot-configs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bot-configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of the bot configurations. Requires notification.bot-configs.read. */
+        get: operations["bot-configs.get"];
+        /** Edit bot configurations; the code does not change. Requires notification.bot-configs.update. */
+        put: operations["bot-configs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bot-configs/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an enabled entry of the bot configurations the caller's side default used for sending. Requires notification.bot-configs.update. */
+        post: operations["bot-configs.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bot-configs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the bot configurations of the caller's side. Requires notification.bot-configs.read. */
+        post: operations["bot-configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/condition-hits/{id}": {
         parameters: {
             query?: never;
@@ -3035,6 +3105,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/telegram-bots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Telegram bot: names are unique and the token is stored encrypted; admins, the group allow-list and broadcast chats are comma-separated integer IDs, the command allow-list is comma-separated command names. Requires notification.telegram-bots.create. */
+        post: operations["telegram-bots.create"];
+        /** Delete Telegram bots in bulk. Requires notification.telegram-bots.delete. */
+        delete: operations["telegram-bots.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/telegram-bots/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a Telegram bot. Requires notification.telegram-bots.read. */
+        get: operations["telegram-bots.get"];
+        /** Edit a Telegram bot; leaving the token empty keeps it. Requires notification.telegram-bots.update. */
+        put: operations["telegram-bots.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/telegram-bots:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the platform-hosted Telegram bots; tokens are never shown. Requires notification.telegram-bots.read. */
+        post: operations["telegram-bots.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenant-members": {
         parameters: {
             query?: never;
@@ -3586,6 +3709,27 @@ export interface components {
             id: string;
             code: string;
         };
+        BotConfigResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            provider: components["schemas"]["BotProvider"];
+            webhookUrl: string;
+            hasSecret: boolean;
+            keyword?: string | null;
+            isDefault: boolean;
+            isEnabled: boolean;
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        BotProvider: "DingTalk" | "Lark" | "WeCom";
         ConditionAttributeResponse: {
             name: string;
             kind: components["schemas"]["ConditionValueKind"];
@@ -3823,7 +3967,7 @@ export interface components {
         /** @enum {string} */
         DelegationStatus: "Pending" | "Active" | "Expired" | "Revoked";
         /** @enum {string} */
-        DeliveryChannel: "InApp" | "Email" | "Sms";
+        DeliveryChannel: "InApp" | "Email" | "Sms" | "Bot";
         DepartmentNode: {
             department: components["schemas"]["DepartmentResponse"];
             /** Format: int64 */
@@ -4789,6 +4933,25 @@ export interface components {
         StorageConfigStatus: "Active" | "Disabled";
         /** @enum {string} */
         StorageType: "Local" | "S3" | "Oss" | "Cos" | "MinIO";
+        TelegramBotResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            hasToken: boolean;
+            adminUsers?: string | null;
+            allowedGroupChatIds?: string | null;
+            allowedCommands?: string | null;
+            enableFallbackReply: boolean;
+            broadcastChatIds?: string | null;
+            isEnabled: boolean;
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
         /** @enum {string} */
         TemplateChannel: "Email" | "Sms";
         TenantMemberResponse: {
@@ -5485,6 +5648,315 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    provider: components["schemas"]["BotProvider"];
+                    webhookUrl: string;
+                    secret?: string | null;
+                    keyword?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["BotProvider"];
+                        webhookUrl: string;
+                        hasSecret: boolean;
+                        keyword?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["BotProvider"];
+                        webhookUrl: string;
+                        hasSecret: boolean;
+                        keyword?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    provider: components["schemas"]["BotProvider"];
+                    webhookUrl: string;
+                    secret?: string | null;
+                    keyword?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["BotProvider"];
+                        webhookUrl: string;
+                        hasSecret: boolean;
+                        keyword?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        provider: components["schemas"]["BotProvider"];
+                        webhookUrl: string;
+                        hasSecret: boolean;
+                        keyword?: string | null;
+                        isDefault: boolean;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "bot-configs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BotConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
@@ -15433,6 +15905,262 @@ export interface operations {
                         storageLimitMb?: number | null;
                         /** Format: int64 */
                         usedStorageBytes: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "telegram-bots.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    token: string;
+                    adminUsers?: string | null;
+                    allowedGroupChatIds?: string | null;
+                    allowedCommands?: string | null;
+                    enableFallbackReply?: boolean;
+                    broadcastChatIds?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        hasToken: boolean;
+                        adminUsers?: string | null;
+                        allowedGroupChatIds?: string | null;
+                        allowedCommands?: string | null;
+                        enableFallbackReply: boolean;
+                        broadcastChatIds?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "telegram-bots.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "telegram-bots.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        hasToken: boolean;
+                        adminUsers?: string | null;
+                        allowedGroupChatIds?: string | null;
+                        allowedCommands?: string | null;
+                        enableFallbackReply: boolean;
+                        broadcastChatIds?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "telegram-bots.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    token?: string | null;
+                    adminUsers?: string | null;
+                    allowedGroupChatIds?: string | null;
+                    allowedCommands?: string | null;
+                    enableFallbackReply?: boolean;
+                    broadcastChatIds?: string | null;
+                    isEnabled?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        hasToken: boolean;
+                        adminUsers?: string | null;
+                        allowedGroupChatIds?: string | null;
+                        allowedCommands?: string | null;
+                        enableFallbackReply: boolean;
+                        broadcastChatIds?: string | null;
+                        isEnabled: boolean;
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "telegram-bots.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TelegramBotResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

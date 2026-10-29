@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Notification;
 /// <summary>
 /// 通知能力包（Tier 2）：通知公告（租户库实体，平台一侧租户为 <c>platform</c>）与收件箱。接收人经 Contracts 的 <see cref="Contracts.Users.IRecipientSource"/> 解析
 /// （Identity、Access、Organization 实现），推送经 <see cref="Contracts.Realtime.IRealtimePush"/>。
-/// 邮件与短信：消息模板、渠道配置（平台库实体，随所属侧）与发送记录，经 Contracts 的 <see cref="IMessageSender"/> 入队，由后台循环（<see cref="MessageDispatcher"/>）发出；机器人渠道随第五批后续步骤补入。
+/// 邮件与短信：消息模板、渠道配置（平台库实体，随所属侧）与发送记录，经 Contracts 的 <see cref="IMessageSender"/> 入队，由后台循环（<see cref="MessageDispatcher"/>）发出；钉钉、飞书与企业微信的群机器人按本侧每个服务商的缺省机器人广播，平台一侧另发到各 Telegram 机器人的广播群，同一个循环发出。
 /// </summary>
 public sealed class NotificationFeature : IHostedFeature, IDisposable
 {
@@ -76,12 +76,19 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<ChannelConfigService>();
         context.Services.AddScoped<MessageRecordService>();
         context.Services.AddScoped<MessagingQueries>();
+        context.Services.AddScoped<BotConfigService>();
+        context.Services.AddScoped<TelegramBotService>();
+        context.Services.AddScoped<BotBroadcaster>();
         context.Services.AddSingleton<MessageDispatchSignal>();
         context.Services.AddScoped<IMessageSender, MessageSender>();
         // 测试与宿主可先登记自己的通道替换真实的 SMTP / 云厂商
         context.Services.TryAddSingleton<IEmailTransport, SmtpEmailTransport>();
         context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ISmsTransport, AliyunSmsTransport>());
         context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ISmsTransport, TencentSmsTransport>());
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBotTransport, DingTalkBotTransport>());
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBotTransport, LarkBotTransport>());
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBotTransport, WeComBotTransport>());
+        context.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBotTransport, TelegramBotTransport>());
         context.Services.AddSingleton<MessageDispatcher>();
         context.Services.AddSeeder<MessageTemplateSeeder>();
         context.Services.AddPermissionCatalog("notification", NotificationPermissions.All);

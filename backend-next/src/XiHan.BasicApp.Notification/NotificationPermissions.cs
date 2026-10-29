@@ -96,6 +96,46 @@ public static class NotificationPermissions
     public const string SmsConfigsDelete = "notification.sms-configs.delete";
 
     /// <summary>
+    /// 查看机器人配置。
+    /// </summary>
+    public const string BotConfigsRead = "notification.bot-configs.read";
+
+    /// <summary>
+    /// 新建机器人配置。
+    /// </summary>
+    public const string BotConfigsCreate = "notification.bot-configs.create";
+
+    /// <summary>
+    /// 修改机器人配置、设缺省。
+    /// </summary>
+    public const string BotConfigsUpdate = "notification.bot-configs.update";
+
+    /// <summary>
+    /// 删除机器人配置。
+    /// </summary>
+    public const string BotConfigsDelete = "notification.bot-configs.delete";
+
+    /// <summary>
+    /// 查看 Telegram 机器人（平台）。
+    /// </summary>
+    public const string TelegramBotsRead = "notification.telegram-bots.read";
+
+    /// <summary>
+    /// 新建 Telegram 机器人（平台）。
+    /// </summary>
+    public const string TelegramBotsCreate = "notification.telegram-bots.create";
+
+    /// <summary>
+    /// 修改 Telegram 机器人（平台）。
+    /// </summary>
+    public const string TelegramBotsUpdate = "notification.telegram-bots.update";
+
+    /// <summary>
+    /// 删除 Telegram 机器人（平台）。
+    /// </summary>
+    public const string TelegramBotsDelete = "notification.telegram-bots.delete";
+
+    /// <summary>
     /// 查看邮件发送记录。
     /// </summary>
     public const string EmailsRead = "notification.emails.read";
@@ -147,6 +187,14 @@ public static class NotificationPermissions
         new(SmsConfigsCreate, "Create SMS configurations", PermissionScope.Both, audited: true, description: "Create SMS provider configurations on the caller's side."),
         new(SmsConfigsUpdate, "Update SMS configurations", PermissionScope.Both, audited: true, description: "Edit SMS provider configurations and choose the default one of the caller's side."),
         new(SmsConfigsDelete, "Delete SMS configurations", PermissionScope.Both, audited: true, description: "Delete SMS provider configurations on the caller's side other than the default."),
+        new(BotConfigsRead, "Read bot configurations", PermissionScope.Both, description: "View the DingTalk, Lark and WeCom group bots of the caller's side; signing secrets are never shown."),
+        new(BotConfigsCreate, "Create bot configurations", PermissionScope.Both, audited: true, description: "Create group bots on the caller's side."),
+        new(BotConfigsUpdate, "Update bot configurations", PermissionScope.Both, audited: true, description: "Edit group bots and choose the default bot of each provider on the caller's side."),
+        new(BotConfigsDelete, "Delete bot configurations", PermissionScope.Both, audited: true, description: "Delete group bots on the caller's side other than the defaults."),
+        new(TelegramBotsRead, "Read Telegram bots", PermissionScope.Platform, description: "View the platform-hosted Telegram bots; tokens are never shown."),
+        new(TelegramBotsCreate, "Create Telegram bots", PermissionScope.Platform, audited: true, description: "Create platform-hosted Telegram bots."),
+        new(TelegramBotsUpdate, "Update Telegram bots", PermissionScope.Platform, audited: true, description: "Edit Telegram bots: token, admins, group and command allow-lists, fallback reply and broadcast chats."),
+        new(TelegramBotsDelete, "Delete Telegram bots", PermissionScope.Platform, audited: true, description: "Delete platform-hosted Telegram bots."),
         new(EmailsRead, "Read sent emails", PermissionScope.Both, description: "View the email send records of the caller's side."),
         new(EmailsResend, "Resend emails", PermissionScope.Both, audited: true, description: "Resend failed, cancelled or sent emails, and cancel queued ones."),
         new(EmailsDelete, "Delete sent emails", PermissionScope.Both, audited: true, description: "Delete email send records of the caller's side."),

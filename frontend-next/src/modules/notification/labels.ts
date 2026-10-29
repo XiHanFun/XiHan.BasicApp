@@ -1,9 +1,9 @@
 /**
- * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信配置、我的消息）共用的枚举文案、语气与报错文案。
+ * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信 / 机器人配置、Telegram 机器人、我的消息）共用的枚举文案、语气与报错文案。
  * 6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对。
  */
 import type { Tone } from '@xihan-ui/core'
-import type { DeliveryChannel, MessageSendStatus, NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType, SmsProvider, TemplateChannel } from '~/contracts'
+import type { BotProvider, DeliveryChannel, MessageSendStatus, NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType, SmsProvider, TemplateChannel } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
@@ -66,6 +66,7 @@ export function deliveryChannelLabel(t: Translate, channel: DeliveryChannel): st
   switch (channel) {
     case 'Email': return t('notification.notifications.channel_email')
     case 'Sms': return t('notification.notifications.channel_sms')
+    case 'Bot': return t('notification.notifications.channel_bot')
     default: return t('notification.notifications.channel_in_app')
   }
 }
@@ -99,6 +100,14 @@ export function smsProviderLabel(t: Translate, provider: SmsProvider): string {
   return provider === 'Tencent' ? t('notification.messaging.providers.tencent') : t('notification.messaging.providers.aliyun')
 }
 
+export function botProviderLabel(t: Translate, provider: BotProvider): string {
+  switch (provider) {
+    case 'Lark': return t('notification.messaging.bot_providers.lark')
+    case 'WeCom': return t('notification.messaging.bot_providers.we_com')
+    default: return t('notification.messaging.bot_providers.ding_talk')
+  }
+}
+
 /** 启用状态的搜索选项：后端按 `isEnabled eq true / false` 精确匹配 */
 export function enabledOptions(t: Translate): { label: string, value: string }[] {
   return [
@@ -119,7 +128,9 @@ export function messagingFailureMessage(t: Translate, code: string): string {
   switch (code) {
     case 'NOTIFICATION_NOTFOUND_003': return t('notification.messaging.failures.template_not_found')
     case 'NOTIFICATION_NOTFOUND_004':
-    case 'NOTIFICATION_NOTFOUND_005': return t('notification.messaging.failures.config_not_found')
+    case 'NOTIFICATION_NOTFOUND_005':
+    case 'NOTIFICATION_NOTFOUND_008': return t('notification.messaging.failures.config_not_found')
+    case 'NOTIFICATION_NOTFOUND_009': return t('notification.messaging.failures.bot_not_found')
     case 'NOTIFICATION_NOTFOUND_006':
     case 'NOTIFICATION_NOTFOUND_007': return t('notification.messaging.failures.record_not_found')
     case 'NOTIFICATION_CONFLICT_005': return t('notification.messaging.failures.default_locked')

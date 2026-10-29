@@ -1198,6 +1198,751 @@
         }
       }
     },
+    "/api/bot-configs": {
+      "delete": {
+        "operationId": "bot-configs.delete",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Delete bot configurations in bulk. Requires notification.bot-configs.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "bot-configs.create",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Create bot configurations on the caller\u0027s side; codes are unique per side. Requires notification.bot-configs.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateBotConfigRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/BotProvider"
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "secret": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "provider",
+                  "webhookUrl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BotConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/BotProvider"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "hasSecret": {
+                      "type": "boolean"
+                    },
+                    "keyword": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "webhookUrl",
+                    "hasSecret",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bot-configs/{id}": {
+      "get": {
+        "operationId": "bot-configs.get",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Get one of the bot configurations. Requires notification.bot-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BotConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/BotProvider"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "hasSecret": {
+                      "type": "boolean"
+                    },
+                    "keyword": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "webhookUrl",
+                    "hasSecret",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "bot-configs.update",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Edit bot configurations; the code does not change. Requires notification.bot-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateBotConfigRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/BotProvider"
+                  },
+                  "webhookUrl": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "secret": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "provider",
+                  "webhookUrl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BotConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/BotProvider"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "hasSecret": {
+                      "type": "boolean"
+                    },
+                    "keyword": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "webhookUrl",
+                    "hasSecret",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bot-configs/{id}:set-default": {
+      "post": {
+        "operationId": "bot-configs.set-default",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Make an enabled entry of the bot configurations the caller\u0027s side default used for sending. Requires notification.bot-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BotConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/BotProvider"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "hasSecret": {
+                      "type": "boolean"
+                    },
+                    "keyword": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "webhookUrl",
+                    "hasSecret",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bot-configs:list": {
+      "post": {
+        "operationId": "bot-configs.list",
+        "tags": [
+          "bot-configs"
+        ],
+        "summary": "Page through the bot configurations of the caller\u0027s side. Requires notification.bot-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.bot-configs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfBotConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BotConfigResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/condition-hits/{id}": {
       "get": {
         "operationId": "condition-hits.get",
@@ -24719,6 +25464,658 @@
         }
       }
     },
+    "/api/telegram-bots": {
+      "delete": {
+        "operationId": "telegram-bots.delete",
+        "tags": [
+          "telegram-bots"
+        ],
+        "summary": "Delete Telegram bots in bulk. Requires notification.telegram-bots.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.telegram-bots.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "telegram-bots.create",
+        "tags": [
+          "telegram-bots"
+        ],
+        "summary": "Create a Telegram bot: names are unique and the token is stored encrypted; admins, the group allow-list and broadcast chats are comma-separated integer IDs, the command allow-list is comma-separated command names. Requires notification.telegram-bots.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.telegram-bots.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateTelegramBotRequest",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "adminUsers": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "allowedGroupChatIds": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "allowedCommands": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "enableFallbackReply": {
+                    "type": "boolean"
+                  },
+                  "broadcastChatIds": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "name",
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TelegramBotResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "hasToken": {
+                      "type": "boolean"
+                    },
+                    "adminUsers": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedGroupChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedCommands": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableFallbackReply": {
+                      "type": "boolean"
+                    },
+                    "broadcastChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "hasToken",
+                    "enableFallbackReply",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telegram-bots/{id}": {
+      "get": {
+        "operationId": "telegram-bots.get",
+        "tags": [
+          "telegram-bots"
+        ],
+        "summary": "Get a Telegram bot. Requires notification.telegram-bots.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.telegram-bots.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TelegramBotResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "hasToken": {
+                      "type": "boolean"
+                    },
+                    "adminUsers": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedGroupChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedCommands": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableFallbackReply": {
+                      "type": "boolean"
+                    },
+                    "broadcastChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "hasToken",
+                    "enableFallbackReply",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "telegram-bots.update",
+        "tags": [
+          "telegram-bots"
+        ],
+        "summary": "Edit a Telegram bot; leaving the token empty keeps it. Requires notification.telegram-bots.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.telegram-bots.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateTelegramBotRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "token": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "adminUsers": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "allowedGroupChatIds": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "allowedCommands": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "enableFallbackReply": {
+                    "type": "boolean"
+                  },
+                  "broadcastChatIds": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TelegramBotResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "hasToken": {
+                      "type": "boolean"
+                    },
+                    "adminUsers": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedGroupChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "allowedCommands": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableFallbackReply": {
+                      "type": "boolean"
+                    },
+                    "broadcastChatIds": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "hasToken",
+                    "enableFallbackReply",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/telegram-bots:list": {
+      "post": {
+        "operationId": "telegram-bots.list",
+        "tags": [
+          "telegram-bots"
+        ],
+        "summary": "Page through the platform-hosted Telegram bots; tokens are never shown. Requires notification.telegram-bots.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.telegram-bots.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfTelegramBotResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TelegramBotResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tenant-members": {
       "delete": {
         "operationId": "tenant-members.delete",
@@ -28284,6 +29681,83 @@
           "code"
         ]
       },
+      "BotConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/BotProvider"
+          },
+          "webhookUrl": {
+            "type": "string"
+          },
+          "hasSecret": {
+            "type": "boolean"
+          },
+          "keyword": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "provider",
+          "webhookUrl",
+          "hasSecret",
+          "isDefault",
+          "isEnabled",
+          "order",
+          "createdAt"
+        ]
+      },
+      "BotProvider": {
+        "type": "string",
+        "enum": [
+          "DingTalk",
+          "Lark",
+          "WeCom"
+        ]
+      },
       "ConditionAttributeResponse": {
         "type": "object",
         "properties": {
@@ -29268,7 +30742,8 @@
         "enum": [
           "InApp",
           "Email",
-          "Sms"
+          "Sms",
+          "Bot"
         ]
       },
       "DepartmentNode": {
@@ -32950,6 +34425,81 @@
           "MinIO"
         ]
       },
+      "TelegramBotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hasToken": {
+            "type": "boolean"
+          },
+          "adminUsers": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "allowedGroupChatIds": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "allowedCommands": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enableFallbackReply": {
+            "type": "boolean"
+          },
+          "broadcastChatIds": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hasToken",
+          "enableFallbackReply",
+          "isEnabled",
+          "order",
+          "createdAt"
+        ]
+      },
       "TemplateChannel": {
         "type": "string",
         "enum": [
@@ -33851,6 +35401,26 @@
         "displayName": "Update users",
         "description": "Edit user profiles of the current tenant."
       },
+      "notification.bot-configs.create": {
+        "code": "notification.bot-configs.create",
+        "displayName": "Create bot configurations",
+        "description": "Create group bots on the caller\u0027s side."
+      },
+      "notification.bot-configs.delete": {
+        "code": "notification.bot-configs.delete",
+        "displayName": "Delete bot configurations",
+        "description": "Delete group bots on the caller\u0027s side other than the defaults."
+      },
+      "notification.bot-configs.read": {
+        "code": "notification.bot-configs.read",
+        "displayName": "Read bot configurations",
+        "description": "View the DingTalk, Lark and WeCom group bots of the caller\u0027s side; signing secrets are never shown."
+      },
+      "notification.bot-configs.update": {
+        "code": "notification.bot-configs.update",
+        "displayName": "Update bot configurations",
+        "description": "Edit group bots and choose the default bot of each provider on the caller\u0027s side."
+      },
       "notification.email-configs.create": {
         "code": "notification.email-configs.create",
         "displayName": "Create email configurations",
@@ -33965,6 +35535,26 @@
         "code": "notification.sms.resend",
         "displayName": "Resend SMS",
         "description": "Resend failed, cancelled or sent SMS, and cancel queued ones."
+      },
+      "notification.telegram-bots.create": {
+        "code": "notification.telegram-bots.create",
+        "displayName": "Create Telegram bots",
+        "description": "Create platform-hosted Telegram bots."
+      },
+      "notification.telegram-bots.delete": {
+        "code": "notification.telegram-bots.delete",
+        "displayName": "Delete Telegram bots",
+        "description": "Delete platform-hosted Telegram bots."
+      },
+      "notification.telegram-bots.read": {
+        "code": "notification.telegram-bots.read",
+        "displayName": "Read Telegram bots",
+        "description": "View the platform-hosted Telegram bots; tokens are never shown."
+      },
+      "notification.telegram-bots.update": {
+        "code": "notification.telegram-bots.update",
+        "displayName": "Update Telegram bots",
+        "description": "Edit Telegram bots: token, admins, group and command allow-lists, fallback reply and broadcast chats."
       },
       "organization.departments.create": {
         "code": "organization.departments.create",

@@ -42,6 +42,11 @@ public sealed class NotificationOptions
     public TimeSpan StuckAfter { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
+    /// Telegram Bot API 的根地址（缺省官方地址；走自建反向代理时改这里）。
+    /// </summary>
+    public string TelegramApiBase { get; init; } = "https://api.telegram.org";
+
+    /// <summary>
     /// 从配置读取。
     /// </summary>
     /// <param name="configuration">配置。</param>
@@ -58,6 +63,7 @@ public sealed class NotificationOptions
             RetryDelay = TimeSpan.TryParse(section[nameof(RetryDelay)], out var delay) && delay >= TimeSpan.Zero ? delay : defaults.RetryDelay,
             MaxAttempts = int.TryParse(section[nameof(MaxAttempts)], out var attempts) && attempts > 0 ? attempts : defaults.MaxAttempts,
             StuckAfter = TimeSpan.TryParse(section[nameof(StuckAfter)], out var stuck) && stuck > TimeSpan.Zero ? stuck : defaults.StuckAfter,
+            TelegramApiBase = Uri.TryCreate(section[nameof(TelegramApiBase)], UriKind.Absolute, out var api) && api.Scheme == Uri.UriSchemeHttps ? api.ToString().TrimEnd('/') : defaults.TelegramApiBase,
         };
     }
 }

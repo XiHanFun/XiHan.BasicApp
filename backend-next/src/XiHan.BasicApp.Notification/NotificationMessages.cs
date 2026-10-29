@@ -241,6 +241,61 @@ public static class NotificationMessages
     public const string DeleteSmsDescription = "sms.delete.description";
 
     /// <summary>
+    /// 操作 <c>bot-configs.list</c> 的说明。
+    /// </summary>
+    public const string ListBotConfigsDescription = "bot_configs.list.description";
+
+    /// <summary>
+    /// 操作 <c>bot-configs.get</c> 的说明。
+    /// </summary>
+    public const string GetBotConfigDescription = "bot_configs.get.description";
+
+    /// <summary>
+    /// 操作 <c>bot-configs.create</c> 的说明。
+    /// </summary>
+    public const string CreateBotConfigDescription = "bot_configs.create.description";
+
+    /// <summary>
+    /// 操作 <c>bot-configs.update</c> 的说明。
+    /// </summary>
+    public const string UpdateBotConfigDescription = "bot_configs.update.description";
+
+    /// <summary>
+    /// 操作 <c>bot-configs.set-default</c> 的说明。
+    /// </summary>
+    public const string SetDefaultBotConfigDescription = "bot_configs.set_default.description";
+
+    /// <summary>
+    /// 操作 <c>bot-configs.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteBotConfigsDescription = "bot_configs.delete.description";
+
+    /// <summary>
+    /// 操作 <c>telegram-bots.list</c> 的说明。
+    /// </summary>
+    public const string ListTelegramBotsDescription = "telegram_bots.list.description";
+
+    /// <summary>
+    /// 操作 <c>telegram-bots.get</c> 的说明。
+    /// </summary>
+    public const string GetTelegramBotDescription = "telegram_bots.get.description";
+
+    /// <summary>
+    /// 操作 <c>telegram-bots.create</c> 的说明。
+    /// </summary>
+    public const string CreateTelegramBotDescription = "telegram_bots.create.description";
+
+    /// <summary>
+    /// 操作 <c>telegram-bots.update</c> 的说明。
+    /// </summary>
+    public const string UpdateTelegramBotDescription = "telegram_bots.update.description";
+
+    /// <summary>
+    /// 操作 <c>telegram-bots.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteTelegramBotsDescription = "telegram_bots.delete.description";
+
+    /// <summary>
     /// 通知不存在（或不在当前一侧）；参数 <c>id</c>。
     /// </summary>
     public const string NotificationNotFound = "notification.notification.not_found";
@@ -279,6 +334,41 @@ public static class NotificationMessages
     /// 按目标解析不出任何正常的接收人，不能发布。
     /// </summary>
     public const string NoRecipients = "notification.recipients.none";
+
+    /// <summary>
+    /// Telegram 机器人不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string TelegramBotNotFound = "notification.telegram_bot.not_found";
+
+    /// <summary>
+    /// 已有这个名称的 Telegram 机器人；参数 <c>name</c>。
+    /// </summary>
+    public const string TelegramBotNameTaken = "notification.telegram_bot.name_taken";
+
+    /// <summary>
+    /// 令牌须形如「数字:字符串」（BotFather 给的）。
+    /// </summary>
+    public const string TelegramTokenInvalid = "notification.telegram_bot.token_invalid";
+
+    /// <summary>
+    /// ID 列表里有不是整数的项；参数 <c>field</c>、<c>item</c>。
+    /// </summary>
+    public const string TelegramIdsInvalid = "notification.telegram_bot.ids_invalid";
+
+    /// <summary>
+    /// 命令名只能是小写字母、数字与下划线，最长 32；参数 <c>item</c>。
+    /// </summary>
+    public const string TelegramCommandsInvalid = "notification.telegram_bot.commands_invalid";
+
+    /// <summary>
+    /// 机器人配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string BotConfigNotFound = "notification.bot_config.not_found";
+
+    /// <summary>
+    /// Webhook 地址须是所选服务商的官方 https 地址；参数 <c>url</c>。
+    /// </summary>
+    public const string BotWebhookInvalid = "notification.bot_config.webhook_invalid";
 
     /// <summary>
     /// 消息模板不存在（或不在当前一侧）；参数 <c>id</c>。

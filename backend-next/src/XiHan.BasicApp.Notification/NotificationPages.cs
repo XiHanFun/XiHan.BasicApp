@@ -36,12 +36,22 @@ public static class NotificationPages
     public static PageDescriptor SmsConfigs { get; } = new("notification.sms-configs", "/notification/sms-configs", "notification.sms_configs.title", "lucide:message-square-code", 488, NotificationPermissions.SmsConfigsRead);
 
     /// <summary>
+    /// 机器人配置页。
+    /// </summary>
+    public static PageDescriptor BotConfigs { get; } = new("notification.bot-configs", "/notification/bot-configs", "notification.bot_configs.title", "lucide:bot", 489, NotificationPermissions.BotConfigsRead);
+
+    /// <summary>
+    /// Telegram 机器人页（平台）。
+    /// </summary>
+    public static PageDescriptor TelegramBots { get; } = new("notification.telegram-bots", "/notification/telegram-bots", "notification.telegram_bots.title", "lucide:bot-message-square", 490, NotificationPermissions.TelegramBotsRead);
+
+    /// <summary>
     /// 我的消息页（本人的收件箱，登录即可；4.x 同不设权限）。
     /// </summary>
-    public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 490);
+    public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 495);
 
     /// <summary>
     /// 本包全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Notifications, Messages, Templates, EmailConfigs, SmsConfigs, Inbox];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Notifications, Messages, Templates, EmailConfigs, SmsConfigs, BotConfigs, TelegramBots, Inbox];
 }

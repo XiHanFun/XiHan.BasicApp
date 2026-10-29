@@ -49,6 +49,41 @@ public static class NotificationErrors
     public const string NoRecipients = "NOTIFICATION_VALIDATION_004";
 
     /// <summary>
+    /// Telegram 机器人不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string TelegramBotNotFound = "NOTIFICATION_NOTFOUND_009";
+
+    /// <summary>
+    /// 已有这个名称的 Telegram 机器人；参数 <c>name</c>。
+    /// </summary>
+    public const string TelegramBotNameTaken = "NOTIFICATION_CONFLICT_008";
+
+    /// <summary>
+    /// 令牌须形如「数字:字符串」（BotFather 给的）。
+    /// </summary>
+    public const string TelegramTokenInvalid = "NOTIFICATION_VALIDATION_012";
+
+    /// <summary>
+    /// ID 列表里有不是整数的项；参数 <c>field</c>、<c>item</c>。
+    /// </summary>
+    public const string TelegramIdsInvalid = "NOTIFICATION_VALIDATION_013";
+
+    /// <summary>
+    /// 命令名只能是小写字母、数字与下划线，最长 32；参数 <c>item</c>。
+    /// </summary>
+    public const string TelegramCommandsInvalid = "NOTIFICATION_VALIDATION_014";
+
+    /// <summary>
+    /// 机器人配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string BotConfigNotFound = "NOTIFICATION_NOTFOUND_008";
+
+    /// <summary>
+    /// Webhook 地址须是所选服务商的官方 https 地址；参数 <c>url</c>。
+    /// </summary>
+    public const string BotWebhookInvalid = "NOTIFICATION_VALIDATION_011";
+
+    /// <summary>
     /// 消息模板不存在（或不在当前一侧）；参数 <c>id</c>。
     /// </summary>
     public const string TemplateNotFound = "NOTIFICATION_NOTFOUND_003";
