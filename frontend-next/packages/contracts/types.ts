@@ -800,6 +800,228 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete files in a batch; stored content goes once no other file uses it. Requires files.files.delete. */
+        delete: operations["files.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/content/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a file's content through a signed link issued by files.presign. */
+        get: operations["files.signed-content"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload one file as multipart form data (field `file`). */
+        post: operations["files.upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a file. Requires files.files.read. */
+        get: operations["files.get"];
+        /** Edit a file's access level, temporary flag and expiry, tags and remark. Requires files.files.update. */
+        put: operations["files.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a file's content on the caller's side, subject to its access level. */
+        get: operations["files.content"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}:presign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtain a signed download link: files open to signed-in users need only a sign-in, files that need authorization require files.files.read; the link is not checked against an identity while it is valid. */
+        get: operations["files.presign"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}:set-primary-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a normal, verified copy the primary copy; a corrupted file becomes normal again. Requires files.files.update. */
+        post: operations["files.set-primary-storage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}:set-storage-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable or disable a copy; the primary copy cannot be disabled and a failed copy must be verified again. Requires files.files.update. */
+        post: operations["files.set-storage-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}:storages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a file's stored copies, primary copy first. Requires files.files.read. */
+        get: operations["files.storages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}:verify-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify a copy by reading it and comparing its SHA-256; a mismatch or missing content marks it failed, and a failed primary copy marks the file corrupted. Requires files.files.update. */
+        post: operations["files.verify-storage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:fast-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Instant upload: when a normal file with the same content already exists on the caller's side, a new record is created at once; a miss returns nothing. Requires files.files.create. */
+        post: operations["files.fast-upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the caller's side's files; the keyword matches the original name, stored name, extension, content type and tags. Requires files.files.read. */
+        post: operations["files.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive or restore files in a batch; corrupted files are rejected one by one. Requires files.files.update. */
+        post: operations["files.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/impersonation:candidates": {
         parameters: {
             query?: never;
@@ -1902,6 +2124,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/storage-configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a local or S3-compatible storage configuration on the caller's side; the code is unique on the side and S3-compatible storage needs an endpoint and access keys. Requires files.storage-configs.create. */
+        post: operations["storage-configs.create"];
+        /** Delete storage configurations in a batch; the default one and those holding copies are rejected one by one. Requires files.storage-configs.delete. */
+        delete: operations["storage-configs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storage-configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a storage configuration (the access key is never shown). Requires files.storage-configs.read. */
+        get: operations["storage-configs.get"];
+        /** Edit a storage configuration (the code stays; an empty access key keeps the current one). Requires files.storage-configs.update. */
+        put: operations["storage-configs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storage-configs/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an enabled storage configuration the caller's side's default; later uploads go there. Requires files.storage-configs.update. */
+        post: operations["storage-configs.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storage-configs/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable or disable a storage configuration; the default one cannot be disabled. Requires files.storage-configs.update. */
+        post: operations["storage-configs.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/storage-configs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the caller's side's storage configurations, default first; access keys are never shown. Requires files.storage-configs.read. */
+        post: operations["storage-configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenant-members": {
         parameters: {
             query?: never;
@@ -2840,6 +3149,62 @@ export interface components {
         /** @enum {string} */
         FieldSecurityTargetKind: "Role" | "User" | "Department";
         /** @enum {string} */
+        FileAccessLevel: "Authenticated" | "Authorized";
+        /** @enum {string} */
+        FileKind: "Image" | "Document" | "Video" | "Audio" | "Archive" | "Other";
+        /** FileResponse */
+        FileResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            originalName: string;
+            extension?: string | null;
+            kind: components["schemas"]["FileKind"];
+            contentType: string;
+            /** Format: int64 */
+            size: number;
+            hash: string;
+            status: components["schemas"]["FileStatus"];
+            accessLevel: components["schemas"]["FileAccessLevel"];
+            isTemporary: boolean;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            source: string;
+            tags?: string | null;
+            remark?: string | null;
+            /** Format: int32 */
+            downloadCount: number;
+            /** Format: date-time */
+            lastDownloadedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdBy?: string | null;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        FileStatus: "Normal" | "Archived" | "Corrupted";
+        FileStorageResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            storageConfigId: string;
+            storageConfigCode?: string | null;
+            storageConfigName?: string | null;
+            storageType: components["schemas"]["StorageType"];
+            bucket: string;
+            key: string;
+            isPrimary: boolean;
+            status: components["schemas"]["FileStorageStatus"];
+            /** Format: date-time */
+            verifiedAt?: string | null;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        FileStorageStatus: "Normal" | "VerificationFailed" | "Unavailable";
+        /** @enum {string} */
         GrantSubjectKind: "Role" | "User";
         ImpersonationCandidateResponse: {
             /** Format: uuid */
@@ -3256,6 +3621,31 @@ export interface components {
         SessionRoleStatus: "Active" | "Inactive" | "Expired";
         /** @enum {string} */
         SettingStatus: "Active" | "Disabled";
+        StorageConfigResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            type: components["schemas"]["StorageType"];
+            endpoint?: string | null;
+            region?: string | null;
+            bucket: string;
+            accessKeyId?: string | null;
+            hasSecretAccessKey: boolean;
+            isDefault: boolean;
+            status: components["schemas"]["StorageConfigStatus"];
+            /** Format: int32 */
+            order: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        StorageConfigStatus: "Active" | "Disabled";
+        /** @enum {string} */
+        StorageType: "Local" | "S3" | "Oss" | "Cos" | "MinIO";
         TenantMemberResponse: {
             /** Format: uuid */
             id: string;
@@ -6391,6 +6781,645 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.signed-content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    accessLevel?: components["schemas"]["FileAccessLevel"];
+                    isTemporary?: boolean;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    tags?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        originalName: string;
+                        extension?: string | null;
+                        kind: components["schemas"]["FileKind"];
+                        contentType: string;
+                        /** Format: int64 */
+                        size: number;
+                        hash: string;
+                        status: components["schemas"]["FileStatus"];
+                        accessLevel: components["schemas"]["FileAccessLevel"];
+                        isTemporary: boolean;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        source: string;
+                        tags?: string | null;
+                        remark?: string | null;
+                        /** Format: int32 */
+                        downloadCount: number;
+                        /** Format: date-time */
+                        lastDownloadedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        createdBy?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.presign": {
+        parameters: {
+            query?: {
+                expiresInSeconds?: number | null;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
+                        /** Format: date-time */
+                        expiresAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.set-primary-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    storageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        originalName: string;
+                        extension?: string | null;
+                        kind: components["schemas"]["FileKind"];
+                        contentType: string;
+                        /** Format: int64 */
+                        size: number;
+                        hash: string;
+                        status: components["schemas"]["FileStatus"];
+                        accessLevel: components["schemas"]["FileAccessLevel"];
+                        isTemporary: boolean;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        source: string;
+                        tags?: string | null;
+                        remark?: string | null;
+                        /** Format: int32 */
+                        downloadCount: number;
+                        /** Format: date-time */
+                        lastDownloadedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        createdBy?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.set-storage-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    storageId: string;
+                    status: components["schemas"]["FileStorageStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        originalName: string;
+                        extension?: string | null;
+                        kind: components["schemas"]["FileKind"];
+                        contentType: string;
+                        /** Format: int64 */
+                        size: number;
+                        hash: string;
+                        status: components["schemas"]["FileStatus"];
+                        accessLevel: components["schemas"]["FileAccessLevel"];
+                        isTemporary: boolean;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        source: string;
+                        tags?: string | null;
+                        remark?: string | null;
+                        /** Format: int32 */
+                        downloadCount: number;
+                        /** Format: date-time */
+                        lastDownloadedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        createdBy?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.storages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["FileStorageResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.verify-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    storageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        originalName: string;
+                        extension?: string | null;
+                        kind: components["schemas"]["FileKind"];
+                        contentType: string;
+                        /** Format: int64 */
+                        size: number;
+                        hash: string;
+                        status: components["schemas"]["FileStatus"];
+                        accessLevel: components["schemas"]["FileAccessLevel"];
+                        isTemporary: boolean;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        source: string;
+                        tags?: string | null;
+                        remark?: string | null;
+                        /** Format: int32 */
+                        downloadCount: number;
+                        /** Format: date-time */
+                        lastDownloadedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        createdBy?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.fast-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    hash: string;
+                    /** Format: int64 */
+                    size: number;
+                    originalName: string;
+                    contentType?: string | null;
+                    accessLevel?: components["schemas"]["FileAccessLevel"];
+                    isTemporary?: boolean;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    tags?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        file?: components["schemas"]["FileResponse"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["FileResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                    status: components["schemas"]["FileStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };
@@ -10132,6 +11161,386 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["SessionRoleResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    type: components["schemas"]["StorageType"];
+                    bucket: string;
+                    endpoint?: string | null;
+                    region?: string | null;
+                    accessKeyId?: string | null;
+                    secretAccessKey?: string | null;
+                    isDefault?: boolean;
+                    status?: components["schemas"]["StorageConfigStatus"];
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["StorageType"];
+                        endpoint?: string | null;
+                        region?: string | null;
+                        bucket: string;
+                        accessKeyId?: string | null;
+                        hasSecretAccessKey: boolean;
+                        isDefault: boolean;
+                        status: components["schemas"]["StorageConfigStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["StorageType"];
+                        endpoint?: string | null;
+                        region?: string | null;
+                        bucket: string;
+                        accessKeyId?: string | null;
+                        hasSecretAccessKey: boolean;
+                        isDefault: boolean;
+                        status: components["schemas"]["StorageConfigStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    type: components["schemas"]["StorageType"];
+                    bucket: string;
+                    endpoint?: string | null;
+                    region?: string | null;
+                    accessKeyId?: string | null;
+                    secretAccessKey?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["StorageType"];
+                        endpoint?: string | null;
+                        region?: string | null;
+                        bucket: string;
+                        accessKeyId?: string | null;
+                        hasSecretAccessKey: boolean;
+                        isDefault: boolean;
+                        status: components["schemas"]["StorageConfigStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["StorageType"];
+                        endpoint?: string | null;
+                        region?: string | null;
+                        bucket: string;
+                        accessKeyId?: string | null;
+                        hasSecretAccessKey: boolean;
+                        isDefault: boolean;
+                        status: components["schemas"]["StorageConfigStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    status: components["schemas"]["StorageConfigStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        type: components["schemas"]["StorageType"];
+                        endpoint?: string | null;
+                        region?: string | null;
+                        bucket: string;
+                        accessKeyId?: string | null;
+                        hasSecretAccessKey: boolean;
+                        isDefault: boolean;
+                        status: components["schemas"]["StorageConfigStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "storage-configs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StorageConfigResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

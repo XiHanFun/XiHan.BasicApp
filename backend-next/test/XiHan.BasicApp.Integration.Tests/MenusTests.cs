@@ -32,7 +32,7 @@ public sealed class MenusTests : IDisposable
         // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位），工作台排在最前
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
-        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], Codes(listBody.GetProperty("items")));
+        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], Codes(listBody.GetProperty("items")));
         var roles = Node(listBody.GetProperty("items"), "access.roles");
         var rolesId = roles.GetProperty("id").GetString()!;
         var usersId = Node(listBody.GetProperty("items"), "identity.users").GetProperty("id").GetString()!;
@@ -79,7 +79,7 @@ public sealed class MenusTests : IDisposable
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         var menus = permissionsBody.GetProperty("menus");
-        Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], Codes(menus));
+        Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs"], Codes(menus));
         Assert.True(Node(menus, "identity.users").GetProperty("hidden").GetBoolean());
         var system = Node(menus, "custom.system");
         Assert.Equal("Directory", system.GetProperty("kind").GetString());

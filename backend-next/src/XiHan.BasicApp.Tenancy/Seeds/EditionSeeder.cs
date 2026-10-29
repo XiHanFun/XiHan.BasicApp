@@ -54,13 +54,13 @@ public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, Editio
         ArgumentNullException.ThrowIfNull(context);
         var catalog = service.TenantEffective;
         bool IsRead(PermissionDescriptor p) => string.Equals(p.Action, "read", StringComparison.Ordinal);
-        bool IsBasic(PermissionDescriptor p) => IsRead(p) || ((p.Package is "identity" or "organization" or "settings") && !string.Equals(p.Resource, "impersonation", StringComparison.Ordinal));
+        bool IsBasic(PermissionDescriptor p) => IsRead(p) || ((p.Package is "identity" or "organization" or "settings" or "files") && !string.Equals(p.Resource, "impersonation", StringComparison.Ordinal));
         bool IsPro(PermissionDescriptor p) => IsBasic(p) || string.Equals(p.Package, "access", StringComparison.Ordinal);
 
         (string Code, string Name, string Description, bool IsDefault, int Order, Func<PermissionDescriptor, bool> Includes)[] seeds =
         [
             (Free, "Free", "Read-only access to members, organization and roles.", true, 10, IsRead),
-            (Basic, "Basic", "Free plus day-to-day management of users, the organization and settings.", false, 20, IsBasic),
+            (Basic, "Basic", "Free plus day-to-day management of users, the organization, settings and files.", false, 20, IsBasic),
             (Pro, "Professional", "Basic plus role management, grants and assignments.", false, 30, IsPro),
             (Enterprise, "Enterprise", "Every tenant-side permission available when the edition was created.", false, 40, static _ => true),
         ];

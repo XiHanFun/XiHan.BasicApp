@@ -1,7 +1,8 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
 import type { AppContextApis, UserProfile } from '~/types'
-import { auth as authOps, dicts as dictOps, impersonation as impersonationOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, files as fileOps, impersonation as impersonationOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
@@ -146,7 +147,8 @@ export function registerApplicationContext(router: Router): void {
       list: async () => (await authOps.sessionRoles({})).items.map(role => ({ roleId: role.roleId, code: role.code, name: role.name, isActive: role.isActive })),
       activate: roleIds => authOps.activateRoles({ roleIds }),
     },
-    getFilePresignedUrlApi: () => notAvailable('getFilePresignedUrlApi'),
+    // 文件引用（头像、表格里的文件列）：files.presign 签发的签名地址补上接口前缀，图片标签不带令牌也能取
+    getFilePresignedUrlApi: async fileId => endpointUrl((await fileOps.presign({ id: fileId })).url),
     timeZoneApi: { options: timeZoneOptions },
     // 导入历史与导出中心归 Files 批次；导入历史失败时导入弹窗本就静默为空，导出只在页面声明 resource.export 时才走导出中心
     importHistoryApi: {
