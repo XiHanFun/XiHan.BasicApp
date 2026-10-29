@@ -9,8 +9,11 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 存储用量：各租户未删除文件的大小之和（共用同一对象的文件各自计入，归档与损坏的也占空间）。按调用方的连接读，平台的调用读默认库里字段隔离的租户。
+/// 存储用量：各租户未删除文件的大小之和。
 /// </summary>
+/// <remarks>
+/// 共用同一对象的文件各自计入，归档与损坏的也占空间。按调用方的连接读，平台的调用读默认库里字段隔离的租户。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 public sealed class FileStorageUsage(SqlSugarUnitOfWork unitOfWork) : IStorageUsage
 {

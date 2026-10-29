@@ -26,10 +26,13 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件能力包（Tier 2）：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
+/// 文件能力包：存储配置、文件与副本、导出中心与导入历史。
+/// </summary>
+/// <remarks>
+/// Tier 2：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
 /// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行。
 /// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与下载（<c>GET /api/files/{id}/content</c>、签名地址 <c>GET /api/files/content/{token}</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
-/// </summary>
+/// </remarks>
 public sealed class FilesFeature : IHostedFeature, IDisposable
 {
     private ExportRunner? _runner;

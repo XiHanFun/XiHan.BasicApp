@@ -31,9 +31,12 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 public sealed record StorageConfigDefinition(string Code, string Name, StorageType Type, string? Endpoint, string? Region, string Bucket, string? AccessKeyId, string? SecretAccessKey, int Order, string? Remark);
 
 /// <summary>
-/// 存储配置（4.x 同）：编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除。
-/// 上传时取当前一侧的缺省配置，租户没有就取平台的缺省配置。
+/// 存储配置的维护与上传目标的选取。
 /// </summary>
+/// <remarks>
+/// 4.x 同。编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除。
+/// 上传时取当前一侧的缺省配置，租户没有就取平台的缺省配置。
+/// </remarks>
 /// <param name="configs">存储配置仓储。</param>
 /// <param name="unitOfWork">工作单元（查副本引用）。</param>
 /// <param name="secrets">密钥保护。</param>
@@ -167,8 +170,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 修改（编码不变；访问密钥为空即保留原值）。
+    /// 修改存储配置。
     /// </summary>
+    /// <remarks>
+    /// 编码不变；访问密钥为空即保留原值。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="definition">写入内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -182,8 +188,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 启用或停用；缺省配置不能停用。
+    /// 启用或停用存储配置。
     /// </summary>
+    /// <remarks>
+    /// 缺省配置不能停用。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="status">状态。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -228,8 +237,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 删除；缺省配置与还有副本的配置不能删除。
+    /// 删除存储配置。
     /// </summary>
+    /// <remarks>
+    /// 缺省配置与还有副本的配置不能删除。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>结果。</returns>

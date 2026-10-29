@@ -7,10 +7,13 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Files.Domain.Entities;
 
 /// <summary>
-/// 文件（租户库实体，方案 5.12）：一次上传得到一条，内容落在一到多个副本（<see cref="SysFileStorage"/>）里，读写取主副本。
+/// 文件：一次上传得到一条，内容落在一到多个副本（<see cref="SysFileStorage"/>）里。
+/// </summary>
+/// <remarks>
+/// 租户库实体，方案 5.12。读写取主副本。
 /// 平台一侧的文件 <see cref="TenantScopedAuditedEntity.TenantId"/> 为 <c>platform</c>（与日志同一做法）。
 /// 同一侧内容相同（SHA-256 相同）的文件共用对象，各有各的记录，删到最后一条才删对象。
-/// </summary>
+/// </remarks>
 public sealed class SysFile : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -26,8 +29,11 @@ public sealed class SysFile : TenantScopedAuditedEntity
     public string OriginalName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 扩展名（小写，含点）；没有为空。
+    /// 扩展名（小写，含点）。
     /// </summary>
+    /// <remarks>
+    /// 没有为空。
+    /// </remarks>
     [StringLength(20)]
     public string? Extension { get; set; }
 
@@ -69,8 +75,11 @@ public sealed class SysFile : TenantScopedAuditedEntity
     public bool IsTemporary { get; set; }
 
     /// <summary>
-    /// 到期时间；为空不到期。
+    /// 到期时间。
     /// </summary>
+    /// <remarks>
+    /// 为空不到期。
+    /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
@@ -103,8 +112,11 @@ public sealed class SysFile : TenantScopedAuditedEntity
 }
 
 /// <summary>
-/// 文件大类（4.x 同）。
+/// 文件大类。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum FileKind
 {
     /// <summary>
@@ -139,8 +151,11 @@ public enum FileKind
 }
 
 /// <summary>
-/// 文件状态。上传在一次请求里完成，内容写好才落记录，所以没有 4.x 的上传中、上传失败；删除即软删除。
+/// 文件状态。
 /// </summary>
+/// <remarks>
+/// 上传在一次请求里完成，内容写好才落记录，所以没有 4.x 的上传中、上传失败；删除即软删除。
+/// </remarks>
 public enum FileStatus
 {
     /// <summary>
@@ -154,8 +169,11 @@ public enum FileStatus
     Archived = 5,
 
     /// <summary>
-    /// 已损坏：主副本校验不通过（内容缺失或与 SHA-256 不符），切到一个校验通过的副本即恢复。
+    /// 已损坏：主副本校验不通过。
     /// </summary>
+    /// <remarks>
+    /// 校验不通过即内容缺失或与 SHA-256 不符；切到一个校验通过的副本即恢复。
+    /// </remarks>
     Corrupted = 7,
 }
 
@@ -175,7 +193,11 @@ public enum FileAccessLevel
     Authorized = 2,
 
     /// <summary>
-    /// 公开：任何已登录主体（不分侧）都能换签名地址，匿名不行，签名地址照常限时（4.x 同为头像这类跟着用户走的文件用；头像固定存平台侧）。
+    /// 公开：任何已登录主体（不分侧）都能换签名地址。
     /// </summary>
+    /// <remarks>
+    /// 匿名不行，签名地址照常限时。
+    /// 4.x 同为头像这类跟着用户走的文件用；头像固定存平台侧。
+    /// </remarks>
     Public = 3,
 }

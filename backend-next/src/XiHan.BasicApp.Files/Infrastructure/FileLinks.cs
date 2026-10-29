@@ -7,11 +7,14 @@ using Microsoft.AspNetCore.DataProtection;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 签名下载地址：令牌是数据保护加密的「侧 + 文件 ID」，带到期时间，地址在有效期内不再校验身份（给 <c>&lt;img&gt;</c>、链接与新窗口用）。
+/// 签名下载地址的签发与解读。
+/// </summary>
+/// <remarks>
+/// 令牌是数据保护加密的「侧 + 文件 ID」，带到期时间，地址在有效期内不再校验身份（给 <c>&lt;img&gt;</c>、链接与新窗口用）。
 /// 框架的对象存储没有预签名，所以一律签发应用自己的下载端点；换取地址时按访问级别核对调用方，地址本身只认令牌。
 /// 多实例部署要共用数据保护的密钥环（<c>BasicApp:DataProtection:KeysDirectory</c>）。
 /// 过渡实现：框架的预签名（开发计划 P5-30）推送、锁定升上去后，签名地址改由对象存储签发，这个类与签名下载端点随之替换。
-/// </summary>
+/// </remarks>
 /// <param name="protection">数据保护。</param>
 public sealed class FileLinks(IDataProtectionProvider protection)
 {

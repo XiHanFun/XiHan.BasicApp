@@ -55,8 +55,11 @@ public sealed record StorageConfigResponse(
 }
 
 /// <summary>
-/// 针对一条配置的请求（<c>storage-configs.get</c>、<c>storage-configs.set-default</c>）。
+/// 针对一条存储配置的请求。
 /// </summary>
+/// <remarks>
+/// 用于 <c>storage-configs.get</c>、<c>storage-configs.set-default</c>。
+/// </remarks>
 /// <param name="Id">配置 ID。</param>
 public sealed record StorageConfigIdRequest([Required] Guid Id);
 
@@ -97,8 +100,11 @@ public sealed record CreateStorageConfigRequest(
 }
 
 /// <summary>
-/// <c>storage-configs.update</c> 的请求：编码不改；访问密钥不填即保留原值。
+/// <c>storage-configs.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码不改；访问密钥不填即保留原值。
+/// </remarks>
 /// <param name="Id">配置 ID。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Type">存储类型。</param>

@@ -105,8 +105,11 @@ public sealed record ExportTaskResponse(
 }
 
 /// <summary>
-/// 针对一个任务的请求（<c>export-tasks.get</c>、<c>export-tasks.cancel</c>）。
+/// 针对一个导出任务的请求。
 /// </summary>
+/// <remarks>
+/// 用于 <c>export-tasks.get</c>、<c>export-tasks.cancel</c>。
+/// </remarks>
 /// <param name="Id">任务 ID。</param>
 public sealed record ExportTaskIdRequest([Required] Guid Id);
 

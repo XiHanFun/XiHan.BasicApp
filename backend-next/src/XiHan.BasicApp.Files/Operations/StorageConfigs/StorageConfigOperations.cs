@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Operations.StorageConfigs;
 
 /// <summary>
-/// 分页列出当前一侧的存储配置：<c>POST /api/storage-configs:list</c>。缺省配置在前，访问密钥不回显。
+/// 分页列出当前一侧的存储配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/storage-configs:list</c>。缺省配置在前，访问密钥不回显。
+/// </remarks>
 /// <param name="queries">配置查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
 public sealed class ListStorageConfigs(StorageConfigQueries queries) : IOperation<PageRequest, PageResult<StorageConfigResponse>>
@@ -33,8 +36,11 @@ public sealed class ListStorageConfigs(StorageConfigQueries queries) : IOperatio
 }
 
 /// <summary>
-/// 按 ID 取当前一侧的存储配置：<c>GET /api/storage-configs/{id}</c>。
+/// 按 ID 取当前一侧的存储配置。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/storage-configs/{id}</c>。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
 public sealed class GetStorageConfig(StorageConfigService service) : IOperation<StorageConfigIdRequest, StorageConfigResponse>
@@ -61,8 +67,11 @@ public sealed class GetStorageConfig(StorageConfigService service) : IOperation<
 }
 
 /// <summary>
-/// 在当前一侧新建存储配置：<c>POST /api/storage-configs</c>。设为缺省时同侧原来的缺省配置不再是缺省。
+/// 在当前一侧新建存储配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/storage-configs</c>。设为缺省时同侧原来的缺省配置不再是缺省。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsCreate)]
 public sealed class CreateStorageConfig(StorageConfigService service) : IOperation<CreateStorageConfigRequest, StorageConfigResponse>
@@ -88,8 +97,11 @@ public sealed class CreateStorageConfig(StorageConfigService service) : IOperati
 }
 
 /// <summary>
-/// 修改当前一侧的存储配置：<c>PUT /api/storage-configs/{id}</c>。编码不改，访问密钥不填即保留原值；已有副本照旧按这条配置读写。
+/// 修改当前一侧的存储配置。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/storage-configs/{id}</c>。编码不改，访问密钥不填即保留原值；已有副本照旧按这条配置读写。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class UpdateStorageConfig(StorageConfigService service) : IOperation<UpdateStorageConfigRequest, StorageConfigResponse>
@@ -120,8 +132,11 @@ public sealed class UpdateStorageConfig(StorageConfigService service) : IOperati
 }
 
 /// <summary>
-/// 启用或停用存储配置：<c>POST /api/storage-configs/{id}:set-status</c>。缺省配置不能停用；停用后不再接收上传，已有副本照常读取。
+/// 启用或停用存储配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/storage-configs/{id}:set-status</c>。缺省配置不能停用；停用后不再接收上传，已有副本照常读取。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class SetStorageConfigStatus(StorageConfigService service) : IOperation<SetStorageConfigStatusRequest, StorageConfigResponse>
@@ -152,8 +167,11 @@ public sealed class SetStorageConfigStatus(StorageConfigService service) : IOper
 }
 
 /// <summary>
-/// 设为当前一侧的缺省存储配置：<c>POST /api/storage-configs/{id}:set-default</c>。之后的上传都落在它上面。
+/// 设为当前一侧的缺省存储配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/storage-configs/{id}:set-default</c>。之后的上传都落在它上面。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class SetDefaultStorageConfig(StorageConfigService service) : IOperation<StorageConfigIdRequest, StorageConfigResponse>
@@ -184,8 +202,11 @@ public sealed class SetDefaultStorageConfig(StorageConfigService service) : IOpe
 }
 
 /// <summary>
-/// 删除存储配置：<c>DELETE /api/storage-configs?ids=</c>。缺省配置与还有副本的配置逐项拒绝。
+/// 删除存储配置。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/storage-configs?ids=</c>。缺省配置与还有副本的配置逐项拒绝。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsDelete)]
 public sealed class DeleteStorageConfigs(StorageConfigService service) : IOperation<StorageConfigIdsRequest, BatchResult>

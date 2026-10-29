@@ -8,8 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Files.Domain.Entities;
 
 /// <summary>
-/// 导入历史（租户库只追加的记录，平台一侧租户为 <c>platform</c>；4.x 同）：导入在前端逐行调资源的新建操作完成，结束后由前端记一条结果，导入弹窗列出本人最近几次。
+/// 导入历史：一次导入结束后由前端记下的结果。
 /// </summary>
+/// <remarks>
+/// 租户库只追加的记录，平台一侧租户为 <c>platform</c>；4.x 同。
+/// 导入在前端逐行调资源的新建操作完成，结束后由前端记一条结果，导入弹窗列出本人最近几次。
+/// </remarks>
 public sealed class SysImportHistory : TenantScopedRecord
 {
     /// <summary>

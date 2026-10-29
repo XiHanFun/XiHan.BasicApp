@@ -95,8 +95,11 @@ public sealed record UpdateFileRequest(
 }
 
 /// <summary>
-/// <c>files.set-status</c> 的请求：归档（<c>Archived</c>）或恢复（<c>Normal</c>）。
+/// <c>files.set-status</c> 的请求：归档或恢复文件。
 /// </summary>
+/// <remarks>
+/// 归档为 <c>Archived</c>，恢复为 <c>Normal</c>。
+/// </remarks>
 /// <param name="Ids">文件 ID。</param>
 /// <param name="Status">目标状态。</param>
 public sealed record SetFileStatusRequest([Required, MinLength(1), MaxLength(100)] IReadOnlyList<Guid> Ids, FileStatus Status);
@@ -193,8 +196,11 @@ public sealed record FileStorageResponse(
 public sealed record FileStoragesResponse(IReadOnlyList<FileStorageResponse> Items);
 
 /// <summary>
-/// 针对一个副本的请求（<c>files.set-primary-storage</c>、<c>files.verify-storage</c>）。
+/// 针对一个副本的请求。
 /// </summary>
+/// <remarks>
+/// 用于 <c>files.set-primary-storage</c>、<c>files.verify-storage</c>。
+/// </remarks>
 /// <param name="Id">文件 ID。</param>
 /// <param name="StorageId">副本 ID。</param>
 public sealed record FileStorageRequest([Required] Guid Id, [Required] Guid StorageId);

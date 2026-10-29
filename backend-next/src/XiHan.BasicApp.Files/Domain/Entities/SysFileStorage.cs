@@ -7,8 +7,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Files.Domain.Entities;
 
 /// <summary>
-/// 文件副本（租户库实体）：文件内容在某个存储配置里的一份，记下配置、桶与对象键。每个文件恰好一个主副本，读写取主副本。
+/// 文件副本：文件内容在某个存储配置里的一份。
 /// </summary>
+/// <remarks>
+/// 租户库实体，记下配置、桶与对象键。每个文件恰好一个主副本，读写取主副本。
+/// </remarks>
 public sealed class SysFileStorage : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -33,8 +36,11 @@ public sealed class SysFileStorage : TenantScopedAuditedEntity
     public string Bucket { get; set; } = string.Empty;
 
     /// <summary>
-    /// 对象键：<c>&lt;侧&gt;/&lt;年&gt;/&lt;月&gt;/&lt;日&gt;/&lt;文件 ID&gt;&lt;扩展名&gt;</c>。
+    /// 对象键。
     /// </summary>
+    /// <remarks>
+    /// 格式为 <c>&lt;侧&gt;/&lt;年&gt;/&lt;月&gt;/&lt;日&gt;/&lt;文件 ID&gt;&lt;扩展名&gt;</c>。
+    /// </remarks>
     [StringLength(1024)]
     public string Key { get; set; } = string.Empty;
 
@@ -49,8 +55,11 @@ public sealed class SysFileStorage : TenantScopedAuditedEntity
     public FileStorageStatus Status { get; set; }
 
     /// <summary>
-    /// 最近一次校验时间；写入时即校验过（写入的内容按 SHA-256 算过）。
+    /// 最近一次校验时间。
     /// </summary>
+    /// <remarks>
+    /// 写入时即校验过（写入的内容按 SHA-256 算过）。
+    /// </remarks>
     public DateTimeOffset? VerifiedAt { get; set; }
 
     /// <summary>

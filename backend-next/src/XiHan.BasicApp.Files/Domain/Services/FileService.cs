@@ -31,9 +31,12 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, DateTimeOffset? ExpiresAt, string? Tags, string? Remark);
 
 /// <summary>
-/// 文件：上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理。
-/// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）。
+/// 文件服务：上传、读取、访问与副本管理。
 /// </summary>
+/// <remarks>
+/// 上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理。
+/// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）。
+/// </remarks>
 /// <param name="rows">文件与副本的读写。</param>
 /// <param name="configs">存储配置。</param>
 /// <param name="stores">对象存储实例。</param>
@@ -83,8 +86,11 @@ public sealed partial class FileService(
             : Error.NotFound(FilesErrors.FileNotFound, FilesMessages.FileNotFound, MessageArguments.Of(("id", id)));
 
     /// <summary>
-    /// 上传：内容先写到临时文件并算 SHA-256，超过上限即停；同一侧已有相同内容的正常文件就共用它的对象，否则写进上传目标配置。
+    /// 上传一个文件。
     /// </summary>
+    /// <remarks>
+    /// 内容先写到临时文件并算 SHA-256，超过上限即停；同一侧已有相同内容的正常文件就共用它的对象，否则写进上传目标配置。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="content">内容。</param>
     /// <param name="fileName">原始文件名。</param>
@@ -138,8 +144,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 秒传：同一侧已有内容相同（SHA-256 与大小都相同）的正常文件就共用它的对象、得到一条新记录；没有为无值，前端再走普通上传。
+    /// 秒传：同一侧已有相同内容的正常文件时直接得到一条新记录。
     /// </summary>
+    /// <remarks>
+    /// 内容相同即 SHA-256 与大小都相同，新记录共用它的对象；没有为无值，前端再走普通上传。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="hash">SHA-256。</param>
     /// <param name="size">大小。</param>
@@ -180,8 +189,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 调用方能否换取这个文件的下载地址：访问级别「需要授权」的要持有 <c>files.files.read</c>，「已登录」的同一侧已登录即可。
+    /// 判定调用方能否换取这个文件的下载地址。
     /// </summary>
+    /// <remarks>
+    /// 访问级别「需要授权」的要持有 <c>files.files.read</c>，「已登录」的同一侧已登录即可。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="file">文件。</param>
     /// <returns>能为成功。</returns>
@@ -217,8 +229,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 读内容（主副本），并记一次下载（计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行）。
+    /// 读文件内容（主副本），并记一次下载。
     /// </summary>
+    /// <remarks>
+    /// 计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行。
+    /// </remarks>
     /// <param name="file">文件。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>内容（调用方释放）。</returns>
@@ -282,8 +297,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 归档或恢复（只在正常与已归档之间切换；损坏的文件先换主副本）。
+    /// 归档或恢复文件。
     /// </summary>
+    /// <remarks>
+    /// 只在正常与已归档之间切换；损坏的文件先换主副本。
+    /// </remarks>
     /// <param name="side">侧。</param>
     /// <param name="fileIds">文件 ID。</param>
     /// <param name="status">目标状态。</param>
@@ -326,8 +344,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 删除：文件与副本软删除，不再被这一侧其他副本引用的对象随之删除（对象删不掉只记警告，记录照删）。
+    /// 删除文件：文件与副本软删除。
     /// </summary>
+    /// <remarks>
+    /// 不再被这一侧其他副本引用的对象随之删除（对象删不掉只记警告，记录照删）。
+    /// </remarks>
     /// <param name="side">侧。</param>
     /// <param name="fileIds">文件 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -393,8 +414,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 设为主副本：目标须正常且校验过；损坏的文件随之恢复正常（4.x 同）。
+    /// 把一个副本设为主副本。
     /// </summary>
+    /// <remarks>
+    /// 目标须正常且校验过；损坏的文件随之恢复正常（4.x 同）。
+    /// </remarks>
     /// <param name="file">文件。</param>
     /// <param name="storage">副本。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -429,9 +453,12 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 校验副本：读出内容按 SHA-256 比对。读不到或不符记校验失败，是主副本时文件记为损坏；通过时记校验时间，主副本通过时损坏的文件恢复正常。
-    /// 存储本身不可用（网络、权限）时不改状态，返回存储的错误。
+    /// 校验副本：读出内容按 SHA-256 比对。
     /// </summary>
+    /// <remarks>
+    /// 读不到或不符记校验失败，是主副本时文件记为损坏；通过时记校验时间，主副本通过时损坏的文件恢复正常。
+    /// 存储本身不可用（网络、权限）时不改状态，返回存储的错误。
+    /// </remarks>
     /// <param name="file">文件。</param>
     /// <param name="storage">副本。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -483,8 +510,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 启用或停用副本：主副本不能停用；校验失败的副本要重新校验才回到正常。
+    /// 启用或停用副本。
     /// </summary>
+    /// <remarks>
+    /// 主副本不能停用；校验失败的副本要重新校验才回到正常。
+    /// </remarks>
     /// <param name="storage">副本。</param>
     /// <param name="status">目标状态。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -644,8 +674,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 同一侧有内容相同的正常文件（主副本正常）就复制出一条新记录与一个指向同一对象的主副本。
+    /// 复用同一侧内容相同的正常文件的对象。
     /// </summary>
+    /// <remarks>
+    /// 同一侧有内容相同的正常文件（主副本正常）就复制出一条新记录与一个指向同一对象的主副本。
+    /// </remarks>
     private async Task<Maybe<SysFile>> ReuseAsync(string side, string hash, long size, string name, string? contentType, FileDetails details, string source, CancellationToken cancellationToken)
     {
         var candidates = await rows.Query<SysFile>(side).Where(f => f.Hash == hash && f.Size == size && f.Status == FileStatus.Normal).Take(5).ToListAsync(cancellationToken).ConfigureAwait(false);

@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Operations.ExportTasks;
 
 /// <summary>
-/// 提交导出：<c>POST /api/export-tasks:submit</c>。只要求登录；要导出的列表操作在执行时按发起人的身份照常判定权限、数据范围与字段安全（4.x 按导出提供方要求的权限码）。
+/// 提交导出。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/export-tasks:submit</c>。只要求登录；要导出的列表操作在执行时按发起人的身份照常判定权限、数据范围与字段安全（4.x 按导出提供方要求的权限码）。
+/// </remarks>
 /// <param name="service">导出任务服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SubmitExportTask(ExportTaskService service) : IOperation<SubmitExportTaskRequest, ExportTaskResponse>
@@ -39,8 +42,11 @@ public sealed class SubmitExportTask(ExportTaskService service) : IOperation<Sub
 }
 
 /// <summary>
-/// 分页列出自己的导出任务：<c>POST /api/export-tasks:list</c>（4.x 的「我的导出」）。缺省按提交时间倒序。
+/// 分页列出自己的导出任务。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/export-tasks:list</c>（4.x 的「我的导出」）。缺省按提交时间倒序。
+/// </remarks>
 /// <param name="queries">任务查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListExportTasks(ExportTaskQueries queries) : IOperation<PageRequest, PageResult<ExportTaskResponse>>
@@ -87,8 +93,11 @@ public sealed class GetExportTask(ExportTaskService service) : IOperation<Export
 }
 
 /// <summary>
-/// 取消自己排队中的导出：<c>POST /api/export-tasks/{id}:cancel</c>。执行中的不能取消（4.x 同）。
+/// 取消自己排队中的导出。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/export-tasks/{id}:cancel</c>。执行中的不能取消（4.x 同）。
+/// </remarks>
 /// <param name="service">导出任务服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CancelExportTask(ExportTaskService service) : IOperation<ExportTaskIdRequest, ExportTaskResponse>
@@ -120,8 +129,11 @@ public sealed class CancelExportTask(ExportTaskService service) : IOperation<Exp
 }
 
 /// <summary>
-/// 删除自己的导出任务：<c>DELETE /api/export-tasks?ids=</c>，结果文件一并删除（4.x 留着文件）；执行中的逐项拒绝。
+/// 删除自己的导出任务，结果文件一并删除。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/export-tasks?ids=</c>。结果文件一并删除（4.x 留着文件）；执行中的逐项拒绝。
+/// </remarks>
 /// <param name="service">导出任务服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteExportTasks(ExportTaskService service) : IOperation<ExportTaskIdsRequest, BatchResult>

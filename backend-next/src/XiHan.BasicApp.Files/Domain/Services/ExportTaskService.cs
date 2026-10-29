@@ -27,9 +27,12 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 public sealed record ExportSubmission(string BusinessType, string? TaskName, ExportScope Scope, ExportFormat Format, string? QuerySnapshot, string FieldsSnapshot);
 
 /// <summary>
-/// 导出任务（4.x 同）：提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务。
-/// 与 4.x 不同：要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件。
+/// 导出任务的提交、读取、取消与删除。
 /// </summary>
+/// <remarks>
+/// 4.x 同。提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务。
+/// 与 4.x 不同：要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件。
+/// </remarks>
 /// <param name="rows">任务读写。</param>
 /// <param name="files">文件服务（删除结果文件）。</param>
 /// <param name="queue">导出队列。</param>
@@ -39,10 +42,10 @@ public sealed record ExportSubmission(string BusinessType, string? TaskName, Exp
 public sealed class ExportTaskService(SideRows rows, FileService files, ExportJobs queue, OperationRegistry registry, IIdGenerator<Guid> ids, TimeProvider clock)
 {
     /// <summary>
-    /// 调用方的用户 ID；没有登录用户为空。
+    /// 取调用方的用户 ID。
     /// </summary>
     /// <param name="context">调用上下文。</param>
-    /// <returns>用户 ID。</returns>
+    /// <returns>用户 ID；没有登录用户为空。</returns>
     public static Guid? RequesterOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -50,8 +53,11 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 提交：校验要导出的列表操作与列，写一条排队中的任务，把发起人这次调用的凭据带进作业入队。
+    /// 提交一个导出任务。
     /// </summary>
+    /// <remarks>
+    /// 校验要导出的列表操作与列，写一条排队中的任务，把发起人这次调用的凭据带进作业入队。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="submission">提交内容。</param>
     /// <returns>新任务。</returns>
@@ -119,8 +125,11 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 取消：只在排队中，记为失败并写明已取消（4.x 同）。
+    /// 取消：只在排队中，记为失败并写明已取消。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="task">任务。</param>
     /// <returns>结果。</returns>

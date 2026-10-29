@@ -7,8 +7,11 @@ using XiHan.BasicApp.Files.Domain.Entities;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 文件大类与内容类型（4.x 同）：先看内容类型，再看扩展名；上传方没给内容类型时按扩展名推，推不出为 <c>application/octet-stream</c>。
+/// 判定文件大类与内容类型。
 /// </summary>
+/// <remarks>
+/// 4.x 同：先看内容类型，再看扩展名；上传方没给内容类型时按扩展名推，推不出为 <c>application/octet-stream</c>。
+/// </remarks>
 public static class FileKinds
 {
     private static readonly FileExtensionContentTypeProvider _contentTypes = new();

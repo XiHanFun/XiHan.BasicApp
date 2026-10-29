@@ -12,8 +12,11 @@ using XiHan.BasicApp.Files.Operations.StorageConfigs;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件包操作与上传端点的请求 / 响应序列化上下文（源生成；枚举按字符串）。
+/// 文件包操作与上传端点的请求 / 响应序列化上下文。
 /// </summary>
+/// <remarks>
+/// 源生成；枚举按字符串。
+/// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     PropertyNameCaseInsensitive = true,
