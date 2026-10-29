@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "이 서드파티 로그인 방식은 없거나 사용하도록 설정되지 않았습니다.",
   "profile.sessions.description": "내 로그인 기기를 나열합니다. 플랫폼과 테넌트를 가리지 않고 내 유효한 세션 전체이며 현재 세션이 맨 앞입니다. 로그인만 필요합니다.",
   "profile.revoke_session.description": "내 기기 한 대를 로그아웃시킵니다. 현재 기기는 로그아웃을 사용하세요. 로그인만 필요합니다.",
-  "profile.revoke_other_sessions.description": "현재 기기를 제외한 내 모든 기기를 로그아웃시킵니다. 내가 시작해 아직 끝나지 않은 대리 로그인 세션도 포함합니다. 로그인만 필요합니다."
+  "profile.revoke_other_sessions.description": "현재 기기를 제외한 내 모든 기기를 로그아웃시킵니다. 내가 시작해 아직 끝나지 않은 대리 로그인 세션도 포함합니다. 로그인만 필요합니다.",
+  "profile.notification_preference.description": "내 알림 설정입니다. 앱 내·이메일·SMS 세 채널과 공지·할 일·보안 세 종류이며, 저장하기 전에는 모두 받습니다. 필독 알림과 긴급 알림에는 영향이 없습니다. 로그인만 필요합니다.",
+  "profile.update_notification_preference.description": "내 알림 설정을 저장합니다(전체 덮어쓰기). 로그인만 필요합니다."
 }

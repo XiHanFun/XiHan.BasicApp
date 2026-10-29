@@ -6,12 +6,13 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.Framework.Auditing.Database.Trail;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
 /// 个人中心「登录设备」与「登录日志」：只看本人（别人模仿本人开的会话也算本人的设备，4.x 同）；当前会话在最前、不能在这里下线，别人的会话即不存在；
-/// 下线一台后它的令牌立即失效；下线其他全部设备连同本人发起的模仿会话；登录日志只有本人的，每页最多 50 条。
+/// 下线一台后它的令牌立即失效；下线其他全部设备连同本人发起的模仿会话；登录日志只有本人的，每页最多 50 条；活跃度按请求的时区分天、只算本人成功的登录。
 /// </summary>
 public sealed class MySessionsTests : IDisposable
 {
@@ -114,5 +115,19 @@ public sealed class MySessionsTests : IDisposable
         var (_, paged) = await GetAsync(server, "/api/my-login-logs?page=2&pageSize=2", current);
         Assert.Equal((2, logs.GetProperty("total").GetInt64(), 2), (paged.GetProperty("items").GetArrayLength(), paged.GetProperty("total").GetInt64(), paged.GetProperty("page").GetProperty("index").GetInt32()));
         Assert.Equal(HttpStatusCode.BadRequest, (await GetAsync(server, "/api/my-login-logs?page=1&pageSize=51", current)).Status);
+
+        // 活跃度：今天的登录是本人成功的三次（密码错不算），访问按天进趋势；时区不认得即 400
+        await server.Services.GetRequiredService<AuditLogWriter>().FlushAsync(CancellationToken.None);
+        await server.Services.GetRequiredService<DatabaseAuditTrail>().FlushAsync(CancellationToken.None);
+        var (activity, activityBody) = await GetAsync(server, "/api/my-activity:summary?timeZone=Asia/Shanghai", current);
+        Assert.Equal(HttpStatusCode.OK, activity);
+        Assert.Equal(3, activityBody.GetProperty("today").GetProperty("logins").GetInt32());
+        Assert.True(activityBody.GetProperty("today").GetProperty("accesses").GetInt32() > 0);
+        Assert.Contains(activityBody.GetProperty("trend").EnumerateArray(), static d => d.GetProperty("accesses").GetInt32() > 0);
+        Assert.Equal(JsonValueKind.String, activityBody.GetProperty("lastLoginAt").ValueKind);
+        var (_, demoActivity) = await GetAsync(server, "/api/my-activity:summary", demo);
+        Assert.Equal(1, demoActivity.GetProperty("thisMonth").GetProperty("logins").GetInt32());
+        var (badZone, badZoneBody) = await GetAsync(server, "/api/my-activity:summary?timeZone=Mars/Olympus", current);
+        Assert.Equal((HttpStatusCode.BadRequest, "AUDITING_VALIDATION_005"), (badZone, badZoneBody.GetProperty("code").GetString()));
     }
 }

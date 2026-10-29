@@ -1,6 +1,6 @@
 import type { Router } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureRequest } from '~/request'
 import { useAppContext } from '~/stores'
 import { registerApplicationContext } from './context'
@@ -243,6 +243,44 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(result.items[0]).toEqual({ loginTime: '2026-10-30T00:00:00Z', loginIp: '10.0.0.1', browser: 'Chrome', os: 'Windows', loginResult: 'InvalidCredentials', message: '用户名或密码错误。' })
     expect(result.items[1]).toEqual({ loginTime: '2026-10-30T00:00:00Z', loginResult: 'Success' })
     expect(result.items.slice(1).map(item => item.loginResult)).toEqual(events.map(([, , , expected]) => expected))
+  })
+
+  it('通知偏好：profile.notification-preference 给六个同名开关；保存逐项交给 update-notification-preference（4.x 的推送、机器人、审批、营销不上送），回保存后的偏好', async () => {
+    const calls: Call[] = []
+    const preference = { channelInApp: true, channelEmail: false, channelSms: true, typeAnnouncement: true, typeTask: false, typeSecurity: true }
+    record(calls, () => json(200, preference))
+    const apis = useAppContext().apis
+    expect(await apis.getNotificationPreferenceApi()).toEqual(preference)
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/profile:notification-preference', body: null })
+    const legacy = { ...preference, channelPush: true, channelBot: false, typeApproval: true, typeMarketing: false }
+    expect(await apis.updateNotificationPreferenceApi(legacy)).toEqual(preference)
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:update-notification-preference', body: preference })
+  })
+
+  it('活跃度：my-activity.summary 带浏览器的 IANA 时区；次数与时间换成 4.x 的 *Count / *Time，没有的最近时间不给，趋势换字段名（没有在线时长）', async () => {
+    const calls: Call[] = []
+    const resolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockImplementation(function (this: Intl.DateTimeFormat) {
+      return { ...resolvedOptions.call(this), timeZone: 'Asia/Shanghai' }
+    })
+    record(calls, () => json(200, {
+      today: { logins: 1, accesses: 20, operations: 3 },
+      thisWeek: { logins: 4, accesses: 120, operations: 9 },
+      thisMonth: { logins: 12, accesses: 480, operations: 30 },
+      lastLoginAt: '2026-10-30T01:00:00Z',
+      lastAccessAt: null,
+      lastOperationAt: '2026-10-30T02:30:00Z',
+      trend: [{ date: '2026-10-29', operations: 5, accesses: 40 }, { date: '2026-10-30', operations: 0, accesses: 20 }],
+    }))
+    expect(await useAppContext().apis.getActivityApi()).toEqual({
+      today: { loginCount: 1, accessCount: 20, operationCount: 3 },
+      thisWeek: { loginCount: 4, accessCount: 120, operationCount: 9 },
+      thisMonth: { loginCount: 12, accessCount: 480, operationCount: 30 },
+      lastLoginTime: '2026-10-30T01:00:00Z',
+      lastOperationTime: '2026-10-30T02:30:00Z',
+      trend: [{ date: '2026-10-29', accessCount: 40, operationCount: 5 }, { date: '2026-10-30', accessCount: 20, operationCount: 0 }],
+    })
+    expect(calls).toEqual([{ method: 'GET', url: '/api/my-activity:summary?timeZone=Asia%2FShanghai', body: null }])
   })
 
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {

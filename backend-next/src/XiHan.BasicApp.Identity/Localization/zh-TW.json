@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "該第三方登入方式不存在或未啟用。",
   "profile.sessions.description": "列出本人的登入裝置：本人全部有效工作階段（不分平台與租戶），目前工作階段在最前。已登入即可。",
   "profile.revoke_session.description": "登出本人的一台裝置；目前裝置請用登出。已登入即可。",
-  "profile.revoke_other_sessions.description": "登出本人除目前裝置外的全部裝置，連同本人發起、尚未結束的模擬工作階段。已登入即可。"
+  "profile.revoke_other_sessions.description": "登出本人除目前裝置外的全部裝置，連同本人發起、尚未結束的模擬工作階段。已登入即可。",
+  "profile.notification_preference.description": "本人的通知偏好：站內信 / 郵件 / 簡訊三個管道與公告 / 待辦 / 安全三類，沒儲存過即全收；強制閱讀與緊急通知不受影響。已登入即可。",
+  "profile.update_notification_preference.description": "儲存本人的通知偏好（整體覆蓋）。已登入即可。"
 }

@@ -14794,6 +14794,98 @@
         }
       }
     },
+    "/api/my-activity:summary": {
+      "get": {
+        "operationId": "my-activity.summary",
+        "tags": [
+          "my-activity"
+        ],
+        "summary": "Your activity: sign-ins, accesses and operations today, this week and this month, the latest of each, and daily operations and accesses over the last 371 days, split by the requested time zone. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "timeZone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyActivityResponse",
+                  "type": "object",
+                  "properties": {
+                    "today": {
+                      "$ref": "#/components/schemas/ActivityCountsResponse"
+                    },
+                    "thisWeek": {
+                      "$ref": "#/components/schemas/ActivityCountsResponse"
+                    },
+                    "thisMonth": {
+                      "$ref": "#/components/schemas/ActivityCountsResponse"
+                    },
+                    "lastLoginAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastAccessAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastOperationAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "trend": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ActivityDayResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "today",
+                    "thisWeek",
+                    "thisMonth",
+                    "trend"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-api-credentials": {
       "delete": {
         "operationId": "my-api-credentials.delete",
@@ -24276,6 +24368,69 @@
         }
       }
     },
+    "/api/profile:notification-preference": {
+      "get": {
+        "operationId": "profile.notification-preference",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationPreferenceResponse",
+                  "type": "object",
+                  "properties": {
+                    "channelInApp": {
+                      "type": "boolean"
+                    },
+                    "channelEmail": {
+                      "type": "boolean"
+                    },
+                    "channelSms": {
+                      "type": "boolean"
+                    },
+                    "typeAnnouncement": {
+                      "type": "boolean"
+                    },
+                    "typeTask": {
+                      "type": "boolean"
+                    },
+                    "typeSecurity": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "channelInApp",
+                    "channelEmail",
+                    "channelSms",
+                    "typeAnnouncement",
+                    "typeTask",
+                    "typeSecurity"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile:revoke-other-sessions": {
       "post": {
         "operationId": "profile.revoke-other-sessions",
@@ -24559,6 +24714,108 @@
                   },
                   "required": [
                     "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:update-notification-preference": {
+      "post": {
+        "operationId": "profile.update-notification-preference",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Save your notification preferences (replaces them as a whole). Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateNotificationPreferenceRequest",
+                "type": "object",
+                "properties": {
+                  "channelInApp": {
+                    "type": "boolean"
+                  },
+                  "channelEmail": {
+                    "type": "boolean"
+                  },
+                  "channelSms": {
+                    "type": "boolean"
+                  },
+                  "typeAnnouncement": {
+                    "type": "boolean"
+                  },
+                  "typeTask": {
+                    "type": "boolean"
+                  },
+                  "typeSecurity": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "channelInApp",
+                  "channelEmail",
+                  "channelSms",
+                  "typeAnnouncement",
+                  "typeTask",
+                  "typeSecurity"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationPreferenceResponse",
+                  "type": "object",
+                  "properties": {
+                    "channelInApp": {
+                      "type": "boolean"
+                    },
+                    "channelEmail": {
+                      "type": "boolean"
+                    },
+                    "channelSms": {
+                      "type": "boolean"
+                    },
+                    "typeAnnouncement": {
+                      "type": "boolean"
+                    },
+                    "typeTask": {
+                      "type": "boolean"
+                    },
+                    "typeSecurity": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "channelInApp",
+                    "channelEmail",
+                    "channelSms",
+                    "typeAnnouncement",
+                    "typeTask",
+                    "typeSecurity"
                   ]
                 }
               }
@@ -33096,6 +33353,50 @@
           "Unauthorized",
           "NotFound",
           "ServerError"
+        ]
+      },
+      "ActivityCountsResponse": {
+        "type": "object",
+        "properties": {
+          "logins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accesses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "operations": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "logins",
+          "accesses",
+          "operations"
+        ]
+      },
+      "ActivityDayResponse": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "operations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accesses": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "date",
+          "operations",
+          "accesses"
         ]
       },
       "AvailableTenantResponse": {

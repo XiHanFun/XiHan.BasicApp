@@ -95,5 +95,7 @@
   "identity.external.provider_not_found": "Este método de login com terceiros não existe ou não está habilitado.",
   "profile.sessions.description": "Lista seus dispositivos conectados: todas as suas sessões ativas (plataforma e locatários), a atual primeiro. Requer apenas login.",
   "profile.revoke_session.description": "Desconecta um de seus dispositivos; para o atual, use sair. Requer apenas login.",
-  "profile.revoke_other_sessions.description": "Desconecta todos os seus dispositivos, exceto o atual, incluindo personificações iniciadas por você que ainda estão abertas. Requer apenas login."
+  "profile.revoke_other_sessions.description": "Desconecta todos os seus dispositivos, exceto o atual, incluindo personificações iniciadas por você que ainda estão abertas. Requer apenas login.",
+  "profile.notification_preference.description": "Suas preferências de notificação: canais no aplicativo, e-mail e SMS, e temas aviso, tarefa e segurança; tudo é recebido até salvar. Notificações obrigatórias e de emergência não são afetadas. Requer apenas login.",
+  "profile.update_notification_preference.description": "Salva suas preferências de notificação (substitui por completo). Requer apenas login."
 }

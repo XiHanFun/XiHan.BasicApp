@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile, UserSessionItem } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户；
@@ -159,6 +159,12 @@ export interface AppContextApis {
   revokeOtherSessionsApi: () => Promise<unknown>
   /** 登录日志（个人中心「登录日志」）：本人的认证事件按时间倒序分页，page 从 1 起 */
   getLoginLogsApi: (page: number, pageSize: number) => Promise<LoginLogPage & { page: number, pageSize: number }>
+  /** 通知偏好（个人中心「通知」）：本人的接收渠道与通知类型，没保存过即全收 */
+  getNotificationPreferenceApi: () => Promise<NotificationPreference>
+  /** 保存通知偏好（整体覆盖），返回保存后的偏好 */
+  updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
+  /** 活跃度（个人中心「统计」）：今天 / 本周 / 本月的次数、最近活动时间与近一年按天的操作趋势，按浏览器时区分天 */
+  getActivityApi: () => Promise<UserActivity>
   /** 锁屏（服务端强制）：设置会话级一次性口令并置位锁屏标记 */
   lockSessionApi: (input: { password: string }) => Promise<unknown>
   /** 解锁：口令由服务端校验；连续失败 5 次服务端会直接吊销会话 */

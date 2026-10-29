@@ -125,19 +125,18 @@ export interface TwoFactorSetupResult {
   authenticatorUri: string
 }
 
-/** 用户通知偏好（渠道 × 类型） */
+/**
+ * 用户通知偏好（渠道 × 类型；与后端 `profile.notification-preference` 同名同义，整体覆盖保存，没保存过即全收）。
+ * 强制阅读与紧急通知不受偏好影响。4.x 的推送、机器人两个渠道与审批、营销两种类型 6.0 没有效果（没有推送渠道、机器人是群广播不分人、
+ * 审批随后续的流程模块、没有营销类通知），不显示也不存
+ */
 export interface NotificationPreference {
   channelInApp: boolean
   channelEmail: boolean
   channelSms: boolean
-  channelPush: boolean
-  /** 机器人通知（钉钉/飞书/企微/Telegram，对应 Bot 通道整体；默认关闭） */
-  channelBot: boolean
   typeAnnouncement: boolean
   typeTask: boolean
-  typeApproval: boolean
   typeSecurity: boolean
-  typeMarketing: boolean
 }
 
 /**
@@ -153,22 +152,21 @@ export interface ExternalLoginItem {
   lastLoginTime?: string
 }
 
+/** 一段时间里的次数（个人中心「统计」；后端 `my-activity.summary` 的 logins / accesses / operations，沿用 4.x 的 *Count 命名）；6.0 不记在线时长，没有 4.x 的 onlineTime */
 export interface UserActivityPeriod {
   loginCount: number
   accessCount: number
   operationCount: number
-  /** 在线时长（秒） */
-  onlineTime: number
 }
 
+/** 有活动的一天（日期是 yyyy-MM-dd，按请求的时区分天）；6.0 没有 4.x 的 onlineMinutes */
 export interface UserActivityTrendPoint {
   date: string
   accessCount: number
   operationCount: number
-  /** 在线时长（分钟） */
-  onlineMinutes: number
 }
 
+/** 本人的活跃度：今天、本周（周一起）、本月的次数，最近一次的时间（近一年内，没有即不给），近 371 天里有活动的日子（稀疏、日期正序） */
 export interface UserActivity {
   today: UserActivityPeriod
   thisWeek: UserActivityPeriod

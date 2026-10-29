@@ -1848,6 +1848,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/my-activity:summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your activity: sign-ins, accesses and operations today, this week and this month, the latest of each, and daily operations and accesses over the last 371 days, split by the requested time zone. Requires sign-in only. */
+        get: operations["my-activity.summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/my-api-credentials": {
         parameters: {
             query?: never;
@@ -2970,6 +2987,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:notification-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them. Requires sign-in only. */
+        get: operations["profile.notification-preference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:revoke-other-sessions": {
         parameters: {
             query?: never;
@@ -3049,6 +3083,23 @@ export interface paths {
         put?: never;
         /** Unbind one of your third-party accounts. Not available in impersonation sessions. */
         post: operations["profile.unlink-external"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:update-notification-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save your notification preferences (replaces them as a whole). Requires sign-in only. */
+        post: operations["profile.update-notification-preference"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4214,6 +4265,22 @@ export interface components {
         };
         /** @enum {string} */
         AccessResult: "Success" | "Failed" | "Forbidden" | "Unauthorized" | "NotFound" | "ServerError";
+        ActivityCountsResponse: {
+            /** Format: int32 */
+            logins: number;
+            /** Format: int32 */
+            accesses: number;
+            /** Format: int32 */
+            operations: number;
+        };
+        ActivityDayResponse: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            operations: number;
+            /** Format: int32 */
+            accesses: number;
+        };
         AvailableTenantResponse: {
             tenantId: string;
             name: string;
@@ -12142,6 +12209,48 @@ export interface operations {
             };
         };
     };
+    "my-activity.summary": {
+        parameters: {
+            query?: {
+                timeZone?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        today: components["schemas"]["ActivityCountsResponse"];
+                        thisWeek: components["schemas"]["ActivityCountsResponse"];
+                        thisMonth: components["schemas"]["ActivityCountsResponse"];
+                        /** Format: date-time */
+                        lastLoginAt?: string | null;
+                        /** Format: date-time */
+                        lastAccessAt?: string | null;
+                        /** Format: date-time */
+                        lastOperationAt?: string | null;
+                        trend: components["schemas"]["ActivityDayResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "my-api-credentials.list": {
         parameters: {
             query?: never;
@@ -16081,6 +16190,42 @@ export interface operations {
             };
         };
     };
+    "profile.notification-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        channelInApp: boolean;
+                        channelEmail: boolean;
+                        channelSms: boolean;
+                        typeAnnouncement: boolean;
+                        typeTask: boolean;
+                        typeSecurity: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.revoke-other-sessions": {
         parameters: {
             query?: never;
@@ -16246,6 +16391,53 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ExternalLoginResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.update-notification-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channelInApp: boolean;
+                    channelEmail: boolean;
+                    channelSms: boolean;
+                    typeAnnouncement: boolean;
+                    typeTask: boolean;
+                    typeSecurity: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        channelInApp: boolean;
+                        channelEmail: boolean;
+                        channelSms: boolean;
+                        typeAnnouncement: boolean;
+                        typeTask: boolean;
+                        typeSecurity: boolean;
                     };
                 };
             };

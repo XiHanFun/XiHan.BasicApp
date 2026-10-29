@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
@@ -88,6 +89,8 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<IRecipientSource, AllUsersRecipientSource>();
         context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
         context.Services.AddScoped<IUserDirectory, UserDirectory>();
+        // 通知偏好：Notification 发布与扇出时按它过滤接收人
+        context.Services.AddScoped<INotificationPreferences, NotificationPreferences>();
         context.Services.AddScoped<ApiCredentialService>();
         context.Services.AddSingleton(ExternalLoginOptions.FromConfiguration(context.Configuration));
         context.Services.AddHttpClient(ExternalLoginFlow.HttpClientName, static client =>
