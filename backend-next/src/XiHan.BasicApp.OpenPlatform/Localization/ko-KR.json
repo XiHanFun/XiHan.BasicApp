@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "지원하지 않는 권한 부여 유형입니다: {value}(authorization_code 필수, refresh_token 선택).",
   "openplatform.oauth_apps.scope_unsupported": "지원하지 않는 범위입니다: {value}(openid 필수, profile·email·phone 선택).",
   "openplatform.oauth_apps.redirect_uri_invalid": "리디렉션 URI가 잘못되었습니다: {value}(절대 URI 1~10개, # 없음, http는 루프백만).",
-  "openplatform.oauth_apps.url_invalid": "URL은 http 또는 https여야 합니다: {value}."
+  "openplatform.oauth_apps.url_invalid": "URL은 http 또는 https여야 합니다: {value}.",
+  "oauth_consents.resolve.description": "동의 화면 미리 보기: 인가 요청(클라이언트, 리디렉션 URI, response_type, PKCE, 범위)을 검사하고 앱 정보, 이번 범위, 확인 생략 여부를 반환합니다. 로그인만 필요하며 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "oauth_consents.approve.description": "인가를 승인합니다. 인가 코드를 발급하고 동의를 기록한 뒤 code와 state가 붙은 리디렉션 URI를 반환합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "oauth_consents.deny.description": "인가를 거부합니다. 클라이언트와 리디렉션 URI가 맞을 때만 error=access_denied와 state가 붙은 리디렉션 URI를 반환합니다. 로그인만 필요합니다.",
+  "oauth_consents.list.description": "내가 인가한 앱과 동의한 범위를 나열합니다. 로그인만 필요합니다.",
+  "oauth_consents.revoke.description": "앱에 대한 인가를 취소합니다. 동의 기록을 지우고 그 앱이 가진 내 토큰을 모두 취소합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "openplatform.oauth_consents.not_found": "이 앱을 인가한 적이 없습니다: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "인가 요청이 잘못되었습니다({error}): {description}"
 }

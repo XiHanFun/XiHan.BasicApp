@@ -229,6 +229,16 @@ export interface MyOAuthAppCreateInput {
   logo?: string | null
 }
 
+/** 已授权的第三方应用（个人中心「OAuth 应用」页签；与后端 OAuthConsentResponse 对应，授权时间沿用壳层的 *Time 命名） */
+export interface OAuthConsentItem {
+  clientId: string
+  appName?: string | null
+  logo?: string | null
+  homepage?: string | null
+  scopes: string[]
+  grantedTime: string
+}
+
 /** 更新我的 OAuth 应用入参 */
 export interface MyOAuthAppUpdateInput {
   basicId: number | string

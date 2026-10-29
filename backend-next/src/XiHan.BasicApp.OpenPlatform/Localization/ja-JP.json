@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "サポートされていない付与タイプです：{value}（authorization_code は必須、refresh_token は任意）。",
   "openplatform.oauth_apps.scope_unsupported": "サポートされていないスコープです：{value}（openid は必須、profile・email・phone は任意）。",
   "openplatform.oauth_apps.redirect_uri_invalid": "リダイレクト URI が無効です：{value}（1〜10 件の絶対 URI、# なし、http はループバックのみ）。",
-  "openplatform.oauth_apps.url_invalid": "URL は http または https である必要があります：{value}。"
+  "openplatform.oauth_apps.url_invalid": "URL は http または https である必要があります：{value}。",
+  "oauth_consents.resolve.description": "同意画面のプレビュー：認可要求（クライアント・リダイレクト URI・response_type・PKCE・スコープ）を検証し、アプリ情報・今回のスコープ・確認を省略できるかを返します。ログインのみ必要で、代理ログイン中は使えません。",
+  "oauth_consents.approve.description": "認可を承認します。認可コードを発行して同意を記録し、code と state 付きのリダイレクト URI を返します。代理ログイン中は使えません。",
+  "oauth_consents.deny.description": "認可を拒否します。クライアントとリダイレクト URI が正しい場合のみ error=access_denied と state 付きのリダイレクト URI を返します。ログインのみ必要です。",
+  "oauth_consents.list.description": "自分が認可したアプリと同意したスコープを一覧します。ログインのみ必要です。",
+  "oauth_consents.revoke.description": "アプリへの認可を取り消します。同意記録を削除し、そのアプリが持つ自分のトークンをすべて失効させます。代理ログイン中は使えません。",
+  "openplatform.oauth_consents.not_found": "このアプリは認可されていません：{clientId}。",
+  "openplatform.oauth.authorize_invalid": "認可要求が無効です（{error}）：{description}"
 }

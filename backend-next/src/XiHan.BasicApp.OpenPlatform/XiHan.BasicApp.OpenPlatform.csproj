@@ -24,6 +24,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
     <XiHanFrameworkReference Include="XiHan.Framework.Protocols.Http" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

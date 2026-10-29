@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Tipo de concessão não suportado: {value} (authorization_code é obrigatório, refresh_token opcional).",
   "openplatform.oauth_apps.scope_unsupported": "Escopo não suportado: {value} (openid é obrigatório; profile, email e phone opcionais).",
   "openplatform.oauth_apps.redirect_uri_invalid": "URI de redirecionamento inválida: {value} (de 1 a 10 URIs absolutas sem #; http somente para loopback).",
-  "openplatform.oauth_apps.url_invalid": "A URL deve ser http ou https: {value}."
+  "openplatform.oauth_apps.url_invalid": "A URL deve ser http ou https: {value}.",
+  "oauth_consents.resolve.description": "Prévia da página de consentimento: valida a solicitação de autorização (cliente, URI de redirecionamento, response_type, PKCE, escopos) e devolve o aplicativo, os escopos e se o consentimento pode ser pulado. Requer apenas login; indisponível em personificação.",
+  "oauth_consents.approve.description": "Aprova a autorização: emite um código de autorização, registra o consentimento e devolve a URI de redirecionamento com code e state. Indisponível em personificação.",
+  "oauth_consents.deny.description": "Nega a autorização: devolve a URI de redirecionamento com error=access_denied e state, somente se o cliente e a URI forem válidos. Requer apenas login.",
+  "oauth_consents.list.description": "Lista os aplicativos que você autorizou e os escopos concedidos. Requer apenas login.",
+  "oauth_consents.revoke.description": "Revoga sua autorização de um aplicativo: exclui o consentimento e revoga todos os seus tokens. Indisponível em personificação.",
+  "openplatform.oauth_consents.not_found": "Você não autorizou este aplicativo: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Solicitação de autorização inválida ({error}): {description}"
 }

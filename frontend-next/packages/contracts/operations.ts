@@ -174,6 +174,11 @@ export const routes = {
   'oauth-apps.list': { method: 'POST', template: '/api/oauth-apps:list', path: [], query: [], success: 200 },
   'oauth-apps.reset-secret': { method: 'POST', template: '/api/oauth-apps/{id}:reset-secret', path: ['id'], query: [], success: 200 },
   'oauth-apps.update': { method: 'PUT', template: '/api/oauth-apps/{id}', path: ['id'], query: [], success: 200 },
+  'oauth-consents.approve': { method: 'POST', template: '/api/oauth-consents:approve', path: [], query: [], success: 200 },
+  'oauth-consents.deny': { method: 'POST', template: '/api/oauth-consents:deny', path: [], query: [], success: 200 },
+  'oauth-consents.list': { method: 'GET', template: '/api/oauth-consents', path: [], query: [], success: 200 },
+  'oauth-consents.resolve': { method: 'GET', template: '/api/oauth-consents:resolve', path: [], query: ['responseType', 'clientId', 'redirectUri', 'scope', 'state', 'codeChallenge', 'codeChallengeMethod', 'nonce'], success: 200 },
+  'oauth-consents.revoke': { method: 'POST', template: '/api/oauth-consents:revoke', path: [], query: [], success: 200 },
   'open-api-logs.get': { method: 'GET', template: '/api/open-api-logs/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.list': { method: 'POST', template: '/api/open-api-logs:list', path: [], query: [], success: 200 },
   'open.echo': { method: 'POST', template: '/api/open:echo', path: [], query: [], success: 200 },
@@ -590,6 +595,15 @@ export const oauthApps = {
   list: (request: RequestOf<'oauth-apps.list'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.list'>, ResponseOf<'oauth-apps.list'>>('oauth-apps.list', routes['oauth-apps.list'], request, options),
   resetSecret: (request: RequestOf<'oauth-apps.reset-secret'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.reset-secret'>, ResponseOf<'oauth-apps.reset-secret'>>('oauth-apps.reset-secret', routes['oauth-apps.reset-secret'], request, options),
   update: (request: RequestOf<'oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.update'>, ResponseOf<'oauth-apps.update'>>('oauth-apps.update', routes['oauth-apps.update'], request, options),
+}
+
+/** 资源 `oauth-consents` 的操作。 */
+export const oauthConsents = {
+  approve: (request: RequestOf<'oauth-consents.approve'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.approve'>, ResponseOf<'oauth-consents.approve'>>('oauth-consents.approve', routes['oauth-consents.approve'], request, options),
+  deny: (request: RequestOf<'oauth-consents.deny'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.deny'>, ResponseOf<'oauth-consents.deny'>>('oauth-consents.deny', routes['oauth-consents.deny'], request, options),
+  list: (request: RequestOf<'oauth-consents.list'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.list'>, ResponseOf<'oauth-consents.list'>>('oauth-consents.list', routes['oauth-consents.list'], request, options),
+  resolve: (request: RequestOf<'oauth-consents.resolve'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.resolve'>, ResponseOf<'oauth-consents.resolve'>>('oauth-consents.resolve', routes['oauth-consents.resolve'], request, options),
+  revoke: (request: RequestOf<'oauth-consents.revoke'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.revoke'>, ResponseOf<'oauth-consents.revoke'>>('oauth-consents.revoke', routes['oauth-consents.revoke'], request, options),
 }
 
 /** 资源 `open-api-logs` 的操作。 */

@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, TwoFactorSetupResult, UserProfile } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
@@ -208,6 +208,9 @@ export interface AppContextApis {
   regenerateMyOAuthAppSecretApi: (id: number | string) => Promise<MyOAuthAppSecret>
   updateMyOAuthAppStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<MyOAuthAppItem>
   deleteMyOAuthAppApi: (id: number | string) => Promise<unknown>
+  /** 已授权的第三方应用（本人同意过的 OAuth 客户端）；撤销即吊销它拿到的令牌，下次登录要重新授权 */
+  getOAuthConsentsApi: () => Promise<OAuthConsentItem[]>
+  revokeOAuthConsentApi: (clientId: string) => Promise<unknown>
   enumApi: {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>

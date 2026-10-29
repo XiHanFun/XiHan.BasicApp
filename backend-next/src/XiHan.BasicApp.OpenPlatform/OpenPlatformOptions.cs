@@ -26,6 +26,21 @@ public sealed class OpenPlatformOptions
     public int MaxRequestBodyBytes { get; init; } = 2 * 1024 * 1024;
 
     /// <summary>
+    /// OAuth / OIDC 的签发者（不带结尾斜杠，如 <c>https://example.com/api/oauth2</c>）；不配即取请求的来源加 <c>/api/oauth2</c>。
+    /// </summary>
+    public string? Issuer { get; init; }
+
+    /// <summary>
+    /// 授权同意页地址（前端路由，授权端点把查询串原样带过去；缺省 <c>/#/oauth/authorize</c>，前后端同源时即可用）。
+    /// </summary>
+    public string ConsentPageUrl { get; init; } = "/#/oauth/authorize";
+
+    /// <summary>
+    /// id_token 有效期（秒，缺省 600，4.x 同）。
+    /// </summary>
+    public int IdTokenLifetimeSeconds { get; init; } = 600;
+
+    /// <summary>
     /// 时间窗。
     /// </summary>
     public TimeSpan TimestampTolerance => TimeSpan.FromSeconds(TimestampToleranceSeconds);
@@ -42,6 +57,9 @@ public sealed class OpenPlatformOptions
         {
             TimestampToleranceSeconds = Math.Clamp(section.GetValue("TimestampToleranceSeconds", defaults.TimestampToleranceSeconds), 30, 3600),
             MaxRequestBodyBytes = Math.Clamp(section.GetValue("MaxRequestBodyBytes", defaults.MaxRequestBodyBytes), 1024, 64 * 1024 * 1024),
+            Issuer = section["Issuer"] is { Length: > 0 } issuer ? issuer.TrimEnd('/') : null,
+            ConsentPageUrl = section["ConsentPageUrl"] is { Length: > 0 } consent ? consent : defaults.ConsentPageUrl,
+            IdTokenLifetimeSeconds = Math.Clamp(section.GetValue("IdTokenLifetimeSeconds", defaults.IdTokenLifetimeSeconds), 60, 3600),
         };
     }
 }

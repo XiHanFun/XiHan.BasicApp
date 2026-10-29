@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, MyOAuthAppItem, MyOAuthAppSecret, UserProfile } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myOauthApps as myOAuthAppOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
@@ -149,6 +149,18 @@ function toShellOAuthApp(app: ResponseOf<'my-oauth-apps.get'>): MyOAuthAppItem {
 /** 一次性客户端密钥：公开客户端没有密钥（后端给 null），壳层按空串判断不显示 */
 function toShellOAuthSecret(secret: ResponseOf<'my-oauth-apps.create'>): MyOAuthAppSecret {
   return { basicId: secret.id, clientId: secret.clientId, clientType: secret.clientType, clientSecret: secret.clientSecret ?? '' }
+}
+
+/** `oauth-consents.list` → 个人中心「已授权的应用」条目：授权时间换成壳层的 *Time 命名，范围保持列表（按标签显示） */
+function toShellOAuthConsent(consent: ResponseOf<'oauth-consents.list'>['items'][number]): OAuthConsentItem {
+  return {
+    clientId: consent.clientId,
+    appName: consent.appName ?? null,
+    logo: consent.logo ?? null,
+    homepage: consent.homepage ?? null,
+    scopes: [...consent.scopes],
+    grantedTime: consent.grantedAt,
+  }
 }
 
 /** 4.x 的回调地址是一段文本（换行或逗号分隔）：拆成 6.0 的地址列表，去掉空项 */
@@ -315,6 +327,9 @@ export function registerApplicationContext(router: Router): void {
         throw new Error(result.failed.map(failure => failure.code).join('; '))
       return result
     },
+    // 已授权的应用（OpenPlatform 的 oauth-consents.*，只要求已登录，模仿会话撤销被拒）：撤销按 ClientId，同时吊销该应用拿到的令牌
+    getOAuthConsentsApi: async () => (await oauthConsentOps.list({})).items.map(toShellOAuthConsent),
+    revokeOAuthConsentApi: clientId => oauthConsentOps.revoke({ clientId }),
     enumApi: {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),

@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Tipo de concesión no admitido: {value} (authorization_code es obligatorio, refresh_token opcional).",
   "openplatform.oauth_apps.scope_unsupported": "Ámbito no admitido: {value} (openid es obligatorio; profile, email y phone opcionales).",
   "openplatform.oauth_apps.redirect_uri_invalid": "URI de redirección no válida: {value} (de 1 a 10 URI absolutas sin #; http solo para bucle local).",
-  "openplatform.oauth_apps.url_invalid": "La URL debe ser http o https: {value}."
+  "openplatform.oauth_apps.url_invalid": "La URL debe ser http o https: {value}.",
+  "oauth_consents.resolve.description": "Vista previa de la página de consentimiento: valida la solicitud de autorización (cliente, URI de redirección, response_type, PKCE, ámbitos) y devuelve la aplicación, los ámbitos y si se puede omitir el consentimiento. Solo requiere iniciar sesión; no disponible en suplantación.",
+  "oauth_consents.approve.description": "Aprueba la autorización: emite un código de autorización, registra el consentimiento y devuelve la URI de redirección con code y state. No disponible en suplantación.",
+  "oauth_consents.deny.description": "Deniega la autorización: devuelve la URI de redirección con error=access_denied y state, solo si el cliente y la URI son válidos. Solo requiere iniciar sesión.",
+  "oauth_consents.list.description": "Lista las aplicaciones que ha autorizado y los ámbitos concedidos. Solo requiere iniciar sesión.",
+  "oauth_consents.revoke.description": "Revoca su autorización de una aplicación: elimina el consentimiento y revoca todos sus tokens. No disponible en suplantación.",
+  "openplatform.oauth_consents.not_found": "No ha autorizado esta aplicación: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Solicitud de autorización no válida ({error}): {description}"
 }

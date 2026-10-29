@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhInputGroupRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import type { MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem } from '~/types'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhAvatarFallback, XhAvatarImage, XhAvatarRoot, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhInputGroupRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -174,12 +174,56 @@ function handleDelete(app: MyOAuthAppItem) {
   })
 }
 
+/** 已授权的第三方应用（本人同意过的 OAuth 客户端） */
+const consentsLoading = ref(false)
+const consents = ref<OAuthConsentItem[]>([])
+
+/** 应用名缺省时显示 ClientId */
+function consentName(consent: OAuthConsentItem): string {
+  return consent.appName || consent.clientId
+}
+
+async function loadConsents() {
+  consentsLoading.value = true
+  try {
+    consents.value = await apis.getOAuthConsentsApi()
+  }
+  catch (e) {
+    toast.danger((e as Error).message || t('component.profile.oauth.err_consents_load_failed'))
+  }
+  finally {
+    consentsLoading.value = false
+  }
+}
+
+function handleRevoke(consent: OAuthConsentItem) {
+  void dialog.confirm({
+    badge: 'error',
+    tone: 'danger',
+    title: t('component.profile.oauth.revoke_title'),
+    content: t('component.profile.oauth.revoke_content', { name: consentName(consent) }),
+    okText: t('component.profile.oauth.confirm_revoke'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await apis.revokeOAuthConsentApi(consent.clientId)
+        toast.success(t('component.profile.oauth.msg_revoked'))
+        await loadConsents()
+      }
+      catch (e) {
+        toast.danger((e as Error).message || t('component.profile.oauth.err_revoke_failed'))
+      }
+    },
+  })
+}
+
 function copyText(text: string) {
   void copyToClipboard(text).then(() => toast.success(t('component.profile.oauth.msg_copied')))
 }
 
 onMounted(() => {
   void loadApps()
+  void loadConsents()
 })
 </script>
 
@@ -297,6 +341,61 @@ onMounted(() => {
                 <XTooltip :content="t('component.profile.oauth.tooltip_delete')">
                   <XhButton size="sm" variant="ghost" tone="danger" icon-only :aria-label="t('component.profile.oauth.tooltip_delete')" @click="handleDelete(app)">
                     <span><Icon icon="lucide:trash-2" /></span>
+                  </XhButton>
+                </XTooltip>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pf-section">
+      <div class="pf-section__head">
+        <div class="pf-section__heading">
+          <div class="pf-section__title">
+            <Icon icon="lucide:shield-check" width="16" />
+            <span>{{ t('component.profile.oauth.consents_section') }}</span>
+          </div>
+          <div class="pf-section__desc">
+            {{ t('component.profile.oauth.consents_section_desc') }}
+          </div>
+        </div>
+      </div>
+      <div class="pf-section__body">
+        <div class="xh-loading-stage" :class="{ 'is-loading': consentsLoading }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="consents.length === 0 && !consentsLoading" class="pf-empty">
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('component.profile.oauth.consents_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else class="pf-list">
+            <div v-for="consent in consents" :key="consent.clientId" class="pf-list-item pf-credential">
+              <!-- src / alt 是根部件的属性；没有 Logo 或加载失败时显示应用名首字母 -->
+              <XhAvatarRoot class="shrink-0" size="lg" tone="brand" :src="consent.logo || undefined" :alt="consentName(consent)">
+                <XhAvatarImage />
+                <XhAvatarFallback>{{ consentName(consent).charAt(0).toUpperCase() }}</XhAvatarFallback>
+              </XhAvatarRoot>
+              <div class="pf-list-body">
+                <div class="pf-list-title pf-credential__name">
+                  <span>{{ consentName(consent) }}</span>
+                  <XhTagRoot v-for="scope in consent.scopes" :key="scope" variant="subtle" size="sm" tone="neutral">
+                    <XhTagLabel>{{ scope }}</XhTagLabel>
+                  </XhTagRoot>
+                </div>
+                <div class="pf-list-desc">
+                  {{ t('component.profile.oauth.consents_granted_at', { time: formatDate(consent.grantedTime) }) }}
+                </div>
+              </div>
+              <div class="pf-credential__actions">
+                <XTooltip :content="t('component.profile.oauth.tooltip_revoke')">
+                  <XhButton size="sm" variant="ghost" tone="danger" icon-only :aria-label="t('component.profile.oauth.tooltip_revoke')" @click="handleRevoke(consent)">
+                    <span><Icon icon="lucide:unlink" /></span>
                   </XhButton>
                 </XTooltip>
               </div>

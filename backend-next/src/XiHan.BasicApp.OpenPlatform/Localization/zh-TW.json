@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "不支援的授權類型：{value}（須包含 authorization_code，可加 refresh_token）。",
   "openplatform.oauth_apps.scope_unsupported": "不支援的授權範圍：{value}（須包含 openid，可加 profile、email、phone）。",
   "openplatform.oauth_apps.redirect_uri_invalid": "回呼位址無效：{value}（1 到 10 條絕對位址，不帶 #，http 只限本機）。",
-  "openplatform.oauth_apps.url_invalid": "位址必須是 http 或 https：{value}。"
+  "openplatform.oauth_apps.url_invalid": "位址必須是 http 或 https：{value}。",
+  "oauth_consents.resolve.description": "授權同意頁的預覽：校驗授權請求（用戶端、回呼位址、response_type、PKCE、範圍），回傳應用資訊、本次範圍與是否不必再確認。已登入即可，模擬工作階段不能用。",
+  "oauth_consents.approve.description": "同意授權：發授權碼、記下同意，回傳帶 code 與 state 的回呼位址。模擬工作階段不能用。",
+  "oauth_consents.deny.description": "拒絕授權：用戶端與回呼位址都對上了才回傳帶 error=access_denied 與 state 的回呼位址。已登入即可。",
+  "oauth_consents.list.description": "列出本人授權過的應用與同意過的範圍。已登入即可。",
+  "oauth_consents.revoke.description": "撤銷對一個應用的授權：刪除同意記錄並撤銷它拿到的本人的全部權杖。模擬工作階段不能用。",
+  "openplatform.oauth_consents.not_found": "沒有授權過這個應用：{clientId}。",
+  "openplatform.oauth.authorize_invalid": "授權請求無效（{error}）：{description}"
 }

@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Unsupported grant type: {value} (authorization_code is required, refresh_token is optional).",
   "openplatform.oauth_apps.scope_unsupported": "Unsupported scope: {value} (openid is required; profile, email and phone are optional).",
   "openplatform.oauth_apps.redirect_uri_invalid": "Invalid redirect URI: {value} (1 to 10 absolute URIs without #; http only for loopback).",
-  "openplatform.oauth_apps.url_invalid": "The URL must be http or https: {value}."
+  "openplatform.oauth_apps.url_invalid": "The URL must be http or https: {value}.",
+  "oauth_consents.resolve.description": "Preview for the consent page: checks the authorization request (client, redirect URI, response_type, PKCE, scopes) and returns the app, the scopes and whether consent can be skipped. Requires sign-in only; not available in impersonation sessions.",
+  "oauth_consents.approve.description": "Approve the authorization: issues an authorization code, records the consent and returns the redirect URI with code and state. Not available in impersonation sessions.",
+  "oauth_consents.deny.description": "Deny the authorization: returns the redirect URI with error=access_denied and state, only when the client and redirect URI are valid. Requires sign-in only.",
+  "oauth_consents.list.description": "List the apps you have authorized and the scopes you granted. Requires sign-in only.",
+  "oauth_consents.revoke.description": "Revoke your authorization of an app: deletes the consent and revokes all of your tokens it holds. Not available in impersonation sessions.",
+  "openplatform.oauth_consents.not_found": "You have not authorized this app: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Invalid authorization request ({error}): {description}"
 }

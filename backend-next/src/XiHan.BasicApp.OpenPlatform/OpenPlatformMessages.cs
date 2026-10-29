@@ -215,6 +215,41 @@ public static class OpenPlatformMessages
     /// </summary>
     public const string UrlInvalid = "openplatform.oauth_apps.url_invalid";
 
+    /// <summary>
+    /// 操作 <c>oauth-consents.resolve</c> 的说明。
+    /// </summary>
+    public const string OAuthConsentsResolveDescription = "oauth_consents.resolve.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-consents.approve</c> 的说明。
+    /// </summary>
+    public const string OAuthConsentsApproveDescription = "oauth_consents.approve.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-consents.deny</c> 的说明。
+    /// </summary>
+    public const string OAuthConsentsDenyDescription = "oauth_consents.deny.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-consents.list</c> 的说明。
+    /// </summary>
+    public const string OAuthConsentsListDescription = "oauth_consents.list.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-consents.revoke</c> 的说明。
+    /// </summary>
+    public const string OAuthConsentsRevokeDescription = "oauth_consents.revoke.description";
+
+    /// <summary>
+    /// 没有授权过这个应用；参数 <c>clientId</c>。
+    /// </summary>
+    public const string ConsentNotFound = "openplatform.oauth_consents.not_found";
+
+    /// <summary>
+    /// 授权请求不对；参数 <c>error</c>（OAuth 错误码）、<c>description</c>。
+    /// </summary>
+    public const string AuthorizeRequestInvalid = "openplatform.oauth.authorize_invalid";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(OpenPlatformMessages)));
 
     /// <summary>
