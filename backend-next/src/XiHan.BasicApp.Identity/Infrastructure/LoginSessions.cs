@@ -1,7 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Operations.Auth;
@@ -14,13 +16,14 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
 /// 登录完成（作用域服务）：密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对。
-/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。
+/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写。
 /// </summary>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="securities">账号安全仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="issuer">令牌签发器。</param>
+/// <param name="guards">登录守卫。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="clock">时间源。</param>
@@ -30,6 +33,7 @@ public sealed class LoginSessions(
     IRepository<SysUserSecurity, Guid> securities,
     IRepository<SysUserSession, Guid> sessions,
     AccessTokenIssuer issuer,
+    IEnumerable<ILoginGuard> guards,
     IdentityOptions options,
     IIdGenerator<Guid> ids,
     TimeProvider clock)
@@ -49,6 +53,13 @@ public sealed class LoginSessions(
         ArgumentNullException.ThrowIfNull(security);
         ArgumentNullException.ThrowIfNull(log);
         ArgumentNullException.ThrowIfNull(context);
+        var roles = await accounts.RolesOfAsync(user.Id, tenantId, context.CancellationToken).ConfigureAwait(false);
+        var guarded = await guards.CheckAllAsync(new LoginAttempt(tenantId ?? TenantIds.Platform, user.Id, user.UserName, roles), context).ConfigureAwait(false);
+        if (guarded.IsFailure)
+        {
+            return guarded.Error!;
+        }
+
         var now = clock.GetUtcNow();
         security.FailedAccessCount = 0;
         security.LockoutEndAt = null;
@@ -84,7 +95,6 @@ public sealed class LoginSessions(
         }
 
         log.SessionId = session.Id;
-        var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
     }

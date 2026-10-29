@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -27,6 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用。</param>
+/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
@@ -37,7 +39,8 @@ public sealed class Login(
     LoginSessions logins,
     IdentityOptions options,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<LoginRequest, LoginResponse>
+    ITenantStore tenants,
+    IEnumerable<ILoginGuard> guards) : IOperation<LoginRequest, LoginResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -86,6 +89,7 @@ public sealed class Login(
         if (!found.TryGetValue(out var user))
         {
             await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
+            await guards.RecordFailureAsync(context).ConfigureAwait(false);
             return Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
 
@@ -112,6 +116,7 @@ public sealed class Login(
         {
             // 调用以失败结束时工作单元会回滚，计数在独立作用域里提交
             await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
+            await guards.RecordFailureAsync(context).ConfigureAwait(false);
             var lockedOut = await attempts.RecordFailureAsync(security.Id, context.CancellationToken).ConfigureAwait(false);
             return lockedOut ? LockedOut(options.LockoutDuration) : Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }

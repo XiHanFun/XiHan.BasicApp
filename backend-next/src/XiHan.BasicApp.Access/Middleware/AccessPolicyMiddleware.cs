@@ -20,20 +20,46 @@ namespace XiHan.BasicApp.Access.Middleware;
 /// 再求已登录租户调用的租户层。层内有放行命中即不拒绝，否则第一条命中的拒绝策略拦下（403 <c>ACCESS_DENIED_004</c>）。
 /// 每条命中都记一条条件命中（平台层的落在平台一侧），时机按策略引用的属性推出认证前 / 认证后。
 /// 4.x 分认证前、认证后两个中间件；6.0 认证在 Tenant 阶段之前，合成一个，认证失败的调用不再经过策略。判定本身出错时放行并记警告（4.x 同）。
+/// 策略之前先看登录失败自动封禁（<see cref="LoginBans"/>）：来源地址封禁中即 503 <c>ACCESS_UNAVAILABLE_001</c>（带重试秒数），记一条编码 <c>login-auto-ban</c> 的命中。
+/// 平台层有放行命中时在调用上下文里留标记（<see cref="PlatformAllowedKey"/>），这次调用的认证失败不计入封禁（4.x 同）。
 /// </summary>
 /// <param name="policies">策略缓存。</param>
 /// <param name="evaluator">策略求值。</param>
+/// <param name="bans">登录失败自动封禁。</param>
 /// <param name="options">授权包配置。</param>
 /// <param name="security">安全配置（角色声明名）。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="logger">日志。</param>
-public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, AccessPolicyEvaluator evaluator, AccessOptions options, SecurityOptions security, TimeProvider clock, ILogger<AccessPolicyMiddleware> logger) : IPipelineMiddleware
+public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, AccessPolicyEvaluator evaluator, LoginBans bans, AccessOptions options, SecurityOptions security, TimeProvider clock, ILogger<AccessPolicyMiddleware> logger) : IPipelineMiddleware
 {
+    /// <summary>
+    /// 自动封禁命中的编码（4.x 同）。
+    /// </summary>
+    public const string AutoBanCode = "login-auto-ban";
+
+    /// <summary>
+    /// 调用上下文里「平台层放行了这次调用」的标记键。
+    /// </summary>
+    public static readonly object PlatformAllowedKey = new();
+
     /// <inheritdoc />
     public async ValueTask InvokeAsync(InvocationContext context, PipelineStep nextStep)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
+        if (await BannedSecondsAsync(context).ConfigureAwait(false) is { } retryAfter)
+        {
+            context.AddAuditLog(new ConditionHitLogEntry(ConditionHitSource.AccessPolicy, AutoBanCode)
+            {
+                TenantId = TenantIds.Platform,
+                Action = ConditionHitAction.Deny,
+                Phase = ConditionHitPhase.BeforeAuthentication,
+                IsBlocked = true,
+            });
+            context.SetOutcome(Error.Unavailable(AccessErrors.LoginBanned, AccessMessages.LoginBanned, MessageArguments.Of(("retryAfter", retryAfter))));
+            return;
+        }
+
         if (!options.AccessPolicyEnabled)
         {
             await nextStep(context).ConfigureAwait(false);
@@ -77,6 +103,11 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
             {
                 return layer.BlockedBy;
             }
+
+            if (layer.Allowed)
+            {
+                context.Items[PlatformAllowedKey] = true;
+            }
         }
 
         var owner = RoleService.OwnerOf(context);
@@ -95,6 +126,27 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
         var tenantLayer = await evaluator.EvaluateAsync(own, source, now, platform: false, cancellationToken).ConfigureAwait(false);
         Record(context, tenantLayer, request, null);
         return tenantLayer.BlockedBy;
+    }
+
+    // 来源地址封禁中时还剩几秒；内部调用没有地址，不查。查不了（缓存故障）时放行并记警告
+    private async Task<int?> BannedSecondsAsync(InvocationContext context)
+    {
+        if (!context.GetOrigin().TryGetValue(out var origin) || string.IsNullOrWhiteSpace(origin.RemoteAddress))
+        {
+            return null;
+        }
+
+        try
+        {
+            return await bans.BannedUntilAsync(origin.RemoteAddress, context.CancellationToken).ConfigureAwait(false) is { } until
+                ? (int)Math.Max(1, Math.Ceiling((until - clock.GetUtcNow()).TotalSeconds))
+                : null;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            LogEvaluationFailed(logger, exception);
+            return null;
+        }
     }
 
     // 只有与拦截策略同层的拒绝记为拦截（4.x 同）

@@ -120,5 +120,11 @@
   "policies.delete.description": "アクセスポリシーを削除します。access.policies.delete 権限が必要です。",
   "policies.templates.description": "プリセットのアクセスポリシーテンプレートを一覧表示します。access.policies.read 権限が必要です。",
   "policies.trial.description": "アクセスポリシーを試行します。保存済みのポリシーまたは下書きの条件を指定したリクエスト状況で評価し、グループ・条件ごとに説明します。access.policies.trial 権限が必要です。",
-  "policies.attributes.description": "アクセスポリシーで使える条件属性を、属性ごとの使用可能な演算子と認証前に取得できるかどうかと共に返します。access.policies.read 権限が必要です。"
+  "policies.attributes.description": "アクセスポリシーで使える条件属性を、属性ごとの使用可能な演算子と認証前に取得できるかどうかと共に返します。access.policies.read 権限が必要です。",
+  "access.policy.login_denied": "現在のネットワークまたは時間帯ではサインインできません。",
+  "access.login_ban.settings_invalid": "ログイン失敗の自動ブロックの設定が正しくありません。システム設定で {key} を確認してください。",
+  "access.login_ban.not_found": "アドレス {ip} はブロックされていません。",
+  "access.login_ban.banned": "サインインの失敗が多すぎるため、この IP は一時的にブロックされています。{retryAfter} 秒後に再試行してください。",
+  "login_bans.list.description": "現在有効なログイン失敗の自動ブロックの設定と、ブロック中のアドレスを返します（プラットフォームのみ）。access.login-bans.read 権限が必要です。",
+  "login_bans.lift.description": "アドレスのブロックを、現在の期間の失敗回数と共に解除します（プラットフォームのみ）。access.login-bans.lift 権限が必要です。"
 }

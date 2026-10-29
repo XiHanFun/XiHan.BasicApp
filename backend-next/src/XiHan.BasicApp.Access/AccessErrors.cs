@@ -279,7 +279,7 @@ public static class AccessErrors
     public const string ConditionNotMet = "ACCESS_DENIED_003";
 
     /// <summary>
-    /// 试算的客户端地址写错；参数 <c>ip</c>。
+    /// 客户端地址写错（试算、解封）；参数 <c>ip</c>。
     /// </summary>
     public const string TrialIpInvalid = "ACCESS_VALIDATION_036";
 
@@ -327,4 +327,24 @@ public static class AccessErrors
     /// 调用被访问策略拒绝。
     /// </summary>
     public const string PolicyDenied = "ACCESS_DENIED_004";
+
+    /// <summary>
+    /// 登录被登录时机的访问策略拒绝。
+    /// </summary>
+    public const string PolicyLoginDenied = "ACCESS_DENIED_005";
+
+    /// <summary>
+    /// 登录失败自动封禁的参数写错；参数 <c>key</c>。
+    /// </summary>
+    public const string LoginAutoBanInvalid = "ACCESS_VALIDATION_043";
+
+    /// <summary>
+    /// 要解封的地址没有被封禁；参数 <c>ip</c>。
+    /// </summary>
+    public const string LoginBanNotFound = "ACCESS_NOTFOUND_009";
+
+    /// <summary>
+    /// 来源地址因登录失败次数过多被暂时封禁；参数 <c>retryAfter</c>（秒）。
+    /// </summary>
+    public const string LoginBanned = "ACCESS_UNAVAILABLE_001";
 }

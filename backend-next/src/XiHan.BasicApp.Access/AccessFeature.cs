@@ -86,6 +86,9 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<AccessPolicyTrialService>();
         context.Services.AddScoped<AccessPolicyProjection>();
         context.Services.AddScoped<AccessPolicyQueries>();
+        context.Services.AddSingleton<LoginBans>();
+        // 登录时机的访问策略与登录失败自动封禁：Identity 在登录链路上调用
+        context.Services.AddScoped<ILoginGuard, LoginDefense>();
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();

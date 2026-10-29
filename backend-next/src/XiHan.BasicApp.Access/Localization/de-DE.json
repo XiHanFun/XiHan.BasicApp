@@ -120,5 +120,11 @@
   "policies.delete.description": "Zugriffsrichtlinien löschen. Erfordert access.policies.delete.",
   "policies.templates.description": "Die vordefinierten Vorlagen für Zugriffsrichtlinien auflisten. Erfordert access.policies.read.",
   "policies.trial.description": "Eine Zugriffsrichtlinie testen: eine gespeicherte Richtlinie oder Entwurfsbedingungen unter der angegebenen Anfrage auswerten, erklärt nach Gruppe und Bedingung. Erfordert access.policies.trial.",
-  "policies.attributes.description": "Die für Zugriffsrichtlinien verfügbaren Bedingungsattribute mit den jeweils erlaubten Operatoren und ob sie vor der Authentifizierung bekannt sind. Erfordert access.policies.read."
+  "policies.attributes.description": "Die für Zugriffsrichtlinien verfügbaren Bedingungsattribute mit den jeweils erlaubten Operatoren und ob sie vor der Authentifizierung bekannt sind. Erfordert access.policies.read.",
+  "access.policy.login_denied": "Die Anmeldung ist aus diesem Netz oder zu dieser Zeit nicht erlaubt.",
+  "access.login_ban.settings_invalid": "Die Einstellungen der automatischen Anmeldesperre sind ungültig; prüfen Sie {key} in den Systemeinstellungen.",
+  "access.login_ban.not_found": "Die Adresse {ip} ist nicht gesperrt.",
+  "access.login_ban.banned": "Zu viele fehlgeschlagene Anmeldungen; diese IP ist vorübergehend gesperrt. Versuchen Sie es in {retryAfter} Sekunden erneut.",
+  "login_bans.list.description": "Die geltenden Einstellungen der automatischen Anmeldesperre und die derzeit gesperrten Adressen (nur Plattform). Erfordert access.login-bans.read.",
+  "login_bans.lift.description": "Die Sperre einer Adresse samt ihrer Fehlversuche im aktuellen Zeitfenster aufheben (nur Plattform). Erfordert access.login-bans.lift."
 }

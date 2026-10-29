@@ -576,6 +576,36 @@ public static class AccessMessages
     public const string PolicyDenied = "access.policy.denied";
 
     /// <summary>
+    /// 登录被登录时机的访问策略拒绝。
+    /// </summary>
+    public const string PolicyLoginDenied = "access.policy.login_denied";
+
+    /// <summary>
+    /// 登录失败自动封禁的参数写错；参数 <c>key</c>。
+    /// </summary>
+    public const string LoginAutoBanInvalid = "access.login_ban.settings_invalid";
+
+    /// <summary>
+    /// 要解封的地址没有被封禁；参数 <c>ip</c>。
+    /// </summary>
+    public const string LoginBanNotFound = "access.login_ban.not_found";
+
+    /// <summary>
+    /// 来源地址因登录失败次数过多被暂时封禁；参数 <c>retryAfter</c>（秒）。
+    /// </summary>
+    public const string LoginBanned = "access.login_ban.banned";
+
+    /// <summary>
+    /// 操作 <c>login-bans.list</c> 的说明。
+    /// </summary>
+    public const string ListLoginBansDescription = "login_bans.list.description";
+
+    /// <summary>
+    /// 操作 <c>login-bans.lift</c> 的说明。
+    /// </summary>
+    public const string LiftLoginBanDescription = "login_bans.lift.description";
+
+    /// <summary>
     /// 操作 <c>policies.list</c> 的说明。
     /// </summary>
     public const string ListAccessPoliciesDescription = "policies.list.description";

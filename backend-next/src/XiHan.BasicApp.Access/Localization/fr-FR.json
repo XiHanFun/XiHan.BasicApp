@@ -120,5 +120,11 @@
   "policies.delete.description": "Supprimer des stratégies d’accès. Nécessite access.policies.delete.",
   "policies.templates.description": "Lister les modèles de stratégie d’accès prédéfinis. Nécessite access.policies.read.",
   "policies.trial.description": "Essayer une stratégie d’accès : évaluer une stratégie enregistrée ou des conditions brouillon pour la requête donnée, expliqué groupe par groupe et condition par condition. Nécessite access.policies.trial.",
-  "policies.attributes.description": "Les attributs de condition disponibles pour les stratégies d’accès, avec les opérateurs autorisés pour chacun et s’il est connu avant l’authentification. Nécessite access.policies.read."
+  "policies.attributes.description": "Les attributs de condition disponibles pour les stratégies d’accès, avec les opérateurs autorisés pour chacun et s’il est connu avant l’authentification. Nécessite access.policies.read.",
+  "access.policy.login_denied": "La connexion n’est pas autorisée depuis ce réseau ou à cette heure.",
+  "access.login_ban.settings_invalid": "Les paramètres du blocage automatique des connexions sont invalides ; vérifiez {key} dans les paramètres système.",
+  "access.login_ban.not_found": "L’adresse {ip} n’est pas bloquée.",
+  "access.login_ban.banned": "Trop d’échecs de connexion ; cette IP est temporairement bloquée. Réessayez dans {retryAfter} secondes.",
+  "login_bans.list.description": "Les paramètres en vigueur du blocage automatique des connexions et les adresses bloquées actuellement (plateforme uniquement). Nécessite access.login-bans.read.",
+  "login_bans.lift.description": "Lever le blocage d’une adresse ainsi que ses échecs de la fenêtre en cours (plateforme uniquement). Nécessite access.login-bans.lift."
 }

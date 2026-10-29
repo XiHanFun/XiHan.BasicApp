@@ -33,6 +33,7 @@ import {
 } from './access-policy'
 import AccessPolicyConditionEditor from './components/AccessPolicyConditionEditor.vue'
 import AccessPolicyTrialDrawer from './components/AccessPolicyTrialDrawer.vue'
+import LoginBanDrawer from './components/LoginBanDrawer.vue'
 
 defineOptions({ name: 'AccessPoliciesView' })
 
@@ -46,6 +47,8 @@ const editFormId = useId()
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
 const isPlatform = computed(() => auth.tenantId === null)
 const catalog = ref<ConditionAttribute[]>([])
+/** 自动封禁抽屉（只在平台） */
+const bansVisible = ref(false)
 
 function reload() {
   void schemaPageRef.value?.reload()
@@ -113,6 +116,8 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('access.policies.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.policies.create' },
     { key: 'from-template', title: t('access.policies.actions.from_template'), scope: 'page', icon: 'lucide:layout-template', permission: 'access.policies.create' },
+    // 登录失败自动封禁只在平台
+    ...(isPlatform.value ? [{ key: 'bans', title: t('access.policies.actions.bans'), scope: 'page' as const, icon: 'lucide:ban', permission: 'access.login-bans.read' }] : []),
     { key: 'view', title: t('access.policies.actions.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.policies.update' },
     { key: 'trial', title: t('access.policies.actions.trial'), scope: 'row', icon: 'lucide:flask-conical', permission: 'access.policies.trial' },
@@ -132,6 +137,9 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'from-template':
       void openTemplates()
+      break
+    case 'bans':
+      bansVisible.value = true
       break
     case 'view':
       if (row)
@@ -572,6 +580,7 @@ async function removeRow(row: AccessPolicyRow) {
       :conditions="trialTarget.conditions"
       :action="trialTarget.action"
     />
+    <LoginBanDrawer v-if="isPlatform" v-model:open="bansVisible" :can-lift="hasPermission('access.login-bans.lift')" />
   </SchemaPage>
 </template>
 

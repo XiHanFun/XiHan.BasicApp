@@ -120,5 +120,11 @@
   "policies.delete.description": "Delete access policies. Requires access.policies.delete.",
   "policies.templates.description": "List the preset access policy templates. Requires access.policies.read.",
   "policies.trial.description": "Trial an access policy: evaluate a saved policy or draft conditions under the given request, explained group by group and condition by condition. Requires access.policies.trial.",
-  "policies.attributes.description": "The condition attributes available to access policies, with the operators each allows and whether it is known before authentication. Requires access.policies.read."
+  "policies.attributes.description": "The condition attributes available to access policies, with the operators each allows and whether it is known before authentication. Requires access.policies.read.",
+  "access.policy.login_denied": "Sign-in is not allowed from this network or at this time.",
+  "access.login_ban.settings_invalid": "The login auto-ban settings are invalid; check {key} in the system settings.",
+  "access.login_ban.not_found": "Address {ip} is not banned.",
+  "access.login_ban.banned": "Too many failed sign-ins; this IP is temporarily banned. Try again in {retryAfter} seconds.",
+  "login_bans.list.description": "The login auto-ban settings in effect and the addresses banned right now (platform only). Requires access.login-bans.read.",
+  "login_bans.lift.description": "Lift the ban on an address together with its failure count in the current window (platform only). Requires access.login-bans.lift."
 }
