@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Notification;
 
 /// <summary>
-/// 通知包的页面登记（方案 D4）。
+/// 通知包的页面登记。
 /// </summary>
+/// <remarks>
+/// 方案 D4。
+/// </remarks>
 public static class NotificationPages
 {
     /// <summary>
@@ -46,8 +49,11 @@ public static class NotificationPages
     public static PageDescriptor TelegramBots { get; } = new("notification.telegram-bots", "/notification/telegram-bots", "notification.telegram_bots.title", "lucide:bot-message-square", 490, NotificationPermissions.TelegramBotsRead);
 
     /// <summary>
-    /// 我的消息页（本人的收件箱，登录即可；4.x 同不设权限）。
+    /// 我的消息页（本人的收件箱）。
     /// </summary>
+    /// <remarks>
+    /// 登录即可；4.x 同不设权限。
+    /// </remarks>
     public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 495);
 
     /// <summary>

@@ -70,8 +70,11 @@ public sealed record CreateTelegramBotRequest(
 }
 
 /// <summary>
-/// <c>telegram-bots.update</c> 的请求（令牌不填即保留）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>telegram-bots.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 令牌不填即保留。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">机器人 ID。</param>
 /// <param name="Name">名称（唯一）。</param>
 /// <param name="Token">令牌。</param>

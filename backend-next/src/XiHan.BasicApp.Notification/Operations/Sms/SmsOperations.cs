@@ -98,8 +98,11 @@ public sealed class CancelSms(IRepository<SysSms, Guid> sms) : IOperation<Messag
 }
 
 /// <summary>
-/// 批量删除短信发送记录：<c>DELETE /api/sms?ids=</c>（发送中的逐项拒绝）。
+/// 批量删除短信发送记录。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/sms?ids=</c>（发送中的逐项拒绝）。
+/// </remarks>
 /// <param name="sms">记录仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsDelete)]
 public sealed class DeleteSms(IRepository<SysSms, Guid> sms) : IOperation<MessagingIdsRequest, BatchResult>

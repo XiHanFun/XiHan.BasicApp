@@ -135,8 +135,11 @@ public sealed record CreateNotificationRequest(
 }
 
 /// <summary>
-/// <c>notifications.update</c> 的请求：整体覆盖草稿。标识由路由值 <c>{id}</c> 绑定。
+/// <c>notifications.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体覆盖草稿。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">通知 ID。</param>
 /// <param name="Title">标题。</param>
 /// <param name="Content">正文。</param>
@@ -189,8 +192,11 @@ public sealed record UpdateNotificationRequest(
 }
 
 /// <summary>
-/// 按 ID 取一条通知的请求。标识由路由值 <c>{id}</c> 绑定。
+/// 按 ID 取一条通知的请求。
 /// </summary>
+/// <remarks>
+/// 标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">通知 ID。</param>
 public sealed record NotificationIdRequest(Guid Id);
 
@@ -246,8 +252,11 @@ public enum NotificationRecipientFilter
 }
 
 /// <summary>
-/// <c>notifications.recipients</c> 的请求。标识由路由值 <c>{id}</c> 绑定。
+/// <c>notifications.recipients</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">通知 ID。</param>
 /// <param name="Page">分页（缺省第 1 页 20 条）。</param>
 /// <param name="Filter">范围。</param>

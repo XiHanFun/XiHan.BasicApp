@@ -27,9 +27,12 @@ namespace XiHan.BasicApp.Notification.Domain.Services;
 public sealed record BotConfigDraft(string Name, BotProvider Provider, string WebhookUrl, string? Secret, string? Keyword, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 机器人配置的规则：编码在同一侧唯一、建好不改；每侧每个服务商至多一个缺省，这个服务商的第一个自动成为缺省；缺省的须启用，不能停用或删除；
-/// Webhook 地址只认各服务商的官方 https 地址（租户能填的地址不许指向别处）；发送只用本侧的，不借平台的机器人。签名密钥加密存储。
+/// 机器人配置的规则。
 /// </summary>
+/// <remarks>
+/// 编码在同一侧唯一、建好不改；每侧每个服务商至多一个缺省，这个服务商的第一个自动成为缺省；缺省的须启用，不能停用或删除；
+/// Webhook 地址只认各服务商的官方 https 地址（租户能填的地址不许指向别处）；发送只用本侧的，不借平台的机器人。签名密钥加密存储。
+/// </remarks>
 /// <param name="bots">配置仓储。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">标识生成器。</param>
@@ -108,8 +111,11 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     }
 
     /// <summary>
-    /// 修改（编码不改；缺省的不能停用，也不能换服务商）。
+    /// 修改机器人配置。
     /// </summary>
+    /// <remarks>
+    /// 编码不改；缺省的不能停用，也不能换服务商。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="draft">内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -169,8 +175,11 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     }
 
     /// <summary>
-    /// 批量删除；缺省的逐项拒绝。
+    /// 批量删除机器人配置。
     /// </summary>
+    /// <remarks>
+    /// 缺省的逐项拒绝。
+    /// </remarks>
     /// <param name="owner">侧。</param>
     /// <param name="configIds">配置 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -205,8 +214,11 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     }
 
     /// <summary>
-    /// 发送用的机器人（签名密钥解密；解不开按不签名处理，由服务商拒绝）。
+    /// 发送用的机器人（签名密钥解密）。
     /// </summary>
+    /// <remarks>
+    /// 签名密钥解不开按不签名处理，由服务商拒绝。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <returns>机器人。</returns>
     public BotEndpoint EndpointOf(SysBotConfig config)

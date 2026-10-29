@@ -24,8 +24,11 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 public sealed record BotEndpoint(BotChannel Channel, string WebhookUrl, string? Secret, string? Keyword, string? ChatId = null, Guid? BotId = null, string? BotName = null);
 
 /// <summary>
-/// 机器人的发送通道（每个通道一个实现；测试换成假的）。都发纯文本，安全关键词放在第一行。
+/// 机器人的发送通道。
 /// </summary>
+/// <remarks>
+/// 每个通道一个实现；测试换成假的。都发纯文本，安全关键词放在第一行。
+/// </remarks>
 public interface IBotTransport
 {
     /// <summary>
@@ -44,8 +47,11 @@ public interface IBotTransport
 }
 
 /// <summary>
-/// 三家群机器人的共同做法：按服务商拼地址与载荷、POST JSON、读返回的错误码。
+/// 三家群机器人的共同做法。
 /// </summary>
+/// <remarks>
+/// 按服务商拼地址与载荷、POST JSON、读返回的错误码。
+/// </remarks>
 /// <param name="http">HTTP 客户端工厂。</param>
 public abstract class WebhookBotTransport(IHttpClientFactory http) : IBotTransport
 {
@@ -107,8 +113,11 @@ public abstract class WebhookBotTransport(IHttpClientFactory http) : IBotTranspo
 }
 
 /// <summary>
-/// 钉钉自定义机器人：有签名密钥时在地址后加 <c>timestamp</c>（毫秒）与 <c>sign</c>（以密钥对「时间戳\n密钥」做 HMAC-SHA256，Base64 后百分号编码）。
+/// 钉钉自定义机器人。
 /// </summary>
+/// <remarks>
+/// 有签名密钥时在地址后加 <c>timestamp</c>（毫秒）与 <c>sign</c>（以密钥对「时间戳\n密钥」做 HMAC-SHA256，Base64 后百分号编码）。
+/// </remarks>
 /// <param name="http">HTTP 客户端工厂。</param>
 /// <param name="clock">时钟。</param>
 public sealed class DingTalkBotTransport(IHttpClientFactory http, TimeProvider clock) : WebhookBotTransport(http)
@@ -133,8 +142,11 @@ public sealed class DingTalkBotTransport(IHttpClientFactory http, TimeProvider c
 }
 
 /// <summary>
-/// 飞书自定义机器人：有签名密钥时载荷里带 <c>timestamp</c>（秒）与 <c>sign</c>（以「时间戳\n密钥」为密钥对空串做 HMAC-SHA256，Base64）；返回 <c>code</c> 为 0 即成功。
+/// 飞书自定义机器人。
 /// </summary>
+/// <remarks>
+/// 有签名密钥时载荷里带 <c>timestamp</c>（秒）与 <c>sign</c>（以「时间戳\n密钥」为密钥对空串做 HMAC-SHA256，Base64）；返回 <c>code</c> 为 0 即成功。
+/// </remarks>
 /// <param name="http">HTTP 客户端工厂。</param>
 /// <param name="clock">时钟。</param>
 public sealed class LarkBotTransport(IHttpClientFactory http, TimeProvider clock) : WebhookBotTransport(http)
@@ -168,8 +180,11 @@ public sealed class LarkBotTransport(IHttpClientFactory http, TimeProvider clock
 }
 
 /// <summary>
-/// Telegram 广播：经 <see cref="Telegram.TelegramNotifier"/> 发 <c>sendMessage</c>（与交互用同一套网络设置、重试与出站审计）；返回的消息 ID 记进发件箱。
+/// Telegram 广播。
 /// </summary>
+/// <remarks>
+/// 经 <see cref="Telegram.TelegramNotifier"/> 发 <c>sendMessage</c>（与交互用同一套网络设置、重试与出站审计）；返回的消息 ID 记进发件箱。
+/// </remarks>
 /// <param name="notifier">Telegram 出站。</param>
 public sealed class TelegramBotTransport(Telegram.TelegramNotifier notifier) : IBotTransport
 {

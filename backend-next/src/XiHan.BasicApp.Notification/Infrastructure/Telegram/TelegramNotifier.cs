@@ -15,10 +15,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// Telegram 的出站（4.x TelegramNotifier 同一套）：发消息、发图片 / 文件、改消息与改按钮会重试并审计——429、5xx 与网络错误按退避重试
+/// Telegram 的出站。
+/// </summary>
+/// <remarks>
+/// 4.x TelegramNotifier 同一套。发消息、发图片 / 文件、改消息与改按钮会重试并审计——429、5xx 与网络错误按退避重试
 /// （429 等 <c>retry_after</c>，超过 <see cref="TelegramRetryOptions.MaxRetryAfterSeconds"/> 即按失败处理），成功或最终失败各记一条 <see cref="SysTelegramMessage"/>，
 /// 最终失败再私发每个管理员一条告警（告警本身不再告警）；回调应答、内联查询应答与管理调用（getMe、setWebhook 等）直接调用，不重试不审计。
-/// </summary>
+/// </remarks>
 /// <param name="api">Bot API。</param>
 /// <param name="runtime">当前设置（网络）。</param>
 /// <param name="scopes">作用域工厂（写审计）。</param>
@@ -141,8 +144,11 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 应答内联查询（缓存 300 秒，4.x 同；不重试、不审计）。
+    /// 应答内联查询（缓存 300 秒）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同；不重试、不审计。
+    /// </remarks>
     /// <param name="bot">机器人。</param>
     /// <param name="inlineQueryId">内联查询 ID。</param>
     /// <param name="results">结果（Bot API 的 InlineQueryResult 数组）。</param>
@@ -152,8 +158,11 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
         => CallAsync(bot, "answerInlineQuery", new JsonObject { ["inline_query_id"] = inlineQueryId, ["results"] = results, ["cache_time"] = 300 }, cancellationToken);
 
     /// <summary>
-    /// 直接调一个方法（管理调用；不重试、不审计）。
+    /// 直接调一个方法（管理调用）。
     /// </summary>
+    /// <remarks>
+    /// 不重试、不审计。
+    /// </remarks>
     /// <param name="bot">机器人。</param>
     /// <param name="method">方法。</param>
     /// <param name="payload">载荷。</param>

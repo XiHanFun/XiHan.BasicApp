@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 通知类型（4.x 同）。
+/// 通知类型。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum NotificationType
 {
     /// <summary>
@@ -35,8 +38,11 @@ public enum NotificationType
 }
 
 /// <summary>
-/// 优先级（4.x 同）。
+/// 优先级。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum NotificationPriority
 {
     /// <summary>
@@ -61,8 +67,11 @@ public enum NotificationPriority
 }
 
 /// <summary>
-/// 正文格式（4.x 同）：HTML 正文由前端按白名单清洗后渲染。
+/// 正文格式。
 /// </summary>
+/// <remarks>
+/// 4.x 同。HTML 正文由前端按白名单清洗后渲染。
+/// </remarks>
 public enum NotificationContentFormat
 {
     /// <summary>
@@ -82,8 +91,11 @@ public enum NotificationContentFormat
 }
 
 /// <summary>
-/// 投递目标（4.x 同）。
+/// 投递目标。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum NotificationTargetType
 {
     /// <summary>

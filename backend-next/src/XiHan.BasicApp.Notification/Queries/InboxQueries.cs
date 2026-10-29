@@ -34,9 +34,12 @@ public enum InboxShowcase
 }
 
 /// <summary>
-/// 本人收件箱的查询：只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期；4.x 不看开始时间）。
-/// 收件箱与通知在同一个租户库里，按通知 ID 联表。
+/// 本人收件箱的查询。
 /// </summary>
+/// <remarks>
+/// 只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期；4.x 不看开始时间）。
+/// 收件箱与通知在同一个租户库里，按通知 ID 联表。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 /// <param name="clock">时钟。</param>
 public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clock)
@@ -55,9 +58,12 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     private static readonly DateTimeOffset _sentinel = DateTimeOffset.UnixEpoch;
 
     /// <summary>
-    /// 分页列出。关键字匹配标题与正文；筛选接受阅读状态与类型的 <c>eq / in</c>、<c>pending eq true</c>（未读或需要确认而未确认）；
-    /// 排序只接受发布时间，缺省倒序。
+    /// 分页列出本人的收件箱。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配标题与正文；筛选接受阅读状态与类型的 <c>eq / in</c>、<c>pending eq true</c>（未读或需要确认而未确认）；
+    /// 排序只接受发布时间，缺省倒序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页收件箱。</returns>
@@ -130,8 +136,11 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     }
 
     /// <summary>
-    /// 此刻可见的未读条目 ID（全部已读只标这些：开始时间还没到的留着未读，到时再出现）。
+    /// 此刻可见的未读条目 ID。
     /// </summary>
+    /// <remarks>
+    /// 全部已读只标这些：开始时间还没到的留着未读，到时再出现。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <returns>条目 ID。</returns>
     public async Task<IReadOnlyList<Guid>> VisibleUnreadAsync(InvocationContext context)

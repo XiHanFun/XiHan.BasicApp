@@ -69,8 +69,11 @@ public sealed record CreateBotConfigRequest(
 }
 
 /// <summary>
-/// <c>bot-configs.update</c> 的请求（编码不改，签名密钥不填即保留）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>bot-configs.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码不改，签名密钥不填即保留。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">配置 ID。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Provider">服务商（缺省的不能换）。</param>

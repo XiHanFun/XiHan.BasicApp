@@ -19,12 +19,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// Telegram 机器人的托管（4.x TelegramBotManager 同一套）：每个刷新周期在平台调用里读设置与启用的机器人，对照运行中的：新增的启动、配置变了的重启、
+/// Telegram 机器人的托管。
+/// </summary>
+/// <remarks>
+/// 4.x TelegramBotManager 同一套。每个刷新周期在平台调用里读设置与启用的机器人，对照运行中的：新增的启动、配置变了的重启、
 /// 换了令牌的先删旧 Webhook、删除或停用的删 Webhook 后移除；Webhook 根地址、密钥或网络变了即全部重建。启动 = <c>getMe</c> 回填用户名，
 /// Webhook 模式 <c>setWebhook</c>（带密钥与订阅种类；没配密钥即不注册），长轮询模式先 <c>deleteWebhook</c> 再循环 <c>getUpdates</c>，再同步命令菜单。
 /// 收到的 Update 交给 <see cref="TelegramDispatcher"/>，全部机器人共用一个并发上限。
 /// 与 4.x 不同：总开关关掉时删各机器人的 Webhook（4.x 不删，Telegram 继续推送、Update 丢失）；Webhook 也声明订阅种类（4.x 只轮询声明）。
-/// </summary>
+/// </remarks>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="app">内核。</param>
 /// <param name="runtime">当前设置与机器人。</param>
@@ -45,8 +48,11 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
     private CancellationToken _stopping;
 
     /// <summary>
-    /// 循环到停止：每个周期刷新一次；第一次加载失败且没有刷新周期时 30 秒后重试（4.x 同）。
+    /// 循环刷新，直到停止。
     /// </summary>
+    /// <remarks>
+    /// 每个周期刷新一次；第一次加载失败且没有刷新周期时 30 秒后重试（4.x 同）。
+    /// </remarks>
     /// <param name="stopping">停止信号。</param>
     /// <returns>循环。</returns>
     public async Task RunAsync(CancellationToken stopping)
@@ -161,8 +167,11 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
     }
 
     /// <summary>
-    /// 把一条 Update 放到后台处理（没在运行即丢弃，4.x 同）；占满并发上限时排队等。
+    /// 把一条 Update 放到后台处理。
     /// </summary>
+    /// <remarks>
+    /// 没在运行即丢弃，4.x 同；占满并发上限时排队等。
+    /// </remarks>
     /// <param name="bot">机器人。</param>
     /// <param name="update">Update。</param>
     public void QueueDispatch(TelegramBot bot, TelegramUpdate update)

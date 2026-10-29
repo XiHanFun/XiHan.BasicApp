@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 消息模板（平台库实体，随所属侧）：邮件与短信的主题和正文，按 Scriban 语法渲染（双花括号包住变量名）。
-/// 取模板时先看当前一侧启用的同编码模板，没有再取平台的（4.x 同租户优先、平台兜底）。
+/// 消息模板（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 邮件与短信的主题和正文，按 Scriban 语法渲染（双花括号包住变量名）。
+/// 取模板时先看当前一侧启用的同编码模板，没有再取平台的（4.x 同租户优先、平台兜底）。
+/// </remarks>
 public sealed class SysMessageTemplate : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

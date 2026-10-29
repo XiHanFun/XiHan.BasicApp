@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 短信配置（平台库实体，随所属侧）：服务商凭据、签名与模板映射（本应用的短信模板编码 → 服务商的模板 ID）。
-/// 发送用当前一侧启用的缺省配置，租户没有就用平台的；访问密钥加密存储，响应里不回显。
+/// 短信配置（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 服务商凭据、签名与模板映射（本应用的短信模板编码 → 服务商的模板 ID）。
+/// 发送用当前一侧启用的缺省配置，租户没有就用平台的；访问密钥加密存储，响应里不回显。
+/// </remarks>
 public sealed class SysSmsConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

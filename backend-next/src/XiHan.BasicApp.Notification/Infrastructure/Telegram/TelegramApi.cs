@@ -10,8 +10,11 @@ using System.Text.Json.Nodes;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// 按网络设置给出 HTTP 客户端（代理与超时；测试换成假的）。
+/// 按网络设置给出 HTTP 客户端（代理与超时）。
 /// </summary>
+/// <remarks>
+/// 测试换成假的。
+/// </remarks>
 public interface ITelegramHttp
 {
     /// <summary>
@@ -23,8 +26,11 @@ public interface ITelegramHttp
 }
 
 /// <summary>
-/// <see cref="ITelegramHttp"/> 的缺省实现：每套「代理 + 超时」一个长命客户端（不随请求释放，4.x 每个机器人实例一个）。
+/// <see cref="ITelegramHttp"/> 的缺省实现。
 /// </summary>
+/// <remarks>
+/// 每套「代理 + 超时」一个长命客户端（不随请求释放，4.x 每个机器人实例一个）。
+/// </remarks>
 public sealed class TelegramHttp : ITelegramHttp, IDisposable
 {
     private readonly ConcurrentDictionary<(string? Proxy, TimeSpan Timeout), HttpClient> _clients = new();
@@ -77,8 +83,11 @@ public sealed class TelegramHttp : ITelegramHttp, IDisposable
 public sealed record TelegramApiResult(bool Ok, JsonElement Result, int? ErrorCode, string? Description, int? RetryAfter)
 {
     /// <summary>
-    /// 是否值得重试：429、5xx 与网络错误（4.x 同）。
+    /// 是否值得重试。
     /// </summary>
+    /// <remarks>
+    /// 429、5xx 与网络错误（4.x 同）。
+    /// </remarks>
     public bool Transient => !Ok && (ErrorCode is null or 429 or >= 500);
 
     /// <summary>
@@ -88,9 +97,12 @@ public sealed record TelegramApiResult(bool Ok, JsonElement Result, int? ErrorCo
 }
 
 /// <summary>
-/// Bot API 的底层调用：<c>POST {根地址}/bot{令牌}/{方法}</c>，载荷是 JSON；读 <c>ok</c> / <c>result</c> / <c>error_code</c> / <c>description</c> / <c>parameters.retry_after</c>。
-/// 不重试、不审计（由 <see cref="TelegramNotifier"/> 负责）；异常说明里抹掉令牌。
+/// Bot API 的底层调用。
 /// </summary>
+/// <remarks>
+/// <c>POST {根地址}/bot{令牌}/{方法}</c>，载荷是 JSON；读 <c>ok</c> / <c>result</c> / <c>error_code</c> / <c>description</c> / <c>parameters.retry_after</c>。
+/// 不重试、不审计（由 <see cref="TelegramNotifier"/> 负责）；异常说明里抹掉令牌。
+/// </remarks>
 /// <param name="http">HTTP 客户端。</param>
 public sealed class TelegramApi(ITelegramHttp http)
 {

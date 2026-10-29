@@ -16,8 +16,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// Telegram 机器人内容（令牌为空即保留原值；新建时必填）。
+/// Telegram 机器人内容。
 /// </summary>
+/// <remarks>
+/// 令牌为空即保留原值；新建时必填。
+/// </remarks>
 /// <param name="Name">名称。</param>
 /// <param name="Token">令牌。</param>
 /// <param name="AdminUsers">管理员用户 ID（逗号分隔）。</param>
@@ -31,8 +34,11 @@ namespace XiHan.BasicApp.Notification.Domain.Services;
 public sealed record TelegramBotDraft(string Name, string? Token, string? AdminUsers, string? AllowedGroupChatIds, string? AllowedCommands, bool EnableFallbackReply, string? BroadcastChatIds, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// Telegram 机器人的规则（平台托管）：名称唯一；令牌形如 <c>数字:字符串</c>、加密存储；用户与会话 ID 是逗号分隔的整数，命令是逗号分隔的命令名（去掉斜杠、转小写、去重）。
+/// Telegram 机器人的规则（平台托管）。
 /// </summary>
+/// <remarks>
+/// 名称唯一；令牌形如 <c>数字:字符串</c>、加密存储；用户与会话 ID 是逗号分隔的整数，命令是逗号分隔的命令名（去掉斜杠、转小写、去重）。
+/// </remarks>
 /// <param name="bots">机器人仓储。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">标识生成器。</param>
@@ -142,8 +148,11 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 发到某个会话用的目标（令牌解密；解不开即 <see langword="null"/>）。
+    /// 发到某个会话用的目标（令牌解密）。
     /// </summary>
+    /// <remarks>
+    /// 令牌解不开即 <see langword="null"/>。
+    /// </remarks>
     /// <param name="bot">机器人。</param>
     /// <param name="chatId">chat ID。</param>
     /// <returns>目标。</returns>

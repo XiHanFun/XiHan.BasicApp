@@ -7,9 +7,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 邮件配置（平台库实体，随所属侧）：SMTP 服务器与发件人。发送用当前一侧启用的缺省配置，租户没有就用平台的（4.x 不回落平台）。
-/// 密码加密存储，响应里不回显，修改时不填即保留原值。
+/// 邮件配置（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// SMTP 服务器与发件人。发送用当前一侧启用的缺省配置，租户没有就用平台的（4.x 不回落平台）。
+/// 密码加密存储，响应里不回显，修改时不填即保留原值。
+/// </remarks>
 public sealed class SysEmailConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
@@ -61,8 +64,11 @@ public sealed class SysEmailConfig : AppAuditedEntity, IOwnedByTenant
     public string? FromName { get; set; }
 
     /// <summary>
-    /// 登录名；为空即不认证。
+    /// 登录名。
     /// </summary>
+    /// <remarks>
+    /// 为空即不认证。
+    /// </remarks>
     [StringLength(256)]
     public string? UserName { get; set; }
 

@@ -64,16 +64,22 @@ public sealed record NotificationDraft(
 public static class NotificationChannelSet
 {
     /// <summary>
-    /// 列表 → 按位组合；没给即只有站内信。
+    /// 把渠道列表换成按位组合。
     /// </summary>
+    /// <remarks>
+    /// 没给即只有站内信。
+    /// </remarks>
     /// <param name="channels">渠道。</param>
     /// <returns>按位组合。</returns>
     public static MessageChannels FromList(IReadOnlyList<DeliveryChannel>? channels)
         => channels is null ? MessageChannels.InApp : channels.Aggregate(MessageChannels.None, static (all, c) => all | (MessageChannels)(int)c);
 
     /// <summary>
-    /// 按位组合 → 列表（4.x 的老数据为 0 时按只有站内信）。
+    /// 把按位组合换成渠道列表。
     /// </summary>
+    /// <remarks>
+    /// 4.x 的老数据为 0 时按只有站内信。
+    /// </remarks>
     /// <param name="channels">按位组合。</param>
     /// <returns>渠道。</returns>
     public static IReadOnlyList<DeliveryChannel> ToList(MessageChannels channels)
@@ -89,8 +95,11 @@ public static class NotificationChannelSet
 public static class NotificationTargets
 {
     /// <summary>
-    /// 解析；空或坏的 JSON 即空列表。
+    /// 解析目标 ID 的 JSON。
     /// </summary>
+    /// <remarks>
+    /// 空或坏的 JSON 即空列表。
+    /// </remarks>
     /// <param name="json">JSON。</param>
     /// <returns>目标 ID。</returns>
     public static IReadOnlyList<Guid> Parse(string? json)
@@ -111,8 +120,11 @@ public static class NotificationTargets
     }
 
     /// <summary>
-    /// 序列化；全部目标或空列表存为 <see langword="null"/>。
+    /// 把目标 ID 序列化成 JSON。
     /// </summary>
+    /// <remarks>
+    /// 全部目标或空列表存为 <see langword="null"/>。
+    /// </remarks>
     /// <param name="type">投递目标。</param>
     /// <param name="ids">目标 ID。</param>
     /// <returns>JSON。</returns>
@@ -121,9 +133,12 @@ public static class NotificationTargets
 }
 
 /// <summary>
-/// <c>ReceiveNotification</c> 的载荷（与壳层 <c>use-signalr-integration</c> 读的字段一致）：<see cref="Type"/> 是提示的色调，
-/// 由类型换算（紧急 → Error、安全 → Warning、业务 → Success、其余 Info）；各人收件箱的那一条 ID 不同，载荷里不带，客户端收到后重取收件箱。
+/// <c>ReceiveNotification</c> 的推送载荷。
 /// </summary>
+/// <remarks>
+/// 与壳层 <c>use-signalr-integration</c> 读的字段一致。<see cref="Type"/> 是提示的色调，
+/// 由类型换算（紧急 → Error、安全 → Warning、业务 → Success、其余 Info）；各人收件箱的那一条 ID 不同，载荷里不带，客户端收到后重取收件箱。
+/// </remarks>
 /// <param name="Type">提示色调：Info、Success、Warning、Error。</param>
 /// <param name="Title">标题。</param>
 /// <param name="Content">正文。</param>
@@ -135,9 +150,12 @@ public static class NotificationTargets
 public sealed record NotificationPushPayload(string Type, string Title, string? Content, NotificationContentFormat ContentFormat, Guid NotificationId, NotificationType NotificationType, UserNotificationStatus NotificationStatus, DateTimeOffset SendTime);
 
 /// <summary>
-/// 通知公告的规则：草稿可改可删；发布时按目标解析出当前一侧此刻正常的接收人（角色、部门的候选再经 <see cref="RecipientKind.User"/> 筛一遍），
-/// 写进各自的收件箱，调用提交之后经实时连接推送；提醒只推给未读或未确认的；删除已发布的通知同时从收件箱里移除。
+/// 通知公告的规则。
 /// </summary>
+/// <remarks>
+/// 草稿可改可删；发布时按目标解析出当前一侧此刻正常的接收人（角色、部门的候选再经 <see cref="RecipientKind.User"/> 筛一遍），
+/// 写进各自的收件箱，调用提交之后经实时连接推送；提醒只推给未读或未确认的；删除已发布的通知同时从收件箱里移除。
+/// </remarks>
 /// <param name="rows">按侧读写。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="clock">时钟。</param>
@@ -150,13 +168,19 @@ public sealed record NotificationPushPayload(string Type, string Title, string? 
 public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory, BotBroadcaster bots, IEnumerable<INotificationPreferences> preferences)
 {
     /// <summary>
-    /// 通知邮件的模板编码（4.x 同）。
+    /// 通知邮件的模板编码。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const string EmailTemplate = "notification-email";
 
     /// <summary>
-    /// 通知短信的模板编码（4.x 同）。
+    /// 通知短信的模板编码。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const string SmsTemplate = "notification-sms";
 
     private readonly IRecipientSource[] _sources = sources.ToArray();
@@ -235,8 +259,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 修改草稿；已发布的不能改。
+    /// 修改草稿。
     /// </summary>
+    /// <remarks>
+    /// 已发布的不能改。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="notification">通知。</param>
     /// <param name="draft">新内容。</param>
@@ -365,8 +392,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 批量删除；已发布的连同收件箱里的那一条一起软删除。
+    /// 批量删除通知。
     /// </summary>
+    /// <remarks>
+    /// 已发布的连同收件箱里的那一条一起软删除。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="notificationIds">通知 ID。</param>
     /// <returns>批量结果。</returns>
@@ -436,8 +466,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
-    /// 按目标找人：全部、角色与部门先各自给出候选，再与指定用户一样经 <see cref="RecipientKind.User"/> 只留当前一侧此刻正常的账号。
+    /// 按目标找人。
     /// </summary>
+    /// <remarks>
+    /// 全部、角色与部门先各自给出候选，再与指定用户一样经 <see cref="RecipientKind.User"/> 只留当前一侧此刻正常的账号。
+    /// </remarks>
     private async Task<Result<IReadOnlyCollection<Guid>>> RecipientsAsync(InvocationContext context, SysNotification notification)
     {
         var kind = notification.TargetType switch
@@ -469,8 +502,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 机器人消息的纯文本：标题、正文与链接各一段（4.x 发标题与正文）。
+    /// 机器人消息的纯文本。
     /// </summary>
+    /// <remarks>
+    /// 标题、正文与链接各一段（4.x 发标题与正文）。
+    /// </remarks>
     /// <param name="notification">通知。</param>
     /// <returns>正文。</returns>
     public static string BotTextOf(SysNotification notification)
@@ -491,8 +527,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 邮件、短信与机器人的扇出：给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；机器人按本侧每个服务商的缺省机器人各一条；随发布一起提交，由发送循环发出。
+    /// 邮件、短信与机器人的扇出。
     /// </summary>
+    /// <remarks>
+    /// 给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；机器人按本侧每个服务商的缺省机器人各一条；随发布一起提交，由发送循环发出。
+    /// </remarks>
     private async Task<Result> FanOutAsync(InvocationContext context, SysNotification notification, MessageChannels channels, IReadOnlyCollection<Guid> recipients)
     {
         if (channels.HasFlag(MessageChannels.Bot))
@@ -539,8 +578,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 接收人里愿意从这个渠道收这类通知的那些（保持原顺序）：强制阅读、紧急通知或没装偏好即全部。
+    /// 接收人里愿意从这个渠道收这类通知的那些。
     /// </summary>
+    /// <remarks>
+    /// 保持原顺序。强制阅读、紧急通知或没装偏好即全部。
+    /// </remarks>
     private async Task<IReadOnlyCollection<Guid>> AcceptingAsync(SysNotification notification, IReadOnlyCollection<Guid> users, NotificationPreferenceChannel channel, CancellationToken cancellationToken)
     {
         if (_preferences is null || users.Count == 0 || notification.IsMandatory || notification.NotificationType == NotificationType.Emergency)

@@ -9,19 +9,22 @@ using Scriban.Syntax;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 消息模板的渲染（Scriban，方案 5.11）：变量写成双花括号包住的变量名，4.x 的写法照样可用。
-/// 不给模板加载器（不能引入别的文件），循环与递归设上限；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签。
+/// 消息模板的渲染（Scriban）。
 /// </summary>
+/// <remarks>
+/// 方案 5.11。变量写成双花括号包住的变量名，4.x 的写法照样可用。
+/// 不给模板加载器（不能引入别的文件），循环与递归设上限；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签。
+/// </remarks>
 internal static class TemplateRenderer
 {
     private const int LoopLimit = 1000;
     private const int RecursiveLimit = 20;
 
     /// <summary>
-    /// 检查语法；有错返回第一条错误的文字，没错返回空。
+    /// 检查模板语法。
     /// </summary>
     /// <param name="source">模板源文。</param>
-    /// <returns>错误文字。</returns>
+    /// <returns>有错返回第一条错误的文字，没错返回空。</returns>
     public static string? SyntaxError(string? source)
     {
         var template = Template.Parse(source ?? string.Empty);

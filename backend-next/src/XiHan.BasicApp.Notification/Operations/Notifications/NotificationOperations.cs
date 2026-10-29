@@ -13,8 +13,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Notification.Operations.Notifications;
 
 /// <summary>
-/// 分页列出当前一侧的通知公告：<c>POST /api/notifications:list</c>。
+/// 分页列出当前一侧的通知公告。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/notifications:list</c>。
+/// </remarks>
 /// <param name="queries">通知查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
 public sealed class ListNotifications(NotificationQueries queries) : IOperation<PageRequest, PageResult<NotificationResponse>>
@@ -56,8 +59,11 @@ public sealed class GetNotification(NotificationService service) : IOperation<No
 }
 
 /// <summary>
-/// 新建通知：<c>POST /api/notifications</c>。缺省存为草稿；<c>publishImmediately</c> 即建好就发布，这时另要持有发布权限（<c>NOTIFICATION_DENIED_001</c>）。
+/// 新建通知。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/notifications</c>。缺省存为草稿；<c>publishImmediately</c> 即建好就发布，这时另要持有发布权限（<c>NOTIFICATION_DENIED_001</c>）。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 /// <param name="permissions">权限检查器（判定立即发布）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsCreate)]
@@ -98,8 +104,11 @@ public sealed class CreateNotification(NotificationService service, IPermissionC
 }
 
 /// <summary>
-/// 修改草稿：<c>PUT /api/notifications/{id}</c>。整体覆盖，已发布的 <c>NOTIFICATION_CONFLICT_001</c>。
+/// 修改通知草稿。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/notifications/{id}</c>。整体覆盖，已发布的 <c>NOTIFICATION_CONFLICT_001</c>。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsUpdate)]
 public sealed class UpdateNotification(NotificationService service) : IOperation<UpdateNotificationRequest, NotificationResponse>
@@ -126,8 +135,11 @@ public sealed class UpdateNotification(NotificationService service) : IOperation
 }
 
 /// <summary>
-/// 批量删除：<c>DELETE /api/notifications?ids=</c>。已发布的同时从接收人的收件箱里移除。
+/// 批量删除通知。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/notifications?ids=</c>。已发布的同时从接收人的收件箱里移除。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsDelete)]
 public sealed class DeleteNotifications(NotificationService service) : IOperation<NotificationIdsRequest, BatchResult>
@@ -147,8 +159,11 @@ public sealed class DeleteNotifications(NotificationService service) : IOperatio
 }
 
 /// <summary>
-/// 发布：<c>POST /api/notifications/{id}:publish</c>。解析接收人、写收件箱，提交后实时推送；重复发布 <c>NOTIFICATION_CONFLICT_001</c>，找不到接收人 <c>NOTIFICATION_VALIDATION_004</c>。
+/// 发布通知。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/notifications/{id}:publish</c>。解析接收人、写收件箱，提交后实时推送；重复发布 <c>NOTIFICATION_CONFLICT_001</c>，找不到接收人 <c>NOTIFICATION_VALIDATION_004</c>。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
 public sealed class PublishNotification(NotificationService service) : IOperation<NotificationIdRequest, NotificationDeliveryResponse>
@@ -175,8 +190,11 @@ public sealed class PublishNotification(NotificationService service) : IOperatio
 }
 
 /// <summary>
-/// 提醒：<c>POST /api/notifications/{id}:remind</c>。再推给未读或未确认的接收人；草稿 <c>NOTIFICATION_CONFLICT_002</c>。
+/// 提醒接收人。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/notifications/{id}:remind</c>。再推给未读或未确认的接收人；草稿 <c>NOTIFICATION_CONFLICT_002</c>。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
 public sealed class RemindNotification(NotificationService service) : IOperation<NotificationIdRequest, NotificationDeliveryResponse>
@@ -203,8 +221,11 @@ public sealed class RemindNotification(NotificationService service) : IOperation
 }
 
 /// <summary>
-/// 阅读统计：<c>GET /api/notifications/{id}:read-stats</c>。
+/// 通知的阅读统计。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/notifications/{id}:read-stats</c>。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 /// <param name="queries">通知查询。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
@@ -231,8 +252,11 @@ public sealed class GetNotificationReadStats(NotificationService service, Notifi
 }
 
 /// <summary>
-/// 接收人：<c>POST /api/notifications/{id}:recipients</c>。分页列出接收人与阅读、确认状态（4.x 的「未读用户」）；草稿 <c>NOTIFICATION_CONFLICT_002</c>。
+/// 通知的接收人。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/notifications/{id}:recipients</c>。分页列出接收人与阅读、确认状态（4.x 的「未读用户」）；草稿 <c>NOTIFICATION_CONFLICT_002</c>。
+/// </remarks>
 /// <param name="service">通知服务。</param>
 /// <param name="queries">通知查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]

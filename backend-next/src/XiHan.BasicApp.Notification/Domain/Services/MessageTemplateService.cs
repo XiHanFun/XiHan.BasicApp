@@ -14,8 +14,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 模板内容（新建与修改共用；编码与渠道只在新建时给）。
+/// 模板内容（新建与修改共用）。
 /// </summary>
+/// <remarks>
+/// 编码与渠道只在新建时给。
+/// </remarks>
 /// <param name="Name">名称。</param>
 /// <param name="Subject">主题。</param>
 /// <param name="Content">正文。</param>
@@ -27,8 +30,11 @@ namespace XiHan.BasicApp.Notification.Domain.Services;
 public sealed record TemplateDraft(string Name, string? Subject, string Content, bool IsHtml, string? Description, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 消息模板的规则：编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查；取模板时当前一侧启用的优先，没有取平台启用的。
+/// 消息模板的规则。
 /// </summary>
+/// <remarks>
+/// 编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查；取模板时当前一侧启用的优先，没有取平台启用的。
+/// </remarks>
 /// <param name="templates">模板仓储。</param>
 /// <param name="ids">标识生成器。</param>
 public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid> templates, IIdGenerator<Guid> ids)

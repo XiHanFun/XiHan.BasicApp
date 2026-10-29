@@ -10,8 +10,11 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 发送记录的人工处理（邮件与短信同一套）：重发即改回排队中、清零尝试次数（排队中与发送中的逐项拒绝）；取消只对排队中的；删除是软删除（发送中的逐项拒绝）。
+/// 发送记录的人工处理（邮件与短信同一套）。
 /// </summary>
+/// <remarks>
+/// 重发即改回排队中、清零尝试次数（排队中与发送中的逐项拒绝）；取消只对排队中的；删除是软删除（发送中的逐项拒绝）。
+/// </remarks>
 /// <param name="signal">唤醒信号（重发后立即发）。</param>
 public sealed class MessageRecordService(MessageDispatchSignal signal)
 {

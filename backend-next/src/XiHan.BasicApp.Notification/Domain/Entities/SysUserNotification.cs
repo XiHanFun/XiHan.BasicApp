@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 收件箱的一条（租户库实体，平台一侧租户为 <c>platform</c>）：一个接收人对一条已发布通知的阅读、确认与弹窗状态。每个（通知, 用户）至多一条；用户删除即软删除。
+/// 收件箱的一条（租户库实体，平台一侧租户为 <c>platform</c>）。
 /// </summary>
+/// <remarks>
+/// 一个接收人对一条已发布通知的阅读、确认与弹窗状态。每个（通知, 用户）至多一条；用户删除即软删除。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysUserNotification : TenantScopedAuditedEntity
 {

@@ -9,9 +9,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 本人收件箱的写入：标已读、全部已读、确认（同时标已读）、记下弹窗已显示、删除（软删除，通知本身不受影响）。
-/// 都只动调用方本人在当前一侧的条目，别人的按不存在处理。
+/// 本人收件箱的写入。
 /// </summary>
+/// <remarks>
+/// 标已读、全部已读、确认（同时标已读）、记下弹窗已显示、删除（软删除，通知本身不受影响）。
+/// 都只动调用方本人在当前一侧的条目，别人的按不存在处理。
+/// </remarks>
 /// <param name="rows">按侧读写。</param>
 /// <param name="clock">时钟。</param>
 public sealed class InboxService(SideRows rows, TimeProvider clock)
@@ -85,8 +88,11 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 确认一条（同时标已读；确认过的保留原确认时间）。
+    /// 确认一条（同时标已读）。
     /// </summary>
+    /// <remarks>
+    /// 确认过的保留原确认时间。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="row">本人的条目。</param>
     /// <returns>结果。</returns>

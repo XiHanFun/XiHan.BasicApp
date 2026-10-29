@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.EmailConfigs;
 
 /// <summary>
-/// 分页列出当前一侧的邮件配置：<c>POST /api/email-configs:list</c>（密码不回显）。
+/// 分页列出当前一侧的邮件配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/email-configs:list</c>（密码不回显）。
+/// </remarks>
 /// <param name="queries">查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailConfigsRead)]
 public sealed class ListEmailConfigs(MessagingQueries queries) : IOperation<PageRequest, PageResult<EmailConfigResponse>>
@@ -51,8 +54,11 @@ public sealed class GetEmailConfig(ChannelConfigService service) : IOperation<Me
 }
 
 /// <summary>
-/// 新建邮件配置：<c>POST /api/email-configs</c>（本侧还没有缺省配置即成为缺省）。
+/// 新建邮件配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/email-configs</c>（本侧还没有缺省配置即成为缺省）。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailConfigsCreate)]
 public sealed class CreateEmailConfig(ChannelConfigService service) : IOperation<CreateEmailConfigRequest, EmailConfigResponse>
@@ -73,8 +79,11 @@ public sealed class CreateEmailConfig(ChannelConfigService service) : IOperation
 }
 
 /// <summary>
-/// 修改邮件配置：<c>PUT /api/email-configs/{id}</c>（密码不填即保留；缺省配置不能停用）。
+/// 修改邮件配置。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/email-configs/{id}</c>（密码不填即保留；缺省配置不能停用）。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailConfigsUpdate)]
 public sealed class UpdateEmailConfig(ChannelConfigService service) : IOperation<UpdateEmailConfigRequest, EmailConfigResponse>
@@ -101,8 +110,11 @@ public sealed class UpdateEmailConfig(ChannelConfigService service) : IOperation
 }
 
 /// <summary>
-/// 设为缺省邮件配置：<c>POST /api/email-configs/{id}:set-default</c>（须启用）。
+/// 设为缺省邮件配置。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/email-configs/{id}:set-default</c>（须启用）。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailConfigsUpdate)]
 public sealed class SetDefaultEmailConfig(ChannelConfigService service) : IOperation<MessagingIdRequest, EmailConfigResponse>
@@ -129,8 +141,11 @@ public sealed class SetDefaultEmailConfig(ChannelConfigService service) : IOpera
 }
 
 /// <summary>
-/// 批量删除邮件配置：<c>DELETE /api/email-configs?ids=</c>（缺省配置逐项拒绝）。
+/// 批量删除邮件配置。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/email-configs?ids=</c>（缺省配置逐项拒绝）。
+/// </remarks>
 /// <param name="service">配置服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailConfigsDelete)]
 public sealed class DeleteEmailConfigs(ChannelConfigService service) : IOperation<MessagingIdsRequest, BatchResult>

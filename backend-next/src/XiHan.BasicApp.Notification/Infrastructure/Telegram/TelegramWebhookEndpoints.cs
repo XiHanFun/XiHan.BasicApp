@@ -12,10 +12,13 @@ using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// Telegram 的 Webhook 端点：<c>POST /api/telegram-bot/webhook/{机器人名称}</c>，绕过内核管道（Telegram 匿名调用，凭请求头的密钥认）。
+/// Telegram 的 Webhook 端点。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/telegram-bot/webhook/{机器人名称}</c>，绕过内核管道（Telegram 匿名调用，凭请求头的密钥认）。
 /// 没配密钥、请求头 <c>X-Telegram-Bot-Api-Secret-Token</c> 缺失或不等（定长比较、区分大小写）即 401；其余（JSON 坏、机器人没在运行、正常）一律 200 无体，
 /// 正常的放到后台处理后立即返回（4.x 同）。不进接口文档。
-/// </summary>
+/// </remarks>
 public static class TelegramWebhookEndpoints
 {
     /// <summary>

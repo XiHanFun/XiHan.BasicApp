@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 机器人消息的发件箱（平台库实体，随所属侧）：发布时按本侧每个服务商的缺省机器人各写一条（平台一侧另按每个 Telegram 机器人的每个广播群各一条），与业务同一事务提交，由发送循环发出、失败按次数重试
-/// （4.x 在提交后直发、失败只记日志）。没有操作与页面，只供发送循环与排查。
+/// 机器人消息的发件箱（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 发布时按本侧每个服务商的缺省机器人各写一条（平台一侧另按每个 Telegram 机器人的每个广播群各一条），与业务同一事务提交，由发送循环发出、失败按次数重试
+/// （4.x 在提交后直发、失败只记日志）。没有操作与页面，只供发送循环与排查。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {
@@ -28,8 +31,11 @@ public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRe
     public BotChannel Channel { get; set; }
 
     /// <summary>
-    /// 目标会话（Telegram 的 chat ID；群机器人为空）。
+    /// 目标会话（Telegram 的 chat ID）。
     /// </summary>
+    /// <remarks>
+    /// 群机器人为空。
+    /// </remarks>
     [StringLength(64)]
     public string? ChatId { get; set; }
 
@@ -55,8 +61,11 @@ public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRe
     public int MaxAttempts { get; set; } = 3;
 
     /// <summary>
-    /// 下次可以尝试的时间；为空即立即。
+    /// 下次可以尝试的时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即立即。
+    /// </remarks>
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     /// <summary>
@@ -71,8 +80,11 @@ public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRe
     public string? ErrorMessage { get; set; }
 
     /// <summary>
-    /// 要发到的机器人配置或 Telegram 机器人（写入时选定；之后被停用或删除即失败）。
+    /// 要发到的机器人配置或 Telegram 机器人。
     /// </summary>
+    /// <remarks>
+    /// 写入时选定；之后被停用或删除即失败。
+    /// </remarks>
     public Guid? ConfigId { get; set; }
 
     /// <summary>

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Notification;
 
 /// <summary>
-/// 通知包的权限码：两侧都有，各自管理本侧的通知公告。收件箱是自助的，只要求已登录，不在这里。
+/// 通知包的权限码。
 /// </summary>
+/// <remarks>
+/// 两侧都有，各自管理本侧的通知公告。收件箱是自助的，只要求已登录，不在这里。
+/// </remarks>
 public static class NotificationPermissions
 {
     /// <summary>

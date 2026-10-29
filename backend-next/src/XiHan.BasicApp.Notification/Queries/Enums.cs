@@ -9,11 +9,11 @@ namespace XiHan.BasicApp.Notification.Queries;
 internal static class Enums
 {
     /// <summary>
-    /// 解析；有一项不认识或为空时为 <see langword="null"/>。
+    /// 把筛选值解析成枚举值列表。
     /// </summary>
     /// <typeparam name="TEnum">枚举类型。</typeparam>
     /// <param name="value">筛选值。</param>
-    /// <returns>枚举值。</returns>
+    /// <returns>枚举值；有一项不认识或为空时为 <see langword="null"/>。</returns>
     public static List<TEnum>? Of<TEnum>(string value)
         where TEnum : struct, Enum
     {

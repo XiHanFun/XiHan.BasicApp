@@ -11,10 +11,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// 一条 Update 的处理（4.x TelegramUpdateDispatcher 同一个顺序）：群组白名单（去重之前）→ 去重 → 内联查询 → 会话状态 → 回调 → <c>/start</c> 深链 → 命令 → 回复 → 普通消息 → 兜底。
+/// 一条 Update 的处理。
+/// </summary>
+/// <remarks>
+/// 4.x TelegramUpdateDispatcher 同一个顺序：群组白名单（去重之前）→ 去重 → 内联查询 → 会话状态 → 回调 → <c>/start</c> 深链 → 命令 → 回复 → 普通消息 → 兜底。
 /// 处理在一次平台调用里进行（处理器能读写业务数据）；被取消即撤销去重标记，其他异常回一条出错提示（不撤销标记）。
 /// 与 4.x 不同：回调 action 没登记也应答（4.x 不应答，客户端一直转圈）；<c>/cmd@别的机器人</c> 不处理（4.x 不校验）。
-/// </summary>
+/// </remarks>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="app">内核（开平台调用）。</param>
 /// <param name="runtime">当前设置。</param>
