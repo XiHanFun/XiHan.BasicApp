@@ -63,6 +63,7 @@
   "notification.target.department_platform": "Auf der Plattformseite gibt es keine Abteilungen; dort kann nicht an Abteilungen zugestellt werden.",
   "notification.window.invalid": "Das Ablaufdatum muss nach dem Beginn liegen.",
   "notification.recipients.none": "Die Zustellziele ergeben keine aktiven Empfänger.",
+  "notification.telegram.settings_invalid": "Das JSON des Parameters {key} ist ungültig: {detail}",
   "notification.telegram_bot.not_found": "Der Telegram-Bot {id} existiert nicht.",
   "notification.telegram_bot.name_taken": "Ein Telegram-Bot namens {name} existiert bereits.",
   "notification.telegram_bot.token_invalid": "Das Token ist ungültig; verwenden Sie das Token „Ziffern:Zeichenfolge“ von BotFather.",

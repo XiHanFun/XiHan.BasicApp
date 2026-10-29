@@ -63,6 +63,7 @@
   "notification.target.department_platform": "플랫폼 측에는 부서가 없어 부서로 전달할 수 없습니다.",
   "notification.window.invalid": "만료 시간은 시작 시간보다 늦어야 합니다.",
   "notification.recipients.none": "전달 대상에서 정상 수신자를 찾을 수 없습니다.",
+  "notification.telegram.settings_invalid": "시스템 매개변수 {key}의 JSON이 올바르지 않습니다: {detail}",
   "notification.telegram_bot.not_found": "Telegram 봇 {id}이(가) 없습니다.",
   "notification.telegram_bot.name_taken": "이름이 {name}인 Telegram 봇이 이미 있습니다.",
   "notification.telegram_bot.token_invalid": "토큰 형식이 올바르지 않습니다. BotFather가 준 \"숫자:문자열\" 토큰을 쓰세요.",

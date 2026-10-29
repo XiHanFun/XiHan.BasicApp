@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <summary>
 /// 群机器人：Webhook 只认各服务商的官方 https 地址；每个服务商一个缺省，缺省的不能删、停用或换服务商；签名密钥不回显；
 /// 通知的机器人渠道发到本侧每个服务商的缺省机器人（经发件箱，由发送循环发出），租户没有自己的机器人即不可用（不借平台的）；
-/// Telegram 机器人只在平台、令牌不回显，广播到每个启用的机器人的每个广播群；四种通道的地址、签名与载荷。
+/// Telegram 机器人只在平台、令牌不回显，广播到每个启用的机器人的每个广播群；三家群机器人通道的地址、签名与载荷（Telegram 的出站在 TelegramTests）。
 /// </summary>
 public sealed class BotTests : IDisposable
 {
@@ -158,15 +158,6 @@ public sealed class BotTests : IDisposable
         var wecom = await new WeComBotTransport(new Factory(wecomHandler)).SendAsync(new BotEndpoint(BotChannel.WeCom, "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k", null, null), "hello", CancellationToken.None);
         Assert.Equal((false, "93000: invalid webhook url"), (wecom.Succeeded, wecom.Error));
         Assert.Equal(("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k", """{"msgtype":"text","text":{"content":"hello"}}"""), (Assert.Single(wecomHandler.Requests).Uri.ToString(), wecomHandler.Requests[0].Body));
-
-        // Telegram：POST {根地址}/bot{令牌}/sendMessage，返回 ok 即成功并带消息 ID；失败带 error_code 与说明
-        var telegramHandler = new RecordingHandler("""{"ok":true,"result":{"message_id":42}}""");
-        var telegram = new TelegramBotTransport(new Factory(telegramHandler));
-        var delivered = await telegram.SendAsync(new BotEndpoint(BotChannel.Telegram, "https://api.telegram.org", TelegramToken, null, "-100123"), "hello", CancellationToken.None);
-        Assert.Equal((true, "42"), (delivered.Succeeded, delivered.MessageId));
-        Assert.Equal(($"https://api.telegram.org/bot{TelegramToken}/sendMessage", """{"chat_id":"-100123","text":"hello"}"""), (Assert.Single(telegramHandler.Requests).Uri.ToString(), telegramHandler.Requests[0].Body));
-        var refused = await new TelegramBotTransport(new Factory(new RecordingHandler("""{"ok":false,"error_code":400,"description":"Bad Request: chat not found"}"""))).SendAsync(new BotEndpoint(BotChannel.Telegram, "https://api.telegram.org", TelegramToken, null, "-1"), "hello", CancellationToken.None);
-        Assert.Equal((false, "400: Bad Request: chat not found"), (refused.Succeeded, refused.Error));
     }
 
     private sealed class FakeBotTransport(BotChannel channel, ConcurrentQueue<(BotEndpoint Endpoint, string Text)> sent) : IBotTransport

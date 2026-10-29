@@ -36,8 +36,7 @@ public sealed record TelegramBotDraft(string Name, string? Token, string? AdminU
 /// <param name="bots">机器人仓储。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">标识生成器。</param>
-/// <param name="options">选项（Bot API 的根地址）。</param>
-public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid> bots, ISecretProtector secrets, IIdGenerator<Guid> ids, NotificationOptions options)
+public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid> bots, ISecretProtector secrets, IIdGenerator<Guid> ids)
 {
     /// <summary>
     /// 令牌的加密用途。
@@ -152,7 +151,7 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     {
         ArgumentNullException.ThrowIfNull(bot);
         return secrets.TryUnprotect(TokenPurpose, bot.Token, out var token)
-            ? new BotEndpoint(BotChannel.Telegram, options.TelegramApiBase, token, null, chatId)
+            ? new BotEndpoint(BotChannel.Telegram, string.Empty, token, null, chatId, bot.Id, bot.Name)
             : null;
     }
 

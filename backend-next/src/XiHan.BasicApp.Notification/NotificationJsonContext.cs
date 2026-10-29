@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Services;
+using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.Inbox;
 using XiHan.BasicApp.Notification.Operations.Messaging;
@@ -73,4 +74,6 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(PageResult<TelegramBotResponse>))]
 [JsonSerializable(typeof(CreateTelegramBotRequest))]
 [JsonSerializable(typeof(UpdateTelegramBotRequest))]
+[JsonSerializable(typeof(TelegramSettings))]
+[JsonSerializable(typeof(TelegramConversationState))]
 public sealed partial class NotificationJsonContext : JsonSerializerContext;

@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: 'Broadcast Chats',
         broadcast_chat_ids_placeholder: 'Comma-separated group chat ids, e.g. -1001234567890 (optional)',
         broadcast_chat_ids_hint: 'Platform notifications published through the Bot channel are sent to these chats',
+        platform_settings_hint: 'The master switch, webhook base URL (empty = long polling), refresh interval, fallback reply and network live in setting {settingsKey} (JSON); the webhook secret lives in {secretKey} (encrypted)',
         enable_fallback_reply: 'Fallback Reply',
         sort: 'Sort',
         is_enabled: 'Enabled',

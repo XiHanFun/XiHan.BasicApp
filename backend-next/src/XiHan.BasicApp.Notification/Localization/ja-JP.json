@@ -63,6 +63,7 @@
   "notification.target.department_platform": "プラットフォーム側には部署がないため、部署を対象に配信できません。",
   "notification.window.invalid": "有効期限は開始日時より後にしてください。",
   "notification.recipients.none": "配信対象から有効な受信者が見つかりません。",
+  "notification.telegram.settings_invalid": "システムパラメーター {key} の JSON が正しくありません：{detail}",
   "notification.telegram_bot.not_found": "Telegram ボット {id} は存在しません。",
   "notification.telegram_bot.name_taken": "{name} という名前の Telegram ボットは既にあります。",
   "notification.telegram_bot.token_invalid": "トークンの形式が正しくありません。BotFather が発行した「数字:文字列」を使ってください。",

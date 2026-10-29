@@ -229,6 +229,9 @@ async function removeRow(row: TelegramBotRow) {
             <XInput v-model:value="form.remark" name="remark" clearable :max-length="500" :placeholder="t('notification.telegram_bots.form.remark_placeholder')" />
           </XhFieldControl>
         </XhFieldRoot>
+        <p class="xh-span-2 text-caption text-fg-muted">
+          {{ t('notification.telegram_bots.form.platform_settings_hint', { settingsKey: 'notification.telegram', secretKey: 'notification.telegram.webhook-secret-token' }) }}
+        </p>
         <p v-if="submitError" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ submitError }}
         </p>

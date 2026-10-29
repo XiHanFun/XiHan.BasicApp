@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: '브로드캐스트 채팅',
         broadcast_chat_ids_placeholder: '쉼표로 구분한 그룹 ChatId, 예: -1001234567890(선택)',
         broadcast_chat_ids_hint: '플랫폼이 "봇" 채널로 게시한 알림은 이 채팅으로 보냅니다',
+        platform_settings_hint: '전체 스위치, Webhook 기본 주소(비우면 롱 폴링), 새로 고침 주기, 기본 응답, 네트워크는 매개변수 {settingsKey}(JSON)에서, Webhook 비밀 키는 {secretKey}(암호화 매개변수)에서 설정합니다',
         enable_fallback_reply: '폴백 응답',
         sort: '정렬',
         is_enabled: '사용',

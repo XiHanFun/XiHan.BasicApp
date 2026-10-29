@@ -63,6 +63,7 @@
   "notification.target.department_platform": "O lado da plataforma não tem departamentos; não é possível enviar por departamento.",
   "notification.window.invalid": "A expiração deve ser posterior ao início.",
   "notification.recipients.none": "Os alvos de entrega não resultam em nenhum destinatário ativo.",
+  "notification.telegram.settings_invalid": "O JSON do parâmetro {key} é inválido: {detail}",
   "notification.telegram_bot.not_found": "O bot do Telegram {id} não existe.",
   "notification.telegram_bot.name_taken": "Já existe um bot do Telegram chamado {name}.",
   "notification.telegram_bot.token_invalid": "O token é inválido; use o token \"dígitos:texto\" fornecido pelo BotFather.",

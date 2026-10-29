@@ -568,6 +568,7 @@ export default {
         broadcast_chat_ids: 'Чаты рассылки',
         broadcast_chat_ids_placeholder: 'ChatId групп через запятую, например -1001234567890 (необязательно)',
         broadcast_chat_ids_hint: 'Уведомления, которые платформа публикует через канал «Бот», отправляются в эти чаты',
+        platform_settings_hint: 'Общий переключатель, базовый адрес вебхука (пусто — long polling), период обновления, резервный ответ и сеть задаются в параметре {settingsKey} (JSON), секрет вебхука — в {secretKey} (зашифрованный)',
         enable_fallback_reply: 'Ответ по умолчанию',
         sort: 'Порядок',
         is_enabled: 'Включено',

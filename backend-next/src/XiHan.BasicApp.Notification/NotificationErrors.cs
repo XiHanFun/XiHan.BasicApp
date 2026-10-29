@@ -49,6 +49,11 @@ public static class NotificationErrors
     public const string NoRecipients = "NOTIFICATION_VALIDATION_004";
 
     /// <summary>
+    /// Telegram 平台设置的 JSON 写错了；参数 <c>key</c>、<c>detail</c>。
+    /// </summary>
+    public const string TelegramSettingsInvalid = "NOTIFICATION_VALIDATION_015";
+
+    /// <summary>
     /// Telegram 机器人不存在；参数 <c>id</c>。
     /// </summary>
     public const string TelegramBotNotFound = "NOTIFICATION_NOTFOUND_009";

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Notification</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 通知能力包（Tier 2）：通知公告（草稿、发布、提醒、阅读统计，按全部 / 角色 / 部门 / 用户投递）与收件箱（已读、确认、横幅、弹窗、强制阅读），发布后经实时连接推送；消息模板（Scriban）、邮件与短信配置、发送记录（发件箱，后台发送与重试）。</Description>
+    <Description>XiHan.BasicApp 6.0 通知能力包（Tier 2）：通知公告（草稿、发布、提醒、阅读统计，按全部 / 角色 / 部门 / 用户投递）与收件箱（已读、确认、横幅、弹窗、强制阅读），发布后经实时连接推送；消息模板（Scriban）、邮件与短信配置、发送记录（发件箱，后台发送与重试）；钉钉 / 飞书 / 企业微信群机器人与 Telegram 机器人（平台托管，Webhook 或长轮询、命令与回调路由、出站审计）。</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +23,8 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>
