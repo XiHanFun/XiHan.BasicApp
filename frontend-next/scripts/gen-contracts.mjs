@@ -35,12 +35,15 @@ function pascal(text) {
   return c.charAt(0).toUpperCase() + c.slice(1)
 }
 
-/** 文档里的全部操作：按 operationId 排序，带方法、路由模板、参数落点与授权扩展 */
+/** 文档里的全部操作（不含普通端点）：按 operationId 排序，带方法、路由模板、参数落点与授权扩展 */
 function collectOperations(doc) {
   const operations = []
   for (const [template, methods] of Object.entries(doc.paths ?? {})) {
     for (const [method, operation] of Object.entries(methods)) {
       if (!operation || typeof operation !== 'object' || !operation.operationId)
+        continue
+      // 普通端点（文件上传、下载）只有端点名、没有操作的稳定性标注：不进类型化客户端，前端经 request 的 uploadForm / endpointUrl 调用
+      if (!operation['x-xihan-stability'])
         continue
       const parameters = operation.parameters ?? []
       operations.push({

@@ -417,6 +417,9 @@ FodyWeavers.xsd
 #wwwroot
 wwwroot/
 
+# 6.0 宿主本地存储的文件（BasicApp:Files:LocalRootPath 缺省 App_Data/files）
+App_Data/
+
 appsettings.Production.json
 
 # docker compose 变量文件，含数据库口令；模板见 .env.example

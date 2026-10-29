@@ -164,3 +164,58 @@ async function readBody<T>(response: Response): Promise<T> {
 
 export { ApiError }
 export type { ProblemDetails } from './problem'
+
+/** 普通端点（上传、下载等不在路由表里的端点）的完整地址：接口前缀 + 路径；后端签发的相对地址（如签名下载地址）也经这里补前缀。 */
+export function endpointUrl(path: string): string {
+  return /^https?:\/\//i.test(path) ? path : `${config.baseUrl ?? ''}${path}`
+}
+
+export interface UploadOptions {
+  /** 上传进度（0–100） */
+  onProgress?: (percent: number) => void
+  signal?: AbortSignal
+}
+
+/**
+ * 以 multipart 表单上传到普通端点：带令牌、区域与 traceparent，未认证时与 `invoke` 一样先换令牌重放一次；
+ * 用 XMLHttpRequest 是为了拿上传进度（fetch 没有）。成功返回响应 JSON，失败抛 `ApiError`。
+ */
+export async function uploadForm<TResponse>(path: string, form: FormData, options: UploadOptions = {}): Promise<TResponse> {
+  const traceparent = newTraceparent()
+  const send = (token: string | null): Promise<Response> => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', endpointUrl(path))
+    xhr.setRequestHeader('Accept', 'application/json')
+    xhr.setRequestHeader('Accept-Language', config.getLocale?.() ?? 'en-US')
+    xhr.setRequestHeader('traceparent', traceparent)
+    if (token)
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable)
+        options.onProgress?.(Math.round((event.loaded / event.total) * 100))
+    }
+    xhr.onload = () => resolve(new Response(xhr.responseText, { status: xhr.status, headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'application/json' } }))
+    xhr.onerror = () => reject(new TypeError('Network request failed'))
+    xhr.onabort = () => reject(new DOMException('The upload was aborted.', 'AbortError'))
+    options.signal?.addEventListener('abort', () => xhr.abort(), { once: true })
+    xhr.send(form)
+  })
+
+  let response = await send(config.getToken?.() ?? null)
+  if (!response.ok) {
+    let error = await parseProblem(response, traceparent.split('-')[1] ?? '')
+    if ((error.code === ErrorCodes.unauthenticated || error.code === ErrorCodes.tokenRejected) && config.hooks?.onUnauthenticated) {
+      const refreshed = await config.hooks.onUnauthenticated()
+      if (refreshed) {
+        response = await send(refreshed)
+        if (response.ok)
+          return readBody<TResponse>(response)
+        error = await parseProblem(response, traceparent.split('-')[1] ?? '')
+      }
+    }
+    if (error.code === ErrorCodes.sessionInvalid)
+      config.hooks?.onSessionInvalid?.(error)
+    throw error
+  }
+  return readBody<TResponse>(response)
+}

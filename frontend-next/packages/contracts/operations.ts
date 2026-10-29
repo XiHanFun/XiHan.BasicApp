@@ -69,6 +69,17 @@ export const routes = {
   'field-security.get': { method: 'GET', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
   'field-security.list': { method: 'POST', template: '/api/field-security:list', path: [], query: [], success: 200 },
   'field-security.update': { method: 'PUT', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
+  'files.delete': { method: 'DELETE', template: '/api/files', path: [], query: ['ids'], success: 200 },
+  'files.fast-upload': { method: 'POST', template: '/api/files:fast-upload', path: [], query: [], success: 200 },
+  'files.get': { method: 'GET', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
+  'files.list': { method: 'POST', template: '/api/files:list', path: [], query: [], success: 200 },
+  'files.presign': { method: 'GET', template: '/api/files/{id}:presign', path: ['id'], query: ['expiresInSeconds'], success: 200 },
+  'files.set-primary-storage': { method: 'POST', template: '/api/files/{id}:set-primary-storage', path: ['id'], query: [], success: 200 },
+  'files.set-status': { method: 'POST', template: '/api/files:set-status', path: [], query: [], success: 200 },
+  'files.set-storage-status': { method: 'POST', template: '/api/files/{id}:set-storage-status', path: ['id'], query: [], success: 200 },
+  'files.storages': { method: 'GET', template: '/api/files/{id}:storages', path: ['id'], query: [], success: 200 },
+  'files.update': { method: 'PUT', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
+  'files.verify-storage': { method: 'POST', template: '/api/files/{id}:verify-storage', path: ['id'], query: [], success: 200 },
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
@@ -147,6 +158,13 @@ export const routes = {
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
   'session-roles.get': { method: 'GET', template: '/api/session-roles/{id}', path: ['id'], query: [], success: 200 },
   'session-roles.list': { method: 'POST', template: '/api/session-roles:list', path: [], query: [], success: 200 },
+  'storage-configs.create': { method: 'POST', template: '/api/storage-configs', path: [], query: [], success: 201 },
+  'storage-configs.delete': { method: 'DELETE', template: '/api/storage-configs', path: [], query: ['ids'], success: 200 },
+  'storage-configs.get': { method: 'GET', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
+  'storage-configs.list': { method: 'POST', template: '/api/storage-configs:list', path: [], query: [], success: 200 },
+  'storage-configs.set-default': { method: 'POST', template: '/api/storage-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'storage-configs.set-status': { method: 'POST', template: '/api/storage-configs/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'storage-configs.update': { method: 'PUT', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
@@ -306,6 +324,21 @@ export const fieldSecurity = {
   update: (request: RequestOf<'field-security.update'>, options?: CallOptions) => invoke<RequestOf<'field-security.update'>, ResponseOf<'field-security.update'>>('field-security.update', routes['field-security.update'], request, options),
 }
 
+/** 资源 `files` 的操作。 */
+export const files = {
+  delete: (request: RequestOf<'files.delete'>, options?: CallOptions) => invoke<RequestOf<'files.delete'>, ResponseOf<'files.delete'>>('files.delete', routes['files.delete'], request, options),
+  fastUpload: (request: RequestOf<'files.fast-upload'>, options?: CallOptions) => invoke<RequestOf<'files.fast-upload'>, ResponseOf<'files.fast-upload'>>('files.fast-upload', routes['files.fast-upload'], request, options),
+  get: (request: RequestOf<'files.get'>, options?: CallOptions) => invoke<RequestOf<'files.get'>, ResponseOf<'files.get'>>('files.get', routes['files.get'], request, options),
+  list: (request: RequestOf<'files.list'>, options?: CallOptions) => invoke<RequestOf<'files.list'>, ResponseOf<'files.list'>>('files.list', routes['files.list'], request, options),
+  presign: (request: RequestOf<'files.presign'>, options?: CallOptions) => invoke<RequestOf<'files.presign'>, ResponseOf<'files.presign'>>('files.presign', routes['files.presign'], request, options),
+  setPrimaryStorage: (request: RequestOf<'files.set-primary-storage'>, options?: CallOptions) => invoke<RequestOf<'files.set-primary-storage'>, ResponseOf<'files.set-primary-storage'>>('files.set-primary-storage', routes['files.set-primary-storage'], request, options),
+  setStatus: (request: RequestOf<'files.set-status'>, options?: CallOptions) => invoke<RequestOf<'files.set-status'>, ResponseOf<'files.set-status'>>('files.set-status', routes['files.set-status'], request, options),
+  setStorageStatus: (request: RequestOf<'files.set-storage-status'>, options?: CallOptions) => invoke<RequestOf<'files.set-storage-status'>, ResponseOf<'files.set-storage-status'>>('files.set-storage-status', routes['files.set-storage-status'], request, options),
+  storages: (request: RequestOf<'files.storages'>, options?: CallOptions) => invoke<RequestOf<'files.storages'>, ResponseOf<'files.storages'>>('files.storages', routes['files.storages'], request, options),
+  update: (request: RequestOf<'files.update'>, options?: CallOptions) => invoke<RequestOf<'files.update'>, ResponseOf<'files.update'>>('files.update', routes['files.update'], request, options),
+  verifyStorage: (request: RequestOf<'files.verify-storage'>, options?: CallOptions) => invoke<RequestOf<'files.verify-storage'>, ResponseOf<'files.verify-storage'>>('files.verify-storage', routes['files.verify-storage'], request, options),
+}
+
 /** 资源 `impersonation` 的操作。 */
 export const impersonation = {
   candidates: (request: RequestOf<'impersonation.candidates'>, options?: CallOptions) => invoke<RequestOf<'impersonation.candidates'>, ResponseOf<'impersonation.candidates'>>('impersonation.candidates', routes['impersonation.candidates'], request, options),
@@ -446,6 +479,17 @@ export const roles = {
 export const sessionRoles = {
   get: (request: RequestOf<'session-roles.get'>, options?: CallOptions) => invoke<RequestOf<'session-roles.get'>, ResponseOf<'session-roles.get'>>('session-roles.get', routes['session-roles.get'], request, options),
   list: (request: RequestOf<'session-roles.list'>, options?: CallOptions) => invoke<RequestOf<'session-roles.list'>, ResponseOf<'session-roles.list'>>('session-roles.list', routes['session-roles.list'], request, options),
+}
+
+/** 资源 `storage-configs` 的操作。 */
+export const storageConfigs = {
+  create: (request: RequestOf<'storage-configs.create'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.create'>, ResponseOf<'storage-configs.create'>>('storage-configs.create', routes['storage-configs.create'], request, options),
+  delete: (request: RequestOf<'storage-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.delete'>, ResponseOf<'storage-configs.delete'>>('storage-configs.delete', routes['storage-configs.delete'], request, options),
+  get: (request: RequestOf<'storage-configs.get'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.get'>, ResponseOf<'storage-configs.get'>>('storage-configs.get', routes['storage-configs.get'], request, options),
+  list: (request: RequestOf<'storage-configs.list'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.list'>, ResponseOf<'storage-configs.list'>>('storage-configs.list', routes['storage-configs.list'], request, options),
+  setDefault: (request: RequestOf<'storage-configs.set-default'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.set-default'>, ResponseOf<'storage-configs.set-default'>>('storage-configs.set-default', routes['storage-configs.set-default'], request, options),
+  setStatus: (request: RequestOf<'storage-configs.set-status'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.set-status'>, ResponseOf<'storage-configs.set-status'>>('storage-configs.set-status', routes['storage-configs.set-status'], request, options),
+  update: (request: RequestOf<'storage-configs.update'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.update'>, ResponseOf<'storage-configs.update'>>('storage-configs.update', routes['storage-configs.update'], request, options),
 }
 
 /** 资源 `tenant-members` 的操作。 */

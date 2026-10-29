@@ -5,6 +5,8 @@ using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Files;
+using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -66,6 +68,7 @@ public static class BasicAppHost
             .UseFeature<OrganizationFeature>()
             .UseFeature<AccessFeature>()
             .UseFeature<SettingsFeature>()
+            .UseFeature<FilesFeature>()
             .UseFeature<AuditingFeature>();
             if (modules.Workbench)
             {
@@ -104,7 +107,7 @@ public static class BasicAppHost
     }
 
     /// <summary>
-    /// 不能用操作表达的普通端点。N0 只有根路径的应用信息；OAuth 重定向、文件、Hub、Webhook 随各包补入。
+    /// 不能用操作表达的普通端点：根路径的应用信息、文件的上传与下载；OAuth 重定向、Hub、Webhook 随各包补入。
     /// </summary>
     public static IEndpointRouteBuilder MapBasicAppEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -113,6 +116,7 @@ public static class BasicAppHost
         var info = new HostInfo(AppInfo.Name, AppInfo.Version, environment.EnvironmentName);
         // 根路径只是应用自述，不是业务契约：排除出接口文档，否则生成器会要求它的 JSON 引用某个操作的 Schema
         PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapGet("/", () => info).ExcludeFromDescription());
+        endpoints.MapFileEndpoints();
         return endpoints;
     }
 }

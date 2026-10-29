@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Auditing.Domain.Entities;
@@ -75,6 +76,9 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         var origin = context.GetOrigin().TryGetValue(out var source) ? source : null;
         var (method, path) = TargetOf(origin);
         var agent = UserAgentInfo.Parse(origin?.UserAgent);
+        // 普通端点没有操作描述：执行时由宿主的端点过滤器登记身份与实际状态码，按同一套规则记访问与数据变更
+        var endpoint = operation is null && context.GetAuditedEndpoint().TryGetValue(out var registered) ? registered : null;
+        var target = operation?.Id ?? endpoint?.Id;
 
         // 操作审计的细节：框架的审计中间件在本中间件返回之后才写事件
         if (context.GetAuditAction().HasValue)
@@ -84,16 +88,16 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             context.AddAuditDetail("sessionId", caller.SessionId?.ToString("D"));
         }
 
-        if (operation is not null && options.AccessLogEnabled && !options.AccessLogExclusions.Contains(operation.Id))
+        if (target is not null && options.AccessLogEnabled && !options.AccessLogExclusions.Contains(target))
         {
             var access = new SysAccessLog
             {
-                OperationId = operation.Id,
+                OperationId = target,
                 Protocol = Clip(origin?.Protocol, 16),
                 Method = Clip(method, 16),
                 Path = Clip(path, 512),
                 Result = ResultOf(outcome),
-                StatusCode = origin?.Protocol == InvocationProtocols.Http ? StatusCodeOf(operation, outcome) : null,
+                StatusCode = origin?.Protocol == InvocationProtocols.Http ? StatusCodeOf(operation, endpoint, outcome) : null,
                 ErrorCode = outcome.Error?.Code,
                 ErrorMessage = MessageOf(context, outcome),
                 DurationMs = durationMs,
@@ -109,7 +113,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         {
             var failure = new SysExceptionLog
             {
-                OperationId = operation?.Id,
+                OperationId = target,
                 Protocol = Clip(origin?.Protocol, 16),
                 Method = Clip(method, 16),
                 Path = Clip(path, 512),
@@ -179,7 +183,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                         Action = hit.Action,
                         Phase = hit.Phase,
                         IsBlocked = hit.IsBlocked,
-                        OperationId = Clip(operation?.Id, 128),
+                        OperationId = Clip(target, 128),
                         Method = Clip(method, 16),
                         Path = Clip(path, 512),
                         PermissionCodes = hit.PermissionCodes.Count == 0 ? null : Clip(string.Join(',', hit.PermissionCodes), 1024),
@@ -189,13 +193,13 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             }
         }
 
-        // 数据变更：只记操作调用、且调用成功的（失败的已回滚）；作业与种子的写入不记。缓冲每次都取空，不留给同一作用域的下一次调用
+        // 数据变更：只记操作与登记过的普通端点的调用、且调用成功的（失败的已回滚）；作业与种子的写入不记。缓冲每次都取空，不留给同一作用域的下一次调用
         if (context.Services.GetService<DiffLogBuffer>() is { } buffer)
         {
             var changes = buffer.Drain();
-            if (operation is not null && outcome.IsSuccess)
+            if (target is not null && outcome.IsSuccess)
             {
-                foreach (var diff in changes.SelectMany(model => DiffLogRows.From(model, operation.Id)))
+                foreach (var diff in changes.SelectMany(model => DiffLogRows.From(model, target)))
                 {
                     Enqueue(diff, caller, origin, context, occurredAt);
                 }
@@ -272,10 +276,12 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// HTTP 状态码：按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则。
+    /// HTTP 状态码：按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则；普通端点成功时取它实际写出的状态码。
     /// </summary>
-    private static int StatusCodeOf(OperationDescriptor operation, Result outcome)
-        => outcome.IsSuccess ? HttpRouteConvention.SuccessStatusCode(operation.Contract) : ProblemResponse.StatusCodeFor(outcome.Error!);
+    private static int StatusCodeOf(OperationDescriptor? operation, AuditedEndpoint? endpoint, Result outcome)
+        => outcome.IsFailure
+            ? ProblemResponse.StatusCodeFor(outcome.Error!)
+            : operation is not null ? HttpRouteConvention.SuccessStatusCode(operation.Contract) : endpoint?.StatusCode ?? StatusCodes.Status200OK;
 
     private static string? MessageOf(InvocationContext context, Result outcome)
         => outcome.IsFailure ? Clip(context.Localize(outcome.Error!), 1024) : null;

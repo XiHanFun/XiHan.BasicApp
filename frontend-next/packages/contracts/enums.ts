@@ -74,6 +74,18 @@ export type FieldRuleStatus = (typeof FieldRuleStatus)[number]
 export const FieldSecurityTargetKind = ['Role', 'User', 'Department'] as const
 export type FieldSecurityTargetKind = (typeof FieldSecurityTargetKind)[number]
 
+export const FileAccessLevel = ['Authenticated', 'Authorized'] as const
+export type FileAccessLevel = (typeof FileAccessLevel)[number]
+
+export const FileKind = ['Image', 'Document', 'Video', 'Audio', 'Archive', 'Other'] as const
+export type FileKind = (typeof FileKind)[number]
+
+export const FileStatus = ['Normal', 'Archived', 'Corrupted'] as const
+export type FileStatus = (typeof FileStatus)[number]
+
+export const FileStorageStatus = ['Normal', 'VerificationFailed', 'Unavailable'] as const
+export type FileStorageStatus = (typeof FileStorageStatus)[number]
+
 export const GrantSubjectKind = ['Role', 'User'] as const
 export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
@@ -112,6 +124,12 @@ export type SessionRoleStatus = (typeof SessionRoleStatus)[number]
 
 export const SettingStatus = ['Active', 'Disabled'] as const
 export type SettingStatus = (typeof SettingStatus)[number]
+
+export const StorageConfigStatus = ['Active', 'Disabled'] as const
+export type StorageConfigStatus = (typeof StorageConfigStatus)[number]
+
+export const StorageType = ['Local', 'S3', 'Oss', 'Cos', 'MinIO'] as const
+export type StorageType = (typeof StorageType)[number]
 
 export const TenantMemberType = ['Member', 'Owner'] as const
 export type TenantMemberType = (typeof TenantMemberType)[number]
@@ -163,6 +181,10 @@ export const enums = {
   FieldMaskStrategy,
   FieldRuleStatus,
   FieldSecurityTargetKind,
+  FileAccessLevel,
+  FileKind,
+  FileStatus,
+  FileStorageStatus,
   GrantSubjectKind,
   LoginEvent,
   MenuKind,
@@ -176,6 +198,8 @@ export const enums = {
   RoleStatus,
   SessionRoleStatus,
   SettingStatus,
+  StorageConfigStatus,
+  StorageType,
   TenantMemberType,
   TenantStatus,
   TraceDimension,

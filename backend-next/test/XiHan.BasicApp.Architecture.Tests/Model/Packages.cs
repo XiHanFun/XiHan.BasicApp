@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
@@ -80,6 +81,7 @@ public static class Packages
         typeof(OrganizationFeature).Assembly,
         typeof(AccessFeature).Assembly,
         typeof(SettingsFeature).Assembly,
+        typeof(FilesFeature).Assembly,
         typeof(AuditingFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,
         typeof(BasicAppHost).Assembly,
