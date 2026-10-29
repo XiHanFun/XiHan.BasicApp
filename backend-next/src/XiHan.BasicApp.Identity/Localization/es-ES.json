@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "Cierra la sesión de uno de sus dispositivos; para el actual use cerrar sesión. Solo requiere iniciar sesión.",
   "profile.revoke_other_sessions.description": "Cierra la sesión de todos sus dispositivos salvo el actual, incluidas las suplantaciones que inició y siguen abiertas. Solo requiere iniciar sesión.",
   "profile.notification_preference.description": "Sus preferencias de notificación: canales en la aplicación, correo y SMS, y temas anuncio, tarea y seguridad; se recibe todo hasta guardarlas. Las notificaciones obligatorias y de emergencia no se ven afectadas. Solo requiere iniciar sesión.",
-  "profile.update_notification_preference.description": "Guarda sus preferencias de notificación (las reemplaza por completo). Solo requiere iniciar sesión."
+  "profile.update_notification_preference.description": "Guarda sus preferencias de notificación (las reemplaza por completo). Solo requiere iniciar sesión.",
+  "profile.update.description": "Guarda su perfil: nombre visible, nombre real, género, cumpleaños, país o región y biografía (se reemplaza por completo; los vacíos cuentan como sin rellenar). Solo requiere iniciar sesión.",
+  "profile.change_username.description": "Cambia su nombre de usuario: requiere la contraseña actual, una vez cada 90 días, único en su inquilino de origen. No disponible en suplantación.",
+  "profile.remove_avatar.description": "Quita su avatar; el archivo se recupera. Suba uno nuevo con POST /api/profile/avatar. Solo requiere iniciar sesión.",
+  "identity.avatar.invalid": "El avatar debe ser una imagen JPEG o PNG de {max} MB como máximo.",
+  "identity.user_name.unchanged": "El nuevo nombre de usuario es igual al actual.",
+  "identity.user_name.too_soon": "El nombre de usuario solo puede cambiarse una vez cada 90 días; inténtelo de nuevo en {days} días."
 }

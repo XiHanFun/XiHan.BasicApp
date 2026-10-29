@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "Déconnecte l’un de vos appareils ; pour l’appareil actuel, utilisez la déconnexion. Requiert seulement la connexion.",
   "profile.revoke_other_sessions.description": "Déconnecte tous vos appareils sauf l’actuel, y compris les emprunts d’identité que vous avez lancés et qui sont encore ouverts. Requiert seulement la connexion.",
   "profile.notification_preference.description": "Vos préférences de notification : canaux dans l’application, e-mail et SMS, sujets annonce, tâche et sécurité ; tout est reçu tant que rien n’est enregistré. Les notifications obligatoires et urgentes ne sont pas concernées. Requiert seulement la connexion.",
-  "profile.update_notification_preference.description": "Enregistre vos préférences de notification (remplacement complet). Requiert seulement la connexion."
+  "profile.update_notification_preference.description": "Enregistre vos préférences de notification (remplacement complet). Requiert seulement la connexion.",
+  "profile.update.description": "Enregistre votre profil : nom d’affichage, nom réel, genre, date de naissance, pays ou région et présentation (remplacement complet ; les champs vides sont ignorés). Requiert seulement la connexion.",
+  "profile.change_username.description": "Change votre nom d’utilisateur : mot de passe actuel requis, une fois tous les 90 jours, unique dans votre locataire d’origine. Indisponible en emprunt d’identité.",
+  "profile.remove_avatar.description": "Supprime votre avatar ; le fichier est récupéré. Téléversez-en un nouveau avec POST /api/profile/avatar. Requiert seulement la connexion.",
+  "identity.avatar.invalid": "L’avatar doit être une image JPEG ou PNG de {max} Mo au plus.",
+  "identity.user_name.unchanged": "Le nouveau nom d’utilisateur est identique à l’actuel.",
+  "identity.user_name.too_soon": "Le nom d’utilisateur ne peut être changé qu’une fois tous les 90 jours ; réessayez dans {days} jours."
 }

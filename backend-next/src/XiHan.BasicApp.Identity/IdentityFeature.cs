@@ -92,6 +92,7 @@ public sealed class IdentityFeature : IFeature
         // 通知偏好：Notification 发布与扇出时按它过滤接收人
         context.Services.AddScoped<INotificationPreferences, NotificationPreferences>();
         context.Services.AddScoped<ApiCredentialService>();
+        context.Services.AddScoped<ProfileAvatars>();
         context.Services.AddSingleton(ExternalLoginOptions.FromConfiguration(context.Configuration));
         context.Services.AddHttpClient(ExternalLoginFlow.HttpClientName, static client =>
         {

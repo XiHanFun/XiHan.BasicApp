@@ -2,7 +2,7 @@ import type { Router } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureRequest } from '~/request'
-import { useAppContext } from '~/stores'
+import { useAppContext, useAuthStore, useUserStore } from '~/stores'
 import { registerApplicationContext } from './context'
 
 function json(status: number, body: object): Response {
@@ -20,6 +20,22 @@ function record(calls: Call[], respond: (url: string) => Response) {
       return respond(String(url))
     }) as unknown as typeof fetch,
   })
+}
+
+const DAY = 24 * 60 * 60 * 1000
+
+/** 会话与资料里的用户（后端 UserResponse） */
+function userOf(patch: object = {}) {
+  return { id: 'u-1', userName: 'alice', displayName: 'Alice', email: 'alice@example.com', phoneNumber: null, homeTenantId: 'platform', status: 'Active', lastLoginAt: null, createdAt: '2026-10-01T00:00:00Z', createdBy: null, avatarFileId: 'f-1', ...patch }
+}
+
+/** 本人资料（后端 ProfileResponse）：没改过用户名 */
+function profileOf(userPatch: object = {}) {
+  return { user: userOf(userPatch), twoFactorEnabled: false, twoFactorMethods: [], passwordChangedAt: null, mustChangePassword: false, failedAccessCount: 0, lockoutEndAt: null, realName: '张三', gender: 'Female', birthday: '1990-05-04T00:00:00Z', country: '中国', remark: null, userNameChangedAt: null, userNameChangeableAt: null }
+}
+
+function sessionOf() {
+  return { accessToken: 'a-1', accessExpiresAt: '2026-10-30T02:00:00Z', refreshToken: 'r-1', refreshExpiresAt: '2026-11-06T00:00:00Z', sessionId: 's-1', tenantId: null, tenantName: null, impersonatorUserName: null, mustChangePassword: false, user: userOf() }
 }
 
 describe('应用上下文：壳层接口接到 6.0 操作', () => {
@@ -281,6 +297,121 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
       trend: [{ date: '2026-10-29', accessCount: 40, operationCount: 5 }, { date: '2026-10-30', accessCount: 20, operationCount: 0 }],
     })
     expect(calls).toEqual([{ method: 'GET', url: '/api/my-activity:summary?timeZone=Asia%2FShanghai', body: null }])
+  })
+
+  it('个人资料：profile.get 投影成 4.x 的资料——显示名进 nickName、头像是文件主键、性别换成数字、上次改名换成 *Time，下次可改时间没到即不能改，没有的字段不给', async () => {
+    const calls: Call[] = []
+    const later = new Date(Date.now() + 10 * DAY).toISOString()
+    let response: object = { ...profileOf(), userNameChangedAt: '2026-10-01T00:00:00Z', userNameChangeableAt: later }
+    record(calls, () => json(200, response))
+    expect(await useAppContext().apis.getProfileApi()).toEqual({
+      userId: 'u-1',
+      userName: 'alice',
+      realName: '张三',
+      nickName: 'Alice',
+      avatar: 'f-1',
+      email: 'alice@example.com',
+      gender: 2,
+      birthday: '1990-05-04T00:00:00Z',
+      country: '中国',
+      tenantId: null,
+      isSystemAccount: false,
+      twoFactorEnabled: false,
+      twoFactorMethod: 0,
+      emailVerified: false,
+      phoneVerified: false,
+      lastUserNameChangeTime: '2026-10-01T00:00:00Z',
+      canChangeUserName: false,
+      isLocked: false,
+      failedLoginAttempts: 0,
+    })
+    expect(calls).toEqual([{ method: 'GET', url: '/api/profile', body: null }])
+
+    // 冷却期已过（或从没改过）即能改；性别未设置是 0
+    response = { ...profileOf({ avatarFileId: null }), realName: null, gender: 'Unknown', birthday: null, country: null, remark: '自我介绍', userNameChangedAt: '2026-07-01T00:00:00Z', userNameChangeableAt: new Date(Date.now() - DAY).toISOString() }
+    const bare = await useAppContext().apis.getProfileApi()
+    expect(bare).toMatchObject({ gender: 0, remark: '自我介绍', lastUserNameChangeTime: '2026-07-01T00:00:00Z', canChangeUserName: true })
+    for (const key of ['avatar', 'realName', 'birthday', 'country'])
+      expect(bare).not.toHaveProperty(key)
+  })
+
+  it('保存资料：nickName 换成 displayName、性别数字换回字面量、没给的为 null，整体交给 profile.update（PUT）；回来的用户换掉会话里的那份，认不得的性别不发', async () => {
+    const calls: Call[] = []
+    localStorage.setItem('xihan.next.session', JSON.stringify(sessionOf()))
+    record(calls, () => json(200, profileOf({ displayName: 'Alice Z' })))
+    const apis = useAppContext().apis
+    expect(await apis.updateProfileApi({ nickName: 'Alice Z', realName: '', gender: 1, birthday: '1990-05-04T00:00:00.000Z', country: '中国' })).toMatchObject({ nickName: 'Alice Z' })
+    expect(calls).toEqual([{ method: 'PUT', url: '/api/profile', body: { displayName: 'Alice Z', realName: '', gender: 'Male', birthday: '1990-05-04T00:00:00.000Z', country: '中国', remark: null } }])
+    expect(useUserStore().nickname).toBe('Alice Z')
+    expect(useAuthStore().accessToken).toBe('a-1')
+
+    await expect(apis.updateProfileApi({ nickName: 'Alice', gender: 9 })).rejects.toThrow('未知的性别 9')
+    expect(calls).toHaveLength(1)
+  })
+
+  it('去掉头像与改用户名：交给 profile.remove-avatar / change-username，回来的用户换掉会话里的那份（顶栏头像与用户名随之换）', async () => {
+    const calls: Call[] = []
+    localStorage.setItem('xihan.next.session', JSON.stringify(sessionOf()))
+    record(calls, url => json(200, url.endsWith(':remove-avatar') ? profileOf({ avatarFileId: null }) : profileOf({ avatarFileId: null, userName: 'bob' })))
+    const apis = useAppContext().apis
+    expect(useUserStore().avatar).toBe('f-1')
+
+    expect(await apis.removeAvatarApi()).not.toHaveProperty('avatar')
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/profile:remove-avatar', body: {} })
+    expect(useUserStore().avatar).toBe('')
+
+    await apis.changeUserNameApi({ userName: 'bob', password: 'pw' })
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:change-username', body: { userName: 'bob', password: 'pw' } })
+    expect(useUserStore().username).toBe('bob')
+  })
+
+  it('上传头像：multipart 字段 file 带令牌发给 POST /api/profile/avatar 并回报进度，返回新头像的文件主键，会话里的用户随之换掉', async () => {
+    const requests: Array<{ method: string, url: string, headers: Record<string, string>, body: FormData }> = []
+    // 上传走 XMLHttpRequest（要进度）：换成只记请求、立即回资料的替身
+    class FakeXhr {
+      upload: { onprogress: ((event: { lengthComputable: boolean, loaded: number, total: number }) => void) | null } = { onprogress: null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      onabort: (() => void) | null = null
+      status = 0
+      responseText = ''
+      private request = { method: '', url: '', headers: {} as Record<string, string> }
+
+      open(method: string, url: string) {
+        this.request.method = method
+        this.request.url = url
+      }
+
+      setRequestHeader(name: string, value: string) {
+        this.request.headers[name] = value
+      }
+
+      getResponseHeader() {
+        return 'application/json'
+      }
+
+      abort() {}
+
+      send(body: FormData) {
+        requests.push({ ...this.request, body })
+        this.upload.onprogress?.({ lengthComputable: true, loaded: 1, total: 2 })
+        this.status = 200
+        this.responseText = JSON.stringify(profileOf({ avatarFileId: 'f-2' }))
+        this.onload?.()
+      }
+    }
+    vi.stubGlobal('XMLHttpRequest', FakeXhr)
+    record([], () => json(500, {}))
+    localStorage.setItem('xihan.next.session', JSON.stringify(sessionOf()))
+    const progress: number[] = []
+    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
+
+    expect(await useAppContext().apis.uploadAvatarApi(avatar, percent => progress.push(percent))).toEqual({ fileId: 'f-2' })
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ method: 'POST', url: '/api/profile/avatar', headers: { Authorization: 'Bearer a-1' } })
+    expect((requests[0]!.body.get('file') as File).name).toBe('me.png')
+    expect(progress).toEqual([50])
+    expect(useUserStore().avatar).toBe('f-2')
   })
 
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {

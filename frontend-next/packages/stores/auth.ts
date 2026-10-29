@@ -331,6 +331,12 @@ export const useAuthStore = defineStore('auth', () => {
       store({ ...session.value, mustChangePassword: false })
   }
 
+  /** 本人改了资料（显示名、用户名、头像）后：会话里的用户换成后端回的那份（令牌不变），顶栏、用户菜单与个人中心侧栏随之刷新。 */
+  function applyUser(nextUser: Session['user']): void {
+    if (session.value)
+      store({ ...session.value, user: nextUser })
+  }
+
   function clear(): void {
     store(null)
   }
@@ -415,6 +421,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     loadMe,
     markPasswordChanged,
+    applyUser,
     clear,
     switchTenant,
     sessionRoles,

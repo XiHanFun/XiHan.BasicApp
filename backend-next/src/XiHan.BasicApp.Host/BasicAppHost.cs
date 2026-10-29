@@ -132,6 +132,7 @@ public static class BasicAppHost
         // 根路径只是应用自述，不是业务契约：排除出接口文档，否则生成器会要求它的 JSON 引用某个操作的 Schema
         PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapGet("/", () => info).ExcludeFromDescription());
         endpoints.MapFileEndpoints();
+        endpoints.MapProfileEndpoints();
         endpoints.MapRealtimeHubs();
         endpoints.MapTelegramWebhook();
         endpoints.MapOAuthServer();

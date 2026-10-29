@@ -89,7 +89,7 @@ export type FieldRuleStatus = (typeof FieldRuleStatus)[number]
 export const FieldSecurityTargetKind = ['Role', 'User', 'Department'] as const
 export type FieldSecurityTargetKind = (typeof FieldSecurityTargetKind)[number]
 
-export const FileAccessLevel = ['Authenticated', 'Authorized'] as const
+export const FileAccessLevel = ['Authenticated', 'Authorized', 'Public'] as const
 export type FileAccessLevel = (typeof FileAccessLevel)[number]
 
 export const FileKind = ['Image', 'Document', 'Video', 'Audio', 'Archive', 'Other'] as const
@@ -194,6 +194,9 @@ export type TraceLogType = (typeof TraceLogType)[number]
 export const TwoFactorMethod = ['Totp', 'Email', 'Phone'] as const
 export type TwoFactorMethod = (typeof TwoFactorMethod)[number]
 
+export const UserGender = ['Unknown', 'Male', 'Female'] as const
+export type UserGender = (typeof UserGender)[number]
+
 export const UserNotificationStatus = ['Unread', 'Read'] as const
 export type UserNotificationStatus = (typeof UserNotificationStatus)[number]
 
@@ -269,6 +272,7 @@ export const enums = {
   TraceItemStatus,
   TraceLogType,
   TwoFactorMethod,
+  UserGender,
   UserNotificationStatus,
   UserSettingScene,
   UserStatus,

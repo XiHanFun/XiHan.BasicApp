@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "Meldet eines Ihrer Geräte ab; für das aktuelle die Abmeldung verwenden. Erfordert nur die Anmeldung.",
   "profile.revoke_other_sessions.description": "Meldet alle Ihre Geräte außer dem aktuellen ab, einschließlich noch offener, von Ihnen gestarteter Identitätswechsel-Sitzungen. Erfordert nur die Anmeldung.",
   "profile.notification_preference.description": "Ihre Benachrichtigungseinstellungen: Kanäle In-App, E-Mail und SMS sowie Themen Ankündigung, Aufgabe und Sicherheit; bis zum Speichern wird alles empfangen. Pflicht- und Notfallbenachrichtigungen sind nicht betroffen. Erfordert nur die Anmeldung.",
-  "profile.update_notification_preference.description": "Speichert Ihre Benachrichtigungseinstellungen (ersetzt sie vollständig). Erfordert nur die Anmeldung."
+  "profile.update_notification_preference.description": "Speichert Ihre Benachrichtigungseinstellungen (ersetzt sie vollständig). Erfordert nur die Anmeldung.",
+  "profile.update.description": "Speichert Ihr Profil: Anzeigename, echter Name, Geschlecht, Geburtstag, Land oder Region und Kurzbeschreibung (vollständig ersetzt; Leerfelder gelten als leer). Erfordert nur die Anmeldung.",
+  "profile.change_username.description": "Ändert Ihren Benutzernamen: erfordert das aktuelle Kennwort, einmal alle 90 Tage, eindeutig im Stammmandanten. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "profile.remove_avatar.description": "Entfernt Ihren Avatar; die Avatardatei wird freigegeben. Einen neuen laden Sie mit POST /api/profile/avatar hoch. Erfordert nur die Anmeldung.",
+  "identity.avatar.invalid": "Der Avatar muss ein JPEG- oder PNG-Bild von höchstens {max} MB sein.",
+  "identity.user_name.unchanged": "Der neue Benutzername entspricht dem aktuellen.",
+  "identity.user_name.too_soon": "Der Benutzername kann nur alle 90 Tage geändert werden; versuchen Sie es in {days} Tagen erneut."
 }

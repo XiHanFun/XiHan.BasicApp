@@ -2877,8 +2877,26 @@ export interface paths {
         };
         /** Your profile and account security summary (two-factor, last password change). Any signed-in user. */
         get: operations["profile.get"];
-        put?: never;
+        /** Save your profile: display name, real name, gender, birthday, country or region and bio (replaced as a whole; blanks count as empty). Requires sign-in only. */
+        put: operations["profile.update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload the signed-in user's avatar (JPEG or PNG, at most 2 MB) as multipart form data (field `file`). */
+        post: operations["profile.upload-avatar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2913,6 +2931,23 @@ export interface paths {
         put?: never;
         /** Change your own password; requires the current password and revokes your other sessions. */
         post: operations["profile.change-password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:change-username": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change your username: requires your current password, once every 90 days, unique within your home tenant. Not available in impersonation sessions. */
+        post: operations["profile.change-username"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2998,6 +3033,23 @@ export interface paths {
         get: operations["profile.notification-preference"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:remove-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar. Requires sign-in only. */
+        post: operations["profile.remove-avatar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4834,7 +4886,7 @@ export interface components {
         /** @enum {string} */
         FieldSecurityTargetKind: "Role" | "User" | "Department";
         /** @enum {string} */
-        FileAccessLevel: "Authenticated" | "Authorized";
+        FileAccessLevel: "Authenticated" | "Authorized" | "Public";
         /** @enum {string} */
         FileKind: "Image" | "Document" | "Video" | "Audio" | "Archive" | "Other";
         /** FileResponse */
@@ -5462,6 +5514,29 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /** ProfileResponse */
+        ProfileResponse: {
+            user: components["schemas"]["UserResponse"];
+            twoFactorEnabled: boolean;
+            twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+            /** Format: date-time */
+            passwordChangedAt?: string | null;
+            mustChangePassword: boolean;
+            /** Format: int32 */
+            failedAccessCount: number;
+            /** Format: date-time */
+            lockoutEndAt?: string | null;
+            realName?: string | null;
+            gender: components["schemas"]["UserGender"];
+            /** Format: date-time */
+            birthday?: string | null;
+            country?: string | null;
+            remark?: string | null;
+            /** Format: date-time */
+            userNameChangedAt?: string | null;
+            /** Format: date-time */
+            userNameChangeableAt?: string | null;
+        };
         RoleMemberResponse: {
             /** Format: uuid */
             userId: string;
@@ -5753,6 +5828,8 @@ export interface components {
         };
         /** @enum {string} */
         TwoFactorMethod: "Totp" | "Email" | "Phone";
+        /** @enum {string} */
+        UserGender: "Unknown" | "Male" | "Female";
         UserGrantResponse: {
             permission: string;
             action: components["schemas"]["PermissionAction"];
@@ -5778,6 +5855,8 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             createdBy?: string | null;
+            /** Format: uuid */
+            avatarFileId?: string | null;
         };
         /** @enum {string} */
         UserSettingScene: "Preference" | "Page";
@@ -15928,7 +16007,115 @@ export interface operations {
                         failedAccessCount: number;
                         /** Format: date-time */
                         lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
                     };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    realName?: string | null;
+                    gender: components["schemas"]["UserGender"];
+                    /** Format: date-time */
+                    birthday?: string | null;
+                    country?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.upload-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
                 };
             };
             /** @description Error */
@@ -16021,6 +16208,42 @@ export interface operations {
             };
         };
     };
+    "profile.change-username": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    userName: string;
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.disable-two-factor": {
         parameters: {
             query?: never;
@@ -16054,6 +16277,16 @@ export interface operations {
                         failedAccessCount: number;
                         /** Format: date-time */
                         lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
                     };
                 };
             };
@@ -16101,6 +16334,16 @@ export interface operations {
                         failedAccessCount: number;
                         /** Format: date-time */
                         lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
                     };
                 };
             };
@@ -16212,6 +16455,60 @@ export interface operations {
                         typeAnnouncement: boolean;
                         typeTask: boolean;
                         typeSecurity: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.remove-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
                     };
                 };
             };
@@ -18985,6 +19282,8 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         createdBy?: string | null;
+                        /** Format: uuid */
+                        avatarFileId?: string | null;
                     };
                 };
             };
@@ -19598,6 +19897,8 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         createdBy?: string | null;
+                        /** Format: uuid */
+                        avatarFileId?: string | null;
                     };
                 };
             };
@@ -19677,6 +19978,8 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         createdBy?: string | null;
+                        /** Format: uuid */
+                        avatarFileId?: string | null;
                     };
                 };
             };
@@ -19732,6 +20035,8 @@ export interface operations {
                         /** Format: date-time */
                         createdAt: string;
                         createdBy?: string | null;
+                        /** Format: uuid */
+                        avatarFileId?: string | null;
                     };
                 };
             };

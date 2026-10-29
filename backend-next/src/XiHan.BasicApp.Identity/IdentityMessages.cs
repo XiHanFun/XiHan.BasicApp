@@ -511,6 +511,36 @@ public static class IdentityMessages
     /// </summary>
     public const string UpdateNotificationPreferenceDescription = "profile.update_notification_preference.description";
 
+    /// <summary>
+    /// 操作 <c>profile.update</c> 的说明。
+    /// </summary>
+    public const string UpdateProfileDescription = "profile.update.description";
+
+    /// <summary>
+    /// 操作 <c>profile.change-username</c> 的说明。
+    /// </summary>
+    public const string ChangeUserNameDescription = "profile.change_username.description";
+
+    /// <summary>
+    /// 操作 <c>profile.remove-avatar</c> 的说明。
+    /// </summary>
+    public const string RemoveAvatarDescription = "profile.remove_avatar.description";
+
+    /// <summary>
+    /// 头像不是 JPEG / PNG 图片（按文件头认）或超过上限；参数 <c>max</c>（MB）。
+    /// </summary>
+    public const string AvatarInvalid = "identity.avatar.invalid";
+
+    /// <summary>
+    /// 新用户名与现在的相同。
+    /// </summary>
+    public const string UserNameUnchanged = "identity.user_name.unchanged";
+
+    /// <summary>
+    /// 距上次改用户名不到 90 天；参数 <c>days</c>（还要等几天）。
+    /// </summary>
+    public const string UserNameChangeTooSoon = "identity.user_name.too_soon";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

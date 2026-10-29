@@ -90,8 +90,9 @@ public sealed partial class FileService(
     /// <param name="fileName">原始文件名。</param>
     /// <param name="contentType">上传方给的内容类型。</param>
     /// <param name="details">附加信息。</param>
+    /// <param name="side">存到哪一侧；为空即调用方所在的一侧（头像固定存平台侧，不计入租户的存储配额）。</param>
     /// <returns>新文件。</returns>
-    public async Task<Result<SysFile>> UploadAsync(InvocationContext context, Stream content, string? fileName, string? contentType, FileDetails details)
+    public async Task<Result<SysFile>> UploadAsync(InvocationContext context, Stream content, string? fileName, string? contentType, FileDetails details, string? side = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(content);
@@ -112,20 +113,20 @@ public sealed partial class FileService(
                 return spooled.Error!;
             }
 
-            var side = SideRows.SideOf(context);
-            var allowed = await EnsureQuotaAsync(context, side, written.Size).ConfigureAwait(false);
+            var target = side ?? SideRows.SideOf(context);
+            var allowed = await EnsureQuotaAsync(context, target, written.Size).ConfigureAwait(false);
             if (allowed.IsFailure)
             {
                 return allowed.Error!;
             }
 
-            var reused = await ReuseAsync(side, written.Hash, written.Size, name, contentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
+            var reused = await ReuseAsync(target, written.Hash, written.Size, name, contentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
             if (reused.TryGetValue(out var copy))
             {
                 return copy;
             }
 
-            return await StoreAsync(side, temp, written.Size, written.Hash, name, contentType, details, cancellationToken).ConfigureAwait(false);
+            return await StoreAsync(target, temp, written.Size, written.Hash, name, contentType, details, cancellationToken).ConfigureAwait(false);
         }
         finally
         {

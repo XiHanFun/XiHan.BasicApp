@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UserActivity, UserProfile, UserSessionItem } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户；
@@ -131,6 +131,14 @@ export interface AppContextApis {
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
   /** 个人中心：本人资料与账号安全概况 */
   getProfileApi: () => Promise<UserProfile>
+  /** 保存本人资料（整体覆盖：显示名、真实姓名、性别、生日、国家或地区、简介），返回保存后的资料 */
+  updateProfileApi: (input: UpdateProfileParams) => Promise<UserProfile>
+  /** 上传头像（JPEG / PNG，不超过 2 MB）：上传即换成本人的头像、回收旧的，返回新头像的文件主键（显示时再换签名地址） */
+  uploadAvatarApi: (file: File, onProgress?: (percent: number) => void) => Promise<{ fileId: string }>
+  /** 去掉本人的头像（回收头像文件），返回保存后的资料（4.x 经 updateProfileApi 写空串） */
+  removeAvatarApi: () => Promise<UserProfile>
+  /** 改用户名（凭当前密码，90 天一次） */
+  changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
   /** 双因素：开始绑定认证器（返回待确认的密钥与扫码链接） */
   setup2FAApi: () => Promise<TwoFactorSetupResult>
   /** 双因素：开启一种方式（method 为位标志 1=TOTP 2=邮箱 4=手机，code 为该方式的验证码） */

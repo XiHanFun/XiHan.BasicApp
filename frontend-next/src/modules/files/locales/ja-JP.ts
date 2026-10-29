@@ -19,6 +19,7 @@ export default {
       access_levels: {
         authenticated: '認証が必要',
         authorized: '権限が必要',
+        public: '公開（ログイン済みの全ユーザー）',
       },
       sources: {
         upload: '通常アップロード',

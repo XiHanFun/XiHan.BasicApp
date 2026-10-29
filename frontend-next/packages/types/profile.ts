@@ -36,14 +36,15 @@ export interface UserProfile {
   lastFailedLoginTime?: string
 }
 
+/**
+ * 保存本人资料（后端 `profile.update`，整体覆盖；nickName 即显示名、必填，gender 是壳层的数字 0 未设置 / 1 男 / 2 女，空白当作没填）。
+ * 4.x 的 avatar、timeZone、language 不在 6.0 的资料里：头像走上传端点与 `profile.remove-avatar`（uploadAvatarApi / removeAvatarApi），时区与语言是偏好
+ */
 export interface UpdateProfileParams {
-  nickName?: string
+  nickName: string
   realName?: string
-  avatar?: string
-  gender?: number
+  gender: number
   birthday?: string
-  timeZone?: string
-  language?: string
   country?: string
   remark?: string
 }

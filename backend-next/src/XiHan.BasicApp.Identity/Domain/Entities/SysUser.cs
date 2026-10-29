@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
@@ -45,4 +46,37 @@ public sealed class SysUser : AppAuditedEntity
     /// 最近一次登录成功的时间。
     /// </summary>
     public DateTimeOffset? LastLoginAt { get; set; }
+
+    /// <summary>
+    /// 真实姓名（个人资料，4.x 同）。
+    /// </summary>
+    [StringLength(50)]
+    public string? RealName { get; set; }
+
+    /// <summary>
+    /// 性别。
+    /// </summary>
+    public UserGender Gender { get; set; }
+
+    /// <summary>
+    /// 生日。
+    /// </summary>
+    public DateTimeOffset? Birthday { get; set; }
+
+    /// <summary>
+    /// 国家或地区。
+    /// </summary>
+    [StringLength(50)]
+    public string? Country { get; set; }
+
+    /// <summary>
+    /// 个人简介。
+    /// </summary>
+    [StringLength(500)]
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 头像文件（Files 平台侧的公开级别文件；头像跟着用户走、不属于某个租户，不计入租户的存储配额）。
+    /// </summary>
+    public Guid? AvatarFileId { get; set; }
 }

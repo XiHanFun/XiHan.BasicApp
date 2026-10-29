@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 public sealed record ProfileRequest;
 
 /// <summary>
-/// 本人的资料与账号安全概况（个人中心）。资料、联系方式验证、设备等随个人中心批次补全。
+/// 本人的资料与账号安全概况（个人中心）。
 /// </summary>
 /// <param name="User">用户资料。</param>
 /// <param name="TwoFactorEnabled">是否开启了双因素。</param>
@@ -23,7 +23,28 @@ public sealed record ProfileRequest;
 /// <param name="MustChangePassword">是否必须先改密。</param>
 /// <param name="FailedAccessCount">自上次成功登录以来的连续失败次数（含双因素码错误）。</param>
 /// <param name="LockoutEndAt">登录失败锁定的截止时间；没在锁定期为 <see langword="null"/>。</param>
-public sealed record ProfileResponse(UserResponse User, bool TwoFactorEnabled, IReadOnlyList<TwoFactorMethod> TwoFactorMethods, DateTimeOffset? PasswordChangedAt, bool MustChangePassword, int FailedAccessCount, DateTimeOffset? LockoutEndAt)
+/// <param name="RealName">真实姓名。</param>
+/// <param name="Gender">性别。</param>
+/// <param name="Birthday">生日。</param>
+/// <param name="Country">国家或地区。</param>
+/// <param name="Remark">个人简介。</param>
+/// <param name="UserNameChangedAt">最近一次本人改用户名的时间；没改过为空。</param>
+/// <param name="UserNameChangeableAt">下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。</param>
+public sealed record ProfileResponse(
+    UserResponse User,
+    bool TwoFactorEnabled,
+    IReadOnlyList<TwoFactorMethod> TwoFactorMethods,
+    DateTimeOffset? PasswordChangedAt,
+    bool MustChangePassword,
+    int FailedAccessCount,
+    DateTimeOffset? LockoutEndAt,
+    string? RealName,
+    UserGender Gender,
+    DateTimeOffset? Birthday,
+    string? Country,
+    string? Remark,
+    DateTimeOffset? UserNameChangedAt,
+    DateTimeOffset? UserNameChangeableAt)
 {
     /// <summary>
     /// 由账号与账号安全构造。
@@ -32,7 +53,21 @@ public sealed record ProfileResponse(UserResponse User, bool TwoFactorEnabled, I
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(security);
-        return new ProfileResponse(UserResponse.From(user), security.TwoFactorEnabled, TwoFactorSettings.MethodsOf(security.TwoFactorMethods), security.PasswordChangedAt, security.MustChangePassword, security.FailedAccessCount, security.LockoutEndAt);
+        return new ProfileResponse(
+            UserResponse.From(user),
+            security.TwoFactorEnabled,
+            TwoFactorSettings.MethodsOf(security.TwoFactorMethods),
+            security.PasswordChangedAt,
+            security.MustChangePassword,
+            security.FailedAccessCount,
+            security.LockoutEndAt,
+            user.RealName,
+            user.Gender,
+            user.Birthday,
+            user.Country,
+            user.Remark,
+            security.UserNameChangedAt,
+            security.UserNameChangedAt?.Add(UserNameChange.Cooldown));
     }
 }
 

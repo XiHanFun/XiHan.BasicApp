@@ -74,6 +74,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileQueries>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
+        context.Services.AddScoped<IAvatarFiles, AvatarFiles>();
         context.Services.AddScoped<StorageConfigQueries>();
         context.Services.AddSingleton<ExportJobs>();
         context.Services.AddSingleton<ExportRunner>();

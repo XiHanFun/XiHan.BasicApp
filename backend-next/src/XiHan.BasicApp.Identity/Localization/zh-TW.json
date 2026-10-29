@@ -97,5 +97,11 @@
   "profile.revoke_session.description": "登出本人的一台裝置；目前裝置請用登出。已登入即可。",
   "profile.revoke_other_sessions.description": "登出本人除目前裝置外的全部裝置，連同本人發起、尚未結束的模擬工作階段。已登入即可。",
   "profile.notification_preference.description": "本人的通知偏好：站內信 / 郵件 / 簡訊三個管道與公告 / 待辦 / 安全三類，沒儲存過即全收；強制閱讀與緊急通知不受影響。已登入即可。",
-  "profile.update_notification_preference.description": "儲存本人的通知偏好（整體覆蓋）。已登入即可。"
+  "profile.update_notification_preference.description": "儲存本人的通知偏好（整體覆蓋）。已登入即可。",
+  "profile.update.description": "儲存本人的資料：顯示名稱、真實姓名、性別、生日、國家或地區與個人簡介（整體覆蓋，空白視為未填）。已登入即可。",
+  "profile.change_username.description": "變更本人的使用者名稱：需要目前密碼，90 天一次，同一註冊地內不能重名。模擬工作階段不能用。",
+  "profile.remove_avatar.description": "移除本人的頭像，頭像檔案隨之回收。上傳新頭像走 POST /api/profile/avatar。已登入即可。",
+  "identity.avatar.invalid": "頭像須為 JPEG 或 PNG 圖片，且不超過 {max} MB。",
+  "identity.user_name.unchanged": "新使用者名稱與目前的相同。",
+  "identity.user_name.too_soon": "使用者名稱 90 天內只能變更一次，請 {days} 天後再試。"
 }

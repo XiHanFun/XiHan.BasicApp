@@ -19,6 +19,7 @@ export default {
       access_levels: {
         authenticated: 'Authentification requise',
         authorized: 'Autorisation requise',
+        public: 'Public (tout utilisateur connecté)',
       },
       sources: {
         upload: 'Téléversement',
