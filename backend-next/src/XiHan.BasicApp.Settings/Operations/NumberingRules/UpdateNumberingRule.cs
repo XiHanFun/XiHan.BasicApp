@@ -10,10 +10,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 修改编号规则：<c>PUT /api/numbering-rules/{id}</c>。只能改本侧的（另一侧 <c>SETTINGS_DENIED_001</c>）。
+/// 修改编号规则。
+/// </summary>
+/// <remarks>
+/// <c>PUT /api/numbering-rules/{id}</c>。只能改本侧的（另一侧 <c>SETTINGS_DENIED_001</c>）。
 /// 发过号后格式（前缀、分隔符、日期格式、流水位数、重置周期、时区）冻结，改了即 <c>SETTINGS_CONFLICT_009</c>；没发过号时改周期或时区会清掉周期基线；
 /// 流水位数要装得下已保留的流水值（重置可能先推过）。并发发号改过规则行时并发戳不符，整笔失败。
-/// </summary>
+/// </remarks>
 /// <param name="rules">规则仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesUpdate)]
 public sealed class UpdateNumberingRule(IRepository<SysNumberingRule, Guid> rules) : IOperation<UpdateNumberingRuleRequest, NumberingRuleResponse>

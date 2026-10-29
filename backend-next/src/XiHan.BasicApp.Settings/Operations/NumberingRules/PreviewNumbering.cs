@@ -9,9 +9,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 预览号码：<c>GET /api/numbering-rules:preview</c>（声明只读，ADR-0041）。按给定格式在当前时刻拼出号码，不读库、不发号，最多 50 个；
-/// 格式组合不安全 <c>SETTINGS_VALIDATION_005</c>，时区无效 <c>SETTINGS_VALIDATION_006</c>，区间越出位数 <c>SETTINGS_VALIDATION_007</c>。
+/// 预览号码。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/numbering-rules:preview</c>（声明只读，ADR-0041）。按给定格式在当前时刻拼出号码，不读库、不发号，最多 50 个；
+/// 格式组合不安全 <c>SETTINGS_VALIDATION_005</c>，时区无效 <c>SETTINGS_VALIDATION_006</c>，区间越出位数 <c>SETTINGS_VALIDATION_007</c>。
+/// </remarks>
 /// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
 public sealed class PreviewNumbering(TimeProvider clock) : IOperation<PreviewNumberingRequest, NumberingPreviewResponse>

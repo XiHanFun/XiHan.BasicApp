@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 新建编号规则：<c>POST /api/numbering-rules</c>。写在调用方这一侧；编码本侧唯一；日期格式要能区分重置周期（<c>SETTINGS_VALIDATION_005</c>），时区要解析得了（<c>SETTINGS_VALIDATION_006</c>）。
-/// 只有平台规则能供租户使用。
+/// 新建编号规则。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/numbering-rules</c>。写在调用方这一侧；编码本侧唯一；日期格式要能区分重置周期（<c>SETTINGS_VALIDATION_005</c>），时区要解析得了（<c>SETTINGS_VALIDATION_006</c>）。
+/// 只有平台规则能供租户使用。
+/// </remarks>
 /// <param name="rules">规则仓储。</param>
 /// <param name="service">规则域服务。</param>
 /// <param name="ids">标识生成器。</param>

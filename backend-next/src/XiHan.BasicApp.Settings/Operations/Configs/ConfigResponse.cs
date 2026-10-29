@@ -8,8 +8,11 @@ using XiHan.BasicApp.Settings.Domain.Services;
 namespace XiHan.BasicApp.Settings.Operations.Configs;
 
 /// <summary>
-/// 参数的网络契约：加密参数的值不回显（<see cref="Value"/> 为 <c>null</c>，<see cref="HasValue"/> 标出有没有值）。
+/// 参数的网络契约。
 /// </summary>
+/// <remarks>
+/// 加密参数的值不回显（<see cref="Value"/> 为 <c>null</c>，<see cref="HasValue"/> 标出有没有值）。
+/// </remarks>
 /// <param name="Id">主键。</param>
 /// <param name="OwnerTenantId">属主：<c>platform</c> 或租户 ID。</param>
 /// <param name="IsPlatform">是否为平台参数。</param>
@@ -77,8 +80,11 @@ public sealed record ConfigResponse(
 }
 
 /// <summary>
-/// 参数键的文法：点分小写，至少两段，段内可有数字与连字符（如 <c>auditing.retention-days</c>）。
+/// 参数键的文法。
 /// </summary>
+/// <remarks>
+/// 点分小写，至少两段，段内可有数字与连字符（如 <c>auditing.retention-days</c>）。
+/// </remarks>
 public static class ConfigKeys
 {
     /// <summary>
@@ -119,8 +125,11 @@ public sealed record CreateConfigRequest(
 public sealed record GetConfigRequest(Guid Id);
 
 /// <summary>
-/// <c>configs.update</c> 的请求：键不在这里改；加密参数的 <see cref="Value"/> 为空即保留原值。
+/// <c>configs.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 键不在这里改；加密参数的 <see cref="Value"/> 为空即保留原值。
+/// </remarks>
 /// <param name="Id">参数主键。</param>
 /// <param name="Name">名称。</param>
 /// <param name="DataType">数据类型（内建参数不能改）。</param>

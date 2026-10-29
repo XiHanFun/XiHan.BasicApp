@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 新建字典：<c>POST /api/dicts</c>。写在调用方这一侧；字典不覆盖，平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
+/// 新建字典。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/dicts</c>。写在调用方这一侧；字典不覆盖，平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
+/// </remarks>
 /// <param name="dicts">字典仓储。</param>
 /// <param name="service">字典域服务。</param>
 /// <param name="ids">标识生成器。</param>

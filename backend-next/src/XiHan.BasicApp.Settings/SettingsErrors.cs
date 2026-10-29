@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包的错误码：<c>SETTINGS_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 设置包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>SETTINGS_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class SettingsErrors
 {
     /// <summary>

@@ -9,9 +9,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 编号的格式、周期与容量计算（纯函数，与 4.x 的 <c>NumberingFormatter</c> 同规则）：号码是「前缀、日期段、补零流水」里非空的段用分隔符连起来。
-/// 日期与周期都按规则时区的当地时间；周期序号单调递增，供「只前进」的翻转判断。
+/// 编号的格式、周期与容量计算。
 /// </summary>
+/// <remarks>
+/// 纯函数，与 4.x 的 <c>NumberingFormatter</c> 同规则：号码是「前缀、日期段、补零流水」里非空的段用分隔符连起来。
+/// 日期与周期都按规则时区的当地时间；周期序号单调递增，供「只前进」的翻转判断。
+/// </remarks>
 public static class NumberingFormatter
 {
     /// <summary>
@@ -42,8 +45,11 @@ public static class NumberingFormatter
     };
 
     /// <summary>
-    /// 校验格式组合：日期格式区分得了重置周期、时区解析得了（流水位数的范围由请求的 DataAnnotations 管）。
+    /// 校验格式组合。
     /// </summary>
+    /// <remarks>
+    /// 日期格式区分得了重置周期、时区解析得了（流水位数的范围由请求的 DataAnnotations 管）。
+    /// </remarks>
     public static Result Validate(NumberingDateFormat dateFormat, NumberingResetCycle resetCycle, string timeZoneId)
     {
         if (!IsSafe(dateFormat, resetCycle))
@@ -73,8 +79,11 @@ public static class NumberingFormatter
     }
 
     /// <summary>
-    /// 解析时区：IANA 或 Windows 标识都认，另一种写法也试一次（库里的值可能来自另一种操作系统）。
+    /// 解析时区。
     /// </summary>
+    /// <remarks>
+    /// IANA 或 Windows 标识都认，另一种写法也试一次（库里的值可能来自另一种操作系统）。
+    /// </remarks>
     public static bool TryResolveTimeZone(string? timeZoneId, [NotNullWhen(true)] out TimeZoneInfo? timeZone)
     {
         timeZone = null;
@@ -129,8 +138,9 @@ public static class NumberingFormatter
     };
 
     /// <summary>
-    /// 日期段文本；不输出日期时为 <c>null</c>。
+    /// 日期段文本。
     /// </summary>
+    /// <returns>日期段；不输出日期时为 <c>null</c>。</returns>
     public static string? DateText(DateTimeOffset local, NumberingDateFormat dateFormat)
     {
         var pattern = dateFormat switch
@@ -148,8 +158,11 @@ public static class NumberingFormatter
     }
 
     /// <summary>
-    /// 拼一个号码；流水值必须在 1 到位数上限之间。
+    /// 拼一个号码。
     /// </summary>
+    /// <remarks>
+    /// 流水值必须在 1 到位数上限之间。
+    /// </remarks>
     public static string Format(string? prefix, string separator, string? dateText, int serialLength, long value)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);

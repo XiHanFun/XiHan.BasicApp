@@ -11,10 +11,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 安全重置流水：<c>POST /api/numbering-rules/{id}:reset</c>。只能重置本侧的；平台规则要回填规则编码（<c>SETTINGS_VALIDATION_008</c>）；理由必填（进操作审计）。
+/// 安全重置流水。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/numbering-rules/{id}:reset</c>。只能重置本侧的；平台规则要回填规则编码（<c>SETTINGS_VALIDATION_008</c>）；理由必填（进操作审计）。
 /// 按当前时刻的周期：下一个值要在位数范围内（<c>SETTINGS_VALIDATION_007</c>），且大于本周期已发出的最大值（<c>SETTINGS_VALIDATION_010</c>，可向前跳、不能回退）；
 /// 周期序号不能后退（<c>SETTINGS_CONFLICT_012</c>）。存成当前值 = 下一个值 − 1；期间有并发发号即并发戳不符，整笔失败。
-/// </summary>
+/// </remarks>
 /// <param name="rules">规则仓储。</param>
 /// <param name="service">规则域服务。</param>
 /// <param name="clock">时间源。</param>

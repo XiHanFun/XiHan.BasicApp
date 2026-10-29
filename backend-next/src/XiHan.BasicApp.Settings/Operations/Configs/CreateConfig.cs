@@ -14,9 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Configs;
 
 /// <summary>
-/// 新建参数：<c>POST /api/configs</c>。写在调用方这一侧；键在本侧唯一；值与缺省值按数据类型校验，加密的值落库前加密。
-/// 租户新建与平台参数同键的参数即覆盖它；平台参数不允许覆盖时 <c>SETTINGS_DENIED_002</c>。
+/// 新建参数。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/configs</c>。写在调用方这一侧；键在本侧唯一；值与缺省值按数据类型校验，加密的值落库前加密。
+/// 租户新建与平台参数同键的参数即覆盖它；平台参数不允许覆盖时 <c>SETTINGS_DENIED_002</c>。
+/// </remarks>
 /// <param name="configs">参数仓储。</param>
 /// <param name="values">参数值规则。</param>
 /// <param name="ids">标识生成器。</param>

@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 字典与字典项的规则：编码占用（字典不覆盖）、项的树（同字典、无环、深度优先展平）、缺省项唯一、元数据是 JSON。
+/// 字典与字典项的规则。
 /// </summary>
+/// <remarks>
+/// 编码占用（字典不覆盖）、项的树（同字典、无环、深度优先展平）、缺省项唯一、元数据是 JSON。
+/// </remarks>
 /// <param name="dicts">字典仓储。</param>
 /// <param name="items">字典项仓储。</param>
 public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items)
@@ -24,8 +27,11 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     public const int MaxItems = 5000;
 
     /// <summary>
-    /// 编码是否已被占用：平台建字典查全库，租户建字典查平台与本租户（字典不覆盖，平台与租户之间也不能同码）。
+    /// 编码是否已被占用。
     /// </summary>
+    /// <remarks>
+    /// 平台建字典查全库，租户建字典查平台与本租户（字典不覆盖，平台与租户之间也不能同码）。
+    /// </remarks>
     public async Task<bool> IsCodeTakenAsync(string code, string owner, CancellationToken cancellationToken)
     {
         const string platform = TenantIds.Platform;
@@ -63,8 +69,12 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
         => await items.ListAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.DictId == dictId)).Page(0, MaxItems), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// 深度优先展平：同级按排序号、再按编码；上级缺失的项当顶层。返回（项, 层级）。
+    /// 深度优先展平字典项。
     /// </summary>
+    /// <remarks>
+    /// 同级按排序号、再按编码；上级缺失的项当顶层。
+    /// </remarks>
+    /// <returns>（项, 层级）列表。</returns>
     public static IReadOnlyList<(SysDictItem Item, int Depth)> Flatten(IReadOnlyList<SysDictItem> all)
     {
         ArgumentNullException.ThrowIfNull(all);
@@ -120,8 +130,11 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 校验上级：在同一字典里，不是自己，也不是自己的下级（<paramref name="itemId"/> 为空即新建，只查存在）。
+    /// 校验字典项的上级。
     /// </summary>
+    /// <remarks>
+    /// 上级在同一字典里，不是自己，也不是自己的下级（<paramref name="itemId"/> 为空即新建，只查存在）。
+    /// </remarks>
     public static Result CheckParent(Guid? parentId, Guid? itemId, IReadOnlyList<SysDictItem> all)
     {
         ArgumentNullException.ThrowIfNull(all);

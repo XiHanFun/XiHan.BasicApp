@@ -19,9 +19,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// <see cref="INumberGenerator"/> 的实现：在独立作用域与事务里（<see cref="StoreScope"/>）发号并提交，外层调用失败也不回收。
-/// 先对规则行做一次加锁更新，同一规则的发号由此串行：之后再查幂等、翻转周期（只前进）、推进流水、写发号记录，按格式快照拼出号码。
+/// <see cref="INumberGenerator"/> 的实现。
 /// </summary>
+/// <remarks>
+/// 在独立作用域与事务里（<see cref="StoreScope"/>）发号并提交，外层调用失败也不回收。
+/// 先对规则行做一次加锁更新，同一规则的发号由此串行：之后再查幂等、翻转周期（只前进）、推进流水、写发号记录，按格式快照拼出号码。
+/// </remarks>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="ids">标识生成器。</param>

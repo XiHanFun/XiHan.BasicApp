@@ -21,9 +21,12 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置能力包（Tier 2）：系统参数（平台值与租户覆盖、加密值）、字典与树形字典项、业务编号规则与永久发号记录。
-/// 全部是平台库实体，按 <c>OwnerTenantId</c> 分平台与租户两侧：读共享、写只本侧。对外经 Contracts 的 <see cref="IConfigValueReader"/> 与 <see cref="INumberGenerator"/>。
+/// 设置能力包（Tier 2）。
 /// </summary>
+/// <remarks>
+/// 系统参数（平台值与租户覆盖、加密值）、字典与树形字典项、业务编号规则与永久发号记录。
+/// 全部是平台库实体，按 <c>OwnerTenantId</c> 分平台与租户两侧：读共享、写只本侧。对外经 Contracts 的 <see cref="IConfigValueReader"/> 与 <see cref="INumberGenerator"/>。
+/// </remarks>
 public sealed class SettingsFeature : IFeature
 {
     /// <inheritdoc />

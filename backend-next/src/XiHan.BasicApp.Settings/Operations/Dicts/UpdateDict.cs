@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 修改字典：<c>PUT /api/dicts/{id}</c>（名称、分类、说明、排序、状态；编码不可改）。只能改本侧的，另一侧 <c>SETTINGS_DENIED_001</c>。
+/// 修改字典。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/dicts/{id}</c>（名称、分类、说明、排序、状态；编码不可改）。只能改本侧的，另一侧 <c>SETTINGS_DENIED_001</c>。
+/// </remarks>
 /// <param name="dicts">字典仓储。</param>
 /// <param name="service">字典域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsUpdate)]

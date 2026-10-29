@@ -10,10 +10,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 字典选项：<c>GET /api/dicts:options?code=</c>（声明只读，ADR-0041）。业务表单的下拉用它，只要求已登录。
+/// 字典选项。
+/// </summary>
+/// <remarks>
+/// <c>GET /api/dicts:options?code=</c>（声明只读，ADR-0041）。业务表单的下拉用它，只要求已登录。
 /// 在可见的字典（平台的与本租户的）里按编码找；树形字典深度优先展平；停用项照常给出并标为停用；停用的字典没有选项；没有这个编码 <c>SETTINGS_NOTFOUND_002</c>。
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
-/// </summary>
+/// </remarks>
 /// <param name="service">字典域服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Policy = Policies.Authenticated)]
 public sealed class DictOptions(DictService service) : IOperation<DictOptionsRequest, DictOptionsResponse>

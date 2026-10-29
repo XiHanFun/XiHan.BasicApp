@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包的页面登记：参数、字典（字典项在字典页里维护）、业务编号。两侧都有。
+/// 设置包的页面登记。
 /// </summary>
+/// <remarks>
+/// 参数、字典（字典项在字典页里维护）、业务编号。两侧都有。
+/// </remarks>
 public static class SettingsPages
 {
     /// <summary>

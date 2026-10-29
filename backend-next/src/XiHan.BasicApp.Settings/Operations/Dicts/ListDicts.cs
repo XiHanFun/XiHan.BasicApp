@@ -9,8 +9,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 字典列表：<c>POST /api/dicts:list</c>。读共享：平台字典与本租户字典。只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// 字典列表。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/dicts:list</c>。读共享：平台字典与本租户字典。
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// </remarks>
 /// <param name="queries">字典查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictsRead)]
 public sealed class ListDicts(DictQueries queries) : IOperation<PageRequest, PageResult<DictResponse>>
