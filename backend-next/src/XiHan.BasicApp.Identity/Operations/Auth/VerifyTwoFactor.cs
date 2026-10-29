@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -29,6 +30,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录。</param>
+/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class VerifyTwoFactor(
     IRepository<SysUser, Guid> users,
@@ -40,7 +42,8 @@ public sealed class VerifyTwoFactor(
     ISecretProtector protector,
     IdentityOptions options,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<VerifyTwoFactorRequest, TokenResponse>
+    ITenantStore tenants,
+    IEnumerable<ILoginGuard> guards) : IOperation<VerifyTwoFactorRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -122,6 +125,7 @@ public sealed class VerifyTwoFactor(
             var revoked = await tickets.RecordFailureAsync(request.Ticket, ticket, context.CancellationToken).ConfigureAwait(false);
             var lockedOut = await attempts.RecordFailureAsync(security.Id, context.CancellationToken).ConfigureAwait(false);
             await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
+            await guards.RecordFailureAsync(context).ConfigureAwait(false);
             if (lockedOut)
             {
                 await tickets.RevokeAsync(request.Ticket, context.CancellationToken).ConfigureAwait(false);

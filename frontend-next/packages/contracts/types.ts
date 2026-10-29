@@ -747,6 +747,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/login-bans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The login auto-ban settings in effect and the addresses banned right now (platform only). Requires access.login-bans.read. */
+        get: operations["login-bans.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/login-bans:lift": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lift the ban on an address together with its failure count in the current window (platform only). Requires access.login-bans.lift. */
+        post: operations["login-bans.lift"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login-logs/{id}": {
         parameters: {
             query?: never;
@@ -2635,6 +2669,26 @@ export interface components {
             sourceRoleName: string;
             /** Format: int32 */
             depth: number;
+        };
+        LoginAutoBanSettingsResponse: {
+            configKey: string;
+            isEnabled: boolean;
+            /** Format: int32 */
+            windowMinutes: number;
+            /** Format: int32 */
+            maxFailures: number;
+            /** Format: int32 */
+            banMinutes: number;
+            /** Format: int32 */
+            maxBanMinutes: number;
+            error?: string | null;
+        };
+        LoginBanResponse: {
+            ip: string;
+            /** Format: date-time */
+            until: string;
+            /** Format: int32 */
+            remainingSeconds: number;
         };
         /** @enum {string} */
         LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset";
@@ -5816,6 +5870,75 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "login-bans.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        settings: components["schemas"]["LoginAutoBanSettingsResponse"];
+                        items: components["schemas"]["LoginBanResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "login-bans.lift": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ip: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ip: string;
                     };
                 };
             };

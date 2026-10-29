@@ -120,5 +120,11 @@
   "policies.delete.description": "刪除存取策略。需要 access.policies.delete 權限。",
   "policies.templates.description": "列出預置的存取策略範本。需要 access.policies.read 權限。",
   "policies.trial.description": "試執行存取策略：已有策略或草稿條件依給定的請求情形求值，逐組逐條件說明。需要 access.policies.trial 權限。",
-  "policies.attributes.description": "存取策略可用的條件屬性，附每個屬性可用的運算子與認證前能否取得。需要 access.policies.read 權限。"
+  "policies.attributes.description": "存取策略可用的條件屬性，附每個屬性可用的運算子與認證前能否取得。需要 access.policies.read 權限。",
+  "access.policy.login_denied": "目前的網路或時段不允許登入。",
+  "access.login_ban.settings_invalid": "登入失敗自動封鎖的參數寫錯了，請在參數設定裡檢查 {key}。",
+  "access.login_ban.not_found": "位址 {ip} 沒有被封鎖。",
+  "access.login_ban.banned": "登入失敗次數過多，目前的 IP 已被暫時封鎖，請 {retryAfter} 秒後再試。",
+  "login_bans.list.description": "登入失敗自動封鎖此刻生效的參數與目前封鎖的位址（只在平台）。需要 access.login-bans.read 權限。",
+  "login_bans.lift.description": "解除一個位址的封鎖，連同它這一窗口的失敗計數（只在平台）。需要 access.login-bans.lift 權限。"
 }

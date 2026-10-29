@@ -64,6 +64,8 @@ export const routes = {
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
+  'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
+  'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
   'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
   'login-logs.list': { method: 'POST', template: '/api/login-logs:list', path: [], query: [], success: 200 },
   'memberships.create': { method: 'POST', template: '/api/memberships', path: [], query: [], success: 201 },
@@ -287,6 +289,12 @@ export const impersonation = {
   candidates: (request: RequestOf<'impersonation.candidates'>, options?: CallOptions) => invoke<RequestOf<'impersonation.candidates'>, ResponseOf<'impersonation.candidates'>>('impersonation.candidates', routes['impersonation.candidates'], request, options),
   start: (request: RequestOf<'impersonation.start'>, options?: CallOptions) => invoke<RequestOf<'impersonation.start'>, ResponseOf<'impersonation.start'>>('impersonation.start', routes['impersonation.start'], request, options),
   stop: (request: RequestOf<'impersonation.stop'>, options?: CallOptions) => invoke<RequestOf<'impersonation.stop'>, ResponseOf<'impersonation.stop'>>('impersonation.stop', routes['impersonation.stop'], request, options),
+}
+
+/** 资源 `login-bans` 的操作。 */
+export const loginBans = {
+  lift: (request: RequestOf<'login-bans.lift'>, options?: CallOptions) => invoke<RequestOf<'login-bans.lift'>, ResponseOf<'login-bans.lift'>>('login-bans.lift', routes['login-bans.lift'], request, options),
+  list: (request: RequestOf<'login-bans.list'>, options?: CallOptions) => invoke<RequestOf<'login-bans.list'>, ResponseOf<'login-bans.list'>>('login-bans.list', routes['login-bans.list'], request, options),
 }
 
 /** 资源 `login-logs` 的操作。 */

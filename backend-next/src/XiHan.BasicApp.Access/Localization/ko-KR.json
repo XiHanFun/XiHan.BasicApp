@@ -120,5 +120,11 @@
   "policies.delete.description": "접근 정책을 삭제합니다. access.policies.delete 권한이 필요합니다.",
   "policies.templates.description": "미리 준비된 접근 정책 템플릿을 보여 줍니다. access.policies.read 권한이 필요합니다.",
   "policies.trial.description": "접근 정책을 시험 실행합니다. 저장된 정책이나 초안 조건을 지정한 요청 상황에서 평가하고 그룹·조건별로 설명합니다. access.policies.trial 권한이 필요합니다.",
-  "policies.attributes.description": "접근 정책에서 쓸 수 있는 조건 속성을 속성별 사용 가능한 연산자와 인증 전에 알 수 있는지와 함께 보여 줍니다. access.policies.read 권한이 필요합니다."
+  "policies.attributes.description": "접근 정책에서 쓸 수 있는 조건 속성을 속성별 사용 가능한 연산자와 인증 전에 알 수 있는지와 함께 보여 줍니다. access.policies.read 권한이 필요합니다.",
+  "access.policy.login_denied": "현재 네트워크나 시간대에서는 로그인할 수 없습니다.",
+  "access.login_ban.settings_invalid": "로그인 실패 자동 차단 설정이 잘못되었습니다. 시스템 설정에서 {key}을(를) 확인하세요.",
+  "access.login_ban.not_found": "주소 {ip}은(는) 차단되어 있지 않습니다.",
+  "access.login_ban.banned": "로그인 실패가 너무 많아 이 IP가 일시적으로 차단되었습니다. {retryAfter}초 후에 다시 시도하세요.",
+  "login_bans.list.description": "현재 적용 중인 로그인 실패 자동 차단 설정과 차단된 주소를 보여 줍니다(플랫폼 전용). access.login-bans.read 권한이 필요합니다.",
+  "login_bans.lift.description": "주소의 차단을 현재 구간의 실패 횟수와 함께 해제합니다(플랫폼 전용). access.login-bans.lift 권한이 필요합니다."
 }

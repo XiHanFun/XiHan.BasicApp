@@ -6217,6 +6217,120 @@
         }
       }
     },
+    "/api/login-bans": {
+      "get": {
+        "operationId": "login-bans.list",
+        "tags": [
+          "login-bans"
+        ],
+        "summary": "The login auto-ban settings in effect and the addresses banned right now (platform only). Requires access.login-bans.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.login-bans.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LoginBansResponse",
+                  "type": "object",
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/LoginAutoBanSettingsResponse"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LoginBanResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "settings",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login-bans:lift": {
+      "post": {
+        "operationId": "login-bans.lift",
+        "tags": [
+          "login-bans"
+        ],
+        "summary": "Lift the ban on an address together with its failure count in the current window (platform only). Requires access.login-bans.lift.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.login-bans.lift",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LiftLoginBanRequest",
+                "type": "object",
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "ip"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LiftLoginBanResponse",
+                  "type": "object",
+                  "properties": {
+                    "ip": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ip"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/login-logs/{id}": {
       "get": {
         "operationId": "login-logs.get",
@@ -19394,6 +19508,68 @@
           "depth"
         ]
       },
+      "LoginAutoBanSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "configKey": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "windowMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxFailures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "banMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxBanMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "configKey",
+          "isEnabled",
+          "windowMinutes",
+          "maxFailures",
+          "banMinutes",
+          "maxBanMinutes"
+        ]
+      },
+      "LoginBanResponse": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remainingSeconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "ip",
+          "until",
+          "remainingSeconds"
+        ]
+      },
       "LoginEvent": {
         "type": "string",
         "enum": [
@@ -21277,6 +21453,16 @@
         "code": "access.field-security.update",
         "displayName": "Update field security",
         "description": "Edit, enable and disable field security rules."
+      },
+      "access.login-bans.lift": {
+        "code": "access.login-bans.lift",
+        "displayName": "Lift login bans",
+        "description": "Lift the ban on an address before it expires, together with its current failure count."
+      },
+      "access.login-bans.read": {
+        "code": "access.login-bans.read",
+        "displayName": "Read login bans",
+        "description": "View the login auto-ban settings and the addresses banned for too many failed sign-ins."
       },
       "access.menus.create": {
         "code": "access.menus.create",

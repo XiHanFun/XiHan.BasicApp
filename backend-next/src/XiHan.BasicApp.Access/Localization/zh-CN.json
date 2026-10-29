@@ -120,5 +120,11 @@
   "policies.delete.description": "删除访问策略。需要 access.policies.delete 权限。",
   "policies.templates.description": "列出预置的访问策略模板。需要 access.policies.read 权限。",
   "policies.trial.description": "试运行访问策略：已有策略或草稿条件按给定的请求情形求值，逐组逐条件说明。需要 access.policies.trial 权限。",
-  "policies.attributes.description": "访问策略可用的条件属性，带每个属性可用的运算符与认证前能否取得。需要 access.policies.read 权限。"
+  "policies.attributes.description": "访问策略可用的条件属性，带每个属性可用的运算符与认证前能否取得。需要 access.policies.read 权限。",
+  "access.policy.login_denied": "当前网络或时段不允许登录。",
+  "access.login_ban.settings_invalid": "登录失败自动封禁的参数写错了，请在参数配置里检查 {key}。",
+  "access.login_ban.not_found": "地址 {ip} 没有被封禁。",
+  "access.login_ban.banned": "登录失败次数过多，当前 IP 已被暂时封禁，请 {retryAfter} 秒后再试。",
+  "login_bans.list.description": "登录失败自动封禁此刻生效的参数与当前封禁的地址（只在平台）。需要 access.login-bans.read 权限。",
+  "login_bans.lift.description": "解封一个地址，连同它这一窗口的失败计数（只在平台）。需要 access.login-bans.lift 权限。"
 }

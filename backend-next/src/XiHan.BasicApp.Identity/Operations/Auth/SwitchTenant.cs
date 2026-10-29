@@ -19,13 +19,14 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
 /// 切换租户 <c>auth.switch-tenant</c>（自助操作，只要求已认证）：当前会话换到目标上下文——注册地租户、成员租户，或平台（平台账号）。
-/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。
+/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。换上下文之前先过登录守卫（目标一侧的登录时机访问策略）。
 /// </summary>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="memberships">成员关系（Tenancy 实现；没有即只有注册地可进）。</param>
 /// <param name="issuer">令牌签发器。</param>
+/// <param name="guards">登录守卫。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录。</param>
@@ -36,6 +37,7 @@ public sealed class SwitchTenant(
     UserAccountService accounts,
     IEnumerable<ITenantMembershipResolver> memberships,
     AccessTokenIssuer issuer,
+    IEnumerable<ILoginGuard> guards,
     IdentityOptions options,
     TimeProvider clock,
     ITenantStore tenants) : IOperation<SwitchTenantRequest, TokenResponse>
@@ -102,6 +104,13 @@ public sealed class SwitchTenant(
             }
         }
 
+        var roles = await accounts.RolesOfAsync(user.Id, target, context.CancellationToken).ConfigureAwait(false);
+        var guarded = await guards.CheckAllAsync(new LoginAttempt(target ?? TenantIds.Platform, user.Id, user.UserName, roles), context).ConfigureAwait(false);
+        if (guarded.IsFailure)
+        {
+            return guarded.Error!;
+        }
+
         log.TenantId = target ?? TenantIds.Platform;
         log.Detail = session.ActiveTenantId ?? TenantIds.Platform;
 
@@ -123,7 +132,6 @@ public sealed class SwitchTenant(
             return securityResult.Error!;
         }
 
-        var roles = await accounts.RolesOfAsync(user.Id, target, context.CancellationToken).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, target, roles);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, target, security.MustChangePassword, UserResponse.From(user), tenantName);
     }

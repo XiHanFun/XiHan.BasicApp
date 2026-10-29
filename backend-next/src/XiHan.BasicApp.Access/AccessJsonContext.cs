@@ -6,6 +6,7 @@ using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Auth;
 using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
+using XiHan.BasicApp.Access.Operations.LoginBans;
 using XiHan.BasicApp.Access.Operations.PermissionConditions;
 using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Menus;
@@ -109,4 +110,10 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(AccessPolicyTemplatesResponse))]
 [JsonSerializable(typeof(TrialAccessPolicyRequest))]
 [JsonSerializable(typeof(AccessPolicyTrialResponse))]
+[JsonSerializable(typeof(LoginAutoBanSettings))]
+[JsonSerializable(typeof(List<LoginBanEntry>))]
+[JsonSerializable(typeof(LoginBansRequest))]
+[JsonSerializable(typeof(LoginBansResponse))]
+[JsonSerializable(typeof(LiftLoginBanRequest))]
+[JsonSerializable(typeof(LiftLoginBanResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

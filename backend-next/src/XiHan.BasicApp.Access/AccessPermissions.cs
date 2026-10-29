@@ -156,6 +156,16 @@ public static class AccessPermissions
     public const string PoliciesTrial = "access.policies.trial";
 
     /// <summary>
+    /// 查看登录失败自动封禁的参数与当前封禁（只在平台）：<c>login-bans.list</c>。
+    /// </summary>
+    public const string LoginBansRead = "access.login-bans.read";
+
+    /// <summary>
+    /// 解封一个地址（只在平台）：<c>login-bans.lift</c>。
+    /// </summary>
+    public const string LoginBansLift = "access.login-bans.lift";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -214,6 +224,8 @@ public static class AccessPermissions
         new(PoliciesUpdate, "Update access policies", PermissionScope.Both, audited: true, description: "Edit access policies, switch them between log only, deny and allow, and enable or disable them."),
         new(PoliciesDelete, "Delete access policies", PermissionScope.Both, audited: true, description: "Delete access policies."),
         new(PoliciesTrial, "Trial access policies", PermissionScope.Both, description: "Try how a saved or draft access policy decides for a given request."),
+        new(LoginBansRead, "Read login bans", PermissionScope.Platform, description: "View the login auto-ban settings and the addresses banned for too many failed sign-ins."),
+        new(LoginBansLift, "Lift login bans", PermissionScope.Platform, audited: true, description: "Lift the ban on an address before it expires, together with its current failure count."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

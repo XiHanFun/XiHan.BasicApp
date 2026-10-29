@@ -120,5 +120,11 @@
   "policies.delete.description": "Eliminar políticas de acceso. Requiere access.policies.delete.",
   "policies.templates.description": "Listar las plantillas predefinidas de políticas de acceso. Requiere access.policies.read.",
   "policies.trial.description": "Probar una política de acceso: evaluar una política guardada o condiciones en borrador con la solicitud indicada, explicado grupo a grupo y condición a condición. Requiere access.policies.trial.",
-  "policies.attributes.description": "Los atributos de condición disponibles para las políticas de acceso, con los operadores que admite cada uno y si se conoce antes de la autenticación. Requiere access.policies.read."
+  "policies.attributes.description": "Los atributos de condición disponibles para las políticas de acceso, con los operadores que admite cada uno y si se conoce antes de la autenticación. Requiere access.policies.read.",
+  "access.policy.login_denied": "No se permite iniciar sesión desde esta red o a esta hora.",
+  "access.login_ban.settings_invalid": "Los parámetros del bloqueo automático de inicios de sesión no son válidos; revise {key} en los parámetros del sistema.",
+  "access.login_ban.not_found": "La dirección {ip} no está bloqueada.",
+  "access.login_ban.banned": "Demasiados inicios de sesión fallidos; esta IP está bloqueada temporalmente. Inténtelo de nuevo en {retryAfter} segundos.",
+  "login_bans.list.description": "Los parámetros vigentes del bloqueo automático de inicios de sesión y las direcciones bloqueadas ahora (solo plataforma). Requiere access.login-bans.read.",
+  "login_bans.lift.description": "Levantar el bloqueo de una dirección junto con sus fallos de la ventana actual (solo plataforma). Requiere access.login-bans.lift."
 }
