@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Memberships;
 
 /// <summary>
-/// 修改归属：<c>PUT /api/memberships/{id}</c>（岗位、主部门、工号、职级、入职时间、排序）。
+/// 修改归属。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/memberships/{id}</c>（岗位、主部门、工号、职级、入职时间、排序）。
+/// </remarks>
 /// <param name="memberships">归属仓储。</param>
 /// <param name="positions">岗位仓储。</param>
 /// <param name="service">归属域服务。</param>

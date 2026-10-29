@@ -26,9 +26,12 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织能力包（Tier 1）：部门树（闭包表）、岗位、用户部门归属；全部是租户库实体（<c>IMultiTenant</c>），只在租户侧管理，平台主体的菜单与操作里都没有。
-/// 数据范围「本部门及子部门」由 Access 后续批次用闭包表联查。
+/// 组织能力包（Tier 1）。
 /// </summary>
+/// <remarks>
+/// 部门树（闭包表）、岗位、用户部门归属；全部是租户库实体（<c>IMultiTenant</c>），只在租户侧管理，平台主体的菜单与操作里都没有。
+/// 数据范围「本部门及子部门」由 Access 后续批次用闭包表联查。
+/// </remarks>
 public sealed class OrganizationFeature : IFeature
 {
     /// <inheritdoc />

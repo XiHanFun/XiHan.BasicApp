@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Domain.Services;
 
 /// <summary>
-/// 归属域服务（作用域）：核对用户注册地、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）。
+/// 归属域服务（作用域）。
 /// </summary>
+/// <remarks>
+/// 核对用户注册地、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）。
+/// </remarks>
 /// <param name="users">用户仓储（平台库）。</param>
 /// <param name="departments">部门仓储。</param>
 /// <param name="positions">岗位仓储。</param>
@@ -25,8 +28,11 @@ public sealed class MembershipService(
     IRepository<SysUserDepartment, Guid> memberships)
 {
     /// <summary>
-    /// 注册地是 <paramref name="tenantId"/> 的用户；别的租户或平台的用户视为不存在。
+    /// 查找注册地是 <paramref name="tenantId"/> 的用户。
     /// </summary>
+    /// <remarks>
+    /// 别的租户或平台的用户视为不存在。
+    /// </remarks>
     public async Task<Maybe<SysUser>> FindUserInTenantAsync(Guid userId, string tenantId, CancellationToken cancellationToken)
     {
         var found = await users.FindAsync(userId, cancellationToken).ConfigureAwait(false);
@@ -76,8 +82,11 @@ public sealed class MembershipService(
     }
 
     /// <summary>
-    /// 把归属行配上名称；用户、部门或岗位已不存在时名称为空串，不丢行。
+    /// 把归属行配上名称。
     /// </summary>
+    /// <remarks>
+    /// 用户、部门或岗位已不存在时名称为空串，不丢行。
+    /// </remarks>
     public async Task<IReadOnlyList<MembershipResponse>> ComposeAsync(IReadOnlyList<SysUserDepartment> rows, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(rows);

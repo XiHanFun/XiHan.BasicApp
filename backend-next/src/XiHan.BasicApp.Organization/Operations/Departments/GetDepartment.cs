@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 部门详情：<c>GET /api/departments/{id}</c>（祖先链、负责人登录名、子部门数、成员数）。
-/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// 部门详情。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/departments/{id}</c>（祖先链、负责人登录名、子部门数、成员数）。
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// </remarks>
 /// <param name="service">部门域服务。</param>
 /// <param name="users">用户仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]

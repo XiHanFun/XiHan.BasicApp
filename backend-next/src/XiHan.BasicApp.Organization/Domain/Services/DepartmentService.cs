@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Domain.Services;
 
 /// <summary>
-/// 部门域服务（作用域）：编码唯一、闭包表维护（挂载、移动、摘除）、子孙与使用情况查询。仓储按当前租户严格过滤，所以这里不再带租户条件。
+/// 部门域服务（作用域）。
 /// </summary>
+/// <remarks>
+/// 编码唯一、闭包表维护（挂载、移动、摘除）、子孙与使用情况查询。仓储按当前租户严格过滤，所以这里不再带租户条件。
+/// </remarks>
 /// <param name="departments">部门仓储。</param>
 /// <param name="hierarchy">闭包表仓储。</param>
 /// <param name="memberships">归属仓储。</param>
@@ -53,8 +56,11 @@ public sealed class DepartmentService(
     }
 
     /// <summary>
-    /// 移动到新上级：拒绝移到自己或子孙之下；摘掉子树与树外祖先的闭包行，再按新上级的祖先重算整棵子树。
+    /// 把部门移动到新上级。
     /// </summary>
+    /// <remarks>
+    /// 拒绝移到自己或子孙之下；摘掉子树与树外祖先的闭包行，再按新上级的祖先重算整棵子树。
+    /// </remarks>
     public async Task<Result> MoveAsync(SysDepartment department, Guid? newParentId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(department);
@@ -106,8 +112,11 @@ public sealed class DepartmentService(
     }
 
     /// <summary>
-    /// 摘除：软删部门并硬删它作为祖先或子孙的全部闭包行（调用前已确认没有子部门与成员）。
+    /// 摘除部门。
     /// </summary>
+    /// <remarks>
+    /// 软删部门并硬删它作为祖先或子孙的全部闭包行（调用前已确认没有子部门与成员）。
+    /// </remarks>
     public async Task<Result> DetachAsync(SysDepartment department, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(department);

@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Memberships;
 
 /// <summary>
-/// 把用户移出部门：<c>DELETE /api/memberships?ids=...</c>。移出的是主部门时，该用户剩下的第一条归属自动成为主部门。
+/// 把用户移出部门。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/memberships?ids=...</c>。移出的是主部门时，该用户剩下的第一条归属自动成为主部门。
+/// </remarks>
 /// <param name="memberships">归属仓储。</param>
 /// <param name="service">归属域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsDelete)]

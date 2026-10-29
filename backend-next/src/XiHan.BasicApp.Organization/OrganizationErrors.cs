@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包的错误码：<c>ORGANIZATION_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 组织包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>ORGANIZATION_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class OrganizationErrors
 {
     /// <summary>

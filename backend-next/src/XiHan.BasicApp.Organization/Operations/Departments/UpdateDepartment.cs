@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 修改部门：<c>PUT /api/departments/{id}</c>（名称、负责人、排序、说明、状态；上级走 <c>departments.move</c>）。
+/// 修改部门。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/departments/{id}</c>（名称、负责人、排序、说明、状态；上级走 <c>departments.move</c>）。
+/// </remarks>
 /// <param name="departments">部门仓储。</param>
 /// <param name="service">部门域服务。</param>
 /// <param name="members">成员域服务（核对负责人）。</param>

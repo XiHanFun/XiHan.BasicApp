@@ -30,8 +30,11 @@ public sealed record CreateDepartmentRequest(
 public sealed record GetDepartmentRequest(Guid Id);
 
 /// <summary>
-/// <c>departments.update</c> 的请求：编码与上级不在这里改（上级走 <c>departments.move</c>）。
+/// <c>departments.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码与上级不在这里改（上级走 <c>departments.move</c>）。
+/// </remarks>
 /// <param name="Id">部门主键。</param>
 /// <param name="Name">名称。</param>
 /// <param name="LeaderUserId">负责人；为空即清除。</param>

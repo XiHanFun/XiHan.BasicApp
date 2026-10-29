@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Positions;
 
 /// <summary>
-/// 批量删除岗位：<c>DELETE /api/positions?ids=...</c>。还被归属引用的逐项 <c>ORGANIZATION_CONFLICT_004</c>。
+/// 批量删除岗位。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/positions?ids=...</c>。还被归属引用的逐项 <c>ORGANIZATION_CONFLICT_004</c>。
+/// </remarks>
 /// <param name="positions">岗位仓储。</param>
 /// <param name="memberships">归属仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsDelete)]

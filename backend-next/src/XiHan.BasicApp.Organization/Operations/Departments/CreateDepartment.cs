@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 创建部门：<c>POST /api/departments</c>。编码租户内唯一；上级必须存在；负责人必须是本租户用户；写入后挂进闭包表。
+/// 创建部门。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/departments</c>。编码租户内唯一；上级必须存在；负责人必须是本租户用户；写入后挂进闭包表。
+/// </remarks>
 /// <param name="departments">部门仓储。</param>
 /// <param name="service">部门域服务。</param>
 /// <param name="members">成员域服务（核对负责人）。</param>

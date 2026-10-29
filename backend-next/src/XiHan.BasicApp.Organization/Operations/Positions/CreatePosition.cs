@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Positions;
 
 /// <summary>
-/// 创建岗位：<c>POST /api/positions</c>。编码租户内唯一。
+/// 创建岗位。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/positions</c>。编码租户内唯一。
+/// </remarks>
 /// <param name="positions">岗位仓储。</param>
 /// <param name="ids">标识生成器。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsCreate)]

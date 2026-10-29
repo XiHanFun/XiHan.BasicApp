@@ -8,8 +8,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 移动部门：<c>POST /api/departments/{id}:move</c>。新上级必须存在且不是自己或自己的子孙；整棵子树的闭包行重算。
+/// 移动部门。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/departments/{id}:move</c>。新上级必须存在且不是自己或自己的子孙；整棵子树的闭包行重算。
+/// </remarks>
 /// <param name="service">部门域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsUpdate)]
 public sealed class MoveDepartment(DepartmentService service) : IOperation<MoveDepartmentRequest, DepartmentResponse>
