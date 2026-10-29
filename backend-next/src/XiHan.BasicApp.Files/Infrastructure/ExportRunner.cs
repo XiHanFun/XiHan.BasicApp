@@ -170,7 +170,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
             SysExportTask? found = null;
             var outcome = await InCallAsync(job, async context =>
             {
-                var rows = context.Services.GetRequiredService<FileRows>();
+                var rows = context.Services.GetRequiredService<SideRows>();
                 if (!(await rows.FindAsync<SysExportTask>(job.Side, job.TaskId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var task))
                 {
                     return Result.Success();
@@ -249,7 +249,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                     var progress = total == 0 ? 100 : (int)Math.Min(99, processed * 100 / total);
                     var reported = await InCallAsync(job, async context =>
                     {
-                        var rows = context.Services.GetRequiredService<FileRows>();
+                        var rows = context.Services.GetRequiredService<SideRows>();
                         if ((await rows.FindAsync<SysExportTask>(job.Side, job.TaskId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var current))
                         {
                             current.TotalCount = total;
@@ -286,7 +286,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
         return await InCallAsync(job, async context =>
         {
             var files = context.Services.GetRequiredService<FileService>();
-            var rows = context.Services.GetRequiredService<FileRows>();
+            var rows = context.Services.GetRequiredService<SideRows>();
             var source = new FileStream(temp, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.Asynchronous | FileOptions.SequentialScan);
             await using (source.ConfigureAwait(false))
             {

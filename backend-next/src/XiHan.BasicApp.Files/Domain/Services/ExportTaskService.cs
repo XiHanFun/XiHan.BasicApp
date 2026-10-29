@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions.Messages;
@@ -35,7 +36,7 @@ public sealed record ExportSubmission(string BusinessType, string? TaskName, Exp
 /// <param name="registry">操作登记表。</param>
 /// <param name="ids">ID 生成器。</param>
 /// <param name="clock">时钟。</param>
-public sealed class ExportTaskService(FileRows rows, FileService files, ExportJobs queue, OperationRegistry registry, IIdGenerator<Guid> ids, TimeProvider clock)
+public sealed class ExportTaskService(SideRows rows, FileService files, ExportJobs queue, OperationRegistry registry, IIdGenerator<Guid> ids, TimeProvider clock)
 {
     /// <summary>
     /// 调用方的用户 ID；没有登录用户为空。
@@ -79,7 +80,7 @@ public sealed class ExportTaskService(FileRows rows, FileService files, ExportJo
             return Error.Unavailable(FilesErrors.ExportCredentialMissing, FilesMessages.ExportCredentialMissing);
         }
 
-        var side = FileRows.SideOf(context);
+        var side = SideRows.SideOf(context);
         var name = submission.TaskName?.Trim();
         var task = new SysExportTask
         {
@@ -109,7 +110,7 @@ public sealed class ExportTaskService(FileRows rows, FileService files, ExportJo
     {
         ArgumentNullException.ThrowIfNull(context);
         var requester = RequesterOf(context);
-        if (requester is not null && (await rows.FindAsync<SysExportTask>(FileRows.SideOf(context), id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var task) && task.RequesterId == requester)
+        if (requester is not null && (await rows.FindAsync<SysExportTask>(SideRows.SideOf(context), id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var task) && task.RequesterId == requester)
         {
             return task;
         }

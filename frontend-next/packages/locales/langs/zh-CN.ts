@@ -448,6 +448,11 @@ export default {
       view_all: '前往通知中心',
       confirm: '确认',
       type_default: '通知',
+      type_system: '系统公告',
+      type_security: '安全通知',
+      type_business: '业务通知',
+      type_todo: '待办通知',
+      type_emergency: '紧急通知',
       tab: {
         inbox: '站内信',
         inbox_count: '站内信 ({n})',

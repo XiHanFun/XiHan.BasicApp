@@ -448,6 +448,11 @@ export default {
       view_all: '通知センターへ',
       confirm: '確認',
       type_default: 'お知らせ',
+      type_system: 'システムのお知らせ',
+      type_security: 'セキュリティ通知',
+      type_business: '業務通知',
+      type_todo: 'ToDo 通知',
+      type_emergency: '緊急通知',
       tab: {
         inbox: '受信箱',
         inbox_count: '受信箱 ({n})',

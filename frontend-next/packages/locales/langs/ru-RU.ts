@@ -448,6 +448,11 @@ export default {
       view_all: 'Открыть центр уведомлений',
       confirm: 'Подтвердить',
       type_default: 'Уведомление',
+      type_system: 'Системное',
+      type_security: 'Безопасность',
+      type_business: 'Деловое',
+      type_todo: 'Задача',
+      type_emergency: 'Срочное',
       tab: {
         inbox: 'Входящие',
         inbox_count: 'Входящие ({n})',

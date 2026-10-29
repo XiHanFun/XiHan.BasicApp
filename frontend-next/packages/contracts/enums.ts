@@ -104,6 +104,21 @@ export type LoginEvent = (typeof LoginEvent)[number]
 export const MenuKind = ['Page', 'Directory', 'Link'] as const
 export type MenuKind = (typeof MenuKind)[number]
 
+export const NotificationContentFormat = ['Text', 'Markdown', 'Html'] as const
+export type NotificationContentFormat = (typeof NotificationContentFormat)[number]
+
+export const NotificationPriority = ['Low', 'Normal', 'High', 'Urgent'] as const
+export type NotificationPriority = (typeof NotificationPriority)[number]
+
+export const NotificationRecipientFilter = ['All', 'Unread', 'Read', 'Unconfirmed'] as const
+export type NotificationRecipientFilter = (typeof NotificationRecipientFilter)[number]
+
+export const NotificationTargetType = ['All', 'Role', 'Department', 'User'] as const
+export type NotificationTargetType = (typeof NotificationTargetType)[number]
+
+export const NotificationType = ['System', 'Security', 'Business', 'Todo', 'Emergency'] as const
+export type NotificationType = (typeof NotificationType)[number]
+
 export const NumberingDateFormat = ['None', 'Yyyy', 'YyyyMM', 'YyyyMMdd', 'YyMM', 'YyMMdd', 'MMdd'] as const
 export type NumberingDateFormat = (typeof NumberingDateFormat)[number]
 
@@ -158,6 +173,9 @@ export type TraceLogType = (typeof TraceLogType)[number]
 export const TwoFactorMethod = ['Totp', 'Email', 'Phone'] as const
 export type TwoFactorMethod = (typeof TwoFactorMethod)[number]
 
+export const UserNotificationStatus = ['Unread', 'Read'] as const
+export type UserNotificationStatus = (typeof UserNotificationStatus)[number]
+
 export const UserSettingScene = ['Preference', 'Page'] as const
 export type UserSettingScene = (typeof UserSettingScene)[number]
 
@@ -200,6 +218,11 @@ export const enums = {
   GrantSubjectKind,
   LoginEvent,
   MenuKind,
+  NotificationContentFormat,
+  NotificationPriority,
+  NotificationRecipientFilter,
+  NotificationTargetType,
+  NotificationType,
   NumberingDateFormat,
   NumberingResetCycle,
   NumberingScope,
@@ -218,6 +241,7 @@ export const enums = {
   TraceItemStatus,
   TraceLogType,
   TwoFactorMethod,
+  UserNotificationStatus,
   UserSettingScene,
   UserStatus,
 } as const

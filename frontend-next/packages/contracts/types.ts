@@ -1192,6 +1192,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete entries from your own inbox; the notifications themselves are unaffected. Any signed-in user. */
+        delete: operations["inbox.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/{id}:confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a notification in your inbox that asks for confirmation; it is marked read too. Any signed-in user. */
+        post: operations["inbox.confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox/{id}:mark-popup-shown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record that one of your popup notifications has been shown so it does not pop up again. Any signed-in user. */
+        post: operations["inbox.mark-popup-shown"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your unread banner notifications, shown at the top of the page. Any signed-in user. */
+        get: operations["inbox.banners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through your own inbox on the current side (published and within their visibility window): the keyword matches title and content; filter by read state and type or show only pending items. Any signed-in user. */
+        post: operations["inbox.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:mandatory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your unread mandatory notifications; pages are blocked until they are read. Any signed-in user. */
+        get: operations["inbox.mandatory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:mark-all-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark every visible unread entry of your inbox on the current side as read. Any signed-in user. */
+        post: operations["inbox.mark-all-read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark entries of your own inbox as read. Any signed-in user. */
+        post: operations["inbox.mark-read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inbox:popups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your popup notifications not shown yet; each pops up once after sign-in. Any signed-in user. */
+        get: operations["inbox.popups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login-bans": {
         parameters: {
             query?: never;
@@ -1360,6 +1513,127 @@ export interface paths {
         put?: never;
         /** Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update. */
         post: operations["menus.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a notification draft, optionally publishing it at once: role, department and user targets need at least one ID, and departments exist only on the tenant side. Requires notification.notifications.create, plus notification.notifications.publish to publish at once. */
+        post: operations["notifications.create"];
+        /** Delete notifications in bulk; published ones also leave their recipients' inboxes. Requires notification.notifications.delete. */
+        delete: operations["notifications.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a notification with its delivery targets. Requires notification.notifications.read. */
+        get: operations["notifications.get"];
+        /** Replace a notification draft, including its targets; published notifications cannot be changed. Requires notification.notifications.update. */
+        put: operations["notifications.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a draft: resolve the active recipients of the caller's side from its targets, write their inbox entries and push them in real time after commit; a notification is published only once. Requires notification.notifications.publish. */
+        post: operations["notifications.publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}:read-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read statistics: recipients, read, unread and confirmed counts. Requires notification.notifications.read. */
+        get: operations["notifications.read-stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}:recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the recipients of a published notification with their read and confirmation state; optionally only unread or unconfirmed ones. Requires notification.notifications.read. */
+        post: operations["notifications.recipients"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications/{id}:remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remind: push a published notification again to recipients who have not read it, or not confirmed it when confirmation is required. Requires notification.notifications.publish. */
+        post: operations["notifications.remind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notifications:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the caller's side's notifications: the keyword matches title and content; filter by type, priority, target and published state. Requires notification.notifications.read. */
+        post: operations["notifications.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3482,6 +3756,33 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        InboxItemResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            notificationId: string;
+            title: string;
+            content?: string | null;
+            contentFormat: components["schemas"]["NotificationContentFormat"];
+            notificationType: components["schemas"]["NotificationType"];
+            priority: components["schemas"]["NotificationPriority"];
+            status: components["schemas"]["UserNotificationStatus"];
+            /** Format: date-time */
+            publishedAt: string;
+            /** Format: date-time */
+            readAt?: string | null;
+            /** Format: date-time */
+            confirmedAt?: string | null;
+            isGlobal: boolean;
+            needConfirm: boolean;
+            isMandatory: boolean;
+            isBanner: boolean;
+            isPopup: boolean;
+            icon?: string | null;
+            link?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+        };
         InheritedPermissionResponse: {
             permission: string;
             action: components["schemas"]["PermissionAction"];
@@ -3607,6 +3908,64 @@ export interface components {
             isCustomized: boolean;
             children: components["schemas"]["MenuResponse"][];
         };
+        /** @enum {string} */
+        NotificationContentFormat: "Text" | "Markdown" | "Html";
+        /** @enum {string} */
+        NotificationPriority: "Low" | "Normal" | "High" | "Urgent";
+        /** @enum {string} */
+        NotificationRecipientFilter: "All" | "Unread" | "Read" | "Unconfirmed";
+        NotificationRecipientResponse: {
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            status: components["schemas"]["UserNotificationStatus"];
+            /** Format: date-time */
+            readAt?: string | null;
+            /** Format: date-time */
+            confirmedAt?: string | null;
+            /** Format: date-time */
+            receivedAt: string;
+        };
+        NotificationResponse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            content?: string | null;
+            contentFormat: components["schemas"]["NotificationContentFormat"];
+            notificationType: components["schemas"]["NotificationType"];
+            priority: components["schemas"]["NotificationPriority"];
+            icon?: string | null;
+            link?: string | null;
+            businessType?: string | null;
+            businessId?: string | null;
+            targetType: components["schemas"]["NotificationTargetType"];
+            targetIds: string[];
+            needConfirm: boolean;
+            isMandatory: boolean;
+            isBanner: boolean;
+            isPopup: boolean;
+            /** Format: date-time */
+            startsAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            isPublished: boolean;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            /** Format: uuid */
+            publisherId?: string | null;
+            /** Format: int32 */
+            recipientCount: number;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        NotificationTargetType: "All" | "Role" | "Department" | "User";
+        /** @enum {string} */
+        NotificationType: "System" | "Security" | "Business" | "Todo" | "Emergency";
         NumberingAllocationResponse: {
             /** Format: uuid */
             id: string;
@@ -4059,6 +4418,8 @@ export interface components {
             expiresAt?: string | null;
             reason?: string | null;
         };
+        /** @enum {string} */
+        UserNotificationStatus: "Unread" | "Read";
         UserResponse: {
             /** Format: uuid */
             id: string;
@@ -8252,6 +8613,332 @@ export interface operations {
             };
         };
     };
+    "inbox.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        count: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.mark-popup-shown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        count: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InboxItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InboxItemResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.mandatory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InboxItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.mark-all-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        count: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "inbox.popups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InboxItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "login-bans.list": {
         parameters: {
             query?: never;
@@ -8936,6 +9623,507 @@ export interface operations {
                         isAffix: boolean;
                         isCustomized: boolean;
                         children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    content?: string | null;
+                    contentFormat?: components["schemas"]["NotificationContentFormat"];
+                    notificationType?: components["schemas"]["NotificationType"];
+                    priority?: components["schemas"]["NotificationPriority"];
+                    targetType?: components["schemas"]["NotificationTargetType"];
+                    targetIds?: string[] | null;
+                    icon?: string | null;
+                    link?: string | null;
+                    businessType?: string | null;
+                    businessId?: string | null;
+                    needConfirm?: boolean;
+                    isMandatory?: boolean;
+                    isBanner?: boolean;
+                    isPopup?: boolean;
+                    /** Format: date-time */
+                    startsAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    remark?: string | null;
+                    publishImmediately?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        content?: string | null;
+                        contentFormat: components["schemas"]["NotificationContentFormat"];
+                        notificationType: components["schemas"]["NotificationType"];
+                        priority: components["schemas"]["NotificationPriority"];
+                        icon?: string | null;
+                        link?: string | null;
+                        businessType?: string | null;
+                        businessId?: string | null;
+                        targetType: components["schemas"]["NotificationTargetType"];
+                        targetIds: string[];
+                        needConfirm: boolean;
+                        isMandatory: boolean;
+                        isBanner: boolean;
+                        isPopup: boolean;
+                        /** Format: date-time */
+                        startsAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isPublished: boolean;
+                        /** Format: date-time */
+                        publishedAt?: string | null;
+                        /** Format: uuid */
+                        publisherId?: string | null;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        content?: string | null;
+                        contentFormat: components["schemas"]["NotificationContentFormat"];
+                        notificationType: components["schemas"]["NotificationType"];
+                        priority: components["schemas"]["NotificationPriority"];
+                        icon?: string | null;
+                        link?: string | null;
+                        businessType?: string | null;
+                        businessId?: string | null;
+                        targetType: components["schemas"]["NotificationTargetType"];
+                        targetIds: string[];
+                        needConfirm: boolean;
+                        isMandatory: boolean;
+                        isBanner: boolean;
+                        isPopup: boolean;
+                        /** Format: date-time */
+                        startsAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isPublished: boolean;
+                        /** Format: date-time */
+                        publishedAt?: string | null;
+                        /** Format: uuid */
+                        publisherId?: string | null;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    title: string;
+                    content?: string | null;
+                    contentFormat?: components["schemas"]["NotificationContentFormat"];
+                    notificationType?: components["schemas"]["NotificationType"];
+                    priority?: components["schemas"]["NotificationPriority"];
+                    targetType?: components["schemas"]["NotificationTargetType"];
+                    targetIds?: string[] | null;
+                    icon?: string | null;
+                    link?: string | null;
+                    businessType?: string | null;
+                    businessId?: string | null;
+                    needConfirm?: boolean;
+                    isMandatory?: boolean;
+                    isBanner?: boolean;
+                    isPopup?: boolean;
+                    /** Format: date-time */
+                    startsAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        content?: string | null;
+                        contentFormat: components["schemas"]["NotificationContentFormat"];
+                        notificationType: components["schemas"]["NotificationType"];
+                        priority: components["schemas"]["NotificationPriority"];
+                        icon?: string | null;
+                        link?: string | null;
+                        businessType?: string | null;
+                        businessId?: string | null;
+                        targetType: components["schemas"]["NotificationTargetType"];
+                        targetIds: string[];
+                        needConfirm: boolean;
+                        isMandatory: boolean;
+                        isBanner: boolean;
+                        isPopup: boolean;
+                        /** Format: date-time */
+                        startsAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isPublished: boolean;
+                        /** Format: date-time */
+                        publishedAt?: string | null;
+                        /** Format: uuid */
+                        publisherId?: string | null;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        /** Format: date-time */
+                        publishedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.read-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        /** Format: int32 */
+                        readCount: number;
+                        /** Format: int32 */
+                        unreadCount: number;
+                        needConfirm: boolean;
+                        /** Format: int32 */
+                        confirmedCount: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    page?: components["schemas"]["PageInfo"] | null;
+                    filter?: components["schemas"]["NotificationRecipientFilter"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["NotificationRecipientResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: int32 */
+                        recipientCount: number;
+                        /** Format: date-time */
+                        publishedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "notifications.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["NotificationResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

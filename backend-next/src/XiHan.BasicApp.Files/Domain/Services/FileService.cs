@@ -46,7 +46,7 @@ public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, 
 /// <param name="quotas">租户配额（存储空间；没装 Tenancy 即不限）。</param>
 /// <param name="logger">日志。</param>
 public sealed partial class FileService(
-    FileRows rows,
+    SideRows rows,
     StorageConfigService configs,
     BlobStores stores,
     FileLinks links,
@@ -112,7 +112,7 @@ public sealed partial class FileService(
                 return spooled.Error!;
             }
 
-            var side = FileRows.SideOf(context);
+            var side = SideRows.SideOf(context);
             var allowed = await EnsureQuotaAsync(context, side, written.Size).ConfigureAwait(false);
             if (allowed.IsFailure)
             {
@@ -168,7 +168,7 @@ public sealed partial class FileService(
         }
 
         // 秒传也计入存储配额（4.x 不计）：用量按记录算，共用对象的文件各自占空间
-        var side = FileRows.SideOf(context);
+        var side = SideRows.SideOf(context);
         var allowed = await EnsureQuotaAsync(context, side, size).ConfigureAwait(false);
         if (allowed.IsFailure)
         {

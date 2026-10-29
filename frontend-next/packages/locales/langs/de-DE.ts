@@ -448,6 +448,11 @@ export default {
       view_all: 'Zum Benachrichtigungscenter',
       confirm: 'Bestätigen',
       type_default: 'Benachrichtigung',
+      type_system: 'System',
+      type_security: 'Sicherheit',
+      type_business: 'Geschäftlich',
+      type_todo: 'Aufgabe',
+      type_emergency: 'Notfall',
       tab: {
         inbox: 'Posteingang',
         inbox_count: 'Posteingang ({n})',

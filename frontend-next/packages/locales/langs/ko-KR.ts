@@ -448,6 +448,11 @@ export default {
       view_all: '알림 센터로 이동',
       confirm: '확인',
       type_default: '알림',
+      type_system: '시스템 공지',
+      type_security: '보안 알림',
+      type_business: '업무 알림',
+      type_todo: '할 일 알림',
+      type_emergency: '긴급 알림',
       tab: {
         inbox: '받은 메시지',
         inbox_count: '받은 메시지 ({n})',

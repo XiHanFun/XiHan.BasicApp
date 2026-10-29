@@ -14,6 +14,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
@@ -130,6 +131,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<IUserRoleResolver, UserRoleResolver>();
         context.Services.AddScoped<RoleDataScopeService>();
         context.Services.AddScoped<IDataScopeResolver, DataScopeResolver>();
+        // 通知按角色找人（此刻有效的直接指派）
+        context.Services.AddScoped<IRecipientSource, RoleRecipientSource>();
         context.Services.AddScoped<ITenantInitializer, TenantRoleInitializer>();
         context.Services.AddSeeder<PlatformRoleSeeder>();
         context.Services.AddSeeder<MenuSeeder>();

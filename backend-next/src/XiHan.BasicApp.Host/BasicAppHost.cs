@@ -8,6 +8,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
+using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
@@ -70,6 +71,7 @@ public static class BasicAppHost
             .UseFeature<AccessFeature>()
             .UseFeature<SettingsFeature>()
             .UseFeature<FilesFeature>()
+            .UseFeature<NotificationFeature>()
             .UseFeature<AuditingFeature>()
             .UseFeature<RealtimeFeature>();
             if (modules.Workbench)

@@ -5,8 +5,8 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Queries;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
 
@@ -50,7 +50,7 @@ public sealed class GetFile(FileService files) : IOperation<GetFileRequest, File
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -77,7 +77,7 @@ public sealed class UpdateFile(FileService files) : IOperation<UpdateFileRequest
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -105,7 +105,7 @@ public sealed class SetFileStatus(FileService files) : IOperation<SetFileStatusR
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await files.SetStatusAsync(FileRows.SideOf(context), request.Ids, request.Status, context.CancellationToken).ConfigureAwait(false);
+        return await files.SetStatusAsync(SideRows.SideOf(context), request.Ids, request.Status, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -126,7 +126,7 @@ public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, 
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await files.DeleteAsync(FileRows.SideOf(context), request.Ids, context.CancellationToken).ConfigureAwait(false);
+        return await files.DeleteAsync(SideRows.SideOf(context), request.Ids, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -148,7 +148,7 @@ public sealed class PresignFile(FileService files) : IOperation<PresignFileReque
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -215,7 +215,7 @@ public sealed class ListFileStorages(FileService files, StorageConfigService con
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -249,7 +249,7 @@ public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorag
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var cancellationToken = context.CancellationToken;
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -289,7 +289,7 @@ public sealed class VerifyStorage(FileService files) : IOperation<FileStorageReq
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var cancellationToken = context.CancellationToken;
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
@@ -329,7 +329,7 @@ public sealed class SetStorageStatus(FileService files) : IOperation<SetFileStor
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var cancellationToken = context.CancellationToken;
-        var found = await files.FindAsync(FileRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return found.Error!;
