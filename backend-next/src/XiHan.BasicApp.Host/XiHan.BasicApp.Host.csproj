@@ -52,4 +52,13 @@
     <!-- 测试工程复用宿主装配 -->
     <InternalsVisibleTo Include="XiHan.BasicApp.Integration.Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="IpDatabases\ip2region_v4.xdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="IpDatabases\ip2region_v6.xdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
