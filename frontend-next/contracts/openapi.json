@@ -1983,6 +1983,491 @@
         }
       }
     },
+    "/api/delegations": {
+      "delete": {
+        "operationId": "delegations.delete",
+        "tags": [
+          "delegations"
+        ],
+        "summary": "Delete delegation records; an active one stops taking effect. Requires access.delegations.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.delegations.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "delegations.create",
+        "tags": [
+          "delegations"
+        ],
+        "summary": "Create a delegation: the delegator hands one permission or one role to the delegatee for a limited time, and must hold it now. Requires access.delegations.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.delegations.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateDelegationRequest",
+                "type": "object",
+                "properties": {
+                  "delegatorId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "delegateeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "permission": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "roleId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "delegatorId",
+                  "delegateeId",
+                  "expiresAt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DelegationResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegatorId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegatorName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "delegateeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegateeName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "roleId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "roleName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/DelegationStatus"
+                    },
+                    "revokedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "delegatorId",
+                    "delegateeId",
+                    "expiresAt",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/delegations/{id}:revoke": {
+      "post": {
+        "operationId": "delegations.revoke",
+        "tags": [
+          "delegations"
+        ],
+        "summary": "Revoke a pending or active delegation, keeping the record. Requires access.delegations.revoke.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.delegations.revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RevokeDelegationRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DelegationResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegatorId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegatorName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "delegateeId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "delegateeName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "roleId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "roleName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/DelegationStatus"
+                    },
+                    "revokedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "delegatorId",
+                    "delegateeId",
+                    "expiresAt",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/delegations:list": {
+      "post": {
+        "operationId": "delegations.list",
+        "tags": [
+          "delegations"
+        ],
+        "summary": "List the delegations of the current side with paging; their status follows from revocation and the validity window. Requires access.delegations.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.delegations.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfDelegationResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DelegationResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/departments": {
       "delete": {
         "operationId": "departments.delete",
@@ -11064,6 +11549,81 @@
         }
       }
     },
+    "/api/roles/{id}:hierarchy": {
+      "get": {
+        "operationId": "roles.hierarchy",
+        "tags": [
+          "roles"
+        ],
+        "summary": "Get the inheritance of a role: all its parents, all its children, and the grants and denials it inherits. Requires access.roles.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.roles.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RoleHierarchyResponse",
+                  "type": "object",
+                  "properties": {
+                    "roleId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ancestors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleRelativeResponse"
+                      }
+                    },
+                    "descendants": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleRelativeResponse"
+                      }
+                    },
+                    "inherited": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InheritedPermissionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "roleId",
+                    "ancestors",
+                    "descendants",
+                    "inherited"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/roles/{id}:members": {
       "get": {
         "operationId": "roles.members",
@@ -11220,6 +11780,110 @@
                   "required": [
                     "succeeded",
                     "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/{id}:set-parents": {
+      "post": {
+        "operationId": "roles.set-parents",
+        "tags": [
+          "roles"
+        ],
+        "summary": "Set the direct parents of a role to the given set (empty removes all inheritance): its holders get the parents\u0027 grants right away, and the parents\u0027 denials apply to it too. Requires access.roles.set-parents.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.roles.set-parents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetRoleParentsRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "parentIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 50
+                  }
+                },
+                "required": [
+                  "id",
+                  "parentIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RoleHierarchyResponse",
+                  "type": "object",
+                  "properties": {
+                    "roleId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ancestors": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleRelativeResponse"
+                      }
+                    },
+                    "descendants": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleRelativeResponse"
+                      }
+                    },
+                    "inherited": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InheritedPermissionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "roleId",
+                    "ancestors",
+                    "descendants",
+                    "inherited"
                   ]
                 }
               }
@@ -15073,6 +15737,102 @@
           "departmentId"
         ]
       },
+      "DelegationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "delegatorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "delegatorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "delegateeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "delegateeName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "permission": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roleId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "roleName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/DelegationStatus"
+          },
+          "revokedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "delegatorId",
+          "delegateeId",
+          "expiresAt",
+          "status",
+          "createdAt"
+        ]
+      },
+      "DelegationStatus": {
+        "type": "string",
+        "enum": [
+          "Pending",
+          "Active",
+          "Expired",
+          "Revoked"
+        ]
+      },
       "DepartmentNode": {
         "type": "object",
         "properties": {
@@ -15739,6 +16499,35 @@
           "userName",
           "displayName",
           "homeTenantId"
+        ]
+      },
+      "InheritedPermissionResponse": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "sourceRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceRoleName": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "permission",
+          "action",
+          "sourceRoleId",
+          "sourceRoleName",
+          "depth"
         ]
       },
       "LoginEvent": {
@@ -16739,7 +17528,9 @@
           "UserDeny",
           "UserRevoke",
           "UserDataScope",
-          "FieldSecurity"
+          "FieldSecurity",
+          "RoleInheritance",
+          "Delegation"
         ]
       },
       "PermissionFailure": {
@@ -16922,6 +17713,46 @@
           "displayName",
           "status",
           "assignedAt"
+        ]
+      },
+      "RoleRelativeResponse": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RoleStatus"
+          },
+          "depth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isEffective": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "roleId",
+          "code",
+          "name",
+          "status",
+          "depth",
+          "path",
+          "isEffective"
         ]
       },
       "RoleResponse": {
@@ -17484,6 +18315,26 @@
       }
     },
     "x-xihan-permissions": {
+      "access.delegations.create": {
+        "code": "access.delegations.create",
+        "displayName": "Create delegations",
+        "description": "Let a user hand one of their permissions or roles to another user for a limited time."
+      },
+      "access.delegations.delete": {
+        "code": "access.delegations.delete",
+        "displayName": "Delete delegations",
+        "description": "Delete delegation records; an active one stops taking effect."
+      },
+      "access.delegations.read": {
+        "code": "access.delegations.read",
+        "displayName": "Read delegations",
+        "description": "View time-limited delegations of permissions and roles between users."
+      },
+      "access.delegations.revoke": {
+        "code": "access.delegations.revoke",
+        "displayName": "Revoke delegations",
+        "description": "End a pending or active delegation before it expires."
+      },
       "access.field-security.create": {
         "code": "access.field-security.create",
         "displayName": "Create field security",
@@ -17553,6 +18404,11 @@
         "code": "access.roles.read",
         "displayName": "Read roles",
         "description": "View roles, their members and their permissions."
+      },
+      "access.roles.set-parents": {
+        "code": "access.roles.set-parents",
+        "displayName": "Set role parents",
+        "description": "Make roles inherit the permissions of other roles on the same side, and remove that inheritance."
       },
       "access.roles.update": {
         "code": "access.roles.update",

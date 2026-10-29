@@ -196,6 +196,8 @@ export default {
         user_revoke: 'Benutzerrecht entzogen',
         user_data_scope: 'Benutzer-Datenbereich',
         field_security: 'Feldsicherheitsregel',
+        role_inheritance: 'Rollenvererbung',
+        delegation: 'Delegierung',
       },
       role_id: 'Rollen-ID',
       role_name: 'Rolle',

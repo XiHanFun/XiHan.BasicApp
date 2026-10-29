@@ -41,6 +41,11 @@ public static class AccessPermissions
     public const string RolesAssign = "access.roles.assign";
 
     /// <summary>
+    /// 设置角色的上级（继承）。
+    /// </summary>
+    public const string RolesSetParents = "access.roles.set-parents";
+
+    /// <summary>
     /// 查看用户的直接授权：<c>user-grants.list</c>。
     /// </summary>
     public const string UserGrantsRead = "access.user-grants.read";
@@ -81,6 +86,26 @@ public static class AccessPermissions
     public const string FieldSecurityDelete = "access.field-security.delete";
 
     /// <summary>
+    /// 查看委托。
+    /// </summary>
+    public const string DelegationsRead = "access.delegations.read";
+
+    /// <summary>
+    /// 新建委托。
+    /// </summary>
+    public const string DelegationsCreate = "access.delegations.create";
+
+    /// <summary>
+    /// 撤销委托。
+    /// </summary>
+    public const string DelegationsRevoke = "access.delegations.revoke";
+
+    /// <summary>
+    /// 删除委托记录。
+    /// </summary>
+    public const string DelegationsDelete = "access.delegations.delete";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -116,6 +141,7 @@ public static class AccessPermissions
         new(RolesDelete, "Delete roles", PermissionScope.Both, audited: true, description: "Delete roles together with their members and permissions."),
         new(RolesGrant, "Grant permissions", PermissionScope.Both, audited: true, description: "Grant permissions to roles and revoke them."),
         new(RolesAssign, "Assign members", PermissionScope.Both, audited: true, description: "Assign users to roles and remove them."),
+        new(RolesSetParents, "Set role parents", PermissionScope.Both, audited: true, description: "Make roles inherit the permissions of other roles on the same side, and remove that inheritance."),
         new(UserGrantsRead, "Read user grants", PermissionScope.Both, description: "View the permissions granted or denied directly to users."),
         new(UserGrantsGrant, "Manage user grants", PermissionScope.Both, audited: true, description: "Grant, deny and revoke permissions directly on users, with optional validity windows."),
         new(UserDataScopesRead, "Read user data scopes", PermissionScope.Tenant, description: "View per-user data scope overrides."),
@@ -124,6 +150,10 @@ public static class AccessPermissions
         new(FieldSecurityCreate, "Create field security", PermissionScope.Both, audited: true, description: "Create rules that mask or lock fields for roles, users or departments."),
         new(FieldSecurityUpdate, "Update field security", PermissionScope.Both, audited: true, description: "Edit, enable and disable field security rules."),
         new(FieldSecurityDelete, "Delete field security", PermissionScope.Both, audited: true, description: "Delete field security rules."),
+        new(DelegationsRead, "Read delegations", PermissionScope.Both, description: "View time-limited delegations of permissions and roles between users."),
+        new(DelegationsCreate, "Create delegations", PermissionScope.Both, audited: true, description: "Let a user hand one of their permissions or roles to another user for a limited time."),
+        new(DelegationsRevoke, "Revoke delegations", PermissionScope.Both, audited: true, description: "End a pending or active delegation before it expires."),
+        new(DelegationsDelete, "Delete delegations", PermissionScope.Both, audited: true, description: "Delete delegation records; an active one stops taking effect."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

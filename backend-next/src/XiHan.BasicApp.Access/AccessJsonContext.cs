@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Auth;
+using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
@@ -69,4 +70,11 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(FieldSecurityRuleResponse))]
 [JsonSerializable(typeof(PageResult<FieldSecurityRuleResponse>))]
 [JsonSerializable(typeof(List<FieldSecurityRuleView>))]
+[JsonSerializable(typeof(SetRoleParentsRequest))]
+[JsonSerializable(typeof(RoleHierarchyResponse))]
+[JsonSerializable(typeof(CreateDelegationRequest))]
+[JsonSerializable(typeof(RevokeDelegationRequest))]
+[JsonSerializable(typeof(DelegationIdsRequest))]
+[JsonSerializable(typeof(DelegationResponse))]
+[JsonSerializable(typeof(PageResult<DelegationResponse>))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

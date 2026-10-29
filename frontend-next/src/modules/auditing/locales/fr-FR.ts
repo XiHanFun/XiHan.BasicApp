@@ -196,6 +196,8 @@ export default {
         user_revoke: 'Révocation utilisateur',
         user_data_scope: 'Périmètre de données utilisateur',
         field_security: 'Règle de sécurité des champs',
+        role_inheritance: 'Héritage de rôles',
+        delegation: 'Délégation',
       },
       role_id: 'ID du rôle',
       role_name: 'Rôle',

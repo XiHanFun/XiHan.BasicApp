@@ -72,6 +72,8 @@ export function permissionChangeLabel(t: Translate, value: PermissionChangeType)
     case 'UserRevoke': return t('auditing.permission_change_logs.types.user_revoke')
     case 'UserDataScope': return t('auditing.permission_change_logs.types.user_data_scope')
     case 'FieldSecurity': return t('auditing.permission_change_logs.types.field_security')
+    case 'RoleInheritance': return t('auditing.permission_change_logs.types.role_inheritance')
+    case 'Delegation': return t('auditing.permission_change_logs.types.delegation')
   }
 }
 

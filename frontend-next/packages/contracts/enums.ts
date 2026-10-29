@@ -20,6 +20,9 @@ export type ConfigDataType = (typeof ConfigDataType)[number]
 export const DataScope = ['SelfOnly', 'DepartmentOnly', 'DepartmentAndChildren', 'All', 'Custom'] as const
 export type DataScope = (typeof DataScope)[number]
 
+export const DelegationStatus = ['Pending', 'Active', 'Expired', 'Revoked'] as const
+export type DelegationStatus = (typeof DelegationStatus)[number]
+
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
@@ -53,7 +56,7 @@ export type OrganizationStatus = (typeof OrganizationStatus)[number]
 export const PermissionAction = ['Grant', 'Deny'] as const
 export type PermissionAction = (typeof PermissionAction)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity'] as const
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -97,6 +100,7 @@ export const enums = {
   ConditionHitSource,
   ConfigDataType,
   DataScope,
+  DelegationStatus,
   DiffKind,
   FieldMaskStrategy,
   FieldRuleStatus,

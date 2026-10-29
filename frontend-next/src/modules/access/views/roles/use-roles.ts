@@ -1,10 +1,12 @@
 import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
+import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } from './role-parents'
 import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, permissionDefinitions, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
+import { summarizeInheritedPermissions } from './role-parents'
 
 export type RoleRow = ResponseOf<'roles.list'>['items'][number]
 export type RoleDetail = ResponseOf<'roles.get'>
@@ -203,6 +205,8 @@ export function useRolePermissionEditor() {
   const catalog = ref<PermissionItem[]>([])
   const granted = ref<string[]>([])
   const draft = ref<string[]>([])
+  /** 从上级继承来的授予与拒绝（按权限码）：穿梭框里标「继承」与「上级拒绝」 */
+  const inherited = ref<Map<string, InheritedPermissionSources>>(new Map())
   const loading = ref(false)
   const saving = ref(false)
 
@@ -220,16 +224,19 @@ export function useRolePermissionEditor() {
   async function start(row: RoleRow): Promise<void> {
     role.value = row
     applyGranted([])
+    inherited.value = new Map()
     open.value = true
     loading.value = true
     try {
-      const [list, detail] = await Promise.all([
+      const [list, detail, hierarchy] = await Promise.all([
         catalog.value.length > 0 ? Promise.resolve(null) : permissionsApi.list({}),
         rolesApi.get({ id: row.id }),
+        rolesApi.hierarchy({ id: row.id }),
       ])
       if (list)
         catalog.value = list.items
       applyGranted(detail.permissions)
+      inherited.value = summarizeInheritedPermissions(hierarchy.inherited)
     }
     finally {
       loading.value = false
@@ -265,7 +272,7 @@ export function useRolePermissionEditor() {
     }
   }
 
-  return { open, role, catalog, granted, draft, items, dirty, loading, saving, start, save }
+  return { open, role, catalog, granted, draft, inherited, items, dirty, loading, saving, start, save }
 }
 
 // ── 角色成员（穿梭框） ──
@@ -476,29 +483,41 @@ export function rolePermissionEntries(permissions: readonly string[], rules: rea
   ]
 }
 
-/** 详情抽屉：角色概览、权限分配、自定义部门（租户侧）与成员 */
+/** 详情里一条继承来的授予或拒绝：显示名取生成的权限定义表 */
+export interface InheritedPermissionEntry extends InheritedPermission {
+  displayName: string
+}
+
+/** 详情抽屉：角色概览、权限分配、继承来的权限、自定义部门（租户侧）、成员与上下级 */
 export function useRoleDetail() {
   const open = ref(false)
   const loading = ref(false)
   const detail = ref<RoleDetail | null>(null)
   const members = ref<RoleMember[]>([])
+  const hierarchy = ref<RoleHierarchy | null>(null)
   const departmentNames = ref<Map<string, string>>(new Map())
 
   const permissions = computed<RolePermissionEntry[]>(() => detail.value ? rolePermissionEntries(detail.value.permissions, detail.value.rules) : [])
+  const inherited = computed<InheritedPermissionEntry[]>(() => (hierarchy.value?.inherited ?? []).map(item => ({ ...item, displayName: definitions[item.permission]?.displayName ?? item.permission })))
+  const ancestors = computed(() => hierarchy.value?.ancestors ?? [])
+  const descendants = computed(() => hierarchy.value?.descendants ?? [])
 
   async function start(row: RoleRow, canReadDepartments: boolean): Promise<void> {
     open.value = true
     loading.value = true
     detail.value = null
     members.value = []
+    hierarchy.value = null
     try {
-      const [current, list, departments] = await Promise.all([
+      const [current, list, relatives, departments] = await Promise.all([
         rolesApi.get({ id: row.id }),
         rolesApi.members({ id: row.id }),
+        rolesApi.hierarchy({ id: row.id }),
         canReadDepartments && row.dataScope === 'Custom' ? departmentsApi.tree({}) : Promise.resolve(null),
       ])
       detail.value = current
       members.value = list.items
+      hierarchy.value = relatives
       departmentNames.value = departments ? buildNameMap(departments.items) : new Map()
     }
     finally {
@@ -510,5 +529,5 @@ export function useRoleDetail() {
     return departmentNames.value.get(id) ?? id
   }
 
-  return { open, loading, detail, members, permissions, start, departmentName }
+  return { open, loading, detail, members, permissions, inherited, ancestors, descendants, start, departmentName }
 }

@@ -177,4 +177,74 @@ public static class AccessErrors
     /// 目标（角色或部门）已停用；参数 <c>kind</c>、<c>id</c>。
     /// </summary>
     public const string FieldTargetDisabled = "ACCESS_VALIDATION_021";
+
+    /// <summary>
+    /// 角色不能继承自己。
+    /// </summary>
+    public const string RoleSelfParent = "ACCESS_VALIDATION_022";
+
+    /// <summary>
+    /// 内置角色不参与继承；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceBuiltIn = "ACCESS_VALIDATION_023";
+
+    /// <summary>
+    /// 停用的角色不能设为上级；参数 <c>name</c>。
+    /// </summary>
+    public const string ParentDisabled = "ACCESS_VALIDATION_024";
+
+    /// <summary>
+    /// 设为上级会形成环路；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceCycle = "ACCESS_VALIDATION_025";
+
+    /// <summary>
+    /// 已经间接继承，不必再直接继承；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceRedundant = "ACCESS_VALIDATION_026";
+
+    /// <summary>
+    /// 委托人与被委托人是同一人。
+    /// </summary>
+    public const string DelegationSelf = "ACCESS_VALIDATION_027";
+
+    /// <summary>
+    /// 委托须且只能指定一个权限码或一个角色。
+    /// </summary>
+    public const string DelegationTargetInvalid = "ACCESS_VALIDATION_028";
+
+    /// <summary>
+    /// 委托的到期时间须晚于当前时间与生效时间。
+    /// </summary>
+    public const string DelegationWindowInvalid = "ACCESS_VALIDATION_029";
+
+    /// <summary>
+    /// 委托人此刻没有所委托的权限或角色；参数 <c>target</c>。
+    /// </summary>
+    public const string DelegatorNotHolding = "ACCESS_VALIDATION_030";
+
+    /// <summary>
+    /// 委托的角色停用或是内置角色；参数 <c>name</c>。
+    /// </summary>
+    public const string DelegationRoleInvalid = "ACCESS_VALIDATION_031";
+
+    /// <summary>
+    /// 已有一条相同且未到期的委托。
+    /// </summary>
+    public const string DelegationTaken = "ACCESS_CONFLICT_007";
+
+    /// <summary>
+    /// 角色仍被其他角色继承，不能删除。
+    /// </summary>
+    public const string RoleHasChildren = "ACCESS_CONFLICT_008";
+
+    /// <summary>
+    /// 委托已撤销或已到期；参数 <c>id</c>。
+    /// </summary>
+    public const string DelegationClosed = "ACCESS_CONFLICT_009";
+
+    /// <summary>
+    /// 委托不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string DelegationNotFound = "ACCESS_NOTFOUND_006";
 }
