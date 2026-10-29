@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "絞り込み '{field}' の値 '{value}' が不正です。",
   "auditing.trace.value_required": "トレースする値を入力してください。",
   "auditing.trace.range_invalid": "時間範囲の開始は終了より後にできません。",
-  "auditing.retention.invalid": "設定 'auditing.retention-days' は 1〜3650 の整数である必要がありますが、現在は '{value}' です。"
+  "auditing.retention.invalid": "設定 'auditing.retention-days' は 1〜3650 の整数である必要がありますが、現在は '{value}' です。",
+  "my_login_logs.list.description": "自分のログイン記録をページごとに一覧します（ログイン、更新、ログアウト、テナント切替、代理ログイン、パスワード変更などの成否を含む）。新しい順で 1 ページ最大 50 件です。ログインのみ必要です。"
 }

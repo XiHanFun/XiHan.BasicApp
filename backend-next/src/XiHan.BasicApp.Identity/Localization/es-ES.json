@@ -92,5 +92,8 @@
   "identity.external.taken": "Esta cuenta de terceros ya está vinculada a otro usuario.",
   "identity.external.not_found": "No hay vinculación para este proveedor.",
   "profile.begin_external_bind.description": "Inicia una vinculación: emite una intención de vinculación para el usuario conectado (10 minutos, un solo uso) y devuelve la URL de autorización del tercero; solo ese usuario puede confirmar el ticket. No disponible en suplantación.",
-  "identity.external.provider_not_found": "Este método de inicio de sesión con terceros no existe o no está habilitado."
+  "identity.external.provider_not_found": "Este método de inicio de sesión con terceros no existe o no está habilitado.",
+  "profile.sessions.description": "Lista sus dispositivos con sesión iniciada: todas sus sesiones activas (plataforma e inquilinos), la actual primero. Solo requiere iniciar sesión.",
+  "profile.revoke_session.description": "Cierra la sesión de uno de sus dispositivos; para el actual use cerrar sesión. Solo requiere iniciar sesión.",
+  "profile.revoke_other_sessions.description": "Cierra la sesión de todos sus dispositivos salvo el actual, incluidas las suplantaciones que inició y siguen abiertas. Solo requiere iniciar sesión."
 }

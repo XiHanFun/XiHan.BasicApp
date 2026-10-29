@@ -92,5 +92,8 @@
   "identity.external.taken": "该第三方账号已被其他用户绑定。",
   "identity.external.not_found": "第三方账号绑定不存在。",
   "profile.begin_external_bind.description": "发起绑定：为当前登录的人领一个绑定意图（十分钟、用一次），返回去第三方授权的地址；回调的票据只能由本人确认。模仿会话不能用。",
-  "identity.external.provider_not_found": "该第三方登录方式不存在或未启用。"
+  "identity.external.provider_not_found": "该第三方登录方式不存在或未启用。",
+  "profile.sessions.description": "列出本人的登录设备：本人全部有效会话（不分平台与租户），当前会话在最前。已登录即可。",
+  "profile.revoke_session.description": "下线本人的一台设备；当前设备请用退出登录。已登录即可。",
+  "profile.revoke_other_sessions.description": "下线本人除当前设备外的全部设备，连同本人发起、还没结束的模仿会话。已登录即可。"
 }

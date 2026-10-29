@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
-import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile } from '~/types'
+import type { LoginEvent, ResponseOf, TwoFactorMethod } from '~/contracts'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
@@ -119,6 +119,65 @@ function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): Exter
   }
 }
 
+/** 4.x 个人中心「登录设备」图标表的设备类型编号：2 手机、3 桌面、4 平板；机器人与没识别出来的是 1（地球） */
+const SESSION_DEVICE_TYPES: Record<string, number> = { Mobile: 2, Desktop: 3, Tablet: 4 }
+
+/** `profile.sessions` / `revoke-session` / `revoke-other-sessions` → 4.x 个人中心「登录设备」的条目：设备类别换成图标表的编号，系统与时间换成 4.x 的字段名，没有的字段不给（6.0 不给设备名） */
+function toShellSession(session: ResponseOf<'profile.sessions'>['items'][number]): UserSessionItem {
+  return {
+    sessionId: session.id,
+    deviceType: SESSION_DEVICE_TYPES[session.device ?? ''] ?? 1,
+    ...(session.browser ? { browser: session.browser } : {}),
+    ...(session.os ? { operatingSystem: session.os } : {}),
+    ...(session.ipAddress ? { ipAddress: session.ipAddress } : {}),
+    ...(session.location ? { location: session.location } : {}),
+    loginTime: session.loginAt,
+    lastActivityTime: session.lastActiveAt,
+    isCurrent: session.isCurrent,
+  }
+}
+
+/** 登录以外的认证事件 → 4.x 的登录结果（成功时）；这些事件失败一律是 Failed */
+const LOGIN_EVENT_RESULTS: Record<Exclude<LoginEvent, 'Login'>, LoginAuditResult> = {
+  Refresh: 'TokenRefreshed',
+  Logout: 'Logout',
+  SwitchTenant: 'TenantSwitched',
+  ImpersonationStart: 'ImpersonationStarted',
+  ImpersonationStop: 'ImpersonationEnded',
+  ChangePassword: 'PasswordChanged',
+  TwoFactorChallenge: 'RequiresTwoFactor',
+  TwoFactorEnable: 'MfaBound',
+  TwoFactorDisable: 'MfaUnbound',
+  TwoFactorReset: 'MfaUnbound',
+  RoleActivation: 'RolesActivated',
+}
+
+/** 登录失败按错误码细分成 4.x 的结果：账号或密码不对、双因素验证码不对，其余是 Failed */
+const LOGIN_FAILURE_RESULTS: Record<string, LoginAuditResult> = {
+  IDENTITY_DENIED_003: 'InvalidCredentials',
+  IDENTITY_DENIED_009: 'TwoFactorFailed',
+}
+
+type MyLoginLog = ResponseOf<'my-login-logs.list'>['items'][number]
+
+function loginResultOf(log: MyLoginLog): LoginAuditResult {
+  if (log.event === 'Login')
+    return log.succeeded ? 'Success' : LOGIN_FAILURE_RESULTS[log.errorCode ?? ''] ?? 'Failed'
+  return log.succeeded ? LOGIN_EVENT_RESULTS[log.event] : 'Failed'
+}
+
+/** `my-login-logs.list` → 4.x 个人中心「登录日志」的条目：结果由事件、成败与错误码推出，时间与 IP 换成 4.x 的字段名，失败原因进 message，没有的字段不给（6.0 不记登录地点） */
+function toShellLoginLog(log: MyLoginLog): LoginLogItem {
+  return {
+    loginTime: log.occurredAt,
+    ...(log.clientIp ? { loginIp: log.clientIp } : {}),
+    ...(log.browser ? { browser: log.browser } : {}),
+    ...(log.os ? { os: log.os } : {}),
+    loginResult: loginResultOf(log),
+    ...(log.errorMessage ? { message: log.errorMessage } : {}),
+  }
+}
+
 /** `my-api-credentials.*` → 4.x 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
@@ -229,6 +288,16 @@ export function registerApplicationContext(router: Router): void {
     beginOAuthBindApi: async provider => (await profileOps.beginExternalBind({ provider })).url,
     linkAccountApi: async ticket => toShellExternalLogin(await profileOps.linkExternal({ ticket })),
     unlinkAccountApi: async provider => (await profileOps.unlinkExternal({ provider })).items.map(toShellExternalLogin),
+    // 登录设备（Identity 的 profile.sessions / revoke-session / revoke-other-sessions，只要求已登录）：本人全部在线的会话、当前的在最前，IP 不遮掩；
+    // 下线当前会话是 IDENTITY_CONFLICT_005、不是本人的会话是 IDENTITY_NOTFOUND_002；下线后页签重新拉列表
+    getSessionsApi: async () => (await profileOps.sessions({})).items.map(toShellSession),
+    revokeSessionApi: sessionId => profileOps.revokeSession({ sessionId }),
+    revokeOtherSessionsApi: () => profileOps.revokeOtherSessions({}),
+    // 登录日志（Auditing 的 my-login-logs.list，只要求已登录、只看本人的认证事件，pageSize 1–50）：页码与条数照 4.x 回请求的那一页
+    getLoginLogsApi: async (page, pageSize) => {
+      const result = await myLoginLogOps.list({ page, pageSize })
+      return { items: result.items.map(toShellLoginLog), total: result.total, page, pageSize }
+    },
     // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
     lockSessionApi: input => authOps.lock({ password: input.password }),
     unlockSessionApi: input => authOps.unlock({ password: input.password }),
@@ -260,9 +329,9 @@ export function registerApplicationContext(router: Router): void {
       start: input => impersonationOps.start({ targetUserId: input.targetUserId, tenantId: input.tenantId ?? null, reason: input.reason ?? null }),
       stop: () => impersonationOps.stop({}),
     },
-    // 控制中心：我能进入的租户（注册地 + 成员）与能否进入平台；切换走 auth.switch-tenant，在目标上下文续接当前会话
+    // 控制中心与个人中心「我的租户」：我能进入的租户（注册地 + 成员）与能否进入平台；切换走 auth.switch-tenant，在目标上下文续接当前会话
     tenantApi: {
-      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isCurrent: tenant.isCurrent })),
+      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isCurrent: tenant.isCurrent, joinedTime: tenant.joinedAt })),
       switchTenant: input => authOps.switchTenant({ tenantId: input.tenantId ?? null }),
     },
     // 切换角色：auth.session-roles 列出持有与激活，auth.activate-roles 换激活集并续接会话（Access 的动态职责分离在服务端判定）

@@ -1935,6 +1935,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/my-login-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your own sign-in logs page by page (sign-in, refresh, sign-out, tenant switch, impersonation, password change and more, successful or not), newest first, up to 50 per page. Requires sign-in only. */
+        get: operations["my-login-logs.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/my-oauth-apps": {
         parameters: {
             query?: never;
@@ -2947,6 +2964,57 @@ export interface paths {
         put?: never;
         /** Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions. */
         post: operations["profile.link-external"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:revoke-other-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign out all your devices except the current one, including impersonation sessions you started that are still open. Requires sign-in only. */
+        post: operations["profile.revoke-other-sessions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:revoke-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign out one of your devices; use sign-out for the current one. Requires sign-in only. */
+        post: operations["profile.revoke-session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your signed-in devices: all your active sessions (platform and tenants alike), the current one first. Requires sign-in only. */
+        get: operations["profile.sessions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4152,6 +4220,8 @@ export interface components {
             isHome: boolean;
             memberType?: components["schemas"]["TenantMemberType"] | null;
             isCurrent: boolean;
+            /** Format: date-time */
+            joinedAt: string;
         };
         BatchFailure: {
             /** Format: uuid */
@@ -4961,6 +5031,35 @@ export interface components {
             lastUsedAt?: string | null;
             /** Format: date-time */
             createdAt: string;
+        };
+        MyLoginLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            event: components["schemas"]["LoginEvent"];
+            succeeded: boolean;
+            errorCode?: string | null;
+            errorMessage?: string | null;
+            clientIp?: string | null;
+            browser?: string | null;
+            os?: string | null;
+            device?: string | null;
+            impersonated: boolean;
+        };
+        MySessionResponse: {
+            /** Format: uuid */
+            id: string;
+            device?: string | null;
+            browser?: string | null;
+            os?: string | null;
+            ipAddress?: string | null;
+            location?: string | null;
+            /** Format: date-time */
+            loginAt: string;
+            /** Format: date-time */
+            lastActiveAt: string;
+            isCurrent: boolean;
         };
         /** @enum {string} */
         NotificationContentFormat: "Text" | "Markdown" | "Html";
@@ -12313,6 +12412,43 @@ export interface operations {
             };
         };
     };
+    "my-login-logs.list": {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyLoginLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "my-oauth-apps.list": {
         parameters: {
             query?: never;
@@ -15931,6 +16067,110 @@ export interface operations {
                         boundAt: string;
                         /** Format: date-time */
                         lastLoginAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.revoke-other-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MySessionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.revoke-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    sessionId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MySessionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MySessionResponse"][];
                     };
                 };
             };

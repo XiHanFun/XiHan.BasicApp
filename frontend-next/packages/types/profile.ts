@@ -63,7 +63,10 @@ export interface ChangePhoneParams {
   password: string
 }
 
-/** 与后端 LoginResult 枚举（JsonStringEnumConverter 序列化值）一致，含认证审计事件 */
+/**
+ * 个人中心「登录日志」的结果（4.x 后端 LoginResult 枚举的序列化值，含认证审计事件）：
+ * 6.0 记的是认证事件 + 成败 + 错误码，由壳层（src/app/context.ts）按事件换成这里的结果；RolesActivated 对应 6.0 新增的会话角色激活
+ */
 export type LoginAuditResult
   = | 'AccountDisabled'
     | 'AccountLocked'
@@ -77,6 +80,7 @@ export type LoginAuditResult
     | 'PasswordChanged'
     | 'PasswordReset'
     | 'RequiresTwoFactor'
+    | 'RolesActivated'
     | 'SessionRevoked'
     | 'Success'
     | 'TenantSwitched'

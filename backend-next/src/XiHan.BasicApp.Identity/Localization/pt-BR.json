@@ -92,5 +92,8 @@
   "identity.external.taken": "Esta conta de terceiros já está vinculada a outro usuário.",
   "identity.external.not_found": "Não há vinculação para este provedor.",
   "profile.begin_external_bind.description": "Inicia uma vinculação: emite uma intenção de vinculação para o usuário conectado (10 minutos, uso único) e retorna a URL de autorização do terceiro; só esse usuário pode confirmar o ticket. Indisponível em personificação.",
-  "identity.external.provider_not_found": "Este método de login com terceiros não existe ou não está habilitado."
+  "identity.external.provider_not_found": "Este método de login com terceiros não existe ou não está habilitado.",
+  "profile.sessions.description": "Lista seus dispositivos conectados: todas as suas sessões ativas (plataforma e locatários), a atual primeiro. Requer apenas login.",
+  "profile.revoke_session.description": "Desconecta um de seus dispositivos; para o atual, use sair. Requer apenas login.",
+  "profile.revoke_other_sessions.description": "Desconecta todos os seus dispositivos, exceto o atual, incluindo personificações iniciadas por você que ainda estão abertas. Requer apenas login."
 }

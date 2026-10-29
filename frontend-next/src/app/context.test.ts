@@ -48,19 +48,19 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[2]).toMatchObject({ method: 'GET', url: '/api/inbox:banners' })
   })
 
-  it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型）', async () => {
+  it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型，加入时间换成 joinedTime）', async () => {
     const calls: Call[] = []
     record(calls, () => json(200, {
       canAccessPlatform: true,
       platformIsCurrent: true,
       tenants: [
-        { tenantId: 'demo', name: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false },
-        { tenantId: 'acme', name: 'Acme', isHome: true, memberType: null, isCurrent: true },
+        { tenantId: 'demo', name: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false, joinedAt: '2026-10-01T00:00:00Z' },
+        { tenantId: 'acme', name: 'Acme', isHome: true, memberType: null, isCurrent: true, joinedAt: '2026-01-01T00:00:00Z' },
       ],
     }))
     expect(await useAppContext().apis.tenantApi.myAvailableTenants()).toEqual([
-      { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false },
-      { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isCurrent: true },
+      { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false, joinedTime: '2026-10-01T00:00:00Z' },
+      { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isCurrent: true, joinedTime: '2026-01-01T00:00:00Z' },
     ])
     expect(calls).toEqual([{ method: 'GET', url: '/api/tenants:mine', body: null }])
   })
@@ -188,6 +188,61 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[2]).toEqual({ method: 'POST', url: '/api/profile:unlink-external', body: { provider: 'github' } })
     expect(await apis.beginOAuthBindApi('wecom')).toBe('/api/oauth/wecom/challenge?mode=bind&intent=i-1')
     expect(calls[3]).toEqual({ method: 'POST', url: '/api/profile:begin-external-bind', body: { provider: 'wecom' } })
+  })
+
+  it('登录设备：profile.sessions 投影成 4.x 的条目（设备类别换成图标表编号，机器人与没识别的是 1，系统与时间换字段名，没有的字段不给）；下线一个传 sessionId、下线其他传空', async () => {
+    const calls: Call[] = []
+    const session = (id: string, device: null | string, extra: object = {}) => ({ id, device, browser: null, os: null, ipAddress: null, location: null, loginAt: `2026-10-30T00:00:0${id.at(-1)}Z`, lastActiveAt: '2026-10-30T01:00:00Z', isCurrent: false, ...extra })
+    const current = session('s-1', 'Desktop', { browser: 'Chrome', os: 'Windows', ipAddress: '10.0.0.1', location: '上海', isCurrent: true })
+    record(calls, url => json(200, { items: url.endsWith(':sessions') ? [current, session('s-2', 'Mobile'), session('s-3', 'Tablet'), session('s-4', 'Bot'), session('s-5', null)] : [current] }))
+    const apis = useAppContext().apis
+    expect(await apis.getSessionsApi()).toEqual([
+      { sessionId: 's-1', deviceType: 3, browser: 'Chrome', operatingSystem: 'Windows', ipAddress: '10.0.0.1', location: '上海', loginTime: '2026-10-30T00:00:01Z', lastActivityTime: '2026-10-30T01:00:00Z', isCurrent: true },
+      { sessionId: 's-2', deviceType: 2, loginTime: '2026-10-30T00:00:02Z', lastActivityTime: '2026-10-30T01:00:00Z', isCurrent: false },
+      { sessionId: 's-3', deviceType: 4, loginTime: '2026-10-30T00:00:03Z', lastActivityTime: '2026-10-30T01:00:00Z', isCurrent: false },
+      { sessionId: 's-4', deviceType: 1, loginTime: '2026-10-30T00:00:04Z', lastActivityTime: '2026-10-30T01:00:00Z', isCurrent: false },
+      { sessionId: 's-5', deviceType: 1, loginTime: '2026-10-30T00:00:05Z', lastActivityTime: '2026-10-30T01:00:00Z', isCurrent: false },
+    ])
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/profile:sessions', body: null })
+    await apis.revokeSessionApi('s-2')
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:revoke-session', body: { sessionId: 's-2' } })
+    await apis.revokeOtherSessionsApi()
+    expect(calls[2]).toEqual({ method: 'POST', url: '/api/profile:revoke-other-sessions', body: {} })
+  })
+
+  it('登录日志：my-login-logs.list 按页码与条数取（回请求的那一页），事件、成败与错误码推成 4.x 的结果，时间与 IP 换字段名、失败原因进 message，没有的字段不给', async () => {
+    const calls: Call[] = []
+    const events: Array<[string, boolean, null | string, string]> = [
+      ['Login', true, null, 'Success'],
+      ['Login', false, 'IDENTITY_DENIED_003', 'InvalidCredentials'],
+      ['Login', false, 'IDENTITY_DENIED_009', 'TwoFactorFailed'],
+      ['Login', false, 'IDENTITY_DENIED_001', 'Failed'],
+      ['Refresh', true, null, 'TokenRefreshed'],
+      ['Refresh', false, 'IDENTITY_DENIED_004', 'Failed'],
+      ['Logout', true, null, 'Logout'],
+      ['SwitchTenant', true, null, 'TenantSwitched'],
+      ['ImpersonationStart', true, null, 'ImpersonationStarted'],
+      ['ImpersonationStop', true, null, 'ImpersonationEnded'],
+      ['ChangePassword', true, null, 'PasswordChanged'],
+      ['ChangePassword', false, 'IDENTITY_DENIED_003', 'Failed'],
+      ['TwoFactorChallenge', true, null, 'RequiresTwoFactor'],
+      ['TwoFactorEnable', true, null, 'MfaBound'],
+      ['TwoFactorDisable', true, null, 'MfaUnbound'],
+      ['TwoFactorReset', true, null, 'MfaUnbound'],
+      ['RoleActivation', true, null, 'RolesActivated'],
+    ]
+    const log = { id: 'l-0', occurredAt: '2026-10-30T00:00:00Z', event: 'Login', succeeded: false, errorCode: 'IDENTITY_DENIED_003', errorMessage: '用户名或密码错误。', clientIp: '10.0.0.1', browser: 'Chrome', os: 'Windows', device: 'Desktop', impersonated: false }
+    record(calls, () => json(200, {
+      items: [log, ...events.map(([event, succeeded, errorCode], index) => ({ id: `l-${index + 1}`, occurredAt: '2026-10-30T00:00:00Z', event, succeeded, errorCode, errorMessage: null, clientIp: null, browser: null, os: null, device: null, impersonated: false }))],
+      total: 42,
+      page: { index: 2, size: 20 },
+    }))
+    const result = await useAppContext().apis.getLoginLogsApi(2, 20)
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/my-login-logs?page=2&pageSize=20', body: null })
+    expect(result).toMatchObject({ total: 42, page: 2, pageSize: 20 })
+    expect(result.items[0]).toEqual({ loginTime: '2026-10-30T00:00:00Z', loginIp: '10.0.0.1', browser: 'Chrome', os: 'Windows', loginResult: 'InvalidCredentials', message: '用户名或密码错误。' })
+    expect(result.items[1]).toEqual({ loginTime: '2026-10-30T00:00:00Z', loginResult: 'Success' })
+    expect(result.items.slice(1).map(item => item.loginResult)).toEqual(events.map(([, , , expected]) => expected))
   })
 
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {

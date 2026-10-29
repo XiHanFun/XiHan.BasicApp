@@ -22,5 +22,6 @@
   "auditing.query.value_invalid": "El valor '{value}' no es válido para el filtro '{field}'.",
   "auditing.trace.value_required": "Introduzca un valor para rastrear.",
   "auditing.trace.range_invalid": "El inicio del intervalo de tiempo no puede ser posterior a su fin.",
-  "auditing.retention.invalid": "La configuración 'auditing.retention-days' debe ser un número entero de 1 a 3650, pero era '{value}'."
+  "auditing.retention.invalid": "La configuración 'auditing.retention-days' debe ser un número entero de 1 a 3650, pero era '{value}'.",
+  "my_login_logs.list.description": "Lista sus propios registros de inicio de sesión por páginas (inicio, actualización, cierre, cambio de inquilino, suplantación, cambio de contraseña, etc., con o sin éxito), del más reciente al más antiguo, hasta 50 por página. Solo requiere iniciar sesión."
 }

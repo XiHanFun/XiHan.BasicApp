@@ -7,6 +7,7 @@ using XiHan.BasicApp.Auditing.Operations.ConditionHits;
 using XiHan.BasicApp.Auditing.Operations.DiffLogs;
 using XiHan.BasicApp.Auditing.Operations.ExceptionLogs;
 using XiHan.BasicApp.Auditing.Operations.LoginLogs;
+using XiHan.BasicApp.Auditing.Operations.MyLoginLogs;
 using XiHan.BasicApp.Auditing.Operations.OpenApiLogs;
 using XiHan.BasicApp.Auditing.Operations.OperationLogs;
 using XiHan.BasicApp.Auditing.Operations.PermissionChangeLogs;
@@ -33,6 +34,9 @@ namespace XiHan.BasicApp.Auditing;
 [JsonSerializable(typeof(GetLoginLogRequest))]
 [JsonSerializable(typeof(LoginLogResponse))]
 [JsonSerializable(typeof(PageResult<LoginLogResponse>))]
+[JsonSerializable(typeof(MyLoginLogsRequest))]
+[JsonSerializable(typeof(MyLoginLogResponse))]
+[JsonSerializable(typeof(PageResult<MyLoginLogResponse>))]
 [JsonSerializable(typeof(GetOperationLogRequest))]
 [JsonSerializable(typeof(OperationLogDetailResponse))]
 [JsonSerializable(typeof(PageResult<OperationLogResponse>))]

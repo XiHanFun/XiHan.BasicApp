@@ -135,6 +135,11 @@ public static class AuditingMessages
     /// </summary>
     public const string RetentionInvalid = "auditing.retention.invalid";
 
+    /// <summary>
+    /// 操作 <c>my-login-logs.list</c> 的说明。
+    /// </summary>
+    public const string ListMyLoginLogsDescription = "my_login_logs.list.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AuditingMessages)));
 
     /// <summary>
