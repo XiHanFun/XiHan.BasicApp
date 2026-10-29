@@ -25,8 +25,10 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="rules">授予规则（连同删 Deny 与有效期）。</param>
 /// <param name="cache">指派缓存。</param>
 /// <param name="fieldRules">字段安全规则（连同删以该角色为目标的规则）。</param>
+/// <param name="hierarchy">继承写入（仍被继承的不能删，连同删它作为下级的边）。</param>
+/// <param name="delegations">委托（连同删委托该角色的记录）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
-public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules) : IOperation<RoleIdsRequest, BatchResult>
+public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules, RoleHierarchyService hierarchy, DelegationService delegations) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -56,6 +58,19 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
                 continue;
             }
 
+            // 仍被别的角色继承的不能删：删了会悄悄拿走下级持有人的授予
+            var detached = await hierarchy.DetachAsync(role, context.CancellationToken).ConfigureAwait(false);
+            if (!detached.TryGetValue(out var free))
+            {
+                return detached.Error!;
+            }
+
+            if (!free)
+            {
+                failed.Add(new BatchFailure(id, AccessErrors.RoleHasChildren));
+                continue;
+            }
+
             var removed = await RemoveAsync(role, context.CancellationToken).ConfigureAwait(false);
             if (removed.IsFailure)
             {
@@ -76,6 +91,12 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
         if (scopeRows.IsFailure)
         {
             return scopeRows;
+        }
+
+        var delegated = await delegations.RemoveForRoleAsync(role, cancellationToken).ConfigureAwait(false);
+        if (delegated.IsFailure)
+        {
+            return delegated;
         }
 
         var fieldRows = await fieldRules.RemoveForTargetAsync(role.OwnerTenantId, FieldSecurityTargetKind.Role, roleId, cancellationToken).ConfigureAwait(false);

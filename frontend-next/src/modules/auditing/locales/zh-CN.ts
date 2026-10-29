@@ -196,6 +196,8 @@ export default {
         user_revoke: '撤销用户直接授权',
         user_data_scope: '用户数据范围',
         field_security: '字段安全规则',
+        role_inheritance: '角色继承',
+        delegation: '权限委托',
       },
       role_id: '角色主键',
       role_name: '角色',

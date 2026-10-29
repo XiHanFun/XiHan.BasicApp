@@ -196,6 +196,8 @@ export default {
         user_revoke: '撤銷使用者直接授權',
         user_data_scope: '使用者資料範圍',
         field_security: '欄位安全規則',
+        role_inheritance: '角色繼承',
+        delegation: '權限委託',
       },
       role_id: '角色 ID',
       role_name: '角色',

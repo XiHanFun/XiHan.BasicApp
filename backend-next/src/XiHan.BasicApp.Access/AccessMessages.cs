@@ -355,6 +355,106 @@ public static class AccessMessages
     /// </summary>
     public const string FieldTargetDisabled = "access.field_security.target_disabled";
 
+    /// <summary>
+    /// 操作 <c>roles.hierarchy</c> 的说明。
+    /// </summary>
+    public const string RoleHierarchyDescription = "roles.hierarchy.description";
+
+    /// <summary>
+    /// 操作 <c>roles.set-parents</c> 的说明。
+    /// </summary>
+    public const string SetRoleParentsDescription = "roles.set_parents.description";
+
+    /// <summary>
+    /// 操作 <c>delegations.list</c> 的说明。
+    /// </summary>
+    public const string ListDelegationsDescription = "delegations.list.description";
+
+    /// <summary>
+    /// 操作 <c>delegations.create</c> 的说明。
+    /// </summary>
+    public const string CreateDelegationDescription = "delegations.create.description";
+
+    /// <summary>
+    /// 操作 <c>delegations.revoke</c> 的说明。
+    /// </summary>
+    public const string RevokeDelegationDescription = "delegations.revoke.description";
+
+    /// <summary>
+    /// 操作 <c>delegations.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteDelegationsDescription = "delegations.delete.description";
+
+    /// <summary>
+    /// 角色不能继承自己。
+    /// </summary>
+    public const string RoleSelfParent = "access.role.self_parent";
+
+    /// <summary>
+    /// 内置角色不参与继承；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceBuiltIn = "access.role.inheritance_built_in";
+
+    /// <summary>
+    /// 停用的角色不能设为上级；参数 <c>name</c>。
+    /// </summary>
+    public const string ParentDisabled = "access.role.parent_disabled";
+
+    /// <summary>
+    /// 设为上级会形成环路；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceCycle = "access.role.inheritance_cycle";
+
+    /// <summary>
+    /// 已经间接继承；参数 <c>name</c>。
+    /// </summary>
+    public const string InheritanceRedundant = "access.role.inheritance_redundant";
+
+    /// <summary>
+    /// 角色仍被其他角色继承；参数 <c>name</c>。
+    /// </summary>
+    public const string RoleHasChildren = "access.role.has_children";
+
+    /// <summary>
+    /// 委托人与被委托人是同一人。
+    /// </summary>
+    public const string DelegationSelf = "access.delegation.self";
+
+    /// <summary>
+    /// 委托目标不是恰好一个权限码或角色。
+    /// </summary>
+    public const string DelegationTargetInvalid = "access.delegation.target_invalid";
+
+    /// <summary>
+    /// 委托的有效期不合规；参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// </summary>
+    public const string DelegationWindowInvalid = "access.delegation.window_invalid";
+
+    /// <summary>
+    /// 委托人此刻没有所委托的权限或角色；参数 <c>target</c>。
+    /// </summary>
+    public const string DelegatorNotHolding = "access.delegation.delegator_not_holding";
+
+    /// <summary>
+    /// 委托的角色停用或是内置角色；参数 <c>name</c>。
+    /// </summary>
+    public const string DelegationRoleInvalid = "access.delegation.role_invalid";
+
+    /// <summary>
+    /// 已有一条相同且未到期的委托。
+    /// </summary>
+    public const string DelegationTaken = "access.delegation.taken";
+
+    /// <summary>
+    /// 委托已撤销或已到期；参数 <c>id</c>。
+    /// </summary>
+    public const string DelegationClosed = "access.delegation.closed";
+
+    /// <summary>
+    /// 委托不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string DelegationNotFound = "access.delegation.not_found";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

@@ -82,4 +82,14 @@ public enum PermissionChangeType
     /// 新建、修改或删除字段安全规则。
     /// </summary>
     FieldSecurity = 14,
+
+    /// <summary>
+    /// 设置角色的上级（继承）。
+    /// </summary>
+    RoleInheritance = 15,
+
+    /// <summary>
+    /// 新建、撤销或删除委托。
+    /// </summary>
+    Delegation = 16,
 }

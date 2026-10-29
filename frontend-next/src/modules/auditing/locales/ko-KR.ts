@@ -196,6 +196,8 @@ export default {
         user_revoke: '사용자 직접 권한 취소',
         user_data_scope: '사용자 데이터 범위',
         field_security: '필드 보안 규칙',
+        role_inheritance: '역할 상속',
+        delegation: '권한 위임',
       },
       role_id: '역할 ID',
       role_name: '역할',

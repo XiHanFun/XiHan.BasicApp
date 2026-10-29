@@ -2,7 +2,7 @@
 import type { ChangeOutcome, DataScopeValue, MemberCandidate, RoleMember, RoleRow, RoleStatus } from './use-roles'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
@@ -10,6 +10,7 @@ import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import DataScopeEditor from './components/DataScopeEditor.vue'
+import RoleParentsDialog from './components/RoleParentsDialog.vue'
 import { ROLE_STATUSES, rolesResource, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
 defineOptions({ name: 'AccessRolesView' })
@@ -28,6 +29,9 @@ const scopeEditor = useRoleDataScopeEditor()
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
+/** 设置上级弹窗 */
+const parentsVisible = ref(false)
+const parentsRole = ref<RoleRow | null>(null)
 
 function reload() {
   void schemaPageRef.value?.reload()
@@ -64,6 +68,11 @@ function formatBoolean(value: boolean): string {
 
 function formatNullable(value: unknown): string {
   return value === null || value === undefined || value === '' ? '-' : String(value)
+}
+
+/** 继承方式：1 级为直接继承，更深为经其他上级的间接继承 */
+function inheritMode(depth: number): string {
+  return depth <= 1 ? t('access.roles.inherit_direct') : t('access.roles.inherit_indirect', { depth })
 }
 
 /** 4.x 的「{from} 至 {to}」：两端都没有即不限 */
@@ -109,6 +118,8 @@ const schema = computed<PageSchema>(() => ({
     // 权限分配要读权限目录（套餐收窄后的本侧目录）
     { key: 'assignPermission', title: t('access.roles.actions.assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: () => auth.can('access.permissions.read'), permission: 'access.roles.grant' },
     { key: 'members', title: t('access.roles.actions.members'), scope: 'row', icon: 'lucide:users', permission: 'access.roles.assign' },
+    // 内建角色不参与继承
+    { key: 'parents', title: t('access.roles.actions.parents'), scope: 'row', icon: 'lucide:git-fork', visible: row => !asRow(row).isBuiltIn, permission: 'access.roles.set-parents' },
     { key: 'assignDataScope', title: t('access.roles.actions.data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => isTenantCaller.value, permission: 'access.roles.update' },
     { key: 'toggle', title: t('access.roles.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.roles.update' },
     // 内建角色后端不许删
@@ -138,6 +149,12 @@ function onAction(payload: SchemaActionPayload) {
     case 'members':
       if (row)
         void run(memberEditor.start(row, auth.can('identity.users.read')), t('access.roles.members_load_failed'))
+      break
+    case 'parents':
+      if (row) {
+        parentsRole.value = row
+        parentsVisible.value = true
+      }
       break
     case 'assignDataScope':
       if (row)
@@ -284,11 +301,20 @@ async function saveScope() {
                 <XhTabsTrigger value="permissions">
                   {{ t('access.roles.tabs.permissions', { count: detailView.permissions.value.length }) }}
                 </XhTabsTrigger>
+                <XhTabsTrigger value="inheritedPermissions">
+                  {{ t('access.roles.tabs.inherited_permissions', { count: detailView.inherited.value.length }) }}
+                </XhTabsTrigger>
                 <XhTabsTrigger v-if="detailView.detail.value.role.dataScope === 'Custom'" value="dataScopes">
                   {{ t('access.roles.tabs.data_scopes', { count: detailView.detail.value.customDepartments.length }) }}
                 </XhTabsTrigger>
                 <XhTabsTrigger value="members">
                   {{ t('access.roles.tabs.members', { count: detailView.members.value.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="ancestors">
+                  {{ t('access.roles.tabs.ancestors', { count: detailView.ancestors.value.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="descendants">
+                  {{ t('access.roles.tabs.descendants', { count: detailView.descendants.value.length }) }}
                 </XhTabsTrigger>
                 <XhTabsIndicator />
               </XhTabsList>
@@ -365,6 +391,35 @@ async function saveScope() {
                   <XhEmptyStateDescription>{{ t('access.roles.empty_permissions') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
               </XhTabsContent>
+              <XhTabsContent value="inheritedPermissions">
+                <table v-if="detailView.inherited.value.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.permission') }}</th>
+                      <th>{{ t('access.roles.th.code') }}</th>
+                      <th>{{ t('access.roles.th.action') }}</th>
+                      <th>{{ t('access.roles.th.source_role') }}</th>
+                      <th>{{ t('access.roles.th.inherit_mode') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.inherited.value" :key="`${item.permission}-${item.sourceRoleId}-${item.action}`">
+                      <td>{{ item.displayName }}</td>
+                      <td>{{ item.permission }}</td>
+                      <td>{{ item.action === 'Deny' ? t('access.roles.action_deny') : t('access.roles.action_grant') }}</td>
+                      <td>{{ item.sourceRoleName }}</td>
+                      <td>{{ inheritMode(item.depth) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_inherited_permissions') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
               <XhTabsContent v-if="detailView.detail.value.role.dataScope === 'Custom'" value="dataScopes">
                 <table v-if="detailView.detail.value.customDepartments.length" class="xh-detail-table">
                   <thead>
@@ -415,6 +470,82 @@ async function saveScope() {
                   </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('access.roles.empty_members') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="ancestors">
+                <table v-if="detailView.ancestors.value.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.parent_role') }}</th>
+                      <th>{{ t('access.roles.th.role_code') }}</th>
+                      <th>{{ t('access.roles.th.inherit_mode') }}</th>
+                      <th>{{ t('access.roles.th.status') }}</th>
+                      <th>{{ t('access.roles.th.effective') }}</th>
+                      <th>{{ t('access.roles.th.path') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.ancestors.value" :key="item.roleId">
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.code }}</td>
+                      <td>{{ inheritMode(item.depth) }}</td>
+                      <td>{{ statusLabel(item.status) }}</td>
+                      <td>
+                        <XhTagRoot v-if="item.isEffective" variant="subtle" size="sm" tone="success">
+                          <XhTagLabel>{{ t('access.roles.effective_yes') }}</XhTagLabel>
+                        </XhTagRoot>
+                        <XhTagRoot v-else variant="subtle" size="sm" tone="neutral" :title="t('access.roles.effective_no_hint')">
+                          <XhTagLabel>{{ t('access.roles.effective_no') }}</XhTagLabel>
+                        </XhTagRoot>
+                      </td>
+                      <td>{{ item.path.join(' → ') }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_ancestors') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="descendants">
+                <table v-if="detailView.descendants.value.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.child_role') }}</th>
+                      <th>{{ t('access.roles.th.role_code') }}</th>
+                      <th>{{ t('access.roles.th.inherit_mode') }}</th>
+                      <th>{{ t('access.roles.th.status') }}</th>
+                      <th>{{ t('access.roles.th.effective') }}</th>
+                      <th>{{ t('access.roles.th.path') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.descendants.value" :key="item.roleId">
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.code }}</td>
+                      <td>{{ inheritMode(item.depth) }}</td>
+                      <td>{{ statusLabel(item.status) }}</td>
+                      <td>
+                        <XhTagRoot v-if="item.isEffective" variant="subtle" size="sm" tone="success">
+                          <XhTagLabel>{{ t('access.roles.effective_yes') }}</XhTagLabel>
+                        </XhTagRoot>
+                        <XhTagRoot v-else variant="subtle" size="sm" tone="neutral" :title="t('access.roles.effective_no_hint')">
+                          <XhTagLabel>{{ t('access.roles.effective_no') }}</XhTagLabel>
+                        </XhTagRoot>
+                      </td>
+                      <td>{{ item.path.join(' → ') }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_descendants') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
               </XhTabsContent>
             </XhTabsRoot>
@@ -490,6 +621,9 @@ async function saveScope() {
         </XhDrawerHeader>
         <XhDrawerCloseTrigger />
         <XhDrawerBody class="xh-overlay-body">
+          <p v-if="permissionEditor.inherited.value.size > 0" class="drawer-tip">
+            {{ t('access.roles.perm_inherit_tip') }}
+          </p>
           <XPermissionTransfer
             :items="permissionEditor.items.value"
             :value="permissionEditor.draft.value"
@@ -500,7 +634,29 @@ async function saveScope() {
             :search-placeholder="t('access.roles.perm_search')"
             :other-group-label="t('access.roles.perm_group_other')"
             @update:value="value => (permissionEditor.draft.value = value)"
-          />
+          >
+            <template #suffix="{ item }">
+              <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
+              <XhTagRoot
+                v-if="permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.length"
+                variant="subtle"
+                size="sm"
+                tone="danger"
+                :title="t('access.roles.perm_denied_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.join('、') })"
+              >
+                <XhTagLabel>{{ t('access.roles.perm_inherited_denied') }}</XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot
+                v-else-if="permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.length"
+                variant="subtle"
+                size="sm"
+                tone="success"
+                :title="t('access.roles.perm_granted_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.join('、') })"
+              >
+                <XhTagLabel>{{ t('access.roles.perm_inherited') }}</XhTagLabel>
+              </XhTagRoot>
+            </template>
+          </XPermissionTransfer>
         </XhDrawerBody>
         <XhDrawerFooter>
           <XhButton variant="subtle" @click="permissionEditor.open.value = false">
@@ -577,6 +733,8 @@ async function saveScope() {
         </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <RoleParentsDialog v-model:show="parentsVisible" :role="parentsRole" @saved="reload" />
   </SchemaPage>
 </template>
 
@@ -589,7 +747,7 @@ async function saveScope() {
   padding-block: var(--xh-space-6);
 }
 
-/* 抽屉顶部的说明（角色成员） */
+/* 抽屉顶部的说明（角色成员、权限分配的继承提示） */
 .drawer-tip {
   margin: 0;
   color: var(--xh-fg-muted);

@@ -275,6 +275,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/delegations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a delegation: the delegator hands one permission or one role to the delegatee for a limited time, and must hold it now. Requires access.delegations.create. */
+        post: operations["delegations.create"];
+        /** Delete delegation records; an active one stops taking effect. Requires access.delegations.delete. */
+        delete: operations["delegations.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/delegations/{id}:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke a pending or active delegation, keeping the record. Requires access.delegations.revoke. */
+        post: operations["delegations.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/delegations:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the delegations of the current side with paging; their status follows from revocation and the validity window. Requires access.delegations.read. */
+        post: operations["delegations.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments": {
         parameters: {
             query?: never;
@@ -1300,6 +1352,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roles/{id}:hierarchy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the inheritance of a role: all its parents, all its children, and the grants and denials it inherits. Requires access.roles.read. */
+        get: operations["roles.hierarchy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/roles/{id}:members": {
         parameters: {
             query?: never;
@@ -1328,6 +1397,23 @@ export interface paths {
         put?: never;
         /** Revoke permissions from a role. Requires access.roles.grant. */
         post: operations["roles.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{id}:set-parents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set the direct parents of a role to the given set (empty removes all inheritance): its holders get the parents' grants right away, and the parents' denials apply to it too. Requires access.roles.set-parents. */
+        post: operations["roles.set-parents"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1946,6 +2032,32 @@ export interface components {
             departmentId: string;
             includeChildren?: boolean;
         };
+        DelegationResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            delegatorId: string;
+            delegatorName?: string | null;
+            /** Format: uuid */
+            delegateeId: string;
+            delegateeName?: string | null;
+            permission?: string | null;
+            /** Format: uuid */
+            roleId?: string | null;
+            roleName?: string | null;
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            reason?: string | null;
+            status: components["schemas"]["DelegationStatus"];
+            /** Format: date-time */
+            revokedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        DelegationStatus: "Pending" | "Active" | "Expired" | "Revoked";
         DepartmentNode: {
             department: components["schemas"]["DepartmentResponse"];
             /** Format: int64 */
@@ -2119,6 +2231,15 @@ export interface components {
             userName: string;
             displayName: string;
             homeTenantId: string;
+        };
+        InheritedPermissionResponse: {
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: uuid */
+            sourceRoleId: string;
+            sourceRoleName: string;
+            /** Format: int32 */
+            depth: number;
         };
         /** @enum {string} */
         LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset";
@@ -2368,7 +2489,7 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation";
         PermissionFailure: {
             permission: string;
             code: string;
@@ -2418,6 +2539,17 @@ export interface components {
             effectiveAt?: string | null;
             /** Format: date-time */
             expiresAt?: string | null;
+        };
+        RoleRelativeResponse: {
+            /** Format: uuid */
+            roleId: string;
+            code: string;
+            name: string;
+            status: components["schemas"]["RoleStatus"];
+            /** Format: int32 */
+            depth: number;
+            path: string[];
+            isEffective: boolean;
         };
         RoleResponse: {
             /** Format: uuid */
@@ -3405,6 +3537,213 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "delegations.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    delegatorId: string;
+                    /** Format: uuid */
+                    delegateeId: string;
+                    /** Format: date-time */
+                    expiresAt: string;
+                    permission?: string | null;
+                    /** Format: uuid */
+                    roleId?: string | null;
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        delegatorId: string;
+                        delegatorName?: string | null;
+                        /** Format: uuid */
+                        delegateeId: string;
+                        delegateeName?: string | null;
+                        permission?: string | null;
+                        /** Format: uuid */
+                        roleId?: string | null;
+                        roleName?: string | null;
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt: string;
+                        reason?: string | null;
+                        status: components["schemas"]["DelegationStatus"];
+                        /** Format: date-time */
+                        revokedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "delegations.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "delegations.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        delegatorId: string;
+                        delegatorName?: string | null;
+                        /** Format: uuid */
+                        delegateeId: string;
+                        delegateeName?: string | null;
+                        permission?: string | null;
+                        /** Format: uuid */
+                        roleId?: string | null;
+                        roleName?: string | null;
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt: string;
+                        reason?: string | null;
+                        status: components["schemas"]["DelegationStatus"];
+                        /** Format: date-time */
+                        revokedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "delegations.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DelegationResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
@@ -7309,6 +7648,43 @@ export interface operations {
             };
         };
     };
+    "roles.hierarchy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        roleId: string;
+                        ancestors: components["schemas"]["RoleRelativeResponse"][];
+                        descendants: components["schemas"]["RoleRelativeResponse"][];
+                        inherited: components["schemas"]["InheritedPermissionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "roles.members": {
         parameters: {
             query?: never;
@@ -7377,6 +7753,51 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["PermissionFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "roles.set-parents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    parentIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        roleId: string;
+                        ancestors: components["schemas"]["RoleRelativeResponse"][];
+                        descendants: components["schemas"]["RoleRelativeResponse"][];
+                        inherited: components["schemas"]["InheritedPermissionResponse"][];
                     };
                 };
             };

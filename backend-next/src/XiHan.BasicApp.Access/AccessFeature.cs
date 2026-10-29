@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
 using XiHan.BasicApp.Contracts;
@@ -79,7 +80,15 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<EffectivePermissions>();
         context.Services.AddSingleton<PermissionRules>();
         context.Services.AddSingleton<RoleAssignments>();
+        context.Services.AddSingleton<RoleHierarchy>();
+        context.Services.AddSingleton<Delegations>();
         context.Services.AddSingleton<GrantEvaluator>();
+        context.Services.AddScoped<RoleHierarchyService>();
+        context.Services.AddScoped<RoleHierarchyReader>();
+        context.Services.AddScoped<DelegationService>();
+        context.Services.AddScoped<DelegationQueries>();
+        // 上级角色与委托给出的授予（存储没命中时框架来问），之后照常经下面的过滤器收窄
+        context.Services.AddSingleton<IPermissionGrantSource, AccessGrantSource>();
         // 先按本包规则收窄（Deny、有效期、此刻算数的角色），再按套餐白名单收窄
         context.Services.AddSingleton<IPermissionFilter, AccessPermissionFilter>();
         context.Services.AddSingleton<IPermissionFilter, EditionPermissionFilter>();

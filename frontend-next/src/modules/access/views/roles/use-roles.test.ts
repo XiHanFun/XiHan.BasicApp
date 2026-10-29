@@ -20,6 +20,10 @@ function member(userId: string, userName: string) {
   return { userId, userName, displayName: userName.toUpperCase(), status: 'Active', assignedAt: '2026-10-28T00:00:00Z' }
 }
 
+function relative(roleId: string, name: string, depth: number, extra: Record<string, unknown> = {}) {
+  return { roleId, code: name.toLowerCase(), name, status: 'Active', depth, path: [name, 'Auditor'], isEffective: true, ...extra }
+}
+
 function department(id: string, name: string, children: unknown[] = []) {
   return { department: { id, name }, memberCount: 0, children }
 }
@@ -122,6 +126,8 @@ describe('useRolePermissionEditor', () => {
         return json(200, { items: [permission('identity.users.read', 'Read users'), permission('identity.users.create', 'Create users'), permission('access.roles.read', 'Read roles')] })
       if (call.url === '/api/roles/r-1')
         return json(200, { role: role('r-1', 'auditor'), permissions: granted, memberCount: 0, customDepartments: [] })
+      if (call.url === '/api/roles/r-1:hierarchy')
+        return json(200, { roleId: 'r-1', ancestors: [], descendants: [], inherited: [{ permission: 'identity.users.read', action: 'Grant', sourceRoleId: 'r-0', sourceRoleName: 'Base', depth: 1 }, { permission: 'identity.users.read', action: 'Grant', sourceRoleId: 'r-9', sourceRoleName: 'Root', depth: 2 }, { permission: 'access.roles.read', action: 'Deny', sourceRoleId: 'r-0', sourceRoleName: 'Base', depth: 1 }] })
       if (call.url.endsWith(':grant')) {
         granted = [...granted, 'identity.users.create']
         return json(200, { succeeded: ['identity.users.create'], failed: [{ permission: 'access.roles.read', code: 'ACCESS_VALIDATION_002' }] })
@@ -142,6 +148,9 @@ describe('useRolePermissionEditor', () => {
       ['tenancy.tenants.read', 'tenancy.tenants'],
     ])
     expect(editor.items.value[3]!.permissionName).toBe('Read tenants')
+    // 继承来的授予与拒绝按权限码汇总来源上级：穿梭框据此标「继承」与「上级拒绝」
+    expect(editor.inherited.value.get('identity.users.read')).toEqual({ grantedBy: ['Base', 'Root'], deniedBy: [] })
+    expect(editor.inherited.value.get('access.roles.read')).toEqual({ grantedBy: [], deniedBy: ['Base'] })
     expect(editor.dirty.value).toBe(false)
     expect(await editor.save()).toBeNull()
 
@@ -256,12 +265,14 @@ describe('useRoleDataScopeEditor', () => {
 })
 
 describe('useRoleDetail', () => {
-  it('详情带成员；已授权限按权限定义表取显示名；自定义部门按部门树取名称', async () => {
+  it('详情带成员与上下级；已授与继承来的权限按权限定义表取显示名；自定义部门按部门树取名称', async () => {
     record((call) => {
       if (call.url === '/api/roles/r-1')
         return json(200, { role: role('r-1', 'auditor', { dataScope: 'Custom' }), permissions: ['identity.users.read', 'custom.unknown'], rules: [], memberCount: 1, customDepartments: [{ departmentId: 'd-2', includeChildren: false }] })
       if (call.url === '/api/roles/r-1:members')
         return json(200, { items: [member('u-1', 'bob')], total: 1 })
+      if (call.url === '/api/roles/r-1:hierarchy')
+        return json(200, { roleId: 'r-1', ancestors: [relative('r-0', 'Base', 1), relative('r-9', 'Root', 2, { isEffective: false })], descendants: [relative('r-2', 'Junior', 1)], inherited: [{ permission: 'identity.users.update', action: 'Grant', sourceRoleId: 'r-0', sourceRoleName: 'Base', depth: 1 }] })
       return json(200, { items: [department('d-1', 'HQ', [department('d-2', 'Sales')])] })
     })
     const detail = useRoleDetail()
@@ -269,6 +280,9 @@ describe('useRoleDetail', () => {
     expect(detail.open.value).toBe(true)
     expect(detail.permissions.value.map(p => p.displayName)).toEqual(['Read users', 'custom.unknown'])
     expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])
+    expect(detail.ancestors.value.map(a => [a.name, a.depth, a.isEffective])).toEqual([['Base', 1, true], ['Root', 2, false]])
+    expect(detail.descendants.value.map(d => d.name)).toEqual(['Junior'])
+    expect(detail.inherited.value.map(i => [i.displayName, i.sourceRoleName])).toEqual([['Update users', 'Base']])
     expect(detail.departmentName('d-2')).toBe('Sales')
     expect(detail.departmentName('d-9')).toBe('d-9')
   })

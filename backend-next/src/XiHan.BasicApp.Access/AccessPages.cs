@@ -31,7 +31,12 @@ public static class AccessPages
     public static PageDescriptor FieldSecurity { get; } = new("access.field-security", "/access/field-security", "access.field_security.title", "lucide:eye-off", 207, AccessPermissions.FieldSecurityRead);
 
     /// <summary>
+    /// 委托页：限时把权限或角色交给别的用户。
+    /// </summary>
+    public static PageDescriptor Delegations { get; } = new("access.delegations", "/access/delegations", "access.delegations.title", "lucide:file-key", 206, AccessPermissions.DelegationsRead);
+
+    /// <summary>
     /// 全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, FieldSecurity, Menus];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Menus];
 }

@@ -24,6 +24,10 @@ export const routes = {
   'configs.get': { method: 'GET', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
   'configs.list': { method: 'POST', template: '/api/configs:list', path: [], query: [], success: 200 },
   'configs.update': { method: 'PUT', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
+  'delegations.create': { method: 'POST', template: '/api/delegations', path: [], query: [], success: 201 },
+  'delegations.delete': { method: 'DELETE', template: '/api/delegations', path: [], query: ['ids'], success: 200 },
+  'delegations.list': { method: 'POST', template: '/api/delegations:list', path: [], query: [], success: 200 },
+  'delegations.revoke': { method: 'POST', template: '/api/delegations/{id}:revoke', path: ['id'], query: [], success: 200 },
   'departments.create': { method: 'POST', template: '/api/departments', path: [], query: [], success: 201 },
   'departments.delete': { method: 'DELETE', template: '/api/departments', path: [], query: ['ids'], success: 200 },
   'departments.get': { method: 'GET', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
@@ -105,9 +109,11 @@ export const routes = {
   'roles.deny': { method: 'POST', template: '/api/roles/{id}:deny', path: ['id'], query: [], success: 200 },
   'roles.get': { method: 'GET', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.grant': { method: 'POST', template: '/api/roles/{id}:grant', path: ['id'], query: [], success: 200 },
+  'roles.hierarchy': { method: 'GET', template: '/api/roles/{id}:hierarchy', path: ['id'], query: [], success: 200 },
   'roles.list': { method: 'POST', template: '/api/roles:list', path: [], query: [], success: 200 },
   'roles.members': { method: 'GET', template: '/api/roles/{id}:members', path: ['id'], query: [], success: 200 },
   'roles.revoke': { method: 'POST', template: '/api/roles/{id}:revoke', path: ['id'], query: [], success: 200 },
+  'roles.set-parents': { method: 'POST', template: '/api/roles/{id}:set-parents', path: ['id'], query: [], success: 200 },
   'roles.unassign': { method: 'POST', template: '/api/roles/{id}:unassign', path: ['id'], query: [], success: 200 },
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
@@ -187,6 +193,14 @@ export const configs = {
   get: (request: RequestOf<'configs.get'>, options?: CallOptions) => invoke<RequestOf<'configs.get'>, ResponseOf<'configs.get'>>('configs.get', routes['configs.get'], request, options),
   list: (request: RequestOf<'configs.list'>, options?: CallOptions) => invoke<RequestOf<'configs.list'>, ResponseOf<'configs.list'>>('configs.list', routes['configs.list'], request, options),
   update: (request: RequestOf<'configs.update'>, options?: CallOptions) => invoke<RequestOf<'configs.update'>, ResponseOf<'configs.update'>>('configs.update', routes['configs.update'], request, options),
+}
+
+/** 资源 `delegations` 的操作。 */
+export const delegations = {
+  create: (request: RequestOf<'delegations.create'>, options?: CallOptions) => invoke<RequestOf<'delegations.create'>, ResponseOf<'delegations.create'>>('delegations.create', routes['delegations.create'], request, options),
+  delete: (request: RequestOf<'delegations.delete'>, options?: CallOptions) => invoke<RequestOf<'delegations.delete'>, ResponseOf<'delegations.delete'>>('delegations.delete', routes['delegations.delete'], request, options),
+  list: (request: RequestOf<'delegations.list'>, options?: CallOptions) => invoke<RequestOf<'delegations.list'>, ResponseOf<'delegations.list'>>('delegations.list', routes['delegations.list'], request, options),
+  revoke: (request: RequestOf<'delegations.revoke'>, options?: CallOptions) => invoke<RequestOf<'delegations.revoke'>, ResponseOf<'delegations.revoke'>>('delegations.revoke', routes['delegations.revoke'], request, options),
 }
 
 /** 资源 `departments` 的操作。 */
@@ -344,9 +358,11 @@ export const roles = {
   deny: (request: RequestOf<'roles.deny'>, options?: CallOptions) => invoke<RequestOf<'roles.deny'>, ResponseOf<'roles.deny'>>('roles.deny', routes['roles.deny'], request, options),
   get: (request: RequestOf<'roles.get'>, options?: CallOptions) => invoke<RequestOf<'roles.get'>, ResponseOf<'roles.get'>>('roles.get', routes['roles.get'], request, options),
   grant: (request: RequestOf<'roles.grant'>, options?: CallOptions) => invoke<RequestOf<'roles.grant'>, ResponseOf<'roles.grant'>>('roles.grant', routes['roles.grant'], request, options),
+  hierarchy: (request: RequestOf<'roles.hierarchy'>, options?: CallOptions) => invoke<RequestOf<'roles.hierarchy'>, ResponseOf<'roles.hierarchy'>>('roles.hierarchy', routes['roles.hierarchy'], request, options),
   list: (request: RequestOf<'roles.list'>, options?: CallOptions) => invoke<RequestOf<'roles.list'>, ResponseOf<'roles.list'>>('roles.list', routes['roles.list'], request, options),
   members: (request: RequestOf<'roles.members'>, options?: CallOptions) => invoke<RequestOf<'roles.members'>, ResponseOf<'roles.members'>>('roles.members', routes['roles.members'], request, options),
   revoke: (request: RequestOf<'roles.revoke'>, options?: CallOptions) => invoke<RequestOf<'roles.revoke'>, ResponseOf<'roles.revoke'>>('roles.revoke', routes['roles.revoke'], request, options),
+  setParents: (request: RequestOf<'roles.set-parents'>, options?: CallOptions) => invoke<RequestOf<'roles.set-parents'>, ResponseOf<'roles.set-parents'>>('roles.set-parents', routes['roles.set-parents'], request, options),
   unassign: (request: RequestOf<'roles.unassign'>, options?: CallOptions) => invoke<RequestOf<'roles.unassign'>, ResponseOf<'roles.unassign'>>('roles.unassign', routes['roles.unassign'], request, options),
   update: (request: RequestOf<'roles.update'>, options?: CallOptions) => invoke<RequestOf<'roles.update'>, ResponseOf<'roles.update'>>('roles.update', routes['roles.update'], request, options),
   updateMember: (request: RequestOf<'roles.update-member'>, options?: CallOptions) => invoke<RequestOf<'roles.update-member'>, ResponseOf<'roles.update-member'>>('roles.update-member', routes['roles.update-member'], request, options),
