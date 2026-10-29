@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Contracts.Seeding;
 
 /// <summary>
-/// 种子的阶段号段（方案 5.14，沿用 4.x）：各包在本阶段号段内取 <c>+1</c>、<c>+2</c>…，可选模块按 <see cref="ModuleOffset"/> 偏移。
+/// 种子的阶段号段。
 /// </summary>
+/// <remarks>
+/// 方案 5.14，沿用 4.x：各包在本阶段号段内取 <c>+1</c>、<c>+2</c>…，可选模块按 <see cref="ModuleOffset"/> 偏移。
+/// </remarks>
 public static class SeedOrders
 {
     /// <summary>
@@ -39,8 +42,11 @@ public static class SeedOrders
     public const int PlatformData = 600;
 
     /// <summary>
-    /// 演示数据，只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时执行。
+    /// 演示数据。
     /// </summary>
+    /// <remarks>
+    /// 只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时执行。
+    /// </remarks>
     public const int Demo = 900;
 
     /// <summary>

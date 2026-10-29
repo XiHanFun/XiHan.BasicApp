@@ -22,8 +22,11 @@ public enum MessageKind
 }
 
 /// <summary>
-/// 一条要发的邮件或短信：按模板编码取当前一侧的模板（没有取平台的）渲染，参数名即模板里的变量名；品牌名 <c>brand</c> 不传时由发送方补上。
+/// 一条要发的邮件或短信。
 /// </summary>
+/// <remarks>
+/// 按模板编码取当前一侧的模板（没有取平台的）渲染，参数名即模板里的变量名；品牌名 <c>brand</c> 不传时由发送方补上。
+/// </remarks>
 /// <param name="Kind">邮件或短信。</param>
 /// <param name="To">收件地址或手机号。</param>
 /// <param name="TemplateCode">模板编码（如 <c>auth-email-login-code</c>）。</param>
@@ -41,9 +44,12 @@ public sealed record OutgoingMessage(
     string? BusinessId = null);
 
 /// <summary>
-/// 邮件与短信的发送（Notification 实现）：写一条排队中的发送记录，随调用的事务一起提交，由后台的发送循环发出（失败重试）。
-/// 没装 Notification 即没有实现，调用方按「不能发」处理。
+/// 邮件与短信的发送（Notification 实现）。
 /// </summary>
+/// <remarks>
+/// 写一条排队中的发送记录，随调用的事务一起提交，由后台的发送循环发出（失败重试）。
+/// 没装 Notification 即没有实现，调用方按「不能发」处理。
+/// </remarks>
 public interface IMessageSender
 {
     /// <summary>
@@ -56,8 +62,11 @@ public interface IMessageSender
     ValueTask<bool> CanSendAsync(InvocationContext context, MessageKind kind, string templateCode);
 
     /// <summary>
-    /// 排队一条消息；模板不存在、渲染失败或没有可用的配置即失败（不写记录）。
+    /// 排队一条消息。
     /// </summary>
+    /// <remarks>
+    /// 模板不存在、渲染失败或没有可用的配置即失败（不写记录）。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="message">消息。</param>
     /// <returns>发送记录 ID。</returns>

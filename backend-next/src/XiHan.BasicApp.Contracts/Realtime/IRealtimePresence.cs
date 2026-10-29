@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Contracts.Realtime;
 
 /// <summary>
-/// 在线状态（Realtime 实现）：哪些会话此刻持有实时连接。只看本实例的连接；多实例部署要接 SignalR 背板与共享的连接登记（方案 9.4）。没装 Realtime 即没有实现。
+/// 在线状态（Realtime 实现）：哪些会话此刻持有实时连接。
 /// </summary>
+/// <remarks>
+/// 只看本实例的连接；多实例部署要接 SignalR 背板与共享的连接登记（方案 9.4）。没装 Realtime 即没有实现。
+/// </remarks>
 public interface IRealtimePresence
 {
     /// <summary>

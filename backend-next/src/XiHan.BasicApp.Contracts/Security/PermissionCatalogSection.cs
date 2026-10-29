@@ -6,8 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 一个能力包登记的权限目录片段（包名 + 它的 <see cref="PermissionDescriptor"/>）；各包在 <c>Configure</c> 里 <see cref="PermissionCatalogServiceCollectionExtensions.AddPermissionCatalog"/>，Access 汇总成权限目录。
+/// 一个能力包登记的权限目录片段。
 /// </summary>
+/// <remarks>
+/// 片段是包名 + 它的 <see cref="PermissionDescriptor"/>。各包在 <c>Configure</c> 里 <see cref="PermissionCatalogServiceCollectionExtensions.AddPermissionCatalog"/>，Access 汇总成权限目录。
+/// </remarks>
 /// <param name="Package">包名（权限码的首段，小写）。</param>
 /// <param name="Permissions">该包的全部权限描述。</param>
 public sealed record PermissionCatalogSection(string Package, IReadOnlyList<PermissionDescriptor> Permissions);
@@ -18,8 +21,11 @@ public sealed record PermissionCatalogSection(string Package, IReadOnlyList<Perm
 public static class PermissionCatalogServiceCollectionExtensions
 {
     /// <summary>
-    /// 登记一个包的权限描述；同一容器里可以登记多个包，按 <see cref="PermissionCatalogSection"/> 枚举取回。
+    /// 登记一个包的权限描述。
     /// </summary>
+    /// <remarks>
+    /// 同一容器里可以登记多个包，按 <see cref="PermissionCatalogSection"/> 枚举取回。
+    /// </remarks>
     public static IServiceCollection AddPermissionCatalog(this IServiceCollection services, string package, IReadOnlyList<PermissionDescriptor> permissions)
     {
         ArgumentNullException.ThrowIfNull(services);

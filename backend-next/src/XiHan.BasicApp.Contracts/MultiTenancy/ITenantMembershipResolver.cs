@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Contracts.MultiTenancy;
 
 /// <summary>
-/// 租户成员关系的查询契约：用户除了注册地租户，还能以成员身份进入别的租户（切换租户、在其中被模仿）。
-/// 由 Tenancy 实现、Identity 在切换租户与模仿登录时消费；注册地不算成员关系，由调用方另判。没有任何实现时视为没有成员关系。
+/// 租户成员关系的查询契约。
 /// </summary>
+/// <remarks>
+/// 用户除了注册地租户，还能以成员身份进入别的租户（切换租户、在其中被模仿）。
+/// 由 Tenancy 实现、Identity 在切换租户与模仿登录时消费；注册地不算成员关系，由调用方另判。没有任何实现时视为没有成员关系。
+/// </remarks>
 public interface ITenantMembershipResolver
 {
     /// <summary>

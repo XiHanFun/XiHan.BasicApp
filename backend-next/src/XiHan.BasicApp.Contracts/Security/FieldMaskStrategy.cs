@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 字段的读取方式（沿用 4.x 的六种与取值）；按泄露的信息量从多到少是 None、PartialMask、Hash、FullMask、Redact、Hidden，多条规则命中同一字段取最严的一种。
+/// 字段的读取方式。
 /// </summary>
+/// <remarks>
+/// 沿用 4.x 的六种与取值；按泄露的信息量从多到少是 None、PartialMask、Hash、FullMask、Redact、Hidden，多条规则命中同一字段取最严的一种。
+/// </remarks>
 public enum FieldMaskStrategy
 {
     /// <summary>
@@ -24,8 +27,11 @@ public enum FieldMaskStrategy
     FullMask = 2,
 
     /// <summary>
-    /// 部分脱敏：保留前几位、后几位，中间替换为 <c>*</c>；保留位数不小于原长时整体打码。
+    /// 部分脱敏：保留前几位、后几位，中间替换为 <c>*</c>。
     /// </summary>
+    /// <remarks>
+    /// 保留位数不小于原长时整体打码。
+    /// </remarks>
     PartialMask = 3,
 
     /// <summary>

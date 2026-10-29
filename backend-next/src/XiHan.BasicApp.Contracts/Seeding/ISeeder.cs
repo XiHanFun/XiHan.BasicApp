@@ -6,9 +6,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Contracts.Seeding;
 
 /// <summary>
-/// 一个种子：按 <see cref="Order"/>（阶段 + 号段，见 <see cref="SeedOrders"/>）排序，各自在一次独立调用（完整管道、自己的工作单元）里执行。
-/// 目录类种子每次对齐元数据，运营数据只首写；种子必须可重复执行。
+/// 一个种子。
 /// </summary>
+/// <remarks>
+/// 按 <see cref="Order"/>（阶段 + 号段，见 <see cref="SeedOrders"/>）排序，各自在一次独立调用（完整管道、自己的工作单元）里执行。
+/// 目录类种子每次对齐元数据，运营数据只首写；种子必须可重复执行。
+/// </remarks>
 public interface ISeeder
 {
     /// <summary>
@@ -17,12 +20,16 @@ public interface ISeeder
     string Name { get; }
 
     /// <summary>
-    /// 执行顺序；小的先跑。
+    /// 执行顺序。
     /// </summary>
+    /// <remarks>
+    /// 小的先跑。
+    /// </remarks>
     int Order { get; }
 
     /// <summary>
-    /// 执行种子；失败返回 <see cref="Result"/>，由运行器中断后续种子。
+    /// 执行种子。
     /// </summary>
+    /// <returns>执行结果；失败返回 <see cref="Result"/>，由运行器中断后续种子。</returns>
     ValueTask<Result> SeedAsync(InvocationContext context);
 }

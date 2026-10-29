@@ -4,17 +4,23 @@
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 开放接口凭证目录（Identity 实现）：签名开放接口的入口（OpenPlatform）按 AppKey 取凭证验签，不直接读 Identity 的表。
-/// 凭证是个人的（个人中心「开放接口」自助管理），调用方不成为主体，归属人只用于日志与停用判断。
+/// 开放接口凭证目录（Identity 实现）。
 /// </summary>
+/// <remarks>
+/// 签名开放接口的入口（OpenPlatform）按 AppKey 取凭证验签，不直接读 Identity 的表。
+/// 凭证是个人的（个人中心「开放接口」自助管理），调用方不成为主体，归属人只用于日志与停用判断。
+/// </remarks>
 public interface IApiCredentialDirectory
 {
     /// <summary>
-    /// 按 AppKey 取凭证；不存在或密钥解不开为 <see langword="null"/>。在 Authenticate 阶段被调用（还没有工作单元），实现自己开只读作用域。
+    /// 按 AppKey 取凭证。
     /// </summary>
+    /// <remarks>
+    /// 在 Authenticate 阶段被调用（还没有工作单元），实现自己开只读作用域。
+    /// </remarks>
     /// <param name="appKey">AppKey。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>凭证。</returns>
+    /// <returns>凭证；不存在或密钥解不开为 <see langword="null"/>。</returns>
     ValueTask<ApiCredentialRecord?> FindAsync(string appKey, CancellationToken cancellationToken);
 
     /// <summary>
@@ -55,8 +61,11 @@ public sealed record ApiCredentialRecord(
     IReadOnlyList<string> IpAllowList);
 
 /// <summary>
-/// 开放接口的签名算法（4.x 个人中心的取值）。
+/// 开放接口的签名算法。
 /// </summary>
+/// <remarks>
+/// 4.x 个人中心的取值。
+/// </remarks>
 public static class ApiSignatureAlgorithms
 {
     /// <summary>
@@ -75,10 +84,13 @@ public static class ApiSignatureAlgorithms
     public static IReadOnlyList<string> All { get; } = [HmacSha256, HmacSha512];
 
     /// <summary>
-    /// 规整成标准写法（不区分大小写，也认 4.x 请求头的 <c>HMACSHA256</c>）；不认识的为 <see langword="null"/>。
+    /// 把算法名规整成标准写法。
     /// </summary>
+    /// <remarks>
+    /// 不区分大小写，也认 4.x 请求头的 <c>HMACSHA256</c>。
+    /// </remarks>
     /// <param name="value">算法名。</param>
-    /// <returns>标准写法。</returns>
+    /// <returns>标准写法；不认识的为 <see langword="null"/>。</returns>
     public static string? Normalize(string? value)
         => All.FirstOrDefault(algorithm => string.Equals(algorithm, value?.Trim(), StringComparison.OrdinalIgnoreCase));
 }

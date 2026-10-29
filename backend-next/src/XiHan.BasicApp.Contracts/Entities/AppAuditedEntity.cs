@@ -6,9 +6,12 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Contracts.Entities;
 
 /// <summary>
-/// 全审计实体基类（默认选择）：<see cref="AppRecord"/> + 修改时间 / 修改人 + 软删除 / 删除人。
-/// 时间与删除标记由框架维护，操作人由 <c>Runtime</c> 在写库时填充；软删除实体的唯一索引末列须含 <c>is_deleted</c>。
+/// 全审计实体基类（默认选择）。
 /// </summary>
+/// <remarks>
+/// <see cref="AppRecord"/> + 修改时间 / 修改人 + 软删除 / 删除人。
+/// 时间与删除标记由框架维护，操作人由 <c>Runtime</c> 在写库时填充；软删除实体的唯一索引末列须含 <c>is_deleted</c>。
+/// </remarks>
 public abstract class AppAuditedEntity : AppRecord, IHasModificationTime, IHasModifier, ISoftDeletable, IHasDeleter
 {
     /// <inheritdoc />

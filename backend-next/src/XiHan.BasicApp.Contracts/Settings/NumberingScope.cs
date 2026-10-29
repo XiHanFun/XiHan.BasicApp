@@ -9,8 +9,11 @@ namespace XiHan.BasicApp.Contracts.Settings;
 public enum NumberingScope
 {
     /// <summary>
-    /// 租户里先找本租户的规则，没有再找供租户使用的平台规则；平台上只找平台规则。
+    /// 租户里先找本租户的规则，没有再找供租户使用的平台规则。
     /// </summary>
+    /// <remarks>
+    /// 平台上只找平台规则。
+    /// </remarks>
     Auto = 0,
 
     /// <summary>

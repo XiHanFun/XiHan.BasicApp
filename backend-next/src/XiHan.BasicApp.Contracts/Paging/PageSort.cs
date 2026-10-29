@@ -6,8 +6,11 @@ using System.ComponentModel.DataAnnotations;
 namespace XiHan.BasicApp.Contracts.Paging;
 
 /// <summary>
-/// 列表的一项排序：字段与方向。字段名是响应 DTO 的属性名（camelCase），各查询类自己决定接受哪些字段。
+/// 列表的一项排序：字段与方向。
 /// </summary>
+/// <remarks>
+/// 字段名是响应 DTO 的属性名（camelCase），各查询类自己决定接受哪些字段。
+/// </remarks>
 /// <param name="Field">字段名。</param>
 /// <param name="Descending">是否降序。</param>
 public sealed record PageSort(
