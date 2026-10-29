@@ -87,4 +87,24 @@ public static class TenancyErrors
     /// 没有任何租户初始化扩展（上层包未装配），开通管理员会没有权限。
     /// </summary>
     public const string NoInitializer = "TENANCY_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 免费套餐不能标价。
+    /// </summary>
+    public const string FreeEditionPriced = "TENANCY_VALIDATION_004";
+
+    /// <summary>
+    /// 租户存储空间不足。
+    /// </summary>
+    public const string StorageQuotaExceeded = "TENANCY_CONFLICT_008";
+
+    /// <summary>
+    /// 租户席位已达上限。
+    /// </summary>
+    public const string SeatQuotaExceeded = "TENANCY_CONFLICT_009";
+
+    /// <summary>
+    /// 订阅属于租户，平台没有订阅。
+    /// </summary>
+    public const string SubscriptionTenantOnly = "TENANCY_DENIED_002";
 }

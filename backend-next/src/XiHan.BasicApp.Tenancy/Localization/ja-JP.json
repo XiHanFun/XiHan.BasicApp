@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "エディションコード '{code}' は既に使われています。",
   "tenancy.edition.in_use": "エディション '{code}' はテナントが利用中のため削除できません。",
   "tenancy.edition.permission_invalid": "権限 '{code}' はテナントで有効な権限カタログにないため、エディションに入れられません。",
-  "tenancy.edition.no_default": "既定エディションがありません。テナント作成時にエディションを指定してください。"
+  "tenancy.edition.no_default": "既定エディションがありません。テナント作成時にエディションを指定してください。",
+  "tenancy.edition.free_priced": "無料プランには価格を設定できません。",
+  "tenancy.quota.storage": "テナントのストレージが不足しています（使用 {used} MB / 上限 {limit} MB）。今回 {needed} MB 必要です。ファイルを整理するかプランをアップグレードしてください。",
+  "tenancy.quota.seats": "テナントの席数が上限に達しました（使用 {used} / 上限 {limit}）。メンバーを追加できません。プランのアップグレードか席数の調整をしてください。",
+  "tenants.quotas.description": "各テナントの有効な割り当てと使用量（席数、ストレージ）を一覧表示します。超過分だけも表示できます。プラットフォーム側のみ。tenancy.tenants.read が必要です。",
+  "subscription.get.description": "自テナントの契約（プラン、期限、有効な席数とストレージの上限と使用量）を取得します。テナント側のみ。tenancy.subscription.read が必要です。",
+  "tenancy.subscription.tenant_only": "契約はテナントのものです。プラットフォームには契約がありません。"
 }

@@ -12,12 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 租户详情：<c>GET /api/tenants/{id}</c>，带管理员登录名与用户数。
+/// 租户详情：<c>GET /api/tenants/{id}</c>，带管理员登录名、用户数与配额用量。
 /// </summary>
 /// <param name="service">租户域服务。</param>
 /// <param name="users">用户仓储。</param>
+/// <param name="quotas">租户配额（有效上限与用量）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
-public sealed class GetTenant(TenantService service, IRepository<SysUser, Guid> users) : IOperation<GetTenantRequest, TenantDetailResponse>
+public sealed class GetTenant(TenantService service, IRepository<SysUser, Guid> users, TenantQuotas quotas) : IOperation<GetTenantRequest, TenantDetailResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -47,6 +48,7 @@ public sealed class GetTenant(TenantService service, IRepository<SysUser, Guid> 
             adminUserName = admin.UserName;
         }
 
-        return new TenantDetailResponse(TenantResponse.From(tenant), adminUserName, count);
+        var quota = (await quotas.ViewsAsync([tenant], context.CancellationToken).ConfigureAwait(false))[0];
+        return new TenantDetailResponse(TenantResponse.From(tenant), adminUserName, count, TenantQuotaResponse.From(quota));
     }
 }

@@ -12,8 +12,14 @@ function problem(status: number, code: string, detail: string, errors?: Record<s
 }
 
 function edition(id: string, code: string, extra: Record<string, unknown> = {}) {
-  return { id, code, name: code, description: null, isDefault: false, order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', ...extra }
+  return { id, code, name: code, description: null, isDefault: false, order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false, ...extra }
 }
+
+/** 假翻译：键原样返回 */
+const t = (key: string) => key
+
+/** 请求里的配额、价格与周期全为空（不限、不标价） */
+const noQuota = { userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false }
 
 function permission(code: string): CatalogItem {
   const [pkg = '', resource = '', action = ''] = code.split('.')
@@ -58,14 +64,14 @@ describe('editionsResource', () => {
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/editions?ids=e-1' })
   })
 
-  it('设为缺省：先取当前值，再整体覆盖更新、只改缺省标记', async () => {
+  it('设为缺省：先取当前值，再整体覆盖更新、只改缺省标记（配额、价格与周期原样带回）', async () => {
     const calls = record(call => call.method === 'GET'
-      ? json(200, { edition: edition('e-2', 'pro', { name: 'Pro', description: 'For teams', order: 20 }), permissions: [] })
+      ? json(200, { edition: edition('e-2', 'pro', { name: 'Pro', description: 'For teams', order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12 }), permissions: [] })
       : json(200, { edition: edition('e-2', 'pro', { isDefault: true }), permissions: [] }))
     const saved = await setDefaultEdition('e-2')
     expect(saved.isDefault).toBe(true)
     expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['GET /api/editions/e-2', 'PUT /api/editions/e-2'])
-    expect(calls[1]!.body).toEqual({ name: 'Pro', description: 'For teams', isDefault: true, order: 20 })
+    expect(calls[1]!.body).toEqual({ name: 'Pro', description: 'For teams', isDefault: true, order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12, isFree: false })
   })
 })
 
@@ -85,27 +91,52 @@ describe('toWhitelistItems', () => {
 describe('useEditionEditor', () => {
   it('新建白名单为空、编码去空白；编辑不发编码；保存成功返回套餐并关掉弹窗', async () => {
     let calls = record(() => json(201, { edition: edition('e-5', 'team'), permissions: [] }))
-    const editor = useEditionEditor()
+    const editor = useEditionEditor(t)
     editor.startCreate()
+    expect(editor.form).toMatchObject(noQuota)
     Object.assign(editor.form, { code: ' team ', name: ' Team ', order: 30 })
     expect((await editor.submit())?.id).toBe('e-5')
     expect(editor.open.value).toBe(false)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/editions' })
-    expect(calls[0]!.body).toEqual({ code: 'team', name: 'Team', description: null, isDefault: false, order: 30, permissions: [] })
+    expect(calls[0]!.body).toEqual({ code: 'team', name: 'Team', description: null, isDefault: false, order: 30, ...noQuota, permissions: [] })
 
     calls = record(() => json(200, { edition: edition('e-5', 'team', { isDefault: true }), permissions: [] }))
-    editor.startEdit(edition('e-5', 'team', { description: 'Small teams' }) as never)
+    editor.startEdit(edition('e-5', 'team', { description: 'Small teams', userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1 }) as never)
     expect(editor.isEdit.value).toBe(true)
-    expect(editor.form).toMatchObject({ code: 'team', name: 'team', description: 'Small teams', order: 10, isDefault: false })
+    expect(editor.form).toMatchObject({ code: 'team', name: 'team', description: 'Small teams', order: 10, isDefault: false, userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1, isFree: false })
     editor.form.isDefault = true
+    editor.form.storageLimitMb = null
     expect((await editor.submit())?.isDefault).toBe(true)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/editions/e-5' })
-    expect(calls[0]!.body).toEqual({ name: 'team', description: 'Small teams', isDefault: true, order: 10 })
+    expect(calls[0]!.body).toEqual({ name: 'team', description: 'Small teams', isDefault: true, order: 10, userLimit: 20, storageLimitMb: null, price: 49.9, billingPeriodMonths: 1, isFree: false })
+  })
+
+  it('免费与价格互斥：打开免费即清空价格；标了价的免费套餐不发请求、错误挂在价格上，价格为 0 照常提交', async () => {
+    const calls = record(() => json(201, { edition: edition('e-6', 'free', { isFree: true }), permissions: [] }))
+    const editor = useEditionEditor(t)
+    editor.startCreate()
+    Object.assign(editor.form, { code: 'free', name: 'Free', price: 99, billingPeriodMonths: 12 })
+    editor.setFree(true)
+    expect(editor.form).toMatchObject({ isFree: true, price: null, billingPeriodMonths: 12 })
+    editor.setFree(false)
+    expect(editor.form).toMatchObject({ isFree: false, price: null })
+
+    editor.form.isFree = true
+    editor.form.price = 10
+    expect(await editor.submit()).toBeNull()
+    expect(calls).toHaveLength(0)
+    expect(editor.open.value).toBe(true)
+    expect(editor.fieldError('price')).toBe('tenancy.editions.validation.free_priced')
+
+    editor.form.price = 0
+    expect((await editor.submit())?.isFree).toBe(true)
+    expect(editor.fieldError('price')).toBeUndefined()
+    expect(calls[0]!.body).toMatchObject({ isFree: true, price: 0, billingPeriodMonths: 12 })
   })
 
   it('字段级错误挂回字段，其余错误给整条提示；随机编码合后端编码格式', async () => {
     record(() => problem(400, 'KERNEL_VALIDATION_003', 'invalid', { code: ['pattern'] }))
-    const editor = useEditionEditor()
+    const editor = useEditionEditor(t)
     editor.startCreate()
     Object.assign(editor.form, { code: 'Bad Code', name: 'Bad' })
     expect(await editor.submit()).toBeNull()

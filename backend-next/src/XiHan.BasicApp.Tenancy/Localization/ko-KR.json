@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "에디션 코드 '{code}'은(는) 이미 사용 중입니다.",
   "tenancy.edition.in_use": "에디션 '{code}'은(는) 테넌트가 사용 중이라 삭제할 수 없습니다.",
   "tenancy.edition.permission_invalid": "권한 '{code}'은(는) 테넌트에서 유효한 권한 카탈로그에 없어 에디션에 넣을 수 없습니다.",
-  "tenancy.edition.no_default": "기본 에디션이 없습니다. 테넌트를 만들 때 에디션을 지정하세요."
+  "tenancy.edition.no_default": "기본 에디션이 없습니다. 테넌트를 만들 때 에디션을 지정하세요.",
+  "tenancy.edition.free_priced": "무료 플랜에는 가격을 정할 수 없습니다.",
+  "tenancy.quota.storage": "테넌트 저장 공간이 부족합니다(사용 {used} MB / 상한 {limit} MB). 이번에 {needed} MB가 필요합니다. 파일을 정리하거나 플랜을 업그레이드하세요.",
+  "tenancy.quota.seats": "테넌트 좌석이 상한에 도달했습니다(사용 {used} / 상한 {limit}). 구성원을 더 추가할 수 없습니다. 플랜을 업그레이드하거나 좌석을 조정하세요.",
+  "tenants.quotas.description": "각 테넌트의 유효 할당량과 사용량(좌석, 저장 공간)을 나열하며, 초과한 것만 볼 수도 있습니다. 플랫폼 쪽 전용이며 tenancy.tenants.read 권한이 필요합니다.",
+  "subscription.get.description": "이 테넌트의 구독(플랜, 만료, 유효 좌석과 저장 공간 상한 및 사용량)을 가져옵니다. 테넌트 쪽 전용이며 tenancy.subscription.read 권한이 필요합니다.",
+  "tenancy.subscription.tenant_only": "구독은 테넌트에 속하며 플랫폼에는 구독이 없습니다."
 }

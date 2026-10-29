@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "O código de edição '{code}' já está em uso.",
   "tenancy.edition.in_use": "A edição '{code}' ainda é usada por locatários e não pode ser excluída.",
   "tenancy.edition.permission_invalid": "A permissão '{code}' não é uma permissão do lado do locatário no catálogo e não pode entrar em uma edição.",
-  "tenancy.edition.no_default": "Não há edição padrão; informe uma ao criar um locatário."
+  "tenancy.edition.no_default": "Não há edição padrão; informe uma ao criar um locatário.",
+  "tenancy.edition.free_priced": "Uma edição gratuita não pode ter preço.",
+  "tenancy.quota.storage": "O locatário está sem espaço ({used} MB usados de {limit} MB); são necessários {needed} MB. Limpe arquivos ou faça upgrade da edição.",
+  "tenancy.quota.seats": "O locatário atingiu o limite de assentos ({used} de {limit}); não é possível adicionar membros. Faça upgrade da edição ou ajuste os assentos.",
+  "tenants.quotas.description": "Listar as cotas efetivas e o uso (assentos, armazenamento) de cada locatário, opcionalmente só os que excedem. Somente lado da plataforma; requer tenancy.tenants.read.",
+  "subscription.get.description": "Obter a assinatura do próprio locatário: edição, vencimento, limites efetivos de assentos e armazenamento e o uso. Somente lado do locatário; requer tenancy.subscription.read.",
+  "tenancy.subscription.tenant_only": "Assinaturas pertencem aos locatários; a plataforma não tem."
 }

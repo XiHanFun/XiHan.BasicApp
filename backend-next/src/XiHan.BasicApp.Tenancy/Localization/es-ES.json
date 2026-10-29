@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "El código de edición '{code}' ya está en uso.",
   "tenancy.edition.in_use": "La edición '{code}' aún la usan inquilinos y no se puede eliminar.",
   "tenancy.edition.permission_invalid": "El permiso '{code}' no es un permiso del lado del inquilino del catálogo y no puede incluirse en una edición.",
-  "tenancy.edition.no_default": "No hay edición predeterminada; indica una al crear un inquilino."
+  "tenancy.edition.no_default": "No hay edición predeterminada; indica una al crear un inquilino.",
+  "tenancy.edition.free_priced": "Una edición gratuita no puede tener precio.",
+  "tenancy.quota.storage": "El inquilino no tiene almacenamiento suficiente ({used} MB usados de {limit} MB); se necesitan {needed} MB. Limpie archivos o mejore la edición.",
+  "tenancy.quota.seats": "El inquilino alcanzó su límite de plazas ({used} de {limit}); no se pueden añadir miembros. Mejore la edición o ajuste las plazas.",
+  "tenants.quotas.description": "Listar las cuotas efectivas y el uso (plazas, almacenamiento) de cada inquilino, opcionalmente solo los que se pasan. Solo lado de plataforma; requiere tenancy.tenants.read.",
+  "subscription.get.description": "Obtener la suscripción del propio inquilino: edición, caducidad, límites efectivos de plazas y almacenamiento y su uso. Solo lado de inquilino; requiere tenancy.subscription.read.",
+  "tenancy.subscription.tenant_only": "Las suscripciones pertenecen a los inquilinos; la plataforma no tiene."
 }

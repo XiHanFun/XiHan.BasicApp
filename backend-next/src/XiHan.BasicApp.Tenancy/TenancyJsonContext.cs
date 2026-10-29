@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.BasicApp.Tenancy.Operations.Editions;
+using XiHan.BasicApp.Tenancy.Operations.Subscription;
 using XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 using XiHan.BasicApp.Tenancy.Operations.Tenants;
 
@@ -27,6 +28,11 @@ namespace XiHan.BasicApp.Tenancy;
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(TenantResponse))]
 [JsonSerializable(typeof(TenantDetailResponse))]
+[JsonSerializable(typeof(TenantQuotaResponse))]
+[JsonSerializable(typeof(ListTenantQuotasRequest))]
+[JsonSerializable(typeof(TenantQuotasResponse))]
+[JsonSerializable(typeof(GetSubscriptionRequest))]
+[JsonSerializable(typeof(SubscriptionResponse))]
 [JsonSerializable(typeof(PageResult<TenantResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 [JsonSerializable(typeof(UserResponse))]

@@ -50,4 +50,14 @@ public sealed class SysTenant : AppAuditedEntity
     /// 套餐（<see cref="SysEdition"/>）：有效权限与它的白名单求交。为空即不受套餐限制（只能经 <c>tenants.change-edition</c> 显式选择）；开通时不指定即用缺省套餐。
     /// </summary>
     public Guid? EditionId { get; set; }
+
+    /// <summary>
+    /// 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+    /// </summary>
+    public int? UserLimit { get; set; }
+
+    /// <summary>
+    /// 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+    /// </summary>
+    public long? StorageLimitMb { get; set; }
 }

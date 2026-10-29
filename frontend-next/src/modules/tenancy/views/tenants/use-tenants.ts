@@ -1,11 +1,15 @@
+import type { HintTone } from '../subscription/subscription'
 import type { SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, shallowRef } from 'vue'
 import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { formatFileSize } from '~/utils'
+import { formatSeats, quotaLevel, storageLimitBytes, usageText } from '../subscription/subscription'
 
 export type TenantRow = ResponseOf<'tenants.list'>['items'][number]
 export type TenantDetail = ResponseOf<'tenants.get'>
+export type TenantQuota = ResponseOf<'tenants.quotas'>['items'][number]
 export type EditionOption = ResponseOf<'editions.list'>['items'][number]
 export type TenantMember = ResponseOf<'tenant-members.list'>['items'][number]
 export type TenantStatus = TenantRow['status']
@@ -27,6 +31,10 @@ export interface TenantForm {
   order: number
   /** 套餐主键：开通时空即缺省套餐，编辑时空即不受套餐限制 */
   editionId: null | string
+  /** 租户自己的席位上限，覆盖套餐的；空即沿用套餐 */
+  userLimit: number | null
+  /** 租户自己的存储上限（MB），覆盖套餐的；空即沿用套餐 */
+  storageLimitMb: number | null
 }
 
 export type TenantEditorMode = 'create' | 'edit'
@@ -81,10 +89,14 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 /**
  * SchemaPage 的资源：分页、删除与启停（启用即恢复、停用即停用；都是集合操作，逐项拒绝以错误码抛出）。
  * 搜索字段按后端白名单下发：关键字匹配租户 ID 与名称，状态精确匹配；排序只放后端接受的租户 ID / 名称 / 排序 / 到期 / 创建时间。
+ * 给了用量就随每次取页（含刷新）并行取一次全部租户的配额与用量，列表的用量列按租户 ID 对上。
  */
-export function tenantsResource(): SchemaResource<TenantRow> {
+export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaResource<TenantRow> {
   return {
-    page: async params => toSchemaPageResult(await tenantsApi.list(toPageRequest(params, { filters: { status: 'eq' } })), params),
+    page: async (params) => {
+      const [page] = await Promise.all([tenantsApi.list(toPageRequest(params, { filters: { status: 'eq' } })), quotas?.load()])
+      return toSchemaPageResult(page, params)
+    },
     // 还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003）
     remove: async id => failedCodes(await tenantsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => failedCodes(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({ ids: [String(id)] })),
@@ -119,8 +131,97 @@ export function useEditionOptions() {
   return { editions, error, load, editionName }
 }
 
+/**
+ * 弹窗里上限留空时沿用的套餐：选了即所选；开通时没选即缺省套餐，编辑时没选即没有套餐（null，不限）。
+ * 所选不在选项里、或开通时没有缺省套餐为 undefined（说不出沿用多少）。
+ */
+export function inheritedEdition(editions: readonly EditionOption[], editionId: null | string, creating: boolean): EditionOption | null | undefined {
+  if (editionId)
+    return editions.find(e => e.id === editionId)
+  return creating ? editions.find(e => e.isDefault) : null
+}
+
+/** 一项用量的单元格：「已用 / 上限」与水位（到 80% 吃紧、到上限超限，与订阅页同一口径） */
+export interface UsageCell {
+  text: string
+  tone: HintTone
+}
+
+/** 席位用量：席位 = 注册地是该租户的用户 + 租户成员 */
+export function seatUsage(quota: Pick<TenantQuota, 'usedSeats' | 'userLimit'>, unlimited: string): UsageCell {
+  const limit = quota.userLimit ?? null
+  return { text: usageText(quota.usedSeats, limit, formatSeats, unlimited), tone: quotaLevel(quota.usedSeats, limit).tone }
+}
+
+/** 存储用量：上限以 MB 表达、已用以字节统计，换算到字节再比 */
+export function storageUsage(quota: Pick<TenantQuota, 'storageLimitMb' | 'usedStorageBytes'>, unlimited: string): UsageCell {
+  const limit = storageLimitBytes(quota.storageLimitMb)
+  return { text: usageText(quota.usedStorageBytes, limit, formatFileSize, unlimited), tone: quotaLevel(quota.usedStorageBytes, limit).tone }
+}
+
+/**
+ * 列表的用量列（`tenants.quotas`，有效上限 = 租户自己的 → 套餐的 → 不限）：按租户 ID 存一份，随每次取页重取。
+ * 取不到时清空（用量列显示 -）并把原因交给 onError，不拖垮列表本身。
+ */
+export function useTenantQuotas(onError?: (message: string) => void) {
+  const byTenant = shallowRef<ReadonlyMap<string, TenantQuota>>(new Map())
+  const error = ref<null | string>(null)
+
+  async function load() {
+    error.value = null
+    try {
+      const { items } = await tenantsApi.quotas({})
+      byTenant.value = new Map(items.map(quota => [quota.tenantId, quota]))
+    }
+    catch (e) {
+      byTenant.value = new Map()
+      error.value = describe(e)
+      onError?.(error.value)
+    }
+  }
+
+  function of(tenantId: string): TenantQuota | undefined {
+    return byTenant.value.get(tenantId)
+  }
+
+  return { byTenant, error, load, of }
+}
+
+/**
+ * 配额核对抽屉（4.x 同）：只列超出席位或存储上限的租户（`tenants.quotas?overOnly=true`）。
+ * 配额只拦截租户自己新增用户与上传文件，已经超额的不回收，在这里报告。
+ */
+export function useQuotaAudit() {
+  const open = ref(false)
+  const loading = ref(false)
+  const items = ref<TenantQuota[]>([])
+  const error = ref<null | string>(null)
+
+  async function load() {
+    loading.value = true
+    error.value = null
+    try {
+      items.value = (await tenantsApi.quotas({ overOnly: true })).items
+    }
+    catch (e) {
+      items.value = []
+      error.value = describe(e)
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  async function start() {
+    open.value = true
+    await load()
+  }
+
+  return { open, loading, items, error, load, start }
+}
+
 function emptyForm(): TenantForm {
-  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null }
+  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null, userLimit: null, storageLimitMb: null }
 }
 
 /**
@@ -161,6 +262,8 @@ export function useTenantEditor() {
       expiresAt: toTimestamp(row.expiresAt),
       order: row.order,
       editionId: row.editionId ?? null,
+      userLimit: row.userLimit ?? null,
+      storageLimitMb: row.storageLimitMb ?? null,
     })
     open.value = true
   }
@@ -178,12 +281,15 @@ export function useTenantEditor() {
       const current = editing.value
       let saved: TenantRow
       if (mode.value === 'edit' && current) {
+        // 更新是整体覆盖：上限清空即改回沿用套餐
         saved = await tenantsApi.update({
           id: current.id,
           name: form.name.trim(),
           description: blankToNull(form.description),
           expiresAt: toIso(form.expiresAt),
           order: form.order,
+          userLimit: form.userLimit,
+          storageLimitMb: form.storageLimitMb,
         })
         // 空选即不受套餐限制（显式选择）；后端写入后立即失效该租户的门控缓存
         if ((form.editionId ?? null) !== (current.editionId ?? null))
@@ -197,6 +303,8 @@ export function useTenantEditor() {
           expiresAt: toIso(form.expiresAt),
           order: form.order,
           editionId: form.editionId,
+          userLimit: form.userLimit,
+          storageLimitMb: form.storageLimitMb,
         })
       }
       open.value = false
@@ -272,7 +380,7 @@ export function useAdminInitializer() {
 }
 
 /**
- * 详情抽屉：概览（`tenants.get` 带管理员登录名与用户数）与成员（`tenant-members.list`，一次全列，按加入时间排）。
+ * 详情抽屉：概览（`tenants.get` 带管理员登录名、用户数与配额用量）与成员（`tenant-members.list`，一次全列，按加入时间排）。
  * 成员按 tenancy.tenant-members.read 门控，没有权限就不取。
  */
 export function useTenantDetail(canReadMembers: () => boolean) {

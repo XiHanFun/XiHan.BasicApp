@@ -71,6 +71,8 @@ public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
             ExpiresAt = request.ExpiresAt,
             Order = request.Order,
             EditionId = editionId,
+            UserLimit = request.UserLimit,
+            StorageLimitMb = request.StorageLimitMb,
         };
         var added = await tenants.AddAsync(tenant, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)

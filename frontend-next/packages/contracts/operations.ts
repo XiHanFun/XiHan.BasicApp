@@ -165,6 +165,7 @@ export const routes = {
   'storage-configs.set-default': { method: 'POST', template: '/api/storage-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
   'storage-configs.set-status': { method: 'POST', template: '/api/storage-configs/{id}:set-status', path: ['id'], query: [], success: 200 },
   'storage-configs.update': { method: 'PUT', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
+  'subscription.get': { method: 'GET', template: '/api/subscription', path: [], query: [], success: 200 },
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
@@ -175,6 +176,7 @@ export const routes = {
   'tenants.initialize-admin': { method: 'POST', template: '/api/tenants/{id}:initialize-admin', path: ['id'], query: [], success: 200 },
   'tenants.list': { method: 'POST', template: '/api/tenants:list', path: [], query: [], success: 200 },
   'tenants.mine': { method: 'GET', template: '/api/tenants:mine', path: [], query: [], success: 200 },
+  'tenants.quotas': { method: 'GET', template: '/api/tenants:quotas', path: [], query: ['overOnly'], success: 200 },
   'tenants.resume': { method: 'POST', template: '/api/tenants:resume', path: [], query: [], success: 200 },
   'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
   'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
@@ -492,6 +494,11 @@ export const storageConfigs = {
   update: (request: RequestOf<'storage-configs.update'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.update'>, ResponseOf<'storage-configs.update'>>('storage-configs.update', routes['storage-configs.update'], request, options),
 }
 
+/** 资源 `subscription` 的操作。 */
+export const subscription = {
+  get: (request: RequestOf<'subscription.get'>, options?: CallOptions) => invoke<RequestOf<'subscription.get'>, ResponseOf<'subscription.get'>>('subscription.get', routes['subscription.get'], request, options),
+}
+
 /** 资源 `tenant-members` 的操作。 */
 export const tenantMembers = {
   create: (request: RequestOf<'tenant-members.create'>, options?: CallOptions) => invoke<RequestOf<'tenant-members.create'>, ResponseOf<'tenant-members.create'>>('tenant-members.create', routes['tenant-members.create'], request, options),
@@ -508,6 +515,7 @@ export const tenants = {
   initializeAdmin: (request: RequestOf<'tenants.initialize-admin'>, options?: CallOptions) => invoke<RequestOf<'tenants.initialize-admin'>, ResponseOf<'tenants.initialize-admin'>>('tenants.initialize-admin', routes['tenants.initialize-admin'], request, options),
   list: (request: RequestOf<'tenants.list'>, options?: CallOptions) => invoke<RequestOf<'tenants.list'>, ResponseOf<'tenants.list'>>('tenants.list', routes['tenants.list'], request, options),
   mine: (request: RequestOf<'tenants.mine'>, options?: CallOptions) => invoke<RequestOf<'tenants.mine'>, ResponseOf<'tenants.mine'>>('tenants.mine', routes['tenants.mine'], request, options),
+  quotas: (request: RequestOf<'tenants.quotas'>, options?: CallOptions) => invoke<RequestOf<'tenants.quotas'>, ResponseOf<'tenants.quotas'>>('tenants.quotas', routes['tenants.quotas'], request, options),
   resume: (request: RequestOf<'tenants.resume'>, options?: CallOptions) => invoke<RequestOf<'tenants.resume'>, ResponseOf<'tenants.resume'>>('tenants.resume', routes['tenants.resume'], request, options),
   suspend: (request: RequestOf<'tenants.suspend'>, options?: CallOptions) => invoke<RequestOf<'tenants.suspend'>, ResponseOf<'tenants.suspend'>>('tenants.suspend', routes['tenants.suspend'], request, options),
   update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),

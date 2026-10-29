@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Files;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Files.Domain.Services;
@@ -68,6 +69,7 @@ public sealed class FilesFeature : IFeature
         context.Services.AddScoped<StorageConfigService>();
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileQueries>();
+        context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
         context.Services.AddScoped<StorageConfigQueries>();
         context.Services.AddSeeder<StorageConfigSeeder>();
         context.Services.AddPermissionCatalog("files", FilesPermissions.All);

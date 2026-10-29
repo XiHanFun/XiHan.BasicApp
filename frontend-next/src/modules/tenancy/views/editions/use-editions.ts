@@ -15,18 +15,49 @@ export interface WhitelistItem extends PermissionGrantItem {
   outside: boolean
 }
 
-/** 弹窗表单：新建与编辑共用一份（编码只在新建时可填） */
+/** 弹窗表单：新建与编辑共用一份（编码只在新建时可填）；上限、价格与周期为空即不限 / 不标 */
 export interface EditionForm {
   code: string
   name: string
   description: string
   isDefault: boolean
   order: number
+  /** 席位上限；为空不限 */
+  userLimit: number | null
+  /** 存储上限（MB）；为空不限 */
+  storageLimitMb: number | null
+  /** 价格（两位小数）；为空不标价 */
+  price: number | null
+  /** 计费周期（月）；为空不标周期 */
+  billingPeriodMonths: number | null
+  /** 免费套餐不能标价 */
+  isFree: boolean
 }
+
+/** 表单里提交前就能发现的问题（与后端同一口径：免费套餐标了大于 0 的价格即 TENANCY_VALIDATION_004） */
+export type EditionFormProblem = 'free_priced'
+
+type Translate = (key: string, values?: Record<string, unknown>) => string
 
 export type EditionEditorMode = 'create' | 'edit'
 
 const CODE_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+
+/** 免费套餐标了价即不合法（价格为 0 不算标价） */
+export function editionFormProblem(form: Pick<EditionForm, 'isFree' | 'price'>): EditionFormProblem | null {
+  return form.isFree && form.price !== null && form.price > 0 ? 'free_priced' : null
+}
+
+/** 套餐的配额、价格与周期：新建与更新的请求、设为缺省时原样带回（更新是整体覆盖） */
+function quotaOf(source: Pick<EditionRow, 'billingPeriodMonths' | 'isFree' | 'price' | 'storageLimitMb' | 'userLimit'>) {
+  return {
+    userLimit: source.userLimit ?? null,
+    storageLimitMb: source.storageLimitMb ?? null,
+    price: source.price ?? null,
+    billingPeriodMonths: source.billingPeriodMonths ?? null,
+    isFree: source.isFree,
+  }
+}
 
 function isBlank(value: unknown): boolean {
   return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
@@ -76,10 +107,10 @@ export function editionsResource(): SchemaResource<EditionRow> {
   }
 }
 
-/** 设为缺省：更新是整体覆盖，先取当前值再只改缺省标记；后端随之清掉其余套餐的缺省 */
+/** 设为缺省：更新是整体覆盖，先取当前值再只改缺省标记（配额、价格与周期原样带回）；后端随之清掉其余套餐的缺省 */
 export async function setDefaultEdition(id: string): Promise<EditionRow> {
   const { edition } = await editionsApi.get({ id })
-  return (await editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: true, order: edition.order })).edition
+  return (await editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: true, order: edition.order, ...quotaOf(edition) })).edition
 }
 
 /**
@@ -104,13 +135,14 @@ export function toWhitelistItems(catalog: readonly CatalogItem[], whitelist: rea
 }
 
 function emptyForm(): EditionForm {
-  return { code: '', name: '', description: '', isDefault: false, order: 0 }
+  return { code: '', name: '', description: '', isDefault: false, order: 0, userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false }
 }
 
 /**
  * 新建 / 编辑弹窗。新建时白名单为空（什么都不放行），页面接着打开白名单抽屉；编码创建后不可改。字段级错误挂回对应字段。
+ * 免费与价格互斥（4.x 同）：打开免费即清空价格、价格框随之禁用；提交前再核对一次，标了价的免费套餐不发请求、错误挂在价格上。
  */
-export function useEditionEditor() {
+export function useEditionEditor(t: Translate) {
   const open = ref(false)
   const mode = ref<EditionEditorMode>('create')
   const editing = ref<EditionRow | null>(null)
@@ -137,7 +169,7 @@ export function useEditionEditor() {
   function startEdit(row: EditionRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, description: row.description ?? '', isDefault: row.isDefault, order: row.order })
+    reset({ code: row.code, name: row.name, description: row.description ?? '', isDefault: row.isDefault, order: row.order, ...quotaOf(row) })
     open.value = true
   }
 
@@ -150,16 +182,27 @@ export function useEditionEditor() {
     return fieldErrors.value[field]?.[0]
   }
 
+  /** 切换免费：打开即清空价格（免费套餐不能标价）；关掉不回填 */
+  function setFree(value: boolean) {
+    form.isFree = value
+    if (value)
+      form.price = null
+  }
+
   /** 保存成功返回保存后的套餐，失败返回 null、弹窗保持打开 */
   async function submit(): Promise<EditionRow | null> {
-    submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
+    if (editionFormProblem(form) === 'free_priced') {
+      fieldErrors.value = { price: [t('tenancy.editions.validation.free_priced')] }
+      return null
+    }
+    submitting.value = true
     try {
       const current = editing.value
       const saved = mode.value === 'edit' && current
-        ? await editionsApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order })
-        : await editionsApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, permissions: [] })
+        ? await editionsApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form) })
+        : await editionsApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), permissions: [] })
       open.value = false
       return saved.edition
     }
@@ -179,7 +222,7 @@ export function useEditionEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, generateCode, submit }
+  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, generateCode, setFree, submit }
 }
 
 /**

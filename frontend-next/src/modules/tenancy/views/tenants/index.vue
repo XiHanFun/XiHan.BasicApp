@@ -1,21 +1,24 @@
 <script lang="ts" setup>
-import type { TenantMember, TenantMemberType, TenantRow, TenantStatus } from './use-tenants'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
+import type { EditionOption, TenantMember, TenantMemberType, TenantQuota, TenantRow, TenantStatus, UsageCell } from './use-tenants'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useTenantDetail, useTenantEditor } from './use-tenants'
+import { inheritedEdition, seatUsage, storageUsage, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 defineOptions({ name: 'TenancyTenantsView' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const resource = tenantsResource()
+/** 用量列的数据：随每次取页一起重取；取不到只提示，列表照常显示 */
+const quotas = useTenantQuotas(reason => toast.danger(t('tenancy.tenants.quota.load_failed', { reason })))
+const resource = tenantsResource(quotas)
+const audit = useQuotaAudit()
 const editions = useEditionOptions()
 const editor = useTenantEditor()
 const admin = useAdminInitializer()
@@ -67,6 +70,43 @@ function adminTag(row: TenantRow) {
     : renderTag(t('tenancy.tenants.admin_none'), 'neutral')
 }
 
+// ── 配额：用量单元格（4.x 同：超限标红、到 80% 标黄，其余普通文本），弹窗里上限留空时沿用套餐的值 ──
+function seatCell(quota: TenantQuota | undefined): UsageCell | null {
+  return quota ? seatUsage(quota, t('tenancy.tenants.quota.unlimited')) : null
+}
+
+function storageCell(quota: TenantQuota | undefined): UsageCell | null {
+  return quota ? storageUsage(quota, t('tenancy.tenants.quota.unlimited')) : null
+}
+
+function renderUsage(cell: UsageCell | null) {
+  if (!cell)
+    return '-'
+  return cell.tone === 'muted' ? cell.text : renderTag(cell.text, cell.tone)
+}
+
+const inherited = computed(() => (canReadEditions.value ? inheritedEdition(editions.editions.value, editor.form.editionId, !editor.isEdit.value) : undefined))
+
+/** 上限的占位：沿用的套餐知道就写出它的值，没有套餐即不限，说不出来就只说沿用套餐 */
+function limitPlaceholder(edition: EditionOption | null | undefined, value: (edition: EditionOption) => null | string): string {
+  if (edition === undefined)
+    return t('tenancy.tenants.quota.follow_edition')
+  if (edition === null)
+    return t('tenancy.tenants.quota.no_edition')
+  return t('tenancy.tenants.quota.from_edition', { value: value(edition) ?? t('tenancy.tenants.quota.unlimited') })
+}
+
+const userLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.userLimit === null || e.userLimit === undefined ? null : String(e.userLimit))))
+const storageLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.storageLimitMb === null || e.storageLimitMb === undefined ? null : t('tenancy.tenants.quota.storage_mb', { size: e.storageLimitMb }))))
+
+const auditColumns = computed<XDataTableColumn<TenantQuota>[]>(() => [
+  { key: 'tenantId', title: t('tenancy.tenants.fields.tenant_id'), minWidth: 120, ellipsis: true },
+  { key: 'name', title: t('tenancy.tenants.fields.name'), minWidth: 140, ellipsis: true },
+  { key: 'edition', title: t('tenancy.tenants.fields.edition'), minWidth: 110, ellipsis: true, render: quota => quota.editionName ?? t('tenancy.tenants.edition_unrestricted') },
+  { key: 'seats', title: t('tenancy.tenants.fields.seat_usage'), minWidth: 120, render: quota => renderUsage(seatCell(quota)) },
+  { key: 'storage', title: t('tenancy.tenants.fields.storage_usage'), minWidth: 170, render: quota => renderUsage(storageCell(quota)) },
+])
+
 const statusOptions = computed<SelectOption[]>(() => TENANT_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
 const memberTypeOptions = computed<SelectOption[]>(() => TENANT_MEMBER_TYPES.map(type => ({ label: memberTypeLabel(type), value: type })))
 /** 列与导出用的套餐名 */
@@ -89,6 +129,9 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'editionId', title: t('tenancy.tenants.fields.edition'), dataType: 'enum', exportable: true, options: editionColumnOptions.value, render: row => editionLabel(asRow(row).editionId), ellipsis: true, minWidth: 130, order: 4 },
   { key: 'adminUserId', title: t('tenancy.tenants.fields.admin'), dataType: 'string', render: row => adminTag(asRow(row)), width: 100, order: 5 },
   { key: 'expiresAt', title: t('tenancy.tenants.fields.expires_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 6 },
+  // 用量来自 tenants.quotas（有效上限 = 租户自己的 → 套餐的 → 不限），不进后端排序与导出
+  { key: 'seatUsage', title: t('tenancy.tenants.fields.seat_usage'), dataType: 'string', render: row => renderUsage(seatCell(quotas.of(asRow(row).tenantId))), minWidth: 120, order: 6.2 },
+  { key: 'storageUsage', title: t('tenancy.tenants.fields.storage_usage'), dataType: 'string', render: row => renderUsage(storageCell(quotas.of(asRow(row).tenantId))), minWidth: 170, order: 6.4 },
   { key: 'order', title: t('tenancy.tenants.fields.order'), dataType: 'number', sortable: true, exportable: true, width: 80, order: 7 },
   { key: 'description', title: t('tenancy.tenants.fields.description'), dataType: 'text', visible: false, exportable: true, order: 7.5 },
   { key: 'createdAt', title: t('tenancy.tenants.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 8 },
@@ -107,6 +150,7 @@ const schema = computed<PageSchema>(() => ({
   resource: resource as unknown as PageSchema['resource'],
   actions: [
     { key: 'create', title: t('tenancy.tenants.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'tenancy.tenants.create' },
+    { key: 'quota-audit', title: t('tenancy.tenants.actions.quota_audit'), scope: 'page', icon: 'lucide:gauge', permission: 'tenancy.tenants.read' },
     { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenancy.tenants.update' },
     // 每个租户只初始化一次：已有管理员就不再出这一项
@@ -123,6 +167,9 @@ function onAction(payload: SchemaActionPayload) {
   switch (payload.key) {
     case 'create':
       editor.startCreate()
+      break
+    case 'quota-audit':
+      void audit.start()
       break
     case 'view':
       if (row)
@@ -298,6 +345,14 @@ function formatNullableDate(value: null | string | undefined): string {
                     <XhDescriptionsValue>{{ detail.detail.value.userCount }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.seat_usage') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ seatCell(detail.detail.value.quota)?.text ?? '-' }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.storage_usage') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ storageCell(detail.detail.value.quota)?.text ?? '-' }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.expires_at') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ formatNullableDate(detail.detail.value.tenant.expiresAt) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
@@ -386,6 +441,49 @@ function formatNullableDate(value: null | string | undefined): string {
       </XhDrawerContent>
     </XhDrawerRoot>
 
+    <!-- 配额核对（4.x 同）：只列超出席位或存储上限的租户；配额只拦新增，已超额的不回收 -->
+    <XhDrawerRoot v-model:open="audit.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 760px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('tenancy.tenants.quota.audit_title') }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body" data-testid="tenant-quota-audit">
+          <div class="tenant-quota-audit__head">
+            <span class="text-caption text-fg-muted">
+              {{ audit.items.value.length > 0 ? t('tenancy.tenants.quota.audit_hint', { count: audit.items.value.length }) : t('tenancy.tenants.quota.audit_scope') }}
+            </span>
+            <XhButton variant="subtle" size="sm" :loading="audit.loading.value" @click="audit.load()">
+              <XhButtonIndicator>
+                <Icon icon="lucide:refresh-cw" width="14" />
+              </XhButtonIndicator>
+              <XhButtonLabel>{{ t('common.actions.refresh') }}</XhButtonLabel>
+            </XhButton>
+          </div>
+          <div class="xh-loading-stage" :class="{ 'is-loading': audit.loading.value }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <XhEmptyStateRoot v-if="audit.error.value" class="tenant-detail-empty">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:alert-circle" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('tenancy.tenants.quota.audit_failed') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ audit.error.value }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XhEmptyStateRoot v-else-if="!audit.loading.value && audit.items.value.length === 0" class="tenant-detail-empty">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:shield-check" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('tenancy.tenants.quota.audit_clear') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('tenancy.tenants.quota.audit_clear_desc') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XDataTable v-else :columns="auditColumns" :data="audit.items.value" row-key="tenantId" />
+          </div>
+        </XhDrawerBody>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
     <XEditModal
       v-model:show="editor.open.value"
       :title="editor.isEdit.value ? t('tenancy.tenants.edit_title') : t('tenancy.tenants.create_title')"
@@ -436,6 +534,25 @@ function formatNullableDate(value: null | string | undefined): string {
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('expiresAt')">
             {{ editor.fieldError('expiresAt') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <!-- 租户自己的上限覆盖套餐的；留空即沿用套餐，占位写出沿用的值（4.x 同） -->
+        <XhFieldRoot :invalid="!!editor.fieldError('userLimit')">
+          <XhFieldLabel>{{ t('tenancy.tenants.fields.user_limit') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.userLimit" name="userLimit" :min="0" :max="10000000" :precision="0" :placeholder="userLimitPlaceholder" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('userLimit')">
+            {{ editor.fieldError('userLimit') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('storageLimitMb')">
+          <XhFieldLabel>{{ t('tenancy.tenants.fields.storage_limit') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.storageLimitMb" name="storageLimitMb" :min="0" :max="1000000000" :precision="0" :placeholder="storageLimitPlaceholder" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('storageLimitMb')">
+            {{ editor.fieldError('storageLimitMb') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('order')">
@@ -560,6 +677,15 @@ function formatNullableDate(value: null | string | undefined): string {
 <style scoped>
 .tenant-detail-empty {
   padding-block: var(--xh-space-8);
+}
+
+.tenant-quota-audit__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-2);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--xh-space-3);
 }
 
 .tenant-member-toolbar {

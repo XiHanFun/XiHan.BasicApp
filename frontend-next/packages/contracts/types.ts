@@ -2211,6 +2211,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the tenant's own subscription: edition, expiry, effective seat and storage limits and usage. Tenant side only; requires tenancy.subscription.read. */
+        get: operations["subscription.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenant-members": {
         parameters: {
             query?: never;
@@ -2326,6 +2343,23 @@ export interface paths {
         };
         /** Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant. */
         get: operations["tenants.mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants:quotas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List every tenant's effective quotas and usage (seats, storage), optionally only those over quota. Platform side only; requires tenancy.tenants.read. */
+        get: operations["tenants.quotas"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3084,6 +3118,15 @@ export interface components {
             tenantCount: number;
             /** Format: date-time */
             createdAt: string;
+            /** Format: int32 */
+            userLimit?: number | null;
+            /** Format: int64 */
+            storageLimitMb?: number | null;
+            /** Format: decimal */
+            price?: number | null;
+            /** Format: int32 */
+            billingPeriodMonths?: number | null;
+            isFree: boolean;
         };
         ExceptionLogResponse: {
             /** Format: uuid */
@@ -3661,6 +3704,22 @@ export interface components {
         };
         /** @enum {string} */
         TenantMemberType: "Member" | "Owner";
+        TenantQuotaResponse: {
+            tenantId: string;
+            name: string;
+            editionCode?: string | null;
+            editionName?: string | null;
+            /** Format: int32 */
+            userLimit?: number | null;
+            /** Format: int64 */
+            usedSeats: number;
+            /** Format: int64 */
+            storageLimitMb?: number | null;
+            /** Format: int64 */
+            usedStorageBytes: number;
+            isOverSeats: boolean;
+            isOverStorage: boolean;
+        };
         TenantResponse: {
             /** Format: uuid */
             id: string;
@@ -3678,6 +3737,10 @@ export interface components {
             order: number;
             /** Format: date-time */
             createdAt: string;
+            /** Format: int32 */
+            userLimit?: number | null;
+            /** Format: int64 */
+            storageLimitMb?: number | null;
         };
         /** @enum {string} */
         TenantStatus: "Active" | "Suspended";
@@ -6214,6 +6277,15 @@ export interface operations {
                     /** Format: int32 */
                     order?: number;
                     permissions?: string[] | null;
+                    /** Format: int32 */
+                    userLimit?: number | null;
+                    /** Format: int64 */
+                    storageLimitMb?: number | null;
+                    /** Format: decimal */
+                    price?: number | null;
+                    /** Format: int32 */
+                    billingPeriodMonths?: number | null;
+                    isFree?: boolean;
                 };
             };
         };
@@ -6328,6 +6400,15 @@ export interface operations {
                     isDefault?: boolean;
                     /** Format: int32 */
                     order?: number;
+                    /** Format: int32 */
+                    userLimit?: number | null;
+                    /** Format: int64 */
+                    storageLimitMb?: number | null;
+                    /** Format: decimal */
+                    price?: number | null;
+                    /** Format: int32 */
+                    billingPeriodMonths?: number | null;
+                    isFree?: boolean;
                 };
             };
         };
@@ -11558,6 +11639,58 @@ export interface operations {
             };
         };
     };
+    "subscription.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tenantId: string;
+                        tenantName: string;
+                        status: components["schemas"]["TenantStatus"];
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        isExpired: boolean;
+                        editionCode?: string | null;
+                        editionName?: string | null;
+                        editionDescription?: string | null;
+                        isFree: boolean;
+                        /** Format: decimal */
+                        price?: number | null;
+                        /** Format: int32 */
+                        billingPeriodMonths?: number | null;
+                        /** Format: int32 */
+                        userLimit?: number | null;
+                        /** Format: int64 */
+                        usedSeats: number;
+                        /** Format: int64 */
+                        storageLimitMb?: number | null;
+                        /** Format: int64 */
+                        usedStorageBytes: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tenant-members.list": {
         parameters: {
             query: {
@@ -11694,6 +11827,10 @@ export interface operations {
                     order?: number;
                     /** Format: uuid */
                     editionId?: string | null;
+                    /** Format: int32 */
+                    userLimit?: number | null;
+                    /** Format: int64 */
+                    storageLimitMb?: number | null;
                 };
             };
         };
@@ -11721,6 +11858,10 @@ export interface operations {
                         order: number;
                         /** Format: date-time */
                         createdAt: string;
+                        /** Format: int32 */
+                        userLimit?: number | null;
+                        /** Format: int64 */
+                        storageLimitMb?: number | null;
                     };
                 };
             };
@@ -11791,6 +11932,7 @@ export interface operations {
                         adminUserName?: string | null;
                         /** Format: int64 */
                         userCount: number;
+                        quota: components["schemas"]["TenantQuotaResponse"];
                     };
                 };
             };
@@ -11825,6 +11967,10 @@ export interface operations {
                     expiresAt?: string | null;
                     /** Format: int32 */
                     order?: number;
+                    /** Format: int32 */
+                    userLimit?: number | null;
+                    /** Format: int64 */
+                    storageLimitMb?: number | null;
                 };
             };
         };
@@ -11852,6 +11998,10 @@ export interface operations {
                         order: number;
                         /** Format: date-time */
                         createdAt: string;
+                        /** Format: int32 */
+                        userLimit?: number | null;
+                        /** Format: int64 */
+                        storageLimitMb?: number | null;
                     };
                 };
             };
@@ -11909,6 +12059,10 @@ export interface operations {
                         order: number;
                         /** Format: date-time */
                         createdAt: string;
+                        /** Format: int32 */
+                        userLimit?: number | null;
+                        /** Format: int64 */
+                        storageLimitMb?: number | null;
                     };
                 };
             };
@@ -12041,6 +12195,39 @@ export interface operations {
                         canAccessPlatform: boolean;
                         platformIsCurrent: boolean;
                         tenants: components["schemas"]["AvailableTenantResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.quotas": {
+        parameters: {
+            query?: {
+                overOnly?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TenantQuotaResponse"][];
                     };
                 };
             };

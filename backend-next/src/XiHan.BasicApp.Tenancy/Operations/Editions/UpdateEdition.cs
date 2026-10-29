@@ -37,10 +37,20 @@ public sealed class UpdateEdition(IRepository<SysEdition, Guid> editions, Editio
             return Error.NotFound(TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
+        if (request.IsFree && request.Price is > 0)
+        {
+            return Error.Validation(TenancyErrors.FreeEditionPriced, TenancyMessages.FreeEditionPriced);
+        }
+
         edition.Name = request.Name.Trim();
         edition.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         edition.IsDefault = request.IsDefault;
         edition.Order = request.Order;
+        edition.UserLimit = request.UserLimit;
+        edition.StorageLimitMb = request.StorageLimitMb;
+        edition.Price = request.Price is { } price ? decimal.Round(price, 2) : null;
+        edition.BillingPeriodMonths = request.BillingPeriodMonths;
+        edition.IsFree = request.IsFree;
         var updated = await editions.UpdateAsync(edition, context.CancellationToken).ConfigureAwait(false);
         if (updated.IsFailure)
         {

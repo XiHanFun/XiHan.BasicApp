@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "套餐编码 '{code}' 已被占用。",
   "tenancy.edition.in_use": "套餐 '{code}' 还有租户在用，不能删除。",
   "tenancy.edition.permission_invalid": "权限 '{code}' 不在租户能生效的权限目录里，不能放进套餐。",
-  "tenancy.edition.no_default": "没有缺省套餐，开通租户时请指定套餐。"
+  "tenancy.edition.no_default": "没有缺省套餐，开通租户时请指定套餐。",
+  "tenancy.edition.free_priced": "免费套餐不能标价。",
+  "tenancy.quota.storage": "租户存储空间不足（已用 {used} MB / 上限 {limit} MB），本次需要 {needed} MB。请清理文件或升级套餐。",
+  "tenancy.quota.seats": "租户席位已达上限（已用 {used} / 上限 {limit}），无法继续新增成员。请升级套餐或调整席位。",
+  "tenants.quotas.description": "列出各租户的有效配额与用量（席位、存储），可只看超额的。只在平台侧；需要 tenancy.tenants.read 权限。",
+  "subscription.get.description": "取本租户的订阅：套餐、到期、有效的席位与存储上限及用量。只在租户侧；需要 tenancy.subscription.read 权限。",
+  "tenancy.subscription.tenant_only": "订阅属于租户，平台没有订阅。"
 }
