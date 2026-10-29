@@ -198,6 +198,7 @@ export default {
         field_security: 'Правило безопасности полей',
         role_inheritance: 'Наследование ролей',
         delegation: 'Делегирование',
+        condition_change: 'Условие разрешения',
       },
       role_id: 'ID роли',
       role_name: 'Роль',

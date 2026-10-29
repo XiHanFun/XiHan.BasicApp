@@ -20,8 +20,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">角色授予。</param>
 /// <param name="rules">授予规则。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
-public sealed class DenyRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules) : IOperation<RolePermissionsRequest, PermissionBatchResult>
+public sealed class DenyRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<RolePermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -45,6 +46,7 @@ public sealed class DenyRole(RoleService service, PermissionCatalog catalog, Rol
             // 撤掉同码的授予（没有授予不算失败），再写 Deny
             await grants.RevokeAsync(role, permissions, ct).ConfigureAwait(false);
             (await rules.SetAsync(owner, GrantSubjectKind.Role, role.Id, permissions, PermissionAction.Deny, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
+            (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.Role, role.Id, permissions, PermissionAction.Grant, ct).ConfigureAwait(false)).ThrowIfFailure();
             return permissions.Select(p => new PermissionGrantResult(new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role)), Result.Success())).ToList();
         }).ConfigureAwait(false);
     }

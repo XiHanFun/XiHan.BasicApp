@@ -92,4 +92,9 @@ public enum PermissionChangeType
     /// 新建、撤销或删除委托。
     /// </summary>
     Delegation = 16,
+
+    /// <summary>
+    /// 新建、修改、启停或删除权限条件。
+    /// </summary>
+    ConditionChange = 17,
 }

@@ -60,8 +60,9 @@ public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastruct
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>
 /// <param name="rules">授予规则。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -84,6 +85,7 @@ public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalo
             var outcomes = await grants.GrantAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
             var ok = outcomes.Where(static o => o.Outcome.IsSuccess).Select(static o => o.Grant.Permission).ToList();
             (await rules.SetAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Grant, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
+            (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Deny, ct).ConfigureAwait(false)).ThrowIfFailure();
             return outcomes;
         }).ConfigureAwait(false);
     }
@@ -96,8 +98,9 @@ public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalo
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>
 /// <param name="rules">授予规则。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -119,6 +122,7 @@ public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog
         {
             await grants.RevokeAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
             (await rules.SetAsync(owner, GrantSubjectKind.User, user.Id, permissions, PermissionAction.Deny, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
+            (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, permissions, PermissionAction.Grant, ct).ConfigureAwait(false)).ThrowIfFailure();
             return permissions.Select(p => new PermissionGrantResult(new XiHan.Framework.Security.Abstractions.Permissions.PermissionGrant(Infrastructure.UserGrants.SubjectOf(user.Id), p, Infrastructure.UserGrants.TenantOf(owner)), Result.Success())).ToList();
         }).ConfigureAwait(false);
     }
@@ -131,8 +135,9 @@ public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>
 /// <param name="rules">授予规则。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class RevokeUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class RevokeUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -148,6 +153,7 @@ public sealed class RevokeUser(IRepository<SysUser, Guid> users, PermissionCatal
         {
             var outcomes = await grants.RevokeAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
             var removed = await rules.RemoveAsync(owner, GrantSubjectKind.User, user.Id, permissions, ct).ConfigureAwait(false);
+            (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, permissions, null, ct).ConfigureAwait(false)).ThrowIfFailure();
             var cleared = removed.ValueOrThrow();
             return outcomes.Select(o => o.Outcome.IsFailure && o.Outcome.Error!.Kind == "NOTFOUND" && cleared.Contains(o.Grant.Permission) ? o with { Outcome = Result.Success() } : o).ToList();
         });

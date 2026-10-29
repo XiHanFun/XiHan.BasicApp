@@ -176,7 +176,7 @@ public sealed partial class AuditLogWriter : IDisposable
     {
         foreach (var group in batch.GroupBy(static r => (Type: r.GetType(), r.TenantId)))
         {
-            var records = group.ToList();
+            var records = group.Key.Type == typeof(SysConditionHit) ? MergeHits(group) : group.ToList();
             try
             {
                 var written = await WriteGroupAsync(group.Key.Type, group.Key.TenantId, records).ConfigureAwait(false);
@@ -196,6 +196,22 @@ public sealed partial class AuditLogWriter : IDisposable
                 LogWriteFailed(_logger, exception, records.Count, group.Key.Type.Name, group.Key.TenantId);
             }
         }
+    }
+
+    /// <summary>
+    /// 条件命中按 4.x 的合并键（来源、策略、动作、时机、是否拦截、地址、方法、路径、用户、UTC 分钟）在同一批里合并计数，保留每组第一条的时间与链路。
+    /// </summary>
+    private static List<AuditLogRecord> MergeHits(IEnumerable<AuditLogRecord> records)
+    {
+        var merged = new List<AuditLogRecord>();
+        foreach (var group in records.Cast<SysConditionHit>().GroupBy(static h => (h.Source, h.PolicyId, h.PolicyCode, h.Action, h.Phase, h.IsBlocked, h.ClientIp, h.Method, h.Path, h.UserId, Minute: h.OccurredAt.Ticks / TimeSpan.TicksPerMinute)))
+        {
+            var first = group.First();
+            first.HitCount = group.Sum(static h => h.HitCount);
+            merged.Add(first);
+        }
+
+        return merged;
     }
 
     private async Task<Result> WriteGroupAsync(Type type, string tenantId, IReadOnlyList<AuditLogRecord> records)

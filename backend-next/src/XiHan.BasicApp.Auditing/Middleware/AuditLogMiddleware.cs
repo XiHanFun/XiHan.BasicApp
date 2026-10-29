@@ -168,6 +168,24 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                     };
                     Enqueue(changed, caller with { TenantId = change.TenantId ?? caller.TenantId }, origin, context, occurredAt);
                     break;
+                case ConditionHitLogEntry hit:
+                    // 命中与调用成败无关：拦下的调用本身就是失败
+                    var hitRecord = new SysConditionHit
+                    {
+                        Source = hit.Source,
+                        PolicyId = hit.PolicyId,
+                        PolicyCode = Clip(hit.PolicyCode, 128)!,
+                        PolicyName = Clip(hit.PolicyName, 256),
+                        Action = hit.Action,
+                        Phase = hit.Phase,
+                        IsBlocked = hit.IsBlocked,
+                        OperationId = Clip(operation?.Id, 128),
+                        Method = Clip(method, 16),
+                        Path = Clip(path, 512),
+                        PermissionCodes = hit.PermissionCodes.Count == 0 ? null : Clip(string.Join(',', hit.PermissionCodes), 1024),
+                    };
+                    Enqueue(hitRecord, caller with { TenantId = hit.TenantId ?? caller.TenantId }, origin, context, occurredAt);
+                    break;
             }
         }
 

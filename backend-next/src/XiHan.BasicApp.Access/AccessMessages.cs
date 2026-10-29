@@ -455,6 +455,61 @@ public static class AccessMessages
     /// </summary>
     public const string DelegationNotFound = "access.delegation.not_found";
 
+    /// <summary>
+    /// 操作 <c>permission-conditions.attributes</c> 的说明。
+    /// </summary>
+    public const string ListConditionAttributesDescription = "permission_conditions.attributes.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.list</c> 的说明。
+    /// </summary>
+    public const string ListPermissionConditionsDescription = "permission_conditions.list.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.create</c> 的说明。
+    /// </summary>
+    public const string CreatePermissionConditionDescription = "permission_conditions.create.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.update</c> 的说明。
+    /// </summary>
+    public const string UpdatePermissionConditionDescription = "permission_conditions.update.description";
+
+    /// <summary>
+    /// 操作 <c>permission-conditions.delete</c> 的说明。
+    /// </summary>
+    public const string DeletePermissionConditionsDescription = "permission_conditions.delete.description";
+
+    /// <summary>
+    /// 主体在权限码上没有这条授予或拒绝；参数 <c>permission</c>、<c>action</c>。
+    /// </summary>
+    public const string ConditionBindingMissing = "access.condition.binding_missing";
+
+    /// <summary>
+    /// 角色停用或是内置角色；参数 <c>name</c>。
+    /// </summary>
+    public const string ConditionSubjectInvalid = "access.condition.subject_invalid";
+
+    /// <summary>
+    /// 条件组超出上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ConditionGroupsExceeded = "access.condition.groups_exceeded";
+
+    /// <summary>
+    /// 子句超出上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ConditionClausesExceeded = "access.condition.clauses_exceeded";
+
+    /// <summary>
+    /// 权限条件不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string ConditionNotFound = "access.condition.not_found";
+
+    /// <summary>
+    /// 当前条件下不允许此操作；参数 <c>permission</c>。
+    /// </summary>
+    public const string ConditionNotMet = "access.condition.not_met";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

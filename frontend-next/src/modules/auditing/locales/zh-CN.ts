@@ -198,6 +198,7 @@ export default {
         field_security: '字段安全规则',
         role_inheritance: '角色继承',
         delegation: '权限委托',
+        condition_change: '权限条件',
       },
       role_id: '角色主键',
       role_name: '角色',

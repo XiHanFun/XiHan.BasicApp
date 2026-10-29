@@ -18,8 +18,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">角色授予。</param>
 /// <param name="rules">授予规则。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
-public sealed class GrantRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules) : IOperation<RolePermissionsRequest, PermissionBatchResult>
+public sealed class GrantRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<RolePermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -44,6 +45,13 @@ public sealed class GrantRole(RoleService service, PermissionCatalog catalog, Ro
         }
 
         var written = await rules.SetAsync(RoleService.OwnerOf(context), GrantSubjectKind.Role, request.Id, batch.Succeeded, PermissionAction.Grant, request.EffectiveAt, request.ExpiresAt, request.Reason, context.CancellationToken).ConfigureAwait(false);
-        return written.IsFailure ? written.Error! : batch;
+        if (written.IsFailure)
+        {
+            return written.Error!;
+        }
+
+        // 拒绝换成了授予：拒绝上的条件随之删除
+        var cleared = await conditions.RemoveBindingsAsync(RoleService.OwnerOf(context), GrantSubjectKind.Role, request.Id, batch.Succeeded, PermissionAction.Deny, context.CancellationToken).ConfigureAwait(false);
+        return cleared.IsFailure ? cleared.Error! : batch;
     }
 }

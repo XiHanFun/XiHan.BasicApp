@@ -27,8 +27,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="fieldRules">字段安全规则（连同删以该角色为目标的规则）。</param>
 /// <param name="hierarchy">继承写入（仍被继承的不能删，连同删它作为下级的边）。</param>
 /// <param name="delegations">委托（连同删委托该角色的记录）。</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
-public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules, RoleHierarchyService hierarchy, DelegationService delegations) : IOperation<RoleIdsRequest, BatchResult>
+public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules, RoleHierarchyService hierarchy, DelegationService delegations, PermissionConditionService conditions) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -120,6 +121,12 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
             {
                 await cache.InvalidateAsync(assignment.OwnerTenantId, assignment.UserId, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        var conditionRows = await conditions.RemoveBindingsAsync(role.OwnerTenantId, GrantSubjectKind.Role, role.Id, null, null, cancellationToken).ConfigureAwait(false);
+        if (conditionRows.IsFailure)
+        {
+            return conditionRows;
         }
 
         var ruleRows = await rules.RemoveAsync(role.OwnerTenantId, GrantSubjectKind.Role, role.Id, null, cancellationToken).ConfigureAwait(false);

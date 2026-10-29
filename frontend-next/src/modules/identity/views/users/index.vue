@@ -9,6 +9,7 @@ import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhBu
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
+import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
@@ -35,6 +36,9 @@ const departments = useUserDepartments()
 // 直接授权与成员数据范围（4.x 用户页的「直接授权」「数据范围」，后端在 Access）
 const grants = useUserGrants(() => t('identity.users.grants.group_outside'))
 const dataScope = useUserDataScope()
+/** 授权条件抽屉 */
+const conditionsVisible = ref(false)
+const conditionsUser = ref<UserRow | null>(null)
 
 /** 弹窗的保存钮靠这些 id 关联到各自的表单，点它才会走整表提交 */
 const editFormId = useId()
@@ -119,6 +123,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'assignRoles', title: t('identity.users.actions.assign_roles'), scope: 'row', icon: 'lucide:users-round', visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read'), permission: 'access.roles.assign' },
     // 直接授权只对同一侧的用户成立；数据范围覆盖只在租户侧
     { key: 'grantPermissions', title: t('identity.users.actions.grant_permissions'), scope: 'row', icon: 'lucide:key-round', visible: row => isOwnSide(asRow(row)), permission: 'access.user-grants.read' },
+    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => isOwnSide(asRow(row)), permission: 'access.permission-conditions.read' },
     { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)), permission: 'access.user-data-scopes.read' },
     // 部门与岗位是租户侧数据：平台态不出这个入口
     { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
@@ -158,6 +163,12 @@ function onAction(payload: SchemaActionPayload) {
     case 'grantPermissions':
       if (row)
         void grants.start(row)
+      break
+    case 'conditions':
+      if (row) {
+        conditionsUser.value = row
+        conditionsVisible.value = true
+      }
       break
     case 'dataScope':
       if (row)
@@ -795,6 +806,8 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <GrantConditionsDrawer v-model:open="conditionsVisible" :title="t('access.conditions.drawer_title', { name: conditionsUser ? displayNameOf(conditionsUser) : '' })" subject-kind="User" :subject-id="conditionsUser?.id ?? null" />
   </SchemaPage>
 </template>
 

@@ -198,6 +198,7 @@ export default {
         field_security: 'Règle de sécurité des champs',
         role_inheritance: 'Héritage de rôles',
         delegation: 'Délégation',
+        condition_change: 'Condition de permission',
       },
       role_id: 'ID du rôle',
       role_name: 'Rôle',

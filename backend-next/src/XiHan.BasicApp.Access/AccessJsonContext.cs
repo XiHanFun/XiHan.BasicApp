@@ -6,6 +6,7 @@ using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Auth;
 using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
+using XiHan.BasicApp.Access.Operations.PermissionConditions;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
@@ -77,4 +78,13 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(DelegationIdsRequest))]
 [JsonSerializable(typeof(DelegationResponse))]
 [JsonSerializable(typeof(PageResult<DelegationResponse>))]
+[JsonSerializable(typeof(List<ConditionClauseView>))]
+[JsonSerializable(typeof(ConditionAttributesRequest))]
+[JsonSerializable(typeof(ConditionAttributesResponse))]
+[JsonSerializable(typeof(PermissionConditionsRequest))]
+[JsonSerializable(typeof(PermissionConditionsResponse))]
+[JsonSerializable(typeof(CreatePermissionConditionRequest))]
+[JsonSerializable(typeof(UpdatePermissionConditionRequest))]
+[JsonSerializable(typeof(PermissionConditionIdsRequest))]
+[JsonSerializable(typeof(PermissionConditionResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

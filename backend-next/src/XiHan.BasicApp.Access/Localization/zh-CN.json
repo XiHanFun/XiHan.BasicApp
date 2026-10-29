@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "角色 {name} 已停用或是内置角色，不能委托。",
   "access.delegation.taken": "已有一条相同且未到期的委托，请先撤销那一条。",
   "access.delegation.closed": "委托 {id} 已撤销或已到期。",
-  "access.delegation.not_found": "委托 {id} 不存在。"
+  "access.delegation.not_found": "委托 {id} 不存在。",
+  "permission_conditions.attributes.description": "列出条件属性目录（权限条件与访问策略共用），带可用的运算符与认证前能否取得。需要 access.permission-conditions.read 权限。",
+  "permission_conditions.list.description": "列出一个角色或用户此刻的授权绑定与上面的条件子句。需要 access.permission-conditions.read 权限。",
+  "permission_conditions.create.description": "在授予或拒绝上加一条条件子句：授予上满足才授予，拒绝上满足才拒绝。需要 access.permission-conditions.create 权限。",
+  "permission_conditions.update.description": "修改条件子句（含启停）。需要 access.permission-conditions.update 权限。",
+  "permission_conditions.delete.description": "删除条件子句。需要 access.permission-conditions.delete 权限。",
+  "access.condition.binding_missing": "主体在 {permission} 上没有这条{action}，不能挂条件。",
+  "access.condition.subject_invalid": "角色 {name} 已停用或是内置角色，不能挂条件。",
+  "access.condition.groups_exceeded": "一条授权最多 {max} 个条件组。",
+  "access.condition.clauses_exceeded": "一个条件组最多 {max} 条条件。",
+  "access.condition.not_found": "权限条件 {id} 不存在。",
+  "access.condition.not_met": "当前条件下不允许此操作。"
 }

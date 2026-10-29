@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "Роль {name} отключена или встроенная, её нельзя делегировать.",
   "access.delegation.taken": "Такое же неистёкшее делегирование уже есть; сначала отзовите его.",
   "access.delegation.closed": "Делегирование {id} уже отозвано или истекло.",
-  "access.delegation.not_found": "Делегирование {id} не существует."
+  "access.delegation.not_found": "Делегирование {id} не существует.",
+  "permission_conditions.attributes.description": "Показать каталог атрибутов условий (общий для условий разрешений и политик доступа) с допустимыми операторами и признаком доступности до входа. Требуется access.permission-conditions.read.",
+  "permission_conditions.list.description": "Показать привязки разрешений роли или пользователя и условия на них. Требуется access.permission-conditions.read.",
+  "permission_conditions.create.description": "Добавить условие к выдаче или запрету: у выдачи — выдавать только при выполнении, у запрета — запрещать только при выполнении. Требуется access.permission-conditions.create.",
+  "permission_conditions.update.description": "Изменить условие, включая его включение и выключение. Требуется access.permission-conditions.update.",
+  "permission_conditions.delete.description": "Удалить условия. Требуется access.permission-conditions.delete.",
+  "access.condition.binding_missing": "У субъекта нет такой привязки ({action}) на {permission}, к которой можно добавить условие.",
+  "access.condition.subject_invalid": "Роль {name} отключена или встроенная, на неё нельзя вешать условия.",
+  "access.condition.groups_exceeded": "У разрешения может быть не больше {max} групп условий.",
+  "access.condition.clauses_exceeded": "В группе условий может быть не больше {max} условий.",
+  "access.condition.not_found": "Условие разрешения {id} не существует.",
+  "access.condition.not_met": "При текущих условиях эта операция не разрешена."
 }

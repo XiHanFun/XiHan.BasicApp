@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "ロール {name} は無効化されているか組み込みロールのため、委任できません。",
   "access.delegation.taken": "同じ内容で期限内の委任が既にあります。先にそちらを取り消してください。",
   "access.delegation.closed": "委任 {id} は既に取り消されたか期限切れです。",
-  "access.delegation.not_found": "委任 {id} は存在しません。"
+  "access.delegation.not_found": "委任 {id} は存在しません。",
+  "permission_conditions.attributes.description": "条件属性の一覧（権限条件とアクセスポリシーで共用）を、使える演算子と認証前に取得できるかと併せて返します。access.permission-conditions.read 権限が必要です。",
+  "permission_conditions.list.description": "ロールまたはユーザーの現在の権限バインドと、その上の条件句を一覧します。access.permission-conditions.read 権限が必要です。",
+  "permission_conditions.create.description": "付与または拒否に条件句を追加します：付与では満たせば付与、拒否では満たせば拒否します。access.permission-conditions.create 権限が必要です。",
+  "permission_conditions.update.description": "条件句を変更します（有効・無効を含む）。access.permission-conditions.update 権限が必要です。",
+  "permission_conditions.delete.description": "条件句を削除します。access.permission-conditions.delete 権限が必要です。",
+  "access.condition.binding_missing": "主体は {permission} にこの{action}を持っていないため、条件を付けられません。",
+  "access.condition.subject_invalid": "ロール {name} は無効化されているか組み込みロールのため、条件を付けられません。",
+  "access.condition.groups_exceeded": "1 つの権限に付けられる条件グループは最大 {max} 個です。",
+  "access.condition.clauses_exceeded": "1 つの条件グループに入れられる条件は最大 {max} 件です。",
+  "access.condition.not_found": "権限条件 {id} は存在しません。",
+  "access.condition.not_met": "現在の条件ではこの操作は許可されていません。"
 }

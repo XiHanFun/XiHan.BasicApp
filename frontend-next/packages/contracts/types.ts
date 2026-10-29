@@ -1110,6 +1110,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/permission-conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the grant bindings of a role or user and the condition clauses on them. Requires access.permission-conditions.read. */
+        get: operations["permission-conditions.list"];
+        put?: never;
+        /** Add a condition clause to a grant or denial: met to grant on a grant, met to deny on a denial. Requires access.permission-conditions.create. */
+        post: operations["permission-conditions.create"];
+        /** Delete condition clauses. Requires access.permission-conditions.delete. */
+        delete: operations["permission-conditions.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-conditions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit a condition clause, including enabling and disabling it. Requires access.permission-conditions.update. */
+        put: operations["permission-conditions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-conditions:attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the condition attribute catalog (shared by permission conditions and access policies), with the operators each allows and whether it is known before authentication. Requires access.permission-conditions.read. */
+        get: operations["permission-conditions.attributes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -1965,6 +2018,23 @@ export interface components {
             id: string;
             code: string;
         };
+        ConditionAttributeResponse: {
+            name: string;
+            kind: components["schemas"]["ConditionValueKind"];
+            isMultiValued: boolean;
+            isFamily: boolean;
+            aliases: string[];
+            operators: components["schemas"]["ConditionOperator"][];
+            isBeforeAuthentication: boolean;
+        };
+        ConditionBindingResponse: {
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+        };
         /** @enum {string} */
         ConditionHitAction: "LogOnly" | "Deny" | "Allow";
         /** @enum {string} */
@@ -1999,6 +2069,12 @@ export interface components {
         };
         /** @enum {string} */
         ConditionHitSource: "AccessPolicy" | "PermissionCondition";
+        /** @enum {string} */
+        ConditionOperator: "Equals" | "NotEquals" | "GreaterThan" | "GreaterThanOrEquals" | "LessThan" | "LessThanOrEquals" | "Contains" | "NotContains" | "In" | "NotIn" | "Between" | "StartsWith" | "EndsWith" | "IsNull" | "IsNotNull";
+        /** @enum {string} */
+        ConditionStatus: "Active" | "Disabled";
+        /** @enum {string} */
+        ConditionValueKind: "String" | "Number" | "Boolean" | "DateTime" | "Date" | "TimeOfDay" | "IpAddress";
         /** @enum {string} */
         ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
         ConfigResponse: {
@@ -2225,6 +2301,8 @@ export interface components {
         };
         /** @enum {string} */
         FieldSecurityTargetKind: "Role" | "User" | "Department";
+        /** @enum {string} */
+        GrantSubjectKind: "Role" | "User";
         ImpersonationCandidateResponse: {
             /** Format: uuid */
             id: string;
@@ -2489,7 +2567,23 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange";
+        PermissionConditionResponse: {
+            /** Format: uuid */
+            id: string;
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: int32 */
+            groupNo: number;
+            attributeName: string;
+            operator: components["schemas"]["ConditionOperator"];
+            isNegated: boolean;
+            value?: string | null;
+            description?: string | null;
+            status: components["schemas"]["ConditionStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
         PermissionFailure: {
             permission: string;
             code: string;
@@ -6839,6 +6933,232 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.list": {
+        parameters: {
+            query: {
+                subjectKind: components["schemas"]["GrantSubjectKind"];
+                subjectId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        subjectKind: components["schemas"]["GrantSubjectKind"];
+                        /** Format: uuid */
+                        subjectId: string;
+                        bindings: components["schemas"]["ConditionBindingResponse"][];
+                        conditions: components["schemas"]["PermissionConditionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    subjectKind: components["schemas"]["GrantSubjectKind"];
+                    /** Format: uuid */
+                    subjectId: string;
+                    permission: string;
+                    action: components["schemas"]["PermissionAction"];
+                    attributeName: string;
+                    operator: components["schemas"]["ConditionOperator"];
+                    /** Format: int32 */
+                    groupNo?: number;
+                    isNegated?: boolean;
+                    value?: string | null;
+                    description?: string | null;
+                    status?: components["schemas"]["ConditionStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        permission: string;
+                        action: components["schemas"]["PermissionAction"];
+                        /** Format: int32 */
+                        groupNo: number;
+                        attributeName: string;
+                        operator: components["schemas"]["ConditionOperator"];
+                        isNegated: boolean;
+                        value?: string | null;
+                        description?: string | null;
+                        status: components["schemas"]["ConditionStatus"];
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    attributeName: string;
+                    operator: components["schemas"]["ConditionOperator"];
+                    /** Format: int32 */
+                    groupNo?: number;
+                    isNegated?: boolean;
+                    value?: string | null;
+                    description?: string | null;
+                    status?: components["schemas"]["ConditionStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        permission: string;
+                        action: components["schemas"]["PermissionAction"];
+                        /** Format: int32 */
+                        groupNo: number;
+                        attributeName: string;
+                        operator: components["schemas"]["ConditionOperator"];
+                        isNegated: boolean;
+                        value?: string | null;
+                        description?: string | null;
+                        status: components["schemas"]["ConditionStatus"];
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-conditions.attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConditionAttributeResponse"][];
                     };
                 };
             };
