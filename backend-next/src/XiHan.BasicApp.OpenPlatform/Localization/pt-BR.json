@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Autoverificação de assinatura: se a assinatura for válida, devolve a AppKey, o titular da credencial e a hora do servidor. Só pode ser chamada com requisições assinadas por uma credencial de API aberta (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Eco: devolve o corpo da requisição como recebido, para conferir a assinatura do conteúdo e a criptografia (o corpo pode ser cifrado com AES-CBC e então a resposta também). Somente chamadas assinadas.",
+  "openplatform.signing.verified": "Assinatura de API aberta verificada",
+  "openplatform.signing.headers_missing": "Cabeçalhos de assinatura ausentes: {headers}.",
+  "openplatform.signing.timestamp_expired": "A requisição está fora da janela de tempo (mais de {seconds} segundos de diferença do servidor).",
+  "openplatform.signing.access_key_invalid": "A AccessKey é inválida ou está desativada.",
+  "openplatform.signing.ip_not_allowed": "O IP da requisição não está na lista permitida: {ip}.",
+  "openplatform.signing.content_sign_missing": "Assinatura do conteúdo ausente.",
+  "openplatform.signing.content_sign_mismatch": "A assinatura do conteúdo não confere.",
+  "openplatform.signing.signature_mismatch": "A assinatura da requisição não confere.",
+  "openplatform.signing.timestamp_invalid": "Carimbo de tempo inválido (esperado segundos Unix).",
+  "openplatform.signing.nonce_invalid": "Nonce inválido (no máximo 128 caracteres).",
+  "openplatform.signing.algorithm_mismatch": "O algoritmo de assinatura {value} não confere com o configurado {expected}.",
+  "openplatform.signing.content_algorithm_unsupported": "Algoritmo de assinatura do conteúdo não suportado: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Algoritmo de criptografia não suportado: {value}.",
+  "openplatform.signing.body_too_large": "O corpo da requisição excede o limite ({max} bytes).",
+  "openplatform.signing.body_decrypt_failed": "Não foi possível decifrar o corpo da requisição.",
+  "openplatform.signing.nonce_replayed": "Requisição duplicada detectada."
+}

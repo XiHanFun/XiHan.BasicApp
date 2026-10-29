@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "Das Sperrkennwort darf nicht leer sein.",
   "identity.auth.unlock_password_wrong": "Falsches Sperrkennwort; noch {remaining} Versuche.",
   "identity.auth.unlock_exhausted": "Zu viele fehlgeschlagene Entsperrversuche; die Sitzung ist beendet. Bitte melden Sie sich erneut an.",
-  "identity.auth.lock_reason_unsupported": "Die Sitzung ist aus einem Grund gesperrt, den ein Sperrkennwort nicht aufheben kann."
+  "identity.auth.lock_reason_unsupported": "Die Sitzung ist aus einem Grund gesperrt, den ein Sperrkennwort nicht aufheben kann.",
+  "my_api_credentials.list.description": "Listet Ihre eigenen Open-API-Zugangsdaten auf (Geheimnisse werden nie angezeigt). Erfordert nur die Anmeldung.",
+  "my_api_credentials.create.description": "Erstellt Open-API-Zugangsdaten (höchstens 5 pro Person); das Geheimnis wird nur dieses eine Mal zurückgegeben. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "my_api_credentials.update.description": "Aktiviert oder deaktiviert eigene Open-API-Zugangsdaten. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "my_api_credentials.rotate_secret.description": "Rotiert das Geheimnis eigener Zugangsdaten: Das alte Geheimnis wird sofort ungültig, das neue nur dieses eine Mal zurückgegeben. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "my_api_credentials.delete.description": "Löscht eigene Open-API-Zugangsdaten; ihre AppKeys sind sofort unbrauchbar. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "my_api_credentials.settings.description": "Ihre Aufrufsicherheit: Signaturalgorithmus und IP-Zulassungsliste, gültig für alle Ihre Zugangsdaten. Erfordert nur die Anmeldung.",
+  "my_api_credentials.update_settings.description": "Speichert Ihre Aufrufsicherheit (als Ganzes ersetzt, sofort für alle Ihre Zugangsdaten gültig). In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "identity.api_credentials.default_name": "Standard-Zugangsdaten",
+  "identity.api_credentials.limit_reached": "Es sind höchstens {max} API-Zugangsdaten möglich; löschen Sie nicht mehr benötigte und versuchen Sie es erneut.",
+  "identity.api_credentials.not_found": "Die Zugangsdaten existieren nicht oder gehören nicht Ihnen.",
+  "identity.api_credentials.algorithm_invalid": "Nicht unterstützter Signaturalgorithmus: {value}.",
+  "identity.api_credentials.ip_invalid": "Ungültiger Eintrag in der IP-Zulassungsliste: {value}",
+  "identity.api_credentials.ip_too_many": "Die IP-Zulassungsliste darf höchstens {max} Einträge haben."
 }

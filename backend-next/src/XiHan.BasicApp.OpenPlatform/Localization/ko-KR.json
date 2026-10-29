@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "서명 자가 점검: 서명이 검증되면 AppKey, 자격 증명 소유자, 서버 시간을 반환합니다. 오픈 API 자격 증명으로 서명한 요청으로만 호출할 수 있습니다(X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "에코: 받은 요청 본문을 그대로 반환하여 내용 서명과 암호화를 확인합니다(본문은 AES-CBC로 암호화할 수 있으며 그러면 응답도 암호화됩니다). 서명된 호출만 가능합니다.",
+  "openplatform.signing.verified": "오픈 API 서명이 검증되었습니다",
+  "openplatform.signing.headers_missing": "서명 헤더가 없습니다: {headers}.",
+  "openplatform.signing.timestamp_expired": "요청 시각이 서버 시각과 {seconds}초 넘게 차이 납니다.",
+  "openplatform.signing.access_key_invalid": "AccessKey가 잘못되었거나 사용 중지되었습니다.",
+  "openplatform.signing.ip_not_allowed": "요청 IP가 허용 목록에 없습니다: {ip}.",
+  "openplatform.signing.content_sign_missing": "내용 서명이 없습니다.",
+  "openplatform.signing.content_sign_mismatch": "내용 서명이 일치하지 않습니다.",
+  "openplatform.signing.signature_mismatch": "요청 서명이 일치하지 않습니다.",
+  "openplatform.signing.timestamp_invalid": "타임스탬프 형식이 잘못되었습니다(Unix 초).",
+  "openplatform.signing.nonce_invalid": "nonce 형식이 잘못되었습니다(최대 128자).",
+  "openplatform.signing.algorithm_mismatch": "서명 알고리즘 {value}이(가) 설정된 {expected}와 다릅니다.",
+  "openplatform.signing.content_algorithm_unsupported": "지원하지 않는 내용 서명 알고리즘입니다: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "지원하지 않는 암호화 알고리즘입니다: {value}.",
+  "openplatform.signing.body_too_large": "요청 본문이 한도({max}바이트)를 넘었습니다.",
+  "openplatform.signing.body_decrypt_failed": "요청 본문을 복호화하지 못했습니다.",
+  "openplatform.signing.nonce_replayed": "중복 요청이 감지되었습니다."
+}

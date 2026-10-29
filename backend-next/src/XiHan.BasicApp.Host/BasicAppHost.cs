@@ -10,6 +10,8 @@ using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
+using XiHan.BasicApp.OpenPlatform;
+using XiHan.BasicApp.OpenPlatform.Infrastructure;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
@@ -74,7 +76,8 @@ public static class BasicAppHost
             .UseFeature<FilesFeature>()
             .UseFeature<NotificationFeature>()
             .UseFeature<AuditingFeature>()
-            .UseFeature<RealtimeFeature>();
+            .UseFeature<RealtimeFeature>()
+            .UseFeature<OpenPlatformFeature>();
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();
@@ -96,6 +99,8 @@ public static class BasicAppHost
         ArgumentNullException.ThrowIfNull(app);
         app.UseAuthentication();
         app.UseAuthorization();
+        // 开放接口的请求体原文要在框架绑定载荷之前留下（验签要原文，加密的要先解密）
+        app.UseOpenApiRequestBuffer();
         app.UseXiHan();
         app.MapXiHanHealth();
         app.MapXiHanOperations();

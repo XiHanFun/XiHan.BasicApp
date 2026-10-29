@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "鎖定密碼不能為空。",
   "identity.auth.unlock_password_wrong": "鎖定密碼錯誤，還可嘗試 {remaining} 次。",
   "identity.auth.unlock_exhausted": "解鎖失敗次數過多，工作階段已失效，請重新登入。",
-  "identity.auth.lock_reason_unsupported": "目前工作階段的鎖定原因不支援密碼解鎖。"
+  "identity.auth.lock_reason_unsupported": "目前工作階段的鎖定原因不支援密碼解鎖。",
+  "my_api_credentials.list.description": "列出本人的開放介面憑證（密鑰不回顯）。已登入即可。",
+  "my_api_credentials.create.description": "新建一個開放介面憑證（每人最多 5 個）；密鑰只在這一次回傳。模擬工作階段不能用。",
+  "my_api_credentials.update.description": "啟用或停用本人的一個開放介面憑證。模擬工作階段不能用。",
+  "my_api_credentials.rotate_secret.description": "輪替本人一個憑證的密鑰：舊密鑰立即失效，新密鑰只在這一次回傳。模擬工作階段不能用。",
+  "my_api_credentials.delete.description": "刪除本人的開放介面憑證，AppKey 立即不能用。模擬工作階段不能用。",
+  "my_api_credentials.settings.description": "本人的呼叫安全設定：簽章演算法與 IP 白名單，作用於本人全部憑證。已登入即可。",
+  "my_api_credentials.update_settings.description": "寫入本人的呼叫安全設定（整體覆蓋，立即作用於本人全部憑證）。模擬工作階段不能用。",
+  "identity.api_credentials.default_name": "預設憑證",
+  "identity.api_credentials.limit_reached": "API 憑證最多 {max} 個，請刪除不再使用的憑證後重試。",
+  "identity.api_credentials.not_found": "憑證不存在或無權操作。",
+  "identity.api_credentials.algorithm_invalid": "不支援的簽章演算法：{value}。",
+  "identity.api_credentials.ip_invalid": "IP 白名單格式無效：{value}",
+  "identity.api_credentials.ip_too_many": "IP 白名單最多 {max} 條。"
 }

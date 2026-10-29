@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "La contraseña de bloqueo no puede estar vacía.",
   "identity.auth.unlock_password_wrong": "Contraseña de bloqueo incorrecta; quedan {remaining} intentos.",
   "identity.auth.unlock_exhausted": "Demasiados intentos fallidos de desbloqueo; la sesión ha terminado. Vuelva a iniciar sesión.",
-  "identity.auth.lock_reason_unsupported": "La sesión está bloqueada por un motivo que una contraseña no puede quitar."
+  "identity.auth.lock_reason_unsupported": "La sesión está bloqueada por un motivo que una contraseña no puede quitar.",
+  "my_api_credentials.list.description": "Lista sus propias credenciales de API abierta (los secretos nunca se muestran). Solo requiere iniciar sesión.",
+  "my_api_credentials.create.description": "Crea una credencial de API abierta (como máximo 5 por persona); el secreto solo se devuelve esta vez. No disponible en sesiones de suplantación.",
+  "my_api_credentials.update.description": "Activa o desactiva una de sus credenciales de API abierta. No disponible en sesiones de suplantación.",
+  "my_api_credentials.rotate_secret.description": "Rota el secreto de una de sus credenciales: el antiguo deja de funcionar al instante y el nuevo solo se devuelve esta vez. No disponible en sesiones de suplantación.",
+  "my_api_credentials.delete.description": "Elimina sus credenciales de API abierta; sus AppKeys dejan de funcionar al instante. No disponible en sesiones de suplantación.",
+  "my_api_credentials.settings.description": "Su configuración de seguridad de llamadas: el algoritmo de firma y la lista de IP permitidas, aplicados a todas sus credenciales. Solo requiere iniciar sesión.",
+  "my_api_credentials.update_settings.description": "Guarda su configuración de seguridad de llamadas (se reemplaza completa y se aplica al instante a todas sus credenciales). No disponible en sesiones de suplantación.",
+  "identity.api_credentials.default_name": "Credencial predeterminada",
+  "identity.api_credentials.limit_reached": "Puede tener como máximo {max} credenciales de API; elimine las que ya no use e inténtelo de nuevo.",
+  "identity.api_credentials.not_found": "La credencial no existe o no es suya.",
+  "identity.api_credentials.algorithm_invalid": "Algoritmo de firma no admitido: {value}.",
+  "identity.api_credentials.ip_invalid": "Entrada de la lista de IP permitidas no válida: {value}",
+  "identity.api_credentials.ip_too_many": "La lista de IP permitidas admite como máximo {max} entradas."
 }

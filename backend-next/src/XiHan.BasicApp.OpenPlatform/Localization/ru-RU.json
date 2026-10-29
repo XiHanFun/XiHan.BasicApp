@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Самопроверка подписи: при верной подписи возвращает AppKey, владельца учётных данных и время сервера. Вызывается только запросами, подписанными учётными данными открытого API (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Эхо: возвращает тело запроса как есть, чтобы проверить подпись содержимого и шифрование (тело можно зашифровать AES-CBC, тогда шифруется и ответ). Только подписанные вызовы.",
+  "openplatform.signing.verified": "Подпись открытого API проверена",
+  "openplatform.signing.headers_missing": "Отсутствуют заголовки подписи: {headers}.",
+  "openplatform.signing.timestamp_expired": "Запрос вне временного окна (расхождение с сервером больше {seconds} с).",
+  "openplatform.signing.access_key_invalid": "AccessKey недействителен или отключён.",
+  "openplatform.signing.ip_not_allowed": "IP запроса нет в списке разрешённых: {ip}.",
+  "openplatform.signing.content_sign_missing": "Отсутствует подпись содержимого.",
+  "openplatform.signing.content_sign_mismatch": "Подпись содержимого не совпадает.",
+  "openplatform.signing.signature_mismatch": "Подпись запроса не совпадает.",
+  "openplatform.signing.timestamp_invalid": "Неверная метка времени (ожидаются секунды Unix).",
+  "openplatform.signing.nonce_invalid": "Неверный nonce (не более 128 символов).",
+  "openplatform.signing.algorithm_mismatch": "Алгоритм подписи {value} не совпадает с настроенным {expected}.",
+  "openplatform.signing.content_algorithm_unsupported": "Неподдерживаемый алгоритм подписи содержимого: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Неподдерживаемый алгоритм шифрования: {value}.",
+  "openplatform.signing.body_too_large": "Тело запроса превышает предел ({max} байт).",
+  "openplatform.signing.body_decrypt_failed": "Не удалось расшифровать тело запроса.",
+  "openplatform.signing.nonce_replayed": "Обнаружен повторный запрос."
+}

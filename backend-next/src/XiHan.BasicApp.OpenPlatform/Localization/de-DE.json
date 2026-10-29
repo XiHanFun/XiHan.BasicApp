@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Signaturprüfung: Nach erfolgreicher Prüfung werden AppKey, Inhaber der Zugangsdaten und Serverzeit zurückgegeben. Nur mit Anfragen aufrufbar, die mit Open-API-Zugangsdaten signiert sind (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Echo: gibt den Anfragetext unverändert zurück, um Inhaltssignatur und Verschlüsselung zu prüfen (der Text kann AES-CBC-verschlüsselt sein, dann wird auch die Antwort verschlüsselt). Nur signierte Aufrufe.",
+  "openplatform.signing.verified": "Open-API-Signatur geprüft",
+  "openplatform.signing.headers_missing": "Signatur-Header fehlen: {headers}.",
+  "openplatform.signing.timestamp_expired": "Die Anfrage liegt außerhalb des Zeitfensters (mehr als {seconds} Sekunden Abweichung von der Serverzeit).",
+  "openplatform.signing.access_key_invalid": "Der AccessKey ist ungültig oder deaktiviert.",
+  "openplatform.signing.ip_not_allowed": "Die anfragende IP steht nicht auf der Zulassungsliste: {ip}.",
+  "openplatform.signing.content_sign_missing": "Inhaltssignatur fehlt.",
+  "openplatform.signing.content_sign_mismatch": "Die Inhaltssignatur stimmt nicht.",
+  "openplatform.signing.signature_mismatch": "Die Anfragesignatur stimmt nicht.",
+  "openplatform.signing.timestamp_invalid": "Ungültiger Zeitstempel (erwartet Unix-Sekunden).",
+  "openplatform.signing.nonce_invalid": "Ungültige Nonce (höchstens 128 Zeichen).",
+  "openplatform.signing.algorithm_mismatch": "Signaturalgorithmus {value} entspricht nicht dem eingestellten {expected}.",
+  "openplatform.signing.content_algorithm_unsupported": "Nicht unterstützter Inhaltssignatur-Algorithmus: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Nicht unterstützter Verschlüsselungsalgorithmus: {value}.",
+  "openplatform.signing.body_too_large": "Der Anfragetext überschreitet das Limit ({max} Byte).",
+  "openplatform.signing.body_decrypt_failed": "Der Anfragetext konnte nicht entschlüsselt werden.",
+  "openplatform.signing.nonce_replayed": "Doppelte Anfrage erkannt."
+}

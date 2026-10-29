@@ -18,6 +18,7 @@
     <ProjectReference Include="../../src/XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Notification/XiHan.BasicApp.Notification.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />

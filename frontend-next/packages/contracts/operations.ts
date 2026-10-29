@@ -137,6 +137,13 @@ export const routes = {
   'message-templates.get': { method: 'GET', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
   'message-templates.list': { method: 'POST', template: '/api/message-templates:list', path: [], query: [], success: 200 },
   'message-templates.update': { method: 'PUT', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
+  'my-api-credentials.create': { method: 'POST', template: '/api/my-api-credentials', path: [], query: [], success: 201 },
+  'my-api-credentials.delete': { method: 'DELETE', template: '/api/my-api-credentials', path: [], query: ['ids'], success: 200 },
+  'my-api-credentials.list': { method: 'GET', template: '/api/my-api-credentials', path: [], query: [], success: 200 },
+  'my-api-credentials.rotate-secret': { method: 'POST', template: '/api/my-api-credentials/{id}:rotate-secret', path: ['id'], query: [], success: 200 },
+  'my-api-credentials.settings': { method: 'GET', template: '/api/my-api-credentials:settings', path: [], query: [], success: 200 },
+  'my-api-credentials.update': { method: 'PUT', template: '/api/my-api-credentials/{id}', path: ['id'], query: [], success: 200 },
+  'my-api-credentials.update-settings': { method: 'POST', template: '/api/my-api-credentials:update-settings', path: [], query: [], success: 200 },
   'notifications.create': { method: 'POST', template: '/api/notifications', path: [], query: [], success: 201 },
   'notifications.delete': { method: 'DELETE', template: '/api/notifications', path: [], query: ['ids'], success: 200 },
   'notifications.get': { method: 'GET', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
@@ -157,6 +164,8 @@ export const routes = {
   'numbering-rules.update': { method: 'PUT', template: '/api/numbering-rules/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.get': { method: 'GET', template: '/api/open-api-logs/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.list': { method: 'POST', template: '/api/open-api-logs:list', path: [], query: [], success: 200 },
+  'open.echo': { method: 'POST', template: '/api/open:echo', path: [], query: [], success: 200 },
+  'open.ping': { method: 'GET', template: '/api/open:ping', path: [], query: [], success: 200 },
   'operation-logs.get': { method: 'GET', template: '/api/operation-logs/{id}', path: ['id'], query: [], success: 200 },
   'operation-logs.list': { method: 'POST', template: '/api/operation-logs:list', path: [], query: [], success: 200 },
   'permission-change-logs.get': { method: 'GET', template: '/api/permission-change-logs/{id}', path: ['id'], query: [], success: 200 },
@@ -514,6 +523,17 @@ export const messageTemplates = {
   update: (request: RequestOf<'message-templates.update'>, options?: CallOptions) => invoke<RequestOf<'message-templates.update'>, ResponseOf<'message-templates.update'>>('message-templates.update', routes['message-templates.update'], request, options),
 }
 
+/** 资源 `my-api-credentials` 的操作。 */
+export const myApiCredentials = {
+  create: (request: RequestOf<'my-api-credentials.create'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.create'>, ResponseOf<'my-api-credentials.create'>>('my-api-credentials.create', routes['my-api-credentials.create'], request, options),
+  delete: (request: RequestOf<'my-api-credentials.delete'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.delete'>, ResponseOf<'my-api-credentials.delete'>>('my-api-credentials.delete', routes['my-api-credentials.delete'], request, options),
+  list: (request: RequestOf<'my-api-credentials.list'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.list'>, ResponseOf<'my-api-credentials.list'>>('my-api-credentials.list', routes['my-api-credentials.list'], request, options),
+  rotateSecret: (request: RequestOf<'my-api-credentials.rotate-secret'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.rotate-secret'>, ResponseOf<'my-api-credentials.rotate-secret'>>('my-api-credentials.rotate-secret', routes['my-api-credentials.rotate-secret'], request, options),
+  settings: (request: RequestOf<'my-api-credentials.settings'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.settings'>, ResponseOf<'my-api-credentials.settings'>>('my-api-credentials.settings', routes['my-api-credentials.settings'], request, options),
+  update: (request: RequestOf<'my-api-credentials.update'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.update'>, ResponseOf<'my-api-credentials.update'>>('my-api-credentials.update', routes['my-api-credentials.update'], request, options),
+  updateSettings: (request: RequestOf<'my-api-credentials.update-settings'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.update-settings'>, ResponseOf<'my-api-credentials.update-settings'>>('my-api-credentials.update-settings', routes['my-api-credentials.update-settings'], request, options),
+}
+
 /** 资源 `notifications` 的操作。 */
 export const notifications = {
   create: (request: RequestOf<'notifications.create'>, options?: CallOptions) => invoke<RequestOf<'notifications.create'>, ResponseOf<'notifications.create'>>('notifications.create', routes['notifications.create'], request, options),
@@ -544,6 +564,12 @@ export const numberingRules = {
 export const openApiLogs = {
   get: (request: RequestOf<'open-api-logs.get'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.get'>, ResponseOf<'open-api-logs.get'>>('open-api-logs.get', routes['open-api-logs.get'], request, options),
   list: (request: RequestOf<'open-api-logs.list'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.list'>, ResponseOf<'open-api-logs.list'>>('open-api-logs.list', routes['open-api-logs.list'], request, options),
+}
+
+/** 资源 `open` 的操作。 */
+export const open = {
+  echo: (request: RequestOf<'open.echo'>, options?: CallOptions) => invoke<RequestOf<'open.echo'>, ResponseOf<'open.echo'>>('open.echo', routes['open.echo'], request, options),
+  ping: (request: RequestOf<'open.ping'>, options?: CallOptions) => invoke<RequestOf<'open.ping'>, ResponseOf<'open.ping'>>('open.ping', routes['open.ping'], request, options),
 }
 
 /** 资源 `operation-logs` 的操作。 */

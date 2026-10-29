@@ -177,4 +177,29 @@ public static class IdentityErrors
     /// 会话的锁定原因不是锁屏，不能用锁屏密码解开；参数 <c>reason</c>。
     /// </summary>
     public const string LockReasonUnsupported = "IDENTITY_CONFLICT_006";
+
+    /// <summary>
+    /// 开放接口凭证到了上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ApiCredentialLimitReached = "IDENTITY_CONFLICT_007";
+
+    /// <summary>
+    /// 开放接口凭证不存在或不是本人的；参数 <c>id</c>。
+    /// </summary>
+    public const string ApiCredentialNotFound = "IDENTITY_NOTFOUND_003";
+
+    /// <summary>
+    /// 签名算法不认识；参数 <c>value</c>。
+    /// </summary>
+    public const string ApiSignatureAlgorithmInvalid = "IDENTITY_VALIDATION_012";
+
+    /// <summary>
+    /// IP 白名单有一条不是 IP 或 CIDR；参数 <c>value</c>。
+    /// </summary>
+    public const string ApiIpAllowListInvalid = "IDENTITY_VALIDATION_013";
+
+    /// <summary>
+    /// IP 白名单条数超过上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ApiIpAllowListTooLong = "IDENTITY_VALIDATION_014";
 }

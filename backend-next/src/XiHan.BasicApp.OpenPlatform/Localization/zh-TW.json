@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "簽章自檢：驗簽通過即回傳 AppKey、憑證歸屬人與伺服器時間。只能用開放介面憑證簽章呼叫（X-Access-Key、X-Timestamp、X-Nonce、X-Content-Sign、X-Signature）。",
+  "open.echo.description": "回顯：原樣回傳請求內容，用於核對內容簽章與加密（請求內容可用 AES-CBC 加密，回應隨之加密）。只能簽章呼叫。",
+  "openplatform.signing.verified": "開放介面簽章驗證通過",
+  "openplatform.signing.headers_missing": "缺少簽章請求標頭：{headers}。",
+  "openplatform.signing.timestamp_expired": "請求時間窗已失效（與伺服器時間相差超過 {seconds} 秒）。",
+  "openplatform.signing.access_key_invalid": "AccessKey 無效或已停用。",
+  "openplatform.signing.ip_not_allowed": "請求 IP 不在白名單內：{ip}。",
+  "openplatform.signing.content_sign_missing": "缺少內容簽章。",
+  "openplatform.signing.content_sign_mismatch": "內容簽章驗證失敗。",
+  "openplatform.signing.signature_mismatch": "請求簽章驗證失敗。",
+  "openplatform.signing.timestamp_invalid": "時間戳記格式錯誤（應為 Unix 秒）。",
+  "openplatform.signing.nonce_invalid": "隨機字串格式錯誤（最多 128 個字元）。",
+  "openplatform.signing.algorithm_mismatch": "簽章演算法 {value} 與設定的 {expected} 不一致。",
+  "openplatform.signing.content_algorithm_unsupported": "不支援的內容簽章演算法：{value}。",
+  "openplatform.signing.encrypt_algorithm_unsupported": "不支援的加密演算法：{value}。",
+  "openplatform.signing.body_too_large": "請求內容超過上限（{max} 位元組）。",
+  "openplatform.signing.body_decrypt_failed": "請求內容解密失敗。",
+  "openplatform.signing.nonce_replayed": "偵測到重複請求。"
+}

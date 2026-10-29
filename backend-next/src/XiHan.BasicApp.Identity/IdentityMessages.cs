@@ -371,6 +371,71 @@ public static class IdentityMessages
     /// </summary>
     public const string LockReasonUnsupported = "identity.auth.lock_reason_unsupported";
 
+    /// <summary>
+    /// 操作 <c>my-api-credentials.list</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsListDescription = "my_api_credentials.list.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.create</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsCreateDescription = "my_api_credentials.create.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.update</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsUpdateDescription = "my_api_credentials.update.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.rotate-secret</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsRotateSecretDescription = "my_api_credentials.rotate_secret.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.delete</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsDeleteDescription = "my_api_credentials.delete.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.settings</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsSettingsDescription = "my_api_credentials.settings.description";
+
+    /// <summary>
+    /// 操作 <c>my-api-credentials.update-settings</c> 的说明。
+    /// </summary>
+    public const string MyApiCredentialsUpdateSettingsDescription = "my_api_credentials.update_settings.description";
+
+    /// <summary>
+    /// 新建凭证没填名称时的名称。
+    /// </summary>
+    public const string ApiCredentialDefaultName = "identity.api_credentials.default_name";
+
+    /// <summary>
+    /// 开放接口凭证到了上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ApiCredentialLimitReached = "identity.api_credentials.limit_reached";
+
+    /// <summary>
+    /// 开放接口凭证不存在或不是本人的；参数 <c>id</c>。
+    /// </summary>
+    public const string ApiCredentialNotFound = "identity.api_credentials.not_found";
+
+    /// <summary>
+    /// 签名算法不认识；参数 <c>value</c>。
+    /// </summary>
+    public const string ApiSignatureAlgorithmInvalid = "identity.api_credentials.algorithm_invalid";
+
+    /// <summary>
+    /// IP 白名单有一条不是 IP 或 CIDR；参数 <c>value</c>。
+    /// </summary>
+    public const string ApiIpAllowListInvalid = "identity.api_credentials.ip_invalid";
+
+    /// <summary>
+    /// IP 白名单条数超过上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ApiIpAllowListTooLong = "identity.api_credentials.ip_too_many";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

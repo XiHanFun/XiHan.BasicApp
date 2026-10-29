@@ -14716,6 +14716,518 @@
         }
       }
     },
+    "/api/my-api-credentials": {
+      "delete": {
+        "operationId": "my-api-credentials.delete",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Delete your open API credentials; their AppKeys stop working at once. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "my-api-credentials.list",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "List your own open API credentials (secrets are never shown). Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyApiCredentialsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MyApiCredentialResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "my-api-credentials.create",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Create an open API credential (at most 5 per person); the secret is returned this once only. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateMyApiCredentialRequest",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ApiCredentialSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appKey",
+                    "secret"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-api-credentials/{id}": {
+      "put": {
+        "operationId": "my-api-credentials.update",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Enable or disable one of your open API credentials. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateMyApiCredentialRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "isEnabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyApiCredentialResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "lastUsedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "appKey",
+                    "isEnabled",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-api-credentials/{id}:rotate-secret": {
+      "post": {
+        "operationId": "my-api-credentials.rotate-secret",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Rotate the secret of one of your credentials: the old secret stops working at once and the new one is returned this once only. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MyApiCredentialIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ApiCredentialSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "secret": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appKey",
+                    "secret"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-api-credentials:settings": {
+      "get": {
+        "operationId": "my-api-credentials.settings",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Your call security settings: the signature algorithm and IP allow-list, applied to all your credentials. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyApiSettingsResponse",
+                  "type": "object",
+                  "properties": {
+                    "signatureAlgorithm": {
+                      "type": "string"
+                    },
+                    "ipAllowList": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "algorithms": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "signatureAlgorithm",
+                    "ipAllowList",
+                    "algorithms"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-api-credentials:update-settings": {
+      "post": {
+        "operationId": "my-api-credentials.update-settings",
+        "tags": [
+          "my-api-credentials"
+        ],
+        "summary": "Save your call security settings (replaced as a whole and applied to all your credentials at once). Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateMyApiSettingsRequest",
+                "type": "object",
+                "properties": {
+                  "signatureAlgorithm": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  },
+                  "ipAllowList": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 50
+                  }
+                },
+                "required": [
+                  "signatureAlgorithm"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyApiSettingsResponse",
+                  "type": "object",
+                  "properties": {
+                    "signatureAlgorithm": {
+                      "type": "string"
+                    },
+                    "ipAllowList": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "algorithms": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "signatureAlgorithm",
+                    "ipAllowList",
+                    "algorithms"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications": {
       "delete": {
         "operationId": "notifications.delete",
@@ -17586,6 +18098,154 @@
                     "items",
                     "total",
                     "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/open:echo": {
+      "post": {
+        "operationId": "open.echo",
+        "tags": [
+          "open"
+        ],
+        "summary": "Echo: returns the request body as received, to check the content signature and encryption (the body may be AES-CBC encrypted, and the response is then encrypted too). Signed calls only.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OpenEchoRequest",
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4096
+                  },
+                  "number": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OpenEchoResponse",
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "echo": {
+                      "$ref": "#/components/schemas/OpenEchoRequest"
+                    },
+                    "serverTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "message",
+                    "appKey",
+                    "echo",
+                    "serverTime"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/open:ping": {
+      "get": {
+        "operationId": "open.ping",
+        "tags": [
+          "open"
+        ],
+        "summary": "Signature self-check: once the signature verifies, returns the AppKey, the credential owner and the server time. Callable only with requests signed by an open API credential (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OpenPingResponse",
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "appKey": {
+                      "type": "string"
+                    },
+                    "ownerUserId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "serverTime": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "message",
+                    "appKey",
+                    "ownerUserId",
+                    "serverTime"
                   ]
                 }
               }
@@ -32859,6 +33519,42 @@
           "createdAt"
         ]
       },
+      "MyApiCredentialResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "appKey": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "lastUsedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "appKey",
+          "isEnabled",
+          "createdAt"
+        ]
+      },
       "NotificationContentFormat": {
         "type": "string",
         "enum": [
@@ -33495,6 +34191,25 @@
           "requestSize",
           "responseSize"
         ]
+      },
+      "OpenEchoRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4096
+          },
+          "number": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
       },
       "OperationLogResponse": {
         "type": "object",

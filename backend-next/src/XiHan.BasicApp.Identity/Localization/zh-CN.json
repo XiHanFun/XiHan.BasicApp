@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "锁屏密码不能为空。",
   "identity.auth.unlock_password_wrong": "锁屏密码错误，还可尝试 {remaining} 次。",
   "identity.auth.unlock_exhausted": "解锁失败次数过多，会话已失效，请重新登录。",
-  "identity.auth.lock_reason_unsupported": "当前会话的锁定原因不支持口令解锁。"
+  "identity.auth.lock_reason_unsupported": "当前会话的锁定原因不支持口令解锁。",
+  "my_api_credentials.list.description": "列出本人的开放接口凭证（密钥不回显）。已登录即可。",
+  "my_api_credentials.create.description": "新建一个开放接口凭证（每人最多 5 个）；密钥只在这一次返回。模仿会话不能用。",
+  "my_api_credentials.update.description": "启用或停用本人的一个开放接口凭证。模仿会话不能用。",
+  "my_api_credentials.rotate_secret.description": "滚动本人一个凭证的密钥：旧密钥立即失效，新密钥只在这一次返回。模仿会话不能用。",
+  "my_api_credentials.delete.description": "删除本人的开放接口凭证，AppKey 立即不能用。模仿会话不能用。",
+  "my_api_credentials.settings.description": "本人的调用安全设置：签名算法与 IP 白名单，作用于本人全部凭证。已登录即可。",
+  "my_api_credentials.update_settings.description": "写本人的调用安全设置（整体覆盖，立即作用于本人全部凭证）。模仿会话不能用。",
+  "identity.api_credentials.default_name": "默认凭证",
+  "identity.api_credentials.limit_reached": "API 凭证最多 {max} 个，请删除不再使用的凭证后重试。",
+  "identity.api_credentials.not_found": "凭证不存在或无权操作。",
+  "identity.api_credentials.algorithm_invalid": "不支持的签名算法：{value}。",
+  "identity.api_credentials.ip_invalid": "IP 白名单格式无效：{value}",
+  "identity.api_credentials.ip_too_many": "IP 白名单最多 {max} 条。"
 }

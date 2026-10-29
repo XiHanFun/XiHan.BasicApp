@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Signature self-check: once the signature verifies, returns the AppKey, the credential owner and the server time. Callable only with requests signed by an open API credential (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Echo: returns the request body as received, to check the content signature and encryption (the body may be AES-CBC encrypted, and the response is then encrypted too). Signed calls only.",
+  "openplatform.signing.verified": "Open API signature verified",
+  "openplatform.signing.headers_missing": "Missing signature headers: {headers}.",
+  "openplatform.signing.timestamp_expired": "The request is outside the time window (more than {seconds} seconds from the server time).",
+  "openplatform.signing.access_key_invalid": "The AccessKey is invalid or disabled.",
+  "openplatform.signing.ip_not_allowed": "The request IP is not on the allow-list: {ip}.",
+  "openplatform.signing.content_sign_missing": "Missing content signature.",
+  "openplatform.signing.content_sign_mismatch": "The content signature does not match.",
+  "openplatform.signing.signature_mismatch": "The request signature does not match.",
+  "openplatform.signing.timestamp_invalid": "Invalid timestamp (expected Unix seconds).",
+  "openplatform.signing.nonce_invalid": "Invalid nonce (at most 128 characters).",
+  "openplatform.signing.algorithm_mismatch": "Signature algorithm {value} does not match the configured {expected}.",
+  "openplatform.signing.content_algorithm_unsupported": "Unsupported content signature algorithm: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Unsupported encryption algorithm: {value}.",
+  "openplatform.signing.body_too_large": "The request body exceeds the limit ({max} bytes).",
+  "openplatform.signing.body_decrypt_failed": "The request body could not be decrypted.",
+  "openplatform.signing.nonce_replayed": "Duplicate request detected."
+}

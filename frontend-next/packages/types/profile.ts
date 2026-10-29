@@ -188,6 +188,13 @@ export interface ApiCredentialSecret {
   appSecret: string
 }
 
+/** 开放接口的调用安全设置（签名算法与 IP 白名单，作用于本人全部凭证；algorithms 为可选的签名算法） */
+export interface ApiCallSettings {
+  signAlgorithm: string
+  ipWhitelist: string[]
+  algorithms: string[]
+}
+
 /** 我的 OAuth 应用（个人中心开发者设置；与后端 MyOAuthAppItemDto 对应） */
 export interface MyOAuthAppItem {
   basicId: number | string

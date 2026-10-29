@@ -67,4 +67,16 @@ public sealed class SysUserSecurity : AppAuditedEntity
     /// 认证器最近一次通过的时间步：同一步（及更早的）验证码不能再用，防重放。
     /// </summary>
     public long? TwoFactorLastStep { get; set; }
+
+    /// <summary>
+    /// 开放接口的签名算法（个人中心「调用安全设置」，作用于本人全部凭证）；为空即 HMAC-SHA256。
+    /// </summary>
+    [StringLength(32)]
+    public string? ApiSignatureAlgorithm { get; set; }
+
+    /// <summary>
+    /// 开放接口的 IP 白名单（每行一个 IP 或 CIDR，作用于本人全部凭证）；为空即不限。
+    /// </summary>
+    [StringLength(2048)]
+    public string? ApiIpAllowList { get; set; }
 }

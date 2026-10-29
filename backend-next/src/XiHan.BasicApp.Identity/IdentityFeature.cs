@@ -87,6 +87,8 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<IRecipientSource, AllUsersRecipientSource>();
         context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
         context.Services.AddScoped<IUserDirectory, UserDirectory>();
+        context.Services.AddScoped<ApiCredentialService>();
+        context.Services.AddSingleton<IApiCredentialDirectory, ApiCredentialDirectory>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);

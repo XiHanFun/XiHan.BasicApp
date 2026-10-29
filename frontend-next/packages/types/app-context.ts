@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ChangePasswordParams, TwoFactorSetupResult, UserProfile } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, TwoFactorSetupResult, UserProfile } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
@@ -192,6 +192,15 @@ export interface AppContextApis {
   exportTaskApi: {
     submit: (input: { businessType: string, taskName?: string, scope: number, format: number, querySnapshot?: null | string, columns: Array<{ key: string, title: string, valueMap?: Record<string, string> }> }) => Promise<unknown>
   }
+  /** 个人 API 凭证（开发者设置；Secret 明文仅创建/滚动时返回一次） */
+  getApiCredentialsApi: () => Promise<ApiCredentialItem[]>
+  createApiCredentialApi: (credentialName?: string) => Promise<ApiCredentialSecret>
+  rotateApiCredentialSecretApi: (id: number | string) => Promise<ApiCredentialSecret>
+  updateApiCredentialStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<ApiCredentialItem>
+  deleteApiCredentialApi: (id: number | string) => Promise<unknown>
+  /** 开放接口的调用安全设置（签名算法与 IP 白名单，作用于本人全部凭证，验签时服务端读取） */
+  getApiCallSettingsApi: () => Promise<ApiCallSettings>
+  saveApiCallSettingsApi: (input: { signAlgorithm: string, ipWhitelist: string[] }) => Promise<ApiCallSettings>
   enumApi: {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
