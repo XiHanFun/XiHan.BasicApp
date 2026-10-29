@@ -8,8 +8,11 @@ using XiHan.BasicApp.Architecture.Tests.Model;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 方案 D11：框架以 ProjectReference 引用并锁定提交。<c>props/framework.props</c> 里的 <c>XiHanFrameworkCommit</c> 必须是同级 XiHan.Framework 检出的 HEAD；升级框架时同步改这一处。
+/// 检查框架锁定的提交就是同级检出的 HEAD。
 /// </summary>
+/// <remarks>
+/// 方案 D11：框架以 ProjectReference 引用并锁定提交。<c>props/framework.props</c> 里的 <c>XiHanFrameworkCommit</c> 必须是同级 XiHan.Framework 检出的 HEAD；升级框架时同步改这一处。
+/// </remarks>
 public sealed class FrameworkPinTests
 {
     [Fact]

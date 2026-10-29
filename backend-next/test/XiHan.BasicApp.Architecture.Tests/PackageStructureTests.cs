@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀；清单 ID、包名与版本按附录 B。
+/// 检查包的目录名、区域文件、错误码与清单。
 /// </summary>
+/// <remarks>
+/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀；清单 ID、包名与版本按附录 B。
+/// </remarks>
 public sealed class PackageStructureTests
 {
     [Fact]
