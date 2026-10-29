@@ -9,8 +9,11 @@ using XiHan.BasicApp.Identity.Operations.Users;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// <c>profile.get</c> 与 <c>profile.setup-totp</c> 的请求：没有输入。
+/// 个人中心没有输入的请求。
 /// </summary>
+/// <remarks>
+/// <c>profile.get</c> 与 <c>profile.setup-totp</c> 的请求：没有输入。
+/// </remarks>
 public sealed record ProfileRequest;
 
 /// <summary>
@@ -72,16 +75,22 @@ public sealed record ProfileResponse(
 }
 
 /// <summary>
-/// 绑定认证器用的新密钥：用认证器扫链接（或手输密钥），再用它算出的码调 <c>profile.enable-two-factor</c> 确认。
+/// 绑定认证器用的新密钥。
 /// </summary>
+/// <remarks>
+/// 用认证器扫链接（或手输密钥），再用它算出的码调 <c>profile.enable-two-factor</c> 确认。
+/// </remarks>
 /// <param name="SharedKey">密钥（Base32，每 4 个字符一组便于手输）。</param>
 /// <param name="AuthenticatorUri"><c>otpauth://</c> 链接（二维码内容）。</param>
 /// <param name="ExpiresAt">这个密钥待确认的截止时间（UTC）；过期须重新生成。</param>
 public sealed record TotpSetupResponse(string SharedKey, string AuthenticatorUri, DateTimeOffset ExpiresAt);
 
 /// <summary>
-/// <c>profile.enable-two-factor</c> 与 <c>profile.disable-two-factor</c> 的请求：用该方式的验证码确认。
+/// 开关双因素的请求：用该方式的验证码确认。
 /// </summary>
+/// <remarks>
+/// <c>profile.enable-two-factor</c> 与 <c>profile.disable-two-factor</c> 的请求。
+/// </remarks>
 /// <param name="Method">方式。</param>
 /// <param name="Code">验证码：开启认证器时是新绑定的认证器算出的码，关闭时是当前认证器的码。</param>
 public sealed record TwoFactorChangeRequest(

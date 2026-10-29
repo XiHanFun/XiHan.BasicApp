@@ -7,8 +7,11 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 
 /// <summary>
-/// 一条用户设置；还没存过时 <see cref="Value"/> 与 <see cref="ModifiedAt"/> 为 <c>null</c>。
+/// 一条用户设置。
 /// </summary>
+/// <remarks>
+/// 还没存过时 <see cref="Value"/> 与 <see cref="ModifiedAt"/> 为 <c>null</c>。
+/// </remarks>
 /// <param name="Scene">场景。</param>
 /// <param name="Key">设置键。</param>
 /// <param name="Value">设置载荷（JSON）。</param>
@@ -16,8 +19,11 @@ namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 public sealed record UserSettingResponse(UserSettingScene Scene, string Key, string? Value, DateTimeOffset? ModifiedAt);
 
 /// <summary>
-/// 用户设置键的文法：字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>:</c>、<c>-</c>，最长 100（页面编码如 <c>identity.users</c>、看板如 <c>workbench:widgets</c>）。
+/// 用户设置键的文法。
 /// </summary>
+/// <remarks>
+/// 字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>:</c>、<c>-</c>，最长 100（页面编码如 <c>identity.users</c>、看板如 <c>workbench:widgets</c>）。
+/// </remarks>
 public static class UserSettingKeys
 {
     /// <summary>
@@ -41,8 +47,11 @@ public sealed record GetUserSettingRequest(
     [Required, StringLength(100, MinimumLength = 1), RegularExpression(UserSettingKeys.Pattern)] string Key);
 
 /// <summary>
-/// <c>user-settings.update</c> 的请求：整体覆盖，<see cref="Value"/> 为 <c>null</c> 即清空。
+/// <c>user-settings.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体覆盖，<see cref="Value"/> 为 <c>null</c> 即清空。
+/// </remarks>
 /// <param name="Scene">场景。</param>
 /// <param name="Key">设置键。</param>
 /// <param name="Value">设置载荷（JSON）。</param>

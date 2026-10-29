@@ -25,10 +25,13 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 public sealed record ExternalLoginRequest([Required, StringLength(128)] string Ticket);
 
 /// <summary>
-/// 第三方登录（匿名操作，登记在架构测试的匿名白名单）：凭回调发的一次性票据，在登录页选的注册地里按（提供商, 第三方标识）找绑定的账号。
+/// 凭第三方身份票据登录。
+/// </summary>
+/// <remarks>
+/// 匿名操作，登记在架构测试的匿名白名单。凭回调发的一次性票据，在登录页选的注册地里按（提供商, 第三方标识）找绑定的账号。
 /// 没绑定即 <c>IDENTITY_DENIED_015</c>（拍板：不自动建号，先用账号密码登录、到个人中心绑定；4.x 在租户 1 自动建号，建出的账号没有可用的密码与邮箱）；
 /// 之后与密码登录同样过租户、账号状态、锁定期与双因素（4.x 第三方登录全跳过），开会话前过登录守卫，并刷新绑定上的显示名、邮箱、头像与最近登录时间。
-/// </summary>
+/// </remarks>
 /// <param name="cache">共享缓存（票据）。</param>
 /// <param name="bindings">第三方绑定仓储。</param>
 /// <param name="users">用户仓储。</param>

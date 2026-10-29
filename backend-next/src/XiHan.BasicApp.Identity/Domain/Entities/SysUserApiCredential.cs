@@ -7,9 +7,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 开放接口凭证（平台库，跟着账号走，不分租户）：个人中心「开放接口」自助创建，每人最多 5 个；签名开放接口按 AppKey 验签（OpenPlatform 经 Contracts 的凭证目录取）。
-/// 密钥经 <c>ISecretProtector</c> 加密存（验签要明文，不能存散列），明文只在创建与滚动时返回一次。签名算法与 IP 白名单在账号安全上，作用于本人全部凭证。
+/// 开放接口凭证。
 /// </summary>
+/// <remarks>
+/// 平台库，跟着账号走，不分租户。个人中心「开放接口」自助创建，每人最多 5 个；签名开放接口按 AppKey 验签（OpenPlatform 经 Contracts 的凭证目录取）。
+/// 密钥经 <c>ISecretProtector</c> 加密存（验签要明文，不能存散列），明文只在创建与滚动时返回一次。签名算法与 IP 白名单在账号安全上，作用于本人全部凭证。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysUserApiCredential : AppAuditedEntity
 {

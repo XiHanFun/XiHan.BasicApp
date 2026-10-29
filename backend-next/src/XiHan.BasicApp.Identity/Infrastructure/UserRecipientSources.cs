@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 一侧此刻正常的账号：平台是注册地为 <c>platform</c> 的账号；租户是注册地在该租户的用户加租户成员（成员由 Tenancy 的 <see cref="ITenantMembershipResolver"/> 给出）。
+/// 一侧此刻正常的账号。
 /// </summary>
+/// <remarks>
+/// 平台是注册地为 <c>platform</c> 的账号；租户是注册地在该租户的用户加租户成员（成员由 Tenancy 的 <see cref="ITenantMembershipResolver"/> 给出）。
+/// </remarks>
 internal static class SideAccounts
 {
     public static async Task<HashSet<Guid>> ActiveAsync(InvocationContext context, IEnumerable<ITenantMembershipResolver> memberships, IReadOnlyCollection<Guid>? within)
@@ -63,8 +66,11 @@ public sealed class AllUsersRecipientSource(IEnumerable<ITenantMembershipResolve
 }
 
 /// <summary>
-/// <see cref="RecipientKind.User"/>：指定用户里属于当前一侧、此刻正常的（不存在、停用、锁定与别的租户的用户都滤掉）。
+/// <see cref="RecipientKind.User"/> 的接收人来源。
 /// </summary>
+/// <remarks>
+/// 指定用户里属于当前一侧、此刻正常的（不存在、停用、锁定与别的租户的用户都滤掉）。
+/// </remarks>
 /// <param name="memberships">租户成员（没装 Tenancy 即没有）。</param>
 public sealed class UserRecipientSource(IEnumerable<ITenantMembershipResolver> memberships) : IRecipientSource
 {

@@ -19,9 +19,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Queries;
 
 /// <summary>
-/// 在线用户（有效会话）的查询：只看当前一侧（会话当前所在的租户，平台为没有租户的会话），再按数据范围收窄到看得到的用户；
-/// 实时在线取自 <see cref="IRealtimePresence"/>（没装 Realtime 即全部不在线）。
+/// 在线用户（有效会话）的查询。
 /// </summary>
+/// <remarks>
+/// 只看当前一侧（会话当前所在的租户，平台为没有租户的会话），再按数据范围收窄到看得到的用户；
+/// 实时在线取自 <see cref="IRealtimePresence"/>（没装 Realtime 即全部不在线）。
+/// </remarks>
 /// <param name="unitOfWork">当前调用的工作单元。</param>
 /// <param name="presence">在线状态（可能没有）。</param>
 /// <param name="clock">时钟。</param>
@@ -37,9 +40,12 @@ public sealed class SessionQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IR
     private readonly IRealtimePresence? _presence = presence.FirstOrDefault();
 
     /// <summary>
-    /// 分页列出有效会话。关键字匹配用户的登录名与显示名；筛选接受 <c>device / browser / os</c> 的 <c>eq / in</c> 与 <c>userId</c> 的 <c>eq</c>；
-    /// 排序接受 <c>loginAt / lastActiveAt</c>，缺省按登录时间倒序。
+    /// 分页列出有效会话。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配用户的登录名与显示名；筛选接受 <c>device / browser / os</c> 的 <c>eq / in</c> 与 <c>userId</c> 的 <c>eq</c>；
+    /// 排序接受 <c>loginAt / lastActiveAt</c>，缺省按登录时间倒序。
+    /// </remarks>
     public async ValueTask<Result<PageResult<OnlineSessionResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -126,8 +132,12 @@ public sealed class SessionQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IR
     }
 
     /// <summary>
-    /// 调用方自己当前的会话（访问令牌的 <c>sid</c>）；令牌不带会话即为 <see langword="null"/>。
+    /// 取调用方自己当前的会话。
     /// </summary>
+    /// <remarks>
+    /// 即访问令牌的 <c>sid</c>。
+    /// </remarks>
+    /// <returns>会话 ID；令牌不带会话即为 <see langword="null"/>。</returns>
     public static Guid? CurrentSessionOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

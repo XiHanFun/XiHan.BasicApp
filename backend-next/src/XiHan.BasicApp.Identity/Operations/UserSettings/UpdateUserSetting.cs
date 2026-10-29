@@ -16,9 +16,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 
 /// <summary>
-/// 写本人的一条设置：<c>PUT /api/user-settings</c>（自助操作，只要求已认证）。按（用户, 场景, 设置键）有则覆盖、无则新建；值为 <c>null</c> 即清空。
-/// 写入提交后经实时连接把新值推给这个用户的所有端（<c>UserSettingChanged</c>，带请求里的客户端标识，发起端据此忽略回显）。
+/// 写本人的一条设置。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/user-settings</c>（自助操作，只要求已认证）。按（用户, 场景, 设置键）有则覆盖、无则新建；值为 <c>null</c> 即清空。
+/// 写入提交后经实时连接把新值推给这个用户的所有端（<c>UserSettingChanged</c>，带请求里的客户端标识，发起端据此忽略回显）。
+/// </remarks>
 /// <param name="settings">用户设置仓储。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="pushes">实时推送（没装 Realtime 即没有）。</param>

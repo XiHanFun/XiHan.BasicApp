@@ -21,9 +21,12 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 public sealed record TwoFactorTicket(Guid UserId, string? TenantId, int Failures, DateTimeOffset ExpiresAt);
 
 /// <summary>
-/// 两步验证票据（单例）：密码通过后签发，第二步凭它免密码，登录完成即作废。
-/// 票据是 32 字节随机数的 base64url，共享缓存里按它的 SHA-256 存状态；输错达到 <see cref="IdentityOptions.TwoFactorTicketMaxFailures"/> 次即作废，须重新输密码。
+/// 两步验证票据。
 /// </summary>
+/// <remarks>
+/// 单例服务。密码通过后签发，第二步凭它免密码，登录完成即作废。
+/// 票据是 32 字节随机数的 base64url，共享缓存里按它的 SHA-256 存状态；输错达到 <see cref="IdentityOptions.TwoFactorTicketMaxFailures"/> 次即作废，须重新输密码。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
@@ -41,8 +44,9 @@ public sealed class TwoFactorTickets(ISharedCache cache, IdentityOptions options
     }
 
     /// <summary>
-    /// 取票据状态；不存在、已过期或已作废为无值。
+    /// 取票据状态。
     /// </summary>
+    /// <returns>票据状态；不存在、已过期或已作废为无值。</returns>
     public async Task<Maybe<TwoFactorTicket>> FindAsync(string? ticket, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(ticket))
@@ -55,8 +59,12 @@ public sealed class TwoFactorTickets(ISharedCache cache, IdentityOptions options
     }
 
     /// <summary>
-    /// 记一次输错；用完次数即作废。返回票据是否已作废。
+    /// 记一次输错。
     /// </summary>
+    /// <remarks>
+    /// 用完次数即作废。
+    /// </remarks>
+    /// <returns>票据是否已作废。</returns>
     public async Task<bool> RecordFailureAsync(string ticket, TwoFactorTicket state, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ticket);

@@ -30,9 +30,12 @@ using XiHan.Framework.Security.Abstractions.Authentication;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份能力包（Tier 1）：用户、账号安全、登录会话；签发访问令牌（框架 <c>Security.Jwt</c> 校验），会话门禁在 Authenticate 阶段排在 JWT 之后。
-/// 装配显式：仓储、服务、种子、权限、操作、中间件都在这里登记，没有约定扫描。
+/// 身份能力包：用户、账号安全与登录会话。
 /// </summary>
+/// <remarks>
+/// 属于 Tier 1。签发访问令牌（框架 <c>Security.Jwt</c> 校验），会话门禁在 Authenticate 阶段排在 JWT 之后。
+/// 装配显式：仓储、服务、种子、权限、操作、中间件都在这里登记，没有约定扫描。
+/// </remarks>
 public sealed class IdentityFeature : IFeature
 {
     /// <inheritdoc />

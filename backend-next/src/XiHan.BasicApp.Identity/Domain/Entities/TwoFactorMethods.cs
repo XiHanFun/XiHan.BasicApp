@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 账号开启的双因素方式（按位组合，存库）；接口上按 <see cref="TwoFactorMethod"/> 的列表出入。
+/// 账号开启的双因素方式。
 /// </summary>
+/// <remarks>
+/// 按位组合，存库。接口上按 <see cref="TwoFactorMethod"/> 的列表出入。
+/// </remarks>
 [Flags]
 public enum TwoFactorMethods
 {

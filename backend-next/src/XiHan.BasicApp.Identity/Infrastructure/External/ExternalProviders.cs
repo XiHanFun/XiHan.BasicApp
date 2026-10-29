@@ -20,8 +20,11 @@ namespace XiHan.BasicApp.Identity.Infrastructure.External;
 public sealed record ExternalIdentity(string ProviderKey, string? DisplayName, string? Email, string? AvatarUrl);
 
 /// <summary>
-/// 一家第三方登录的协议（照 4.x 的处理器逐家重写，不经 ASP.NET Core 的认证处理器）：拼授权地址、用授权码换令牌、取用户资料。
+/// 一家第三方登录的协议。
 /// </summary>
+/// <remarks>
+/// 照 4.x 的处理器逐家重写，不经 ASP.NET Core 的认证处理器。拼授权地址、用授权码换令牌、取用户资料。
+/// </remarks>
 public interface IExternalLoginProvider
 {
     /// <summary>
@@ -30,8 +33,11 @@ public interface IExternalLoginProvider
     string Type { get; }
 
     /// <summary>
-    /// 是否用 PKCE（只有 Google，4.x 同）。
+    /// 是否用 PKCE。
     /// </summary>
+    /// <remarks>
+    /// 只有 Google，4.x 同。
+    /// </remarks>
     bool UsesPkce => false;
 
     /// <summary>
@@ -40,8 +46,9 @@ public interface IExternalLoginProvider
     string AuthorizeUrl(ExternalProviderConfig config, string redirectUri, string state, string? codeChallenge);
 
     /// <summary>
-    /// 授权码换身份；失败抛 <see cref="ExternalLoginException"/>。
+    /// 用授权码换身份。
     /// </summary>
+    /// <exception cref="ExternalLoginException">失败时抛出。</exception>
     Task<ExternalIdentity> ExchangeAsync(ExternalProviderConfig config, HttpClient http, string code, string redirectUri, string? codeVerifier, CancellationToken cancellationToken);
 }
 
@@ -134,8 +141,11 @@ internal static class ProviderHttp
 }
 
 /// <summary>
-/// 授权地址用 client_id / scope / response_type / redirect_uri / state 这一组标准参数、换码用标准表单的几家的公共部分。
+/// 标准协议几家提供商的公共部分。
 /// </summary>
+/// <remarks>
+/// 授权地址用 client_id / scope / response_type / redirect_uri / state 这一组标准参数、换码用标准表单。
+/// </remarks>
 internal abstract class StandardProvider : IExternalLoginProvider
 {
     public abstract string Type { get; }
@@ -178,8 +188,11 @@ internal abstract class StandardProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// Google（PKCE，openid profile email；key sub）。
+/// Google 登录。
 /// </summary>
+/// <remarks>
+/// PKCE，openid profile email；key sub。
+/// </remarks>
 internal sealed class GoogleProvider : StandardProvider
 {
     public override string Type => "google";
@@ -200,8 +213,11 @@ internal sealed class GoogleProvider : StandardProvider
 }
 
 /// <summary>
-/// GitHub（key id、名称取 login；邮箱为空且范围含 user:email 时取主邮箱）。
+/// GitHub 登录。
 /// </summary>
+/// <remarks>
+/// key id、名称取 login；邮箱为空且范围含 user:email 时取主邮箱。
+/// </remarks>
 internal sealed class GitHubProvider : StandardProvider
 {
     public override string Type => "github";
@@ -227,8 +243,11 @@ internal sealed class GitHubProvider : StandardProvider
 }
 
 /// <summary>
-/// Gitee（user_info emails；key id、名称取 login；邮箱为空时取邮箱列表里第一个）。
+/// Gitee 登录。
 /// </summary>
+/// <remarks>
+/// user_info emails；key id、名称取 login；邮箱为空时取邮箱列表里第一个。
+/// </remarks>
 internal sealed class GiteeProvider : StandardProvider
 {
     public override string Type => "gitee";
@@ -254,8 +273,11 @@ internal sealed class GiteeProvider : StandardProvider
 }
 
 /// <summary>
-/// 飞书（扫码走 passport、账号走开放平台 v1 / v2，两套端点成套替换；key union_id ?? open_id）。
+/// 飞书登录。
 /// </summary>
+/// <remarks>
+/// 扫码走 passport、账号走开放平台 v1 / v2，两套端点成套替换；key union_id ?? open_id。
+/// </remarks>
 internal sealed class LarkProvider : StandardProvider
 {
     public override string Type => "lark";
@@ -308,8 +330,11 @@ internal sealed class LarkProvider : StandardProvider
 }
 
 /// <summary>
-/// QQ（换码 GET + fmt=json，再取 openid 与资料；key openid、nickname、figureurl_qq_2，没有邮箱）。
+/// QQ 登录。
 /// </summary>
+/// <remarks>
+/// 换码 GET + fmt=json，再取 openid 与资料；key openid、nickname、figureurl_qq_2，没有邮箱。
+/// </remarks>
 internal sealed class QqProvider : IExternalLoginProvider
 {
     public string Type => "qq";
@@ -346,8 +371,11 @@ internal sealed class QqProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 微信（扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，不需要 4.x 的短 state 绕法；key unionid ?? openid）。
+/// 微信登录。
 /// </summary>
+/// <remarks>
+/// 扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，不需要 4.x 的短 state 绕法；key unionid ?? openid。
+/// </remarks>
 internal sealed class WeChatProvider : IExternalLoginProvider
 {
     public string Type => "wechat";
@@ -389,8 +417,11 @@ internal sealed class WeChatProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 企业微信（扫码 sso/login、账号走网页授权 snsapi_privateinfo；令牌是应用级的 gettoken、与授权码无关，授权码交给 getuserinfo；有 user_ticket 再取详情，开了 LoadMemberProfile 再补成员资料；key userid ?? openid）。
+/// 企业微信登录。
 /// </summary>
+/// <remarks>
+/// 扫码 sso/login、账号走网页授权 snsapi_privateinfo；令牌是应用级的 gettoken、与授权码无关，授权码交给 getuserinfo；有 user_ticket 再取详情，开了 LoadMemberProfile 再补成员资料；key userid ?? openid。
+/// </remarks>
 internal sealed class WeComProvider : IExternalLoginProvider
 {
     public string Type => "wecom";
@@ -460,8 +491,11 @@ internal sealed class WeComProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 钉钉（扫码 challenge.htm、账号 auth，prompt=consent，可限定 corpId；换码走驼峰 JSON；资料用 <c>x-acs-dingtalk-access-token</c> 头；key unionId ?? openId）。
+/// 钉钉登录。
 /// </summary>
+/// <remarks>
+/// 扫码 challenge.htm、账号 auth，prompt=consent，可限定 corpId；换码走驼峰 JSON；资料用 <c>x-acs-dingtalk-access-token</c> 头；key unionId ?? openId。
+/// </remarks>
 internal sealed class DingTalkProvider : IExternalLoginProvider
 {
     public string Type => "dingtalk";

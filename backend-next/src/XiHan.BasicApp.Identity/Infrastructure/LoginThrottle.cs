@@ -11,22 +11,26 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录节流（单例）：按固定窗口（<see cref="IdentityOptions.LoginThrottleWindow"/>）数失败，两个计数——账号 × 地址（同一账号在同一地址上）与地址（跨账号累计）。
+/// 登录节流。
+/// </summary>
+/// <remarks>
+/// 单例服务。按固定窗口（<see cref="IdentityOptions.LoginThrottleWindow"/>）数失败，两个计数——账号 × 地址（同一账号在同一地址上）与地址（跨账号累计）。
 /// 达到上限后本窗口内的登录尝试直接拒绝（不核对验证码与密码），下个窗口自动恢复。只数失败：验证码错误、账号或密码错误、双因素码错误。
 /// 计数在共享缓存里先读后写，不是原子的，并发下可能少数几次；节流只是减速，不当作安全边界（账号锁定另有 <see cref="LoginAttempts"/>）。
 /// 内部调用没有远端地址，只数账号。
-/// </summary>
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 public sealed class LoginThrottle(ISharedCache cache, IdentityOptions options, TimeProvider clock)
 {
     /// <summary>
-    /// 本窗口是否还允许尝试；超限返回 <see cref="IdentityErrors.LoginThrottled"/>（带 <c>retryAfter</c> 秒数）。
+    /// 检查本窗口是否还允许尝试。
     /// </summary>
     /// <param name="account">账号键（注册地租户与登录名）。</param>
     /// <param name="address">远端地址；没有为 <see langword="null"/>。</param>
     /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>超限返回 <see cref="IdentityErrors.LoginThrottled"/>（带 <c>retryAfter</c> 秒数）。</returns>
     public async Task<Result> CheckAsync(string account, string? address, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(account);

@@ -15,11 +15,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 两步验证的第二步（匿名操作，登记在架构测试的匿名白名单）：凭票据与验证码完成登录，成功即开会话、签令牌对，票据作废。
+/// 两步验证的第二步：凭票据与验证码完成登录。
+/// </summary>
+/// <remarks>
+/// 匿名操作，登记在架构测试的匿名白名单。成功即开会话、签令牌对，票据作废。
 /// 票据不存在、过期或已作废一律 <see cref="IdentityErrors.TwoFactorTicketInvalid"/>（须重新登录）；
 /// 码错计入票据的输错次数（用完即作废）、账号的失败计数（可触发锁定）与登录节流。认证器的码按时间步防重放。
 /// 账号状态、锁定期与租户在第二步重新核对：签发票据之后被锁定或停用的账号同样进不来。
-/// </summary>
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="attempts">账号的失败计数与锁定。</param>

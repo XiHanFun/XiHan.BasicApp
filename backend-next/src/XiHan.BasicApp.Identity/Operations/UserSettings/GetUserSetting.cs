@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 
 /// <summary>
-/// 读本人的一条设置：<c>GET /api/user-settings?scene=&amp;key=</c>（自助操作，只要求已认证）。还没存过即返回空值，前端用本地缺省。
-/// 模仿中读的是被模仿用户的设置（令牌主体即被模仿者）。
+/// 读本人的一条设置。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/user-settings?scene=&amp;key=</c>（自助操作，只要求已认证）。还没存过即返回空值，前端用本地缺省。
+/// 模仿中读的是被模仿用户的设置（令牌主体即被模仿者）。
+/// </remarks>
 /// <param name="settings">用户设置仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetUserSetting(IRepository<SysUserSetting, Guid> settings) : IOperation<GetUserSettingRequest, UserSettingResponse>

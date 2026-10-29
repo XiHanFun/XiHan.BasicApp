@@ -7,8 +7,11 @@ using System.Text;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 图形验证码的 SVG（120×44，与 4.x 同款）：每个字符的抖动、旋转、颜色与高度由字符码与位置派生，另有两条干扰线与六个噪点；不引入随机源，同一个码画出同一张图。
+/// 图形验证码的 SVG 画法。
 /// </summary>
+/// <remarks>
+/// 120×44，与 4.x 同款。每个字符的抖动、旋转、颜色与高度由字符码与位置派生，另有两条干扰线与六个噪点；不引入随机源，同一个码画出同一张图。
+/// </remarks>
 public static class CaptchaImage
 {
     private const int Width = 120;
@@ -17,8 +20,9 @@ public static class CaptchaImage
     private static readonly string[] _palette = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#d97706", "#0891b2"];
 
     /// <summary>
-    /// 画成 <c>data:image/svg+xml;base64,</c> 链接，前端直接放进 <c>img</c>。
+    /// 把验证码画成 data URI。
     /// </summary>
+    /// <returns><c>data:image/svg+xml;base64,</c> 链接，前端直接放进 <c>img</c>。</returns>
     public static string ToDataUri(string code) => "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(Render(code)));
 
     /// <summary>

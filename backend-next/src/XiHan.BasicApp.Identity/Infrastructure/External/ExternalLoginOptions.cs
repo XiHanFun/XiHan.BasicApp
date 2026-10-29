@@ -6,9 +6,12 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Identity.Infrastructure.External;
 
 /// <summary>
-/// 第三方登录的配置（<c>BasicApp:Auth:OAuth</c>，4.x 是 <c>XiHan:Authentication:OAuth</c>）：不分租户、不存库。启用且填了 ClientId 的提供商才登记、才出现在登录页
-/// （4.x 登录页的按钮另在系统参数里列，与配置只靠名称对齐，占位凭据的照样展示、点了必然失败）。
+/// 第三方登录的配置（<c>BasicApp:Auth:OAuth</c>）。
 /// </summary>
+/// <remarks>
+/// 4.x 是 <c>XiHan:Authentication:OAuth</c>。不分租户、不存库。启用且填了 ClientId 的提供商才登记、才出现在登录页
+/// （4.x 登录页的按钮另在系统参数里列，与配置只靠名称对齐，占位凭据的照样展示、点了必然失败）。
+/// </remarks>
 public sealed class ExternalLoginOptions
 {
     /// <summary>
@@ -17,18 +20,27 @@ public sealed class ExternalLoginOptions
     public const string Section = "BasicApp:Auth:OAuth";
 
     /// <summary>
-    /// 总开关（缺省开；没有提供商时等于关）。
+    /// 总开关。
     /// </summary>
+    /// <remarks>
+    /// 缺省开。没有提供商时等于关。
+    /// </remarks>
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// 回调后带着票据跳去的前端页面（缺省 <c>/#/auth/oauth-callback</c>，前后端同源时即可用）。
+    /// 回调后带着票据跳去的前端页面。
     /// </summary>
+    /// <remarks>
+    /// 缺省 <c>/#/auth/oauth-callback</c>，前后端同源时即可用。
+    /// </remarks>
     public string FrontendCallbackUrl { get; init; } = "/#/auth/oauth-callback";
 
     /// <summary>
-    /// 回调地址的来源（如 <c>https://example.com</c>，在第三方后台登记的回调地址是它加 <c>/api/oauth/{名称}/callback</c>）；不配即取请求的来源（经反向代理时要转发头正确）。
+    /// 回调地址的来源。
     /// </summary>
+    /// <remarks>
+    /// 如 <c>https://example.com</c>，在第三方后台登记的回调地址是它加 <c>/api/oauth/{名称}/callback</c>。不配即取请求的来源（经反向代理时要转发头正确）。
+    /// </remarks>
     public string? CallbackBaseUrl { get; init; }
 
     /// <summary>
@@ -152,8 +164,11 @@ public sealed class ExternalProviderConfig
 }
 
 /// <summary>
-/// 登录方式（4.x <c>OAuthLoginMode</c> 同值）。
+/// 登录方式。
 /// </summary>
+/// <remarks>
+/// 4.x <c>OAuthLoginMode</c> 同值。
+/// </remarks>
 public enum ExternalLoginMode
 {
     /// <summary>
@@ -168,8 +183,11 @@ public enum ExternalLoginMode
 }
 
 /// <summary>
-/// 提供商类型与别名（4.x 同：weixin = wechat、workweixin = wecom、feishu = lark）。
+/// 提供商类型与别名。
 /// </summary>
+/// <remarks>
+/// 4.x 同：weixin = wechat、workweixin = wecom、feishu = lark。
+/// </remarks>
 public static class ExternalProviderTypes
 {
     /// <summary>
@@ -178,8 +196,9 @@ public static class ExternalProviderTypes
     public static IReadOnlyList<string> All { get; } = ["github", "gitee", "google", "qq", "wechat", "wecom", "lark", "dingtalk"];
 
     /// <summary>
-    /// 规整成类型；不认识的为空。
+    /// 规整成类型。
     /// </summary>
+    /// <returns>规整后的类型；不认识的为空。</returns>
     public static string? Normalize(string? value)
         => value?.Trim().ToLowerInvariant() switch
         {

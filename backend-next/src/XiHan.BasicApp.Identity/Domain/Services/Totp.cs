@@ -9,9 +9,12 @@ using System.Text;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 认证器验证码（TOTP，RFC 6238）：HMAC-SHA1、6 位、30 秒一步，前后各容一步时钟偏差；密钥是 20 字节随机数的 Base32（RFC 4648，无填充）。
-/// 只做算法，不碰存储：调用方保存最近一次通过的时间步并传进来，同一步（及更早的）码不再接受，防重放。
+/// 认证器验证码（TOTP，RFC 6238）。
 /// </summary>
+/// <remarks>
+/// HMAC-SHA1、6 位、30 秒一步，前后各容一步时钟偏差；密钥是 20 字节随机数的 Base32（RFC 4648，无填充）。
+/// 只做算法，不碰存储：调用方保存最近一次通过的时间步并传进来，同一步（及更早的）码不再接受，防重放。
+/// </remarks>
 public static class Totp
 {
     /// <summary>
@@ -59,8 +62,12 @@ public static class Totp
     }
 
     /// <summary>
-    /// 校验验证码：在 <see cref="AllowedSkew"/> 的窗口里找匹配的步，且必须晚于 <paramref name="lastStep"/>；通过即返回那一步（调用方存下来），否则为 <see langword="null"/>。
+    /// 校验验证码。
     /// </summary>
+    /// <remarks>
+    /// 在 <see cref="AllowedSkew"/> 的窗口里找匹配的步，且必须晚于 <paramref name="lastStep"/>。
+    /// </remarks>
+    /// <returns>通过即返回那一步（调用方存下来），否则为 <see langword="null"/>。</returns>
     public static long? Verify(string secret, string? code, DateTimeOffset now, long? lastStep)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(secret);
@@ -88,8 +95,11 @@ public static class Totp
     }
 
     /// <summary>
-    /// 认证器扫码用的 <c>otpauth://</c> 链接：标签为「签发方:账号」，参数带上算法、位数与步长。
+    /// 生成认证器扫码用的 <c>otpauth://</c> 链接。
     /// </summary>
+    /// <remarks>
+    /// 标签为「签发方:账号」，参数带上算法、位数与步长。
+    /// </remarks>
     public static string AuthenticatorUri(string issuer, string account, string secret)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(issuer);
@@ -127,8 +137,12 @@ public static class Totp
     }
 
     /// <summary>
-    /// Base32 解码：忽略大小写、空格与填充；含非法字符时抛出。
+    /// Base32 解码。
     /// </summary>
+    /// <remarks>
+    /// 忽略大小写、空格与填充。
+    /// </remarks>
+    /// <exception cref="FormatException">含非法字符时抛出。</exception>
     public static byte[] FromBase32(string value)
     {
         ArgumentNullException.ThrowIfNull(value);

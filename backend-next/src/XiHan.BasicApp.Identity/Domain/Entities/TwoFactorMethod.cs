@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 一种双因素方式。JSON 上是字符串枚举。邮箱与短信要等 Notification 能发码，目前只有认证器可以开启。
+/// 一种双因素方式。
 /// </summary>
+/// <remarks>
+/// JSON 上是字符串枚举。邮箱与短信要等 Notification 能发码，目前只有认证器可以开启。
+/// </remarks>
 public enum TwoFactorMethod
 {
     /// <summary>

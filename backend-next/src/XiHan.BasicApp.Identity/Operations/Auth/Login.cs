@@ -14,11 +14,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 密码登录（匿名操作，登记在架构测试的匿名白名单）：按注册地租户与登录名找账号，校验状态、锁定期与密码。
+/// 密码登录。
+/// </summary>
+/// <remarks>
+/// 匿名操作，登记在架构测试的匿名白名单。按注册地租户与登录名找账号，校验状态、锁定期与密码。
 /// 依次过三道关：登录节流（<see cref="LoginThrottle"/>，超限直接拒绝）、图形验证码（开启时，一次性）、账号与密码；
 /// 账号开了双因素即签发两步验证票据、不开会话（日志记为 <see cref="LoginEvent.TwoFactorChallenge"/>），否则开会话并签发令牌对。
 /// 失败计数在独立作用域里提交（<see cref="LoginAttempts"/>），否则随本次失败调用一起回滚。用户名或密码错误不区分哪一个。
-/// </summary>
+/// </remarks>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="attempts">账号的失败计数与锁定。</param>
 /// <param name="throttle">登录节流。</param>

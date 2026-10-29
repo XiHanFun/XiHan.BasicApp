@@ -15,8 +15,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 当前主体 <c>auth.me</c>（自助操作，只要求已认证）：按令牌 <c>sub</c> 取用户资料，附当前租户（含显示名）、会话、角色与模仿发起人。类名不用 <c>Me</c>（VB 关键字，CA1716）。
+/// 取当前主体的资料。
 /// </summary>
+/// <remarks>
+/// 操作 <c>auth.me</c>（自助操作，只要求已认证）。按令牌 <c>sub</c> 取用户资料，附当前租户（含显示名）、会话、角色与模仿发起人。类名不用 <c>Me</c>（VB 关键字，CA1716）。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="tenants">框架租户目录（取当前租户的显示名）。</param>

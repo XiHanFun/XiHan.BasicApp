@@ -18,8 +18,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 刷新令牌（匿名操作）：按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录。
+/// 刷新令牌：轮换刷新令牌并签发新的访问令牌。
 /// </summary>
+/// <remarks>
+/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录。
+/// </remarks>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="sessions">会话仓储。</param>

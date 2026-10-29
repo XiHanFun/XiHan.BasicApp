@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Queries;
 
 /// <summary>
-/// 用户的分页查询：直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体只看注册地是当前租户的用户。
+/// 用户的分页查询。
 /// </summary>
+/// <remarks>
+/// 直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体只看注册地是当前租户的用户。
+/// </remarks>
 /// <param name="unitOfWork">当前调用的工作单元；查询与同一调用里的写入共用连接与事务。</param>
 public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
 {
@@ -25,8 +28,11 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出用户。筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 与 <c>status</c> 的 <c>eq</c>；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序。
+    /// 分页列出用户。
     /// </summary>
+    /// <remarks>
+    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 与 <c>status</c> 的 <c>eq</c>；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序。
+    /// </remarks>
     public async ValueTask<Result<PageResult<UserResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

@@ -7,8 +7,11 @@ using System.Security.Cryptography;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 密码散列：PBKDF2-SHA256，16 字节随机盐、32 字节输出；格式 <c>pbkdf2-sha256$迭代$盐$散列</c>（Base64），迭代数写在散列里，提高后旧散列仍可校验。
+/// 密码散列（PBKDF2-SHA256）。
 /// </summary>
+/// <remarks>
+/// 16 字节随机盐、32 字节输出；格式 <c>pbkdf2-sha256$迭代$盐$散列</c>（Base64），迭代数写在散列里，提高后旧散列仍可校验。
+/// </remarks>
 public static class PasswordHasher
 {
     /// <summary>
@@ -36,8 +39,11 @@ public static class PasswordHasher
     }
 
     /// <summary>
-    /// 校验；散列为空或格式不对一律不通过（没有密码的账号不能登录）。
+    /// 校验密码与散列是否匹配。
     /// </summary>
+    /// <remarks>
+    /// 散列为空或格式不对一律不通过（没有密码的账号不能登录）。
+    /// </remarks>
     public static bool Verify(string password, string? hash)
     {
         if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))

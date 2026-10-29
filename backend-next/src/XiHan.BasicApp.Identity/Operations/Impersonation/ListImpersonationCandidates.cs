@@ -14,9 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// 模仿候选 <c>impersonation.candidates</c>：目标上下文里可被模仿的正常用户——注册地在该租户（或平台）的，加上该租户的成员；不含自己。
-/// 范围规则与 <c>impersonation.start</c> 相同：不填租户即发起人当前上下文，租户主体只能看自己的租户。最多 20 个。
+/// 列出目标上下文里可被模仿的用户。
 /// </summary>
+/// <remarks>
+/// 操作 <c>impersonation.candidates</c>。目标上下文里可被模仿的正常用户——注册地在该租户（或平台）的，加上该租户的成员；不含自己。
+/// 范围规则与 <c>impersonation.start</c> 相同：不填租户即发起人当前上下文，租户主体只能看自己的租户。最多 20 个。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="memberships">成员关系（Tenancy 实现）。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]

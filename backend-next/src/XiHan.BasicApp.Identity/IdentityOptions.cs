@@ -7,8 +7,11 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包配置 <c>BasicApp:Auth</c>：令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流与双因素。
+/// 身份包配置（<c>BasicApp:Auth</c>）。
 /// </summary>
+/// <remarks>
+/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流与双因素。
+/// </remarks>
 public sealed record IdentityOptions
 {
     /// <summary>
@@ -27,8 +30,11 @@ public sealed record IdentityOptions
     public TimeSpan RefreshTokenLifetime { get; init; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 连续登录失败多少次后锁定（<c>MaxFailedAccessAttempts</c>，缺省 5）。
+    /// 连续登录失败多少次后锁定。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>MaxFailedAccessAttempts</c>，缺省 5。
+    /// </remarks>
     public int MaxFailedAccessAttempts { get; init; } = 5;
 
     /// <summary>
@@ -42,13 +48,19 @@ public sealed record IdentityOptions
     public int PasswordMinLength { get; init; } = 8;
 
     /// <summary>
-    /// 不得与最近多少个历史密码相同（<c>PasswordHistoryDepth</c>，缺省 3；0 不检查）。
+    /// 不得与最近多少个历史密码相同。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>PasswordHistoryDepth</c>，缺省 3；0 不检查。
+    /// </remarks>
     public int PasswordHistoryDepth { get; init; } = 3;
 
     /// <summary>
-    /// 会话门禁的缓存存活时间（<c>SessionCacheSeconds</c>，缺省 30 秒）：吊销最迟在此时长后对其他实例生效。
+    /// 会话门禁的缓存存活时间。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>SessionCacheSeconds</c>，缺省 30 秒。吊销最迟在此时长后对其他实例生效。
+    /// </remarks>
     public TimeSpan SessionCacheTimeToLive { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
@@ -62,38 +74,57 @@ public sealed record IdentityOptions
     public TimeSpan CaptchaLifetime { get; init; } = TimeSpan.FromSeconds(300);
 
     /// <summary>
-    /// 登录节流的固定窗口（<c>LoginThrottleWindowSeconds</c>，缺省 60 秒）。
+    /// 登录节流的固定窗口。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>LoginThrottleWindowSeconds</c>，缺省 60 秒。
+    /// </remarks>
     public TimeSpan LoginThrottleWindow { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 同一账号在同一地址上每个窗口允许的失败次数（<c>LoginThrottleAccountLimit</c>，缺省 5）。
+    /// 同一账号在同一地址上每个窗口允许的失败次数。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>LoginThrottleAccountLimit</c>，缺省 5。
+    /// </remarks>
     public int LoginThrottleAccountLimit { get; init; } = 5;
 
     /// <summary>
-    /// 同一地址每个窗口允许的失败次数，跨账号累计（<c>LoginThrottleIpLimit</c>，缺省 30）。
+    /// 同一地址每个窗口允许的失败次数，跨账号累计。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>LoginThrottleIpLimit</c>，缺省 30。
+    /// </remarks>
     public int LoginThrottleIpLimit { get; init; } = 30;
 
     /// <summary>
-    /// 两步验证票据有效期（<c>TwoFactorTicketMinutes</c>，缺省 10 分钟），从签发起算、不顺延。
+    /// 两步验证票据有效期。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>TwoFactorTicketMinutes</c>，缺省 10 分钟。从签发起算、不顺延。
+    /// </remarks>
     public TimeSpan TwoFactorTicketLifetime { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 一张票据允许输错验证码的次数（<c>TwoFactorTicketMaxFailures</c>，缺省 5），用完即作废、须重新登录。
+    /// 一张票据允许输错验证码的次数。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>TwoFactorTicketMaxFailures</c>，缺省 5。用完即作废、须重新登录。
+    /// </remarks>
     public int TwoFactorTicketMaxFailures { get; init; } = 5;
 
     /// <summary>
-    /// 认证器里显示的签发方（<c>TotpIssuer</c>，缺省 <c>XiHan BasicApp</c>）。
+    /// 认证器里显示的签发方。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>TotpIssuer</c>，缺省 <c>XiHan BasicApp</c>。
+    /// </remarks>
     public string TotpIssuer { get; init; } = "XiHan BasicApp";
 
     /// <summary>
-    /// 从配置读取；不合法的值是装配错误，直接抛出。
+    /// 从配置读取身份包配置。
     /// </summary>
+    /// <exception cref="ArgumentException">配置里有不合法的值时抛出（装配错误）。</exception>
     public static IdentityOptions FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

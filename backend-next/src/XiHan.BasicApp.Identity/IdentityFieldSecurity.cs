@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包登记的字段安全实体（方案 5.9）：用户目录（<c>users.list / get / create / update</c>）在投影、查询与写入处套用规则；
-/// 登录、刷新、个人中心等本人自己的资料不套用。字段名与响应、筛选、排序的字段同名。
+/// 身份包登记的字段安全实体。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9。用户目录（<c>users.list / get / create / update</c>）在投影、查询与写入处套用规则；
+/// 登录、刷新、个人中心等本人自己的资料不套用。字段名与响应、筛选、排序的字段同名。
+/// </remarks>
 public static class IdentityFieldSecurity
 {
     /// <summary>
@@ -42,8 +45,11 @@ public static class IdentityFieldSecurity
     public const string LastLoginAt = "lastLoginAt";
 
     /// <summary>
-    /// 全部实体；显示名是前端用户页已有的文案键。
+    /// 全部实体。
     /// </summary>
+    /// <remarks>
+    /// 显示名是前端用户页已有的文案键。
+    /// </remarks>
     public static IReadOnlyList<FieldSecurityEntityDescriptor> All { get; } =
     [
         new(Users, "identity.users.title",

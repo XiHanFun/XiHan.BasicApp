@@ -15,9 +15,12 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Identity.Seeds;
 
 /// <summary>
-/// 平台身份种子（号段 100）：初始超级管理员 <c>superadmin</c>（平台账号，密码来自 <c>BasicApp:Seed:SuperAdminPassword</c>，缺省沿用 4.x）与它的全局授予 <c>*</c>。
-/// 运营数据只首写：账号已存在时不改密码；授予缺失时补上。角色与授权快照随 Access 包落地后改为经角色授予。
+/// 平台身份种子。
 /// </summary>
+/// <remarks>
+/// 号段 100。初始超级管理员 <c>superadmin</c>（平台账号，密码来自 <c>BasicApp:Seed:SuperAdminPassword</c>，缺省沿用 4.x）与它的全局授予 <c>*</c>。
+/// 运营数据只首写：账号已存在时不改密码；授予缺失时补上。角色与授权快照随 Access 包落地后改为经角色授予。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="grants">框架授予存储。</param>

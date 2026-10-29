@@ -9,8 +9,11 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 public enum UserSettingScene
 {
     /// <summary>
-    /// 偏好与全局设置：应用偏好（主题、外观、布局、组件、快捷键）、收藏夹等，按设置键区分（如 <c>global</c>、<c>favorites</c>）。
+    /// 偏好与全局设置。
     /// </summary>
+    /// <remarks>
+    /// 应用偏好（主题、外观、布局、组件、快捷键）、收藏夹等，按设置键区分（如 <c>global</c>、<c>favorites</c>）。
+    /// </remarks>
     Preference = 0,
 
     /// <summary>

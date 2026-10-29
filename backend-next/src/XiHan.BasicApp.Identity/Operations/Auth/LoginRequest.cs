@@ -6,8 +6,11 @@ using System.ComponentModel.DataAnnotations;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.login</c> 的请求：密码登录。租户为空即平台账号；开了图形验证码（<c>auth.login-config</c> 的 <c>captchaEnabled</c>）时须带上 <c>auth.captcha</c> 发的标识与码。
+/// <c>auth.login</c> 的请求：密码登录。
 /// </summary>
+/// <remarks>
+/// 租户为空即平台账号；开了图形验证码（<c>auth.login-config</c> 的 <c>captchaEnabled</c>）时须带上 <c>auth.captcha</c> 发的标识与码。
+/// </remarks>
 /// <param name="UserName">登录名。</param>
 /// <param name="Password">密码。</param>
 /// <param name="Tenant">注册地租户 ID；平台账号不填。</param>

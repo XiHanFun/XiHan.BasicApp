@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 本应用签发的 JWT 里的声明名（方案 5.8）：框架 <c>Security.Jwt</c> 按 <c>sub</c> 认主体、<c>MultiTenancy</c> 按 <c>tenant</c> 解析租户、授权按 <c>role</c> 查授予。
+/// 本应用签发的 JWT 里的声明名。
 /// </summary>
+/// <remarks>
+/// 见方案 5.8。框架 <c>Security.Jwt</c> 按 <c>sub</c> 认主体、<c>MultiTenancy</c> 按 <c>tenant</c> 解析租户、授权按 <c>role</c> 查授予。
+/// </remarks>
 public static class IdentityClaims
 {
     /// <summary>
@@ -24,8 +27,11 @@ public static class IdentityClaims
     public const string UserName = "preferred_username";
 
     /// <summary>
-    /// 当前租户；平台账号没有。
+    /// 当前租户。
     /// </summary>
+    /// <remarks>
+    /// 平台账号没有。
+    /// </remarks>
     public const string Tenant = "tenant";
 
     /// <summary>
@@ -39,7 +45,10 @@ public static class IdentityClaims
     public const string Role = "role";
 
     /// <summary>
-    /// 模仿者（发起模仿的用户 ID）；只有模仿会话的令牌带它，<c>impersonation.stop</c> 据它与会话行核对。
+    /// 模仿者（发起模仿的用户 ID）。
     /// </summary>
+    /// <remarks>
+    /// 只有模仿会话的令牌带它，<c>impersonation.stop</c> 据它与会话行核对。
+    /// </remarks>
     public const string Actor = "act";
 }

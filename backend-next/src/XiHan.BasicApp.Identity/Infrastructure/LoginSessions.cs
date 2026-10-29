@@ -15,9 +15,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录完成（作用域服务）：密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对。
-/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写。
+/// 登录完成：开会话并签发令牌对。
 /// </summary>
+/// <remarks>
+/// 作用域服务。密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对。
+/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写。
+/// </remarks>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="securities">账号安全仓储。</param>

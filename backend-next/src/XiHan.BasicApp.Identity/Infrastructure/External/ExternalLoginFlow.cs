@@ -19,8 +19,11 @@ using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 namespace XiHan.BasicApp.Identity.Infrastructure.External;
 
 /// <summary>
-/// 一张第三方身份票据（回调后发给前端，五分钟内用一次）：登录用的只能换登录；绑定用的记着发起绑定的人，只能由他本人确认。
+/// 一张第三方身份票据。
 /// </summary>
+/// <remarks>
+/// 回调后发给前端，五分钟内用一次。登录用的只能换登录；绑定用的记着发起绑定的人，只能由他本人确认。
+/// </remarks>
 /// <param name="Provider">提供商名称。</param>
 /// <param name="ProviderType">提供商类型。</param>
 /// <param name="Identity">第三方身份。</param>
@@ -30,13 +33,17 @@ namespace XiHan.BasicApp.Identity.Infrastructure.External;
 public sealed record ExternalTicket(string Provider, string ProviderType, ExternalIdentity Identity, string Mode, string Tenant, Guid? UserId);
 
 /// <summary>
-/// 第三方登录的流程（普通端点 <c>/api/oauth/{提供商}/challenge</c> 与 <c>/callback</c>，绕过内核管道、只碰缓存）：
+/// 第三方登录的流程。
+/// </summary>
+/// <remarks>
+/// 普通端点 <c>/api/oauth/{提供商}/challenge</c> 与 <c>/callback</c>，绕过内核管道、只碰缓存。
 /// 发起时生成 256 位随机 state 存进共享缓存，同时种一枚只给回调路径的 HttpOnly Cookie，回调时 state 与 Cookie 都对上才认（state 不能被别的浏览器拿来用）；
-/// Google 另用 PKCE。回调换来身份后不发令牌，而是发一张一次性票据带去前端：登录由 <c>auth.external-login</c> 换（与密码登录同样过账号状态、锁定、登录守卫与双因素，4.x 第三方登录全跳过），
+/// Google 另用 PKCE。
+/// 回调换来身份后不发令牌，而是发一张一次性票据带去前端：登录由 <c>auth.external-login</c> 换（与密码登录同样过账号状态、锁定、登录守卫与双因素，4.x 第三方登录全跳过），
 /// 绑定先由登录着的人经 <c>profile.begin-external-bind</c> 领一个绑定意图（十分钟、用一次）带去发起，票据记着他，只有他本人调 <c>profile.link-external</c> 才能确认：
 /// 4.x 只认票据里记的人、不看是谁在确认，攻击者把自己发起的链接发给受害者即可把受害者的第三方账号绑到自己名下；反过来只认确认的人、不记发起人，攻击者把自己完成的回调地址发给受害者即可把自己的第三方账号绑到受害者名下——两头都要对上。
 /// 第三方那边失败（用户拒绝、换码出错）一律带着错误码回到前端（4.x 直接 500）。
-/// </summary>
+/// </remarks>
 public static partial class ExternalLoginFlow
 {
     /// <summary>
@@ -80,8 +87,9 @@ public static partial class ExternalLoginFlow
     }
 
     /// <summary>
-    /// 取出并作废一张票据；不存在、过期或用途不符为空。
+    /// 取出并作废一张票据。
     /// </summary>
+    /// <returns>取出的票据；不存在、过期或用途不符为空。</returns>
     public static async Task<ExternalTicket?> ConsumeTicketAsync(ISharedCache cache, string? ticket, string mode, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(cache);
@@ -199,8 +207,11 @@ public static partial class ExternalLoginFlow
     }
 
     /// <summary>
-    /// 回调地址（在第三方后台登记的就是它）：配置了 <c>CallbackBaseUrl</c> 用它，否则取请求的来源。
+    /// 取得回调地址。
     /// </summary>
+    /// <remarks>
+    /// 在第三方后台登记的就是它。配置了 <c>CallbackBaseUrl</c> 用它，否则取请求的来源。
+    /// </remarks>
     private static string CallbackUrl(HttpContext http, ExternalLoginOptions options, ExternalProviderConfig config)
         => $"{options.CallbackBaseUrl ?? $"{http.Request.Scheme}://{http.Request.Host}{http.Request.PathBase}"}{Prefix}/{config.Name}/callback";
 

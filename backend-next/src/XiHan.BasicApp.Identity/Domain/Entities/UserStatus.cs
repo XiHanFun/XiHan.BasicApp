@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 用户状态。JSON 上是字符串枚举。
+/// 用户状态。
 /// </summary>
+/// <remarks>
+/// JSON 上是字符串枚举。
+/// </remarks>
 public enum UserStatus
 {
     /// <summary>

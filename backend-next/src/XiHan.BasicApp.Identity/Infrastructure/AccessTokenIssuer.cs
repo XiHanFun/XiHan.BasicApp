@@ -10,9 +10,12 @@ using XiHan.Framework.Security.Jwt;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 签发 HS256 访问令牌：与框架 <c>Security.Jwt</c> 共用 <c>XiHan:Security:Jwt</c> 的密钥、签发者与受众，由它校验。
-/// 声明：<c>sub</c> 用户 ID、<c>name</c>、<c>preferred_username</c>、<c>tenant</c>（平台账号没有）、<c>sid</c> 会话、<c>role</c>（可多条）、<c>act</c>（模仿会话才有：发起人用户 ID）。
+/// 签发 HS256 访问令牌。
 /// </summary>
+/// <remarks>
+/// 与框架 <c>Security.Jwt</c> 共用 <c>XiHan:Security:Jwt</c> 的密钥、签发者与受众，由它校验。
+/// 声明：<c>sub</c> 用户 ID、<c>name</c>、<c>preferred_username</c>、<c>tenant</c>（平台账号没有）、<c>sid</c> 会话、<c>role</c>（可多条）、<c>act</c>（模仿会话才有：发起人用户 ID）。
+/// </remarks>
 public sealed class AccessTokenIssuer
 {
     private readonly JsonWebTokenHandler _handler = new() { SetDefaultTimesOnTokenCreation = false };

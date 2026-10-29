@@ -11,13 +11,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 用户批量操作的共同骨架：一次主键 <c>IN</c> 取回目标行，逐项判租户归属与「不能对自己操作」，剩下的一次写入，逐项结果进 <see cref="BatchResult"/>。
+/// 用户批量操作的共同骨架。
 /// </summary>
+/// <remarks>
+/// 一次主键 <c>IN</c> 取回目标行，逐项判租户归属与「不能对自己操作」，剩下的一次写入，逐项结果进 <see cref="BatchResult"/>。
+/// </remarks>
 internal static class UserBatch
 {
     /// <summary>
-    /// 取回目标用户并逐项校验；返回可操作的用户与已判失败的项。
+    /// 取回目标用户并逐项校验。
     /// </summary>
+    /// <returns>可操作的用户与已判失败的项。</returns>
     public static async Task<(List<SysUser> Targets, List<BatchFailure> Failed)> ResolveAsync(IRepository<SysUser, Guid> users, IReadOnlyList<Guid> ids, InvocationContext context, bool rejectSelf)
     {
         var security = context.GetSecurity();

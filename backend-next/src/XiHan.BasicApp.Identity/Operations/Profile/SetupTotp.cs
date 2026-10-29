@@ -12,9 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 开始绑定认证器：<c>POST /api/profile:setup-totp</c>。生成新密钥暂存十分钟（<see cref="TotpEnrollments"/>），账号此时不变；
-/// 已经开着认证器时拒绝（先关闭再重新绑定，免得旧设备在用户不知情时失效）。模仿会话不能做。
+/// 开始绑定认证器。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/profile:setup-totp</c>。生成新密钥暂存十分钟（<see cref="TotpEnrollments"/>），账号此时不变；
+/// 已经开着认证器时拒绝（先关闭再重新绑定，免得旧设备在用户不知情时失效）。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="enrollments">绑定中的密钥。</param>

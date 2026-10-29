@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录失败计数（单例）：登录以失败结束时调用方的工作单元会整体回滚，计数与锁定必须在独立作用域里自己提交，否则永远锁不住。
+/// 登录失败计数。
 /// </summary>
+/// <remarks>
+/// 单例服务。登录以失败结束时调用方的工作单元会整体回滚，计数与锁定必须在独立作用域里自己提交，否则永远锁不住。
+/// </remarks>
 public sealed class LoginAttempts
 {
     private readonly IServiceScopeFactory _scopes;
@@ -29,8 +32,12 @@ public sealed class LoginAttempts
     }
 
     /// <summary>
-    /// 记一次失败：计数加一，达到上限即锁定并清零；返回是否因本次失败进入锁定。
+    /// 记一次失败。
     /// </summary>
+    /// <remarks>
+    /// 计数加一，达到上限即锁定并清零。
+    /// </remarks>
+    /// <returns>是否因本次失败进入锁定。</returns>
     public async Task<bool> RecordFailureAsync(Guid securityId, CancellationToken cancellationToken)
     {
         var lockedOut = false;

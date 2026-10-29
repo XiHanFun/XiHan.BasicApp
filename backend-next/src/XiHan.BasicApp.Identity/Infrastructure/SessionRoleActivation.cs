@@ -8,8 +8,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 会话角色激活的调用（Access 实现 <see cref="ISessionRoleActivator"/>；没装即持有的角色全部进令牌）。
+/// 会话角色激活的调用。
 /// </summary>
+/// <remarks>
+/// Access 实现 <see cref="ISessionRoleActivator"/>。没装即持有的角色全部进令牌。
+/// </remarks>
 internal static class SessionRoleActivation
 {
     /// <summary>

@@ -7,8 +7,11 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 用户的响应形态；<c>users.create / get / update</c> 的响应、<c>users.list</c> 的列表项与登录响应里的资料共用。
+/// 用户的响应形态。
 /// </summary>
+/// <remarks>
+/// <c>users.create / get / update</c> 的响应、<c>users.list</c> 的列表项与登录响应里的资料共用。
+/// </remarks>
 /// <param name="Id">用户 ID。</param>
 /// <param name="UserName">登录名。</param>
 /// <param name="DisplayName">显示名。</param>
@@ -43,8 +46,11 @@ public sealed record UserResponse(
     }
 
     /// <summary>
-    /// 由实体投影并按字段安全规则打码（用户目录的响应）；登录名与显示名不可空，规则写入时已拒绝对它们隐藏，打码后不会为空。
+    /// 由实体投影并按字段安全规则打码。
     /// </summary>
+    /// <remarks>
+    /// 用于用户目录的响应。登录名与显示名不可空，规则写入时已拒绝对它们隐藏，打码后不会为空。
+    /// </remarks>
     public static UserResponse From(SysUser user, FieldRules rules)
     {
         ArgumentNullException.ThrowIfNull(user);

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// 可被模仿的一个用户（<c>impersonation.candidates</c> 的列表项）。
+/// 可被模仿的一个用户。
 /// </summary>
+/// <remarks>
+/// <c>impersonation.candidates</c> 的列表项。
+/// </remarks>
 /// <param name="Id">用户 ID。</param>
 /// <param name="UserName">登录名。</param>
 /// <param name="DisplayName">显示名。</param>

@@ -58,8 +58,11 @@ public sealed record LinkExternalLoginRequest([Required, StringLength(128)] stri
 public sealed record UnlinkExternalLoginRequest([Required, StringLength(32)] string Provider);
 
 /// <summary>
-/// 本人绑定的第三方账号：<c>GET /api/profile:external-logins</c>（4.x <c>Profile/LinkedAccounts</c>）。已登录即可。
+/// 列出本人绑定的第三方账号。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/profile:external-logins</c>（4.x <c>Profile/LinkedAccounts</c>）。已登录即可。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="bindings">第三方绑定仓储。</param>
@@ -89,9 +92,12 @@ public sealed class ListExternalLogins(IRepository<SysUser, Guid> users, UserAcc
 }
 
 /// <summary>
-/// 发起绑定：<c>POST /api/profile:begin-external-bind</c>。给当前登录的人领一个绑定意图（十分钟、用一次），返回带着它的发起地址；
-/// 没有意图的绑定发起不认，回调的票据记着这个人（见 <see cref="ExternalLoginFlow"/>）。提供方不存在或没启用即 <c>IDENTITY_NOTFOUND_005</c>。模仿会话不能做。
+/// 发起第三方账号绑定。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/profile:begin-external-bind</c>。给当前登录的人领一个绑定意图（十分钟、用一次），返回带着它的发起地址；
+/// 没有意图的绑定发起不认，回调的票据记着这个人（见 <see cref="ExternalLoginFlow"/>）。提供方不存在或没启用即 <c>IDENTITY_NOTFOUND_005</c>。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="options">第三方登录配置。</param>
@@ -125,10 +131,14 @@ public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAcco
 }
 
 /// <summary>
-/// 确认绑定：<c>POST /api/profile:link-external</c>。凭绑定流程的一次性票据，把第三方账号绑到当前登录的人；票据记着发起绑定的人，不是本人即 <c>IDENTITY_VALIDATION_015</c>
+/// 确认第三方账号绑定。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/profile:link-external</c>。
+/// 凭绑定流程的一次性票据，把第三方账号绑到当前登录的人；票据记着发起绑定的人，不是本人即 <c>IDENTITY_VALIDATION_015</c>
 /// （发起要本人领的意图、确认要本人：拿着别人发起的链接或别人完成的回调地址都绑不上）；
 /// 已被同一注册地的别人绑定即 <c>IDENTITY_CONFLICT_008</c>，本人已绑过这个提供商的另一个账号即换成这一个。模仿会话不能做（4.x 同）。
-/// </summary>
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="bindings">第三方绑定仓储。</param>
@@ -188,9 +198,12 @@ public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAcco
 }
 
 /// <summary>
-/// 解绑：<c>POST /api/profile:unlink-external</c>（4.x <c>Profile/UnlinkAccount</c>）。没绑过即 <c>IDENTITY_NOTFOUND_004</c>。
-/// 账号都有密码（不自动建号），不需要 4.x「这是唯一的登录方式」的限制。模仿会话不能做。
+/// 解绑本人的第三方账号。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/profile:unlink-external</c>（4.x <c>Profile/UnlinkAccount</c>）。没绑过即 <c>IDENTITY_NOTFOUND_004</c>。
+/// 账号都有密码（不自动建号），不需要 4.x「这是唯一的登录方式」的限制。模仿会话不能做。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="bindings">第三方绑定仓储。</param>

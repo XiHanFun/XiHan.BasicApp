@@ -8,8 +8,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 发一个图形验证码（匿名操作，登记在架构测试的匿名白名单）：<c>POST /api/auth:captcha</c>。每次都是新码（不缓存，所以不走 GET）；码只在服务端以散列保存，五分钟内用一次即作废。
+/// 发一个图形验证码。
 /// </summary>
+/// <remarks>
+/// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:captcha</c>。每次都是新码（不缓存，所以不走 GET）；码只在服务端以散列保存，五分钟内用一次即作废。
+/// </remarks>
 /// <param name="captchas">图形验证码。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class IssueCaptcha(Captchas captchas) : IOperation<CaptchaRequest, CaptchaResponse>
