@@ -3,6 +3,8 @@ import type { FileUploadRequest } from '@xihan-ui/vue'
 import type { FileDetailsForm, FileRow, FileStorageRow, PreviewKind } from './file-library'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
+import { createHighlighter } from '@xihan-ui/code-highlight'
+import { createStreamRenderer } from '@xihan-ui/markdown'
 import {
   XhButton,
   XhButtonIndicator,
@@ -33,9 +35,11 @@ import {
   XhFileUploadDropzone,
   XhFileUploadHiddenInput,
   XhFileUploadRoot,
+  XhMarkdownStreamContent,
+  XhMarkdownStreamRoot,
   XhSwitch,
 } from '@xihan-ui/vue'
-import { computed, h, reactive, ref } from 'vue'
+import { computed, h, onBeforeUnmount, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { actionConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XIconButton, XInput, XSelect } from '~/components'
 import { confirmDanger, dialog, islandStart, toast } from '~/composables'
@@ -486,6 +490,11 @@ const previewKind = ref<PreviewKind | null>(null)
 const previewName = ref('')
 const previewUrl = ref('')
 const previewText = ref('')
+/** 预览的代码着色与 Markdown 解析（4.x 同：着色用组件库的 code-highlight，Markdown 一次给全、非流式） */
+const highlighter = createHighlighter()
+const markdown = createStreamRenderer({ idPrefix: 'file-preview-' })
+const previewBlocks = computed(() => previewKind.value === 'markdown' ? markdown.render(previewText.value, { ended: true }) : [])
+onBeforeUnmount(() => markdown.dispose())
 const previewLang = ref<string | undefined>(undefined)
 const previewError = ref('')
 const csvColumns = ref<XDataTableColumn<Record<string, string>>[]>([])
@@ -851,7 +860,7 @@ async function copyPreviewText() {
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 预览：浏览器直接渲染得了的几类（图片、音视频、文本与源码（含 Markdown 原文）、CSV） -->
+    <!-- 预览：浏览器直接渲染得了的几类（图片、音视频、Markdown、文本与源码、CSV） -->
     <XhDialogRoot v-model:open="previewVisible">
       <XhDialogContent style="--xh-dialog-max-w: 80vw">
         <XhDialogHeader>
@@ -866,6 +875,11 @@ async function copyPreviewText() {
             <p v-else-if="previewError" class="file-muted">
               {{ previewError }}
             </p>
+            <div v-else-if="previewKind === 'markdown'" class="file-preview__markdown">
+              <XhMarkdownStreamRoot :blocks="previewBlocks" :streaming="false" :caret="false">
+                <XhMarkdownStreamContent />
+              </XhMarkdownStreamRoot>
+            </div>
             <div v-else-if="previewKind === 'text'" class="file-preview__code">
               <XhButton class="file-preview__copy" variant="subtle" size="sm" @click="copyPreviewText">
                 <XhButtonIndicator>
@@ -874,8 +888,7 @@ async function copyPreviewText() {
                 <XhButtonLabel>{{ t('files.library.preview.copy_code') }}</XhButtonLabel>
               </XhButton>
               <div class="file-preview__code-scroll">
-                <!-- 着色实现 @xihan-ui/code-highlight 不在本应用的依赖里：显式关掉着色，按等宽原文显示 -->
-                <XhCodeViewRoot :code="previewText" :lang="previewLang" :highlighter="null" complete>
+                <XhCodeViewRoot :code="previewText" :lang="previewLang" :highlighter="highlighter" complete>
                   <XhCodeViewPre>
                     <XhCodeViewCode />
                   </XhCodeViewPre>
@@ -961,7 +974,7 @@ async function copyPreviewText() {
   overflow: auto;
 }
 
-/* 文本、代码与 CSV：块级流 + 滚动，免得居中布局把内容压塌 */
+/* 文本、Markdown、代码与 CSV：块级流 + 滚动，免得居中布局把内容压塌 */
 .file-preview.is-block {
   display: block;
   text-align: start;
@@ -974,8 +987,13 @@ async function copyPreviewText() {
 }
 
 .file-preview__audio,
+.file-preview__markdown,
 .file-preview__csv {
   inline-size: 100%;
+}
+
+.file-preview__markdown {
+  word-break: break-word;
 }
 
 .file-preview__code {

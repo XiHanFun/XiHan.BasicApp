@@ -118,14 +118,13 @@ describe('预览', () => {
     expect(previewKindOf(file())).toBe('image')
     expect(previewKindOf(file({ kind: 'Video', contentType: 'video/mp4', extension: '.mp4' }))).toBe('video')
     expect(previewKindOf(file({ kind: 'Audio', contentType: 'application/octet-stream', extension: '.mp3' }))).toBe('audio')
-    expect(previewKindOf(file({ kind: 'Document', contentType: 'text/markdown', extension: '.md' }))).toBe('text')
-    expect(textLangOf(file({ extension: '.md' }))).toBe('markdown')
+    expect(previewKindOf(file({ kind: 'Document', contentType: 'text/markdown', extension: '.md' }))).toBe('markdown')
     expect(previewKindOf(file({ kind: 'Document', contentType: 'text/csv', extension: '.csv' }))).toBe('csv')
     expect(previewKindOf(file({ kind: 'Document', contentType: 'application/json', extension: '.json' }))).toBe('text')
     expect(previewKindOf(file({ kind: 'Archive', contentType: 'application/zip', extension: '.zip' }))).toBeNull()
     expect(textLangOf(file({ extension: '.ts' }))).toBe('typescript')
     expect(textLangOf(file({ extension: '.txt' }))).toBeUndefined()
-    expect([isTextPreview('csv'), isTextPreview('text'), isTextPreview('image'), isTextPreview(null)]).toEqual([true, true, false, false])
+    expect([isTextPreview('csv'), isTextPreview('markdown'), isTextPreview('image'), isTextPreview(null)]).toEqual([true, true, false, false])
   })
 
   it('只有正常的文件给预览入口', () => {

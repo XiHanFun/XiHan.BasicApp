@@ -109,8 +109,8 @@ export function toFileDetails(form: FileDetailsForm) {
 
 // ── 预览 ────────────────────────────────────────────────────────
 
-/** 浏览器直接渲染得了的几类（4.x 同；Markdown 没有渲染件，按原文显示，归文本） */
-export type PreviewKind = 'audio' | 'csv' | 'image' | 'text' | 'video'
+/** 浏览器直接渲染得了的几类（4.x 同） */
+export type PreviewKind = 'audio' | 'csv' | 'image' | 'markdown' | 'text' | 'video'
 
 /** 文本类预览上限 2MB，超出只提示下载，避免大文件拖垮浏览器 */
 export const PREVIEW_TEXT_MAX_BYTES = 2 * 1024 * 1024
@@ -118,12 +118,11 @@ export const PREVIEW_TEXT_MAX_BYTES = 2 * 1024 * 1024
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'])
 const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv'])
 const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg'])
+const MARKDOWN_EXTENSIONS = new Set(['md', 'markdown'])
 
 /** 文本、源码、配置与数据交换的扩展名 → 代码视图的语言名（空串表示不指定） */
 const TEXT_LANGS: Record<string, string> = {
   txt: '',
-  md: 'markdown',
-  markdown: 'markdown',
   log: '',
   json: 'json',
   xml: 'xml',
@@ -166,6 +165,8 @@ export function previewKindOf(file: Pick<FileRow, 'contentType' | 'extension' | 
     return 'video'
   if (contentType.startsWith('audio/') || AUDIO_EXTENSIONS.has(extension) || file.kind === 'Audio')
     return 'audio'
+  if (MARKDOWN_EXTENSIONS.has(extension))
+    return 'markdown'
   if (extension === 'csv')
     return 'csv'
   if (contentType.startsWith('text/') || TEXT_LANGS[extension] !== undefined)
@@ -180,7 +181,7 @@ export function canPreview(file: FileRow): boolean {
 
 /** 读成文本再渲染的几类（受大小上限约束） */
 export function isTextPreview(kind: PreviewKind | null): boolean {
-  return kind === 'text' || kind === 'csv'
+  return kind === 'markdown' || kind === 'text' || kind === 'csv'
 }
 
 export function textLangOf(file: Pick<FileRow, 'extension'>): string | undefined {
