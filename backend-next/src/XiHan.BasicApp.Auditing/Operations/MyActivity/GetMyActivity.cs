@@ -56,10 +56,13 @@ public sealed record MyActivityResponse(
     IReadOnlyList<ActivityDayResponse> Trend);
 
 /// <summary>
-/// 本人的活跃度：<c>GET /api/my-activity:summary</c>（4.x <c>Profile/Activity</c>）。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
+/// 本人的活跃度。
+/// </summary>
+/// <remarks>
+/// <c>GET /api/my-activity:summary</c>（4.x <c>Profile/Activity</c>）。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
 /// 都直接按原始日志算（4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可。
 /// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）；没有在线时长（6.0 不记）。
-/// </summary>
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 /// <param name="clock">时钟。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -71,8 +74,11 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
     public const string Id = "my-activity.summary";
 
     /// <summary>
-    /// 趋势覆盖的天数（含今天，4.x 同）。
+    /// 趋势覆盖的天数（含今天）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int TrendDays = 371;
 
     /// <inheritdoc />

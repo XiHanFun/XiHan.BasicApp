@@ -9,8 +9,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.OpenApiLogs;
 
 /// <summary>
-/// 开放接口日志列表：<c>POST /api/open-api-logs:list</c>。只看当前一侧（平台主体看平台的，租户主体看本租户的）。
+/// 开放接口日志列表。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/open-api-logs:list</c>。只看当前一侧（平台主体看平台的，租户主体看本租户的）。
+/// </remarks>
 /// <param name="queries">开放接口日志查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.OpenApiLogsRead)]
 public sealed class ListOpenApiLogs(OpenApiLogQueries queries) : IOperation<PageRequest, PageResult<OpenApiLogResponse>>

@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 登录日志查询：关键字匹配登录名、错误码与客户端地址；另有筛选 <c>event</c>（eq / in）、<c>succeeded</c>、<c>errorCode</c>、<c>accountTenantId</c>、<c>impersonatorUserId</c>；
-/// 另有排序 <c>event</c>。
+/// 登录日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配登录名、错误码与客户端地址；另有筛选 <c>event</c>（eq / in）、<c>succeeded</c>、<c>errorCode</c>、<c>accountTenantId</c>、<c>impersonatorUserId</c>；
+/// 另有排序 <c>event</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class LoginLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysLoginLog, LoginLogResponse, LoginLogResponse>(unitOfWork)
 {

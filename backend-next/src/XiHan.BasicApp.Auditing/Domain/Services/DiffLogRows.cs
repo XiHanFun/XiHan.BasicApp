@@ -11,10 +11,13 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Auditing.Domain.Services;
 
 /// <summary>
-/// SqlSugar 差异日志（一条事件可带一批行）→ 数据变更日志：每行一条，修改按主键配对前后值。
+/// 把 SqlSugar 差异日志转成数据变更日志。
+/// </summary>
+/// <remarks>
+/// 一条事件可带一批行：每行一条，修改按主键配对前后值。
 /// 列名含 password / hash / secret / token / salt 的值一律打码；修改里只动了时间戳、操作人、并发戳这类随写入就变的列的，不算数据变更、不记。
 /// 前后值手写成 JSON 对象（按值的类型分支，不走反射序列化）。
-/// </summary>
+/// </remarks>
 public static class DiffLogRows
 {
     /// <summary>
@@ -30,8 +33,11 @@ public static class DiffLogRows
     };
 
     /// <summary>
-    /// 转换一条差异事件；公共列（时间、租户、调用方）由调用方填。
+    /// 转换一条差异事件。
     /// </summary>
+    /// <remarks>
+    /// 公共列（时间、租户、调用方）由调用方填。
+    /// </remarks>
     public static IEnumerable<SysDiffLog> From(DiffLogModel model, string? operationId)
     {
         ArgumentNullException.ThrowIfNull(model);

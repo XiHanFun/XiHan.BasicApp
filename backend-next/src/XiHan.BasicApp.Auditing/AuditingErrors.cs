@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包的错误码：<c>AUDITING_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 审计包的错误码。
 /// </summary>
+/// <remarks>
+/// 格式为 <c>AUDITING_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class AuditingErrors
 {
     /// <summary>
@@ -34,7 +37,10 @@ public static class AuditingErrors
     public const string RetentionInvalid = "AUDITING_VALIDATION_004";
 
     /// <summary>
-    /// 时区不是认得的 IANA 名称；参数 <c>timeZone</c>。
+    /// 时区不是认得的 IANA 名称。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>timeZone</c>。
+    /// </remarks>
     public const string TimeZoneInvalid = "AUDITING_VALIDATION_005";
 }

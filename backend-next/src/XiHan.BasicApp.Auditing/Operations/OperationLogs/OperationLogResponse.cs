@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Auditing.Operations.OperationLogs;
 
 /// <summary>
-/// 操作日志的列表项：框架操作审计的一条记录（<c>AuditRecord</c>），加上本包中间件补充的登录名、会话与耗时。
+/// 操作日志的列表项。
 /// </summary>
+/// <remarks>
+/// 框架操作审计的一条记录（<c>AuditRecord</c>），加上本包中间件补充的登录名、会话与耗时。
+/// </remarks>
 /// <param name="Id">主键。</param>
 /// <param name="OccurredAt">发生时间。</param>
 /// <param name="TraceId">trace-id。</param>

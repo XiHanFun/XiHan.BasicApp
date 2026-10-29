@@ -8,14 +8,20 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 按月分表的审计日志基类：租户库实体，只追加。平台一侧的日志（平台主体、匿名调用、找不到租户的登录）租户列记 <c>platform</c>。
-/// 分表字段 <see cref="OccurredAt"/> 是 UTC 的 <see cref="DateTime"/>（ADR-0023：SqlSugar 按它推表名，写入后不改）；链路追踪按这里的公共列聚合。
+/// 按月分表的审计日志基类。
 /// </summary>
+/// <remarks>
+/// 租户库实体，只追加。平台一侧的日志（平台主体、匿名调用、找不到租户的登录）租户列记 <c>platform</c>。
+/// 分表字段 <see cref="OccurredAt"/> 是 UTC 的 <see cref="DateTime"/>（ADR-0023：SqlSugar 按它推表名，写入后不改）；链路追踪按这里的公共列聚合。
+/// </remarks>
 public abstract class AuditLogRecord : TenantScopedRecord
 {
     /// <summary>
-    /// 发生时间（UTC）；分表字段。
+    /// 发生时间（UTC）。
     /// </summary>
+    /// <remarks>
+    /// 分表字段。
+    /// </remarks>
     [SplitField]
     public DateTime OccurredAt { get; set; }
 

@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 数据变更日志查询：关键字匹配实体类型、表名与主键值；另有筛选 <c>kind</c>（eq / in）、<c>entityType</c>（eq / contains）、<c>tableName</c>、<c>entityId</c>、<c>operationId</c>；
-/// 另有排序 <c>entityType</c>、<c>kind</c>。列表项不含前后值，详情才有。
+/// 数据变更日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配实体类型、表名与主键值；另有筛选 <c>kind</c>（eq / in）、<c>entityType</c>（eq / contains）、<c>tableName</c>、<c>entityId</c>、<c>operationId</c>；
+/// 另有排序 <c>entityType</c>、<c>kind</c>。列表项不含前后值，详情才有。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class DiffLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysDiffLog, DiffLogResponse, DiffLogDetailResponse>(unitOfWork)
 {

@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 权限变更日志查询：关键字匹配角色名、目标用户、套餐编码与权限码；另有筛选 <c>changeType</c>（eq / in）、<c>roleId</c>、<c>targetUserId</c>、<c>targetUserName</c>（eq / contains）、
-/// <c>editionId</c>、<c>targetTenantId</c>、<c>permissionCodes</c>（contains）；另有排序 <c>changeType</c>、<c>roleName</c>。
+/// 权限变更日志查询。
 /// </summary>
+/// <remarks>
+/// 关键字匹配角色名、目标用户、套餐编码与权限码；另有筛选 <c>changeType</c>（eq / in）、<c>roleId</c>、<c>targetUserId</c>、<c>targetUserName</c>（eq / contains）、
+/// <c>editionId</c>、<c>targetTenantId</c>、<c>permissionCodes</c>（contains）；另有排序 <c>changeType</c>、<c>roleName</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class PermissionChangeLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysPermissionChangeLog, PermissionChangeLogResponse, PermissionChangeLogResponse>(unitOfWork)
 {

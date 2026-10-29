@@ -12,10 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Domain.Services;
 
 /// <summary>
-/// 分表日志的写入器（单例）：登记只是进有界队列，不阻塞调用、不加入调用的事务，满了丢弃并计数；后台循环攒够一批或到刷写间隔就落库。
+/// 分表日志的写入器（单例）。
+/// </summary>
+/// <remarks>
+/// 登记只是进有界队列，不阻塞调用、不加入调用的事务，满了丢弃并计数；后台循环攒够一批或到刷写间隔就落库。
 /// 落库按「日志类型 × 租户」分组，每组在自己的作用域与带该租户的工作单元里经仓储批量写入（框架按 <c>[SplitTable]</c> 落到各月的表）；一组失败只记日志、丢弃该组并计数，不重试。
 /// 与框架 <c>Auditing.Database</c> 对操作审计的做法一致（ADR-0028）：审计存储不可用时丢日志而不是拒服务，丢了多少可观测。
-/// </summary>
+/// </remarks>
 public sealed partial class AuditLogWriter : IDisposable
 {
     /// <summary>
@@ -29,13 +32,19 @@ public sealed partial class AuditLogWriter : IDisposable
     private readonly ILogger _logger;
 
     /// <summary>
-    /// 等待落库的日志；Wait 模式下 TryWrite 不阻塞、满了返回 false，丢弃才能被计数。
+    /// 等待落库的日志。
     /// </summary>
+    /// <remarks>
+    /// Wait 模式下 TryWrite 不阻塞、满了返回 false，丢弃才能被计数。
+    /// </remarks>
     private readonly Channel<AuditLogRecord> _queue;
 
     /// <summary>
-    /// 批满信号：攒够一批时唤醒后台循环，不等刷写间隔；容量 1，重复信号丢弃。
+    /// 批满信号。
     /// </summary>
+    /// <remarks>
+    /// 攒够一批时唤醒后台循环，不等刷写间隔；容量 1，重复信号丢弃。
+    /// </remarks>
     private readonly Channel<bool> _wake = Channel.CreateBounded<bool>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropWrite, SingleReader = true });
 
     /// <summary>
@@ -77,8 +86,10 @@ public sealed partial class AuditLogWriter : IDisposable
     public long PersistedCount => Interlocked.Read(ref _persisted);
 
     /// <summary>
-    /// 登记一条日志；<c>Id</c> 与 <c>TenantId</c> 由调用方填好（平台一侧是 <c>platform</c>）。队列满了或已停止返回 <see langword="false"/>。
+    /// 登记一条日志。
     /// </summary>
+    /// <param name="record">要登记的日志；<c>Id</c> 与 <c>TenantId</c> 由调用方填好（平台一侧是 <c>platform</c>）。</param>
+    /// <returns>队列满了或已停止返回 <see langword="false"/>。</returns>
     public bool Enqueue(AuditLogRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
@@ -104,8 +115,12 @@ public sealed partial class AuditLogWriter : IDisposable
     }
 
     /// <summary>
-    /// 后台刷写循环：有日志就等到攒够一批或到刷写间隔，再整批落库；<paramref name="stopping"/> 取消即退出（剩余的由 <see cref="FlushAsync"/> 收尾）。
+    /// 后台刷写循环。
     /// </summary>
+    /// <remarks>
+    /// 有日志就等到攒够一批或到刷写间隔，再整批落库。
+    /// </remarks>
+    /// <param name="stopping">取消即退出（剩余的由 <see cref="FlushAsync"/> 收尾）。</param>
     public async Task RunAsync(CancellationToken stopping)
     {
         try
@@ -132,13 +147,19 @@ public sealed partial class AuditLogWriter : IDisposable
     }
 
     /// <summary>
-    /// 停止接收；之后到达的日志按丢弃计数。
+    /// 停止接收日志。
     /// </summary>
+    /// <remarks>
+    /// 之后到达的日志按丢弃计数。
+    /// </remarks>
     public void Complete() => _queue.Writer.TryComplete();
 
     /// <summary>
-    /// 立即把队列里现有的日志全部落库并等待完成；与后台循环互斥。
+    /// 立即把队列里现有的日志全部落库并等待完成。
     /// </summary>
+    /// <remarks>
+    /// 与后台循环互斥。
+    /// </remarks>
     public async Task FlushAsync(CancellationToken cancellationToken)
     {
         await _flushing.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -170,8 +191,11 @@ public sealed partial class AuditLogWriter : IDisposable
     public void Dispose() => _flushing.Dispose();
 
     /// <summary>
-    /// 按类型与租户分组落库；落库不受调用方取消影响（日志已出队，取消即丢失）。
+    /// 按类型与租户分组落库。
     /// </summary>
+    /// <remarks>
+    /// 落库不受调用方取消影响（日志已出队，取消即丢失）。
+    /// </remarks>
     private async Task WriteAsync(IReadOnlyList<AuditLogRecord> batch)
     {
         foreach (var group in batch.GroupBy(static r => (Type: r.GetType(), r.TenantId)))
@@ -199,8 +223,11 @@ public sealed partial class AuditLogWriter : IDisposable
     }
 
     /// <summary>
-    /// 条件命中按 4.x 的合并键（来源、策略、动作、时机、是否拦截、地址、方法、路径、用户、UTC 分钟）在同一批里合并计数，保留每组第一条的时间与链路。
+    /// 在同一批里合并条件命中的计数。
     /// </summary>
+    /// <remarks>
+    /// 合并键同 4.x（来源、策略、动作、时机、是否拦截、地址、方法、路径、用户、UTC 分钟），保留每组第一条的时间与链路。
+    /// </remarks>
     private static List<AuditLogRecord> MergeHits(IEnumerable<AuditLogRecord> records)
     {
         var merged = new List<AuditLogRecord>();

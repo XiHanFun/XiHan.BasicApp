@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段的 <c>-</c> 换成 <c>_</c>）。
+/// 审计包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段的 <c>-</c> 换成 <c>_</c>）。
+/// </remarks>
 public static class AuditingMessages
 {
     /// <summary>
@@ -146,8 +149,11 @@ public static class AuditingMessages
     public const string MyActivityDescription = "my_activity.summary.description";
 
     /// <summary>
-    /// 时区不是认得的 IANA 名称；参数 <c>timeZone</c>。
+    /// 时区不是认得的 IANA 名称。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>timeZone</c>。
+    /// </remarks>
     public const string TimeZoneInvalid = "auditing.time_zone.invalid";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AuditingMessages)));

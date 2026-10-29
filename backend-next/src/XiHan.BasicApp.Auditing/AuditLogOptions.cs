@@ -8,8 +8,11 @@ using XiHan.Framework.Scheduling.Abstractions.Schedules;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计日志的选项，配置节 <c>BasicApp:Auditing</c>。与框架的 <c>XiHan:Auditing</c>（操作审计中间件）分开：这里管的是 BasicApp 自己的分表日志。
+/// 审计日志的选项，配置节 <c>BasicApp:Auditing</c>。
 /// </summary>
+/// <remarks>
+/// 与框架的 <c>XiHan:Auditing</c>（操作审计中间件）分开：这里管的是 BasicApp 自己的分表日志。
+/// </remarks>
 public sealed record AuditLogOptions
 {
     /// <summary>
@@ -18,13 +21,19 @@ public sealed record AuditLogOptions
     public const string ConfigurationSection = "BasicApp:Auditing";
 
     /// <summary>
-    /// 保留天数参数的键（Settings 的系统参数，平台一侧）：没建这个参数即用 <see cref="DefaultRetentionDays"/>。
+    /// 保留天数参数的键（Settings 的系统参数，平台一侧）。
     /// </summary>
+    /// <remarks>
+    /// 没建这个参数即用 <see cref="DefaultRetentionDays"/>。
+    /// </remarks>
     public const string RetentionDaysConfigKey = "auditing.retention-days";
 
     /// <summary>
-    /// 等待落库的日志条数上限（<c>QueueCapacity</c>，缺省 10000）：满了新到的丢弃并计数，不阻塞调用。
+    /// 等待落库的日志条数上限（<c>QueueCapacity</c>，缺省 10000）。
     /// </summary>
+    /// <remarks>
+    /// 满了新到的丢弃并计数，不阻塞调用。
+    /// </remarks>
     public int QueueCapacity { get; init; } = 10_000;
 
     /// <summary>
@@ -33,8 +42,11 @@ public sealed record AuditLogOptions
     public int BatchSize { get; init; } = 200;
 
     /// <summary>
-    /// 刷写间隔（<c>FlushIntervalSeconds</c>，缺省 1 秒）：不足一批也按此周期刷写。
+    /// 刷写间隔（<c>FlushIntervalSeconds</c>，缺省 1 秒）。
     /// </summary>
+    /// <remarks>
+    /// 不足一批也按此周期刷写。
+    /// </remarks>
     public TimeSpan FlushInterval { get; init; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
@@ -43,23 +55,33 @@ public sealed record AuditLogOptions
     public bool AccessLogEnabled { get; init; } = true;
 
     /// <summary>
-    /// 不记访问日志的操作 ID（<c>AccessLog:Exclude</c>，缺省空）；异常、登录与变更日志不受影响。
+    /// 不记访问日志的操作 ID（<c>AccessLog:Exclude</c>，缺省空）。
     /// </summary>
+    /// <remarks>
+    /// 异常、登录与变更日志不受影响。
+    /// </remarks>
     public IReadOnlySet<string> AccessLogExclusions { get; init; } = new HashSet<string>(StringComparer.Ordinal);
 
     /// <summary>
-    /// 没建保留天数参数时的保留天数（<c>DefaultRetentionDays</c>，缺省 180）。
+    /// 没建保留天数参数时的保留天数。
     /// </summary>
+    /// <remarks>
+    /// 配置项 <c>DefaultRetentionDays</c>，缺省 180。
+    /// </remarks>
     public int DefaultRetentionDays { get; init; } = 180;
 
     /// <summary>
-    /// 保留清理作业的计划（<c>RetentionCron</c> 写 cron 表达式，按 UTC；缺省每天 03:00）。
+    /// 保留清理作业的计划。
     /// </summary>
+    /// <remarks>
+    /// <c>RetentionCron</c> 写 cron 表达式，按 UTC；缺省每天 03:00。
+    /// </remarks>
     public JobSchedule RetentionSchedule { get; init; } = JobSchedule.FromCron("0 3 * * *");
 
     /// <summary>
-    /// 从配置读取；不合法的值是装配错误，直接抛出。
+    /// 从配置读取选项。
     /// </summary>
+    /// <exception cref="ArgumentException">不合法的值是装配错误，直接抛出。</exception>
     public static AuditLogOptions FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

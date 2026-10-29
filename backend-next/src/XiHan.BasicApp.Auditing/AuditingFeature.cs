@@ -25,10 +25,13 @@ using FrameworkAuditing = XiHan.Framework.Auditing.Abstractions.AuditingCapabili
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计能力包（Tier 2）：七类按月分表的日志（访问、异常、登录、数据变更、权限变更、条件命中、开放接口）与操作日志的查询面，按链路聚合，保留清理作业。
+/// 审计能力包（Tier 2）。
+/// </summary>
+/// <remarks>
+/// 七类按月分表的日志（访问、异常、登录、数据变更、权限变更、条件命中、开放接口）与操作日志的查询面，按链路聚合，保留清理作业。
 /// 操作审计由框架 <c>Auditing.Database</c> 落库（ADR-0028），本包的 Observe 阶段中间件排在框架审计中间件里面：按权限的审计标记声明动作、补充细节，并写访问与异常日志、
 /// 取走 Tier 1 各包在调用里登记的登录与权限变更日志。分表日志经有界队列后台批量落库，启动时开刷写循环，停止时把队列刷完。
-/// </summary>
+/// </remarks>
 public sealed class AuditingFeature : IHostedFeature, IDisposable
 {
     private AuditLogWriter? _writer;

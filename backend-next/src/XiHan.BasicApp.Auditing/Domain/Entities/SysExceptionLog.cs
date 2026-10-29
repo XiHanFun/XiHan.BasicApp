@@ -8,15 +8,21 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 异常日志：调用期间抛出的未处理异常（内核把它转成 <c>KERNEL_UNEXPECTED</c> 结果之前），由 Observe 阶段的中间件写入；作业等非操作调用同样记录。
+/// 异常日志：调用期间抛出的未处理异常。
 /// </summary>
+/// <remarks>
+/// 在内核把它转成 <c>KERNEL_UNEXPECTED</c> 结果之前，由 Observe 阶段的中间件写入；作业等非操作调用同样记录。
+/// </remarks>
 [SugarTable("sys_exception_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysExceptionLog : AuditLogRecord
 {
     /// <summary>
-    /// 操作 ID；不是操作调用（作业、消息派发）为 <see langword="null"/>。
+    /// 操作 ID。
     /// </summary>
+    /// <remarks>
+    /// 不是操作调用（作业、消息派发）为 <see langword="null"/>。
+    /// </remarks>
     [StringLength(128)]
     public string? OperationId { get; set; }
 

@@ -14,9 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 链路聚合：按维度在当前一侧的七张分表日志里各取至多「每类上限 + 1」条（多取一条判断截断），再取操作日志——维度是 trace-id 或用户时直接按列查，
-/// 其余维度（登录名、会话、客户端地址）操作日志没有对应的列，就按其他日志里出现过的 trace-id 去取。合并后按发生时间正序。
+/// 链路聚合查询。
 /// </summary>
+/// <remarks>
+/// 按维度在当前一侧的七张分表日志里各取至多「每类上限 + 1」条（多取一条判断截断），再取操作日志——维度是 trace-id 或用户时直接按列查，
+/// 其余维度（登录名、会话、客户端地址）操作日志没有对应的列，就按其他日志里出现过的 trace-id 去取。合并后按发生时间正序。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="operations">操作日志查询。</param>
 public sealed class TraceQueries(SqlSugarUnitOfWork unitOfWork, OperationLogQueries operations)

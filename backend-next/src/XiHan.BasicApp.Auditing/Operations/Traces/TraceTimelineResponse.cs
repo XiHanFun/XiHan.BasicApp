@@ -20,8 +20,11 @@ public sealed record TraceTimelineResponse(IReadOnlyList<TraceTimelineItem> Item
 public sealed record TraceTypeCount(TraceLogType LogType, int Count);
 
 /// <summary>
-/// 时间线上的一条：各类日志投影到同一组字段，详情按 <see cref="LogType"/> 与 <see cref="Id"/> 去对应的 <c>get</c> 操作取。
+/// 时间线上的一条。
 /// </summary>
+/// <remarks>
+/// 各类日志投影到同一组字段，详情按 <see cref="LogType"/> 与 <see cref="Id"/> 去对应的 <c>get</c> 操作取。
+/// </remarks>
 /// <param name="LogType">日志类型。</param>
 /// <param name="Id">日志主键。</param>
 /// <param name="OccurredAt">发生时间。</param>

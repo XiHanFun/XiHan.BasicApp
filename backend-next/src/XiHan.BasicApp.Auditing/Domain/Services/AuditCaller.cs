@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Domain.Services;
 
 /// <summary>
-/// 调用方：日志归属的一侧（当前租户，没有即平台）与认证后的主体（用户、登录名、会话取访问令牌的声明）。
+/// 调用方：日志归属的一侧与认证后的主体。
 /// </summary>
+/// <remarks>
+/// 日志归属的一侧是当前租户，没有即平台；主体的用户、登录名、会话取访问令牌的声明。
+/// </remarks>
 /// <param name="TenantId">日志归属的租户；平台一侧为 <see cref="TenantIds.Platform"/>。</param>
 /// <param name="UserId">用户。</param>
 /// <param name="UserName">登录名。</param>
