@@ -64,6 +64,23 @@ public sealed class TelegramTests : IDisposable
 
     private static List<string?> Texts(IEnumerable<JsonObject> calls) => calls.Where(static c => c.ContainsKey("text")).Select(static c => c["text"]?.GetValue<string>()).ToList();
 
+    // 长轮询在后台线程里记调用：读的时候与记录同一把锁
+    private bool Polled()
+    {
+        lock (_api.Calls)
+        {
+            return _api.Calls.Any(static c => c.Method == "getUpdates" && c.Payload["allowed_updates"] is JsonArray);
+        }
+    }
+
+    private bool SentTo(long chatId)
+    {
+        lock (_api.Calls)
+        {
+            return _api.Calls.Any(c => c.Method == "sendMessage" && c.Payload["chat_id"]!.GetValue<long>() == chatId);
+        }
+    }
+
     [Fact]
     public async Task Bots_AnswerThroughTheWebhook_WithFourXGuardsAndRouting()
     {
@@ -198,13 +215,14 @@ public sealed class TelegramTests : IDisposable
         _api.Enqueue(JsonNode.Parse(Message(21, 4004, 4004, "/start"))!.AsObject());
         Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":true}""" }, platform)).Status);
         Assert.True(await manager.RefreshAsync(CancellationToken.None));
-        for (var attempt = 0; attempt < 100 && !_api.Calls.Any(static c => c.Method == "sendMessage" && c.Payload["chat_id"]!.GetValue<long>() == 4004); attempt++)
+        // 假的 Bot API 在一次空轮询之后才记下 getUpdates：两样都等到再判（Release 下回复比第二次轮询快）
+        for (var attempt = 0; attempt < 100 && !(Polled() && SentTo(4004)); attempt++)
         {
             await Task.Delay(100);
         }
 
-        Assert.Contains(_api.Calls, static c => c.Method == "sendMessage" && c.Payload["chat_id"]!.GetValue<long>() == 4004);
-        Assert.Contains(_api.Calls, static c => c.Method == "getUpdates" && c.Payload["allowed_updates"] is JsonArray);
+        Assert.True(SentTo(4004));
+        Assert.True(Polled());
     }
 
     /// <summary>
