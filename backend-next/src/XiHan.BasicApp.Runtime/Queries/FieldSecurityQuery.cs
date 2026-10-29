@@ -8,13 +8,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Queries;
 
 /// <summary>
-/// 字段安全（方案 5.9）：取当前主体在一个实体上的字段规则。没有装 Access 的宿主一律没有规则。
+/// 字段安全：取当前主体在一个实体上的字段规则。
 /// </summary>
+/// <remarks>
+/// 方案 5.9。没有装 Access 的宿主一律没有规则。
+/// </remarks>
 public static class FieldSecurityQuery
 {
     /// <summary>
-    /// 当前主体在实体上的有效规则：有 <see cref="IFieldSecurity"/> 就问它，没有即 <see cref="FieldRules.None"/>。
+    /// 取当前主体在实体上的有效字段规则。
     /// </summary>
+    /// <remarks>
+    /// 有 <see cref="IFieldSecurity"/> 就问它，没有即 <see cref="FieldRules.None"/>。
+    /// </remarks>
     public static ValueTask<FieldRules> ResolveAsync(InvocationContext context, string entity)
     {
         ArgumentNullException.ThrowIfNull(context);

@@ -9,8 +9,11 @@ using XiHan.BasicApp.Contracts.Seeding;
 namespace XiHan.BasicApp.Runtime.Seeding;
 
 /// <summary>
-/// 种子登记：各包在 <c>Configure</c> 里 <c>AddSeeder&lt;T&gt;()</c>，宿主的 <c>seed</c> 命令经 <see cref="SeedRunner"/> 执行。
+/// 种子登记。
 /// </summary>
+/// <remarks>
+/// 各包在 <c>Configure</c> 里 <c>AddSeeder&lt;T&gt;()</c>，宿主的 <c>seed</c> 命令经 <see cref="SeedRunner"/> 执行。
+/// </remarks>
 public static class SeedingServiceCollectionExtensions
 {
     /// <summary>

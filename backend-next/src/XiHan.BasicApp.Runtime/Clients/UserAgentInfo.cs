@@ -4,16 +4,23 @@
 namespace XiHan.BasicApp.Runtime.Clients;
 
 /// <summary>
-/// 从 User-Agent 粗分出的浏览器、操作系统与设备类型（日志与在线会话的展示列，不做精确识别；认不出即为 <see langword="null"/>）。
+/// 从 User-Agent 粗分出的浏览器、操作系统与设备类型。
 /// </summary>
+/// <remarks>
+/// 用作日志与在线会话的展示列，不做精确识别；认不出即为 <see langword="null"/>。
+/// </remarks>
 /// <param name="Browser">浏览器。</param>
 /// <param name="Os">操作系统。</param>
 /// <param name="Device">设备类型：Desktop、Mobile、Tablet、Bot。</param>
 public readonly record struct UserAgentInfo(string? Browser, string? Os, string? Device)
 {
     /// <summary>
-    /// 解析；没有 User-Agent 返回全空。次序有讲究：Edge / Opera 的串里也带 Chrome，Chrome 的串里也带 Safari，所以先认特征更具体的。
+    /// 解析 User-Agent。
     /// </summary>
+    /// <remarks>
+    /// 次序有讲究：Edge / Opera 的串里也带 Chrome，Chrome 的串里也带 Safari，所以先认特征更具体的。
+    /// </remarks>
+    /// <returns>解析结果；没有 User-Agent 返回全空。</returns>
     public static UserAgentInfo Parse(string? userAgent)
     {
         if (string.IsNullOrWhiteSpace(userAgent))

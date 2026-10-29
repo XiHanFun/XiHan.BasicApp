@@ -16,13 +16,19 @@ public sealed record SeedOptions
     public const string ConfigurationSection = "BasicApp:Seed";
 
     /// <summary>
-    /// 初始超级管理员的登录名（沿用 4.x）。
+    /// 初始超级管理员的登录名。
     /// </summary>
+    /// <remarks>
+    /// 沿用 4.x。
+    /// </remarks>
     public const string SuperAdminUserName = "superadmin";
 
     /// <summary>
-    /// 缺省初始密码（沿用 4.x）；部署时用配置覆盖并在首次登录后修改。
+    /// 超级管理员的缺省初始密码。
     /// </summary>
+    /// <remarks>
+    /// 沿用 4.x；部署时用配置覆盖并在首次登录后修改。
+    /// </remarks>
     public const string DefaultSuperAdminPassword = "SuperAdmin@123";
 
     /// <summary>
@@ -31,8 +37,11 @@ public sealed record SeedOptions
     public bool EnableDemoData { get; init; }
 
     /// <summary>
-    /// 超级管理员的初始密码；只在账号不存在、首次写入时使用。
+    /// 超级管理员的初始密码。
     /// </summary>
+    /// <remarks>
+    /// 只在账号不存在、首次写入时使用。
+    /// </remarks>
     public string SuperAdminPassword { get; init; } = DefaultSuperAdminPassword;
 
     /// <summary>

@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Queries;
 
 /// <summary>
-/// 数据范围（方案 5.6）：取当前主体的判定，并按「归属人列」或「部门列」套到 SqlSugar 查询上。
-/// 平台侧与没有装 Access 的宿主一律不受限；受限时生成 <c>owner IN (...) [OR department IN (...)]</c>。
+/// 数据范围：取当前主体的判定并套到 SqlSugar 查询上。
 /// </summary>
+/// <remarks>
+/// 方案 5.6：判定按「归属人列」或「部门列」套到查询上。
+/// 平台侧与没有装 Access 的宿主一律不受限；受限时生成 <c>owner IN (...) [OR department IN (...)]</c>。
+/// </remarks>
 public static class DataScopeQuery
 {
     /// <summary>
@@ -26,8 +29,12 @@ public static class DataScopeQuery
     }
 
     /// <summary>
-    /// 套用判定：<paramref name="owner"/> 是行的归属人列；<paramref name="department"/>（可选）是行的部门列，命中可见部门的行也放行。
+    /// 把数据范围判定套到查询上。
     /// </summary>
+    /// <param name="query">查询。</param>
+    /// <param name="decision">数据范围判定。</param>
+    /// <param name="owner">行的归属人列。</param>
+    /// <param name="department">行的部门列（可选），命中可见部门的行也放行。</param>
     public static ISugarQueryable<TEntity> ApplyDataScope<TEntity>(this ISugarQueryable<TEntity> query, DataScopeDecision decision, Expression<Func<TEntity, Guid>> owner, Expression<Func<TEntity, Guid>>? department = null)
     {
         ArgumentNullException.ThrowIfNull(query);

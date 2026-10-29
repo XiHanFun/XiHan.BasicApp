@@ -11,9 +11,12 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Runtime.Security;
 
 /// <summary>
-/// 数据保护的装配与约定：底层是 ASP.NET Core Data Protection，应用名固定为 <see cref="AppInfo.Name"/>（同一套密钥环的实例之间才能互解）。
-/// 多实例部署要共享密钥环：配置 <see cref="KeysDirectoryKey"/> 指向各实例都能读写的目录；不配即 ASP.NET Core 的缺省位置（单机开发够用）。
+/// 数据保护的装配与约定。
 /// </summary>
+/// <remarks>
+/// 底层是 ASP.NET Core Data Protection，应用名固定为 <see cref="AppInfo.Name"/>（同一套密钥环的实例之间才能互解）。
+/// 多实例部署要共享密钥环：配置 <see cref="KeysDirectoryKey"/> 指向各实例都能读写的目录；不配即 ASP.NET Core 的缺省位置（单机开发够用）。
+/// </remarks>
 public static class SecretProtection
 {
     /// <summary>
@@ -45,8 +48,11 @@ public static class SecretProtection
     }
 
     /// <summary>
-    /// 基于 <see cref="IDataProtectionProvider"/> 的实现：每个用途一个保护器。
+    /// 基于 <see cref="IDataProtectionProvider"/> 的实现。
     /// </summary>
+    /// <remarks>
+    /// 每个用途一个保护器。
+    /// </remarks>
     /// <param name="provider">数据保护提供器。</param>
     private sealed class DataProtectionSecretProtector(IDataProtectionProvider provider) : ISecretProtector
     {

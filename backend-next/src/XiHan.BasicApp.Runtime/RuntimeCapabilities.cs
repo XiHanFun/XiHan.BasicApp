@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Runtime;
 
 /// <summary>
-/// 运行时基座提供的包间能力 ID；各能力包在清单里以 <c>basicapp.runtime@1</c> 声明依赖。
+/// 运行时基座提供的包间能力 ID。
 /// </summary>
+/// <remarks>
+/// 各能力包在清单里以 <c>basicapp.runtime@1</c> 声明依赖。
+/// </remarks>
 public static class RuntimeCapabilities
 {
     /// <summary>

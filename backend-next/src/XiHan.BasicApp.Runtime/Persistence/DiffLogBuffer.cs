@@ -9,10 +9,13 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 一次调用里仓储写入产生的差异日志（作用域服务）：SqlSugar 在写入执行后、提交之前同步回调（ADR-0044），这里只收集；
+/// 一次调用里仓储写入产生的差异日志（作用域服务）。
+/// </summary>
+/// <remarks>
+/// SqlSugar 在写入执行后、提交之前同步回调（ADR-0044），这里只收集；
 /// 调用以成功结束时由 Auditing 取走落库，失败的调用已回滚，取走后丢弃。
 /// 收集时复制一份：SqlSugar 在分表插入的各组之间复用同一个 <see cref="DiffLogModel"/>，留下引用会被后一组改掉。
-/// </summary>
+/// </remarks>
 public sealed class DiffLogBuffer
 {
     private readonly List<DiffLogModel> _changes = [];
@@ -28,8 +31,11 @@ public sealed class DiffLogBuffer
     }
 
     /// <summary>
-    /// 仓储对哪些实体开差异日志：全审计实体（有修改与删除的业务数据），标了 <see cref="DiffLogIgnoredAttribute"/> 的除外。
+    /// 判断仓储是否对该实体开差异日志。
     /// </summary>
+    /// <remarks>
+    /// 开的是全审计实体（有修改与删除的业务数据），标了 <see cref="DiffLogIgnoredAttribute"/> 的除外。
+    /// </remarks>
     public static bool IsLogged(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
@@ -37,8 +43,11 @@ public sealed class DiffLogBuffer
     }
 
     /// <summary>
-    /// <c>AopEvents.OnDiffLogEvent</c> 的回调：业务数据带着仓储所在的作用域，差异交给那个作用域的缓冲。
+    /// <c>AopEvents.OnDiffLogEvent</c> 的回调。
     /// </summary>
+    /// <remarks>
+    /// 业务数据带着仓储所在的作用域，差异交给那个作用域的缓冲。
+    /// </remarks>
     public static void OnDiffLog(DiffLogModel model)
     {
         ArgumentNullException.ThrowIfNull(model);

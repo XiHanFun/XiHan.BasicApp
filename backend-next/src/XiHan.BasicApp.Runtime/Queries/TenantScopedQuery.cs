@@ -14,13 +14,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Queries;
 
 /// <summary>
-/// 包内 <c>Queries/</c> 直接用 <c>ISqlSugarClient</c> 的分页、投影、联表必须以此起手：按实体落点取连接，补软删除与租户条件（框架没有全局过滤器）。
+/// 包内直接查库的起手：按实体落点取连接并补条件。
 /// </summary>
+/// <remarks>
+/// 包内 <c>Queries/</c> 直接用 <c>ISqlSugarClient</c> 的分页、投影、联表必须以此起手：按实体落点取连接，补软删除与租户条件（框架没有全局过滤器）。
+/// </remarks>
 public static class TenantScopedQuery
 {
     /// <summary>
-    /// 按实体落点（默认连接或 <c>shard</c>）取连接并补条件：实现 <c>ISoftDeletable</c> 的只看未删除行；实现 <c>IMultiTenant</c> 的只看当前租户的行，无租户的调用看不到任何行。
+    /// 按实体落点（默认连接或 <c>shard</c>）取连接并补条件。
     /// </summary>
+    /// <remarks>
+    /// 实现 <c>ISoftDeletable</c> 的只看未删除行；实现 <c>IMultiTenant</c> 的只看当前租户的行，无租户的调用看不到任何行。
+    /// </remarks>
     public static ISugarQueryable<TEntity> For<TEntity>(InvocationContext context)
         where TEntity : class, new()
     {
@@ -55,8 +61,11 @@ public static class TenantScopedQuery
     }
 
     /// <summary>
-    /// 读共享：平台的记录加当前租户的记录；没有当前租户时只有平台的。
+    /// 读共享：平台的记录加当前租户的记录。
     /// </summary>
+    /// <remarks>
+    /// 没有当前租户时只有平台的。
+    /// </remarks>
     public static ISugarQueryable<TEntity> OwnedByCurrentTenantOrPlatform<TEntity>(this ISugarQueryable<TEntity> query, InvocationContext context)
         where TEntity : class, IOwnedByTenant, new()
     {
@@ -69,8 +78,11 @@ public static class TenantScopedQuery
     }
 
     /// <summary>
-    /// 写不共享：只有当前租户自己的记录；没有当前租户时只有平台的。
+    /// 写不共享：只有当前租户自己的记录。
     /// </summary>
+    /// <remarks>
+    /// 没有当前租户时只有平台的。
+    /// </remarks>
     public static ISugarQueryable<TEntity> OwnedByCurrentTenant<TEntity>(this ISugarQueryable<TEntity> query, InvocationContext context)
         where TEntity : class, IOwnedByTenant, new()
     {

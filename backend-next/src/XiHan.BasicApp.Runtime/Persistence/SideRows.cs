@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 按侧读写租户库实体（文件、导出任务、通知与收件箱）：平台一侧的行以 <c>platform</c> 为租户落在同一张表里（与日志同一做法），框架仓储要求调用带租户，
-/// 所以这里直接用工作单元的连接、显式按侧过滤；写之前先开事务，跟操作的其余写入一起提交或回滚。时间与并发戳由这里填（操作人由 AOP 填）。
+/// 按侧读写租户库实体（文件、导出任务、通知与收件箱）。
 /// </summary>
+/// <remarks>
+/// 平台一侧的行以 <c>platform</c> 为租户落在同一张表里（与日志同一做法），框架仓储要求调用带租户，
+/// 所以这里直接用工作单元的连接、显式按侧过滤；写之前先开事务，跟操作的其余写入一起提交或回滚。时间与并发戳由这里填（操作人由 AOP 填）。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 /// <param name="clock">时钟。</param>
 public sealed class SideRows(SqlSugarUnitOfWork unitOfWork, TimeProvider clock)

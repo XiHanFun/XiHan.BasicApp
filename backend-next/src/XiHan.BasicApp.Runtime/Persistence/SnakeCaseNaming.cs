@@ -6,9 +6,12 @@ using System.Text;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 表名与列名的 snake_case 约定：<c>SysUser</c> → <c>sys_user</c>、<c>HomeTenantId</c> → <c>home_tenant_id</c>、<c>IPAddress</c> → <c>ip_address</c>。
-/// 实体或属性显式标了 SqlSugar 名字特性时不改写。
+/// 表名与列名的 snake_case 约定。
 /// </summary>
+/// <remarks>
+/// 例如 <c>SysUser</c> → <c>sys_user</c>、<c>HomeTenantId</c> → <c>home_tenant_id</c>、<c>IPAddress</c> → <c>ip_address</c>。
+/// 实体或属性显式标了 SqlSugar 名字特性时不改写。
+/// </remarks>
 public static class SnakeCaseNaming
 {
     /// <summary>
