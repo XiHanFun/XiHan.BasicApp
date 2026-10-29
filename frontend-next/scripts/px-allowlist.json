@@ -45,6 +45,7 @@
   "packages/views/_core/authentication/login.vue": 4,
   "packages/views/_core/control-center/index.vue": 60,
   "packages/views/_core/profile/ProfileTabDeveloper.vue": 11,
+  "packages/views/_core/profile/ProfileTabOAuth.vue": 11,
   "packages/views/_core/profile/ProfileTabSecurity.vue": 22,
   "packages/views/_core/profile/index.vue": 34,
   "packages/views/_core/profile/profile-shared.css": 85,

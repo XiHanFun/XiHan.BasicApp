@@ -1918,6 +1918,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/my-oauth-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your own OAuth apps. Requires sign-in only. */
+        get: operations["my-oauth-apps.list"];
+        put?: never;
+        /** Create one of your OAuth apps (authorization code and refresh token, scopes openid profile email, consent required); a confidential client’s secret is returned this once only. Not available in impersonation sessions. */
+        post: operations["my-oauth-apps.create"];
+        /** Delete your OAuth apps. Not available in impersonation sessions. */
+        delete: operations["my-oauth-apps.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-oauth-apps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of your OAuth apps. Requires sign-in only. */
+        get: operations["my-oauth-apps.get"];
+        /** Update one of your OAuth apps: name, homepage, description, redirect URIs, logo and enabled. Not available in impersonation sessions. */
+        put: operations["my-oauth-apps.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-oauth-apps/{id}:reset-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset the secret of one of your OAuth apps (public clients have none). Not available in impersonation sessions. */
+        post: operations["my-oauth-apps.reset-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications": {
         parameters: {
             query?: never;
@@ -2154,6 +2208,76 @@ export interface paths {
         get: operations["numbering-rules.preview"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an OAuth app: the ClientId is generated when omitted and is globally unique; a confidential client’s secret is returned this once only, a public client has none (its authorization codes need PKCE). Requires openplatform.oauth-apps.create. */
+        post: operations["oauth-apps.create"];
+        /** Delete OAuth apps in bulk (soft delete; tokens issued to them stop working with them). Requires openplatform.oauth-apps.delete. */
+        delete: operations["oauth-apps.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-apps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one OAuth app (the secret is never shown). Requires openplatform.oauth-apps.read. */
+        get: operations["oauth-apps.get"];
+        /** Update an OAuth app (replaced as a whole, including enabled; the ClientId, client type and secret stay). Requires openplatform.oauth-apps.update. */
+        put: operations["oauth-apps.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-apps/{id}:reset-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset an OAuth app’s secret: the old secret stops working at once and the new one is returned this once only; public clients have no secret. Requires openplatform.oauth-apps.update. */
+        post: operations["oauth-apps.reset-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-apps:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List OAuth apps (created by the platform or by users under My apps) page by page; the keyword matches name, description, ClientId, homepage and remark, with filters for app type, client type, enabled, skip consent and personal apps. Requires openplatform.oauth-apps.read. */
+        post: operations["oauth-apps.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4770,6 +4894,40 @@ export interface components {
         };
         /** @enum {string} */
         NumberingScope: "Auto" | "Tenant" | "Platform";
+        OAuthAppResponse: {
+            /** Format: uuid */
+            id: string;
+            appName: string;
+            appDescription?: string | null;
+            clientId: string;
+            clientType: components["schemas"]["OAuthClientType"];
+            appType: components["schemas"]["OAuthAppType"];
+            grantTypes: string[];
+            redirectUris: string[];
+            scopes: string[];
+            /** Format: int32 */
+            accessTokenLifetime: number;
+            /** Format: int32 */
+            refreshTokenLifetime: number;
+            /** Format: int32 */
+            authorizationCodeLifetime: number;
+            logo?: string | null;
+            homepage?: string | null;
+            skipConsent: boolean;
+            isEnabled: boolean;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            ownerUserName?: string | null;
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        OAuthAppType: "Web" | "Mobile" | "Desktop" | "Service";
+        /** @enum {string} */
+        OAuthClientType: "Confidential" | "Public";
         OnlineSessionResponse: {
             /** Format: uuid */
             id: string;
@@ -11927,6 +12085,294 @@ export interface operations {
             };
         };
     };
+    "my-oauth-apps.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OAuthAppResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-oauth-apps.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    appName: string;
+                    clientType: components["schemas"]["OAuthClientType"];
+                    homepage?: string | null;
+                    appDescription?: string | null;
+                    redirectUris: string[];
+                    logo?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        clientSecret?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-oauth-apps.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-oauth-apps.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appName: string;
+                        appDescription?: string | null;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        appType: components["schemas"]["OAuthAppType"];
+                        grantTypes: string[];
+                        redirectUris: string[];
+                        scopes: string[];
+                        /** Format: int32 */
+                        accessTokenLifetime: number;
+                        /** Format: int32 */
+                        refreshTokenLifetime: number;
+                        /** Format: int32 */
+                        authorizationCodeLifetime: number;
+                        logo?: string | null;
+                        homepage?: string | null;
+                        skipConsent: boolean;
+                        isEnabled: boolean;
+                        /** Format: uuid */
+                        ownerUserId?: string | null;
+                        ownerUserName?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-oauth-apps.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    appName: string;
+                    homepage?: string | null;
+                    appDescription?: string | null;
+                    redirectUris: string[];
+                    logo?: string | null;
+                    isEnabled: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appName: string;
+                        appDescription?: string | null;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        appType: components["schemas"]["OAuthAppType"];
+                        grantTypes: string[];
+                        redirectUris: string[];
+                        scopes: string[];
+                        /** Format: int32 */
+                        accessTokenLifetime: number;
+                        /** Format: int32 */
+                        refreshTokenLifetime: number;
+                        /** Format: int32 */
+                        authorizationCodeLifetime: number;
+                        logo?: string | null;
+                        homepage?: string | null;
+                        skipConsent: boolean;
+                        isEnabled: boolean;
+                        /** Format: uuid */
+                        ownerUserId?: string | null;
+                        ownerUserName?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-oauth-apps.reset-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        clientSecret?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "notifications.create": {
         parameters: {
             query?: never;
@@ -12922,6 +13368,330 @@ export interface operations {
                         numbers: string[];
                         periodKey: string;
                         dateText?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    appName: string;
+                    appDescription?: string | null;
+                    clientId?: string | null;
+                    clientType: components["schemas"]["OAuthClientType"];
+                    appType: components["schemas"]["OAuthAppType"];
+                    grantTypes: string[];
+                    redirectUris: string[];
+                    scopes: string[];
+                    /** Format: int32 */
+                    accessTokenLifetime: number;
+                    /** Format: int32 */
+                    refreshTokenLifetime: number;
+                    /** Format: int32 */
+                    authorizationCodeLifetime: number;
+                    logo?: string | null;
+                    homepage?: string | null;
+                    skipConsent: boolean;
+                    isEnabled: boolean;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        clientSecret?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appName: string;
+                        appDescription?: string | null;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        appType: components["schemas"]["OAuthAppType"];
+                        grantTypes: string[];
+                        redirectUris: string[];
+                        scopes: string[];
+                        /** Format: int32 */
+                        accessTokenLifetime: number;
+                        /** Format: int32 */
+                        refreshTokenLifetime: number;
+                        /** Format: int32 */
+                        authorizationCodeLifetime: number;
+                        logo?: string | null;
+                        homepage?: string | null;
+                        skipConsent: boolean;
+                        isEnabled: boolean;
+                        /** Format: uuid */
+                        ownerUserId?: string | null;
+                        ownerUserName?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    appName: string;
+                    appDescription?: string | null;
+                    appType: components["schemas"]["OAuthAppType"];
+                    grantTypes: string[];
+                    redirectUris: string[];
+                    scopes: string[];
+                    /** Format: int32 */
+                    accessTokenLifetime: number;
+                    /** Format: int32 */
+                    refreshTokenLifetime: number;
+                    /** Format: int32 */
+                    authorizationCodeLifetime: number;
+                    logo?: string | null;
+                    homepage?: string | null;
+                    skipConsent: boolean;
+                    isEnabled: boolean;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appName: string;
+                        appDescription?: string | null;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        appType: components["schemas"]["OAuthAppType"];
+                        grantTypes: string[];
+                        redirectUris: string[];
+                        scopes: string[];
+                        /** Format: int32 */
+                        accessTokenLifetime: number;
+                        /** Format: int32 */
+                        refreshTokenLifetime: number;
+                        /** Format: int32 */
+                        authorizationCodeLifetime: number;
+                        logo?: string | null;
+                        homepage?: string | null;
+                        skipConsent: boolean;
+                        isEnabled: boolean;
+                        /** Format: uuid */
+                        ownerUserId?: string | null;
+                        ownerUserName?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.reset-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        clientId: string;
+                        clientType: components["schemas"]["OAuthClientType"];
+                        clientSecret?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-apps.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OAuthAppResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

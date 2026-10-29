@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MODULES = join(ROOT, 'src', 'modules')
-// 与方案 5.2 的 19 个能力包一一对应（kebab-case）
-const KNOWN = new Set(['identity', 'tenancy', 'organization', 'access', 'settings', 'notification', 'files', 'auditing', 'maintenance', 'open-platform', 'realtime', 'workbench', 'workflow', 'printing', 'codegen', 'chat', 'ai'])
+// 与方案 5.2 的 19 个能力包一一对应（kebab-case）；开放平台与后端目录名、页面路由段一致写 openplatform（后端菜单的 component 是 openplatform/<页>/index）
+const KNOWN = new Set(['identity', 'tenancy', 'organization', 'access', 'settings', 'notification', 'files', 'auditing', 'maintenance', 'openplatform', 'realtime', 'workbench', 'workflow', 'printing', 'codegen', 'chat', 'ai'])
 
 function views(dir, prefix = '', out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

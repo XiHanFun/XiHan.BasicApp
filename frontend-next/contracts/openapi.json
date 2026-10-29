@@ -15228,6 +15228,700 @@
         }
       }
     },
+    "/api/my-oauth-apps": {
+      "delete": {
+        "operationId": "my-oauth-apps.delete",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "Delete your OAuth apps. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "my-oauth-apps.list",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "List your own OAuth apps. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyOAuthAppsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthAppResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "my-oauth-apps.create",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "Create one of your OAuth apps (authorization code and refresh token, scopes openid profile email, consent required); a confidential client\u2019s secret is returned this once only. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateMyOAuthAppRequest",
+                "type": "object",
+                "properties": {
+                  "appName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "clientType": {
+                    "$ref": "#/components/schemas/OAuthClientType"
+                  },
+                  "homepage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "appDescription": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "redirectUris": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  },
+                  "logo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "appName",
+                  "clientType",
+                  "redirectUris"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "clientSecret": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-oauth-apps/{id}": {
+      "get": {
+        "operationId": "my-oauth-apps.get",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "Get one of your OAuth apps. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "appDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "appType": {
+                      "$ref": "#/components/schemas/OAuthAppType"
+                    },
+                    "grantTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "redirectUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "accessTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "refreshTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "authorizationCodeLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "logo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "homepage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "skipConsent": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "ownerUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "ownerUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appName",
+                    "clientId",
+                    "clientType",
+                    "appType",
+                    "grantTypes",
+                    "redirectUris",
+                    "scopes",
+                    "accessTokenLifetime",
+                    "refreshTokenLifetime",
+                    "authorizationCodeLifetime",
+                    "skipConsent",
+                    "isEnabled",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "my-oauth-apps.update",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "Update one of your OAuth apps: name, homepage, description, redirect URIs, logo and enabled. Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateMyOAuthAppRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "appName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "homepage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "appDescription": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "redirectUris": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  },
+                  "logo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "appName",
+                  "redirectUris",
+                  "isEnabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "appDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "appType": {
+                      "$ref": "#/components/schemas/OAuthAppType"
+                    },
+                    "grantTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "redirectUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "accessTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "refreshTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "authorizationCodeLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "logo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "homepage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "skipConsent": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "ownerUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "ownerUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appName",
+                    "clientId",
+                    "clientType",
+                    "appType",
+                    "grantTypes",
+                    "redirectUris",
+                    "scopes",
+                    "accessTokenLifetime",
+                    "refreshTokenLifetime",
+                    "authorizationCodeLifetime",
+                    "skipConsent",
+                    "isEnabled",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-oauth-apps/{id}:reset-secret": {
+      "post": {
+        "operationId": "my-oauth-apps.reset-secret",
+        "tags": [
+          "my-oauth-apps"
+        ],
+        "summary": "Reset the secret of one of your OAuth apps (public clients have none). Not available in impersonation sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OAuthAppIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "clientSecret": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications": {
       "delete": {
         "operationId": "notifications.delete",
@@ -17827,6 +18521,863 @@
                   "required": [
                     "numbers",
                     "periodKey"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-apps": {
+      "delete": {
+        "operationId": "oauth-apps.delete",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "Delete OAuth apps in bulk (soft delete; tokens issued to them stop working with them). Requires openplatform.oauth-apps.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "oauth-apps.create",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "Create an OAuth app: the ClientId is generated when omitted and is globally unique; a confidential client\u2019s secret is returned this once only, a public client has none (its authorization codes need PKCE). Requires openplatform.oauth-apps.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateOAuthAppRequest",
+                "type": "object",
+                "properties": {
+                  "appName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "appDescription": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "clientId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "clientType": {
+                    "$ref": "#/components/schemas/OAuthClientType"
+                  },
+                  "appType": {
+                    "$ref": "#/components/schemas/OAuthAppType"
+                  },
+                  "grantTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 4
+                  },
+                  "redirectUris": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 8
+                  },
+                  "accessTokenLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 60,
+                    "maximum": 86400
+                  },
+                  "refreshTokenLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 3600,
+                    "maximum": 31536000
+                  },
+                  "authorizationCodeLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 30,
+                    "maximum": 600
+                  },
+                  "logo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "homepage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "skipConsent": {
+                    "type": "boolean"
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "appName",
+                  "clientType",
+                  "appType",
+                  "grantTypes",
+                  "redirectUris",
+                  "scopes",
+                  "accessTokenLifetime",
+                  "refreshTokenLifetime",
+                  "authorizationCodeLifetime",
+                  "skipConsent",
+                  "isEnabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "clientSecret": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-apps/{id}": {
+      "get": {
+        "operationId": "oauth-apps.get",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "Get one OAuth app (the secret is never shown). Requires openplatform.oauth-apps.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "appDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "appType": {
+                      "$ref": "#/components/schemas/OAuthAppType"
+                    },
+                    "grantTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "redirectUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "accessTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "refreshTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "authorizationCodeLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "logo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "homepage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "skipConsent": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "ownerUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "ownerUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appName",
+                    "clientId",
+                    "clientType",
+                    "appType",
+                    "grantTypes",
+                    "redirectUris",
+                    "scopes",
+                    "accessTokenLifetime",
+                    "refreshTokenLifetime",
+                    "authorizationCodeLifetime",
+                    "skipConsent",
+                    "isEnabled",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "oauth-apps.update",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "Update an OAuth app (replaced as a whole, including enabled; the ClientId, client type and secret stay). Requires openplatform.oauth-apps.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateOAuthAppRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "appName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "appDescription": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "appType": {
+                    "$ref": "#/components/schemas/OAuthAppType"
+                  },
+                  "grantTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 4
+                  },
+                  "redirectUris": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 8
+                  },
+                  "accessTokenLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 60,
+                    "maximum": 86400
+                  },
+                  "refreshTokenLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 3600,
+                    "maximum": 31536000
+                  },
+                  "authorizationCodeLifetime": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 30,
+                    "maximum": 600
+                  },
+                  "logo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "homepage": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "skipConsent": {
+                    "type": "boolean"
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "appName",
+                  "appType",
+                  "grantTypes",
+                  "redirectUris",
+                  "scopes",
+                  "accessTokenLifetime",
+                  "refreshTokenLifetime",
+                  "authorizationCodeLifetime",
+                  "skipConsent",
+                  "isEnabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "appName": {
+                      "type": "string"
+                    },
+                    "appDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "appType": {
+                      "$ref": "#/components/schemas/OAuthAppType"
+                    },
+                    "grantTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "redirectUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "scopes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "accessTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "refreshTokenLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "authorizationCodeLifetime": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "logo": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "homepage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "skipConsent": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "ownerUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "ownerUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "appName",
+                    "clientId",
+                    "clientType",
+                    "appType",
+                    "grantTypes",
+                    "redirectUris",
+                    "scopes",
+                    "accessTokenLifetime",
+                    "refreshTokenLifetime",
+                    "authorizationCodeLifetime",
+                    "skipConsent",
+                    "isEnabled",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-apps/{id}:reset-secret": {
+      "post": {
+        "operationId": "oauth-apps.reset-secret",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "Reset an OAuth app\u2019s secret: the old secret stops working at once and the new one is returned this once only; public clients have no secret. Requires openplatform.oauth-apps.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OAuthAppIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthAppSecretResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientType": {
+                      "$ref": "#/components/schemas/OAuthClientType"
+                    },
+                    "clientSecret": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-apps:list": {
+      "post": {
+        "operationId": "oauth-apps.list",
+        "tags": [
+          "oauth-apps"
+        ],
+        "summary": "List OAuth apps (created by the platform or by users under My apps) page by page; the keyword matches name, description, ClientId, homepage and remark, with filters for app type, client type, enabled, skip consent and personal apps. Requires openplatform.oauth-apps.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "openplatform.oauth-apps.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfOAuthAppResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthAppResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
@@ -33987,6 +35538,143 @@
           "Platform"
         ]
       },
+      "OAuthAppResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "appName": {
+            "type": "string"
+          },
+          "appDescription": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "clientType": {
+            "$ref": "#/components/schemas/OAuthClientType"
+          },
+          "appType": {
+            "$ref": "#/components/schemas/OAuthAppType"
+          },
+          "grantTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "redirectUris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "accessTokenLifetime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refreshTokenLifetime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "authorizationCodeLifetime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "logo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "homepage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "skipConsent": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "ownerUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "ownerUserName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "appName",
+          "clientId",
+          "clientType",
+          "appType",
+          "grantTypes",
+          "redirectUris",
+          "scopes",
+          "accessTokenLifetime",
+          "refreshTokenLifetime",
+          "authorizationCodeLifetime",
+          "skipConsent",
+          "isEnabled",
+          "createdAt"
+        ]
+      },
+      "OAuthAppType": {
+        "type": "string",
+        "enum": [
+          "Web",
+          "Mobile",
+          "Desktop",
+          "Service"
+        ]
+      },
+      "OAuthClientType": {
+        "type": "string",
+        "enum": [
+          "Confidential",
+          "Public"
+        ]
+      },
       "OnlineSessionResponse": {
         "type": "object",
         "properties": {
@@ -36401,6 +38089,26 @@
         "code": "notification.telegram-bots.update",
         "displayName": "Update Telegram bots",
         "description": "Edit Telegram bots: token, admins, group and command allow-lists, fallback reply and broadcast chats."
+      },
+      "openplatform.oauth-apps.create": {
+        "code": "openplatform.oauth-apps.create",
+        "displayName": "Create OAuth apps",
+        "description": "Create OAuth apps for single sign-on."
+      },
+      "openplatform.oauth-apps.delete": {
+        "code": "openplatform.oauth-apps.delete",
+        "displayName": "Delete OAuth apps",
+        "description": "Delete OAuth apps; tokens issued to them stop working."
+      },
+      "openplatform.oauth-apps.read": {
+        "code": "openplatform.oauth-apps.read",
+        "displayName": "Read OAuth apps",
+        "description": "View the OAuth apps created by the platform and by users; client secrets are never shown."
+      },
+      "openplatform.oauth-apps.update": {
+        "code": "openplatform.oauth-apps.update",
+        "displayName": "Update OAuth apps",
+        "description": "Edit, enable and disable OAuth apps and reset their client secrets."
       },
       "organization.departments.create": {
         "code": "organization.departments.create",

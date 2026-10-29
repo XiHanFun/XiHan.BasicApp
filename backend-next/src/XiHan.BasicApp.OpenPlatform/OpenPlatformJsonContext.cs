@@ -2,6 +2,10 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.OpenPlatform.Operations.MyOauthApps;
+using XiHan.BasicApp.OpenPlatform.Operations.OauthApps;
 using XiHan.BasicApp.OpenPlatform.Operations.Open;
 
 namespace XiHan.BasicApp.OpenPlatform;
@@ -18,4 +22,17 @@ namespace XiHan.BasicApp.OpenPlatform;
 [JsonSerializable(typeof(OpenPingResponse))]
 [JsonSerializable(typeof(OpenEchoRequest))]
 [JsonSerializable(typeof(OpenEchoResponse))]
+[JsonSerializable(typeof(PageRequest))]
+[JsonSerializable(typeof(PageResult<OAuthAppResponse>))]
+[JsonSerializable(typeof(BatchResult))]
+[JsonSerializable(typeof(OAuthAppResponse))]
+[JsonSerializable(typeof(OAuthAppSecretResponse))]
+[JsonSerializable(typeof(CreateOAuthAppRequest))]
+[JsonSerializable(typeof(UpdateOAuthAppRequest))]
+[JsonSerializable(typeof(OAuthAppIdRequest))]
+[JsonSerializable(typeof(OAuthAppIdsRequest))]
+[JsonSerializable(typeof(MyOAuthAppsRequest))]
+[JsonSerializable(typeof(MyOAuthAppsResponse))]
+[JsonSerializable(typeof(CreateMyOAuthAppRequest))]
+[JsonSerializable(typeof(UpdateMyOAuthAppRequest))]
 public sealed partial class OpenPlatformJsonContext : JsonSerializerContext;

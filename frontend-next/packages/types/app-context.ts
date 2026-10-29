@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, TwoFactorSetupResult, UserProfile } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, TwoFactorSetupResult, UserProfile } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
@@ -201,6 +201,13 @@ export interface AppContextApis {
   /** 开放接口的调用安全设置（签名算法与 IP 白名单，作用于本人全部凭证，验签时服务端读取） */
   getApiCallSettingsApi: () => Promise<ApiCallSettings>
   saveApiCallSettingsApi: (input: { signAlgorithm: string, ipWhitelist: string[] }) => Promise<ApiCallSettings>
+  /** 我的 OAuth 应用（开发者设置；ClientSecret 明文仅创建/重置机密客户端时返回一次） */
+  getMyOAuthAppsApi: () => Promise<MyOAuthAppItem[]>
+  createMyOAuthAppApi: (input: MyOAuthAppCreateInput) => Promise<MyOAuthAppSecret>
+  updateMyOAuthAppApi: (input: MyOAuthAppUpdateInput) => Promise<MyOAuthAppItem>
+  regenerateMyOAuthAppSecretApi: (id: number | string) => Promise<MyOAuthAppSecret>
+  updateMyOAuthAppStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<MyOAuthAppItem>
+  deleteMyOAuthAppApi: (id: number | string) => Promise<unknown>
   enumApi: {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
