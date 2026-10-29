@@ -6,9 +6,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Contracts.Settings;
 
 /// <summary>
-/// 业务编号发号器（Settings 包实现）：在独立事务里发号并提交，发出的号永久消耗——外层调用失败也不回收，可以有空洞，不会重用。
-/// 同一侧对同一规则用同一个幂等键只发一次：参数相同即重放原结果，参数不同即冲突。
+/// 业务编号发号器（Settings 包实现）。
 /// </summary>
+/// <remarks>
+/// 在独立事务里发号并提交，发出的号永久消耗——外层调用失败也不回收，可以有空洞，不会重用。
+/// 同一侧对同一规则用同一个幂等键只发一次：参数相同即重放原结果，参数不同即冲突。
+/// </remarks>
 public interface INumberGenerator
 {
     /// <summary>

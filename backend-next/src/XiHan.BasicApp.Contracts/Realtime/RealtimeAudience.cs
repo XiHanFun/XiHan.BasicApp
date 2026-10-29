@@ -30,8 +30,11 @@ public enum RealtimeAudienceKind
 }
 
 /// <summary>
-/// 推送的受众：会话、某一侧的用户、所有侧的用户或某一侧的全部连接。侧是租户 ID，平台一侧为 <see cref="TenantIds.Platform"/>。
+/// 推送的受众：会话、某一侧的用户、所有侧的用户或某一侧的全部连接。
 /// </summary>
+/// <remarks>
+/// 侧是租户 ID，平台一侧为 <see cref="TenantIds.Platform"/>。
+/// </remarks>
 public sealed record RealtimeAudience
 {
     private RealtimeAudience(RealtimeAudienceKind kind, string? side, IReadOnlyList<Guid> ids)
@@ -47,13 +50,19 @@ public sealed record RealtimeAudience
     public RealtimeAudienceKind Kind { get; }
 
     /// <summary>
-    /// 侧（<see cref="RealtimeAudienceKind.UsersInSide"/> 与 <see cref="RealtimeAudienceKind.Side"/>）；其余为 <see langword="null"/>。
+    /// 受众所在的侧。
     /// </summary>
+    /// <remarks>
+    /// 只有 <see cref="RealtimeAudienceKind.UsersInSide"/> 与 <see cref="RealtimeAudienceKind.Side"/> 有值；其余为 <see langword="null"/>。
+    /// </remarks>
     public string? SideId { get; }
 
     /// <summary>
-    /// 会话或用户 ID；<see cref="RealtimeAudienceKind.Side"/> 为空。
+    /// 会话或用户 ID。
     /// </summary>
+    /// <remarks>
+    /// <see cref="RealtimeAudienceKind.Side"/> 为空。
+    /// </remarks>
     public IReadOnlyList<Guid> Ids { get; }
 
     /// <summary>

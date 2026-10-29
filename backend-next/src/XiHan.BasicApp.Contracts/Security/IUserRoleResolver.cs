@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 解析用户在某个租户侧的角色（进入访问令牌的 <c>role</c> 声明，值是角色 ID；框架授权按 <c>role:&lt;ID&gt;</c> 找授予）。
-/// 由 Access 包实现、Identity 在登录与刷新时消费；没有实现时令牌不带角色。
+/// 解析用户在某个租户侧的角色。
 /// </summary>
+/// <remarks>
+/// 角色进入访问令牌的 <c>role</c> 声明，值是角色 ID；框架授权按 <c>role:&lt;ID&gt;</c> 找授予。
+/// 由 Access 包实现、Identity 在登录与刷新时消费；没有实现时令牌不带角色。
+/// </remarks>
 public interface IUserRoleResolver
 {
     /// <summary>

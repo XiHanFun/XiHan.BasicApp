@@ -19,13 +19,17 @@ namespace XiHan.BasicApp.Contracts.Security;
 public sealed record FieldRule(string Field, FieldMaskStrategy Strategy, int? KeepHead, int? KeepTail, string? Replacement, bool IsEditable)
 {
     /// <summary>
-    /// 读受保护：不再明文返回，也不能拿来筛选、排序或关键字搜索（否则可按结果反推原值）。
+    /// 读受保护：不再明文返回，也不能拿来筛选、排序或关键字搜索。
     /// </summary>
+    /// <remarks>
+    /// 不能筛选、排序或搜索，否则可按结果反推原值。
+    /// </remarks>
     public bool IsReadProtected => Strategy != FieldMaskStrategy.None;
 
     /// <summary>
-    /// 一个文本值在本规则下对外呈现的样子；空值原样返回（隐藏一律返回空）。
+    /// 一个文本值在本规则下对外呈现的样子。
     /// </summary>
+    /// <returns>呈现的值；空值原样返回（隐藏一律返回空）。</returns>
     public string? Mask(string? raw)
     {
         if (Strategy == FieldMaskStrategy.None)
@@ -76,10 +80,13 @@ public enum FieldWrite
 }
 
 /// <summary>
-/// 当前主体在一个实体上的有效字段规则（方案 5.9 字段安全）。由 <see cref="IFieldSecurity"/> 解析，各包在投影、查询与写入处自己套用：
+/// 当前主体在一个实体上的有效字段规则。
+/// </summary>
+/// <remarks>
+/// 方案 5.9 字段安全。由 <see cref="IFieldSecurity"/> 解析，各包在投影、查询与写入处自己套用：
 /// 投影成响应前 <see cref="Mask(string, string?)"/>；查询前 <see cref="FirstProtected"/> 拒绝按受保护字段筛选与排序、<see cref="CanSearch"/> 把它们移出关键字搜索；
 /// 新建前 <see cref="OnCreate"/>，修改前 <see cref="OnUpdate"/>。
-/// </summary>
+/// </remarks>
 public sealed class FieldRules
 {
     private readonly Dictionary<string, FieldRule> _rules;
@@ -109,8 +116,11 @@ public sealed class FieldRules
     public IReadOnlyCollection<FieldRule> All => _rules.Values;
 
     /// <summary>
-    /// 同一字段多条规则合并（沿用 4.x）：读取方式取最严，部分脱敏的保留位数取各条最少，固定文本取第一条，任一只读即只读。
+    /// 同一字段多条规则合并。
     /// </summary>
+    /// <remarks>
+    /// 沿用 4.x：读取方式取最严，部分脱敏的保留位数取各条最少，固定文本取第一条，任一只读即只读。
+    /// </remarks>
     /// <param name="rules">命中的规则，按创建先后排好。</param>
     public static FieldRules Merge(IEnumerable<FieldRule> rules)
     {
@@ -130,8 +140,12 @@ public sealed class FieldRules
     }
 
     /// <summary>
-    /// 字段上的有效规则；没有即为空。字段名不区分大小写。
+    /// 取字段上的有效规则。
     /// </summary>
+    /// <remarks>
+    /// 字段名不区分大小写。
+    /// </remarks>
+    /// <returns>有效规则；没有即为空。</returns>
     public FieldRule? Find(string field) => _rules.GetValueOrDefault(field);
 
     /// <summary>
@@ -155,8 +169,9 @@ public sealed class FieldRules
     public T? Mask<T>(string field, T? value) where T : struct => IsReadProtected(field) ? null : value;
 
     /// <summary>
-    /// 请求里第一个按读受保护字段筛选或排序的字段名；没有即为空。
+    /// 找出请求里第一个按读受保护字段筛选或排序的字段名。
     /// </summary>
+    /// <returns>字段名；没有即为空。</returns>
     public string? FirstProtected(PageRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -170,8 +185,11 @@ public sealed class FieldRules
         => Find(field) is { IsEditable: false } && !string.IsNullOrEmpty(value) ? FieldWrite.Denied : FieldWrite.Accept;
 
     /// <summary>
-    /// 修改时一个字段的处理：交回原值、脱敏值或空值视为没改、保留原值；改了只读字段即拒绝；只写字段填了新值照收。
+    /// 修改时一个字段的处理。
     /// </summary>
+    /// <remarks>
+    /// 交回原值、脱敏值或空值视为没改、保留原值；改了只读字段即拒绝；只写字段填了新值照收。
+    /// </remarks>
     public FieldWrite OnUpdate(string field, string? original, string? incoming)
     {
         if (Find(field) is not { } rule || (rule.IsEditable && !rule.IsReadProtected))

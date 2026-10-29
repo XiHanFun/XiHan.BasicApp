@@ -14,14 +14,20 @@ public static class RealtimeHubs
     public const string Notification = "/hubs/notification";
 
     /// <summary>
-    /// 全部 Hub 的路径前缀；访问令牌只在这个前缀下从查询串 <c>access_token</c> 读取（WebSocket 与 SSE 带不了请求头）。
+    /// 全部 Hub 的路径前缀。
     /// </summary>
+    /// <remarks>
+    /// 访问令牌只在这个前缀下从查询串 <c>access_token</c> 读取（WebSocket 与 SSE 带不了请求头）。
+    /// </remarks>
     public const string Prefix = "/hubs";
 }
 
 /// <summary>
-/// 服务端调用的客户端方法名（与前端壳层 <c>use-signalr-integration</c> 订阅的一致，<c>contracts export</c> 一并输出 <c>realtime.json</c>）。
+/// 服务端调用的客户端方法名。
 /// </summary>
+/// <remarks>
+/// 与前端壳层 <c>use-signalr-integration</c> 订阅的一致，<c>contracts export</c> 一并输出 <c>realtime.json</c>。
+/// </remarks>
 public static class RealtimeMethods
 {
     /// <summary>

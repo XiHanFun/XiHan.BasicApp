@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Contracts.Auditing;
 
 /// <summary>
-/// 登录日志记的身份事件；成败由调用结果决定，与事件类型分开记。
+/// 登录日志记的身份事件。
 /// </summary>
+/// <remarks>
+/// 成败由调用结果决定，与事件类型分开记。
+/// </remarks>
 public enum LoginEvent
 {
     /// <summary>
@@ -64,7 +67,10 @@ public enum LoginEvent
     TwoFactorReset = 10,
 
     /// <summary>
-    /// 会话换了激活的角色：本人在 <c>auth.activate-roles</c> 换激活集，或续签时按动态职责分离规则停掉了冲突的角色（说明里是激活与停用的角色）。
+    /// 会话换了激活的角色。
     /// </summary>
+    /// <remarks>
+    /// 本人在 <c>auth.activate-roles</c> 换激活集，或续签时按动态职责分离规则停掉了冲突的角色（说明里是激活与停用的角色）。
+    /// </remarks>
     RoleActivation = 11,
 }

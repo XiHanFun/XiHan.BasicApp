@@ -6,8 +6,11 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Contracts.Entities;
 
 /// <summary>
-/// 租户库聚合根基类：<see cref="AppAggregateRoot"/> + <c>IMultiTenant</c>。
+/// 租户库聚合根基类。
 /// </summary>
+/// <remarks>
+/// <see cref="AppAggregateRoot"/> + <c>IMultiTenant</c>。
+/// </remarks>
 public abstract class TenantScopedAggregateRoot : AppAggregateRoot, IMultiTenant
 {
     /// <inheritdoc />

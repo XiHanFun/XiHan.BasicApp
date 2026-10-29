@@ -9,8 +9,11 @@ namespace XiHan.BasicApp.Contracts.Users;
 public enum RecipientKind
 {
     /// <summary>
-    /// 当前一侧的全部正常账号（平台：平台账号；租户：注册地在该租户的用户与租户成员）。
+    /// 当前一侧的全部正常账号。
     /// </summary>
+    /// <remarks>
+    /// 平台：平台账号；租户：注册地在该租户的用户与租户成员。
+    /// </remarks>
     All = 0,
 
     /// <summary>

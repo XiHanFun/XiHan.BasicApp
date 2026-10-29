@@ -7,14 +7,18 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Contracts.Pages;
 
 /// <summary>
-/// 页面登记（方案 D4）：每包一个 <c>&lt;包&gt;Pages</c>，列出页面码、路由、组件路径、图标、排序、所需权限码与子页面。菜单种子从各包登记派生，前端按组件路径精确映射。
-/// 组件路径 = 路由路径去前导斜杠 + <c>/index</c>，一律 kebab-case。
+/// 页面登记。
 /// </summary>
+/// <remarks>
+/// 方案 D4：每包一个 <c>&lt;包&gt;Pages</c>，列出页面码、路由、组件路径、图标、排序、所需权限码与子页面。菜单种子从各包登记派生，前端按组件路径精确映射。
+/// 组件路径 = 路由路径去前导斜杠 + <c>/index</c>，一律 kebab-case。
+/// </remarks>
 public sealed partial record PageDescriptor
 {
     /// <summary>
-    /// 构造页面登记；页面码不符合 <c>&lt;包&gt;.&lt;页面&gt;</c> 文法、路由不以 <c>/</c> 开头或组件路径不是 kebab-case 时抛出。
+    /// 构造页面登记。
     /// </summary>
+    /// <exception cref="ArgumentException">页面码不符合 <c>&lt;包&gt;.&lt;页面&gt;</c> 文法、路由不以 <c>/</c> 开头或组件路径不是 kebab-case 时抛出。</exception>
     public PageDescriptor(string code, string route, string titleKey, string? icon = null, int order = 0, string? permission = null, IReadOnlyList<PageDescriptor>? children = null)
     {
         ArgumentNullException.ThrowIfNull(code);
@@ -70,8 +74,11 @@ public sealed partial record PageDescriptor
     public int Order { get; }
 
     /// <summary>
-    /// 进入页面所需的权限码；为 <see langword="null"/> 时只要求认证。
+    /// 进入页面所需的权限码。
     /// </summary>
+    /// <remarks>
+    /// 为 <see langword="null"/> 时只要求认证。
+    /// </remarks>
     public string? Permission { get; }
 
     /// <summary>

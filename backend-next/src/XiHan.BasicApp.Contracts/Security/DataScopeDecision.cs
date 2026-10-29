@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 当前主体的数据范围判定（方案 5.6）：要么不受限，要么只看得到 <see cref="UserIds"/> 里的用户（含自己）与 <see cref="DepartmentIds"/> 里的部门。
-/// 列表按「归属人列」或「部门列」套用（<c>Runtime.DataScopeQuery.ApplyDataScope</c>）；按 ID 取单条时用 <see cref="Allows"/>。
+/// 当前主体的数据范围判定。
 /// </summary>
+/// <remarks>
+/// 方案 5.6：要么不受限，要么只看得到 <see cref="UserIds"/> 里的用户（含自己）与 <see cref="DepartmentIds"/> 里的部门。
+/// 列表按「归属人列」或「部门列」套用（<c>Runtime.DataScopeQuery.ApplyDataScope</c>）；按 ID 取单条时用 <see cref="Allows"/>。
+/// </remarks>
 /// <param name="Unrestricted">不受限（平台侧、角色数据范围为全部、或没有应用角色）。</param>
 /// <param name="UserIds">可见的用户主键（受限时至少含自己）。</param>
 /// <param name="DepartmentIds">可见的部门主键（受限时可能为空）。</param>

@@ -7,8 +7,11 @@ using System.Net;
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 开放接口的 IP 白名单：每条是一个 IP（v4 / v6）或 CIDR 网段。Identity 保存时校验，OpenPlatform 验签时匹配，两边同一套规则。
+/// 开放接口的 IP 白名单。
 /// </summary>
+/// <remarks>
+/// 每条是一个 IP（v4 / v6）或 CIDR 网段。Identity 保存时校验，OpenPlatform 验签时匹配，两边同一套规则。
+/// </remarks>
 public static class ApiIpAllowList
 {
     /// <summary>
@@ -17,8 +20,11 @@ public static class ApiIpAllowList
     public const int MaxEntries = 50;
 
     /// <summary>
-    /// 解析一条：单个地址按全长前缀的网段处理；IPv4 映射的 IPv6 还原为 IPv4。
+    /// 解析一条白名单。
     /// </summary>
+    /// <remarks>
+    /// 单个地址按全长前缀的网段处理；IPv4 映射的 IPv6 还原为 IPv4。
+    /// </remarks>
     /// <param name="entry">一条。</param>
     /// <param name="network">网段。</param>
     /// <returns>是否合法。</returns>
@@ -47,8 +53,11 @@ public static class ApiIpAllowList
     }
 
     /// <summary>
-    /// 规整一份白名单（按行或逗号分隔，去空去重）；有一条不合法即失败并给出那一条。
+    /// 规整一份白名单（按行或逗号分隔，去空去重）。
     /// </summary>
+    /// <remarks>
+    /// 有一条不合法即失败并给出那一条。
+    /// </remarks>
     /// <param name="value">原文。</param>
     /// <param name="entries">规整后的各条。</param>
     /// <param name="invalid">不合法的那一条。</param>
@@ -80,8 +89,11 @@ public static class ApiIpAllowList
     }
 
     /// <summary>
-    /// 地址是否在白名单内；白名单为空即不限。解析不出的条目不放行任何地址。
+    /// 判断地址是否在白名单内。
     /// </summary>
+    /// <remarks>
+    /// 白名单为空即不限。解析不出的条目不放行任何地址。
+    /// </remarks>
     /// <param name="entries">白名单。</param>
     /// <param name="remoteAddress">客户端地址。</param>
     /// <returns>是否放行。</returns>

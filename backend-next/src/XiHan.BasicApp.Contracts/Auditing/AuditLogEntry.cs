@@ -4,20 +4,29 @@
 namespace XiHan.BasicApp.Contracts.Auditing;
 
 /// <summary>
-/// 操作在调用里登记的一条业务日志（登录、权限变更）。Auditing 在 Observe 阶段等调用结束、看到最终结果后才落库：
-/// 登录日志无论成败都记，成败取调用结果；权限变更只在调用成功时记（失败的调用已回滚，什么也没变）。
+/// 操作在调用里登记的一条业务日志（登录、权限变更）。
 /// </summary>
+/// <remarks>
+/// Auditing 在 Observe 阶段等调用结束、看到最终结果后才落库：
+/// 登录日志无论成败都记，成败取调用结果；权限变更只在调用成功时记（失败的调用已回滚，什么也没变）。
+/// </remarks>
 public abstract class AuditLogEntry
 {
     /// <summary>
-    /// 日志归属的租户；<see langword="null"/> 即当前调用的租户（没有租户即平台）。
+    /// 日志归属的租户。
     /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> 即当前调用的租户（没有租户即平台）。
+    /// </remarks>
     public string? TenantId { get; set; }
 }
 
 /// <summary>
-/// 一条登录日志：身份事件与当时的账号。调用中途能确定多少就填多少，失败返回之前已经填上的照样记下。
+/// 一条登录日志：身份事件与当时的账号。
 /// </summary>
+/// <remarks>
+/// 调用中途能确定多少就填多少，失败返回之前已经填上的照样记下。
+/// </remarks>
 public sealed class LoginLogEntry : AuditLogEntry
 {
     /// <summary>
@@ -30,18 +39,27 @@ public sealed class LoginLogEntry : AuditLogEntry
     }
 
     /// <summary>
-    /// 事件；处理过程中可以改判（密码通过但要第二步时，登录改记为 <see cref="LoginEvent.TwoFactorChallenge"/>）。
+    /// 身份事件。
     /// </summary>
+    /// <remarks>
+    /// 处理过程中可以改判（密码通过但要第二步时，登录改记为 <see cref="LoginEvent.TwoFactorChallenge"/>）。
+    /// </remarks>
     public LoginEvent Event { get; set; }
 
     /// <summary>
-    /// 账号所在的租户（登录时填的租户）；平台账号为 <see cref="TenantIds.Platform"/>。目录里不存在或停用的租户，日志落在平台一侧，这里留着原值供排查。
+    /// 账号所在的租户（登录时填的租户）。
     /// </summary>
+    /// <remarks>
+    /// 平台账号为 <see cref="TenantIds.Platform"/>。目录里不存在或停用的租户，日志落在平台一侧，这里留着原值供排查。
+    /// </remarks>
     public string? AccountTenantId { get; set; }
 
     /// <summary>
-    /// 用户；还没认出账号时为 <see langword="null"/>。
+    /// 用户。
     /// </summary>
+    /// <remarks>
+    /// 还没认出账号时为 <see langword="null"/>。
+    /// </remarks>
     public Guid? UserId { get; set; }
 
     /// <summary>
@@ -131,8 +149,11 @@ public sealed class PermissionChangeLogEntry : AuditLogEntry
 }
 
 /// <summary>
-/// 一条条件命中：访问策略或权限条件在一次调用上的判定结果（方案 5.12）。由 Auditing 落进按月分表的条件命中日志，同一批落库里键相同、同一分钟的合并计数。
+/// 一条条件命中：访问策略或权限条件在一次调用上的判定结果。
 /// </summary>
+/// <remarks>
+/// 方案 5.12。由 Auditing 落进按月分表的条件命中日志，同一批落库里键相同、同一分钟的合并计数。
+/// </remarks>
 public sealed class ConditionHitLogEntry : AuditLogEntry
 {
     /// <summary>
@@ -189,9 +210,12 @@ public sealed class ConditionHitLogEntry : AuditLogEntry
 }
 
 /// <summary>
-/// 一条开放接口日志：签名开放接口一次调用的接入方与签名结果（方案 5.12，OpenPlatform 写入）。成败、状态码、错误与耗时由 Auditing 取调用结果，
-/// 无论成败都记（验签失败的调用本身就是失败）。请求与响应正文是解密后的明文摘要，由写入方截断。
+/// 一条开放接口日志：签名开放接口一次调用的接入方与签名结果。
 /// </summary>
+/// <remarks>
+/// 方案 5.12，OpenPlatform 写入。成败、状态码、错误与耗时由 Auditing 取调用结果，
+/// 无论成败都记（验签失败的调用本身就是失败）。请求与响应正文是解密后的明文摘要，由写入方截断。
+/// </remarks>
 public sealed class OpenApiLogEntry : AuditLogEntry
 {
     /// <summary>

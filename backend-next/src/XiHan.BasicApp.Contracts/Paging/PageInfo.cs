@@ -7,8 +7,11 @@ using System.Text.Json.Serialization;
 namespace XiHan.BasicApp.Contracts.Paging;
 
 /// <summary>
-/// 页码与页大小。页码从 1 起，页大小上限 <see cref="MaxSize"/>；约束折进请求 Schema，由 Validate 阶段拒绝越界值。
+/// 页码与页大小。
 /// </summary>
+/// <remarks>
+/// 页码从 1 起，页大小上限 <see cref="MaxSize"/>；约束折进请求 Schema，由 Validate 阶段拒绝越界值。
+/// </remarks>
 public sealed record PageInfo
 {
     /// <summary>
@@ -39,8 +42,11 @@ public sealed record PageInfo
     public int Size { get; set; } = DefaultSize;
 
     /// <summary>
-    /// 本页之前要跳过的行数；派生值，不进 JSON 与 Schema。
+    /// 本页之前要跳过的行数。
     /// </summary>
+    /// <remarks>
+    /// 派生值，不进 JSON 与 Schema。
+    /// </remarks>
     [JsonIgnore]
     public int Skip => (Index - 1) * Size;
 }
