@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "A senha de bloqueio não pode ficar vazia.",
   "identity.auth.unlock_password_wrong": "Senha de bloqueio incorreta; restam {remaining} tentativas.",
   "identity.auth.unlock_exhausted": "Tentativas de desbloqueio demais; a sessão foi encerrada. Faça login novamente.",
-  "identity.auth.lock_reason_unsupported": "A sessão está bloqueada por um motivo que uma senha não pode remover."
+  "identity.auth.lock_reason_unsupported": "A sessão está bloqueada por um motivo que uma senha não pode remover.",
+  "my_api_credentials.list.description": "Lista suas próprias credenciais de API aberta (os segredos nunca são exibidos). Requer apenas login.",
+  "my_api_credentials.create.description": "Cria uma credencial de API aberta (no máximo 5 por pessoa); o segredo é devolvido somente desta vez. Indisponível em sessões de personificação.",
+  "my_api_credentials.update.description": "Ativa ou desativa uma de suas credenciais de API aberta. Indisponível em sessões de personificação.",
+  "my_api_credentials.rotate_secret.description": "Rotaciona o segredo de uma de suas credenciais: o antigo deixa de funcionar na hora e o novo é devolvido somente desta vez. Indisponível em sessões de personificação.",
+  "my_api_credentials.delete.description": "Exclui suas credenciais de API aberta; as AppKeys deixam de funcionar na hora. Indisponível em sessões de personificação.",
+  "my_api_credentials.settings.description": "Suas configurações de segurança de chamada: o algoritmo de assinatura e a lista de IPs permitidos, aplicados a todas as suas credenciais. Requer apenas login.",
+  "my_api_credentials.update_settings.description": "Salva suas configurações de segurança de chamada (substituídas por inteiro e aplicadas na hora a todas as suas credenciais). Indisponível em sessões de personificação.",
+  "identity.api_credentials.default_name": "Credencial padrão",
+  "identity.api_credentials.limit_reached": "Você pode ter no máximo {max} credenciais de API; exclua as que não usa mais e tente novamente.",
+  "identity.api_credentials.not_found": "A credencial não existe ou não é sua.",
+  "identity.api_credentials.algorithm_invalid": "Algoritmo de assinatura não suportado: {value}.",
+  "identity.api_credentials.ip_invalid": "Entrada inválida na lista de IPs permitidos: {value}",
+  "identity.api_credentials.ip_too_many": "A lista de IPs permitidos aceita no máximo {max} entradas."
 }

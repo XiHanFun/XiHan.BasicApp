@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Impersonation;
+using XiHan.BasicApp.Identity.Operations.MyApiCredentials;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Profile;
 using XiHan.BasicApp.Identity.Operations.Sessions;
@@ -72,4 +73,14 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(ProfileResponse))]
 [JsonSerializable(typeof(TotpSetupResponse))]
 [JsonSerializable(typeof(TwoFactorChangeRequest))]
+[JsonSerializable(typeof(MyApiCredentialsRequest))]
+[JsonSerializable(typeof(MyApiCredentialResponse))]
+[JsonSerializable(typeof(MyApiCredentialsResponse))]
+[JsonSerializable(typeof(CreateMyApiCredentialRequest))]
+[JsonSerializable(typeof(MyApiCredentialIdRequest))]
+[JsonSerializable(typeof(MyApiCredentialIdsRequest))]
+[JsonSerializable(typeof(UpdateMyApiCredentialRequest))]
+[JsonSerializable(typeof(ApiCredentialSecretResponse))]
+[JsonSerializable(typeof(MyApiSettingsResponse))]
+[JsonSerializable(typeof(UpdateMyApiSettingsRequest))]
 public sealed partial class IdentityJsonContext : JsonSerializerContext;

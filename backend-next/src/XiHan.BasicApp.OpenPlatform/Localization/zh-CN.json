@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "签名自检：验签通过即返回 AppKey、凭证归属人与服务端时间。只能用开放接口凭证签名调用（X-Access-Key、X-Timestamp、X-Nonce、X-Content-Sign、X-Signature）。",
+  "open.echo.description": "回显：原样返回请求体，用于核对内容签名与加密（请求体可用 AES-CBC 加密，响应随之加密）。只能签名调用。",
+  "openplatform.signing.verified": "开放接口签名校验通过",
+  "openplatform.signing.headers_missing": "缺少签名请求头：{headers}。",
+  "openplatform.signing.timestamp_expired": "请求时间窗已失效（与服务端时间相差超过 {seconds} 秒）。",
+  "openplatform.signing.access_key_invalid": "AccessKey 无效或已停用。",
+  "openplatform.signing.ip_not_allowed": "请求 IP 不在白名单内：{ip}。",
+  "openplatform.signing.content_sign_missing": "缺少内容签名。",
+  "openplatform.signing.content_sign_mismatch": "内容签名校验失败。",
+  "openplatform.signing.signature_mismatch": "请求签名校验失败。",
+  "openplatform.signing.timestamp_invalid": "时间戳格式错误（应为 Unix 秒）。",
+  "openplatform.signing.nonce_invalid": "随机串格式错误（最多 128 个字符）。",
+  "openplatform.signing.algorithm_mismatch": "签名算法 {value} 与设定的 {expected} 不一致。",
+  "openplatform.signing.content_algorithm_unsupported": "不支持的内容签名算法：{value}。",
+  "openplatform.signing.encrypt_algorithm_unsupported": "不支持的加密算法：{value}。",
+  "openplatform.signing.body_too_large": "请求体超过上限（{max} 字节）。",
+  "openplatform.signing.body_decrypt_failed": "请求体解密失败。",
+  "openplatform.signing.nonce_replayed": "检测到重复请求。"
+}

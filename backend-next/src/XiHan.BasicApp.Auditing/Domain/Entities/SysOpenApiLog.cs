@@ -7,7 +7,7 @@ using SqlSugar;
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
 /// <summary>
-/// 开放接口日志：签名开放接口（<c>/api/open/*</c>）的调用与签名鉴权结果。写入方是 OpenPlatform 的 Ingress 中间件（第六批），本批只有查询面。
+/// 开放接口日志：签名开放接口（<c>open.*</c> 操作，<c>/api/open:{动词}</c>）的调用与验签结果。OpenPlatform 的验签中间件在调用里登记 <c>OpenApiLogEntry</c>，由审计日志中间件按调用结果落库（成败都记）。
 /// 请求与响应正文只存截断后的摘要，敏感头不落库。
 /// </summary>
 [SugarTable("sys_open_api_log_{year}{month}{day}")]

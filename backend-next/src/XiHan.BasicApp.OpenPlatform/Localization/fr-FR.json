@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Auto-contrôle de signature : une fois la signature vérifiée, renvoie l’AppKey, le titulaire de l’identifiant et l’heure du serveur. Appelable uniquement avec des requêtes signées par un identifiant d’API ouverte (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Écho : renvoie le corps de la requête tel que reçu, pour vérifier la signature du contenu et le chiffrement (le corps peut être chiffré en AES-CBC, la réponse l’est alors aussi). Appels signés uniquement.",
+  "openplatform.signing.verified": "Signature d’API ouverte vérifiée",
+  "openplatform.signing.headers_missing": "En-têtes de signature manquants : {headers}.",
+  "openplatform.signing.timestamp_expired": "La requête est hors de la fenêtre de temps (plus de {seconds} secondes d’écart avec le serveur).",
+  "openplatform.signing.access_key_invalid": "L’AccessKey est invalide ou désactivée.",
+  "openplatform.signing.ip_not_allowed": "L’IP de la requête n’est pas dans la liste autorisée : {ip}.",
+  "openplatform.signing.content_sign_missing": "Signature du contenu manquante.",
+  "openplatform.signing.content_sign_mismatch": "La signature du contenu ne correspond pas.",
+  "openplatform.signing.signature_mismatch": "La signature de la requête ne correspond pas.",
+  "openplatform.signing.timestamp_invalid": "Horodatage invalide (secondes Unix attendues).",
+  "openplatform.signing.nonce_invalid": "Nonce invalide (128 caractères au plus).",
+  "openplatform.signing.algorithm_mismatch": "L’algorithme de signature {value} ne correspond pas à {expected} configuré.",
+  "openplatform.signing.content_algorithm_unsupported": "Algorithme de signature du contenu non pris en charge : {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Algorithme de chiffrement non pris en charge : {value}.",
+  "openplatform.signing.body_too_large": "Le corps de la requête dépasse la limite ({max} octets).",
+  "openplatform.signing.body_decrypt_failed": "Le corps de la requête n’a pas pu être déchiffré.",
+  "openplatform.signing.nonce_replayed": "Requête en double détectée."
+}

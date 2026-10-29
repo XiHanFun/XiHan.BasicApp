@@ -85,6 +85,32 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     ])
   })
 
+  it('开放接口凭证：my-api-credentials.* 投影成 4.x 的凭证条目与一次性密钥；启停换成 isEnabled，删除传 ids，调用安全设置换字段名', async () => {
+    const calls: Call[] = []
+    const credential = { id: 'c-1', name: '默认凭证', appKey: 'ak_x', isEnabled: true, lastUsedAt: null, createdAt: '2026-10-30T00:00:00Z' }
+    const settings = { signatureAlgorithm: 'HmacSHA512', ipAllowList: ['10.0.0.0/24'], algorithms: ['HmacSHA256', 'HmacSHA512'] }
+    record(calls, (url) => {
+      if (url.endsWith('/api/my-api-credentials') || url.includes(':rotate-secret'))
+        return json(url.includes(':rotate-secret') ? 200 : 201, { id: 'c-1', appKey: 'ak_x', secret: 'sk_y' })
+      if (url.includes(':settings') || url.includes(':update-settings'))
+        return json(200, settings)
+      if (url.includes('?ids='))
+        return json(200, { succeeded: ['c-1'], failed: [] })
+      return json(200, { ...credential, isEnabled: false })
+    })
+    const apis = useAppContext().apis
+    expect(await apis.createApiCredentialApi()).toEqual({ basicId: 'c-1', appKey: 'ak_x', appSecret: 'sk_y' })
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/my-api-credentials', body: { name: null } })
+    expect(await apis.updateApiCredentialStatusApi('c-1', 'Disabled')).toEqual({ basicId: 'c-1', credentialName: '默认凭证', appKey: 'ak_x', status: 'Disabled', lastUsedTime: null, createdTime: '2026-10-30T00:00:00Z' })
+    expect(calls[1]).toEqual({ method: 'PUT', url: '/api/my-api-credentials/c-1', body: { isEnabled: false } })
+    await apis.rotateApiCredentialSecretApi('c-1')
+    expect(calls[2]).toMatchObject({ method: 'POST', url: '/api/my-api-credentials/c-1:rotate-secret' })
+    await apis.deleteApiCredentialApi('c-1')
+    expect(calls[3]).toEqual({ method: 'DELETE', url: '/api/my-api-credentials?ids=c-1', body: null })
+    expect(await apis.saveApiCallSettingsApi({ signAlgorithm: 'HmacSHA512', ipWhitelist: ['10.0.0.0/24'] })).toEqual({ signAlgorithm: 'HmacSHA512', ipWhitelist: ['10.0.0.0/24'], algorithms: ['HmacSHA256', 'HmacSHA512'] })
+    expect(calls[4]).toEqual({ method: 'POST', url: '/api/my-api-credentials:update-settings', body: { signatureAlgorithm: 'HmacSHA512', ipAllowList: ['10.0.0.0/24'] } })
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {

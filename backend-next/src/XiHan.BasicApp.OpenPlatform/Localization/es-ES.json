@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "Autocomprobación de firma: si la firma es válida, devuelve la AppKey, el titular de la credencial y la hora del servidor. Solo se puede llamar con peticiones firmadas por una credencial de API abierta (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).",
+  "open.echo.description": "Eco: devuelve el cuerpo de la petición tal como llegó, para comprobar la firma del contenido y el cifrado (el cuerpo puede cifrarse con AES-CBC y entonces la respuesta también). Solo llamadas firmadas.",
+  "openplatform.signing.verified": "Firma de API abierta verificada",
+  "openplatform.signing.headers_missing": "Faltan cabeceras de firma: {headers}.",
+  "openplatform.signing.timestamp_expired": "La petición está fuera de la ventana de tiempo (más de {seconds} segundos respecto al servidor).",
+  "openplatform.signing.access_key_invalid": "La AccessKey no es válida o está desactivada.",
+  "openplatform.signing.ip_not_allowed": "La IP de la petición no está en la lista permitida: {ip}.",
+  "openplatform.signing.content_sign_missing": "Falta la firma del contenido.",
+  "openplatform.signing.content_sign_mismatch": "La firma del contenido no coincide.",
+  "openplatform.signing.signature_mismatch": "La firma de la petición no coincide.",
+  "openplatform.signing.timestamp_invalid": "Marca de tiempo no válida (se esperan segundos Unix).",
+  "openplatform.signing.nonce_invalid": "Nonce no válido (como máximo 128 caracteres).",
+  "openplatform.signing.algorithm_mismatch": "El algoritmo de firma {value} no coincide con el configurado {expected}.",
+  "openplatform.signing.content_algorithm_unsupported": "Algoritmo de firma del contenido no admitido: {value}.",
+  "openplatform.signing.encrypt_algorithm_unsupported": "Algoritmo de cifrado no admitido: {value}.",
+  "openplatform.signing.body_too_large": "El cuerpo de la petición supera el límite ({max} bytes).",
+  "openplatform.signing.body_decrypt_failed": "No se pudo descifrar el cuerpo de la petición.",
+  "openplatform.signing.nonce_replayed": "Se detectó una petición duplicada."
+}

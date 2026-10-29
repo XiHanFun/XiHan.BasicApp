@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "Пароль блокировки не может быть пустым.",
   "identity.auth.unlock_password_wrong": "Неверный пароль блокировки; осталось попыток: {remaining}.",
   "identity.auth.unlock_exhausted": "Слишком много неудачных попыток разблокировки; сеанс завершён. Войдите снова.",
-  "identity.auth.lock_reason_unsupported": "Сеанс заблокирован по причине, которую пароль блокировки не снимает."
+  "identity.auth.lock_reason_unsupported": "Сеанс заблокирован по причине, которую пароль блокировки не снимает.",
+  "my_api_credentials.list.description": "Список ваших учётных данных открытого API (секреты не показываются). Требуется только вход.",
+  "my_api_credentials.create.description": "Создаёт учётные данные открытого API (не более 5 на человека); секрет возвращается только один раз. Недоступно в сеансах олицетворения.",
+  "my_api_credentials.update.description": "Включает или отключает ваши учётные данные открытого API. Недоступно в сеансах олицетворения.",
+  "my_api_credentials.rotate_secret.description": "Обновляет секрет ваших учётных данных: старый сразу перестаёт действовать, новый возвращается только один раз. Недоступно в сеансах олицетворения.",
+  "my_api_credentials.delete.description": "Удаляет ваши учётные данные открытого API; их AppKey сразу перестают действовать. Недоступно в сеансах олицетворения.",
+  "my_api_credentials.settings.description": "Ваши настройки безопасности вызовов: алгоритм подписи и список разрешённых IP для всех ваших учётных данных. Требуется только вход.",
+  "my_api_credentials.update_settings.description": "Сохраняет ваши настройки безопасности вызовов (заменяются целиком и сразу действуют для всех учётных данных). Недоступно в сеансах олицетворения.",
+  "identity.api_credentials.default_name": "Учётные данные по умолчанию",
+  "identity.api_credentials.limit_reached": "Можно иметь не более {max} учётных данных API; удалите ненужные и повторите попытку.",
+  "identity.api_credentials.not_found": "Учётные данные не существуют или принадлежат не вам.",
+  "identity.api_credentials.algorithm_invalid": "Неподдерживаемый алгоритм подписи: {value}.",
+  "identity.api_credentials.ip_invalid": "Неверная запись в списке разрешённых IP: {value}",
+  "identity.api_credentials.ip_too_many": "Список разрешённых IP может содержать не более {max} записей."
 }

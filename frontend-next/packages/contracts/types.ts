@@ -1831,6 +1831,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/my-api-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your own open API credentials (secrets are never shown). Requires sign-in only. */
+        get: operations["my-api-credentials.list"];
+        put?: never;
+        /** Create an open API credential (at most 5 per person); the secret is returned this once only. Not available in impersonation sessions. */
+        post: operations["my-api-credentials.create"];
+        /** Delete your open API credentials; their AppKeys stop working at once. Not available in impersonation sessions. */
+        delete: operations["my-api-credentials.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-api-credentials/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Enable or disable one of your open API credentials. Not available in impersonation sessions. */
+        put: operations["my-api-credentials.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-api-credentials/{id}:rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate the secret of one of your credentials: the old secret stops working at once and the new one is returned this once only. Not available in impersonation sessions. */
+        post: operations["my-api-credentials.rotate-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-api-credentials:settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your call security settings: the signature algorithm and IP allow-list, applied to all your credentials. Requires sign-in only. */
+        get: operations["my-api-credentials.settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-api-credentials:update-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save your call security settings (replaced as a whole and applied to all your credentials at once). Not available in impersonation sessions. */
+        post: operations["my-api-credentials.update-settings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications": {
         parameters: {
             query?: never;
@@ -2101,6 +2188,40 @@ export interface paths {
         put?: never;
         /** List open API logs page by page: signed open API calls of the caller’s side with their signature checks. Requires auditing.open-api-logs.read. */
         post: operations["open-api-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/open:echo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Echo: returns the request body as received, to check the content signature and encryption (the body may be AES-CBC encrypted, and the response is then encrypted too). Signed calls only. */
+        post: operations["open.echo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/open:ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Signature self-check: once the signature verifies, returns the AppKey, the credential owner and the server time. Callable only with requests signed by an open API credential (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature). */
+        get: operations["open.ping"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4525,6 +4646,17 @@ export interface components {
             /** Format: date-time */
             modifiedAt?: string | null;
         };
+        MyApiCredentialResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            appKey: string;
+            isEnabled: boolean;
+            /** Format: date-time */
+            lastUsedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         /** @enum {string} */
         NotificationContentFormat: "Text" | "Markdown" | "Html";
         /** @enum {string} */
@@ -4690,6 +4822,11 @@ export interface components {
             requestSize: number;
             /** Format: int64 */
             responseSize: number;
+        };
+        OpenEchoRequest: {
+            message?: string | null;
+            /** Format: int32 */
+            number?: number | null;
         };
         OperationLogResponse: {
             /** Format: uuid */
@@ -11520,6 +11657,276 @@ export interface operations {
             };
         };
     };
+    "my-api-credentials.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyApiCredentialResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appKey: string;
+                        secret: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    isEnabled: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        appKey: string;
+                        isEnabled: boolean;
+                        /** Format: date-time */
+                        lastUsedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        appKey: string;
+                        secret: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        signatureAlgorithm: string;
+                        ipAllowList: string[];
+                        algorithms: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-api-credentials.update-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    signatureAlgorithm: string;
+                    ipAllowList?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        signatureAlgorithm: string;
+                        ipAllowList: string[];
+                        algorithms: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "notifications.create": {
         parameters: {
             query?: never;
@@ -12622,6 +13029,87 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "open.echo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    message?: string | null;
+                    /** Format: int32 */
+                    number?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        message: string;
+                        appKey: string;
+                        echo: components["schemas"]["OpenEchoRequest"];
+                        /** Format: date-time */
+                        serverTime: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "open.ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ok: boolean;
+                        message: string;
+                        appKey: string;
+                        /** Format: uuid */
+                        ownerUserId: string;
+                        /** Format: date-time */
+                        serverTime: string;
                     };
                 };
             };

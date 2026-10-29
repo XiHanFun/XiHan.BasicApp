@@ -11,6 +11,7 @@ import { PROFILE_ACTIVE_TAB_KEY } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 import { SessionStorage } from '~/utils'
+import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabSecurity from './ProfileTabSecurity.vue'
 
 defineOptions({ name: 'ProfilePage' })
@@ -74,9 +75,10 @@ const allNavGroups = computed<ProfileNavGroup[]>(() => [
   },
 ])
 
-// 6.0 已接入的页签：账号安全（改密、认证器双因素）；资料、绑定、设备、登录日志、通知、租户、统计、开发者、授权应用随个人中心批次（N2 第六批）从 4.x 搬入
+// 6.0 已接入的页签：账号安全（改密、认证器双因素）、开放接口（API 凭证与调用安全设置）；资料、绑定、设备、登录日志、通知、租户、统计、授权应用随个人中心批次（N2 第六批）从 4.x 搬入
 const tabComponents: Record<string, Component> = {
   security: markRaw(ProfileTabSecurity),
+  developer: markRaw(ProfileTabDeveloper),
 }
 
 const navGroups = computed<ProfileNavGroup[]>(() => allNavGroups.value

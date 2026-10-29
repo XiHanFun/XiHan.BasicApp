@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "잠금 비밀번호를 입력하세요.",
   "identity.auth.unlock_password_wrong": "잠금 비밀번호가 틀렸습니다. {remaining}번 더 시도할 수 있습니다.",
   "identity.auth.unlock_exhausted": "잠금 해제에 너무 많이 실패하여 세션이 만료되었습니다. 다시 로그인하세요.",
-  "identity.auth.lock_reason_unsupported": "이 세션의 잠금 이유는 비밀번호로 풀 수 없습니다."
+  "identity.auth.lock_reason_unsupported": "이 세션의 잠금 이유는 비밀번호로 풀 수 없습니다.",
+  "my_api_credentials.list.description": "내 오픈 API 자격 증명을 나열합니다(시크릿은 표시하지 않음). 로그인만 필요합니다.",
+  "my_api_credentials.create.description": "오픈 API 자격 증명을 만듭니다(1인당 최대 5개). 시크릿은 이번에만 반환합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "my_api_credentials.update.description": "내 오픈 API 자격 증명을 사용 또는 사용 중지합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "my_api_credentials.rotate_secret.description": "내 자격 증명의 시크릿을 교체합니다. 이전 시크릿은 즉시 무효가 되고 새 시크릿은 이번에만 반환합니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "my_api_credentials.delete.description": "내 오픈 API 자격 증명을 삭제합니다. AppKey는 즉시 쓸 수 없게 됩니다. 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "my_api_credentials.settings.description": "내 호출 보안 설정: 서명 알고리즘과 IP 허용 목록이며 내 모든 자격 증명에 적용됩니다. 로그인만 필요합니다.",
+  "my_api_credentials.update_settings.description": "내 호출 보안 설정을 저장합니다(전체를 덮어쓰며 모든 자격 증명에 즉시 적용). 대리 로그인 세션에서는 쓸 수 없습니다.",
+  "identity.api_credentials.default_name": "기본 자격 증명",
+  "identity.api_credentials.limit_reached": "API 자격 증명은 최대 {max}개입니다. 더 이상 쓰지 않는 것을 삭제한 뒤 다시 시도하세요.",
+  "identity.api_credentials.not_found": "자격 증명이 없거나 조작할 권한이 없습니다.",
+  "identity.api_credentials.algorithm_invalid": "지원하지 않는 서명 알고리즘입니다: {value}.",
+  "identity.api_credentials.ip_invalid": "IP 허용 목록 형식이 잘못되었습니다: {value}",
+  "identity.api_credentials.ip_too_many": "IP 허용 목록은 최대 {max}개입니다."
 }

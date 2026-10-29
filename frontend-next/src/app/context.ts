@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, UserProfile } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, UserProfile } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
@@ -106,6 +106,26 @@ function toShellProfile(profile: ResponseOf<'profile.get'>): UserProfile {
     ...(lockedUntil ? { lockoutEndTime: lockedUntil } : {}),
     failedLoginAttempts: profile.failedAccessCount,
   }
+}
+
+/** `my-api-credentials.*` → 4.x 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
+function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
+  return {
+    basicId: credential.id,
+    credentialName: credential.name,
+    appKey: credential.appKey,
+    status: credential.isEnabled ? 'Enabled' : 'Disabled',
+    lastUsedTime: credential.lastUsedAt ?? null,
+    createdTime: credential.createdAt,
+  }
+}
+
+function toShellSecret(secret: ResponseOf<'my-api-credentials.create'>): ApiCredentialSecret {
+  return { basicId: secret.id, appKey: secret.appKey, appSecret: secret.secret }
+}
+
+function toShellCallSettings(settings: ResponseOf<'my-api-credentials.settings'>): ApiCallSettings {
+  return { signAlgorithm: settings.signatureAlgorithm, ipWhitelist: [...settings.ipAllowList], algorithms: [...settings.algorithms] }
 }
 
 /** 时区目录：浏览器自带的 IANA 清单（后端时区目录接入后换成 metadata 操作） */
@@ -212,6 +232,13 @@ export function registerApplicationContext(router: Router): void {
         columns: input.columns.map(column => ({ key: column.key, title: column.title, valueMap: column.valueMap ?? null })),
       }),
     },
+    getApiCredentialsApi: async () => (await myApiCredentialOps.list({})).items.map(toShellCredential),
+    createApiCredentialApi: async credentialName => toShellSecret(await myApiCredentialOps.create({ name: credentialName ?? null })),
+    rotateApiCredentialSecretApi: async id => toShellSecret(await myApiCredentialOps.rotateSecret({ id: String(id) })),
+    updateApiCredentialStatusApi: async (id, status) => toShellCredential(await myApiCredentialOps.update({ id: String(id), isEnabled: status === 'Enabled' })),
+    deleteApiCredentialApi: id => myApiCredentialOps.delete({ ids: [String(id)] }),
+    getApiCallSettingsApi: async () => toShellCallSettings(await myApiCredentialOps.settings({})),
+    saveApiCallSettingsApi: async input => toShellCallSettings(await myApiCredentialOps.updateSettings({ signatureAlgorithm: input.signAlgorithm, ipAllowList: input.ipWhitelist })),
     enumApi: {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),

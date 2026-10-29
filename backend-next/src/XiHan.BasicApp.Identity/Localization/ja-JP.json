@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "ロックパスワードを入力してください。",
   "identity.auth.unlock_password_wrong": "ロックパスワードが違います。あと {remaining} 回試せます。",
   "identity.auth.unlock_exhausted": "ロック解除の失敗が多すぎるため、セッションは失効しました。もう一度ログインしてください。",
-  "identity.auth.lock_reason_unsupported": "このセッションのロック理由はパスワードでは解除できません。"
+  "identity.auth.lock_reason_unsupported": "このセッションのロック理由はパスワードでは解除できません。",
+  "my_api_credentials.list.description": "自分のオープン API 認証情報を一覧します（シークレットは表示しません）。ログインのみ必要です。",
+  "my_api_credentials.create.description": "オープン API 認証情報を作成します（1 人 5 個まで）。シークレットはこの 1 回だけ返します。代理ログイン中は使えません。",
+  "my_api_credentials.update.description": "自分のオープン API 認証情報を有効化または無効化します。代理ログイン中は使えません。",
+  "my_api_credentials.rotate_secret.description": "自分の認証情報のシークレットを更新します。古いシークレットはすぐ無効になり、新しいシークレットはこの 1 回だけ返します。代理ログイン中は使えません。",
+  "my_api_credentials.delete.description": "自分のオープン API 認証情報を削除します。AppKey はすぐ使えなくなります。代理ログイン中は使えません。",
+  "my_api_credentials.settings.description": "自分の呼び出しセキュリティ設定（署名アルゴリズムと IP 許可リスト、自分のすべての認証情報に適用）。ログインのみ必要です。",
+  "my_api_credentials.update_settings.description": "自分の呼び出しセキュリティ設定を保存します（全体を置き換え、すべての認証情報に即時適用）。代理ログイン中は使えません。",
+  "identity.api_credentials.default_name": "既定の認証情報",
+  "identity.api_credentials.limit_reached": "API 認証情報は最大 {max} 個です。使わなくなったものを削除してからやり直してください。",
+  "identity.api_credentials.not_found": "認証情報が存在しないか、操作する権限がありません。",
+  "identity.api_credentials.algorithm_invalid": "サポートされていない署名アルゴリズムです：{value}。",
+  "identity.api_credentials.ip_invalid": "IP 許可リストの形式が無効です：{value}",
+  "identity.api_credentials.ip_too_many": "IP 許可リストは最大 {max} 件です。"
 }

@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "Le mot de passe de verrouillage ne peut pas être vide.",
   "identity.auth.unlock_password_wrong": "Mot de passe de verrouillage incorrect ; encore {remaining} essais.",
   "identity.auth.unlock_exhausted": "Trop d’échecs de déverrouillage ; la session a pris fin. Veuillez vous reconnecter.",
-  "identity.auth.lock_reason_unsupported": "La session est verrouillée pour une raison qu’un mot de passe ne peut pas lever."
+  "identity.auth.lock_reason_unsupported": "La session est verrouillée pour une raison qu’un mot de passe ne peut pas lever.",
+  "my_api_credentials.list.description": "Liste vos propres identifiants d’API ouverte (les secrets ne sont jamais affichés). Requiert seulement la connexion.",
+  "my_api_credentials.create.description": "Crée un identifiant d’API ouverte (5 au plus par personne) ; le secret n’est renvoyé que cette fois. Indisponible en session d’emprunt d’identité.",
+  "my_api_credentials.update.description": "Active ou désactive l’un de vos identifiants d’API ouverte. Indisponible en session d’emprunt d’identité.",
+  "my_api_credentials.rotate_secret.description": "Renouvelle le secret de l’un de vos identifiants : l’ancien cesse aussitôt de fonctionner et le nouveau n’est renvoyé que cette fois. Indisponible en session d’emprunt d’identité.",
+  "my_api_credentials.delete.description": "Supprime vos identifiants d’API ouverte ; leurs AppKeys cessent aussitôt de fonctionner. Indisponible en session d’emprunt d’identité.",
+  "my_api_credentials.settings.description": "Vos réglages de sécurité d’appel : l’algorithme de signature et la liste d’IP autorisées, appliqués à tous vos identifiants. Requiert seulement la connexion.",
+  "my_api_credentials.update_settings.description": "Enregistre vos réglages de sécurité d’appel (remplacés en bloc et appliqués aussitôt à tous vos identifiants). Indisponible en session d’emprunt d’identité.",
+  "identity.api_credentials.default_name": "Identifiant par défaut",
+  "identity.api_credentials.limit_reached": "Vous pouvez avoir au plus {max} identifiants d’API ; supprimez ceux qui ne servent plus puis réessayez.",
+  "identity.api_credentials.not_found": "L’identifiant n’existe pas ou ne vous appartient pas.",
+  "identity.api_credentials.algorithm_invalid": "Algorithme de signature non pris en charge : {value}.",
+  "identity.api_credentials.ip_invalid": "Entrée de liste d’IP autorisées invalide : {value}",
+  "identity.api_credentials.ip_too_many": "La liste d’IP autorisées compte au plus {max} entrées."
 }

@@ -1,0 +1,20 @@
+{
+  "open.ping.description": "署名の自己診断：検証に通ると AppKey、認証情報の所有者、サーバー時刻を返します。オープン API 認証情報で署名した要求でのみ呼び出せます（X-Access-Key、X-Timestamp、X-Nonce、X-Content-Sign、X-Signature）。",
+  "open.echo.description": "エコー：受け取った要求本文をそのまま返し、内容署名と暗号化を確認します（本文は AES-CBC で暗号化でき、その場合は応答も暗号化します）。署名付きの呼び出しのみ。",
+  "openplatform.signing.verified": "オープン API の署名を検証しました",
+  "openplatform.signing.headers_missing": "署名ヘッダーがありません：{headers}。",
+  "openplatform.signing.timestamp_expired": "要求の時刻がサーバー時刻と {seconds} 秒以上ずれています。",
+  "openplatform.signing.access_key_invalid": "AccessKey が無効か停止されています。",
+  "openplatform.signing.ip_not_allowed": "要求元 IP が許可リストにありません：{ip}。",
+  "openplatform.signing.content_sign_missing": "内容署名がありません。",
+  "openplatform.signing.content_sign_mismatch": "内容署名が一致しません。",
+  "openplatform.signing.signature_mismatch": "要求の署名が一致しません。",
+  "openplatform.signing.timestamp_invalid": "タイムスタンプの形式が正しくありません（Unix 秒）。",
+  "openplatform.signing.nonce_invalid": "ノンスの形式が正しくありません（最大 128 文字）。",
+  "openplatform.signing.algorithm_mismatch": "署名アルゴリズム {value} が設定の {expected} と一致しません。",
+  "openplatform.signing.content_algorithm_unsupported": "サポートされていない内容署名アルゴリズムです：{value}。",
+  "openplatform.signing.encrypt_algorithm_unsupported": "サポートされていない暗号化アルゴリズムです：{value}。",
+  "openplatform.signing.body_too_large": "要求本文が上限（{max} バイト）を超えています。",
+  "openplatform.signing.body_decrypt_failed": "要求本文を復号できません。",
+  "openplatform.signing.nonce_replayed": "重複した要求を検出しました。"
+}

@@ -69,5 +69,18 @@
   "identity.auth.lock_password_required": "The lock password must not be empty.",
   "identity.auth.unlock_password_wrong": "Wrong lock password; {remaining} attempts left.",
   "identity.auth.unlock_exhausted": "Too many failed unlock attempts; the session has ended. Please sign in again.",
-  "identity.auth.lock_reason_unsupported": "The session is locked for a reason that a lock password cannot clear."
+  "identity.auth.lock_reason_unsupported": "The session is locked for a reason that a lock password cannot clear.",
+  "my_api_credentials.list.description": "List your own open API credentials (secrets are never shown). Requires sign-in only.",
+  "my_api_credentials.create.description": "Create an open API credential (at most 5 per person); the secret is returned this once only. Not available in impersonation sessions.",
+  "my_api_credentials.update.description": "Enable or disable one of your open API credentials. Not available in impersonation sessions.",
+  "my_api_credentials.rotate_secret.description": "Rotate the secret of one of your credentials: the old secret stops working at once and the new one is returned this once only. Not available in impersonation sessions.",
+  "my_api_credentials.delete.description": "Delete your open API credentials; their AppKeys stop working at once. Not available in impersonation sessions.",
+  "my_api_credentials.settings.description": "Your call security settings: the signature algorithm and IP allow-list, applied to all your credentials. Requires sign-in only.",
+  "my_api_credentials.update_settings.description": "Save your call security settings (replaced as a whole and applied to all your credentials at once). Not available in impersonation sessions.",
+  "identity.api_credentials.default_name": "Default credential",
+  "identity.api_credentials.limit_reached": "You can have at most {max} API credentials; delete ones you no longer use and try again.",
+  "identity.api_credentials.not_found": "The credential does not exist or is not yours.",
+  "identity.api_credentials.algorithm_invalid": "Unsupported signature algorithm: {value}.",
+  "identity.api_credentials.ip_invalid": "Invalid IP allow-list entry: {value}",
+  "identity.api_credentials.ip_too_many": "The IP allow-list can have at most {max} entries."
 }

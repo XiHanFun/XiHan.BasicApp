@@ -187,3 +187,60 @@ public sealed class ConditionHitLogEntry : AuditLogEntry
     /// </summary>
     public IReadOnlyList<string> PermissionCodes { get; set; } = [];
 }
+
+/// <summary>
+/// 一条开放接口日志：签名开放接口一次调用的接入方与签名结果（方案 5.12，OpenPlatform 写入）。成败、状态码、错误与耗时由 Auditing 取调用结果，
+/// 无论成败都记（验签失败的调用本身就是失败）。请求与响应正文是解密后的明文摘要，由写入方截断。
+/// </summary>
+public sealed class OpenApiLogEntry : AuditLogEntry
+{
+    /// <summary>
+    /// 请求头里的 AppKey（原值，验签失败也记）。
+    /// </summary>
+    public string? ClientId { get; set; }
+
+    /// <summary>
+    /// 凭证名称（找到凭证时的快照）。
+    /// </summary>
+    public string? AppName { get; set; }
+
+    /// <summary>
+    /// 凭证归属人。
+    /// </summary>
+    public Guid? UserId { get; set; }
+
+    /// <summary>
+    /// 凭证归属人的登录名。
+    /// </summary>
+    public string? UserName { get; set; }
+
+    /// <summary>
+    /// 实际用于验签的算法。
+    /// </summary>
+    public string? SignatureAlgorithm { get; set; }
+
+    /// <summary>
+    /// 签名是否有效。
+    /// </summary>
+    public bool SignatureValid { get; set; }
+
+    /// <summary>
+    /// 请求正文大小（字节，传输的原文）。
+    /// </summary>
+    public long RequestSize { get; set; }
+
+    /// <summary>
+    /// 响应正文大小（字节，传输的原文）。
+    /// </summary>
+    public long ResponseSize { get; set; }
+
+    /// <summary>
+    /// 请求正文摘要（明文，截断）。
+    /// </summary>
+    public string? RequestBody { get; set; }
+
+    /// <summary>
+    /// 响应正文摘要（明文，截断）。
+    /// </summary>
+    public string? ResponseBody { get; set; }
+}

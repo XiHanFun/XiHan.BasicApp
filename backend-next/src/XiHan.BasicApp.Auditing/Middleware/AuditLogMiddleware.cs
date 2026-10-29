@@ -191,6 +191,34 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                     };
                     Enqueue(hitRecord, caller with { TenantId = hit.TenantId ?? caller.TenantId }, origin, context, occurredAt);
                     break;
+                case OpenApiLogEntry open:
+                    // 签名调用的调用方是匿名的：用户取凭证的归属人，日志落在归属人的注册地
+                    var openRecord = new SysOpenApiLog
+                    {
+                        ClientId = Clip(open.ClientId, 128),
+                        AppName = Clip(open.AppName, 256),
+                        OperationId = Clip(target, 128),
+                        Method = Clip(method, 16) ?? string.Empty,
+                        Path = Clip(path, 512) ?? string.Empty,
+                        SignatureAlgorithm = Clip(open.SignatureAlgorithm, 32),
+                        SignatureValid = open.SignatureValid,
+                        StatusCode = StatusCodeOf(operation, endpoint, outcome),
+                        Succeeded = outcome.IsSuccess,
+                        ErrorCode = outcome.Error?.Code,
+                        ErrorMessage = MessageOf(context, outcome),
+                        DurationMs = durationMs,
+                        RequestSize = open.RequestSize,
+                        ResponseSize = open.ResponseSize,
+                        RequestBody = Clip(open.RequestBody, 4096),
+                        ResponseBody = Clip(open.ResponseBody, 4096),
+                    };
+                    Enqueue(openRecord, caller with
+                    {
+                        TenantId = open.TenantId ?? caller.TenantId,
+                        UserId = open.UserId ?? caller.UserId,
+                        UserName = open.UserName ?? caller.UserName,
+                    }, origin, context, occurredAt);
+                    break;
             }
         }
 
