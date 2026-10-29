@@ -10,17 +10,23 @@ using XiHan.BasicApp.Contracts.Realtime;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// <see cref="IRealtimePush"/> 的实现（作用域）：调用管道里由 <see cref="Middleware.RealtimeDispatchMiddleware"/> 开一层暂存，
-/// 推送先记进当前层，调用成功提交后并入外层或发出，失败即丢弃；不在管道里立即发出。发送失败只记日志，不影响已经提交的调用。
+/// <see cref="IRealtimePush"/> 的实现（作用域），调用成功提交后才发出推送。
 /// </summary>
+/// <remarks>
+/// 调用管道里由 <see cref="Middleware.RealtimeDispatchMiddleware"/> 开一层暂存，
+/// 推送先记进当前层，调用成功提交后并入外层或发出，失败即丢弃；不在管道里立即发出。发送失败只记日志，不影响已经提交的调用。
+/// </remarks>
 /// <param name="hub">通知 Hub 的上下文。</param>
 /// <param name="registry">连接登记（按会话断开）。</param>
 /// <param name="logger">日志。</param>
 internal sealed partial class RealtimeOutbox(IHubContext<NotificationHub> hub, ConnectionRegistry registry, ILogger<RealtimeOutbox> logger) : IRealtimePush
 {
     /// <summary>
-    /// 断开前的宽限：先发出的 ForceLogout 还在连接的发送缓冲里（长轮询要等下一次轮询取走），立即断开会把它丢掉。
+    /// 断开前的宽限。
     /// </summary>
+    /// <remarks>
+    /// 先发出的 ForceLogout 还在连接的发送缓冲里（长轮询要等下一次轮询取走），立即断开会把它丢掉。
+    /// </remarks>
     private static readonly TimeSpan _disconnectGrace = TimeSpan.FromSeconds(2);
 
     private readonly Stack<List<Func<Task>>> _frames = new();

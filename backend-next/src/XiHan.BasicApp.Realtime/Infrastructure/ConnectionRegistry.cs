@@ -8,8 +8,11 @@ using XiHan.BasicApp.Contracts.Realtime;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// 一条实时连接：连接 ID、访问令牌里的会话与用户、连接时所在的侧，以及用来断开它的调用方上下文。
+/// 一条实时连接。
 /// </summary>
+/// <remarks>
+/// 连接 ID、访问令牌里的会话与用户、连接时所在的侧，以及用来断开它的调用方上下文。
+/// </remarks>
 /// <param name="ConnectionId">SignalR 连接 ID。</param>
 /// <param name="SessionId">会话（令牌的 <c>sid</c>）。</param>
 /// <param name="UserId">用户（令牌的 <c>sub</c>）。</param>
@@ -18,8 +21,11 @@ namespace XiHan.BasicApp.Realtime.Infrastructure;
 internal sealed record RealtimeConnection(string ConnectionId, Guid SessionId, Guid UserId, string Side, HubCallerContext Caller);
 
 /// <summary>
-/// 本实例的连接登记（单例）：在线状态与按会话断开都查它。进程内的表，多实例部署要换成共享登记并接 SignalR 背板（方案 9.4）。
+/// 本实例的连接登记（单例）。
 /// </summary>
+/// <remarks>
+/// 在线状态与按会话断开都查它。进程内的表，多实例部署要换成共享登记并接 SignalR 背板（方案 9.4）。
+/// </remarks>
 internal sealed class ConnectionRegistry : IRealtimePresence
 {
     private readonly ConcurrentDictionary<string, RealtimeConnection> _connections = new(StringComparer.Ordinal);

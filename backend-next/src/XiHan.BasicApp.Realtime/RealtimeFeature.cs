@@ -17,9 +17,12 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Realtime;
 
 /// <summary>
-/// 实时能力包（Tier 2）：SignalR 通知 Hub（<see cref="RealtimeHubs.Notification"/>，由宿主经 <see cref="RealtimeEndpoints.MapRealtimeHubs"/> 映射）、
-/// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起。
+/// 实时能力包（Tier 2）。
 /// </summary>
+/// <remarks>
+/// SignalR 通知 Hub（<see cref="RealtimeHubs.Notification"/>，由宿主经 <see cref="RealtimeEndpoints.MapRealtimeHubs"/> 映射）、
+/// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起。
+/// </remarks>
 public sealed class RealtimeFeature : IFeature
 {
     /// <inheritdoc />
