@@ -5,8 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.BasicApp.Organization.Queries;
 using XiHan.BasicApp.Organization.Seeds;
 using XiHan.BasicApp.Runtime;
@@ -66,6 +68,8 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddScoped<MembershipService>();
         context.Services.AddScoped<PositionQueries>();
         context.Services.AddScoped<MembershipQueries>();
+        // 通知按部门找人（含下级部门）
+        context.Services.AddScoped<IRecipientSource, DepartmentRecipientSource>();
         context.Services.AddSeeder<DemoOrganizationSeeder>();
         context.Services.AddPermissionCatalog("organization", OrganizationPermissions.All);
         context.Services.AddPageCatalog("organization", OrganizationPages.All);

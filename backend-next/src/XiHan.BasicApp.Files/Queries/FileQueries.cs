@@ -5,8 +5,8 @@ using System.Globalization;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Files.Domain.Entities;
-using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Operations.Files;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Files.Queries;
@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Files.Queries;
 /// 文件列表（当前一侧）：关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；按大类、状态、访问级别多选，按临时、来源、扩展名、内容类型筛选，上传时间与到期时间可按区间；缺省按上传时间倒序（4.x 同）。
 /// </summary>
 /// <param name="rows">文件读写。</param>
-public sealed class FileQueries(FileRows rows)
+public sealed class FileQueries(SideRows rows)
 {
     private const string FieldKind = "kind";
     private const string FieldStatus = "status";
@@ -40,7 +40,7 @@ public sealed class FileQueries(FileRows rows)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = rows.Query<SysFile>(FileRows.SideOf(context));
+        var query = rows.Query<SysFile>(SideRows.SideOf(context));
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();

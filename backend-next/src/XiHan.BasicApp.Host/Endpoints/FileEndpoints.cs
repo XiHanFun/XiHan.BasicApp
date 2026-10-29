@@ -10,6 +10,7 @@ using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
 using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Operations.Files;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Primitives;
@@ -117,7 +118,7 @@ internal static class FileEndpoints
     private static async Task<IResult> ContentAsync(HttpContext http, Guid id, bool? download, FileService files)
     {
         var context = ContextOf(http);
-        var found = await files.FindAsync(FileRows.SideOf(context), id, http.RequestAborted).ConfigureAwait(false);
+        var found = await files.FindAsync(SideRows.SideOf(context), id, http.RequestAborted).ConfigureAwait(false);
         if (!found.TryGetValue(out var file))
         {
             return Fail(context, found.Error!);

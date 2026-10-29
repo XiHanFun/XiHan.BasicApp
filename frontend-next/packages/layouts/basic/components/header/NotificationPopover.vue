@@ -30,8 +30,6 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
-import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
-import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { NotificationStatus, NotificationType } from '~/types/enums'
 
@@ -56,8 +54,23 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// 通知类型标签：以后端枚举元数据为本地化单一事实源，切语言响应式重取，空回退静态常量
-const notificationTypeOptions = useEnumOptions('NotificationType', NOTIFICATION_TYPE_OPTIONS)
+// 通知类型标签走壳层文案（6.0 不再为它调后端的枚举元数据接口）
+function typeLabel(type: NotificationType): string {
+  switch (type) {
+    case NotificationType.System:
+      return t('header.notification.type_system')
+    case NotificationType.Security:
+      return t('header.notification.type_security')
+    case NotificationType.Business:
+      return t('header.notification.type_business')
+    case NotificationType.Todo:
+      return t('header.notification.type_todo')
+    case NotificationType.Emergency:
+      return t('header.notification.type_emergency')
+    default:
+      return t('header.notification.type_default')
+  }
+}
 
 const showPopover = ref(false)
 const activeTab = ref('inbox')
@@ -86,9 +99,8 @@ function getTypeTag(type: NotificationType): Tone {
 }
 
 function getTypeInfo(type: NotificationType) {
-  const opt = notificationTypeOptions.value.find(o => o.value === type)
   return {
-    label: opt?.label ?? t('header.notification.type_default'),
+    label: typeLabel(type),
     type: getTypeTag(type),
   }
 }

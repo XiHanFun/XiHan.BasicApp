@@ -9628,6 +9628,588 @@
         }
       }
     },
+    "/api/inbox": {
+      "delete": {
+        "operationId": "inbox.delete",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Delete entries from your own inbox; the notifications themselves are unaffected. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox/{id}:confirm": {
+      "post": {
+        "operationId": "inbox.confirm",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Confirm a notification in your inbox that asks for confirmation; it is marked read too. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "InboxIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxCountResponse",
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "count"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox/{id}:mark-popup-shown": {
+      "post": {
+        "operationId": "inbox.mark-popup-shown",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Record that one of your popup notifications has been shown so it does not pop up again. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "InboxIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxCountResponse",
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "count"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:banners": {
+      "get": {
+        "operationId": "inbox.banners",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Your unread banner notifications, shown at the top of the page. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxItemsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InboxItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:list": {
+      "post": {
+        "operationId": "inbox.list",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Page through your own inbox on the current side (published and within their visibility window): the keyword matches title and content; filter by read state and type or show only pending items. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfInboxItemResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InboxItemResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:mandatory": {
+      "get": {
+        "operationId": "inbox.mandatory",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Your unread mandatory notifications; pages are blocked until they are read. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxItemsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InboxItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:mark-all-read": {
+      "post": {
+        "operationId": "inbox.mark-all-read",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Mark every visible unread entry of your inbox on the current side as read. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MarkAllInboxReadRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxCountResponse",
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "count"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:mark-read": {
+      "post": {
+        "operationId": "inbox.mark-read",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Mark entries of your own inbox as read. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "InboxIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inbox:popups": {
+      "get": {
+        "operationId": "inbox.popups",
+        "tags": [
+          "inbox"
+        ],
+        "summary": "Your popup notifications not shown yet; each pops up once after sign-in. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "InboxItemsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InboxItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/login-bans": {
       "get": {
         "operationId": "login-bans.list",
@@ -11286,6 +11868,1278 @@
                     "isAffix",
                     "isCustomized",
                     "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications": {
+      "delete": {
+        "operationId": "notifications.delete",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Delete notifications in bulk; published ones also leave their recipients\u0027 inboxes. Requires notification.notifications.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "notifications.create",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Create a notification draft, optionally publishing it at once: role, department and user targets need at least one ID, and departments exist only on the tenant side. Requires notification.notifications.create, plus notification.notifications.publish to publish at once.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateNotificationRequest",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200000
+                  },
+                  "contentFormat": {
+                    "$ref": "#/components/schemas/NotificationContentFormat"
+                  },
+                  "notificationType": {
+                    "$ref": "#/components/schemas/NotificationType"
+                  },
+                  "priority": {
+                    "$ref": "#/components/schemas/NotificationPriority"
+                  },
+                  "targetType": {
+                    "$ref": "#/components/schemas/NotificationTargetType"
+                  },
+                  "targetIds": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 5000
+                  },
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "businessType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "businessId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "needConfirm": {
+                    "type": "boolean"
+                  },
+                  "isMandatory": {
+                    "type": "boolean"
+                  },
+                  "isBanner": {
+                    "type": "boolean"
+                  },
+                  "isPopup": {
+                    "type": "boolean"
+                  },
+                  "startsAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "publishImmediately": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "contentFormat": {
+                      "$ref": "#/components/schemas/NotificationContentFormat"
+                    },
+                    "notificationType": {
+                      "$ref": "#/components/schemas/NotificationType"
+                    },
+                    "priority": {
+                      "$ref": "#/components/schemas/NotificationPriority"
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "link": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/NotificationTargetType"
+                    },
+                    "targetIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "needConfirm": {
+                      "type": "boolean"
+                    },
+                    "isMandatory": {
+                      "type": "boolean"
+                    },
+                    "isBanner": {
+                      "type": "boolean"
+                    },
+                    "isPopup": {
+                      "type": "boolean"
+                    },
+                    "startsAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isPublished": {
+                      "type": "boolean"
+                    },
+                    "publishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "publisherId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "contentFormat",
+                    "notificationType",
+                    "priority",
+                    "targetType",
+                    "targetIds",
+                    "needConfirm",
+                    "isMandatory",
+                    "isBanner",
+                    "isPopup",
+                    "isPublished",
+                    "recipientCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}": {
+      "get": {
+        "operationId": "notifications.get",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get a notification with its delivery targets. Requires notification.notifications.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "contentFormat": {
+                      "$ref": "#/components/schemas/NotificationContentFormat"
+                    },
+                    "notificationType": {
+                      "$ref": "#/components/schemas/NotificationType"
+                    },
+                    "priority": {
+                      "$ref": "#/components/schemas/NotificationPriority"
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "link": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/NotificationTargetType"
+                    },
+                    "targetIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "needConfirm": {
+                      "type": "boolean"
+                    },
+                    "isMandatory": {
+                      "type": "boolean"
+                    },
+                    "isBanner": {
+                      "type": "boolean"
+                    },
+                    "isPopup": {
+                      "type": "boolean"
+                    },
+                    "startsAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isPublished": {
+                      "type": "boolean"
+                    },
+                    "publishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "publisherId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "contentFormat",
+                    "notificationType",
+                    "priority",
+                    "targetType",
+                    "targetIds",
+                    "needConfirm",
+                    "isMandatory",
+                    "isBanner",
+                    "isPopup",
+                    "isPublished",
+                    "recipientCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "notifications.update",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Replace a notification draft, including its targets; published notifications cannot be changed. Requires notification.notifications.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateNotificationRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200000
+                  },
+                  "contentFormat": {
+                    "$ref": "#/components/schemas/NotificationContentFormat"
+                  },
+                  "notificationType": {
+                    "$ref": "#/components/schemas/NotificationType"
+                  },
+                  "priority": {
+                    "$ref": "#/components/schemas/NotificationPriority"
+                  },
+                  "targetType": {
+                    "$ref": "#/components/schemas/NotificationTargetType"
+                  },
+                  "targetIds": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 5000
+                  },
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "businessType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "businessId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "needConfirm": {
+                    "type": "boolean"
+                  },
+                  "isMandatory": {
+                    "type": "boolean"
+                  },
+                  "isBanner": {
+                    "type": "boolean"
+                  },
+                  "isPopup": {
+                    "type": "boolean"
+                  },
+                  "startsAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "contentFormat": {
+                      "$ref": "#/components/schemas/NotificationContentFormat"
+                    },
+                    "notificationType": {
+                      "$ref": "#/components/schemas/NotificationType"
+                    },
+                    "priority": {
+                      "$ref": "#/components/schemas/NotificationPriority"
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "link": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetType": {
+                      "$ref": "#/components/schemas/NotificationTargetType"
+                    },
+                    "targetIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "needConfirm": {
+                      "type": "boolean"
+                    },
+                    "isMandatory": {
+                      "type": "boolean"
+                    },
+                    "isBanner": {
+                      "type": "boolean"
+                    },
+                    "isPopup": {
+                      "type": "boolean"
+                    },
+                    "startsAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isPublished": {
+                      "type": "boolean"
+                    },
+                    "publishedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "publisherId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "contentFormat",
+                    "notificationType",
+                    "priority",
+                    "targetType",
+                    "targetIds",
+                    "needConfirm",
+                    "isMandatory",
+                    "isBanner",
+                    "isPopup",
+                    "isPublished",
+                    "recipientCount",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}:publish": {
+      "post": {
+        "operationId": "notifications.publish",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Publish a draft: resolve the active recipients of the caller\u0027s side from its targets, write their inbox entries and push them in real time after commit; a notification is published only once. Requires notification.notifications.publish.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.publish",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "NotificationIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationDeliveryResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "publishedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "recipientCount",
+                    "publishedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}:read-stats": {
+      "get": {
+        "operationId": "notifications.read-stats",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Read statistics: recipients, read, unread and confirmed counts. Requires notification.notifications.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationReadStatsResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "readCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "unreadCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "needConfirm": {
+                      "type": "boolean"
+                    },
+                    "confirmedCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "recipientCount",
+                    "readCount",
+                    "unreadCount",
+                    "needConfirm",
+                    "confirmedCount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}:recipients": {
+      "post": {
+        "operationId": "notifications.recipients",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Page through the recipients of a published notification with their read and confirmation state; optionally only unread or unconfirmed ones. Requires notification.notifications.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "NotificationRecipientsRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "page": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/PageInfo"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "filter": {
+                    "$ref": "#/components/schemas/NotificationRecipientFilter"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfNotificationRecipientResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NotificationRecipientResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/{id}:remind": {
+      "post": {
+        "operationId": "notifications.remind",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Remind: push a published notification again to recipients who have not read it, or not confirmed it when confirmation is required. Requires notification.notifications.publish.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.publish",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "NotificationIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NotificationDeliveryResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipientCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "publishedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "recipientCount",
+                    "publishedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications:list": {
+      "post": {
+        "operationId": "notifications.list",
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Page through the caller\u0027s side\u0027s notifications: the keyword matches title and content; filter by type, priority, target and published state. Requires notification.notifications.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.notifications.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfNotificationResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NotificationResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
@@ -25197,6 +27051,107 @@
           "createdAt"
         ]
       },
+      "InboxItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contentFormat": {
+            "$ref": "#/components/schemas/NotificationContentFormat"
+          },
+          "notificationType": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/NotificationPriority"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserNotificationStatus"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "confirmedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "isGlobal": {
+            "type": "boolean"
+          },
+          "needConfirm": {
+            "type": "boolean"
+          },
+          "isMandatory": {
+            "type": "boolean"
+          },
+          "isBanner": {
+            "type": "boolean"
+          },
+          "isPopup": {
+            "type": "boolean"
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "link": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "notificationId",
+          "title",
+          "contentFormat",
+          "notificationType",
+          "priority",
+          "status",
+          "publishedAt",
+          "isGlobal",
+          "needConfirm",
+          "isMandatory",
+          "isBanner",
+          "isPopup"
+        ]
+      },
       "InheritedPermissionResponse": {
         "type": "object",
         "properties": {
@@ -25686,6 +27641,235 @@
           "isAffix",
           "isCustomized",
           "children"
+        ]
+      },
+      "NotificationContentFormat": {
+        "type": "string",
+        "enum": [
+          "Text",
+          "Markdown",
+          "Html"
+        ]
+      },
+      "NotificationPriority": {
+        "type": "string",
+        "enum": [
+          "Low",
+          "Normal",
+          "High",
+          "Urgent"
+        ]
+      },
+      "NotificationRecipientFilter": {
+        "type": "string",
+        "enum": [
+          "All",
+          "Unread",
+          "Read",
+          "Unconfirmed"
+        ]
+      },
+      "NotificationRecipientResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserNotificationStatus"
+          },
+          "readAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "confirmedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "userId",
+          "userName",
+          "displayName",
+          "status",
+          "receivedAt"
+        ]
+      },
+      "NotificationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contentFormat": {
+            "$ref": "#/components/schemas/NotificationContentFormat"
+          },
+          "notificationType": {
+            "$ref": "#/components/schemas/NotificationType"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/NotificationPriority"
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "link": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetType": {
+            "$ref": "#/components/schemas/NotificationTargetType"
+          },
+          "targetIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "needConfirm": {
+            "type": "boolean"
+          },
+          "isMandatory": {
+            "type": "boolean"
+          },
+          "isBanner": {
+            "type": "boolean"
+          },
+          "isPopup": {
+            "type": "boolean"
+          },
+          "startsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "publisherId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "recipientCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "contentFormat",
+          "notificationType",
+          "priority",
+          "targetType",
+          "targetIds",
+          "needConfirm",
+          "isMandatory",
+          "isBanner",
+          "isPopup",
+          "isPublished",
+          "recipientCount",
+          "createdAt"
+        ]
+      },
+      "NotificationTargetType": {
+        "type": "string",
+        "enum": [
+          "All",
+          "Role",
+          "Department",
+          "User"
+        ]
+      },
+      "NotificationType": {
+        "type": "string",
+        "enum": [
+          "System",
+          "Security",
+          "Business",
+          "Todo",
+          "Emergency"
         ]
       },
       "NumberingAllocationResponse": {
@@ -27402,6 +29586,13 @@
           "action"
         ]
       },
+      "UserNotificationStatus": {
+        "type": "string",
+        "enum": [
+          "Unread",
+          "Read"
+        ]
+      },
       "UserResponse": {
         "type": "object",
         "properties": {
@@ -27823,6 +30014,31 @@
         "code": "identity.users.update",
         "displayName": "Update users",
         "description": "Edit user profiles of the current tenant."
+      },
+      "notification.notifications.create": {
+        "code": "notification.notifications.create",
+        "displayName": "Create notifications",
+        "description": "Create notification drafts on the caller\u0027s side."
+      },
+      "notification.notifications.delete": {
+        "code": "notification.notifications.delete",
+        "displayName": "Delete notifications",
+        "description": "Delete notifications; a published one also leaves its recipients\u0027 inboxes."
+      },
+      "notification.notifications.publish": {
+        "code": "notification.notifications.publish",
+        "displayName": "Publish notifications",
+        "description": "Publish notifications to all users, roles, departments or chosen users of the caller\u0027s side and remind those who have not read them."
+      },
+      "notification.notifications.read": {
+        "code": "notification.notifications.read",
+        "displayName": "Read notifications",
+        "description": "View the caller\u0027s side\u0027s notifications with their read statistics and recipients."
+      },
+      "notification.notifications.update": {
+        "code": "notification.notifications.update",
+        "displayName": "Update notifications",
+        "description": "Edit notification drafts; published notifications cannot be changed."
       },
       "organization.departments.create": {
         "code": "organization.departments.create",

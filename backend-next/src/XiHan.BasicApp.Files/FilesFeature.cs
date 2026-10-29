@@ -70,7 +70,6 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddSingleton(static services => FilesOptions.FromConfiguration(services.GetRequiredService<IConfiguration>(), services.GetService<IHostEnvironment>()));
         context.Services.AddSingleton<BlobStores>();
         context.Services.AddSingleton<FileLinks>();
-        context.Services.AddScoped<FileRows>();
         context.Services.AddScoped<StorageConfigService>();
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileQueries>();

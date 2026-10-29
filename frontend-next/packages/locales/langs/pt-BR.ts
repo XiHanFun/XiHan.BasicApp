@@ -448,6 +448,11 @@ export default {
       view_all: 'Ir para a central de notificações',
       confirm: 'Confirmar',
       type_default: 'Notificação',
+      type_system: 'Sistema',
+      type_security: 'Segurança',
+      type_business: 'Negócio',
+      type_todo: 'Pendência',
+      type_emergency: 'Emergência',
       tab: {
         inbox: 'Caixa de entrada',
         inbox_count: 'Caixa de entrada ({n})',

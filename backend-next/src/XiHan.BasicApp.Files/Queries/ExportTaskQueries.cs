@@ -5,8 +5,8 @@ using SqlSugar;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Operations.ExportTasks;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Files.Queries;
@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Files.Queries;
 /// 自己的导出任务列表：关键字匹配任务名称与列表操作 ID；按状态、格式多选，按列表操作筛选；缺省按提交时间倒序（4.x 同只看自己的）。
 /// </summary>
 /// <param name="rows">任务读写。</param>
-public sealed class ExportTaskQueries(FileRows rows)
+public sealed class ExportTaskQueries(SideRows rows)
 {
     private const string FieldStatus = "status";
     private const string FieldFormat = "format";
@@ -34,7 +34,7 @@ public sealed class ExportTaskQueries(FileRows rows)
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var requester = ExportTaskService.RequesterOf(context) ?? Guid.Empty;
-        var query = rows.Query<SysExportTask>(FileRows.SideOf(context)).Where(t => t.RequesterId == requester);
+        var query = rows.Query<SysExportTask>(SideRows.SideOf(context)).Where(t => t.RequesterId == requester);
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();

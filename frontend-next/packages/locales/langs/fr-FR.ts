@@ -448,6 +448,11 @@ export default {
       view_all: 'Ouvrir le centre de notifications',
       confirm: 'Confirmer',
       type_default: 'Notification',
+      type_system: 'Système',
+      type_security: 'Sécurité',
+      type_business: 'Métier',
+      type_todo: 'À faire',
+      type_emergency: 'Urgence',
       tab: {
         inbox: 'Boîte de réception',
         inbox_count: 'Boîte de réception ({n})',

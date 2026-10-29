@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Middleware;
@@ -82,6 +83,10 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<SessionQueries>();
         // 绕过内核管道的实时 Hub 用同一份会话判定
         context.Services.AddSingleton<ISessionStatus, SessionStatus>();
+        // 通知找人：一侧的全部账号与指定用户（指定用户也是其他来源的最后一道筛）
+        context.Services.AddScoped<IRecipientSource, AllUsersRecipientSource>();
+        context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
+        context.Services.AddScoped<IUserDirectory, UserDirectory>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);

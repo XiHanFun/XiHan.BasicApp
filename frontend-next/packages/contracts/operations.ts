@@ -90,6 +90,15 @@ export const routes = {
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
   'import-histories.create': { method: 'POST', template: '/api/import-histories', path: [], query: [], success: 201 },
   'import-histories.recent': { method: 'GET', template: '/api/import-histories:recent', path: [], query: ['pageCode', 'count'], success: 200 },
+  'inbox.banners': { method: 'GET', template: '/api/inbox:banners', path: [], query: [], success: 200 },
+  'inbox.confirm': { method: 'POST', template: '/api/inbox/{id}:confirm', path: ['id'], query: [], success: 200 },
+  'inbox.delete': { method: 'DELETE', template: '/api/inbox', path: [], query: ['ids'], success: 200 },
+  'inbox.list': { method: 'POST', template: '/api/inbox:list', path: [], query: [], success: 200 },
+  'inbox.mandatory': { method: 'GET', template: '/api/inbox:mandatory', path: [], query: [], success: 200 },
+  'inbox.mark-all-read': { method: 'POST', template: '/api/inbox:mark-all-read', path: [], query: [], success: 200 },
+  'inbox.mark-popup-shown': { method: 'POST', template: '/api/inbox/{id}:mark-popup-shown', path: ['id'], query: [], success: 200 },
+  'inbox.mark-read': { method: 'POST', template: '/api/inbox:mark-read', path: [], query: [], success: 200 },
+  'inbox.popups': { method: 'GET', template: '/api/inbox:popups', path: [], query: [], success: 200 },
   'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
   'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
   'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
@@ -104,6 +113,15 @@ export const routes = {
   'menus.list': { method: 'GET', template: '/api/menus', path: [], query: [], success: 200 },
   'menus.reset': { method: 'POST', template: '/api/menus/{id}:reset', path: ['id'], query: [], success: 200 },
   'menus.update': { method: 'PUT', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
+  'notifications.create': { method: 'POST', template: '/api/notifications', path: [], query: [], success: 201 },
+  'notifications.delete': { method: 'DELETE', template: '/api/notifications', path: [], query: ['ids'], success: 200 },
+  'notifications.get': { method: 'GET', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
+  'notifications.list': { method: 'POST', template: '/api/notifications:list', path: [], query: [], success: 200 },
+  'notifications.publish': { method: 'POST', template: '/api/notifications/{id}:publish', path: ['id'], query: [], success: 200 },
+  'notifications.read-stats': { method: 'GET', template: '/api/notifications/{id}:read-stats', path: ['id'], query: [], success: 200 },
+  'notifications.recipients': { method: 'POST', template: '/api/notifications/{id}:recipients', path: ['id'], query: [], success: 200 },
+  'notifications.remind': { method: 'POST', template: '/api/notifications/{id}:remind', path: ['id'], query: [], success: 200 },
+  'notifications.update': { method: 'PUT', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
   'numbering-rules.allocations': { method: 'POST', template: '/api/numbering-rules/{id}:allocations', path: ['id'], query: [], success: 200 },
   'numbering-rules.create': { method: 'POST', template: '/api/numbering-rules', path: [], query: [], success: 201 },
   'numbering-rules.delete': { method: 'DELETE', template: '/api/numbering-rules', path: [], query: ['ids'], success: 200 },
@@ -373,6 +391,19 @@ export const importHistories = {
   recent: (request: RequestOf<'import-histories.recent'>, options?: CallOptions) => invoke<RequestOf<'import-histories.recent'>, ResponseOf<'import-histories.recent'>>('import-histories.recent', routes['import-histories.recent'], request, options),
 }
 
+/** 资源 `inbox` 的操作。 */
+export const inbox = {
+  banners: (request: RequestOf<'inbox.banners'>, options?: CallOptions) => invoke<RequestOf<'inbox.banners'>, ResponseOf<'inbox.banners'>>('inbox.banners', routes['inbox.banners'], request, options),
+  confirm: (request: RequestOf<'inbox.confirm'>, options?: CallOptions) => invoke<RequestOf<'inbox.confirm'>, ResponseOf<'inbox.confirm'>>('inbox.confirm', routes['inbox.confirm'], request, options),
+  delete: (request: RequestOf<'inbox.delete'>, options?: CallOptions) => invoke<RequestOf<'inbox.delete'>, ResponseOf<'inbox.delete'>>('inbox.delete', routes['inbox.delete'], request, options),
+  list: (request: RequestOf<'inbox.list'>, options?: CallOptions) => invoke<RequestOf<'inbox.list'>, ResponseOf<'inbox.list'>>('inbox.list', routes['inbox.list'], request, options),
+  mandatory: (request: RequestOf<'inbox.mandatory'>, options?: CallOptions) => invoke<RequestOf<'inbox.mandatory'>, ResponseOf<'inbox.mandatory'>>('inbox.mandatory', routes['inbox.mandatory'], request, options),
+  markAllRead: (request: RequestOf<'inbox.mark-all-read'>, options?: CallOptions) => invoke<RequestOf<'inbox.mark-all-read'>, ResponseOf<'inbox.mark-all-read'>>('inbox.mark-all-read', routes['inbox.mark-all-read'], request, options),
+  markPopupShown: (request: RequestOf<'inbox.mark-popup-shown'>, options?: CallOptions) => invoke<RequestOf<'inbox.mark-popup-shown'>, ResponseOf<'inbox.mark-popup-shown'>>('inbox.mark-popup-shown', routes['inbox.mark-popup-shown'], request, options),
+  markRead: (request: RequestOf<'inbox.mark-read'>, options?: CallOptions) => invoke<RequestOf<'inbox.mark-read'>, ResponseOf<'inbox.mark-read'>>('inbox.mark-read', routes['inbox.mark-read'], request, options),
+  popups: (request: RequestOf<'inbox.popups'>, options?: CallOptions) => invoke<RequestOf<'inbox.popups'>, ResponseOf<'inbox.popups'>>('inbox.popups', routes['inbox.popups'], request, options),
+}
+
 /** 资源 `login-bans` 的操作。 */
 export const loginBans = {
   lift: (request: RequestOf<'login-bans.lift'>, options?: CallOptions) => invoke<RequestOf<'login-bans.lift'>, ResponseOf<'login-bans.lift'>>('login-bans.lift', routes['login-bans.lift'], request, options),
@@ -401,6 +432,19 @@ export const menus = {
   list: (request: RequestOf<'menus.list'>, options?: CallOptions) => invoke<RequestOf<'menus.list'>, ResponseOf<'menus.list'>>('menus.list', routes['menus.list'], request, options),
   reset: (request: RequestOf<'menus.reset'>, options?: CallOptions) => invoke<RequestOf<'menus.reset'>, ResponseOf<'menus.reset'>>('menus.reset', routes['menus.reset'], request, options),
   update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
+}
+
+/** 资源 `notifications` 的操作。 */
+export const notifications = {
+  create: (request: RequestOf<'notifications.create'>, options?: CallOptions) => invoke<RequestOf<'notifications.create'>, ResponseOf<'notifications.create'>>('notifications.create', routes['notifications.create'], request, options),
+  delete: (request: RequestOf<'notifications.delete'>, options?: CallOptions) => invoke<RequestOf<'notifications.delete'>, ResponseOf<'notifications.delete'>>('notifications.delete', routes['notifications.delete'], request, options),
+  get: (request: RequestOf<'notifications.get'>, options?: CallOptions) => invoke<RequestOf<'notifications.get'>, ResponseOf<'notifications.get'>>('notifications.get', routes['notifications.get'], request, options),
+  list: (request: RequestOf<'notifications.list'>, options?: CallOptions) => invoke<RequestOf<'notifications.list'>, ResponseOf<'notifications.list'>>('notifications.list', routes['notifications.list'], request, options),
+  publish: (request: RequestOf<'notifications.publish'>, options?: CallOptions) => invoke<RequestOf<'notifications.publish'>, ResponseOf<'notifications.publish'>>('notifications.publish', routes['notifications.publish'], request, options),
+  readStats: (request: RequestOf<'notifications.read-stats'>, options?: CallOptions) => invoke<RequestOf<'notifications.read-stats'>, ResponseOf<'notifications.read-stats'>>('notifications.read-stats', routes['notifications.read-stats'], request, options),
+  recipients: (request: RequestOf<'notifications.recipients'>, options?: CallOptions) => invoke<RequestOf<'notifications.recipients'>, ResponseOf<'notifications.recipients'>>('notifications.recipients', routes['notifications.recipients'], request, options),
+  remind: (request: RequestOf<'notifications.remind'>, options?: CallOptions) => invoke<RequestOf<'notifications.remind'>, ResponseOf<'notifications.remind'>>('notifications.remind', routes['notifications.remind'], request, options),
+  update: (request: RequestOf<'notifications.update'>, options?: CallOptions) => invoke<RequestOf<'notifications.update'>, ResponseOf<'notifications.update'>>('notifications.update', routes['notifications.update'], request, options),
 }
 
 /** 资源 `numbering-rules` 的操作。 */

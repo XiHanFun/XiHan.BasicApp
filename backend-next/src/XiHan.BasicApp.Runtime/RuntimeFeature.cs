@@ -52,6 +52,7 @@ public sealed class RuntimeFeature : IFeature
         context.Services.AddSingleton<SeedRunner>();
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
         context.Services.AddScoped<DiffLogBuffer>();
+        context.Services.AddScoped<SideRows>();
         context.Services.AddSecretProtection(context.Configuration);
         // 持久化 Provider 的工作单元中间件也在 Transaction 阶段；本包依赖 persistence.relational@1，按拓扑序排在它之后
         context.AddMiddleware<AuditorStampMiddleware>(PipelineStage.Transaction);

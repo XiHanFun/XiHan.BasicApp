@@ -448,6 +448,11 @@ export default {
       view_all: 'Go to Notification Center',
       confirm: 'Confirm',
       type_default: 'Notification',
+      type_system: 'System',
+      type_security: 'Security',
+      type_business: 'Business',
+      type_todo: 'To-do',
+      type_emergency: 'Emergency',
       tab: {
         inbox: 'Inbox',
         inbox_count: 'Inbox ({n})',

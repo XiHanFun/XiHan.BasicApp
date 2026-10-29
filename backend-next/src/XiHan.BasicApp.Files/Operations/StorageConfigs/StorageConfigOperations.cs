@@ -4,8 +4,8 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Queries;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
 
@@ -49,7 +49,7 @@ public sealed class GetStorageConfig(StorageConfigService service) : IOperation<
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (!(await service.FindAsync(request.Id, FileRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await service.FindAsync(request.Id, SideRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return NotFound(request.Id);
         }
@@ -77,7 +77,7 @@ public sealed class CreateStorageConfig(StorageConfigService service) : IOperati
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var created = await service.CreateAsync(FileRows.SideOf(context), request.ToDefinition(), request.IsDefault, request.Status, context.CancellationToken).ConfigureAwait(false);
+        var created = await service.CreateAsync(SideRows.SideOf(context), request.ToDefinition(), request.IsDefault, request.Status, context.CancellationToken).ConfigureAwait(false);
         if (!created.TryGetValue(out var config))
         {
             return created.Error!;
@@ -104,7 +104,7 @@ public sealed class UpdateStorageConfig(StorageConfigService service) : IOperati
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (!(await service.FindAsync(request.Id, FileRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await service.FindAsync(request.Id, SideRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return GetStorageConfig.NotFound(request.Id);
         }
@@ -136,7 +136,7 @@ public sealed class SetStorageConfigStatus(StorageConfigService service) : IOper
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (!(await service.FindAsync(request.Id, FileRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await service.FindAsync(request.Id, SideRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return GetStorageConfig.NotFound(request.Id);
         }
@@ -168,7 +168,7 @@ public sealed class SetDefaultStorageConfig(StorageConfigService service) : IOpe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (!(await service.FindAsync(request.Id, FileRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await service.FindAsync(request.Id, SideRows.SideOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return GetStorageConfig.NotFound(request.Id);
         }
@@ -200,7 +200,7 @@ public sealed class DeleteStorageConfigs(StorageConfigService service) : IOperat
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var side = FileRows.SideOf(context);
+        var side = SideRows.SideOf(context);
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         foreach (var id in request.Ids.Distinct())

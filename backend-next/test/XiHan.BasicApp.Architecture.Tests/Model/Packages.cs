@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
+using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Realtime;
@@ -83,6 +84,7 @@ public static class Packages
         typeof(AccessFeature).Assembly,
         typeof(SettingsFeature).Assembly,
         typeof(FilesFeature).Assembly,
+        typeof(NotificationFeature).Assembly,
         typeof(AuditingFeature).Assembly,
         typeof(RealtimeFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.BasicApp.Files.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Primitives;
@@ -76,7 +76,7 @@ public sealed record ImportHistoriesResponse(IReadOnlyList<ImportHistoryResponse
 /// <param name="rows">记录读写。</param>
 /// <param name="ids">ID 生成器。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class CreateImportHistory(FileRows rows, IIdGenerator<Guid> ids) : IOperation<CreateImportHistoryRequest, ImportHistoryResponse>
+public sealed class CreateImportHistory(SideRows rows, IIdGenerator<Guid> ids) : IOperation<CreateImportHistoryRequest, ImportHistoryResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -97,7 +97,7 @@ public sealed class CreateImportHistory(FileRows rows, IIdGenerator<Guid> ids) :
         var history = new SysImportHistory
         {
             Id = ids.NewId(),
-            TenantId = FileRows.SideOf(context),
+            TenantId = SideRows.SideOf(context),
             UserId = userId,
             PageCode = request.PageCode.Trim(),
             ResourceCode = string.IsNullOrWhiteSpace(request.ResourceCode) ? null : request.ResourceCode.Trim(),
@@ -117,7 +117,7 @@ public sealed class CreateImportHistory(FileRows rows, IIdGenerator<Guid> ids) :
 /// </summary>
 /// <param name="rows">记录读写。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class RecentImportHistories(FileRows rows) : IOperation<RecentImportHistoriesRequest, ImportHistoriesResponse>
+public sealed class RecentImportHistories(SideRows rows) : IOperation<RecentImportHistoriesRequest, ImportHistoriesResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -135,7 +135,7 @@ public sealed class RecentImportHistories(FileRows rows) : IOperation<RecentImpo
         }
 
         var pageCode = request.PageCode.Trim();
-        var list = await rows.Records<SysImportHistory>(FileRows.SideOf(context))
+        var list = await rows.Records<SysImportHistory>(SideRows.SideOf(context))
             .Where(h => h.UserId == userId && h.PageCode == pageCode)
             .OrderBy(h => h.CreatedAt, SqlSugar.OrderByType.Desc)
             .Take(request.Count)

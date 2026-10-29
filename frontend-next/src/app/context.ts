@@ -1,12 +1,49 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { AppContextApis, UserProfile } from '~/types'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import type { AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, UserProfile } from '~/types'
+import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 壳层导出菜单的范围编号（4.x：0 当前页、1 搜索结果、2 全部）对应的契约名称 */
 const EXPORT_SCOPES: Record<number, 'All' | 'CurrentPage' | 'SearchResult'> = { 0: 'CurrentPage', 1: 'SearchResult', 2: 'All' }
+
+/** 顶栏通知中心一次取的条数（4.x 同至多 100 条） */
+const INBOX_PANEL_SIZE = 100
+
+type InboxItem = ResponseOf<'inbox.list'>['items'][number]
+
+/** 6.0 的收件箱条目 → 壳层的通知条目：时间字段换成 4.x 的名字，枚举名称与壳层的字符串枚举同值 */
+function toShellInboxItem(item: InboxItem): AppUserInboxItem {
+  return {
+    basicId: item.id,
+    title: item.title,
+    content: item.content ?? null,
+    contentFormat: item.contentFormat as NotificationContentFormat,
+    notificationType: item.notificationType as NotificationType,
+    notificationStatus: item.status as NotificationStatus,
+    sendTime: item.publishedAt,
+    readTime: item.readAt ?? null,
+    confirmTime: item.confirmedAt ?? null,
+    isGlobal: item.isGlobal,
+    needConfirm: item.needConfirm,
+    icon: item.icon ?? null,
+    link: item.link ?? null,
+  }
+}
+
+function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
+  return {
+    ...toShellInboxItem(item),
+    notificationId: item.notificationId,
+    priority: item.priority as NotificationPriority,
+    contentFormat: item.contentFormat as NotificationContentFormat,
+    isMandatory: item.isMandatory,
+    isBanner: item.isBanner,
+    isPopup: item.isPopup,
+  }
+}
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
 const PAGE_MAX_SIZE = 500
@@ -122,15 +159,20 @@ export function registerApplicationContext(router: Router): void {
       get: async input => toShellSetting(await userSettingOps.get({ scene: sceneOf(input.scene), key: input.settingKey })),
       save: async input => toShellSetting(await userSettingOps.update({ scene: sceneOf(input.scene), key: input.settingKey, value: input.settingValue ?? null, clientId: input.clientId ?? null, origin: input.origin ?? null })),
     },
+    // 收件箱（Notification 的 inbox.*，只看本人在当前一侧的）：壳层传的用户与租户参数是 4.x 的遗留，后端按令牌认人与侧
     userInboxApi: {
-      banner: () => notAvailable('userInboxApi.banner'),
-      confirm: () => notAvailable('userInboxApi.confirm'),
-      list: () => notAvailable('userInboxApi.list'),
-      mandatoryUnread: () => notAvailable('userInboxApi.mandatoryUnread'),
-      markAllRead: () => notAvailable('userInboxApi.markAllRead'),
-      markPopupShown: () => notAvailable('userInboxApi.markPopupShown'),
-      markRead: () => notAvailable('userInboxApi.markRead'),
-      popup: () => notAvailable('userInboxApi.popup'),
+      banner: async () => (await inboxOps.banners({})).items.map(toShellDisplayItem),
+      confirm: id => inboxOps.confirm({ id }),
+      list: async (_userId, unreadOnly) => (await inboxOps.list({
+        page: { index: 1, size: INBOX_PANEL_SIZE },
+        filters: unreadOnly ? [{ field: 'pending', operator: 'eq', value: 'true' }] : [],
+        sorts: [],
+      })).items.map(toShellInboxItem),
+      mandatoryUnread: async () => (await inboxOps.mandatory({})).items.map(toShellDisplayItem),
+      markAllRead: () => inboxOps.markAllRead({}),
+      markPopupShown: id => inboxOps.markPopupShown({ id }),
+      markRead: id => inboxOps.markRead({ ids: [id] }),
+      popup: async () => (await inboxOps.popups({})).items.map(toShellDisplayItem),
     },
     // 模仿登录（方案 5.8）：平台主体先选范围（平台账号或某个租户的成员），租户主体钉在本租户；候选、发起与结束都是 Identity 的操作
     impersonationApi: {
@@ -181,6 +223,6 @@ export function registerApplicationContext(router: Router): void {
     apis,
     getRouter: () => Promise.resolve(router),
     // 个人中心与控制中心的视图都在 packages（4.x 原样搬入），路径由这里登记（顶栏的用户菜单与上下文按钮据此显示并跳转）
-    shellRoutes: { profile: '/profile', controlCenter: '/control-center' },
+    shellRoutes: { profile: '/profile', controlCenter: '/control-center', inbox: '/notification/inbox' },
   })
 }

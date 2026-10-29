@@ -28,8 +28,24 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     registerApplicationContext({} as Router)
   })
 
-  it('登记了控制中心与个人中心的路径', () => {
-    expect(useAppContext().shellRoutes).toMatchObject({ controlCenter: '/control-center', profile: '/profile' })
+  it('登记了控制中心、个人中心与我的消息的路径', () => {
+    expect(useAppContext().shellRoutes).toMatchObject({ controlCenter: '/control-center', profile: '/profile', inbox: '/notification/inbox' })
+  })
+
+  it('收件箱：只看未读走 pending 筛选，条目换成壳层的字段名；标已读发 ids，横幅取 items', async () => {
+    const calls: Call[] = []
+    const item = { id: 'i-1', notificationId: 'n-1', title: 'T', content: '**x**', contentFormat: 'Markdown', notificationType: 'Security', priority: 'High', status: 'Unread', publishedAt: '2026-10-29T00:00:00Z', readAt: null, confirmedAt: null, isGlobal: true, needConfirm: true, isMandatory: false, isBanner: true, isPopup: false, icon: null, link: '/x', expiresAt: null }
+    record(calls, url => url.includes(':list')
+      ? json(200, { items: [item], total: 1, page: { index: 1, size: 100 } })
+      : url.includes(':banners') ? json(200, { items: [item] }) : json(200, { succeeded: ['i-1'], failed: [] }))
+    const { userInboxApi } = useAppContext().apis
+    expect(await userInboxApi.list('u-1', true, null)).toEqual([{ basicId: 'i-1', title: 'T', content: '**x**', contentFormat: 'Markdown', notificationType: 'Security', notificationStatus: 'Unread', sendTime: '2026-10-29T00:00:00Z', readTime: null, confirmTime: null, isGlobal: true, needConfirm: true, icon: null, link: '/x' }])
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/inbox:list', body: { page: { index: 1, size: 100 }, filters: [{ field: 'pending', operator: 'eq', value: 'true' }], sorts: [] } })
+    await userInboxApi.markRead('i-1')
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/inbox:mark-read', body: { ids: ['i-1'] } })
+    const [banner] = await userInboxApi.banner()
+    expect(banner).toMatchObject({ basicId: 'i-1', notificationId: 'n-1', priority: 'High', isBanner: true, isMandatory: false })
+    expect(calls[2]).toMatchObject({ method: 'GET', url: '/api/inbox:banners' })
   })
 
   it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型）', async () => {
