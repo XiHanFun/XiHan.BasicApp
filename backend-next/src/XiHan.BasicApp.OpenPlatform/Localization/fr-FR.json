@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Type d’octroi non pris en charge : {value} (authorization_code obligatoire, refresh_token facultatif).",
   "openplatform.oauth_apps.scope_unsupported": "Portée non prise en charge : {value} (openid obligatoire ; profile, email et phone facultatifs).",
   "openplatform.oauth_apps.redirect_uri_invalid": "URI de redirection invalide : {value} (1 à 10 URI absolues sans # ; http seulement en boucle locale).",
-  "openplatform.oauth_apps.url_invalid": "L’URL doit être en http ou https : {value}."
+  "openplatform.oauth_apps.url_invalid": "L’URL doit être en http ou https : {value}.",
+  "oauth_consents.resolve.description": "Aperçu de la page de consentement : vérifie la demande d’autorisation (client, URI de redirection, response_type, PKCE, portées) et renvoie l’application, les portées et si le consentement peut être sauté. Requiert seulement la connexion ; indisponible en emprunt d’identité.",
+  "oauth_consents.approve.description": "Accorde l’autorisation : émet un code d’autorisation, enregistre le consentement et renvoie l’URI de redirection avec code et state. Indisponible en emprunt d’identité.",
+  "oauth_consents.deny.description": "Refuse l’autorisation : renvoie l’URI de redirection avec error=access_denied et state, seulement si le client et l’URI sont valides. Requiert seulement la connexion.",
+  "oauth_consents.list.description": "Liste les applications que vous avez autorisées et les portées accordées. Requiert seulement la connexion.",
+  "oauth_consents.revoke.description": "Révoque votre autorisation d’une application : supprime le consentement et révoque tous vos jetons qu’elle détient. Indisponible en emprunt d’identité.",
+  "openplatform.oauth_consents.not_found": "Vous n’avez pas autorisé cette application : {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Demande d’autorisation invalide ({error}) : {description}"
 }

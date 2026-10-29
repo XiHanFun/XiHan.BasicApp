@@ -4,6 +4,7 @@ import BasicLayout from '~/layouts/basic/index.vue'
 import { coreRoutes } from '~/router'
 
 const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
+const OAuthAuthorizePage = () => import('~/views/_core/oauth/authorize.vue')
 const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
@@ -33,6 +34,18 @@ export const staticRoutes: RouteRecordRaw[] = [
       icon: 'lucide:layout-grid',
       hidden: true,
       // 独立公共页：不挂主布局、不进入标签栏（同认证页定位）
+      standalone: true,
+    },
+  },
+  {
+    // OAuth2 授权同意页：后端 GET /api/oauth2/authorize 把浏览器带到 /#/oauth/authorize?<原查询串> 的全屏独立页——需已登录
+    // （未登录由守卫带着完整 fullPath 跳登录再回跳）；不挂主布局、不进入标签栏。同意 / 拒绝 / 预览走 OpenPlatform 的 oauth-consents.*
+    path: '/oauth/authorize',
+    name: 'OAuthAuthorize',
+    component: OAuthAuthorizePage,
+    meta: {
+      title: 'page.oauth.consent_title',
+      hidden: true,
       standalone: true,
     },
   },

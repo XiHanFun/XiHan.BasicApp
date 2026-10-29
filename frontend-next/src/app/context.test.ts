@@ -144,6 +144,18 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     await expect(apis.deleteMyOAuthAppApi('o-1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001')
   })
 
+  it('已授权的应用：oauth-consents.list 投影成壳层条目（授权时间换成 grantedTime），撤销按 ClientId 交给 oauth-consents.revoke', async () => {
+    const calls: Call[] = []
+    record(calls, url => url.endsWith(':revoke')
+      ? json(200, { revoked: true })
+      : json(200, { items: [{ clientId: 'cid_x', appName: null, logo: 'https://a.example/logo.png', homepage: null, scopes: ['openid', 'profile'], grantedAt: '2026-10-30T00:00:00Z' }] }))
+    const apis = useAppContext().apis
+    expect(await apis.getOAuthConsentsApi()).toEqual([{ clientId: 'cid_x', appName: null, logo: 'https://a.example/logo.png', homepage: null, scopes: ['openid', 'profile'], grantedTime: '2026-10-30T00:00:00Z' }])
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/oauth-consents', body: null })
+    expect(await apis.revokeOAuthConsentApi('cid_x')).toEqual({ revoked: true })
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/oauth-consents:revoke', body: { clientId: 'cid_x' } })
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {

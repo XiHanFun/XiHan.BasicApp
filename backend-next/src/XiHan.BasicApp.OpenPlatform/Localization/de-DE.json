@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Nicht unterstützter Grant-Typ: {value} (authorization_code ist Pflicht, refresh_token optional).",
   "openplatform.oauth_apps.scope_unsupported": "Nicht unterstützter Bereich: {value} (openid ist Pflicht; profile, email und phone optional).",
   "openplatform.oauth_apps.redirect_uri_invalid": "Ungültige Weiterleitungs-URI: {value} (1 bis 10 absolute URIs ohne #; http nur für Loopback).",
-  "openplatform.oauth_apps.url_invalid": "Die URL muss http oder https sein: {value}."
+  "openplatform.oauth_apps.url_invalid": "Die URL muss http oder https sein: {value}.",
+  "oauth_consents.resolve.description": "Vorschau für die Zustimmungsseite: prüft die Autorisierungsanfrage (Client, Weiterleitungs-URI, response_type, PKCE, Bereiche) und liefert App, Bereiche und ob die Zustimmung entfallen kann. Erfordert nur die Anmeldung; nicht in Identitätswechsel-Sitzungen.",
+  "oauth_consents.approve.description": "Erteilt die Autorisierung: stellt einen Autorisierungscode aus, speichert die Zustimmung und liefert die Weiterleitungs-URI mit code und state. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "oauth_consents.deny.description": "Lehnt die Autorisierung ab: liefert die Weiterleitungs-URI mit error=access_denied und state, nur wenn Client und Weiterleitungs-URI gültig sind. Erfordert nur die Anmeldung.",
+  "oauth_consents.list.description": "Listet die von Ihnen autorisierten Apps und die gewährten Bereiche auf. Erfordert nur die Anmeldung.",
+  "oauth_consents.revoke.description": "Widerruft Ihre Autorisierung einer App: löscht die Zustimmung und widerruft alle Ihre Token, die sie hält. In Identitätswechsel-Sitzungen nicht verfügbar.",
+  "openplatform.oauth_consents.not_found": "Sie haben diese App nicht autorisiert: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Ungültige Autorisierungsanfrage ({error}): {description}"
 }

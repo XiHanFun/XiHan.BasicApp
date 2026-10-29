@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "Неподдерживаемый тип гранта: {value} (authorization_code обязателен, refresh_token по желанию).",
   "openplatform.oauth_apps.scope_unsupported": "Неподдерживаемая область: {value} (openid обязательна; profile, email и phone по желанию).",
   "openplatform.oauth_apps.redirect_uri_invalid": "Неверный URI перенаправления: {value} (от 1 до 10 абсолютных URI без #; http только для loopback).",
-  "openplatform.oauth_apps.url_invalid": "URL должен быть http или https: {value}."
+  "openplatform.oauth_apps.url_invalid": "URL должен быть http или https: {value}.",
+  "oauth_consents.resolve.description": "Предпросмотр страницы согласия: проверяет запрос авторизации (клиент, URI перенаправления, response_type, PKCE, области) и возвращает приложение, области и можно ли пропустить согласие. Требуется только вход; недоступно при олицетворении.",
+  "oauth_consents.approve.description": "Одобряет авторизацию: выдаёт код авторизации, сохраняет согласие и возвращает URI перенаправления с code и state. Недоступно при олицетворении.",
+  "oauth_consents.deny.description": "Отклоняет авторизацию: возвращает URI перенаправления с error=access_denied и state, только если клиент и URI верны. Требуется только вход.",
+  "oauth_consents.list.description": "Список авторизованных вами приложений и выданных областей. Требуется только вход.",
+  "oauth_consents.revoke.description": "Отзывает вашу авторизацию приложения: удаляет согласие и отзывает все ваши токены у него. Недоступно при олицетворении.",
+  "openplatform.oauth_consents.not_found": "Вы не авторизовали это приложение: {clientId}.",
+  "openplatform.oauth.authorize_invalid": "Неверный запрос авторизации ({error}): {description}"
 }

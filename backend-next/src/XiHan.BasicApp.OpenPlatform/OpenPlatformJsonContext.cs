@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.OpenPlatform.Operations.MyOauthApps;
 using XiHan.BasicApp.OpenPlatform.Operations.OauthApps;
+using XiHan.BasicApp.OpenPlatform.Operations.OauthConsents;
 using XiHan.BasicApp.OpenPlatform.Operations.Open;
 
 namespace XiHan.BasicApp.OpenPlatform;
@@ -35,4 +36,12 @@ namespace XiHan.BasicApp.OpenPlatform;
 [JsonSerializable(typeof(MyOAuthAppsResponse))]
 [JsonSerializable(typeof(CreateMyOAuthAppRequest))]
 [JsonSerializable(typeof(UpdateMyOAuthAppRequest))]
+[JsonSerializable(typeof(OAuthAuthorizeRequest))]
+[JsonSerializable(typeof(OAuthConsentPreviewResponse))]
+[JsonSerializable(typeof(OAuthConsentRedirectResponse))]
+[JsonSerializable(typeof(OAuthConsentsRequest))]
+[JsonSerializable(typeof(OAuthConsentResponse))]
+[JsonSerializable(typeof(OAuthConsentsResponse))]
+[JsonSerializable(typeof(RevokeOAuthConsentRequest))]
+[JsonSerializable(typeof(RevokeOAuthConsentResponse))]
 public sealed partial class OpenPlatformJsonContext : JsonSerializerContext;

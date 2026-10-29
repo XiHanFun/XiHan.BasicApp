@@ -2284,6 +2284,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/oauth-consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the apps you have authorized and the scopes you granted. Requires sign-in only. */
+        get: operations["oauth-consents.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-consents:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the authorization: issues an authorization code, records the consent and returns the redirect URI with code and state. Not available in impersonation sessions. */
+        post: operations["oauth-consents.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-consents:deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deny the authorization: returns the redirect URI with error=access_denied and state, only when the client and redirect URI are valid. Requires sign-in only. */
+        post: operations["oauth-consents.deny"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-consents:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview for the consent page: checks the authorization request (client, redirect URI, response_type, PKCE, scopes) and returns the app, the scopes and whether consent can be skipped. Requires sign-in only; not available in impersonation sessions. */
+        get: operations["oauth-consents.resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-consents:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke your authorization of an app: deletes the consent and revokes all of your tokens it holds. Not available in impersonation sessions. */
+        post: operations["oauth-consents.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/open-api-logs/{id}": {
         parameters: {
             query?: never;
@@ -4928,6 +5013,15 @@ export interface components {
         OAuthAppType: "Web" | "Mobile" | "Desktop" | "Service";
         /** @enum {string} */
         OAuthClientType: "Confidential" | "Public";
+        OAuthConsentResponse: {
+            clientId: string;
+            appName?: string | null;
+            logo?: string | null;
+            homepage?: string | null;
+            scopes: string[];
+            /** Format: date-time */
+            grantedAt: string;
+        };
         OnlineSessionResponse: {
             /** Format: uuid */
             id: string;
@@ -13692,6 +13786,211 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-consents.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OAuthConsentResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-consents.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    responseType?: string | null;
+                    clientId?: string | null;
+                    redirectUri?: string | null;
+                    scope?: string | null;
+                    state?: string | null;
+                    codeChallenge?: string | null;
+                    codeChallengeMethod?: string | null;
+                    nonce?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        redirectUri: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-consents.deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    responseType?: string | null;
+                    clientId?: string | null;
+                    redirectUri?: string | null;
+                    scope?: string | null;
+                    state?: string | null;
+                    codeChallenge?: string | null;
+                    codeChallengeMethod?: string | null;
+                    nonce?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        redirectUri: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-consents.resolve": {
+        parameters: {
+            query?: {
+                responseType?: string | null;
+                clientId?: string | null;
+                redirectUri?: string | null;
+                scope?: string | null;
+                state?: string | null;
+                codeChallenge?: string | null;
+                codeChallengeMethod?: string | null;
+                nonce?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        valid: boolean;
+                        error?: string | null;
+                        errorDescription?: string | null;
+                        clientId?: string | null;
+                        appName?: string | null;
+                        appDescription?: string | null;
+                        logo?: string | null;
+                        homepage?: string | null;
+                        skipConsent: boolean;
+                        scopes: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-consents.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    clientId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        revoked: boolean;
                     };
                 };
             };

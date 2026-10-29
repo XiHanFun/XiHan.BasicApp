@@ -124,6 +124,16 @@ public static class OpenPlatformErrors
     public const string UrlInvalid = "OPENPLATFORM_VALIDATION_012";
 
     /// <summary>
+    /// 没有授权过这个应用；参数 <c>clientId</c>。
+    /// </summary>
+    public const string ConsentNotFound = "OPENPLATFORM_NOTFOUND_002";
+
+    /// <summary>
+    /// 授权请求不对；参数 <c>error</c>（OAuth 错误码）、<c>description</c>。
+    /// </summary>
+    public const string AuthorizeRequestInvalid = "OPENPLATFORM_VALIDATION_014";
+
+    /// <summary>
     /// 不支持的筛选或排序；消息用 <c>FilterUnsupported</c> 或 <c>SortUnsupported</c>。
     /// </summary>
     public const string QueryUnsupported = "OPENPLATFORM_VALIDATION_013";

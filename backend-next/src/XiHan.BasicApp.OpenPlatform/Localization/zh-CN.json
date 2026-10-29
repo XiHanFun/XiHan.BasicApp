@@ -38,5 +38,12 @@
   "openplatform.oauth_apps.grant_type_unsupported": "不支持的授权类型：{value}（须包含 authorization_code，可加 refresh_token）。",
   "openplatform.oauth_apps.scope_unsupported": "不支持的授权范围：{value}（须包含 openid，可加 profile、email、phone）。",
   "openplatform.oauth_apps.redirect_uri_invalid": "回调地址无效：{value}（1 到 10 条绝对地址，不带 #，http 只限本机）。",
-  "openplatform.oauth_apps.url_invalid": "地址必须是 http 或 https：{value}。"
+  "openplatform.oauth_apps.url_invalid": "地址必须是 http 或 https：{value}。",
+  "oauth_consents.resolve.description": "授权同意页的预览：校验授权请求（客户端、回调地址、response_type、PKCE、范围），返回应用信息、本次范围与是否不必再确认。已登录即可，模仿会话不能用。",
+  "oauth_consents.approve.description": "同意授权：发授权码、记下同意，返回带 code 与 state 的回调地址。模仿会话不能用。",
+  "oauth_consents.deny.description": "拒绝授权：客户端与回调地址都对上了才返回带 error=access_denied 与 state 的回调地址。已登录即可。",
+  "oauth_consents.list.description": "列出本人授权过的应用与同意过的范围。已登录即可。",
+  "oauth_consents.revoke.description": "撤销对一个应用的授权：删掉同意记录并吊销它拿到的本人的全部令牌。模仿会话不能用。",
+  "openplatform.oauth_consents.not_found": "没有授权过这个应用：{clientId}。",
+  "openplatform.oauth.authorize_invalid": "授权请求无效（{error}）：{description}"
 }
