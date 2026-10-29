@@ -19,6 +19,12 @@ export const routes = {
   'auth.session-roles': { method: 'GET', template: '/api/auth:session-roles', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
   'auth.verify-two-factor': { method: 'POST', template: '/api/auth:verify-two-factor', path: [], query: [], success: 200 },
+  'bot-configs.create': { method: 'POST', template: '/api/bot-configs', path: [], query: [], success: 201 },
+  'bot-configs.delete': { method: 'DELETE', template: '/api/bot-configs', path: [], query: ['ids'], success: 200 },
+  'bot-configs.get': { method: 'GET', template: '/api/bot-configs/{id}', path: ['id'], query: [], success: 200 },
+  'bot-configs.list': { method: 'POST', template: '/api/bot-configs:list', path: [], query: [], success: 200 },
+  'bot-configs.set-default': { method: 'POST', template: '/api/bot-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'bot-configs.update': { method: 'PUT', template: '/api/bot-configs/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
@@ -221,6 +227,11 @@ export const routes = {
   'storage-configs.set-status': { method: 'POST', template: '/api/storage-configs/{id}:set-status', path: ['id'], query: [], success: 200 },
   'storage-configs.update': { method: 'PUT', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
   'subscription.get': { method: 'GET', template: '/api/subscription', path: [], query: [], success: 200 },
+  'telegram-bots.create': { method: 'POST', template: '/api/telegram-bots', path: [], query: [], success: 201 },
+  'telegram-bots.delete': { method: 'DELETE', template: '/api/telegram-bots', path: [], query: ['ids'], success: 200 },
+  'telegram-bots.get': { method: 'GET', template: '/api/telegram-bots/{id}', path: ['id'], query: [], success: 200 },
+  'telegram-bots.list': { method: 'POST', template: '/api/telegram-bots:list', path: [], query: [], success: 200 },
+  'telegram-bots.update': { method: 'PUT', template: '/api/telegram-bots/{id}', path: ['id'], query: [], success: 200 },
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
@@ -285,6 +296,16 @@ export const auth = {
   sessionRoles: (request: RequestOf<'auth.session-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.session-roles'>, ResponseOf<'auth.session-roles'>>('auth.session-roles', routes['auth.session-roles'], request, options),
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
   verifyTwoFactor: (request: RequestOf<'auth.verify-two-factor'>, options?: CallOptions) => invoke<RequestOf<'auth.verify-two-factor'>, ResponseOf<'auth.verify-two-factor'>>('auth.verify-two-factor', routes['auth.verify-two-factor'], request, options),
+}
+
+/** 资源 `bot-configs` 的操作。 */
+export const botConfigs = {
+  create: (request: RequestOf<'bot-configs.create'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.create'>, ResponseOf<'bot-configs.create'>>('bot-configs.create', routes['bot-configs.create'], request, options),
+  delete: (request: RequestOf<'bot-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.delete'>, ResponseOf<'bot-configs.delete'>>('bot-configs.delete', routes['bot-configs.delete'], request, options),
+  get: (request: RequestOf<'bot-configs.get'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.get'>, ResponseOf<'bot-configs.get'>>('bot-configs.get', routes['bot-configs.get'], request, options),
+  list: (request: RequestOf<'bot-configs.list'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.list'>, ResponseOf<'bot-configs.list'>>('bot-configs.list', routes['bot-configs.list'], request, options),
+  setDefault: (request: RequestOf<'bot-configs.set-default'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.set-default'>, ResponseOf<'bot-configs.set-default'>>('bot-configs.set-default', routes['bot-configs.set-default'], request, options),
+  update: (request: RequestOf<'bot-configs.update'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.update'>, ResponseOf<'bot-configs.update'>>('bot-configs.update', routes['bot-configs.update'], request, options),
 }
 
 /** 资源 `condition-hits` 的操作。 */
@@ -647,6 +668,15 @@ export const storageConfigs = {
 /** 资源 `subscription` 的操作。 */
 export const subscription = {
   get: (request: RequestOf<'subscription.get'>, options?: CallOptions) => invoke<RequestOf<'subscription.get'>, ResponseOf<'subscription.get'>>('subscription.get', routes['subscription.get'], request, options),
+}
+
+/** 资源 `telegram-bots` 的操作。 */
+export const telegramBots = {
+  create: (request: RequestOf<'telegram-bots.create'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.create'>, ResponseOf<'telegram-bots.create'>>('telegram-bots.create', routes['telegram-bots.create'], request, options),
+  delete: (request: RequestOf<'telegram-bots.delete'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.delete'>, ResponseOf<'telegram-bots.delete'>>('telegram-bots.delete', routes['telegram-bots.delete'], request, options),
+  get: (request: RequestOf<'telegram-bots.get'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.get'>, ResponseOf<'telegram-bots.get'>>('telegram-bots.get', routes['telegram-bots.get'], request, options),
+  list: (request: RequestOf<'telegram-bots.list'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.list'>, ResponseOf<'telegram-bots.list'>>('telegram-bots.list', routes['telegram-bots.list'], request, options),
+  update: (request: RequestOf<'telegram-bots.update'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.update'>, ResponseOf<'telegram-bots.update'>>('telegram-bots.update', routes['telegram-bots.update'], request, options),
 }
 
 /** 资源 `tenant-members` 的操作。 */

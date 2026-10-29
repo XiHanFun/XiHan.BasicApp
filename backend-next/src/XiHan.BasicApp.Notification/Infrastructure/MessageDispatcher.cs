@@ -14,7 +14,7 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 邮件与短信的发送循环（单例，通知包的后台循环；4.x 用 Redis 延迟队列）：每轮取到点的排队记录，先用条件更新把它改成发送中（多实例只有一个能领到），
+/// 邮件、短信与机器人消息的发送循环（单例，通知包的后台循环；4.x 用 Redis 延迟队列）：每轮取到点的排队记录，先用条件更新把它改成发送中（多实例只有一个能领到），
 /// 再按所属侧的缺省配置（没有取平台的）发出；成功记发出时间，失败按「第 n 次等 n 倍重试间隔」退避，用完次数即失败。
 /// 启动时把发送中超过 <see cref="NotificationOptions.StuckAfter"/> 的记录改回排队中（上个进程发到一半）。
 /// </summary>
@@ -24,6 +24,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// <param name="clock">时钟。</param>
 /// <param name="emailTransport">邮件通道。</param>
 /// <param name="smsTransports">短信通道（每个服务商一个）。</param>
+/// <param name="botTransports">机器人通道（每个服务商一个）。</param>
 /// <param name="logger">日志。</param>
 public sealed partial class MessageDispatcher(
     IServiceScopeFactory scopes,
@@ -32,11 +33,14 @@ public sealed partial class MessageDispatcher(
     TimeProvider clock,
     IEmailTransport emailTransport,
     IEnumerable<ISmsTransport> smsTransports,
+    IEnumerable<IBotTransport> botTransports,
     ILogger<MessageDispatcher> logger)
 {
     private const int BatchSize = 20;
 
     private readonly ISmsTransport[] _sms = smsTransports.ToArray();
+
+    private readonly IBotTransport[] _bots = botTransports.ToArray();
 
     /// <summary>
     /// 循环到停止。
@@ -86,12 +90,16 @@ public sealed partial class MessageDispatcher(
                 .SetColumns(s => new SysSms { Status = MessageSendStatus.Pending })
                 .Where(s => s.Status == MessageSendStatus.Sending && SqlFunc.IsNull(s.ModifiedAt, s.CreatedAt) < cutoff)
                 .ExecuteCommandAsync(ct).ConfigureAwait(false);
+            await unitOfWork.ConnectionFor(typeof(SysBotMessage)).Updateable<SysBotMessage>()
+                .SetColumns(b => new SysBotMessage { Status = MessageSendStatus.Pending })
+                .Where(b => b.Status == MessageSendStatus.Sending && SqlFunc.IsNull(b.ModifiedAt, b.CreatedAt) < cutoff)
+                .ExecuteCommandAsync(ct).ConfigureAwait(false);
             return Result.Success();
         }, cancellationToken);
     }
 
     /// <summary>
-    /// 发一轮：每类至多 <c>20</c> 条到点的排队记录。
+    /// 发一轮：每类至多 <c>20</c> 条到点的排队记录（邮件、短信、机器人消息）。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>一轮。</returns>
@@ -113,6 +121,14 @@ public sealed partial class MessageDispatcher(
         foreach (var id in smsIds)
         {
             await SendSmsAsync(id, cancellationToken).ConfigureAwait(false);
+        }
+
+        var botIds = await StoreScope.ReadAsync(scopes, (services, ct) => services.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysBotMessage)).Queryable<SysBotMessage>()
+            .Where(b => !b.IsDeleted && b.Status == MessageSendStatus.Pending && SqlFunc.IsNull(b.NextAttemptAt, past) <= now)
+            .OrderBy(b => b.CreatedAt).Take(BatchSize).Select(b => b.Id).ToListAsync(ct), cancellationToken).ConfigureAwait(false);
+        foreach (var id in botIds)
+        {
+            await SendBotAsync(id, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -186,6 +202,46 @@ public sealed partial class MessageDispatcher(
         await FinishAsync<SysSms>(record, config?.Id, result, config?.Provider, cancellationToken).ConfigureAwait(false);
     }
 
+    private async Task SendBotAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if (!await ClaimAsync<SysBotMessage>(id, cancellationToken).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var (record, endpoint) = await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        {
+            var row = await services.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysBotMessage)).Queryable<SysBotMessage>().InSingleAsync(id).ConfigureAwait(false);
+            if (row?.ConfigId is not { } configId)
+            {
+                return (row, (BotEndpoint?)null);
+            }
+
+            if (row.Channel == BotChannel.Telegram)
+            {
+                var telegram = services.GetRequiredService<TelegramBotService>();
+                var bot = await telegram.FindAsync(configId, ct).ConfigureAwait(false);
+                return (row, bot.TryGetValue(out var b) && b.IsEnabled && row.ChatId is { } chat ? telegram.EndpointOf(b, chat) : null);
+            }
+
+            var configs = services.GetRequiredService<BotConfigService>();
+            var found = await configs.FindAsync(row.OwnerTenantId, configId, ct).ConfigureAwait(false);
+            return (row, found.TryGetValue(out var config) && config.IsEnabled ? configs.EndpointOf(config) : null);
+        }, cancellationToken).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        var transport = _bots.FirstOrDefault(t => t.Channel == record.Channel);
+        var result = endpoint is null
+            ? TransportResult.Failed("The bot configuration was disabled or deleted.")
+            : transport is null
+                ? TransportResult.Failed($"No transport for bot channel '{record.Channel}'.")
+                : await transport.SendAsync(endpoint, record.Content, cancellationToken).ConfigureAwait(false);
+        await FinishAsync<SysBotMessage>(record, record.ConfigId, result, provider: null, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// 排队中 → 发送中；改到即领到。
     /// </summary>
@@ -201,7 +257,9 @@ public sealed partial class MessageDispatcher(
             var connection = unitOfWork.ConnectionFor(typeof(T));
             claimed = typeof(T) == typeof(SysEmail)
                 ? await connection.Updateable<SysEmail>().SetColumns(e => new SysEmail { Status = MessageSendStatus.Sending, ModifiedAt = now }).Where(e => e.Id == id && e.Status == MessageSendStatus.Pending).ExecuteCommandAsync(ct).ConfigureAwait(false)
-                : await connection.Updateable<SysSms>().SetColumns(s => new SysSms { Status = MessageSendStatus.Sending, ModifiedAt = now }).Where(s => s.Id == id && s.Status == MessageSendStatus.Pending).ExecuteCommandAsync(ct).ConfigureAwait(false);
+                : typeof(T) == typeof(SysSms)
+                    ? await connection.Updateable<SysSms>().SetColumns(s => new SysSms { Status = MessageSendStatus.Sending, ModifiedAt = now }).Where(s => s.Id == id && s.Status == MessageSendStatus.Pending).ExecuteCommandAsync(ct).ConfigureAwait(false)
+                    : await connection.Updateable<SysBotMessage>().SetColumns(b => new SysBotMessage { Status = MessageSendStatus.Sending, ModifiedAt = now }).Where(b => b.Id == id && b.Status == MessageSendStatus.Pending).ExecuteCommandAsync(ct).ConfigureAwait(false);
             return Result.Success();
         }, cancellationToken).ConfigureAwait(false);
         return claimed == 1;
@@ -232,6 +290,12 @@ public sealed partial class MessageDispatcher(
                 await connection.Updateable<SysEmail>()
                     .SetColumns(e => new SysEmail { Status = status, Attempts = attempts, NextAttemptAt = next, SentAt = sentAt, ErrorMessage = error, ConfigId = configId, ModifiedAt = now })
                     .Where(e => e.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
+            }
+            else if (typeof(T) == typeof(SysBotMessage))
+            {
+                await connection.Updateable<SysBotMessage>()
+                    .SetColumns(b => new SysBotMessage { Status = status, Attempts = attempts, NextAttemptAt = next, SentAt = sentAt, ErrorMessage = error, ModifiedAt = now })
+                    .Where(b => b.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
             }
             else
             {

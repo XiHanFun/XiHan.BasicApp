@@ -33,7 +33,7 @@ export function needsTargets(type: NotificationTargetType): boolean {
 
 /**
  * 勾选的渠道 → 提交与展示用的渠道：并入站内信、去重、按契约顺序排。
- * 站内信始终投递（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010），邮件、短信可叠加。
+ * 站内信始终投递（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010），邮件、短信与机器人可叠加。
  */
 export function normalizeChannels(channels: readonly string[] | null | undefined): DeliveryChannel[] {
   const picked = new Set<string>(channels ?? [])

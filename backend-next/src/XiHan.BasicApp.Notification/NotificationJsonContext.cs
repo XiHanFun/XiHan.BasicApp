@@ -1,13 +1,16 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Services;
+using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.Inbox;
 using XiHan.BasicApp.Notification.Operations.Messaging;
 using XiHan.BasicApp.Notification.Operations.Notifications;
+using XiHan.BasicApp.Notification.Operations.TelegramBots;
 
 namespace XiHan.BasicApp.Notification;
 
@@ -61,4 +64,13 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(PageResult<EmailRecordResponse>))]
 [JsonSerializable(typeof(SmsRecordResponse))]
 [JsonSerializable(typeof(PageResult<SmsRecordResponse>))]
+[JsonSerializable(typeof(BotConfigResponse))]
+[JsonSerializable(typeof(PageResult<BotConfigResponse>))]
+[JsonSerializable(typeof(CreateBotConfigRequest))]
+[JsonSerializable(typeof(UpdateBotConfigRequest))]
+[JsonSerializable(typeof(JsonObject))]
+[JsonSerializable(typeof(TelegramBotResponse))]
+[JsonSerializable(typeof(PageResult<TelegramBotResponse>))]
+[JsonSerializable(typeof(CreateTelegramBotRequest))]
+[JsonSerializable(typeof(UpdateTelegramBotRequest))]
 public sealed partial class NotificationJsonContext : JsonSerializerContext;

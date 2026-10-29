@@ -11,6 +11,9 @@ export type AccessPolicyStatus = (typeof AccessPolicyStatus)[number]
 export const AccessResult = ['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'] as const
 export type AccessResult = (typeof AccessResult)[number]
 
+export const BotProvider = ['DingTalk', 'Lark', 'WeCom'] as const
+export type BotProvider = (typeof BotProvider)[number]
+
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
 
@@ -62,7 +65,7 @@ export type DataScope = (typeof DataScope)[number]
 export const DelegationStatus = ['Pending', 'Active', 'Expired', 'Revoked'] as const
 export type DelegationStatus = (typeof DelegationStatus)[number]
 
-export const DeliveryChannel = ['InApp', 'Email', 'Sms'] as const
+export const DeliveryChannel = ['InApp', 'Email', 'Sms', 'Bot'] as const
 export type DeliveryChannel = (typeof DeliveryChannel)[number]
 
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
@@ -199,6 +202,7 @@ export const enums = {
   AccessPolicyAction,
   AccessPolicyStatus,
   AccessResult,
+  BotProvider,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,

@@ -5,7 +5,9 @@ using System.Linq.Expressions;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Entities;
+using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.Messaging;
+using XiHan.BasicApp.Notification.Operations.TelegramBots;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
@@ -106,6 +108,66 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
             "createdAt" => q.OrderBy(c => c.CreatedAt, d),
             _ => null,
         }, static q => q.OrderBy(c => c.IsDefault, OrderByType.Desc).OrderBy(c => c.Order).OrderBy(c => c.Code), SmsConfigResponse.From);
+    }
+
+    /// <summary>
+    /// 机器人配置：关键字匹配编码与名称；筛选服务商 <c>eq / in</c>、是否启用；缺省按服务商、缺省在前、再按排序。
+    /// </summary>
+    /// <param name="request">分页请求。</param>
+    /// <param name="context">调用上下文。</param>
+    /// <returns>一页配置。</returns>
+    public Task<Result<PageResult<BotConfigResponse>>> BotConfigsAsync(PageRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var owner = SideRows.SideOf(context);
+        var query = Owned<SysBotConfig>().Where(c => c.OwnerTenantId == owner);
+        if (Keyword(request) is { } keyword)
+        {
+            query = query.Where(c => c.Code.Contains(keyword) || c.Name.Contains(keyword));
+        }
+
+        return PageAsync(query, request, context, (q, f, v) => (f.Field, f.Operator) switch
+        {
+            ("provider", "eq" or "in") when Enums.Of<BotProvider>(v) is { } providers => q.Where(c => providers.Contains(c.Provider)),
+            ("isEnabled", "eq") when bool.TryParse(v, out var enabled) => q.Where(c => c.IsEnabled == enabled),
+            _ => null,
+        }, static (q, field, d) => field switch
+        {
+            "order" => q.OrderBy(c => c.Order, d),
+            "createdAt" => q.OrderBy(c => c.CreatedAt, d),
+            _ => null,
+        }, static q => q.OrderBy(c => c.Provider).OrderBy(c => c.IsDefault, OrderByType.Desc).OrderBy(c => c.Order).OrderBy(c => c.Code), BotConfigResponse.From);
+    }
+
+    /// <summary>
+    /// Telegram 机器人（平台托管，不分侧）：关键字匹配名称；筛选是否启用、是否兜底回复；缺省按排序再按名称。
+    /// </summary>
+    /// <param name="request">分页请求。</param>
+    /// <param name="context">调用上下文。</param>
+    /// <returns>一页机器人。</returns>
+    public Task<Result<PageResult<TelegramBotResponse>>> TelegramBotsAsync(PageRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var query = Owned<SysTelegramBot>();
+        if (Keyword(request) is { } keyword)
+        {
+            query = query.Where(b => b.Name.Contains(keyword));
+        }
+
+        return PageAsync(query, request, context, (q, f, v) => (f.Field, f.Operator) switch
+        {
+            ("isEnabled", "eq") when bool.TryParse(v, out var enabled) => q.Where(b => b.IsEnabled == enabled),
+            ("enableFallbackReply", "eq") when bool.TryParse(v, out var fallback) => q.Where(b => b.EnableFallbackReply == fallback),
+            _ => null,
+        }, static (q, field, d) => field switch
+        {
+            "order" => q.OrderBy(b => b.Order, d),
+            "name" => q.OrderBy(b => b.Name, d),
+            "createdAt" => q.OrderBy(b => b.CreatedAt, d),
+            _ => null,
+        }, static q => q.OrderBy(b => b.Order).OrderBy(b => b.Name), TelegramBotResponse.From);
     }
 
     /// <summary>

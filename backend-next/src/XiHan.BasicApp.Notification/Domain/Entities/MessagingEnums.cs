@@ -28,6 +28,11 @@ public enum MessageChannels
     /// 短信。
     /// </summary>
     Sms = 4,
+
+    /// <summary>
+    /// 机器人（钉钉、飞书、企业微信的群机器人；一条通知发到本侧每个服务商的缺省机器人）。
+    /// </summary>
+    Bot = 8,
 }
 
 /// <summary>
@@ -49,6 +54,11 @@ public enum DeliveryChannel
     /// 短信。
     /// </summary>
     Sms = 4,
+
+    /// <summary>
+    /// 机器人。
+    /// </summary>
+    Bot = 8,
 }
 
 /// <summary>
@@ -65,6 +75,53 @@ public enum TemplateChannel
     /// 短信（纯文本；云厂商发送要在短信配置里把模板编码映射到服务商的模板 ID）。
     /// </summary>
     Sms = 4,
+}
+
+/// <summary>
+/// 群机器人的服务商。
+/// </summary>
+public enum BotProvider
+{
+    /// <summary>
+    /// 钉钉自定义机器人（可选加签与安全关键词）。
+    /// </summary>
+    DingTalk = 1,
+
+    /// <summary>
+    /// 飞书自定义机器人（可选签名校验与关键词）。
+    /// </summary>
+    Lark = 2,
+
+    /// <summary>
+    /// 企业微信群机器人（地址里带 key，没有签名）。
+    /// </summary>
+    WeCom = 3,
+}
+
+/// <summary>
+/// 机器人消息走的通道：三家群机器人（与 <see cref="BotProvider"/> 同值）与 Telegram（平台托管）。
+/// </summary>
+public enum BotChannel
+{
+    /// <summary>
+    /// 钉钉群机器人。
+    /// </summary>
+    DingTalk = 1,
+
+    /// <summary>
+    /// 飞书群机器人。
+    /// </summary>
+    Lark = 2,
+
+    /// <summary>
+    /// 企业微信群机器人。
+    /// </summary>
+    WeCom = 3,
+
+    /// <summary>
+    /// Telegram 机器人（只在平台一侧广播）。
+    /// </summary>
+    Telegram = 4,
 }
 
 /// <summary>

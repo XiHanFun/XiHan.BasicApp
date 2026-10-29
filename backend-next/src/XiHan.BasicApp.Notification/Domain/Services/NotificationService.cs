@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Notification.Domain.Entities;
+using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -144,7 +145,8 @@ public sealed record NotificationPushPayload(string Type, string Title, string? 
 /// <param name="pushes">实时推送（没装 Realtime 即没有）。</param>
 /// <param name="sender">邮件与短信的发送（扇出）。</param>
 /// <param name="directory">用户目录（接收人的邮箱与手机号）。</param>
-public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory)
+/// <param name="bots">机器人渠道的广播。</param>
+public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory, BotBroadcaster bots)
 {
     /// <summary>
     /// 通知邮件的模板编码（4.x 同）。
@@ -308,6 +310,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             }
         }
 
+        if (channels.HasFlag(MessageChannels.Bot) && !await bots.CanBroadcastAsync(context).ConfigureAwait(false))
+        {
+            return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", "Bot")));
+        }
+
         var side = SideRows.SideOf(context);
         var inbox = recipients.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
         await rows.InsertRangeAsync(inbox, context.CancellationToken).ConfigureAwait(false);
@@ -454,10 +461,41 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 邮件与短信的扇出：给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；随发布一起提交，由发送循环发出。
+    /// 机器人消息的纯文本：标题、正文与链接各一段（4.x 发标题与正文）。
+    /// </summary>
+    /// <param name="notification">通知。</param>
+    /// <returns>正文。</returns>
+    public static string BotTextOf(SysNotification notification)
+    {
+        ArgumentNullException.ThrowIfNull(notification);
+        var parts = new List<string> { notification.Title };
+        if (!string.IsNullOrWhiteSpace(notification.Content))
+        {
+            parts.Add(notification.Content.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(notification.Link))
+        {
+            parts.Add(notification.Link.Trim());
+        }
+
+        return string.Join("\n\n", parts);
+    }
+
+    /// <summary>
+    /// 邮件、短信与机器人的扇出：给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；机器人按本侧每个服务商的缺省机器人各一条；随发布一起提交，由发送循环发出。
     /// </summary>
     private async Task<Result> FanOutAsync(InvocationContext context, SysNotification notification, MessageChannels channels, IReadOnlyCollection<Guid> recipients)
     {
+        if (channels.HasFlag(MessageChannels.Bot))
+        {
+            var broadcast = await bots.EnqueueAsync(context, BotTextOf(notification), "notification", notification.Id.ToString("D")).ConfigureAwait(false);
+            if (broadcast.IsFailure)
+            {
+                return broadcast.Error!;
+            }
+        }
+
         if (!channels.HasFlag(MessageChannels.Email) && !channels.HasFlag(MessageChannels.Sms))
         {
             return Result.Success();

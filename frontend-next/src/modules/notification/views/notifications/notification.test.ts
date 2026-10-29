@@ -179,16 +179,19 @@ describe('通知公告的表单', () => {
 })
 
 describe('通知公告的投递渠道', () => {
-  it('站内信总在内、去重并按契约顺序排；缺省只有站内信', () => {
+  it('站内信总在内、去重并按契约顺序排（站内信、邮件、短信、机器人）；缺省只有站内信', () => {
     expect(emptyNotificationForm().deliveryChannels).toEqual(['InApp'])
     expect(normalizeChannels(['Sms', 'Email', 'Sms'])).toEqual(['InApp', 'Email', 'Sms'])
+    expect(normalizeChannels(['Bot', 'Sms'])).toEqual(['InApp', 'Sms', 'Bot'])
     expect(normalizeChannels([])).toEqual(['InApp'])
     expect(normalizeChannels(null)).toEqual(['InApp'])
     // 不认得的值不带上去
-    expect(normalizeChannels(['Bot'])).toEqual(['InApp'])
+    expect(normalizeChannels(['Telegram'])).toEqual(['InApp'])
     // 表单里被取消的站内信在提交时补回（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010）
     expect(toCreateBody(form({ deliveryChannels: ['Email'] })).deliveryChannels).toEqual(['InApp', 'Email'])
+    expect(toCreateBody(form({ deliveryChannels: ['InApp', 'Bot'] })).deliveryChannels).toEqual(['InApp', 'Bot'])
     expect(deliveryChannelLabel(t, 'Sms')).toBe('notification.notifications.channel_sms')
+    expect(deliveryChannelLabel(t, 'Bot')).toBe('notification.notifications.channel_bot')
     expect(deliveryChannelLabel(t, 'InApp')).toBe('notification.notifications.channel_in_app')
   })
 })
