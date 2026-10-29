@@ -14,9 +14,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 会话角色列表（SqlSugar 直查，作用侧 = 当前租户或平台）：筛选 <c>sessionId / userId / roleId</c> 的 <c>eq</c> 与 <c>status</c> 的 <c>eq / in</c>；
-/// 排序 <c>activatedAt / deactivatedAt / status</c>，缺省按激活时间倒序。用户与角色补上名称。
+/// 会话角色列表查询。
 /// </summary>
+/// <remarks>
+/// SqlSugar 直查，作用侧 = 当前租户或平台。
+/// 筛选 <c>sessionId / userId / roleId</c> 的 <c>eq</c> 与 <c>status</c> 的 <c>eq / in</c>；
+/// 排序 <c>activatedAt / deactivatedAt / status</c>，缺省按激活时间倒序。用户与角色补上名称。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="rows">会话角色仓储。</param>
 /// <param name="users">用户仓储。</param>
@@ -76,8 +80,9 @@ public sealed class SessionRoleQueries(SqlSugarUnitOfWork unitOfWork, IRepositor
     }
 
     /// <summary>
-    /// 按 ID 取这一侧的一行；没有为空。
+    /// 按 ID 取这一侧的一行会话角色。
     /// </summary>
+    /// <returns>会话角色；没有为空。</returns>
     public async Task<SessionRoleResponse?> GetAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
         if (!(await rows.FindAsync(id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var row) || !string.Equals(row.OwnerTenantId, owner, StringComparison.Ordinal))

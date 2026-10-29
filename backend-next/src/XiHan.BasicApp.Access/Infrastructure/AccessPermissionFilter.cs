@@ -7,10 +7,14 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// Access 的授予规则接进框架的权限判定（ADR-0039 的 <see cref="IPermissionFilter"/>，单例）：框架的授予命中之后，按本包的合并次序重新判一次——
+/// 把 Access 的授予规则接进框架的权限判定。
+/// </summary>
+/// <remarks>
+/// ADR-0039 的 <see cref="IPermissionFilter"/>，单例。
+/// 框架的授予命中之后，按本包的合并次序重新判一次——
 /// 用户与角色的 Deny、授予与指派的有效期、令牌里已不算数的角色都在这里拿掉。与 <see cref="EffectivePermissions"/> 同源（<see cref="GrantEvaluator"/>）。
 /// 不是本应用用户的主体（外部签发的令牌）不收窄。
-/// </summary>
+/// </remarks>
 /// <param name="evaluator">授予全貌。</param>
 public sealed class AccessPermissionFilter(GrantEvaluator evaluator) : IPermissionFilter
 {

@@ -14,8 +14,11 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 一条条件子句的内容（新建与修改共用；绑定只在新建时给）。
+/// 一条条件子句的内容。
 /// </summary>
+/// <remarks>
+/// 新建与修改共用；绑定只在新建时给。
+/// </remarks>
 /// <param name="GroupNo">组号。</param>
 /// <param name="AttributeName">属性名。</param>
 /// <param name="Operator">运算符。</param>
@@ -35,10 +38,14 @@ public sealed record ConditionClauseDefinition(int GroupNo, string AttributeName
 public sealed record ConditionBinding(GrantSubjectKind Kind, Guid SubjectId, string Permission, PermissionAction Action);
 
 /// <summary>
-/// 权限条件的写入规则（方案 5.9，4.x 的 PermissionConditionDomainService）：只挂在这一侧确实存在的授权绑定上（授予看框架授予存储，拒绝看规则行）；
+/// 权限条件的写入规则。
+/// </summary>
+/// <remarks>
+/// 见方案 5.9，对应 4.x 的 PermissionConditionDomainService。
+/// 只挂在这一侧确实存在的授权绑定上（授予看框架授予存储，拒绝看规则行）；
 /// 角色须启用且不是内置角色；每个绑定最多 5 组、每组最多 10 条；子句按条件引擎编译，编译不过返回引擎的错误（<c>SECURITY_VALIDATION_002</c>）。
 /// 停用的子句不校验结构以外的规则，启用时重新校验。
-/// </summary>
+/// </remarks>
 /// <param name="conditions">条件仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="roles">角色查找。</param>
@@ -139,8 +146,11 @@ public sealed class PermissionConditionService(
     }
 
     /// <summary>
-    /// 修改一条子句（绑定不变）；启用时重新校验绑定。
+    /// 修改一条子句（绑定不变）。
     /// </summary>
+    /// <remarks>
+    /// 启用时重新校验绑定。
+    /// </remarks>
     public async Task<Result> UpdateAsync(SysPermissionCondition condition, ConditionClauseDefinition definition, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(condition);
@@ -187,8 +197,11 @@ public sealed class PermissionConditionService(
     }
 
     /// <summary>
-    /// 绑定没了时连同删除它上面的子句：<paramref name="permissions"/> 为空即主体上的全部，<paramref name="action"/> 为空即授予与拒绝两侧。
+    /// 绑定没了时连同删除它上面的子句。
     /// </summary>
+    /// <remarks>
+    /// <paramref name="permissions"/> 为空即主体上的全部，<paramref name="action"/> 为空即授予与拒绝两侧。
+    /// </remarks>
     public async Task<Result> RemoveBindingsAsync(string owner, GrantSubjectKind kind, Guid subjectId, IReadOnlyCollection<string>? permissions, PermissionAction? action, CancellationToken cancellationToken)
     {
         var rows = (await ListAsync(owner, kind, subjectId, cancellationToken).ConfigureAwait(false))

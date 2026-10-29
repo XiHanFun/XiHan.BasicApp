@@ -25,8 +25,11 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed record PolicyConditionDefinition(int GroupNo, string AttributeName, ConditionOperator Operator, bool IsNegated, string? Value, string? Description);
 
 /// <summary>
-/// 访问策略的内容（新建与修改共用；动作与状态另有操作）。
+/// 访问策略的内容。
 /// </summary>
+/// <remarks>
+/// 新建与修改共用；动作与状态另有操作。
+/// </remarks>
 /// <param name="Code">编码。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Description">说明。</param>
@@ -39,10 +42,14 @@ public sealed record PolicyConditionDefinition(int GroupNo, string AttributeName
 public sealed record AccessPolicyDefinition(string Code, string Name, string? Description, int Priority, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, string? TemplateCode, string? Remark, IReadOnlyList<PolicyConditionDefinition> Conditions);
 
 /// <summary>
-/// 访问策略的写入规则（方案 5.9，4.x 的 AccessPolicyDomainService）：编码同一侧唯一、不含空白；至少 1 条、最多 100 条条件与 20 个组，整组按条件引擎编译；
+/// 访问策略的写入规则。
+/// </summary>
+/// <remarks>
+/// 见方案 5.9，对应 4.x 的 AccessPolicyDomainService。
+/// 编码同一侧唯一、不含空白；至少 1 条、最多 100 条条件与 20 个组，整组按条件引擎编译；
 /// 新建一律只记录、启用，动作与状态只经 <see cref="SetActionAsync"/> 与 <see cref="SetStatusAsync"/> 修改；改动之后仍是启用中、此刻有效的拒绝策略时，
 /// 按发起这次修改的请求求值，命中即拒绝保存（防自锁，4.x 同）。写入后这一侧的策略缓存失效。
-/// </summary>
+/// </remarks>
 /// <param name="policies">策略仓储。</param>
 /// <param name="conditions">策略条件仓储。</param>
 /// <param name="cache">策略缓存。</param>
@@ -229,8 +236,12 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 校验一组条件并编译（试运行与写入共用）：至少 1 条、最多 100 条与 20 个组，编译不过返回引擎的错误。
+    /// 校验一组条件并编译。
     /// </summary>
+    /// <remarks>
+    /// 试运行与写入共用；至少 1 条、最多 100 条与 20 个组。
+    /// </remarks>
+    /// <returns>编译结果，编译不过返回引擎的错误。</returns>
     public Result<CompiledConditionSet> Compile(IReadOnlyList<PolicyConditionDefinition> definitions)
     {
         ArgumentNullException.ThrowIfNull(definitions);

@@ -14,9 +14,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 字段安全规则列表（SqlSugar 直查，作用侧 = 当前租户或平台）：关键字匹配字段名与备注；
-/// 筛选 <c>entity / targetKind / strategy / status</c> 的 <c>eq / in</c> 与 <c>field</c> 的 <c>eq / contains</c>；排序 <c>entity / field / targetKind / strategy / isEditable / status / createdAt</c>，缺省按创建时间倒序。
+/// 字段安全规则列表查询。
 /// </summary>
+/// <remarks>
+/// SqlSugar 直查，作用侧 = 当前租户或平台。
+/// 关键字匹配字段名与备注；
+/// 筛选 <c>entity / targetKind / strategy / status</c> 的 <c>eq / in</c> 与 <c>field</c> 的 <c>eq / contains</c>；排序 <c>entity / field / targetKind / strategy / isEditable / status / createdAt</c>，缺省按创建时间倒序。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="service">字段安全规则服务（补目标显示名）。</param>
 public sealed class FieldSecurityQueries(SqlSugarUnitOfWork unitOfWork, FieldSecurityService service)
@@ -105,8 +109,9 @@ public sealed class FieldSecurityQueries(SqlSugarUnitOfWork unitOfWork, FieldSec
     private static List<string> SplitOf(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 
     /// <summary>
-    /// 逗号分隔的枚举名；有一个认不出即为空（交给不支持的筛选报错）。
+    /// 解析逗号分隔的枚举名。
     /// </summary>
+    /// <returns>枚举值；有一个认不出即为空（交给不支持的筛选报错）。</returns>
     private static List<TEnum>? EnumsOf<TEnum>(string value) where TEnum : struct, Enum
     {
         var parts = SplitOf(value);

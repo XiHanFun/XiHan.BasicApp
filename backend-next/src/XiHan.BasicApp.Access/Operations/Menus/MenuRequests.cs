@@ -18,8 +18,11 @@ public sealed record ListMenusRequest;
 public sealed record GetMenuRequest(Guid Id);
 
 /// <summary>
-/// <c>menus.create</c> 的请求：新建运营节点（目录或外链；页面节点由页面登记生成，不能新建）。
+/// <c>menus.create</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 新建运营节点（目录或外链；页面节点由页面登记生成，不能新建）。
+/// </remarks>
 /// <param name="Kind">种类：<c>Directory</c> 或 <c>Link</c>。</param>
 /// <param name="Code">名称：小写字母开头，只含小写字母、数字与 <c>-</c>，2 到 32 个字符；存为 <c>custom.&lt;名&gt;</c>，创建后不可改。</param>
 /// <param name="Title">标题原文：1 到 64 个字符。</param>
@@ -41,9 +44,12 @@ public sealed record CreateMenuRequest(
     bool IsVisible = true);
 
 /// <summary>
-/// <c>menus.update</c> 的请求：整体替换节点的可改字段。标识由路由值 <c>{id}</c> 绑定。
-/// 页面节点只改展示（标题覆盖、图标、排序、顶层页面的所属目录、可见、缓存、固定标签），<paramref name="ExternalUrl"/> 与 <paramref name="Permission"/> 须为空（来自页面登记）；改过即标为已定制。
+/// <c>menus.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体替换节点的可改字段。标识由路由值 <c>{id}</c> 绑定。
+/// 页面节点只改展示（标题覆盖、图标、排序、顶层页面的所属目录、可见、缓存、固定标签），<paramref name="ExternalUrl"/> 与 <paramref name="Permission"/> 须为空（来自页面登记）；改过即标为已定制。
+/// </remarks>
 /// <param name="Id">菜单主键。</param>
 /// <param name="Title">标题：运营节点必填；页面节点为空即用登记的文案。</param>
 /// <param name="Icon">图标，可空。</param>

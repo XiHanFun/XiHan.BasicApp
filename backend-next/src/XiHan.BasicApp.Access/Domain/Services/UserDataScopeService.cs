@@ -29,8 +29,9 @@ public sealed record UserDataScopeView(SysUserDataScope Scope, IReadOnlyList<(Gu
 public sealed class UserDataScopeService(IRepository<SysUserDataScope, Guid> scopes, IRepository<SysUserDataScopeDepartment, Guid> departments, IRepository<SysDepartment, Guid> directory, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 用户的覆盖；没有即按角色。
+    /// 取用户的数据范围覆盖。
     /// </summary>
+    /// <returns>用户的覆盖；没有即按角色。</returns>
     public async Task<Maybe<UserDataScopeView>> FindAsync(string owner, Guid userId, CancellationToken cancellationToken)
     {
         var rows = await scopes.ListAsync(EntityQuery.All<SysUserDataScope>().Where(new Specification<SysUserDataScope>(s => s.OwnerTenantId == owner && s.UserId == userId)), cancellationToken).ConfigureAwait(false);
@@ -46,8 +47,12 @@ public sealed class UserDataScopeService(IRepository<SysUserDataScope, Guid> sco
     }
 
     /// <summary>
-    /// 设置覆盖（<paramref name="scope"/> 为 <see langword="null"/> 即清除、回到按角色）：自定义范围要列出部门，其他范围不能带部门，部门须在本租户。
+    /// 设置用户的数据范围覆盖。
     /// </summary>
+    /// <remarks>
+    /// <paramref name="scope"/> 为 <see langword="null"/> 即清除、回到按角色。
+    /// 自定义范围要列出部门，其他范围不能带部门，部门须在本租户。
+    /// </remarks>
     public async Task<Result> SetAsync(string owner, Guid userId, DataScope? scope, IReadOnlyList<DataScopeDepartmentRequest> custom, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(custom);

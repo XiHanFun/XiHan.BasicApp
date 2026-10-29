@@ -7,8 +7,11 @@ using XiHan.BasicApp.Access.Domain.Entities;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.create</c> 的请求：在当前作用侧（租户主体的租户，平台主体的平台）创建角色。
+/// <c>roles.create</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 在当前作用侧（租户主体的租户，平台主体的平台）创建角色。
+/// </remarks>
 /// <param name="Code">角色码：2 到 64 个字符，小写字母开头，只含小写字母、数字、<c>-</c>；创建后不可改。</param>
 /// <param name="Name">显示名：1 到 64 个字符。</param>
 /// <param name="Description">说明，可空。</param>

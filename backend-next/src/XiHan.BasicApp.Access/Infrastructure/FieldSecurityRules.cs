@@ -34,8 +34,11 @@ public sealed record FieldSecurityRuleView(FieldSecurityTargetKind TargetKind, G
 }
 
 /// <summary>
-/// 字段安全规则的读取（单例）：按（侧、实体）缓存启用的规则，60 秒，写入后由写入方失效。缓存存成 JSON 文本（固定文本可含任意字符），按创建先后排好（合并时固定文本取第一条）。
+/// 字段安全规则的读取（单例）。
 /// </summary>
+/// <remarks>
+/// 按（侧、实体）缓存启用的规则，60 秒，写入后由写入方失效。缓存存成 JSON 文本（固定文本可含任意字符），按创建先后排好（合并时固定文本取第一条）。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）。</param>
 public sealed class FieldSecurityRules(ISharedCache cache, IServiceScopeFactory scopes)

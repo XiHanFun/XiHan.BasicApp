@@ -11,8 +11,11 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 角色的授予：读写框架的 <c>PermissionGrantRecord</c>（主体 <c>role:&lt;ID&gt;</c>，租户列按角色所属侧），授予 / 撤销后框架存储自行失效缓存。
+/// 角色的授予。
 /// </summary>
+/// <remarks>
+/// 读写框架的 <c>PermissionGrantRecord</c>（主体 <c>role:&lt;ID&gt;</c>，租户列按角色所属侧），授予 / 撤销后框架存储自行失效缓存。
+/// </remarks>
 /// <param name="store">框架授予存储。</param>
 public sealed class RoleGrants(PermissionGrantRecordStore store)
 {
@@ -27,8 +30,9 @@ public sealed class RoleGrants(PermissionGrantRecordStore store)
     }
 
     /// <summary>
-    /// 给角色授予权限；逐项结果与入参同序。
+    /// 给角色授予权限。
     /// </summary>
+    /// <returns>逐项结果与入参同序。</returns>
     public ValueTask<IReadOnlyList<PermissionGrantResult>> GrantAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -37,8 +41,9 @@ public sealed class RoleGrants(PermissionGrantRecordStore store)
     }
 
     /// <summary>
-    /// 撤销角色的权限；逐项结果与入参同序（没有的授予是 NotFound）。
+    /// 撤销角色的权限。
     /// </summary>
+    /// <returns>逐项结果与入参同序（没有的授予是 NotFound）。</returns>
     public ValueTask<IReadOnlyList<PermissionGrantResult>> RevokeAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);

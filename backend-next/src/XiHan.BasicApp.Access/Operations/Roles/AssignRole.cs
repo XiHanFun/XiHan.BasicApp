@@ -17,9 +17,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 给角色指派成员：<c>POST /api/roles/{id}:assign</c>。用户须与角色同一侧（注册地 = 角色所属侧）；已是成员的算成功。
-/// 指派最迟在用户下一次刷新令牌时生效（角色进 <c>role</c> 声明）。新成员逐个过约束规则（静态职责分离、基数与条件），拦截类的违规记为这一人失败（<c>ACCESS_CONFLICT_012</c>）。
+/// 给角色指派成员。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles/{id}:assign</c>。用户须与角色同一侧（注册地 = 角色所属侧）；已是成员的算成功。
+/// 指派最迟在用户下一次刷新令牌时生效（角色进 <c>role</c> 声明）。新成员逐个过约束规则（静态职责分离、基数与条件），拦截类的违规记为这一人失败（<c>ACCESS_CONFLICT_012</c>）。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="members">指派仓储。</param>

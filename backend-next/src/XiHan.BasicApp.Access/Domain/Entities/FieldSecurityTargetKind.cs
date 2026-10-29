@@ -9,8 +9,11 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 public enum FieldSecurityTargetKind
 {
     /// <summary>
-    /// 角色：此刻持有该角色（指派有效、角色启用）的用户；只认直接持有。
+    /// 角色：此刻持有该角色（指派有效、角色启用）的用户。
     /// </summary>
+    /// <remarks>
+    /// 只认直接持有。
+    /// </remarks>
     Role = 0,
 
     /// <summary>
@@ -19,8 +22,11 @@ public enum FieldSecurityTargetKind
     User = 1,
 
     /// <summary>
-    /// 部门（只在租户侧）：该部门及其下级部门的成员；停用的部门不算。
+    /// 部门：该部门及其下级部门的成员。
     /// </summary>
+    /// <remarks>
+    /// 只在租户侧；停用的部门不算。
+    /// </remarks>
     Department = 2,
 }
 

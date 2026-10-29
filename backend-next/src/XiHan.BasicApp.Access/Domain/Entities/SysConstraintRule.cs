@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 约束规则（平台库实体，随所属侧，方案 5.9 与第 10 节第 7 项）：静态职责分离、动态职责分离、权限互斥、基数与条件五种，违规按处理方式拒绝、警告、只记录或需审批（审批流程未接入，按拒绝）。
-/// 规则项是这条规则约束的目标（角色、权限码或用户），同一组号的项是一组；数量上限写在 <see cref="MaxAllowed"/>，条件类的条件以 JSON 存在 <see cref="Conditions"/>。
+/// 约束规则（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9 与第 10 节第 7 项。静态职责分离、动态职责分离、权限互斥、基数与条件五种，违规按处理方式拒绝、警告、只记录或需审批（审批流程未接入，按拒绝）。
+/// 规则项是这条规则约束的目标（角色、权限码或用户），同一组号的项是一组；数量上限写在 <see cref="MaxAllowed"/>，条件类的条件以 JSON 存在 <see cref="Conditions"/>。
+/// </remarks>
 public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
@@ -44,13 +47,19 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
     public ConstraintTargetType TargetType { get; set; }
 
     /// <summary>
-    /// 数量上限：职责分离与互斥为同一组里最多同时持有（激活）几个，基数为每个目标最多几个成员或角色；条件类不用。
+    /// 数量上限。
     /// </summary>
+    /// <remarks>
+    /// 职责分离与互斥为同一组里最多同时持有（激活）几个，基数为每个目标最多几个成员或角色；条件类不用。
+    /// </remarks>
     public int MaxAllowed { get; set; } = 1;
 
     /// <summary>
-    /// 条件类的条件（JSON 数组：组号、属性、运算符、取反、值）；其余类型为空。
+    /// 条件类的条件。
     /// </summary>
+    /// <remarks>
+    /// JSON 数组：组号、属性、运算符、取反、值；其余类型为空。
+    /// </remarks>
     [LongText]
     public string? Conditions { get; set; }
 
@@ -60,8 +69,11 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
     public ConstraintViolationAction ViolationAction { get; set; }
 
     /// <summary>
-    /// 优先级（越大越先求值，4.x 同）。
+    /// 优先级（越大越先求值）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public int Priority { get; set; }
 
     /// <summary>
@@ -70,13 +82,19 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
     public ConstraintRuleStatus Status { get; set; } = ConstraintRuleStatus.Active;
 
     /// <summary>
-    /// 生效时间；为空即不限。
+    /// 生效时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即不限。
+    /// </remarks>
     public DateTimeOffset? EffectiveAt { get; set; }
 
     /// <summary>
-    /// 失效时间；为空即不限。
+    /// 失效时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即不限。
+    /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
@@ -129,8 +147,11 @@ public sealed class SysConstraintRuleItem : AppRecord, IOwnedByTenant
 }
 
 /// <summary>
-/// 约束类型（4.x 的先决条件、时间、位置与自定义没有求值，6.0 不保留；时间与位置用条件类表达）。
+/// 约束类型。
 /// </summary>
+/// <remarks>
+/// 4.x 的先决条件、时间、位置与自定义没有求值，6.0 不保留；时间与位置用条件类表达。
+/// </remarks>
 public enum ConstraintType
 {
     /// <summary>
@@ -181,8 +202,11 @@ public enum ConstraintTargetType
 }
 
 /// <summary>
-/// 违规处理方式（4.x 同）。
+/// 违规处理方式。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum ConstraintViolationAction
 {
     /// <summary>
@@ -201,8 +225,11 @@ public enum ConstraintViolationAction
     Log = 2,
 
     /// <summary>
-    /// 需要审批；审批流程未接入，按拒绝处理（4.x 同）。
+    /// 需要审批。
     /// </summary>
+    /// <remarks>
+    /// 审批流程未接入，按拒绝处理（4.x 同）。
+    /// </remarks>
     RequireApproval = 3,
 }
 

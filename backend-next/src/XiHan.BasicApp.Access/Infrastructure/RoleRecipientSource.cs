@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="RecipientKind.Role"/>：当前一侧持有这些角色的用户——角色须启用、指派此刻在有效期内（只看直接指派，上级角色不连带下级的成员）。
+/// <see cref="RecipientKind.Role"/> 的接收人来源。
 /// </summary>
+/// <remarks>
+/// 当前一侧持有这些角色的用户——角色须启用、指派此刻在有效期内（只看直接指派，上级角色不连带下级的成员）。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 /// <param name="clock">时钟。</param>
 public sealed class RoleRecipientSource(SqlSugarUnitOfWork unitOfWork, TimeProvider clock) : IRecipientSource

@@ -42,14 +42,20 @@ public sealed record ConstraintRuleView(Guid Id, string Code, string Name, Const
     public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 
     /// <summary>
-    /// 违规是否拦下变更（拒绝与需审批；审批未接入，按拒绝）。
+    /// 违规是否拦下变更。
     /// </summary>
+    /// <remarks>
+    /// 拒绝与需审批即拦下；审批未接入，按拒绝。
+    /// </remarks>
     public bool IsBlocking => Action is ConstraintViolationAction.Deny or ConstraintViolationAction.RequireApproval;
 }
 
 /// <summary>
-/// 一侧启用的约束规则（单例）：放在共享缓存里 60 秒，写入即失效；按优先级从大到小、再按编码排列，有效期在判定时比较。
+/// 一侧启用的约束规则（单例）。
 /// </summary>
+/// <remarks>
+/// 放在共享缓存里 60 秒，写入即失效；按优先级从大到小、再按编码排列，有效期在判定时比较。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
 public sealed class ConstraintRules(ISharedCache cache, IServiceScopeFactory scopes)
@@ -72,8 +78,11 @@ public sealed class ConstraintRules(ISharedCache cache, IServiceScopeFactory sco
         => await cache.RemoveAsync(KeyOf(owner), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// 条件类的条件从 JSON 读回；为空即没有。
+    /// 条件类的条件从 JSON 读回。
     /// </summary>
+    /// <remarks>
+    /// 为空即没有。
+    /// </remarks>
     public static List<PolicyClauseView> ConditionsOf(string? json)
         => string.IsNullOrWhiteSpace(json) ? [] : JsonSerializer.Deserialize(json, AccessJsonContext.Default.ListPolicyClauseView) ?? [];
 

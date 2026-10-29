@@ -29,9 +29,12 @@ public sealed record RoleAssignmentView(Guid RoleId, DateTimeOffset? EffectiveAt
 }
 
 /// <summary>
-/// 用户在一侧的角色指派（单例）：按（侧、用户）缓存在共享缓存里，指派变化时由写入方失效；角色停用经缓存存活期（一分钟）传到判定。
-/// 令牌里的角色声明是签发那一刻的快照：权限过滤器拿它与这里的指派求交，到期、被解除或停用的角色立即不再算数。
+/// 用户在一侧的角色指派（单例）。
 /// </summary>
+/// <remarks>
+/// 按（侧、用户）缓存在共享缓存里，指派变化时由写入方失效；角色停用经缓存存活期（一分钟）传到判定。
+/// 令牌里的角色声明是签发那一刻的快照：权限过滤器拿它与这里的指派求交，到期、被解除或停用的角色立即不再算数。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂。</param>
 public sealed class RoleAssignments(ISharedCache cache, IServiceScopeFactory scopes)

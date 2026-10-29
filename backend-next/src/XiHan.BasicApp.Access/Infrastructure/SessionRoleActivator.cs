@@ -15,11 +15,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 会话的角色激活（Access 对 <see cref="ISessionRoleActivator"/> 的实现，补上 4.x SysSessionRole 缺的写入口）：激活集记在 <see cref="SysSessionRole"/>，
+/// 会话的角色激活。
+/// </summary>
+/// <remarks>
+/// Access 对 <see cref="ISessionRoleActivator"/> 的实现，补上 4.x SysSessionRole 缺的写入口。
+/// 激活集记在 <see cref="SysSessionRole"/>，
 /// 候选按角色的排序号、再按编码排列，逐个尝试，加上它会违反拦截类动态职责分离规则的不激活（同一 DSD 组只留排序最前的）。
 /// 激活的原因记调用的操作 ID（<c>auth.login</c>、<c>auth.switch-tenant</c> 等），停用的原因见 <see cref="SysSessionRole.Reason"/>。
 /// 开会话与续签时有角色被 DSD 停掉或不再持有，另记一条登录日志（<see cref="LoginEvent.RoleActivation"/>，说明里是原因与角色）。
-/// </summary>
+/// </remarks>
 /// <param name="rows">会话角色仓储。</param>
 /// <param name="roles">角色查找（排序）。</param>
 /// <param name="enforcer">约束规则求值。</param>

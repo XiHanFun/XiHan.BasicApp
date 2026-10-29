@@ -14,8 +14,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 委托列表（当前一侧）：关键字匹配权限码与原因；筛选状态（按撤销时间与有效期换算成条件）、委托人、被委托人、权限码与角色；排序创建、生效与到期时间。
+/// 委托列表查询（当前一侧）。
 /// </summary>
+/// <remarks>
+/// 关键字匹配权限码与原因；筛选状态（按撤销时间与有效期换算成条件）、委托人、被委托人、权限码与角色；排序创建、生效与到期时间。
+/// </remarks>
 /// <param name="unitOfWork">工作单元（取委托所在的连接）。</param>
 /// <param name="service">委托服务（显示名）。</param>
 /// <param name="clock">时间源。</param>

@@ -33,8 +33,12 @@ public sealed record SessionRoleItemResponse(Guid RoleId, string Code, string Na
 public sealed record SessionRolesResponse(IReadOnlyList<SessionRoleItemResponse> Items);
 
 /// <summary>
-/// 当前会话可激活的角色（自助操作，只要求已认证）：<c>GET /api/auth:session-roles</c>。此刻持有的角色与本会话激活着哪些（令牌里的），用户菜单的「切换角色」用它，换激活集走 <c>auth.activate-roles</c>。
+/// 列出当前会话可激活的角色。
 /// </summary>
+/// <remarks>
+/// 自助操作，只要求已认证。
+/// <c>GET /api/auth:session-roles</c>。此刻持有的角色与本会话激活着哪些（令牌里的），用户菜单的「切换角色」用它，换激活集走 <c>auth.activate-roles</c>。
+/// </remarks>
 /// <param name="resolver">持有的角色。</param>
 /// <param name="roles">角色仓储。</param>
 /// <param name="options">安全选项（角色声明名）。</param>

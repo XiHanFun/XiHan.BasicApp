@@ -15,9 +15,13 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 权限条件的试算、影响试算与盘点（4.x 的 PermissionConditionTrialService 与 InventoryService）：试算按用户此刻的有效指派与委托组装授予全貌、
-/// 按给定的请求情形逐组逐子句说明；影响试算列出一个绑定影响到的人（角色即它及其下级角色的有效成员，最多 200 人按登录名）；盘点给出这一侧每条子句的诊断与所在组的结论。
+/// 权限条件的试算、影响试算与盘点。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 的 PermissionConditionTrialService 与 InventoryService。
+/// 试算按用户此刻的有效指派与委托组装授予全貌、
+/// 按给定的请求情形逐组逐子句说明；影响试算列出一个绑定影响到的人（角色即它及其下级角色的有效成员，最多 200 人按登录名）；盘点给出这一侧每条子句的诊断与所在组的结论。
+/// </remarks>
 /// <param name="evaluator">授予全貌。</param>
 /// <param name="decider">条件判定。</param>
 /// <param name="conditions">条件写入规则（绑定）。</param>
@@ -49,8 +53,11 @@ public sealed class ConditionInsightService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 影响试算最多列几人（4.x 同）。
+    /// 影响试算最多列几人。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int BatchLimit = 200;
 
     /// <summary>

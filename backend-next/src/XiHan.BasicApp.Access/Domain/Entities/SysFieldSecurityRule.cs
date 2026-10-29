@@ -8,19 +8,28 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 字段安全规则（平台库实体，随所属侧）：一个目标（角色、用户或部门）在一个实体字段上的读取方式与能否改写（方案 5.9）。
-/// 同一侧同一目标同一字段只有一条；规则只在所属一侧生效（平台规则管平台主体，租户规则管本租户的主体）。
+/// 字段安全规则（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 一个目标（角色、用户或部门）在一个实体字段上的读取方式与能否改写（方案 5.9）。
+/// 同一侧同一目标同一字段只有一条；规则只在所属一侧生效（平台规则管平台主体，租户规则管本租户的主体）。
+/// </remarks>
 public sealed class SysFieldSecurityRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
-    /// 部分脱敏保留位数的上限（4.x 同）。
+    /// 部分脱敏保留位数的上限。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxKeep = 32;
 
     /// <summary>
-    /// 固定文本的长度上限（4.x 同）。
+    /// 固定文本的长度上限。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxReplacementLength = 100;
 
     /// <inheritdoc />
@@ -70,8 +79,11 @@ public sealed class SysFieldSecurityRule : AppAuditedEntity, IOwnedByTenant
     public string? Replacement { get; set; }
 
     /// <summary>
-    /// 能否改写：明文规则只能只读；脱敏且可改即只写。
+    /// 能否改写。
     /// </summary>
+    /// <remarks>
+    /// 明文规则只能只读；脱敏且可改即只写。
+    /// </remarks>
     public bool IsEditable { get; set; }
 
     /// <summary>

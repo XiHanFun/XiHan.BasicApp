@@ -6,8 +6,11 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 权限条件的生效模式（4.x 同）。
+/// 权限条件的生效模式。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum PermissionConditionMode
 {
     /// <summary>
@@ -37,28 +40,41 @@ public sealed record AccessOptions
     public const string ConfigurationSection = "BasicApp:Access";
 
     /// <summary>
-    /// 缺省的条件时区（4.x 同）。
+    /// 缺省的条件时区。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const string DefaultTimeZoneId = "Asia/Shanghai";
 
     /// <summary>
-    /// 权限条件的生效模式（<c>PermissionConditionMode</c>，缺省 <see cref="PermissionConditionMode.Enforce"/>）。
+    /// 权限条件的生效模式。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>PermissionConditionMode</c>，缺省 <see cref="PermissionConditionMode.Enforce"/>。
+    /// </remarks>
     public PermissionConditionMode PermissionConditionMode { get; init; } = PermissionConditionMode.Enforce;
 
     /// <summary>
-    /// 访问策略是否判定（<c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉）。
+    /// 访问策略是否判定。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉。
+    /// </remarks>
     public bool AccessPolicyEnabled { get; init; } = true;
 
     /// <summary>
-    /// 条件里时刻、小时、星期与日期所按的时区（<c>ConditionTimeZone</c>，缺省 Asia/Shanghai）。
+    /// 条件里时刻、小时、星期与日期所按的时区。
     /// </summary>
+    /// <remarks>
+    /// 配置键 <c>ConditionTimeZone</c>，缺省 Asia/Shanghai。
+    /// </remarks>
     public TimeZoneInfo ConditionTimeZone { get; init; } = Resolve(DefaultTimeZoneId);
 
     /// <summary>
-    /// 从配置读取；不合法的值是装配错误，直接抛出。
+    /// 从配置读取授权包的配置。
     /// </summary>
+    /// <exception cref="ArgumentException">不合法的值是装配错误，直接抛出。</exception>
     public static AccessOptions FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

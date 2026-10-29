@@ -18,9 +18,13 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 访问策略的试运行（4.x 的 AccessPolicyTrialService）：已有策略或草稿条件，按给定的请求情形只求这一条、不看有效期，逐组逐条件说明；
-/// 给了用户即按他此刻的有效指派取角色（不看令牌），没给即按未登录。编译不过的条件写进 <c>errors</c>，不求值。
+/// 访问策略的试运行。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 的 AccessPolicyTrialService。
+/// 已有策略或草稿条件，按给定的请求情形只求这一条、不看有效期，逐组逐条件说明；
+/// 给了用户即按他此刻的有效指派取角色（不看令牌），没给即按未登录。编译不过的条件写进 <c>errors</c>，不求值。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 /// <param name="grants">授予全貌（用户此刻的角色）。</param>
 /// <param name="users">用户仓储。</param>

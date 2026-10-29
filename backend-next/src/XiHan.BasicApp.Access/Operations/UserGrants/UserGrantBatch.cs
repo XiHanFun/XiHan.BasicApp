@@ -12,8 +12,11 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
 /// <summary>
-/// 用户直接授权的共同骨架：用户须在这一侧（注册地相同），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// 用户直接授权的共同骨架。
 /// </summary>
+/// <remarks>
+/// 用户须在这一侧（注册地相同），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// </remarks>
 internal static class UserGrantBatch
 {
     /// <summary>

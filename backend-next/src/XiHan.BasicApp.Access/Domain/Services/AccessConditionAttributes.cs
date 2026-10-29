@@ -6,10 +6,13 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 条件属性目录（权限条件与访问策略共用，方案 5.9）：4.x 的主体、资源、环境三族，名称不区分大小写，旧写法登记为别名。
+/// 条件属性目录（权限条件与访问策略共用）。
+/// </summary>
+/// <remarks>
+/// 见方案 5.9。4.x 的主体、资源、环境三族，名称不区分大小写，旧写法登记为别名。
 /// 6.0 新增 <c>resource.operation</c>（操作 ID）替代 4.x 的 <c>resource.service</c> / <c>resource.action</c>；
 /// 不登记路由值与查询串两族（调用来源不带它们）、开放接口的应用 ID（等 OpenPlatform）、成员类型（Access 不引用 Tenancy）、旧写法 <c>environment.location</c> 与数据行属性。
-/// </summary>
+/// </remarks>
 public static class AccessConditionAttributes
 {
     /// <summary>
@@ -123,8 +126,11 @@ public static class AccessConditionAttributes
     public const string EnvironmentUserAgent = "environment.client.userAgent";
 
     /// <summary>
-    /// 客户端类型：未登录为 <c>anonymous</c>，否则为调用协议（<c>http</c>、<c>grpc</c>、<c>mcp</c> 等）。
+    /// 客户端类型。
     /// </summary>
+    /// <remarks>
+    /// 未登录为 <c>anonymous</c>，否则为调用协议（<c>http</c>、<c>grpc</c>、<c>mcp</c> 等）。
+    /// </remarks>
     public const string EnvironmentClientKind = "environment.client.kind";
 
     /// <summary>

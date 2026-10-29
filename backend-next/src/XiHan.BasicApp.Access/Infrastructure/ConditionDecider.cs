@@ -7,8 +7,11 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一个主体在一个权限码上按条件判定的结论（4.x 的五种去掉待定：6.0 不登记数据行属性）。
+/// 一个主体在一个权限码上按条件判定的结论。
 /// </summary>
+/// <remarks>
+/// 4.x 的五种去掉待定：6.0 不登记数据行属性。
+/// </remarks>
 public enum ConditionVerdict
 {
     /// <summary>
@@ -64,10 +67,14 @@ public sealed record ConditionPathResult(string Source, Guid? RoleId, bool HasUn
 public sealed record ConditionDecision(ConditionVerdict Verdict, IReadOnlyList<ConditionSetResult> Denies, IReadOnlyList<ConditionPathResult> Paths);
 
 /// <summary>
-/// 权限条件的判定（4.x 的 PermissionConditionDecider）：先看用户本身有条件的拒绝，命中即拒绝；再看授予路径——
+/// 权限条件的判定。
+/// </summary>
+/// <remarks>
+/// 对应 4.x 的 PermissionConditionDecider。
+/// 先看用户本身有条件的拒绝，命中即拒绝；再看授予路径——
 /// 路径成立 = 有无条件授予或某个授予条件集命中，且路径上的拒绝条件集都不命中。授予侧无法编译按不命中，拒绝侧按命中（从严）；
 /// 取不到值（无法判定）在组内按不命中（条件引擎的语义）。
-/// </summary>
+/// </remarks>
 /// <param name="compiler">条件编译器。</param>
 /// <param name="evaluator">条件求值器。</param>
 /// <param name="options">授权包配置（时区）。</param>

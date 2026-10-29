@@ -10,9 +10,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 当前主体的有效权限：本侧目录里 <see cref="GrantEvaluator"/> 判定持有的权限码（用户与角色的授予、Deny、有效期、此刻算数的角色，与权限过滤器同源），
-/// 租户侧再与套餐白名单求交（<see cref="IEditionGate"/>，租户管理员的 <c>*</c> 也被收窄）。主体不是本应用用户时退回授予之并（通配展开）。
+/// 当前主体的有效权限。
 /// </summary>
+/// <remarks>
+/// 本侧目录里 <see cref="GrantEvaluator"/> 判定持有的权限码（用户与角色的授予、Deny、有效期、此刻算数的角色，与权限过滤器同源），
+/// 租户侧再与套餐白名单求交（<see cref="IEditionGate"/>，租户管理员的 <c>*</c> 也被收窄）。主体不是本应用用户时退回授予之并（通配展开）。
+/// </remarks>
 /// <param name="store">框架授予存储。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="options">安全选项（角色声明名）。</param>

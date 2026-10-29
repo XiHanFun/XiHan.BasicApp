@@ -7,10 +7,14 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 角色继承与委托接进框架的权限判定（ADR-0045 的 <see cref="IPermissionGrantSource"/>，单例）：给出上级角色与委托带来的授予，
+/// 把角色继承与委托接进框架的权限判定。
+/// </summary>
+/// <remarks>
+/// ADR-0045 的 <see cref="IPermissionGrantSource"/>，单例。
+/// 给出上级角色与委托带来的授予，
 /// 让框架在存储授予没命中时也去问 <see cref="AccessPermissionFilter"/>；精确结论（Deny、有效期、链上的拒绝）仍由过滤器按 <see cref="GrantEvaluator"/> 判定。
 /// 不是本应用用户的主体（外部签发的令牌）没有额外授予。
-/// </summary>
+/// </remarks>
 /// <param name="evaluator">授予全貌。</param>
 public sealed class AccessGrantSource(GrantEvaluator evaluator) : IPermissionGrantSource
 {

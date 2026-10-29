@@ -12,9 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 访问策略列表（SqlSugar 直查，作用侧 = 当前租户或平台）：关键字匹配编码、名称与说明；
-/// 筛选 <c>action / status</c> 的 <c>eq / in</c> 与 <c>code</c> 的 <c>eq / contains</c>；排序 <c>code / name / action / priority / status / createdAt / modifiedAt</c>，缺省按优先级升序、再按编码（即求值顺序）。
+/// 访问策略列表查询。
 /// </summary>
+/// <remarks>
+/// SqlSugar 直查，作用侧 = 当前租户或平台。
+/// 关键字匹配编码、名称与说明；
+/// 筛选 <c>action / status</c> 的 <c>eq / in</c> 与 <c>code</c> 的 <c>eq / contains</c>；排序 <c>code / name / action / priority / status / createdAt / modifiedAt</c>，缺省按优先级升序、再按编码（即求值顺序）。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="projection">策略投影。</param>
 public sealed class AccessPolicyQueries(SqlSugarUnitOfWork unitOfWork, AccessPolicyProjection projection)
@@ -97,8 +101,9 @@ public sealed class AccessPolicyQueries(SqlSugarUnitOfWork unitOfWork, AccessPol
     }
 
     /// <summary>
-    /// 逗号分隔的枚举名；有一个认不出即为空（交给不支持的筛选报错）。
+    /// 解析逗号分隔的枚举名。
     /// </summary>
+    /// <returns>枚举值；有一个认不出即为空（交给不支持的筛选报错）。</returns>
     private static List<TEnum>? EnumsOf<TEnum>(string value) where TEnum : struct, Enum
     {
         var parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

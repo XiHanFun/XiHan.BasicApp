@@ -15,12 +15,14 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="IDataScopeResolver"/> 的实现（作用域，结果按调用缓存）：
+/// <see cref="IDataScopeResolver"/> 的实现（作用域，结果按调用缓存）。
+/// </summary>
+/// <remarks>
 /// 平台侧不受限；租户侧先看用户级覆盖（<see cref="SysUserDataScope"/>）——有即完全取代角色的数据范围（不取并集，与 4.x 一致）；
 /// 没有覆盖时按令牌 <c>role</c> 声明里能解析成本租户应用角色的角色求并集——任一 <see cref="DataScope.All"/> 即不受限，
 /// 否则把「本部门 / 本部门及子部门 / 自定义部门」经归属与闭包表展开成部门集合，再展开成用户集合（总含自己）。
 /// 没有覆盖、也没有一个声明能解析成应用角色（只有框架级的角色字符串）时不受限：数据范围是应用角色的属性。
-/// </summary>
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="scopes">角色数据范围服务。</param>
 /// <param name="userScopes">用户级数据范围覆盖服务。</param>
@@ -91,8 +93,11 @@ public sealed class DataScopeResolver(
     }
 
     /// <summary>
-    /// 把一种数据范围展开成部门并进集合；自定义部门按需读取。
+    /// 把一种数据范围展开成部门并进集合。
     /// </summary>
+    /// <remarks>
+    /// 自定义部门按需读取。
+    /// </remarks>
     private async Task AddAsync(HashSet<Guid> departments, DataScope scope, Func<Task<IReadOnlyList<(Guid DepartmentId, bool IncludeChildren)>>> custom, OwnDepartments own, CancellationToken cancellationToken)
     {
         switch (scope)

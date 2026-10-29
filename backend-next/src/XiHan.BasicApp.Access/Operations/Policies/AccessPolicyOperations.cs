@@ -18,8 +18,11 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Operations.Policies;
 
 /// <summary>
-/// 分页列出当前一侧的访问策略：<c>POST /api/policies:list</c>。缺省按求值顺序（优先级升序、再按编码）。
+/// 分页列出当前一侧的访问策略。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/policies:list</c>。缺省按求值顺序（优先级升序、再按编码）。
+/// </remarks>
 /// <param name="queries">策略查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicies(AccessPolicyQueries queries) : IOperation<PageRequest, PageResult<AccessPolicyResponse>>
@@ -66,8 +69,11 @@ public sealed class GetAccessPolicy(AccessPolicyService service, AccessPolicyPro
 }
 
 /// <summary>
-/// 在当前一侧新建访问策略：<c>POST /api/policies</c>。新建一律只记录、启用；平台策略管全部调用，租户策略管本租户已登录的调用。
+/// 在当前一侧新建访问策略。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/policies</c>。新建一律只记录、启用；平台策略管全部调用，租户策略管本租户已登录的调用。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 /// <param name="projection">策略投影。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesCreate)]
@@ -94,8 +100,11 @@ public sealed class CreateAccessPolicy(AccessPolicyService service, AccessPolicy
 }
 
 /// <summary>
-/// 整体修改当前一侧的访问策略：<c>PUT /api/policies/{id}</c>。动作与状态不变；改完仍是启用中的拒绝策略、且会拦下这次请求时拒绝保存（防自锁）。
+/// 整体修改当前一侧的访问策略。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/policies/{id}</c>。动作与状态不变；改完仍是启用中的拒绝策略、且会拦下这次请求时拒绝保存（防自锁）。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 /// <param name="projection">策略投影。</param>
 /// <param name="security">安全配置（角色声明名）。</param>
@@ -129,8 +138,11 @@ public sealed class UpdateAccessPolicy(AccessPolicyService service, AccessPolicy
 }
 
 /// <summary>
-/// 改访问策略的动作：<c>POST /api/policies/{id}:set-action</c>。改成拒绝且策略启用中时，会拦下这次请求即拒绝保存（防自锁）。
+/// 改访问策略的动作。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/policies/{id}:set-action</c>。改成拒绝且策略启用中时，会拦下这次请求即拒绝保存（防自锁）。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 /// <param name="projection">策略投影。</param>
 /// <param name="security">安全配置（角色声明名）。</param>
@@ -164,8 +176,11 @@ public sealed class SetAccessPolicyAction(AccessPolicyService service, AccessPol
 }
 
 /// <summary>
-/// 启用或停用访问策略：<c>POST /api/policies/{id}:set-status</c>。启用一条拒绝策略时，会拦下这次请求即拒绝保存（防自锁）。
+/// 启用或停用访问策略。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/policies/{id}:set-status</c>。启用一条拒绝策略时，会拦下这次请求即拒绝保存（防自锁）。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 /// <param name="projection">策略投影。</param>
 /// <param name="security">安全配置（角色声明名）。</param>
@@ -199,8 +214,11 @@ public sealed class SetAccessPolicyStatus(AccessPolicyService service, AccessPol
 }
 
 /// <summary>
-/// 批量删除当前一侧的访问策略：<c>DELETE /api/policies?ids=...</c>，逐项结果。
+/// 批量删除当前一侧的访问策略。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/policies?ids=...</c>，逐项结果。
+/// </remarks>
 /// <param name="service">策略服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesDelete)]
 public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperation<AccessPolicyIdsRequest, BatchResult>
@@ -240,8 +258,11 @@ public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperati
 }
 
 /// <summary>
-/// 访问策略可用的条件属性：<c>GET /api/policies:attributes</c>。与 <c>permission-conditions.attributes</c> 同一份目录，按访问策略的权限给出（4.x 同）。
+/// 列出访问策略可用的条件属性。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/policies:attributes</c>。与 <c>permission-conditions.attributes</c> 同一份目录，按访问策略的权限给出（4.x 同）。
+/// </remarks>
 /// <param name="registry">条件属性登记表。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicyAttributes(IConditionAttributeRegistry registry) : IOperation<AccessPolicyAttributesRequest, ConditionAttributesResponse>
@@ -261,8 +282,11 @@ public sealed class ListAccessPolicyAttributes(IConditionAttributeRegistry regis
 }
 
 /// <summary>
-/// 预置模板：<c>GET /api/policies:templates</c>。页面上从模板新建用（新建出来一律只记录），时机按当前一侧推出。
+/// 列出访问策略的预置模板。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/policies:templates</c>。页面上从模板新建用（新建出来一律只记录），时机按当前一侧推出。
+/// </remarks>
 /// <param name="service">策略服务（编译）。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicyTemplates(AccessPolicyService service) : IOperation<AccessPolicyTemplatesRequest, AccessPolicyTemplatesResponse>
@@ -292,8 +316,11 @@ public sealed class ListAccessPolicyTemplates(AccessPolicyService service) : IOp
 }
 
 /// <summary>
-/// 试运行访问策略：<c>POST /api/policies:trial</c>（带草稿条件，走 POST）。已有策略或草稿条件按给定的请求情形只求这一条、不看有效期，逐组逐条件说明。
+/// 试运行访问策略。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/policies:trial</c>（带草稿条件，走 POST）。已有策略或草稿条件按给定的请求情形只求这一条、不看有效期，逐组逐条件说明。
+/// </remarks>
 /// <param name="trials">试运行。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesTrial)]
 public sealed class TrialAccessPolicy(AccessPolicyTrialService trials) : IOperation<TrialAccessPolicyRequest, AccessPolicyTrialResponse>

@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Menus;
 
 /// <summary>
-/// 恢复页面节点的默认展示：<c>POST /api/menus/{id}:reset</c>（平台侧，<c>access.menus.update</c>）。
-/// 标题覆盖、图标、排序、上级、可见、缓存、固定标签回到页面登记的值并清掉定制标记，种子此后照常对齐；运营节点没有登记，<c>ACCESS_VALIDATION_010</c>。
+/// 恢复页面节点的默认展示。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/menus/{id}:reset</c>（平台侧，<c>access.menus.update</c>）。
+/// 标题覆盖、图标、排序、上级、可见、缓存、固定标签回到页面登记的值并清掉定制标记，种子此后照常对齐；运营节点没有登记，<c>ACCESS_VALIDATION_010</c>。
+/// </remarks>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="service">菜单域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]

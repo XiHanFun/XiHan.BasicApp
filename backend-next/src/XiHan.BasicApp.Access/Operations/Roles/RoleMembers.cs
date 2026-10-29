@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 角色成员：<c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要。
+/// 列出角色成员。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="users">用户仓储。</param>

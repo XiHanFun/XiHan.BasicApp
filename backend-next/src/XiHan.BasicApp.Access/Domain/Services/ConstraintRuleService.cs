@@ -55,10 +55,14 @@ public sealed record ConstraintRuleDefinition(
     IReadOnlyList<ConstraintItemDefinition> Items);
 
 /// <summary>
-/// 约束规则的写入规则（4.x 的 ConstraintRuleDomainService）：编码同一侧唯一、不含空白；目标类型须是约束类型用得了的
+/// 约束规则的写入规则。
+/// </summary>
+/// <remarks>
+/// 对应 4.x 的 ConstraintRuleDomainService。
+/// 编码同一侧唯一、不含空白；目标类型须是约束类型用得了的
 /// （职责分离与条件只约束角色，互斥只约束权限码，基数约束角色或用户）；至少一个规则项，职责分离与互斥至少两个，目标不能重复，
 /// 且须是这一侧可用的（启用中的角色、目录里作用侧相符的权限码、这一侧的用户）；条件类的条件按条件引擎编译。写入后这一侧的规则缓存失效。
-/// </summary>
+/// </remarks>
 /// <param name="rules">规则仓储。</param>
 /// <param name="items">规则项仓储。</param>
 /// <param name="roles">角色查找。</param>
@@ -160,8 +164,11 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 启用或停用；启用时重新校验规则项（目标可能已停用或删除，4.x 同）。
+    /// 启用或停用约束规则。
     /// </summary>
+    /// <remarks>
+    /// 启用时重新校验规则项（目标可能已停用或删除，4.x 同）。
+    /// </remarks>
     public async Task<Result> SetStatusAsync(SysConstraintRule rule, ConstraintRuleStatus status, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(rule);
@@ -211,8 +218,11 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 规则项目标的显示名与编码：角色取名称与编码，权限码取目录里的显示名，用户取显示名与登录名。
+    /// 取规则项目标的显示名与编码。
     /// </summary>
+    /// <remarks>
+    /// 角色取名称与编码，权限码取目录里的显示名，用户取显示名与登录名。
+    /// </remarks>
     public async Task<IReadOnlyDictionary<(ConstraintTargetType Type, string TargetId), (string Name, string? Code)>> TargetNamesAsync(string owner, IEnumerable<(ConstraintTargetType Type, string TargetId)> targets, CancellationToken cancellationToken)
     {
         var list = targets.Distinct().ToList();

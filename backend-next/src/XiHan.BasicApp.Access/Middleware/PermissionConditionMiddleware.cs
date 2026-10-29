@@ -11,10 +11,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Middleware;
 
 /// <summary>
-/// 权限条件的调用时判定（Authorize 阶段，排在框架授权之后）：框架的权限过滤器拿不到请求属性，持有的权限码上挂了条件时，
+/// 权限条件的调用时判定（Authorize 阶段）。
+/// </summary>
+/// <remarks>
+/// 排在框架授权之后。
+/// 框架的权限过滤器拿不到请求属性，持有的权限码上挂了条件时，
 /// 这里按调用来源（地址、User-Agent、路径与方法）、主体与时刻精确判定操作声明的权限码；不满足时 <see cref="PermissionConditionMode.Enforce"/> 拒绝、
 /// <see cref="PermissionConditionMode.LogOnly"/> 放行，两者都记一条条件命中。只判定操作契约声明的权限码（4.x 在权限检查器里判定任何检查）。
-/// </summary>
+/// </remarks>
 /// <param name="evaluator">授予全貌。</param>
 /// <param name="decider">条件判定。</param>
 /// <param name="options">授权包配置。</param>

@@ -7,9 +7,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 会话激活的角色（平台库实体，4.x 的 SysSessionRole）：会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
-/// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询。
+/// 会话激活的角色（平台库实体）。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 的 SysSessionRole。会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
+/// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询。
+/// </remarks>
 public sealed class SysSessionRole : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />
@@ -46,15 +49,21 @@ public sealed class SysSessionRole : AppRecord, IOwnedByTenant
     public DateTimeOffset? DeactivatedAt { get; set; }
 
     /// <summary>
-    /// 原因：激活时为 <c>login</c>、<c>switch-tenant</c>、<c>impersonation</c>、<c>refresh</c> 或 <c>manual</c>；停用时为 <c>manual</c>、<c>switch-tenant</c>、<c>dsd:&lt;规则编码&gt;</c>，到期为 <c>not-held</c>。
+    /// 激活、停用或到期的原因。
     /// </summary>
+    /// <remarks>
+    /// 激活时为 <c>login</c>、<c>switch-tenant</c>、<c>impersonation</c>、<c>refresh</c> 或 <c>manual</c>；停用时为 <c>manual</c>、<c>switch-tenant</c>、<c>dsd:&lt;规则编码&gt;</c>，到期为 <c>not-held</c>。
+    /// </remarks>
     [StringLength(500)]
     public string? Reason { get; set; }
 }
 
 /// <summary>
-/// 会话角色的状态（4.x 同）。
+/// 会话角色的状态。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum SessionRoleStatus
 {
     /// <summary>

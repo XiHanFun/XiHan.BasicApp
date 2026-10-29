@@ -12,8 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 角色列表查询（SqlSugar 直查，作用侧 = 当前租户或平台）：关键字匹配角色码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// 角色列表查询。
 /// </summary>
+/// <remarks>
+/// SqlSugar 直查，作用侧 = 当前租户或平台。
+/// 关键字匹配角色码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 public sealed class RoleQueries(SqlSugarUnitOfWork unitOfWork)
 {

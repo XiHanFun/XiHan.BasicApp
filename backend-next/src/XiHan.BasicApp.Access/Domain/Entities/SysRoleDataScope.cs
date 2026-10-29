@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 角色自定义数据范围的一行（平台库实体，随角色分侧）：<see cref="DataScope.Custom"/> 的角色能看到的部门。
-/// 保存时整体替换；角色删除时连同移除。
+/// 角色自定义数据范围的一行（平台库实体，随角色分侧）。
 /// </summary>
+/// <remarks>
+/// <see cref="DataScope.Custom"/> 的角色能看到的部门。
+/// 保存时整体替换；角色删除时连同移除。
+/// </remarks>
 public sealed class SysRoleDataScope : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 给角色授予权限：<c>POST /api/roles/{id}:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。
-/// 先过权限互斥（拦下的权限码记为失败 <c>ACCESS_CONFLICT_012</c>）；带有效期或原因时为这些权限码写 Grant 规则（原来的 Deny 一并改成授予），不带即普通授予（删掉原有的规则行）。
+/// 给角色授予权限。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles/{id}:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。
+/// 先过权限互斥（拦下的权限码记为失败 <c>ACCESS_CONFLICT_012</c>）；带有效期或原因时为这些权限码写 Grant 规则（原来的 Deny 一并改成授予），不带即普通授予（删掉原有的规则行）。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">角色授予。</param>

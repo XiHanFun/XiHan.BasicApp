@@ -7,8 +7,11 @@ using XiHan.BasicApp.Access.Domain.Entities;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.update</c> 的请求：改名称、说明、排序与状态（角色码不可改）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>roles.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 改名称、说明、排序与状态（角色码不可改）。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">角色 ID。</param>
 /// <param name="Name">显示名。</param>
 /// <param name="Description">说明，可空。</param>

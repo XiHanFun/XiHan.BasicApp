@@ -31,9 +31,13 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed record FieldRuleDefinition(FieldSecurityTargetKind TargetKind, Guid TargetId, string Entity, string Field, FieldMaskStrategy Strategy, int? KeepHead, int? KeepTail, string? Replacement, bool IsEditable, FieldRuleStatus Status, string? Remark);
 
 /// <summary>
-/// 字段安全规则的维护（方案 5.9，校验沿用 4.x）：实体与字段须在目录里；非文本字段只能明文只读或隐藏，响应里不可空的字段不能隐藏；明文且可改的规则什么都没限制；
-/// 部分脱敏要保留位数（0 到 32，前后不能都是 0）、固定文本要文字（不超过 100 字）；目标须在这一侧且启用（部门只在租户侧）；同一侧同一目标同一字段只有一条。写入后失效该实体的规则缓存。
+/// 字段安全规则的维护。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9，校验沿用 4.x。
+/// 实体与字段须在目录里；非文本字段只能明文只读或隐藏，响应里不可空的字段不能隐藏；明文且可改的规则什么都没限制；
+/// 部分脱敏要保留位数（0 到 32，前后不能都是 0）、固定文本要文字（不超过 100 字）；目标须在这一侧且启用（部门只在租户侧）；同一侧同一目标同一字段只有一条。写入后失效该实体的规则缓存。
+/// </remarks>
 /// <param name="rules">规则仓储。</param>
 /// <param name="roles">角色仓储。</param>
 /// <param name="users">用户仓储。</param>
@@ -141,8 +145,11 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 规则目标的显示名（角色名、用户显示名、部门名）；目标已不存在的不在结果里。
+    /// 取规则目标的显示名（角色名、用户显示名、部门名）。
     /// </summary>
+    /// <remarks>
+    /// 目标已不存在的不在结果里。
+    /// </remarks>
     public async Task<IReadOnlyDictionary<(FieldSecurityTargetKind Kind, Guid Id), string>> TargetNamesAsync(IReadOnlyCollection<SysFieldSecurityRule> rows, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(rows);
