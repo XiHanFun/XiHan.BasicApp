@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 批量删除套餐：<c>DELETE /api/editions?ids=...</c>（平台侧）。还有租户绑定的套餐不能删（逐项 <c>TENANCY_CONFLICT_007</c>）；删除连同白名单。删掉缺省套餐后开通租户就必须指定套餐。
+/// 批量删除套餐。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/editions?ids=...</c>（平台侧）。还有租户绑定的套餐不能删（逐项 <c>TENANCY_CONFLICT_007</c>）；删除连同白名单。删掉缺省套餐后开通租户就必须指定套餐。
+/// </remarks>
 /// <param name="editions">套餐仓储。</param>
 /// <param name="service">套餐域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsDelete)]

@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 修改租户资料：<c>PUT /api/tenants/{id}</c>；名称同步到租户目录的显示名。
+/// 修改租户资料。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/tenants/{id}</c>；名称同步到租户目录的显示名。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="service">租户域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]

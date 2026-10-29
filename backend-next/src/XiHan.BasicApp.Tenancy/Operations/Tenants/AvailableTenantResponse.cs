@@ -6,8 +6,11 @@ using XiHan.BasicApp.Tenancy.Domain.Entities;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 当前用户可进入的一个租户（<c>tenants.mine</c> 的列表项）：注册地租户或成员租户。
+/// 当前用户可进入的一个租户（<c>tenants.mine</c> 的列表项）。
 /// </summary>
+/// <remarks>
+/// 注册地租户或成员租户。
+/// </remarks>
 /// <param name="TenantId">租户 ID（目录键，切换时传它）。</param>
 /// <param name="Name">名称。</param>
 /// <param name="IsHome">是否注册地租户。</param>

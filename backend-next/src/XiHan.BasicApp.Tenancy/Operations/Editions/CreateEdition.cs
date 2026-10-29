@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 新建套餐：<c>POST /api/editions</c>（平台侧）。编码唯一（<c>TENANCY_CONFLICT_006</c>）；白名单只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；设为缺省时清掉其余套餐的缺省标记。
+/// 新建套餐。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/editions</c>（平台侧）。编码唯一（<c>TENANCY_CONFLICT_006</c>）；白名单只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；设为缺省时清掉其余套餐的缺省标记。
+/// </remarks>
 /// <param name="editions">套餐仓储。</param>
 /// <param name="service">套餐域服务。</param>
 /// <param name="ids">标识生成器。</param>

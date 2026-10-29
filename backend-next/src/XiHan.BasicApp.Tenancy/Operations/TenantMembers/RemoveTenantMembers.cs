@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// 批量移除成员：<c>tenant-members.delete</c>（平台侧）。移除后该用户不能再切换进该租户；已签发的会话到刷新时才按新关系校验。
+/// 批量移除成员。
 /// </summary>
+/// <remarks>
+/// <c>tenant-members.delete</c>（平台侧）。移除后该用户不能再切换进该租户；已签发的会话到刷新时才按新关系校验。
+/// </remarks>
 /// <param name="members">成员仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersDelete)]
 public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> members) : IOperation<TenantMemberIdsRequest, BatchResult>

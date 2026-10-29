@@ -18,9 +18,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Seeds;
 
 /// <summary>
-/// 演示租户种子（号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写）：租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
-/// 以及平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿）。新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写。
+/// 演示租户种子。
 /// </summary>
+/// <remarks>
+/// 号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。写入：
+/// 租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
+/// 以及平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿）。新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="members">成员仓储。</param>
 /// <param name="users">用户仓储。</param>

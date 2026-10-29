@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Tenancy;
 
 /// <summary>
-/// 租户包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>）。
+/// 租户包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>）。
+/// </remarks>
 public static class TenancyMessages
 {
     /// <summary>
@@ -56,8 +59,11 @@ public static class TenancyMessages
     public const string InitializeAdminDescription = "tenants.initialize_admin.description";
 
     /// <summary>
-    /// 租户不存在；参数 <c>id</c>。
+    /// 租户不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string TenantNotFound = "tenancy.tenant.not_found";
 
     /// <summary>
@@ -91,18 +97,27 @@ public static class TenancyMessages
     public const string GetSubscriptionDescription = "subscription.get.description";
 
     /// <summary>
-    /// 租户 ID 已被占用；参数 <c>tenantId</c>。
+    /// 租户 ID 已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
     public const string TenantIdTaken = "tenancy.tenant.id_taken";
 
     /// <summary>
-    /// 管理员已初始化；参数 <c>tenantId</c>。
+    /// 管理员已初始化。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
     public const string AdminInitialized = "tenancy.tenant.admin_initialized";
 
     /// <summary>
-    /// 租户下还有用户；参数 <c>tenantId</c>、<c>count</c>。
+    /// 租户下还有用户。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>、<c>count</c>。
+    /// </remarks>
     public const string HasUsers = "tenancy.tenant.has_users";
 
     /// <summary>
@@ -111,18 +126,27 @@ public static class TenancyMessages
     public const string PlatformOnly = "tenancy.tenant.platform_only";
 
     /// <summary>
-    /// 列表筛选不受支持；参数 <c>field</c>、<c>operator</c>。
+    /// 列表筛选不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>operator</c>。
+    /// </remarks>
     public const string FilterUnsupported = "tenancy.tenant.filter_unsupported";
 
     /// <summary>
-    /// 列表排序字段不受支持；参数 <c>field</c>。
+    /// 列表排序字段不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string SortUnsupported = "tenancy.tenant.sort_unsupported";
 
     /// <summary>
-    /// 管理员登录名已被占用；参数 <c>userName</c>。
+    /// 管理员登录名已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>userName</c>。
+    /// </remarks>
     public const string AdminNameTaken = "tenancy.admin.name_taken";
 
     /// <summary>
@@ -151,18 +175,27 @@ public static class TenancyMessages
     public const string RemoveTenantMembersDescription = "tenant_members.delete.description";
 
     /// <summary>
-    /// 用户已是该租户的成员；参数 <c>tenantId</c>、<c>userId</c>。
+    /// 用户已是该租户的成员。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>、<c>userId</c>。
+    /// </remarks>
     public const string MemberExists = "tenancy.member.exists";
 
     /// <summary>
-    /// 成员行不存在；参数 <c>id</c>。
+    /// 成员行不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string MemberNotFound = "tenancy.member.not_found";
 
     /// <summary>
-    /// 要加为成员的用户不存在；参数 <c>userId</c>。
+    /// 要加为成员的用户不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>userId</c>。
+    /// </remarks>
     public const string MemberUserNotFound = "tenancy.member.user_not_found";
 
     /// <summary>
@@ -186,8 +219,11 @@ public static class TenancyMessages
     public const string UpdateEditionDescription = "editions.update.description";
 
     /// <summary>
-    /// 操作 <c>editions.set-permissions</c> 的说明（约定键把 <c>-</c> 换成 <c>_</c>）。
+    /// 操作 <c>editions.set-permissions</c> 的说明。
     /// </summary>
+    /// <remarks>
+    /// 约定键把 <c>-</c> 换成 <c>_</c>。
+    /// </remarks>
     public const string SetEditionPermissionsDescription = "editions.set_permissions.description";
 
     /// <summary>
@@ -201,23 +237,35 @@ public static class TenancyMessages
     public const string ChangeTenantEditionDescription = "tenants.change_edition.description";
 
     /// <summary>
-    /// 套餐不存在；参数 <c>id</c>。
+    /// 套餐不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string EditionNotFound = "tenancy.edition.not_found";
 
     /// <summary>
-    /// 套餐编码已被占用；参数 <c>code</c>。
+    /// 套餐编码已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string EditionCodeTaken = "tenancy.edition.code_taken";
 
     /// <summary>
-    /// 套餐还有租户在用；参数 <c>code</c>。
+    /// 套餐还有租户在用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string EditionInUse = "tenancy.edition.in_use";
 
     /// <summary>
-    /// 白名单里的权限不是租户能生效的；参数 <c>code</c>。
+    /// 白名单里的权限不是租户能生效的。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string EditionPermissionInvalid = "tenancy.edition.permission_invalid";
 
     /// <summary>

@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 替换套餐白名单：<c>POST /api/editions/{id}:set-permissions</c>（平台侧，<c>tenancy.editions.update</c>）。
-/// 只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；写入后失效绑定该套餐的租户的门控缓存，其用户的有效权限随即收窄或放宽。
+/// 替换套餐白名单。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/editions/{id}:set-permissions</c>（平台侧，<c>tenancy.editions.update</c>）。
+/// 只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；写入后失效绑定该套餐的租户的门控缓存，其用户的有效权限随即收窄或放宽。
+/// </remarks>
 /// <param name="service">套餐域服务。</param>
 /// <param name="gate">套餐门控。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsUpdate)]

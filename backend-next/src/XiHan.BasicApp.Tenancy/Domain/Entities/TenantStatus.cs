@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
 /// <summary>
-/// 租户状态；与框架租户目录的 <c>IsEnabled</c> 同步（Active ⇔ 启用）。
+/// 租户状态。
 /// </summary>
+/// <remarks>
+/// 与框架租户目录的 <c>IsEnabled</c> 同步（Active ⇔ 启用）。
+/// </remarks>
 public enum TenantStatus
 {
     /// <summary>

@@ -12,9 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 开通租户：<c>POST /api/tenants</c>。写 <see cref="SysTenant"/> 并在同一工作单元里登记框架租户目录（启用）。<c>platform</c> 是保留 ID。
-/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>。
+/// 开通租户。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/tenants</c>。写 <see cref="SysTenant"/> 并在同一工作单元里登记框架租户目录（启用）。<c>platform</c> 是保留 ID。
+/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="service">租户域服务。</param>
 /// <param name="editions">套餐域服务。</param>

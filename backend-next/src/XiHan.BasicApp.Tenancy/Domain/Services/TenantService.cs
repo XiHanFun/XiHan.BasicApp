@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Domain.Services;
 
 /// <summary>
-/// 租户域服务（作用域）：平台侧校验、按 ID / 租户 ID 找租户、与框架租户目录（<c>TenantRecord</c>）同步。
+/// 租户域服务（作用域）。
 /// </summary>
+/// <remarks>
+/// 平台侧校验、按 ID / 租户 ID 找租户、与框架租户目录（<c>TenantRecord</c>）同步。
+/// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="directory">框架租户目录存储。</param>
 public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRecordStore directory)
@@ -43,8 +46,11 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 把租户的目录字段（ID、显示名、是否启用）写进框架租户目录；目录缓存随之失效。
+    /// 把租户的目录字段（ID、显示名、是否启用）写进框架租户目录。
     /// </summary>
+    /// <remarks>
+    /// 目录缓存随之失效。
+    /// </remarks>
     public async Task<Result> SyncDirectoryAsync(SysTenant tenant, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -61,8 +67,11 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 从框架租户目录移除（删除租户时）；目录里本来没有也算成功。
+    /// 从框架租户目录移除（删除租户时）。
     /// </summary>
+    /// <remarks>
+    /// 目录里本来没有也算成功。
+    /// </remarks>
     public async Task<Result> RemoveFromDirectoryAsync(string tenantId, CancellationToken cancellationToken)
     {
         foreach (var outcome in await directory.RemoveAsync([tenantId], cancellationToken).ConfigureAwait(false))

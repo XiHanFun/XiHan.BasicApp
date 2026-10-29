@@ -4,9 +4,12 @@
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
 /// <summary>
-/// 租户成员的类型：所有者可转移所有权与管理成员（随后续批次），普通成员只是能进入该租户。
-/// 权限仍由 Access 的角色决定，成员类型不带任何权限。
+/// 租户成员的类型。
 /// </summary>
+/// <remarks>
+/// 所有者可转移所有权与管理成员（随后续批次），普通成员只是能进入该租户。
+/// 权限仍由 Access 的角色决定，成员类型不带任何权限。
+/// </remarks>
 public enum TenantMemberType
 {
     /// <summary>
