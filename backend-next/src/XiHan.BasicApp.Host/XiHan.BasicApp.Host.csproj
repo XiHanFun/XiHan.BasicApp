@@ -17,6 +17,7 @@
     <ProjectReference Include="../XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Files/XiHan.BasicApp.Files.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
     <!-- Tier 3 可选模块：按 BasicApp:Modules:<名>:Enabled 装配 -->
     <ProjectReference Include="../XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
   </ItemGroup>

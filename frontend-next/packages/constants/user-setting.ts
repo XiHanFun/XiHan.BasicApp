@@ -28,9 +28,9 @@ export const FAVORITES_SETTING_KEY = 'favorites'
  */
 export const USER_SETTING_CLIENT_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
-/** UserSettingChanged 实时推送载荷（与后端 UserSettingAppService 推送约定一致） */
+/** UserSettingChanged 实时推送载荷（后端 user-settings.update 写入后推送，枚举按名称，与契约一致） */
 export interface UserSettingChangedPayload {
-  scene: number
+  scene: 'Page' | 'Preference'
   settingKey: string
   settingValue?: null | string
   sourceClientId?: null | string

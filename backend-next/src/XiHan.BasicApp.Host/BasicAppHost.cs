@@ -11,6 +11,7 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
+using XiHan.BasicApp.Realtime;
 using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
@@ -69,7 +70,8 @@ public static class BasicAppHost
             .UseFeature<AccessFeature>()
             .UseFeature<SettingsFeature>()
             .UseFeature<FilesFeature>()
-            .UseFeature<AuditingFeature>();
+            .UseFeature<AuditingFeature>()
+            .UseFeature<RealtimeFeature>();
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();
@@ -83,11 +85,14 @@ public static class BasicAppHost
     }
 
     /// <summary>
-    /// 映射全部端点：探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、普通端点。
+    /// 映射全部端点：探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、普通端点。
+    /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（它的 JWT 方案不设为缺省），操作照旧由内核认证。
     /// </summary>
     public static void Map(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseXiHan();
         app.MapXiHanHealth();
         app.MapXiHanOperations();
@@ -107,7 +112,7 @@ public static class BasicAppHost
     }
 
     /// <summary>
-    /// 不能用操作表达的普通端点：根路径的应用信息、文件的上传与下载；OAuth 重定向、Hub、Webhook 随各包补入。
+    /// 不能用操作表达的普通端点：根路径的应用信息、文件的上传与下载、实时 Hub；OAuth 重定向、Webhook 随各包补入。
     /// </summary>
     public static IEndpointRouteBuilder MapBasicAppEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -117,6 +122,7 @@ public static class BasicAppHost
         // 根路径只是应用自述，不是业务契约：排除出接口文档，否则生成器会要求它的 JSON 引用某个操作的 Schema
         PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapGet("/", () => info).ExcludeFromDescription());
         endpoints.MapFileEndpoints();
+        endpoints.MapRealtimeHubs();
         return endpoints;
     }
 }

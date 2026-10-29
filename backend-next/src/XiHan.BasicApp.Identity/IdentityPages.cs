@@ -16,7 +16,12 @@ public static class IdentityPages
     public static PageDescriptor Users { get; } = new("identity.users", "/identity/users", "identity.users.title", "lucide:users", 100, IdentityPermissions.UsersRead);
 
     /// <summary>
+    /// 在线用户页。
+    /// </summary>
+    public static PageDescriptor OnlineUsers { get; } = new("identity.online-users", "/identity/online-users", "identity.online_users.title", "lucide:radio", 170, IdentityPermissions.SessionsRead);
+
+    /// <summary>
     /// 本包全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Users];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Users, OnlineUsers];
 }

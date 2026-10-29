@@ -1,0 +1,13 @@
+{
+  "hubs": [
+    {
+      "path": "/hubs/notification",
+      "methods": [
+        "ForceLogout",
+        "ReceiveNotification",
+        "TaskProgress",
+        "UserSettingChanged"
+      ]
+    }
+  ]
+}

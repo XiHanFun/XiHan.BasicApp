@@ -18,11 +18,15 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.18.3" />
   </ItemGroup>
 
+  <!-- 实时：Hub 绕过内核管道，用 ASP.NET Core 的 JWT Bearer 认证（与 Security.Jwt 同一密钥） -->
+  <ItemGroup Label="Realtime">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
+  </ItemGroup>
+
   <!-- 测试 -->
   <ItemGroup Label="Test">
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />

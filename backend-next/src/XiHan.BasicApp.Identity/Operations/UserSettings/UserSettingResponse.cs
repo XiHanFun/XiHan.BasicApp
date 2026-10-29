@@ -46,7 +46,11 @@ public sealed record GetUserSettingRequest(
 /// <param name="Scene">场景。</param>
 /// <param name="Key">设置键。</param>
 /// <param name="Value">设置载荷（JSON）。</param>
+/// <param name="ClientId">发起写入的客户端标识（每个标签页一个），原样放进推给其他端的 <c>UserSettingChanged</c>，发起端据此忽略自己的回显；不落库。</param>
+/// <param name="Origin">随推送中转给其他端的附带信息（主题切换的点击位置）；不落库。</param>
 public sealed record UpdateUserSettingRequest(
     UserSettingScene Scene,
     [Required, StringLength(100, MinimumLength = 1), RegularExpression(UserSettingKeys.Pattern)] string Key,
-    [StringLength(UserSettingKeys.MaxValueLength)] string? Value = null);
+    [StringLength(UserSettingKeys.MaxValueLength)] string? Value = null,
+    [StringLength(64)] string? ClientId = null,
+    [StringLength(64)] string? Origin = null);

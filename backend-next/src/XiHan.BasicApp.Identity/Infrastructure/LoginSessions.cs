@@ -90,6 +90,7 @@ public sealed class LoginSessions(
             IpAddress = SessionClient.AddressOf(context),
             ClientInfo = SessionClient.AgentOf(context),
         };
+        SessionClient.Describe(session, context);
         var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)
         {

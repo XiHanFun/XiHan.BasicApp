@@ -13,6 +13,7 @@
     <Project Path="src/XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
     <Project Path="src/XiHan.BasicApp.Files/XiHan.BasicApp.Files.csproj" />
     <Project Path="src/XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
+    <Project Path="src/XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
   </Folder>
   <Folder Name="/3.Optional/">
     <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />

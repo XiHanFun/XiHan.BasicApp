@@ -1,8 +1,13 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Net;
+using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Runtime.Clients;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Security.Abstractions.Network;
 
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
@@ -32,6 +37,31 @@ public static class SessionClient
     {
         ArgumentNullException.ThrowIfNull(context);
         return context.GetOrigin().TryGetValue(out var origin) ? Clip(origin.UserAgent) : null;
+    }
+
+    /// <summary>
+    /// 按会话已记下的 User-Agent 与 IP 填浏览器、操作系统、设备类型与登录地点（在线用户页的列）。
+    /// </summary>
+    public static void Describe(SysUserSession session, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(context);
+        var agent = UserAgentInfo.Parse(session.ClientInfo);
+        session.Browser = agent.Browser;
+        session.Os = agent.Os;
+        session.Device = agent.Device;
+        session.Location = LocationOf(session.IpAddress, context.Services.GetService<IIpRegionResolver>());
+    }
+
+    private static string? LocationOf(string? address, IIpRegionResolver? regions)
+    {
+        if (regions is null || !IPAddress.TryParse(address, out var ip) || !regions.Resolve(ip).TryGetValue(out var region))
+        {
+            return null;
+        }
+
+        var location = region.Location;
+        return location.Length == 0 ? null : location.Length <= 128 ? location : location[..128];
     }
 
     private static string? Clip(string? value) => value is null || value.Length <= MaxLength ? value : value[..MaxLength];

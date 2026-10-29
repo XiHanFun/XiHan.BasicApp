@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "La liaison de l'application d'authentification a expiré ou n'a pas commencé. Générez une nouvelle clé.",
   "identity.field_security.protected": "Le champ {field} est protégé par la sécurité des champs et ne peut pas servir à filtrer ni à trier.",
   "identity.field_security.read_only": "Le champ {field} est en lecture seule pour vous et ne peut être ni rempli ni modifié.",
-  "auth.activate_roles.description": "Changer les rôles activés dans la session courante (tous détenus actuellement et sans violer la séparation dynamique des tâches) ; renvoie de nouveaux jetons."
+  "auth.activate_roles.description": "Changer les rôles activés dans la session courante (tous détenus actuellement et sans violer la séparation dynamique des tâches) ; renvoie de nouveaux jetons.",
+  "sessions.list.description": "Liste paginée des utilisateurs en ligne du locataire courant : une ligne par session active avec appareil, navigateur, IP masquée, lieu de connexion, heure de connexion et de dernière activité et présence en temps réel ; restreinte par la portée des données. Requiert identity.sessions.read.",
+  "sessions.summary.description": "Vue d’ensemble en ligne du locataire courant : sessions actives, utilisateurs ayant une session active et utilisateurs connectés en temps réel. Requiert identity.sessions.read.",
+  "sessions.revoke.description": "Déconnexion forcée : révoque des sessions actives du locataire courant ; les clients sont notifiés en temps réel et se déconnectent. Votre propre session courante ne peut pas être révoquée ici. Requiert identity.sessions.revoke.",
+  "identity.session.not_found": "La session {id} n’existe pas ou n’est plus active.",
+  "identity.session.current": "Vous ne pouvez pas forcer la déconnexion de votre propre session courante ; déconnectez-vous plutôt."
 }

@@ -39,9 +39,12 @@ function releaseManifest(): PluginOption {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  // 开发态把 /api、/openapi.json、/mcp、/health 代理到后端宿主（Kestrel 的 Http 端点）
+  // 开发态把 /api、/openapi.json、/mcp、/health 代理到后端宿主（Kestrel 的 Http 端点）；实时 Hub /hubs 要转 WebSocket
   const target = env.VITE_DEV_PROXY_TARGET || 'http://localhost:9710'
-  const proxy = Object.fromEntries(['/api', '/openapi.json', '/mcp', '/health'].map(path => [path, { target, changeOrigin: true }]))
+  const proxy = {
+    ...Object.fromEntries(['/api', '/openapi.json', '/mcp', '/health'].map(path => [path, { target, changeOrigin: true }])),
+    '/hubs': { target, changeOrigin: true, ws: true },
+  }
 
   return {
     // 版本号进壳层页脚；来源只有 package.json 一处

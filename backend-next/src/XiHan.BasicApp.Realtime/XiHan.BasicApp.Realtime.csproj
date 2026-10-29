@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Realtime</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 实时能力包（Tier 2）：SignalR 通知 Hub（绕过内核管道，ASP.NET Core JWT 认证与 Security.Jwt 同一密钥）、连接登记与在线状态、按会话 / 用户 / 侧推送（调用成功提交之后才发出）；Hub 由宿主映射。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
+  </ItemGroup>
+</Project>

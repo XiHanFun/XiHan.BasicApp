@@ -4,6 +4,7 @@
 //   packages/contracts/operations.ts   路由表 + 按资源分组的调用函数（users.create → invoke(...)）
 //   packages/contracts/permissions.ts  权限码字面量联合、操作 → 权限 / 策略映射、权限定义表
 //   packages/contracts/enums.ts        字符串枚举的成员数组与类型
+//   packages/contracts/realtime.ts     实时 Hub 路径与推送方法名（来自同目录的 contracts/realtime.json）
 // 生成物入库；`--check` 重新生成到内存并与入库文件比对，有差异即失败（CI 漂移门禁）。
 import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
@@ -13,11 +14,13 @@ import openapiTS, { astToString } from 'openapi-typescript'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SOURCE = join(ROOT, 'contracts', 'openapi.json')
+const REALTIME_SOURCE = join(ROOT, 'contracts', 'realtime.json')
 const OUT_DIR = join(ROOT, 'packages', 'contracts')
 const HEADER = '// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts。\n'
 
 const check = process.argv.includes('--check')
 const document = JSON.parse(await readFile(SOURCE, 'utf8'))
+const realtime = JSON.parse(await readFile(REALTIME_SOURCE, 'utf8'))
 
 /** 单引号字符串字面量（与 lint 风格一致） */
 function quote(text) {
@@ -203,6 +206,32 @@ function emitEnums(enums) {
   return lines.join('\n')
 }
 
+/** `/hubs/notification` → `Notification` */
+function hubName(path) {
+  return pascal(path.split('/').filter(Boolean).at(-1))
+}
+
+function emitRealtime(manifest) {
+  const hubs = manifest.hubs ?? []
+  const methods = [...new Set(hubs.flatMap(hub => hub.methods ?? []))].sort()
+  const lines = [HEADER.replace('contracts/openapi.json', 'contracts/realtime.json')]
+  lines.push('/** 实时 Hub 的路径（后端 RealtimeHubs）。 */')
+  lines.push('export const RealtimeHubs = {')
+  for (const hub of hubs)
+    lines.push(`  ${hubName(hub.path)}: ${quote(hub.path)},`)
+  lines.push('} as const')
+  lines.push('')
+  lines.push('/** 服务端推送的方法名（后端 RealtimeMethods）：订阅一律用这里的常量，后端改名时生成物漂移、类型检查报错。 */')
+  lines.push('export const RealtimeMethods = {')
+  for (const method of methods)
+    lines.push(`  ${method}: ${quote(method)},`)
+  lines.push('} as const')
+  lines.push('')
+  lines.push('export type RealtimeMethod = typeof RealtimeMethods[keyof typeof RealtimeMethods]')
+  lines.push('')
+  return lines.join('\n')
+}
+
 async function emitTypes(doc) {
   const ast = await openapiTS(doc, { exportType: false, alphabetize: false })
   return `${HEADER}/* eslint-disable */\n${astToString(ast)}`
@@ -214,6 +243,7 @@ const outputs = {
   'operations.ts': emitOperations(operations),
   'permissions.ts': emitPermissions(document, operations),
   'enums.ts': emitEnums(collectEnums(document)),
+  'realtime.ts': emitRealtime(realtime),
 }
 
 let drift = 0

@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
@@ -60,6 +61,30 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 登录 IP。
     /// </summary>
     public string? IpAddress { get; set; }
+
+    /// <summary>
+    /// 浏览器（开会话时由 User-Agent 粗分，在线用户页的展示与筛选列）。
+    /// </summary>
+    [StringLength(64)]
+    public string? Browser { get; set; }
+
+    /// <summary>
+    /// 操作系统（同上）。
+    /// </summary>
+    [StringLength(64)]
+    public string? Os { get; set; }
+
+    /// <summary>
+    /// 设备类型：Desktop、Mobile、Tablet、Bot（同上）。
+    /// </summary>
+    [StringLength(32)]
+    public string? Device { get; set; }
+
+    /// <summary>
+    /// 登录地点（开会话时按 IP 归属地解析；没装 IP 归属地库即为 <see langword="null"/>）。
+    /// </summary>
+    [StringLength(128)]
+    public string? Location { get; set; }
 
     /// <summary>
     /// 模仿会话：发起模仿的用户 ID（令牌的 <c>act</c>）；普通会话为 <see langword="null"/>。

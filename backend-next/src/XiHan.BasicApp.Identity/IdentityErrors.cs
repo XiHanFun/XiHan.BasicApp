@@ -142,4 +142,14 @@ public static class IdentityErrors
     /// 登录失败太频繁，本窗口内暂停尝试；参数 <c>retryAfter</c> 秒。
     /// </summary>
     public const string LoginThrottled = "IDENTITY_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 会话不存在、已失效或不在当前一侧与数据范围内；参数 <c>id</c>。
+    /// </summary>
+    public const string SessionNotFound = "IDENTITY_NOTFOUND_002";
+
+    /// <summary>
+    /// 不能强制下线自己当前的会话（用退出登录）。
+    /// </summary>
+    public const string CurrentSessionNotRevocable = "IDENTITY_CONFLICT_005";
 }

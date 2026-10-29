@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "A vinculação do autenticador expirou ou não foi iniciada. Gere uma nova chave.",
   "identity.field_security.protected": "O campo {field} é protegido pela segurança de campos e não pode ser usado para filtrar ou ordenar.",
   "identity.field_security.read_only": "O campo {field} é somente leitura para você e não pode ser preenchido nem alterado.",
-  "auth.activate_roles.description": "Trocar as funções ativadas na sessão atual (todas mantidas agora e sem violar a separação dinâmica de funções); retorna novos tokens."
+  "auth.activate_roles.description": "Trocar as funções ativadas na sessão atual (todas mantidas agora e sem violar a separação dinâmica de funções); retorna novos tokens.",
+  "sessions.list.description": "Lista paginada dos usuários online do locatário atual: uma linha por sessão ativa com dispositivo, navegador, IP mascarado, local de entrada, horário de entrada e da última atividade e presença em tempo real; restrita pelo escopo de dados. Requer identity.sessions.read.",
+  "sessions.summary.description": "Visão geral online do locatário atual: sessões ativas, usuários com sessão ativa e usuários conectados em tempo real. Requer identity.sessions.read.",
+  "sessions.revoke.description": "Saída forçada: revoga sessões ativas do locatário atual; os clientes são avisados em tempo real e saem. Sua própria sessão atual não pode ser revogada aqui. Requer identity.sessions.revoke.",
+  "identity.session.not_found": "A sessão {id} não existe ou não está mais ativa.",
+  "identity.session.current": "Você não pode forçar a saída da sua própria sessão atual; use sair."
 }

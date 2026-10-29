@@ -117,10 +117,10 @@ export function registerApplicationContext(router: Router): void {
     deleteAccountApi: () => notAvailable('deleteAccountApi'),
     lockSessionApi: () => notAvailable('lockSessionApi'),
     unlockSessionApi: () => notAvailable('unlockSessionApi'),
-    // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 是实时回推用的，随 Realtime 批次接入
+    // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 随实时回推（UserSettingChanged）原样转给其他端
     userSettingApi: {
       get: async input => toShellSetting(await userSettingOps.get({ scene: sceneOf(input.scene), key: input.settingKey })),
-      save: async input => toShellSetting(await userSettingOps.update({ scene: sceneOf(input.scene), key: input.settingKey, value: input.settingValue ?? null })),
+      save: async input => toShellSetting(await userSettingOps.update({ scene: sceneOf(input.scene), key: input.settingKey, value: input.settingValue ?? null, clientId: input.clientId ?? null, origin: input.origin ?? null })),
     },
     userInboxApi: {
       banner: () => notAvailable('userInboxApi.banner'),

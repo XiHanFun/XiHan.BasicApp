@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "La vinculación del autenticador ha caducado o no se ha iniciado. Genera una clave nueva.",
   "identity.field_security.protected": "El campo {field} está protegido por la seguridad de campos y no se puede usar para filtrar ni ordenar.",
   "identity.field_security.read_only": "El campo {field} es de solo lectura para usted y no se puede rellenar ni cambiar.",
-  "auth.activate_roles.description": "Cambiar los roles activados en la sesión actual (todos en posesión ahora y sin violar la separación dinámica de funciones); devuelve tokens nuevos."
+  "auth.activate_roles.description": "Cambiar los roles activados en la sesión actual (todos en posesión ahora y sin violar la separación dinámica de funciones); devuelve tokens nuevos.",
+  "sessions.list.description": "Lista paginada de los usuarios en línea del inquilino actual: una fila por sesión activa con dispositivo, navegador, IP enmascarada, ubicación de inicio de sesión, hora de inicio y de última actividad y presencia en tiempo real; restringida por el ámbito de datos. Requiere identity.sessions.read.",
+  "sessions.summary.description": "Resumen en línea del inquilino actual: sesiones activas, usuarios con sesión activa y usuarios conectados en tiempo real. Requiere identity.sessions.read.",
+  "sessions.revoke.description": "Cierre de sesión forzado: revoca sesiones activas del inquilino actual; los clientes reciben el aviso en tiempo real y cierran la sesión. No puede revocar aquí su propia sesión actual. Requiere identity.sessions.revoke.",
+  "identity.session.not_found": "La sesión {id} no existe o ya no está activa.",
+  "identity.session.current": "No puede forzar el cierre de su propia sesión actual; cierre la sesión en su lugar."
 }

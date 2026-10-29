@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "認証アプリの登録が期限切れか、まだ開始されていません。キーを生成し直してください。",
   "identity.field_security.protected": "フィールド {field} はフィールドセキュリティで保護されているため、絞り込みや並べ替えに使えません。",
   "identity.field_security.read_only": "フィールド {field} はあなたには読み取り専用で、入力や変更はできません。",
-  "auth.activate_roles.description": "現在のセッションで有効にするロールを切り替えます（すべて現在保有しており、動的職務分離に違反しないこと）。新しいトークンを返します。"
+  "auth.activate_roles.description": "現在のセッションで有効にするロールを切り替えます（すべて現在保有しており、動的職務分離に違反しないこと）。新しいトークンを返します。",
+  "sessions.list.description": "現在のテナントのオンラインユーザーをページ単位で一覧表示します。有効なセッションごとに 1 行で、デバイス、ブラウザー、マスクした IP、ログイン地点、ログイン時刻と最終アクティビティ、リアルタイム接続の有無を含み、データ範囲で絞り込まれます。identity.sessions.read 権限が必要です。",
+  "sessions.summary.description": "現在のテナントのオンライン概況：有効なセッション数、セッションを持つユーザー数、リアルタイム接続中のユーザー数。identity.sessions.read 権限が必要です。",
+  "sessions.revoke.description": "強制ログアウト：現在のテナントの有効なセッションを失効させ、クライアントはリアルタイム接続で通知を受けてログアウトします。自分の現在のセッションは対象にできません。identity.sessions.revoke 権限が必要です。",
+  "identity.session.not_found": "セッション {id} は存在しないか、すでに無効です。",
+  "identity.session.current": "自分の現在のセッションは強制ログアウトできません。ログアウトしてください。"
 }
