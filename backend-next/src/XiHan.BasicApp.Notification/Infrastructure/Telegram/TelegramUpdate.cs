@@ -6,8 +6,11 @@ using System.Text.Json;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// Update 的种类（Webhook 与长轮询都只订这几种，4.x 轮询同一份列表）。
+/// Update 的种类。
 /// </summary>
+/// <remarks>
+/// Webhook 与长轮询都只订这几种，4.x 轮询同一份列表。
+/// </remarks>
 public enum TelegramUpdateKind
 {
     /// <summary>
@@ -82,8 +85,11 @@ public sealed record TelegramUpdate
     public long UserId { get; init; }
 
     /// <summary>
-    /// 发送人的语言（缺省 <c>zh-CN</c>，4.x 同）。
+    /// 发送人的语言（缺省 <c>zh-CN</c>）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public string LanguageCode { get; init; } = "zh-CN";
 
     /// <summary>
@@ -142,10 +148,10 @@ public sealed record TelegramUpdate
     public bool IsCommand => HasMessage && Text is { Length: > 1 } text && text[0] == '/';
 
     /// <summary>
-    /// 解析；不是对象或没有 <c>update_id</c> 即 <see langword="null"/>。
+    /// 解析一条 Update。
     /// </summary>
     /// <param name="root">原始 JSON。</param>
-    /// <returns>Update。</returns>
+    /// <returns>Update；不是对象或没有 <c>update_id</c> 即 <see langword="null"/>。</returns>
     public static TelegramUpdate? Parse(JsonElement root)
     {
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("update_id", out var idElement) || !idElement.TryGetInt64(out var updateId))

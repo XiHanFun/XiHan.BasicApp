@@ -50,9 +50,12 @@ public sealed record EmailConfigDraft(string Name, string SmtpHost, int SmtpPort
 public sealed record SmsConfigDraft(string Name, SmsProvider Provider, string AccessKeyId, string? AccessKeySecret, string? SdkAppId, string SignName, string? Region, string? TemplateMap, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 邮件与短信配置的规则（与存储配置同一套）：编码在同一侧唯一、建好不改；每侧至多一条缺省，第一条自动成为缺省；缺省配置须启用，不能停用或删除；
-/// 发送用当前一侧的缺省配置，租户没有就用平台的。密码与访问密钥加密存储。
+/// 邮件与短信配置的规则（与存储配置同一套）。
 /// </summary>
+/// <remarks>
+/// 编码在同一侧唯一、建好不改；每侧至多一条缺省，第一条自动成为缺省；缺省配置须启用，不能停用或删除；
+/// 发送用当前一侧的缺省配置，租户没有就用平台的。密码与访问密钥加密存储。
+/// </remarks>
 /// <param name="emails">邮件配置仓储。</param>
 /// <param name="sms">短信配置仓储。</param>
 /// <param name="secrets">密钥保护。</param>
@@ -156,8 +159,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 修改邮件配置（编码不改；缺省配置不能停用）。
+    /// 修改邮件配置。
     /// </summary>
+    /// <remarks>
+    /// 编码不改；缺省配置不能停用。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="draft">内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -216,8 +222,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 批量删除邮件配置；缺省配置逐项拒绝。
+    /// 批量删除邮件配置。
     /// </summary>
+    /// <remarks>
+    /// 缺省配置逐项拒绝。
+    /// </remarks>
     /// <param name="owner">侧。</param>
     /// <param name="configIds">配置 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -282,8 +291,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 修改短信配置（编码不改；缺省配置不能停用）。
+    /// 修改短信配置。
     /// </summary>
+    /// <remarks>
+    /// 编码不改；缺省配置不能停用。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <param name="draft">内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -342,8 +354,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 批量删除短信配置；缺省配置逐项拒绝。
+    /// 批量删除短信配置。
     /// </summary>
+    /// <remarks>
+    /// 缺省配置逐项拒绝。
+    /// </remarks>
     /// <param name="owner">侧。</param>
     /// <param name="configIds">配置 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -378,8 +393,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 发送用的 SMTP 服务器（密码解密；解不开按没有密码处理，由服务器拒绝认证）。
+    /// 发送用的 SMTP 服务器（密码解密）。
     /// </summary>
+    /// <remarks>
+    /// 密码解不开按没有密码处理，由服务器拒绝认证。
+    /// </remarks>
     /// <param name="config">配置。</param>
     /// <returns>服务器。</returns>
     public EmailServer ServerOf(SysEmailConfig config)

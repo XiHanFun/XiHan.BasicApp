@@ -14,8 +14,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 有新的发送记录时提前唤醒发送循环（单例）。记录可能还没提交，循环取不到就等下一轮。
+/// 有新的发送记录时提前唤醒发送循环（单例）。
 /// </summary>
+/// <remarks>
+/// 记录可能还没提交，循环取不到就等下一轮。
+/// </remarks>
 public sealed class MessageDispatchSignal : IDisposable
 {
     private readonly SemaphoreSlim _signal = new(0, 1);
@@ -51,9 +54,12 @@ public sealed class MessageDispatchSignal : IDisposable
 }
 
 /// <summary>
-/// <see cref="IMessageSender"/> 的实现：按模板编码取当前一侧（没有取平台）的模板渲染主题与正文，确认有可用的配置，写一条排队中的发送记录
-/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。短信另存调用方给的参数（品牌名只用于本地渲染，不交给服务商，免得参数个数对不上）。
+/// 渲染模板并排队发送记录的 <see cref="IMessageSender"/> 实现。
 /// </summary>
+/// <remarks>
+/// 按模板编码取当前一侧（没有取平台）的模板渲染主题与正文，确认有可用的配置，写一条排队中的发送记录
+/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。短信另存调用方给的参数（品牌名只用于本地渲染，不交给服务商，免得参数个数对不上）。
+/// </remarks>
 /// <param name="templates">模板服务。</param>
 /// <param name="configs">配置服务。</param>
 /// <param name="emails">邮件记录仓储。</param>

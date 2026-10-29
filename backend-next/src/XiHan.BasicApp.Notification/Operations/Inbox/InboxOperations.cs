@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.Inbox;
 
 /// <summary>
-/// 分页列出本人的收件箱：<c>POST /api/inbox:list</c>（我的消息页与顶栏的通知中心都读它）。
+/// 分页列出本人的收件箱。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/inbox:list</c>（我的消息页与顶栏的通知中心都读它）。
+/// </remarks>
 /// <param name="queries">收件箱查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInbox(InboxQueries queries) : IOperation<PageRequest, PageResult<InboxItemResponse>>
@@ -75,8 +78,11 @@ public sealed class ListInboxPopups(InboxQueries queries) : IOperation<InboxShow
 }
 
 /// <summary>
-/// 本人未读的强制阅读：<c>GET /api/inbox:mandatory</c>（路由守卫据此拦截）。
+/// 本人未读的强制阅读。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/inbox:mandatory</c>（路由守卫据此拦截）。
+/// </remarks>
 /// <param name="queries">收件箱查询。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInboxMandatory(InboxQueries queries) : IOperation<InboxShowcaseRequest, InboxItemsResponse>
@@ -96,8 +102,11 @@ public sealed class ListInboxMandatory(InboxQueries queries) : IOperation<InboxS
 }
 
 /// <summary>
-/// 标已读：<c>POST /api/inbox:mark-read</c>；不是本人的逐项 <c>NOTIFICATION_NOTFOUND_002</c>。
+/// 标已读。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/inbox:mark-read</c>；不是本人的逐项 <c>NOTIFICATION_NOTFOUND_002</c>。
+/// </remarks>
 /// <param name="service">收件箱服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MarkInboxRead(InboxService service) : IOperation<InboxIdsRequest, BatchResult>
@@ -117,8 +126,11 @@ public sealed class MarkInboxRead(InboxService service) : IOperation<InboxIdsReq
 }
 
 /// <summary>
-/// 全部已读：<c>POST /api/inbox:mark-all-read</c>（只标此刻可见的）。
+/// 全部已读。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/inbox:mark-all-read</c>（只标此刻可见的）。
+/// </remarks>
 /// <param name="service">收件箱服务。</param>
 /// <param name="queries">收件箱查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -168,8 +180,11 @@ public sealed class ConfirmInbox(InboxService service) : IOperation<InboxIdReque
 }
 
 /// <summary>
-/// 记下弹窗已显示：<c>POST /api/inbox/{id}:mark-popup-shown</c>。
+/// 记下弹窗已显示。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/inbox/{id}:mark-popup-shown</c>。
+/// </remarks>
 /// <param name="service">收件箱服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MarkInboxPopupShown(InboxService service) : IOperation<InboxIdRequest, InboxCountResponse>
@@ -196,8 +211,11 @@ public sealed class MarkInboxPopupShown(InboxService service) : IOperation<Inbox
 }
 
 /// <summary>
-/// 从本人收件箱里删除：<c>DELETE /api/inbox?ids=</c>（方案 5.11 拍板补上的 <c>inbox.delete</c>，4.x 没有）。
+/// 从本人收件箱里删除。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/inbox?ids=</c>（方案 5.11 拍板补上的 <c>inbox.delete</c>，4.x 没有）。
+/// </remarks>
 /// <param name="service">收件箱服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteInbox(InboxService service) : IOperation<InboxIdsRequest, BatchResult>

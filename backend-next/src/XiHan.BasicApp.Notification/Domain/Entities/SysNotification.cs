@@ -8,8 +8,11 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 通知公告（租户库实体，平台一侧租户为 <c>platform</c>；4.x 在平台库）：先存草稿，发布时按目标解析出接收人、写进各自的收件箱并实时推送；发布后不能再改。
+/// 通知公告（租户库实体，平台一侧租户为 <c>platform</c>）。
 /// </summary>
+/// <remarks>
+/// 4.x 在平台库。先存草稿，发布时按目标解析出接收人、写进各自的收件箱并实时推送；发布后不能再改。
+/// </remarks>
 public sealed class SysNotification : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -74,8 +77,11 @@ public sealed class SysNotification : TenantScopedAuditedEntity
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;
 
     /// <summary>
-    /// 目标 ID（角色、部门或用户，JSON 数组）；<see cref="NotificationTargetType.All"/> 为空。
+    /// 目标 ID（角色、部门或用户，JSON 数组）。
     /// </summary>
+    /// <remarks>
+    /// <see cref="NotificationTargetType.All"/> 为空。
+    /// </remarks>
     [LongText]
     public string? TargetIds { get; set; }
 
@@ -100,13 +106,19 @@ public sealed class SysNotification : TenantScopedAuditedEntity
     public bool IsPopup { get; set; }
 
     /// <summary>
-    /// 收件箱里从何时起可见；为空即发布即可见。
+    /// 收件箱里从何时起可见。
     /// </summary>
+    /// <remarks>
+    /// 为空即发布即可见。
+    /// </remarks>
     public DateTimeOffset? StartsAt { get; set; }
 
     /// <summary>
-    /// 到期时间（不含）；之后收件箱里不再显示。为空即长期有效。
+    /// 到期时间（不含）。
     /// </summary>
+    /// <remarks>
+    /// 之后收件箱里不再显示。为空即长期有效。
+    /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>

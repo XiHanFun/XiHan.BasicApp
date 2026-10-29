@@ -11,8 +11,12 @@ using XiHan.BasicApp.Notification.Domain.Entities;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 阿里云短信（Dysmsapi 2017-05-25 的 <c>SendSms</c>，RPC 风格签名 HMAC-SHA1，不引 SDK）：模板参数整体作为 JSON 对象传给服务商。
+/// 阿里云短信的发送通道。
 /// </summary>
+/// <remarks>
+/// Dysmsapi 2017-05-25 的 <c>SendSms</c>，RPC 风格签名 HMAC-SHA1，不引 SDK。
+/// 模板参数整体作为 JSON 对象传给服务商。
+/// </remarks>
 /// <param name="http">HTTP 客户端工厂。</param>
 /// <param name="clock">时钟。</param>
 public sealed class AliyunSmsTransport(IHttpClientFactory http, TimeProvider clock) : ISmsTransport
@@ -75,14 +79,21 @@ public sealed class AliyunSmsTransport(IHttpClientFactory http, TimeProvider clo
     }
 
     /// <summary>
-    /// 阿里云要求的百分号编码：RFC 3986，空格编码成 <c>%20</c>、星号 <c>%2A</c>，波浪号不编码。
+    /// 阿里云要求的百分号编码。
     /// </summary>
+    /// <remarks>
+    /// RFC 3986，空格编码成 <c>%20</c>、星号 <c>%2A</c>，波浪号不编码。
+    /// </remarks>
     private static string Encode(string value) => Uri.EscapeDataString(value).Replace("+", "%20", StringComparison.Ordinal).Replace("*", "%2A", StringComparison.Ordinal).Replace("%7E", "~", StringComparison.Ordinal);
 }
 
 /// <summary>
-/// 腾讯云短信（SMS 2021-01-11 的 <c>SendSms</c>，TC3-HMAC-SHA256 签名，不引 SDK）：模板参数按顺序传（腾讯云只认顺序）；手机号不带国家码时按 +86 补上。
+/// 腾讯云短信的发送通道。
 /// </summary>
+/// <remarks>
+/// SMS 2021-01-11 的 <c>SendSms</c>，TC3-HMAC-SHA256 签名，不引 SDK。
+/// 模板参数按顺序传（腾讯云只认顺序）；手机号不带国家码时按 +86 补上。
+/// </remarks>
 /// <param name="http">HTTP 客户端工厂。</param>
 /// <param name="clock">时钟。</param>
 public sealed class TencentSmsTransport(IHttpClientFactory http, TimeProvider clock) : ISmsTransport

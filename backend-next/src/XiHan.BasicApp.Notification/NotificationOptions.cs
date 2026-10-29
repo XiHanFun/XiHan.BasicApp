@@ -22,18 +22,27 @@ public sealed class NotificationOptions
     public string Brand { get; init; } = AppInfo.Name;
 
     /// <summary>
-    /// 发送循环的轮询间隔（缺省 5 秒；有新记录时提前唤醒）。
+    /// 发送循环的轮询间隔（缺省 5 秒）。
     /// </summary>
+    /// <remarks>
+    /// 有新记录时提前唤醒。
+    /// </remarks>
     public TimeSpan DispatchInterval { get; init; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// 失败后重试的基础间隔（第 n 次失败后等 n 倍，缺省 30 秒，4.x 同）。
+    /// 失败后重试的基础间隔（缺省 30 秒）。
     /// </summary>
+    /// <remarks>
+    /// 第 n 次失败后等 n 倍，4.x 同。
+    /// </remarks>
     public TimeSpan RetryDelay { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 每条记录最多尝试的次数（缺省 3，4.x 同）。
+    /// 每条记录最多尝试的次数（缺省 3）。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public int MaxAttempts { get; init; } = 3;
 
     /// <summary>

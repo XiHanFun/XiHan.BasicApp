@@ -16,8 +16,11 @@ using XiHan.BasicApp.Notification.Operations.TelegramBots;
 namespace XiHan.BasicApp.Notification;
 
 /// <summary>
-/// 通知包操作的请求 / 响应与推送载荷的序列化上下文（源生成；枚举按字符串）。
+/// 通知包操作的请求 / 响应与推送载荷的序列化上下文。
 /// </summary>
+/// <remarks>
+/// 源生成；枚举按字符串。
+/// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     PropertyNameCaseInsensitive = true,

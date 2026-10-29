@@ -10,8 +10,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// 一条命令的登记：主命令、别名、菜单说明、是否只给管理员、可选的正则（整段文本匹配，捕获组作参数）。
+/// 一条命令的登记。
 /// </summary>
+/// <remarks>
+/// 主命令、别名、菜单说明、是否只给管理员、可选的正则（整段文本匹配，捕获组作参数）。
+/// </remarks>
 /// <param name="Name">主命令（带不带斜杠都行）。</param>
 /// <param name="Description">菜单与 <c>/help</c> 里的说明。</param>
 /// <param name="Aliases">别名。</param>
@@ -20,8 +23,11 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 public sealed record TelegramCommand(string Name, string? Description = null, IReadOnlyList<string>? Aliases = null, bool AdminOnly = false, string? Pattern = null);
 
 /// <summary>
-/// 命令处理器（作用域服务；登记重复的命令或别名在启动时报错）。
+/// 命令处理器（作用域服务）。
 /// </summary>
+/// <remarks>
+/// 登记重复的命令或别名在启动时报错。
+/// </remarks>
 public interface ITelegramCommandHandler
 {
     /// <summary>
@@ -39,8 +45,11 @@ public interface ITelegramCommandHandler
 }
 
 /// <summary>
-/// 回调处理器：<c>callback_data</c> 第一个冒号前的部分即 action（不分大小写）。
+/// 回调处理器。
 /// </summary>
+/// <remarks>
+/// <c>callback_data</c> 第一个冒号前的部分即 action（不分大小写）。
+/// </remarks>
 public interface ITelegramCallbackHandler
 {
     /// <summary>
@@ -54,8 +63,11 @@ public interface ITelegramCallbackHandler
     bool AdminOnly { get; }
 
     /// <summary>
-    /// 处理（拿到完整的 data）；结束后自动应答回调，可用 <see cref="TelegramContext.SetCallbackAnswer"/> 定制。
+    /// 处理回调（拿到完整的 data）。
     /// </summary>
+    /// <remarks>
+    /// 结束后自动应答回调，可用 <see cref="TelegramContext.SetCallbackAnswer"/> 定制。
+    /// </remarks>
     /// <param name="context">上下文。</param>
     /// <param name="data">完整的 data。</param>
     /// <returns>处理。</returns>
@@ -105,11 +117,11 @@ public interface ITelegramOrderedHandler
 public interface ITelegramStartPayloadHandler : ITelegramOrderedHandler
 {
     /// <summary>
-    /// 处理；返回真即结束。
+    /// 处理深链。
     /// </summary>
     /// <param name="context">上下文。</param>
     /// <param name="payload">深链参数。</param>
-    /// <returns>是否处理了。</returns>
+    /// <returns>是否处理了；返回真即结束。</returns>
     Task<bool> HandleAsync(TelegramContext context, string payload);
 }
 
@@ -119,10 +131,10 @@ public interface ITelegramStartPayloadHandler : ITelegramOrderedHandler
 public interface ITelegramReplyHandler : ITelegramOrderedHandler
 {
     /// <summary>
-    /// 处理；返回真即结束。
+    /// 处理这条回复。
     /// </summary>
     /// <param name="context">上下文。</param>
-    /// <returns>是否处理了。</returns>
+    /// <returns>是否处理了；返回真即结束。</returns>
     Task<bool> HandleAsync(TelegramContext context);
 }
 
@@ -132,16 +144,19 @@ public interface ITelegramReplyHandler : ITelegramOrderedHandler
 public interface ITelegramMessageHandler : ITelegramOrderedHandler
 {
     /// <summary>
-    /// 处理；返回真即结束。
+    /// 处理普通消息。
     /// </summary>
     /// <param name="context">上下文。</param>
-    /// <returns>是否处理了。</returns>
+    /// <returns>是否处理了；返回真即结束。</returns>
     Task<bool> HandleAsync(TelegramContext context);
 }
 
 /// <summary>
-/// 会话状态处理器：有进行中的会话（Step 不为空）时按顺序取第一个 <see cref="CanHandle"/> 为真的。
+/// 会话状态处理器。
 /// </summary>
+/// <remarks>
+/// 有进行中的会话（Step 不为空）时按顺序取第一个 <see cref="CanHandle"/> 为真的。
+/// </remarks>
 public interface ITelegramStateHandler : ITelegramOrderedHandler
 {
     /// <summary>
@@ -168,8 +183,11 @@ public interface ITelegramStateHandler : ITelegramOrderedHandler
 public sealed record TelegramConversationState(string? Step, IReadOnlyDictionary<string, string> Data);
 
 /// <summary>
-/// 会话状态的存放（共享缓存；键为「机器人:会话:用户」，缺省 10 分钟，4.x 同）。
+/// 会话状态的存放（共享缓存）。
 /// </summary>
+/// <remarks>
+/// 键为「机器人:会话:用户」，缺省 10 分钟，4.x 同。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 public sealed class TelegramConversationStore(ISharedCache cache)
 {
@@ -235,8 +253,11 @@ public sealed class TelegramConversationStore(ISharedCache cache)
 }
 
 /// <summary>
-/// 处理一条 Update 时交给处理器的上下文：机器人、Update、是否管理员、平台调用、回复与会话状态的便捷方法、回调应答的定制。
+/// 处理一条 Update 时交给处理器的上下文。
 /// </summary>
+/// <remarks>
+/// 机器人、Update、是否管理员、平台调用、回复与会话状态的便捷方法、回调应答的定制。
+/// </remarks>
 public sealed class TelegramContext
 {
     private readonly TelegramNotifier _notifier;
@@ -312,8 +333,11 @@ public sealed class TelegramContext
     public bool CallbackAnswered { get; private set; }
 
     /// <summary>
-    /// 回复当前消息（引用它；会话为 0 即不发）。
+    /// 回复当前消息（引用它）。
     /// </summary>
+    /// <remarks>
+    /// 会话为 0 即不发。
+    /// </remarks>
     /// <param name="text">正文。</param>
     /// <param name="parseMode">解析模式。</param>
     /// <param name="replyMarkup">按钮。</param>

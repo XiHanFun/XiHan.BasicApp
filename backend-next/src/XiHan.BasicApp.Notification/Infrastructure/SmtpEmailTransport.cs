@@ -9,8 +9,11 @@ using MimeKit.Text;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// SMTP 发送（MailKit）：465 端口一连上即 TLS，其余端口在开了加密时用 STARTTLS；有登录名才认证。每封邮件一条连接（发送循环逐封发，量不大）。
+/// SMTP 发送（MailKit）。
 /// </summary>
+/// <remarks>
+/// 465 端口一连上即 TLS，其余端口在开了加密时用 STARTTLS；有登录名才认证。每封邮件一条连接（发送循环逐封发，量不大）。
+/// </remarks>
 public sealed class SmtpEmailTransport : IEmailTransport
 {
     private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(30);

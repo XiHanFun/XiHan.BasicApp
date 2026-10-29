@@ -55,8 +55,11 @@ public sealed class GetEmail(IRepository<SysEmail, Guid> emails) : IOperation<Me
 }
 
 /// <summary>
-/// 重发邮件：<c>POST /api/emails:resend</c>（改回排队中、清零尝试次数；排队中与发送中的逐项拒绝）。
+/// 重发邮件。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/emails:resend</c>（改回排队中、清零尝试次数；排队中与发送中的逐项拒绝）。
+/// </remarks>
 /// <param name="emails">记录仓储。</param>
 /// <param name="service">记录服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsResend)]
@@ -98,8 +101,11 @@ public sealed class CancelEmails(IRepository<SysEmail, Guid> emails) : IOperatio
 }
 
 /// <summary>
-/// 批量删除邮件发送记录：<c>DELETE /api/emails?ids=</c>（发送中的逐项拒绝）。
+/// 批量删除邮件发送记录。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/emails?ids=</c>（发送中的逐项拒绝）。
+/// </remarks>
 /// <param name="emails">记录仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsDelete)]
 public sealed class DeleteEmails(IRepository<SysEmail, Guid> emails) : IOperation<MessagingIdsRequest, BatchResult>

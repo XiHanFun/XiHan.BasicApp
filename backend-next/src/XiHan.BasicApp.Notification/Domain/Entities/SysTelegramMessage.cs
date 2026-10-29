@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// Telegram 的出站审计（平台库实体）：发消息、改消息这几种调用在成功或最终失败时各记一条（不按每次重试记），4.x 同字段。
-/// 4.x 按月分表；6.0 是普通表，没有页面与操作（4.x 也没有）。
+/// Telegram 的出站审计（平台库实体）。
 /// </summary>
+/// <remarks>
+/// 发消息、改消息这几种调用在成功或最终失败时各记一条（不按每次重试记），4.x 同字段。
+/// 4.x 按月分表；6.0 是普通表，没有页面与操作（4.x 也没有）。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysTelegramMessage : AppAuditedEntity
 {
@@ -31,8 +34,11 @@ public sealed class SysTelegramMessage : AppAuditedEntity
     public long ChatId { get; set; }
 
     /// <summary>
-    /// Bot API 方法（<c>sendMessage</c>、<c>editMessageText</c> 等）。
+    /// Bot API 方法名。
     /// </summary>
+    /// <remarks>
+    /// 如 <c>sendMessage</c>、<c>editMessageText</c> 等。
+    /// </remarks>
     [StringLength(50)]
     public string ApiMethod { get; set; } = string.Empty;
 

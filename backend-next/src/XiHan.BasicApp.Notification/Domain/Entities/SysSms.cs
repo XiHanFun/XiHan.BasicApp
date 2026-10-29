@@ -8,9 +8,12 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 短信发送记录，也是短信的发件箱（平台库实体，随所属侧）：写法与 <see cref="SysEmail"/> 相同。
-/// 服务商发的是它那边的模板，记录里的正文是本应用模板渲染出的文字（便于查看），参数另存一份交给服务商。
+/// 短信发送记录，也是短信的发件箱（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 写法与 <see cref="SysEmail"/> 相同。
+/// 服务商发的是它那边的模板，记录里的正文是本应用模板渲染出的文字（便于查看），参数另存一份交给服务商。
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysSms : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {
@@ -78,8 +81,11 @@ public sealed class SysSms : AppAuditedEntity, IOwnedByTenant, IMessageRecord
     public int MaxAttempts { get; set; } = 3;
 
     /// <summary>
-    /// 下次可以尝试的时间；为空即立即。
+    /// 下次可以尝试的时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即立即。
+    /// </remarks>
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     /// <summary>

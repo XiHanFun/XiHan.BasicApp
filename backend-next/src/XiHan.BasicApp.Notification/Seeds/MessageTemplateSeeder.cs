@@ -10,9 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Seeds;
 
 /// <summary>
-/// 平台的 8 个全局消息模板（4.x 同）：登录验证码、验证码、重置密码、注册欢迎四封邮件，登录验证码、验证码两条短信，系统通知的邮件与短信。
-/// 同一渠道、同一编码不存在才写入，之后由运营维护；租户可以建同编码的模板覆盖平台的。
+/// 平台 8 个全局消息模板的种子。
 /// </summary>
+/// <remarks>
+/// 4.x 同。包括登录验证码、验证码、重置密码、注册欢迎四封邮件，登录验证码、验证码两条短信，系统通知的邮件与短信。
+/// 同一渠道、同一编码不存在才写入，之后由运营维护；租户可以建同编码的模板覆盖平台的。
+/// </remarks>
 /// <param name="templates">模板服务。</param>
 public sealed class MessageTemplateSeeder(MessageTemplateService templates) : ISeeder
 {
@@ -113,8 +116,11 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
 """);
 
     /// <summary>
-    /// 邮件外框：品牌头、标题、正文与页脚（4.x 同一套样式）。
+    /// 邮件外框：品牌头、标题、正文与页脚。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同一套样式。
+    /// </remarks>
     private static string Shell(string heading, string body) => $$$"""
 <div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
   <div style='max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>

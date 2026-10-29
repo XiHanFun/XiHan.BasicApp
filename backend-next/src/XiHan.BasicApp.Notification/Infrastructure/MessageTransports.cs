@@ -51,8 +51,11 @@ public sealed record EmailServer(string Host, int Port, bool UseSsl, bool Accept
 public sealed record EmailEnvelope(string To, string Subject, string? Body, bool IsHtml);
 
 /// <summary>
-/// 邮件的发送通道（缺省 SMTP；测试换成假的）。
+/// 邮件的发送通道（缺省 SMTP）。
 /// </summary>
+/// <remarks>
+/// 测试换成假的。
+/// </remarks>
 public interface IEmailTransport
 {
     /// <summary>
@@ -85,8 +88,11 @@ public sealed record SmsAccount(SmsProvider Provider, string AccessKeyId, string
 public sealed record SmsEnvelope(string Phone, string ProviderTemplateId, IReadOnlyList<KeyValuePair<string, string?>> Parameters);
 
 /// <summary>
-/// 短信的发送通道（每个服务商一个实现；测试换成假的）。
+/// 短信的发送通道（每个服务商一个实现）。
 /// </summary>
+/// <remarks>
+/// 测试换成假的。
+/// </remarks>
 public interface ISmsTransport
 {
     /// <summary>

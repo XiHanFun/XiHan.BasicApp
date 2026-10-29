@@ -15,14 +15,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Queries;
 
 /// <summary>
-/// 模板、邮件与短信配置、发送记录的列表（都只看当前一侧）。筛选与排序逐个登记，未登记的报 <c>NOTIFICATION_VALIDATION_005</c>。
+/// 模板、邮件与短信配置、发送记录的列表（都只看当前一侧）。
 /// </summary>
+/// <remarks>
+/// 筛选与排序逐个登记，未登记的报 <c>NOTIFICATION_VALIDATION_005</c>。
+/// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
 {
     /// <summary>
-    /// 模板：关键字匹配编码与名称；筛选渠道 <c>eq / in</c>、是否启用 <c>eq</c>；缺省按排序、编码。
+    /// 分页列出消息模板。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配编码与名称；筛选渠道 <c>eq / in</c>、是否启用 <c>eq</c>；缺省按排序、编码。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页模板。</returns>
@@ -52,8 +58,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 邮件配置：关键字匹配编码、名称与主机；筛选是否启用；缺省缺省配置在前、再按排序。
+    /// 分页列出邮件配置。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配编码、名称与主机；筛选是否启用；缺省缺省配置在前、再按排序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页配置。</returns>
@@ -81,8 +90,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 短信配置：关键字匹配编码与名称；筛选服务商 <c>eq / in</c>、是否启用；缺省缺省配置在前、再按排序。
+    /// 分页列出短信配置。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配编码与名称；筛选服务商 <c>eq / in</c>、是否启用；缺省缺省配置在前、再按排序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页配置。</returns>
@@ -111,8 +123,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 机器人配置：关键字匹配编码与名称；筛选服务商 <c>eq / in</c>、是否启用；缺省按服务商、缺省在前、再按排序。
+    /// 分页列出机器人配置。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配编码与名称；筛选服务商 <c>eq / in</c>、是否启用；缺省按服务商、缺省在前、再按排序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页配置。</returns>
@@ -141,8 +156,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// Telegram 机器人（平台托管，不分侧）：关键字匹配名称；筛选是否启用、是否兜底回复；缺省按排序再按名称。
+    /// 分页列出 Telegram 机器人（平台托管，不分侧）。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配名称；筛选是否启用、是否兜底回复；缺省按排序再按名称。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页机器人。</returns>
@@ -171,8 +189,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 邮件记录：关键字匹配收件地址与主题；筛选状态 <c>eq / in</c>、模板与业务类型 <c>eq</c>、写入时间 <c>ge / le</c>；缺省按写入时间倒序。
+    /// 分页列出邮件发送记录。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配收件地址与主题；筛选状态 <c>eq / in</c>、模板与业务类型 <c>eq</c>、写入时间 <c>ge / le</c>；缺省按写入时间倒序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页记录。</returns>
@@ -204,8 +225,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 短信记录：关键字匹配手机号与正文；筛选同邮件记录；缺省按写入时间倒序。
+    /// 分页列出短信发送记录。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配手机号与正文；筛选同邮件记录；缺省按写入时间倒序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页记录。</returns>
@@ -243,8 +267,11 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
         => unitOfWork.ConnectionFor(typeof(T)).Queryable<T>().Where(Undeleted<T>());
 
     /// <summary>
-    /// 未删除的条件按具体类型的属性建（与 <c>TenantScopedQuery</c> 同一做法，泛型基类上的成员表达式 SqlSugar 译不出列名）。
+    /// 未删除的条件按具体类型的属性建。
     /// </summary>
+    /// <remarks>
+    /// 与 <c>TenantScopedQuery</c> 同一做法，泛型基类上的成员表达式 SqlSugar 译不出列名。
+    /// </remarks>
     private static Expression<Func<T, bool>> Undeleted<T>()
         where T : Contracts.Entities.AppAuditedEntity
     {

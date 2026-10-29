@@ -81,8 +81,11 @@ public sealed record CreateMessageTemplateRequest(
 }
 
 /// <summary>
-/// <c>message-templates.update</c> 的请求（编码与渠道不改）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>message-templates.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码与渠道不改。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">模板 ID。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Content">正文。</param>
@@ -183,8 +186,11 @@ public sealed record CreateEmailConfigRequest(
 }
 
 /// <summary>
-/// <c>email-configs.update</c> 的请求（编码不改，密码不填即保留）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>email-configs.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码不改，密码不填即保留。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">配置 ID。</param>
 /// <param name="Name">名称。</param>
 /// <param name="SmtpHost">SMTP 主机。</param>
@@ -290,8 +296,11 @@ public sealed record CreateSmsConfigRequest(
 }
 
 /// <summary>
-/// <c>sms-configs.update</c> 的请求（编码不改，访问密钥不填即保留）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>sms-configs.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 编码不改，访问密钥不填即保留。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">配置 ID。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Provider">服务商。</param>
@@ -397,8 +406,11 @@ public sealed record SmsRecordResponse(Guid Id, string ToPhone, string Content, 
 }
 
 /// <summary>
-/// 按 ID 操作的请求。标识由路由值 <c>{id}</c> 绑定。
+/// 按 ID 操作的请求。
 /// </summary>
+/// <remarks>
+/// 标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">ID。</param>
 public sealed record MessagingIdRequest(Guid Id);
 

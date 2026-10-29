@@ -8,10 +8,13 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 邮件发送记录，也是邮件的发件箱（平台库实体，随所属侧；4.x 同发送记录即队列）：业务写入时只记一条排队中的记录、随业务一起提交，
+/// 邮件发送记录，也是邮件的发件箱（平台库实体，随所属侧）。
+/// </summary>
+/// <remarks>
+/// 发送记录即队列（4.x 同）。业务写入时只记一条排队中的记录、随业务一起提交，
 /// 由后台的发送循环按所属侧的缺省邮件配置发出，失败按退避重试，用完重试即失败；重发即改回排队中。
 /// 主题与正文在写入时已按模板渲染好，记录的就是实际发出的内容。
-/// </summary>
+/// </remarks>
 [DiffLogIgnored]
 public sealed class SysEmail : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {
@@ -73,8 +76,11 @@ public sealed class SysEmail : AppAuditedEntity, IOwnedByTenant, IMessageRecord
     public int MaxAttempts { get; set; } = 3;
 
     /// <summary>
-    /// 下次可以尝试的时间（失败后按退避推迟）；为空即立即。
+    /// 下次可以尝试的时间（失败后按退避推迟）。
     /// </summary>
+    /// <remarks>
+    /// 为空即立即。
+    /// </remarks>
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     /// <summary>

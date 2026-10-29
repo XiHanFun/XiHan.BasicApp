@@ -61,8 +61,11 @@ public sealed record InboxShowcaseRequest;
 public sealed record InboxItemsResponse(IReadOnlyList<InboxItemResponse> Items);
 
 /// <summary>
-/// 按 ID 操作收件箱一条的请求。标识由路由值 <c>{id}</c> 绑定。
+/// 按 ID 操作收件箱一条的请求。
 /// </summary>
+/// <remarks>
+/// 标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">收件箱这一条的 ID。</param>
 public sealed record InboxIdRequest(Guid Id);
 

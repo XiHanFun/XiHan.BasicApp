@@ -14,10 +14,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 邮件、短信与机器人消息的发送循环（单例，通知包的后台循环；4.x 用 Redis 延迟队列）：每轮取到点的排队记录，先用条件更新把它改成发送中（多实例只有一个能领到），
+/// 邮件、短信与机器人消息的发送循环（单例）。
+/// </summary>
+/// <remarks>
+/// 通知包的后台循环；4.x 用 Redis 延迟队列。每轮取到点的排队记录，先用条件更新把它改成发送中（多实例只有一个能领到），
 /// 再按所属侧的缺省配置（没有取平台的）发出；成功记发出时间，失败按「第 n 次等 n 倍重试间隔」退避，用完次数即失败。
 /// 启动时把发送中超过 <see cref="NotificationOptions.StuckAfter"/> 的记录改回排队中（上个进程发到一半）。
-/// </summary>
+/// </remarks>
 /// <param name="scopes">作用域工厂。</param>
 /// <param name="signal">唤醒信号。</param>
 /// <param name="options">选项。</param>
@@ -243,8 +246,11 @@ public sealed partial class MessageDispatcher(
     }
 
     /// <summary>
-    /// 排队中 → 发送中；改到即领到。
+    /// 把记录从排队中改成发送中。
     /// </summary>
+    /// <remarks>
+    /// 改到即领到。
+    /// </remarks>
     private async Task<bool> ClaimAsync<T>(Guid id, CancellationToken cancellationToken)
         where T : class, IMessageRecord, new()
     {

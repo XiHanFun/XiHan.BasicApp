@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
 /// <summary>
-/// 投递渠道（按位组合存在通知上；站内信必有）。
+/// 投递渠道。
 /// </summary>
+/// <remarks>
+/// 按位组合存在通知上；站内信必有。
+/// </remarks>
 [Flags]
 public enum MessageChannels
 {
@@ -30,8 +33,11 @@ public enum MessageChannels
     Sms = 4,
 
     /// <summary>
-    /// 机器人（钉钉、飞书、企业微信的群机器人；一条通知发到本侧每个服务商的缺省机器人）。
+    /// 机器人（钉钉、飞书、企业微信的群机器人）。
     /// </summary>
+    /// <remarks>
+    /// 一条通知发到本侧每个服务商的缺省机器人。
+    /// </remarks>
     Bot = 8,
 }
 
@@ -72,8 +78,11 @@ public enum TemplateChannel
     Email = 2,
 
     /// <summary>
-    /// 短信（纯文本；云厂商发送要在短信配置里把模板编码映射到服务商的模板 ID）。
+    /// 短信（纯文本）。
     /// </summary>
+    /// <remarks>
+    /// 云厂商发送要在短信配置里把模板编码映射到服务商的模板 ID。
+    /// </remarks>
     Sms = 4,
 }
 
@@ -99,8 +108,11 @@ public enum BotProvider
 }
 
 /// <summary>
-/// 机器人消息走的通道：三家群机器人（与 <see cref="BotProvider"/> 同值）与 Telegram（平台托管）。
+/// 机器人消息走的通道。
 /// </summary>
+/// <remarks>
+/// 三家群机器人（与 <see cref="BotProvider"/> 同值）与 Telegram（平台托管）。
+/// </remarks>
 public enum BotChannel
 {
     /// <summary>
@@ -141,8 +153,11 @@ public enum SmsProvider
 }
 
 /// <summary>
-/// 邮件与短信发送记录的状态（4.x 同）。
+/// 邮件与短信发送记录的状态。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum MessageSendStatus
 {
     /// <summary>

@@ -28,9 +28,12 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     private readonly IUserDirectory? _directory = directory.FirstOrDefault();
 
     /// <summary>
-    /// 分页列出。关键字匹配标题与正文；筛选接受类型、优先级、目标的 <c>eq / in</c>，是否已发布的 <c>eq</c>，创建与发布时间的 <c>ge / le</c>；
-    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。
+    /// 分页列出通知公告。
     /// </summary>
+    /// <remarks>
+    /// 关键字匹配标题与正文；筛选接受类型、优先级、目标的 <c>eq / in</c>，是否已发布的 <c>eq</c>，创建与发布时间的 <c>ge / le</c>；
+    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。
+    /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
     /// <returns>一页通知。</returns>

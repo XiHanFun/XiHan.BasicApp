@@ -13,9 +13,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 机器人渠道的广播：给本侧每个服务商的缺省机器人各写一条排队中的消息，平台一侧另给每个启用的 Telegram 机器人的每个广播群各写一条
-/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。只用本侧的机器人（租户的通知不进平台的群，Telegram 只在平台，4.x 同）。
+/// 机器人渠道的广播。
 /// </summary>
+/// <remarks>
+/// 给本侧每个服务商的缺省机器人各写一条排队中的消息，平台一侧另给每个启用的 Telegram 机器人的每个广播群各写一条
+/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。只用本侧的机器人（租户的通知不进平台的群，Telegram 只在平台，4.x 同）。
+/// </remarks>
 /// <param name="bots">机器人配置服务。</param>
 /// <param name="telegram">Telegram 机器人服务。</param>
 /// <param name="messages">机器人消息仓储。</param>
