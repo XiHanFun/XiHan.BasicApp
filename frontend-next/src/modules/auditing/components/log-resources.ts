@@ -1,5 +1,5 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { PageQueryMapping, ResponseOf } from '~/contracts'
+import type { OperationId, PageQueryMapping, PageRequest, ResponseOf } from '~/contracts'
 import {
   accessLogs,
   conditionHits,
@@ -36,9 +36,19 @@ function mapping(extra: PageQueryMapping): PageQueryMapping {
   }
 }
 
-/** 只读列表的资源：分页即可（导出由 SchemaPage 按当前筛选逐页取回再在本地生成） */
-function readonly<TRow>(list: (params: SchemaQueryParams) => Promise<{ items: TRow[], total: number | string, page: { index?: number, size?: number } }>): SchemaResource<TRow> {
-  return { page: async params => toSchemaPageResult(await list(params), params) }
+type ListOperation<TRow> = (request: PageRequest) => Promise<{ items: TRow[], total: number | string, page: { index?: number, size?: number } }>
+
+/** 只读列表的资源：分页即可（本地导出由 SchemaPage 按当前筛选逐页取回再生成 CSV） */
+function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
+  return { page: async params => toSchemaPageResult(await list(toPageRequest(params, query)), params) }
+}
+
+/**
+ * 另能提交到导出中心的只读列表（4.x 有服务端导出的那几种日志）：业务类型就是列表操作 ID，
+ * 后台以发起人的身份逐页调它，查询快照与列表用同一份分页请求（同一份筛选登记）。
+ */
+function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
+  return { ...readonly(list, query), export: { businessType, buildQuery: (params: SchemaQueryParams) => toPageRequest(params, query) } }
 }
 
 export const ACCESS_LOG_QUERY = mapping({ multiples: ['result'], filters: { operationId: 'contains', method: 'eq', path: 'contains', statusCode: 'eq', errorCode: 'eq' } })
@@ -51,11 +61,12 @@ export const OPEN_API_LOG_QUERY = mapping({ filters: { clientId: 'eq', method: '
 /** 操作日志查的是框架的审计表：没有会话与地址列，按用户主键筛 */
 export const OPERATION_LOG_QUERY: PageQueryMapping = { ranges: ['occurredAt'], filters: { operationId: 'contains', succeeded: 'eq', errorCode: 'eq', traceId: 'eq', userId: 'eq' } }
 
-export const accessLogsResource = () => readonly<AccessLogRow>(params => accessLogs.list(toPageRequest(params, ACCESS_LOG_QUERY)))
-export const exceptionLogsResource = () => readonly<ExceptionLogRow>(params => exceptionLogs.list(toPageRequest(params, EXCEPTION_LOG_QUERY)))
-export const loginLogsResource = () => readonly<LoginLogRow>(params => loginLogs.list(toPageRequest(params, LOGIN_LOG_QUERY)))
-export const diffLogsResource = () => readonly<DiffLogRow>(params => diffLogs.list(toPageRequest(params, DIFF_LOG_QUERY)))
-export const permissionChangeLogsResource = () => readonly<PermissionChangeLogRow>(params => permissionChangeLogs.list(toPageRequest(params, PERMISSION_CHANGE_LOG_QUERY)))
-export const conditionHitsResource = () => readonly<ConditionHitRow>(params => conditionHits.list(toPageRequest(params, CONDITION_HIT_QUERY)))
-export const openApiLogsResource = () => readonly<OpenApiLogRow>(params => openApiLogs.list(toPageRequest(params, OPEN_API_LOG_QUERY)))
-export const operationLogsResource = () => readonly<OperationLogRow>(params => operationLogs.list(toPageRequest(params, OPERATION_LOG_QUERY)))
+export const accessLogsResource = () => exportable<AccessLogRow>('access-logs.list', request => accessLogs.list(request), ACCESS_LOG_QUERY)
+export const exceptionLogsResource = () => exportable<ExceptionLogRow>('exception-logs.list', request => exceptionLogs.list(request), EXCEPTION_LOG_QUERY)
+export const loginLogsResource = () => exportable<LoginLogRow>('login-logs.list', request => loginLogs.list(request), LOGIN_LOG_QUERY)
+export const diffLogsResource = () => exportable<DiffLogRow>('diff-logs.list', request => diffLogs.list(request), DIFF_LOG_QUERY)
+// 权限变更日志与条件命中在 4.x 没有服务端导出，只留本地导出
+export const permissionChangeLogsResource = () => readonly<PermissionChangeLogRow>(request => permissionChangeLogs.list(request), PERMISSION_CHANGE_LOG_QUERY)
+export const conditionHitsResource = () => readonly<ConditionHitRow>(request => conditionHits.list(request), CONDITION_HIT_QUERY)
+export const openApiLogsResource = () => exportable<OpenApiLogRow>('open-api-logs.list', request => openApiLogs.list(request), OPEN_API_LOG_QUERY)
+export const operationLogsResource = () => exportable<OperationLogRow>('operation-logs.list', request => operationLogs.list(request), OPERATION_LOG_QUERY)

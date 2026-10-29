@@ -235,6 +235,81 @@ public static class FilesMessages
     /// </summary>
     public const string SecretUndecryptable = "files.storage_config.undecryptable";
 
+    /// <summary>
+    /// 操作 <c>export-tasks.submit</c> 的说明。
+    /// </summary>
+    public const string SubmitExportTaskDescription = "export_tasks.submit.description";
+
+    /// <summary>
+    /// 操作 <c>export-tasks.list</c> 的说明。
+    /// </summary>
+    public const string ListExportTasksDescription = "export_tasks.list.description";
+
+    /// <summary>
+    /// 操作 <c>export-tasks.get</c> 的说明。
+    /// </summary>
+    public const string GetExportTaskDescription = "export_tasks.get.description";
+
+    /// <summary>
+    /// 操作 <c>export-tasks.cancel</c> 的说明。
+    /// </summary>
+    public const string CancelExportTaskDescription = "export_tasks.cancel.description";
+
+    /// <summary>
+    /// 操作 <c>export-tasks.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteExportTasksDescription = "export_tasks.delete.description";
+
+    /// <summary>
+    /// 操作 <c>import-histories.create</c> 的说明。
+    /// </summary>
+    public const string CreateImportHistoryDescription = "import_histories.create.description";
+
+    /// <summary>
+    /// 操作 <c>import-histories.recent</c> 的说明。
+    /// </summary>
+    public const string RecentImportHistoriesDescription = "import_histories.recent.description";
+
+    /// <summary>
+    /// 导出任务不存在。
+    /// </summary>
+    public const string ExportTaskNotFound = "files.export.not_found";
+
+    /// <summary>
+    /// 要导出的不是列表操作。
+    /// </summary>
+    public const string ExportTargetInvalid = "files.export.target_invalid";
+
+    /// <summary>
+    /// 导出至少要一列。
+    /// </summary>
+    public const string ExportColumnsRequired = "files.export.columns_required";
+
+    /// <summary>
+    /// 查询快照不是 JSON 对象。
+    /// </summary>
+    public const string ExportQueryInvalid = "files.export.query_invalid";
+
+    /// <summary>
+    /// 导出任务不在排队中。
+    /// </summary>
+    public const string ExportNotPending = "files.export.not_pending";
+
+    /// <summary>
+    /// 没有可带给后台执行的登录凭据。
+    /// </summary>
+    public const string ExportCredentialMissing = "files.export.credential_missing";
+
+    /// <summary>
+    /// 取消导出时写进任务的原因。
+    /// </summary>
+    public const string ExportCancelled = "files.export.cancelled";
+
+    /// <summary>
+    /// 导出结果文件的备注（{name}）。
+    /// </summary>
+    public const string ExportResultRemark = "files.export.result_remark";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(FilesMessages)));
 
     /// <summary>

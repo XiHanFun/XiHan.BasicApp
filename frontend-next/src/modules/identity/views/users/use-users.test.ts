@@ -41,6 +41,15 @@ describe('usersResource', () => {
     expect(result.page).toMatchObject({ totalCount: 21, pageIndex: 2, totalPages: 2, startRecord: 21, endRecord: 21, isLastPage: true })
   })
 
+  it('提交到导出中心：业务类型是 users.list，查询快照与列表发出的分页请求同一份', async () => {
+    const calls = record(() => json(200, { items: [], total: 0, page: { index: 3, size: 50 } }))
+    const resource = usersResource()
+    const params = { page: 3, pageSize: 50, filters: { keyword: 'bob', email: '@acme', status: 'Active' }, sorts: [{ field: 'userName', order: 'asc' as const }] }
+    await resource.page!(params)
+    expect(resource.export?.businessType).toBe('users.list')
+    expect(resource.export?.buildQuery?.(params)).toEqual(calls[0]!.body)
+  })
+
   it('后端白名单外的筛选字段不静默丢弃，直接报错', async () => {
     record(() => json(200, { items: [], total: 0, page: { index: 1, size: 20 } }))
     await expect(usersResource().page!({ page: 1, pageSize: 20, filters: { homeTenantId: 'acme' } })).rejects.toThrow('homeTenantId')

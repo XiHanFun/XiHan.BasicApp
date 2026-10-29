@@ -42,5 +42,20 @@
   "files.storage_config.default_needs_active": "Eine deaktivierte Speicherkonfiguration kann nicht Standard sein.",
   "files.file.access_denied": "Diese Datei erfordert files.files.read zum Herunterladen.",
   "files.storage.none": "Weder die eigene Seite noch die Plattform hat eine nutzbare Standard-Speicherkonfiguration.",
-  "files.storage_config.undecryptable": "Der Zugriffsschlüssel der Speicherkonfiguration {code} lässt sich nicht entschlüsseln (der Data-Protection-Schlüsselring wurde womöglich gewechselt); geben Sie den Zugriffsschlüssel erneut ein."
+  "files.storage_config.undecryptable": "Der Zugriffsschlüssel der Speicherkonfiguration {code} lässt sich nicht entschlüsseln (der Data-Protection-Schlüsselring wurde womöglich gewechselt); geben Sie den Zugriffsschlüssel erneut ein.",
+  "export_tasks.submit.description": "Export anstoßen: die Abfrage einer Listenoperation im Hintergrund unter Ihrer Identität als CSV oder XLSX schreiben, als temporäre Datei 7 Tage aufbewahrt. Erfordert Anmeldung; die Listenoperation prüft wie gewohnt ihre Berechtigung.",
+  "export_tasks.list.description": "Eigene Exportaufgaben seitenweise auflisten. Erfordert Anmeldung.",
+  "export_tasks.get.description": "Eine eigene Exportaufgabe abrufen. Erfordert Anmeldung.",
+  "export_tasks.cancel.description": "Eine eigene wartende Exportaufgabe abbrechen. Erfordert Anmeldung.",
+  "export_tasks.delete.description": "Eigene Exportaufgaben samt Ergebnisdateien löschen; laufende werden einzeln abgelehnt. Erfordert Anmeldung.",
+  "import_histories.create.description": "Das Ergebnis eines Imports festhalten (die Seite legt die Zeilen einzeln an). Erfordert Anmeldung.",
+  "import_histories.recent.description": "Die eigenen letzten Importe einer Seite auflisten. Erfordert Anmeldung.",
+  "files.export.not_found": "Die Exportaufgabe {id} existiert nicht.",
+  "files.export.target_invalid": "{businessType} ist keine exportierbare Listenoperation.",
+  "files.export.columns_required": "Wählen Sie mindestens eine Spalte für den Export.",
+  "files.export.query_invalid": "Der Abfrage-Snapshot muss ein JSON-Objekt sein.",
+  "files.export.not_pending": "Die Exportaufgabe ist {status}; nur wartende Aufgaben lassen sich abbrechen, laufende nicht löschen.",
+  "files.export.credential_missing": "Dieser Aufruf trägt keine Anmeldeinformation, daher kann der Export nicht im Hintergrund unter Ihrer Identität laufen.",
+  "files.export.cancelled": "Abgebrochen",
+  "files.export.result_remark": "Exportergebnis: {name}"
 }

@@ -63,6 +63,11 @@ export const routes = {
   'editions.update': { method: 'PUT', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
   'exception-logs.get': { method: 'GET', template: '/api/exception-logs/{id}', path: ['id'], query: [], success: 200 },
   'exception-logs.list': { method: 'POST', template: '/api/exception-logs:list', path: [], query: [], success: 200 },
+  'export-tasks.cancel': { method: 'POST', template: '/api/export-tasks/{id}:cancel', path: ['id'], query: [], success: 200 },
+  'export-tasks.delete': { method: 'DELETE', template: '/api/export-tasks', path: [], query: ['ids'], success: 200 },
+  'export-tasks.get': { method: 'GET', template: '/api/export-tasks/{id}', path: ['id'], query: [], success: 200 },
+  'export-tasks.list': { method: 'POST', template: '/api/export-tasks:list', path: [], query: [], success: 200 },
+  'export-tasks.submit': { method: 'POST', template: '/api/export-tasks:submit', path: [], query: [], success: 200 },
   'field-security.create': { method: 'POST', template: '/api/field-security', path: [], query: [], success: 201 },
   'field-security.delete': { method: 'DELETE', template: '/api/field-security', path: [], query: ['ids'], success: 200 },
   'field-security.entities': { method: 'GET', template: '/api/field-security:entities', path: [], query: [], success: 200 },
@@ -83,6 +88,8 @@ export const routes = {
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
+  'import-histories.create': { method: 'POST', template: '/api/import-histories', path: [], query: [], success: 201 },
+  'import-histories.recent': { method: 'GET', template: '/api/import-histories:recent', path: [], query: ['pageCode', 'count'], success: 200 },
   'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
   'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
   'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
@@ -316,6 +323,15 @@ export const exceptionLogs = {
   list: (request: RequestOf<'exception-logs.list'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.list'>, ResponseOf<'exception-logs.list'>>('exception-logs.list', routes['exception-logs.list'], request, options),
 }
 
+/** 资源 `export-tasks` 的操作。 */
+export const exportTasks = {
+  cancel: (request: RequestOf<'export-tasks.cancel'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.cancel'>, ResponseOf<'export-tasks.cancel'>>('export-tasks.cancel', routes['export-tasks.cancel'], request, options),
+  delete: (request: RequestOf<'export-tasks.delete'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.delete'>, ResponseOf<'export-tasks.delete'>>('export-tasks.delete', routes['export-tasks.delete'], request, options),
+  get: (request: RequestOf<'export-tasks.get'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.get'>, ResponseOf<'export-tasks.get'>>('export-tasks.get', routes['export-tasks.get'], request, options),
+  list: (request: RequestOf<'export-tasks.list'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.list'>, ResponseOf<'export-tasks.list'>>('export-tasks.list', routes['export-tasks.list'], request, options),
+  submit: (request: RequestOf<'export-tasks.submit'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.submit'>, ResponseOf<'export-tasks.submit'>>('export-tasks.submit', routes['export-tasks.submit'], request, options),
+}
+
 /** 资源 `field-security` 的操作。 */
 export const fieldSecurity = {
   create: (request: RequestOf<'field-security.create'>, options?: CallOptions) => invoke<RequestOf<'field-security.create'>, ResponseOf<'field-security.create'>>('field-security.create', routes['field-security.create'], request, options),
@@ -346,6 +362,12 @@ export const impersonation = {
   candidates: (request: RequestOf<'impersonation.candidates'>, options?: CallOptions) => invoke<RequestOf<'impersonation.candidates'>, ResponseOf<'impersonation.candidates'>>('impersonation.candidates', routes['impersonation.candidates'], request, options),
   start: (request: RequestOf<'impersonation.start'>, options?: CallOptions) => invoke<RequestOf<'impersonation.start'>, ResponseOf<'impersonation.start'>>('impersonation.start', routes['impersonation.start'], request, options),
   stop: (request: RequestOf<'impersonation.stop'>, options?: CallOptions) => invoke<RequestOf<'impersonation.stop'>, ResponseOf<'impersonation.stop'>>('impersonation.stop', routes['impersonation.stop'], request, options),
+}
+
+/** 资源 `import-histories` 的操作。 */
+export const importHistories = {
+  create: (request: RequestOf<'import-histories.create'>, options?: CallOptions) => invoke<RequestOf<'import-histories.create'>, ResponseOf<'import-histories.create'>>('import-histories.create', routes['import-histories.create'], request, options),
+  recent: (request: RequestOf<'import-histories.recent'>, options?: CallOptions) => invoke<RequestOf<'import-histories.recent'>, ResponseOf<'import-histories.recent'>>('import-histories.recent', routes['import-histories.recent'], request, options),
 }
 
 /** 资源 `login-bans` 的操作。 */

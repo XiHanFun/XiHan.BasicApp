@@ -1,5 +1,5 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
@@ -39,18 +39,20 @@ export function displayNameOf(row: Pick<UserRow, 'displayName' | 'userName'>): s
   return row.displayName || row.userName
 }
 
+/** 搜索字段按后端白名单下发：关键字匹配用户名与显示名，邮箱模糊匹配，状态精确匹配 */
+export const USER_QUERY: PageQueryMapping = { filters: { email: 'contains', status: 'eq' } }
+
 /**
- * SchemaPage 的资源：分页与删除（批量删除由 SchemaPage 逐行调用）。
- * 搜索字段按后端白名单下发：关键字匹配用户名与显示名，邮箱模糊匹配，状态精确匹配。
+ * SchemaPage 的资源：分页、删除（批量删除由 SchemaPage 逐行调用）与提交到导出中心。
+ * 导出中心的业务类型就是列表操作 ID，后台以发起人的身份逐页调 users.list：查询快照与列表用同一份分页请求。
  * 6.0 的用户状态只能经锁定 / 解锁改，没有启停接口，所以不提供 updateStatus；建用户可带初始密码、导入没有安全的映射，所以不提供 create。
  */
 export function usersResource(): SchemaResource<UserRow> {
+  const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await usersApi.list(toPageRequest(params, { filters: { email: 'contains', status: 'eq' } })),
-      params,
-    ),
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(await usersApi.list(toRequest(params)), params),
     remove: async id => failedCodes(await usersApi.delete({ ids: [String(id)] })),
+    export: { businessType: 'users.list', buildQuery: toRequest },
   }
 }
 

@@ -87,6 +87,32 @@ public sealed class FileRows(SqlSugarUnitOfWork unitOfWork, TimeProvider clock)
     }
 
     /// <summary>
+    /// 一侧只追加的记录。
+    /// </summary>
+    /// <typeparam name="T">记录类型。</typeparam>
+    /// <param name="side">侧。</param>
+    /// <returns>查询。</returns>
+    public ISugarQueryable<T> Records<T>(string side)
+        where T : TenantScopedRecord, new()
+        => unitOfWork.ConnectionFor(typeof(T)).Queryable<T>().Where(e => e.TenantId == side);
+
+    /// <summary>
+    /// 追加一条记录。
+    /// </summary>
+    /// <typeparam name="T">记录类型。</typeparam>
+    /// <param name="row">行（已填 ID 与租户）。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task AppendAsync<T>(T row, CancellationToken cancellationToken)
+        where T : TenantScopedRecord, new()
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        await unitOfWork.EnsureTransactionAsync(cancellationToken).ConfigureAwait(false);
+        row.CreatedAt = clock.GetUtcNow();
+        row.ConcurrencyStamp = Guid.NewGuid().ToString("N");
+        await unitOfWork.ConnectionFor(typeof(T)).Insertable(row).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 软删除。
     /// </summary>
     /// <typeparam name="T">实体类型。</typeparam>

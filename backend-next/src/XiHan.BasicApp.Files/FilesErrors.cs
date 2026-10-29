@@ -127,4 +127,34 @@ public static class FilesErrors
     /// 存储配置的访问密钥解不开（数据保护的密钥环换过）。
     /// </summary>
     public const string SecretUndecryptable = "FILES_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 导出任务不存在（或不是自己的）。
+    /// </summary>
+    public const string ExportTaskNotFound = "FILES_NOTFOUND_005";
+
+    /// <summary>
+    /// 要导出的不是已登记的列表操作。
+    /// </summary>
+    public const string ExportTargetInvalid = "FILES_VALIDATION_012";
+
+    /// <summary>
+    /// 导出至少要一列。
+    /// </summary>
+    public const string ExportColumnsRequired = "FILES_VALIDATION_013";
+
+    /// <summary>
+    /// 查询快照不是 JSON 对象。
+    /// </summary>
+    public const string ExportQueryInvalid = "FILES_VALIDATION_014";
+
+    /// <summary>
+    /// 导出任务不在排队中（执行中的不能取消或删除）。
+    /// </summary>
+    public const string ExportNotPending = "FILES_CONFLICT_007";
+
+    /// <summary>
+    /// 这次调用没有可以带给后台执行的登录凭据。
+    /// </summary>
+    public const string ExportCredentialMissing = "FILES_UNAVAILABLE_003";
 }

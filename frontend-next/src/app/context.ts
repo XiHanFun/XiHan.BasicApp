@@ -1,9 +1,12 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
 import type { AppContextApis, UserProfile } from '~/types'
-import { auth as authOps, dicts as dictOps, files as fileOps, impersonation as impersonationOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
+
+/** 壳层导出菜单的范围编号（4.x：0 当前页、1 搜索结果、2 全部）对应的契约名称 */
+const EXPORT_SCOPES: Record<number, 'All' | 'CurrentPage' | 'SearchResult'> = { 0: 'CurrentPage', 1: 'SearchResult', 2: 'All' }
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
 const PAGE_MAX_SIZE = 500
@@ -150,12 +153,22 @@ export function registerApplicationContext(router: Router): void {
     // 文件引用（头像、表格里的文件列）：files.presign 签发的签名地址补上接口前缀，图片标签不带令牌也能取
     getFilePresignedUrlApi: async fileId => endpointUrl((await fileOps.presign({ id: fileId })).url),
     timeZoneApi: { options: timeZoneOptions },
-    // 导入历史与导出中心归 Files 批次；导入历史失败时导入弹窗本就静默为空，导出只在页面声明 resource.export 时才走导出中心
+    // 导入历史：import-histories.create / recent（只看自己的）；壳层沿用 4.x 的 basicId / createdTime 字段名
     importHistoryApi: {
-      create: () => notAvailable('importHistoryApi.create'),
-      recent: () => notAvailable('importHistoryApi.recent'),
+      create: input => importHistoryOps.create({ ...input, resourceCode: input.resourceCode ?? null, errorSummary: input.errorSummary ?? null }),
+      recent: async (pageCode, count) => (await importHistoryOps.recent({ pageCode, count: count ?? 5 })).items.map(item => ({ basicId: item.id, pageCode: item.pageCode, resourceCode: item.resourceCode, fileName: item.fileName, totalCount: item.totalCount, successCount: item.successCount, failCount: item.failCount, errorSummary: item.errorSummary, createdTime: item.createdAt })),
     },
-    exportTaskApi: { submit: () => notAvailable('exportTaskApi.submit') },
+    // 导出中心：export-tasks.submit，后台以发起人的身份逐页调页面声明的列表操作；壳层的范围与格式是 4.x 的数字，换成契约的名称
+    exportTaskApi: {
+      submit: input => exportTaskOps.submit({
+        businessType: input.businessType,
+        taskName: input.taskName ?? null,
+        scope: EXPORT_SCOPES[input.scope] ?? 'SearchResult',
+        format: input.format === 1 ? 'Xlsx' : 'Csv',
+        querySnapshot: input.querySnapshot ?? null,
+        columns: input.columns.map(column => ({ key: column.key, title: column.title, valueMap: column.valueMap ?? null })),
+      }),
+    },
     enumApi: {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),
