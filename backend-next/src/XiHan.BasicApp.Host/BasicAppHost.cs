@@ -8,6 +8,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
+using XiHan.BasicApp.Identity.Infrastructure.External;
 using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.OpenPlatform;
@@ -134,6 +135,7 @@ public static class BasicAppHost
         endpoints.MapRealtimeHubs();
         endpoints.MapTelegramWebhook();
         endpoints.MapOAuthServer();
+        endpoints.MapExternalLogin();
         return endpoints;
     }
 }

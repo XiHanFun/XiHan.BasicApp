@@ -8,6 +8,8 @@ export const LOGIN_PATH = '/auth/login'
 export const CODE_LOGIN_PATH = '/auth/code-login'
 export const EMAIL_LOGIN_PATH = '/auth/email-login'
 export const QRCODE_LOGIN_PATH = '/auth/qrcode-login'
+/** 第三方登录 / 绑定的回调页：与后端 `BasicApp:Auth:OAuth:FrontendCallbackUrl` 的缺省值（`/#/auth/oauth-callback`）同一路径 */
+export const OAUTH_CALLBACK_PATH = '/auth/oauth-callback'
 export const NOT_FOUND_PATH = '/404'
 export const FORBIDDEN_PATH = '/403'
 export const SERVER_ERROR_PATH = '/500'

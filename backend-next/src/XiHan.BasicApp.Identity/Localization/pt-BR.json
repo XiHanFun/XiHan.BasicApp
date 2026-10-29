@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "A credencial não existe ou não é sua.",
   "identity.api_credentials.algorithm_invalid": "Algoritmo de assinatura não suportado: {value}.",
   "identity.api_credentials.ip_invalid": "Entrada inválida na lista de IPs permitidos: {value}",
-  "identity.api_credentials.ip_too_many": "A lista de IPs permitidos aceita no máximo {max} entradas."
+  "identity.api_credentials.ip_too_many": "A lista de IPs permitidos aceita no máximo {max} entradas.",
+  "auth.external_login.description": "Login com terceiros: troca o ticket de uso único do retorno pela conta vinculada no locatário de origem escolhido; identidades não vinculadas são recusadas (entre com senha e vincule no seu perfil antes). Status, bloqueio e dois fatores valem como no login com senha.",
+  "profile.external_logins.description": "Lista as contas de terceiros vinculadas a você. Requer apenas login.",
+  "profile.link_external.description": "Confirma uma vinculação: vincula a conta de terceiros do ticket de uso único ao usuário conectado; só quem iniciou a vinculação pode confirmá-la, e ela é recusada se outra pessoa já vinculou a conta. Indisponível em personificação.",
+  "profile.unlink_external.description": "Desvincula uma de suas contas de terceiros. Indisponível em personificação.",
+  "identity.external.ticket_invalid": "O login com terceiros expirou; comece novamente.",
+  "identity.external.not_bound": "Esta conta de terceiros ainda não está vinculada. Entre com sua senha e vincule-a no seu perfil.",
+  "identity.external.taken": "Esta conta de terceiros já está vinculada a outro usuário.",
+  "identity.external.not_found": "Não há vinculação para este provedor.",
+  "profile.begin_external_bind.description": "Inicia uma vinculação: emite uma intenção de vinculação para o usuário conectado (10 minutos, uso único) e retorna a URL de autorização do terceiro; só esse usuário pode confirmar o ticket. Indisponível em personificação.",
+  "identity.external.provider_not_found": "Este método de login com terceiros não existe ou não está habilitado."
 }

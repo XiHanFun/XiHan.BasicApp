@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "La credencial no existe o no es suya.",
   "identity.api_credentials.algorithm_invalid": "Algoritmo de firma no admitido: {value}.",
   "identity.api_credentials.ip_invalid": "Entrada de la lista de IP permitidas no válida: {value}",
-  "identity.api_credentials.ip_too_many": "La lista de IP permitidas admite como máximo {max} entradas."
+  "identity.api_credentials.ip_too_many": "La lista de IP permitidas admite como máximo {max} entradas.",
+  "auth.external_login.description": "Inicio de sesión con terceros: canjea el ticket de un solo uso de la devolución por la cuenta vinculada en el inquilino de origen elegido; las identidades no vinculadas se rechazan (inicie sesión con contraseña y vincúlela en su perfil). El estado, el bloqueo y la doble verificación se aplican como en el inicio con contraseña.",
+  "profile.external_logins.description": "Lista las cuentas de terceros vinculadas a usted. Solo requiere iniciar sesión.",
+  "profile.link_external.description": "Confirma una vinculación: vincula la cuenta de terceros del ticket de un solo uso al usuario conectado; solo quien inició la vinculación puede confirmarla y se rechaza si otra persona ya vinculó la cuenta. No disponible en suplantación.",
+  "profile.unlink_external.description": "Desvincula una de sus cuentas de terceros. No disponible en suplantación.",
+  "identity.external.ticket_invalid": "El inicio de sesión con terceros caducó; vuelva a empezar.",
+  "identity.external.not_bound": "Esta cuenta de terceros aún no está vinculada. Inicie sesión con contraseña y vincúlela en su perfil.",
+  "identity.external.taken": "Esta cuenta de terceros ya está vinculada a otro usuario.",
+  "identity.external.not_found": "No hay vinculación para este proveedor.",
+  "profile.begin_external_bind.description": "Inicia una vinculación: emite una intención de vinculación para el usuario conectado (10 minutos, un solo uso) y devuelve la URL de autorización del tercero; solo ese usuario puede confirmar el ticket. No disponible en suplantación.",
+  "identity.external.provider_not_found": "Este método de inicio de sesión con terceros no existe o no está habilitado."
 }

@@ -1,7 +1,7 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 
 import { isLockedState, loadingBar } from '~/composables'
-import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
+import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import {
   hydratePreferencesFromBackend,
@@ -75,6 +75,12 @@ export function setupRouterGuard(router: Router) {
         query: { redirect: to.fullPath },
         replace: true,
       }
+    }
+
+    // 第三方回调页对已登录的人是终点：个人中心发起的绑定回来时要在这里确认（profile.link-external），
+    // 弹回首页就丢了票据；它不挂主布局、不进标签栏，也不必先装载菜单
+    if (to.path === OAUTH_CALLBACK_PATH) {
+      return true
     }
 
     // 已登录访问认证页

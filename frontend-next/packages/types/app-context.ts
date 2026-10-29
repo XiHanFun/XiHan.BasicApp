@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ExternalLoginItem, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, OAuthConsentItem, TwoFactorSetupResult, UserProfile } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
@@ -141,6 +141,14 @@ export interface AppContextApis {
   deactivateAccountApi: (password: string) => Promise<unknown>
   /** 注销本人账号（凭当前密码） */
   deleteAccountApi: (password: string) => Promise<unknown>
+  /** 第三方账号绑定（个人中心「账号绑定」）：本人已绑定的第三方账号 */
+  getLinkedAccountsApi: () => Promise<ExternalLoginItem[]>
+  /** 发起绑定（4.x 为 createOAuthBindTicketApi 换票据再自拼地址）：给当前登录的人领一个一次性的绑定意图，返回带着它的发起地址（相对于后端根；整页跳转见 auth store 的 startOAuthBind） */
+  beginOAuthBindApi: (provider: string) => Promise<string>
+  /** 确认绑定：凭回调页拿到的一次性票据，把第三方账号绑到当前登录的人（票据只认发起绑定的本人） */
+  linkAccountApi: (ticket: string) => Promise<ExternalLoginItem>
+  /** 解绑本人的一个第三方账号（按提供方类型），返回剩下的绑定 */
+  unlinkAccountApi: (provider: string) => Promise<ExternalLoginItem[]>
   /** 锁屏（服务端强制）：设置会话级一次性口令并置位锁屏标记 */
   lockSessionApi: (input: { password: string }) => Promise<unknown>
   /** 解锁：口令由服务端校验；连续失败 5 次服务端会直接吊销会话 */

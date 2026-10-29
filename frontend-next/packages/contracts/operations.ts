@@ -10,6 +10,7 @@ export const routes = {
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
   'auth.activate-roles': { method: 'POST', template: '/api/auth:activate-roles', path: [], query: [], success: 200 },
   'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
+  'auth.external-login': { method: 'POST', template: '/api/auth:external-login', path: [], query: [], success: 200 },
   'auth.lock': { method: 'POST', template: '/api/auth:lock', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
   'auth.login-config': { method: 'GET', template: '/api/auth:login-config', path: [], query: [], success: 200 },
@@ -211,11 +212,15 @@ export const routes = {
   'positions.get': { method: 'GET', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'positions.list': { method: 'POST', template: '/api/positions:list', path: [], query: [], success: 200 },
   'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
+  'profile.begin-external-bind': { method: 'POST', template: '/api/profile:begin-external-bind', path: [], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
   'profile.disable-two-factor': { method: 'POST', template: '/api/profile:disable-two-factor', path: [], query: [], success: 200 },
   'profile.enable-two-factor': { method: 'POST', template: '/api/profile:enable-two-factor', path: [], query: [], success: 200 },
+  'profile.external-logins': { method: 'GET', template: '/api/profile:external-logins', path: [], query: [], success: 200 },
   'profile.get': { method: 'GET', template: '/api/profile', path: [], query: [], success: 200 },
+  'profile.link-external': { method: 'POST', template: '/api/profile:link-external', path: [], query: [], success: 200 },
   'profile.setup-totp': { method: 'POST', template: '/api/profile:setup-totp', path: [], query: [], success: 200 },
+  'profile.unlink-external': { method: 'POST', template: '/api/profile:unlink-external', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
   'roles.by-user': { method: 'GET', template: '/api/roles:by-user', path: [], query: ['userId'], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
@@ -315,6 +320,7 @@ export const accessLogs = {
 export const auth = {
   activateRoles: (request: RequestOf<'auth.activate-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.activate-roles'>, ResponseOf<'auth.activate-roles'>>('auth.activate-roles', routes['auth.activate-roles'], request, options),
   captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
+  externalLogin: (request: RequestOf<'auth.external-login'>, options?: CallOptions) => invoke<RequestOf<'auth.external-login'>, ResponseOf<'auth.external-login'>>('auth.external-login', routes['auth.external-login'], request, options),
   lock: (request: RequestOf<'auth.lock'>, options?: CallOptions) => invoke<RequestOf<'auth.lock'>, ResponseOf<'auth.lock'>>('auth.lock', routes['auth.lock'], request, options),
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
   loginConfig: (request: RequestOf<'auth.login-config'>, options?: CallOptions) => invoke<RequestOf<'auth.login-config'>, ResponseOf<'auth.login-config'>>('auth.login-config', routes['auth.login-config'], request, options),
@@ -672,11 +678,15 @@ export const positions = {
 
 /** 资源 `profile` 的操作。 */
 export const profile = {
+  beginExternalBind: (request: RequestOf<'profile.begin-external-bind'>, options?: CallOptions) => invoke<RequestOf<'profile.begin-external-bind'>, ResponseOf<'profile.begin-external-bind'>>('profile.begin-external-bind', routes['profile.begin-external-bind'], request, options),
   changePassword: (request: RequestOf<'profile.change-password'>, options?: CallOptions) => invoke<RequestOf<'profile.change-password'>, ResponseOf<'profile.change-password'>>('profile.change-password', routes['profile.change-password'], request, options),
   disableTwoFactor: (request: RequestOf<'profile.disable-two-factor'>, options?: CallOptions) => invoke<RequestOf<'profile.disable-two-factor'>, ResponseOf<'profile.disable-two-factor'>>('profile.disable-two-factor', routes['profile.disable-two-factor'], request, options),
   enableTwoFactor: (request: RequestOf<'profile.enable-two-factor'>, options?: CallOptions) => invoke<RequestOf<'profile.enable-two-factor'>, ResponseOf<'profile.enable-two-factor'>>('profile.enable-two-factor', routes['profile.enable-two-factor'], request, options),
+  externalLogins: (request: RequestOf<'profile.external-logins'>, options?: CallOptions) => invoke<RequestOf<'profile.external-logins'>, ResponseOf<'profile.external-logins'>>('profile.external-logins', routes['profile.external-logins'], request, options),
   get: (request: RequestOf<'profile.get'>, options?: CallOptions) => invoke<RequestOf<'profile.get'>, ResponseOf<'profile.get'>>('profile.get', routes['profile.get'], request, options),
+  linkExternal: (request: RequestOf<'profile.link-external'>, options?: CallOptions) => invoke<RequestOf<'profile.link-external'>, ResponseOf<'profile.link-external'>>('profile.link-external', routes['profile.link-external'], request, options),
   setupTotp: (request: RequestOf<'profile.setup-totp'>, options?: CallOptions) => invoke<RequestOf<'profile.setup-totp'>, ResponseOf<'profile.setup-totp'>>('profile.setup-totp', routes['profile.setup-totp'], request, options),
+  unlinkExternal: (request: RequestOf<'profile.unlink-external'>, options?: CallOptions) => invoke<RequestOf<'profile.unlink-external'>, ResponseOf<'profile.unlink-external'>>('profile.unlink-external', routes['profile.unlink-external'], request, options),
 }
 
 /** 资源 `roles` 的操作。 */

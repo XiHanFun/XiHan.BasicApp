@@ -9,7 +9,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
+import { FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { configureRequest } from '~/request'
 
 const stubs = vi.hoisted(() => ({
@@ -63,6 +63,7 @@ function baseRoutes(): RouteRecordRaw[] {
       children: [
         { path: 'login', name: 'Login', component: Blank },
         { path: 'register', name: 'Register', component: Blank },
+        { path: 'oauth-callback', name: 'OAuthCallback', component: Blank },
       ],
     },
     { path: HOME_PATH, name: 'Dashboard', component: Blank, meta: { title: 'page.control_center.title' } },
@@ -199,6 +200,15 @@ describe('已登录访问认证页', () => {
     expect(router.currentRoute.value.path).toBe('/identity/user')
     await router.push('/auth/register')
     expect(router.currentRoute.value.path).toBe('/identity/user')
+  })
+
+  it('第三方回调页例外：个人中心发起的绑定回来要在这里确认，不弹回首页、不先装载菜单、也不进标签栏', async () => {
+    const pending = signInPending(() => json(200, permissions()))
+    const router = createGuardedRouter()
+    await router.push(`${OAUTH_CALLBACK_PATH}?ticket=t-1&mode=bind&provider=github`)
+    expect(router.currentRoute.value.fullPath).toBe(`${OAUTH_CALLBACK_PATH}?ticket=t-1&mode=bind&provider=github`)
+    expect(pending.calls()).toBe(0)
+    expect(useTabbarStore().tabs.some(tab => tab.path.startsWith(OAUTH_CALLBACK_PATH))).toBe(false)
   })
 })
 

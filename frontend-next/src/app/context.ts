@@ -1,6 +1,6 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, MyOAuthAppItem, MyOAuthAppSecret, OAuthConsentItem, UserProfile } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
 import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
@@ -108,6 +108,17 @@ function toShellProfile(profile: ResponseOf<'profile.get'>): UserProfile {
   }
 }
 
+/** `profile.external-logins` / `link-external` / `unlink-external` → 4.x 个人中心「账号绑定」的条目：第三方账号的显示名沿用 providerDisplayName，最近登录换成 *Time 命名，没有的字段不给 */
+function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): ExternalLoginItem {
+  return {
+    provider: login.provider,
+    ...(login.displayName ? { providerDisplayName: login.displayName } : {}),
+    ...(login.email ? { email: login.email } : {}),
+    ...(login.avatarUrl ? { avatarUrl: login.avatarUrl } : {}),
+    ...(login.lastLoginAt ? { lastLoginTime: login.lastLoginAt } : {}),
+  }
+}
+
 /** `my-api-credentials.*` → 4.x 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
@@ -183,13 +194,13 @@ function timeZoneOptions() {
 
 /**
  * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由。
- * 登录配置来自 `auth.login-config`（目前只有账号密码一种，是否要图形验证码由后端配置）；验证码登录、第三方登录随后续批次接入。
+ * 登录配置来自 `auth.login-config`（账号密码与后端配置启用的第三方登录提供方，是否要图形验证码由后端配置）；验证码登录随后续批次接入。
  */
 export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {
     getLoginConfigApi: async () => {
       const config = await authOps.loginConfig({}, { anonymous: true })
-      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName })), captchaEnabled: config.captchaEnabled }
+      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })), captchaEnabled: config.captchaEnabled }
     },
     getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),
     logoutApi: () => useAuthStore().logout(),
@@ -212,6 +223,12 @@ export function registerApplicationContext(router: Router): void {
     send2FASetupCodeApi: () => notAvailable('send2FASetupCodeApi'),
     deactivateAccountApi: () => notAvailable('deactivateAccountApi'),
     deleteAccountApi: () => notAvailable('deleteAccountApi'),
+    // 第三方账号绑定（Identity 的 profile.external-logins / begin-external-bind / link-external / unlink-external，只要求已登录，模仿会话发起、确认与解绑被拒）：
+    // 发起先领本人的绑定意图（4.x 先换绑定票据），整页跳去它给的地址（auth store 的 startOAuthBind），回调页凭票据确认——票据只认发起的本人
+    getLinkedAccountsApi: async () => (await profileOps.externalLogins({})).items.map(toShellExternalLogin),
+    beginOAuthBindApi: async provider => (await profileOps.beginExternalBind({ provider })).url,
+    linkAccountApi: async ticket => toShellExternalLogin(await profileOps.linkExternal({ ticket })),
+    unlinkAccountApi: async provider => (await profileOps.unlinkExternal({ provider })).items.map(toShellExternalLogin),
     // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
     lockSessionApi: input => authOps.lock({ password: input.password }),
     unlockSessionApi: input => authOps.unlock({ password: input.password }),

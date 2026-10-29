@@ -4,7 +4,7 @@
  */
 import type { RouteRecordRaw } from 'vue-router'
 import { describe, expect, it } from 'vitest'
-import { AUTH_PATH, FORBIDDEN_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
+import { AUTH_PATH, FORBIDDEN_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { coreRoutes } from './routes/core'
 
 /** 收集路由树中全部 path（子路由拼上父级前缀，与 vue-router 的解析口径一致） */
@@ -44,6 +44,11 @@ describe('coreRoutes 结构约束', () => {
     expect(collectFullPaths(coreRoutes)).toContain(LOGIN_PATH)
     // 认证子路由全部用相对路径，写成绝对路径会脱离 AUTH_PATH 前缀
     expect(auth?.children?.every(child => !child.path.startsWith('/'))).toBe(true)
+  })
+
+  it('第三方登录回调页挂在认证父路由下，完整路径等于 OAUTH_CALLBACK_PATH（后端回跳的缺省地址，守卫按它放行已登录的绑定确认）', () => {
+    expect(collectFullPaths(coreRoutes)).toContain(OAUTH_CALLBACK_PATH)
+    expect(coreRoutes.find(route => route.path === AUTH_PATH)?.children?.some(child => child.name === 'OAuthCallback')).toBe(true)
   })
 
   it('403 / 500 / 404 三个兜底页齐备，守卫的白名单与失败跳转依赖它们存在', () => {

@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "The credential does not exist or is not yours.",
   "identity.api_credentials.algorithm_invalid": "Unsupported signature algorithm: {value}.",
   "identity.api_credentials.ip_invalid": "Invalid IP allow-list entry: {value}",
-  "identity.api_credentials.ip_too_many": "The IP allow-list can have at most {max} entries."
+  "identity.api_credentials.ip_too_many": "The IP allow-list can have at most {max} entries.",
+  "auth.external_login.description": "Third-party sign-in: exchanges the one-time ticket from the callback for the account bound in the chosen home tenant; unbound identities are rejected (sign in with a password and bind it in your profile first). Account status, lockout and two-factor apply as for password sign-in.",
+  "profile.external_logins.description": "List the third-party accounts bound to you. Requires sign-in only.",
+  "profile.link_external.description": "Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions.",
+  "profile.unlink_external.description": "Unbind one of your third-party accounts. Not available in impersonation sessions.",
+  "identity.external.ticket_invalid": "The third-party sign-in has expired; please start again.",
+  "identity.external.not_bound": "This third-party account is not bound yet. Sign in with your password first, then bind it in your profile.",
+  "identity.external.taken": "This third-party account is already bound to another user.",
+  "identity.external.not_found": "No binding for this third-party provider.",
+  "profile.begin_external_bind.description": "Start a binding: issues a binding intent for the signed-in user (10 minutes, single use) and returns the URL to the third-party authorization; only that user can confirm the resulting ticket. Not available in impersonation sessions.",
+  "identity.external.provider_not_found": "This third-party sign-in method does not exist or is not enabled."
 }

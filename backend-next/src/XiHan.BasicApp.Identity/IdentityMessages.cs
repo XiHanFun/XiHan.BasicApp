@@ -436,6 +436,56 @@ public static class IdentityMessages
     /// </summary>
     public const string ApiIpAllowListTooLong = "identity.api_credentials.ip_too_many";
 
+    /// <summary>
+    /// 操作 <c>auth.external-login</c> 的说明。
+    /// </summary>
+    public const string ExternalLoginDescription = "auth.external_login.description";
+
+    /// <summary>
+    /// 操作 <c>profile.external-logins</c> 的说明。
+    /// </summary>
+    public const string ExternalLoginsDescription = "profile.external_logins.description";
+
+    /// <summary>
+    /// 操作 <c>profile.link-external</c> 的说明。
+    /// </summary>
+    public const string LinkExternalDescription = "profile.link_external.description";
+
+    /// <summary>
+    /// 操作 <c>profile.unlink-external</c> 的说明。
+    /// </summary>
+    public const string UnlinkExternalDescription = "profile.unlink_external.description";
+
+    /// <summary>
+    /// 第三方登录的票据不存在、过期、已用过或用途不符。
+    /// </summary>
+    public const string ExternalTicketInvalid = "identity.external.ticket_invalid";
+
+    /// <summary>
+    /// 这个第三方账号在所选注册地没有绑定账号；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginNotBound = "identity.external.not_bound";
+
+    /// <summary>
+    /// 这个第三方账号已被同一注册地的别人绑定；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginTaken = "identity.external.taken";
+
+    /// <summary>
+    /// 本人没有绑定这个提供商；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalLoginNotFound = "identity.external.not_found";
+
+    /// <summary>
+    /// 操作 <c>profile.begin-external-bind</c> 的说明。
+    /// </summary>
+    public const string BeginExternalBindDescription = "profile.begin_external_bind.description";
+
+    /// <summary>
+    /// 这个第三方登录方式不存在或没有启用；参数 <c>provider</c>。
+    /// </summary>
+    public const string ExternalProviderNotFound = "identity.external.provider_not_found";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

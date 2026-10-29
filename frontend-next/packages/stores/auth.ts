@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
+import { endpointUrl } from '~/request'
 import { useAppContext } from './app-context'
 import { resetPreferenceBackendSync } from './helpers'
 import { relaunchApp } from './relaunch'
@@ -37,9 +38,83 @@ function contractMethodOf(method: string | undefined): TwoFactorMethod {
   return found
 }
 
+type TwoFactorChallenge = NonNullable<ResponseOf<'auth.login'>['twoFactor']>
+
+/** 双因素挑战（`auth.login` 与 `auth.external-login` 同一形态）→ 4.x 登录页认的响应 */
+function toPageChallenge(twoFactor: TwoFactorChallenge): LoginResponse {
+  return {
+    requiresTwoFactor: true,
+    availableTwoFactorMethods: twoFactor.methods.map(method => PAGE_METHODS[method]),
+    twoFactorMethod: twoFactor.method ? PAGE_METHODS[twoFactor.method] : undefined,
+    codeSent: twoFactor.codeSent,
+    twoFactorTicket: twoFactor.ticket,
+    token: null,
+  }
+}
+
 /** 回跳只认站内路径（防开放重定向） */
 function safeRedirect(redirect: string | undefined): string {
   return redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+}
+
+// ==================== 第三方登录 / 绑定的发起记录 ====================
+
+const OAUTH_PENDING_KEY = 'xihan.next.oauth-pending'
+/** 发起记录的时限：与后端 state 的有效期（10 分钟）一致，过了回调本就失败 */
+const OAUTH_PENDING_TTL_MS = 10 * 60 * 1000
+
+/** 第三方流程的用途：登录（登录页发起）或绑定（个人中心发起），与回调地址上的 `mode` 同值 */
+export type OAuthMode = 'bind' | 'login'
+
+/**
+ * 本标签页发起的第三方流程：整页跳走前记进 sessionStorage，回调页取走并核对用途与提供方。
+ * 回调地址上的一次性票据谁拿到谁能用，只认这个标签页自己发起的流程带回来的：别人发来的回调链接（带着他的票据）
+ * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来（4.x 回调后一律落首页）。
+ */
+export interface OAuthPending {
+  mode: OAuthMode
+  /** 提供方名称（登录配置里的 name，小写，与回调地址上的 `provider` 同值） */
+  provider: string
+  redirect?: string
+  startedAt: number
+}
+
+function writeOAuthPending(pending: OAuthPending): void {
+  try {
+    sessionStorage.setItem(OAUTH_PENDING_KEY, JSON.stringify(pending))
+  }
+  catch {}
+}
+
+/** 取走（并清除）发起记录；没有、过期或格式不对即 null */
+export function takeOAuthPending(): OAuthPending | null {
+  try {
+    const raw = sessionStorage.getItem(OAUTH_PENDING_KEY)
+    sessionStorage.removeItem(OAUTH_PENDING_KEY)
+    if (!raw)
+      return null
+    const parsed = JSON.parse(raw) as Partial<OAuthPending>
+    if ((parsed.mode !== 'login' && parsed.mode !== 'bind') || typeof parsed.provider !== 'string' || typeof parsed.startedAt !== 'number')
+      return null
+    if (Date.now() - parsed.startedAt > OAUTH_PENDING_TTL_MS)
+      return null
+    return { mode: parsed.mode, provider: parsed.provider, startedAt: parsed.startedAt, ...(typeof parsed.redirect === 'string' ? { redirect: parsed.redirect } : {}) }
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * 第三方登录的发起地址：普通端点 `/api/oauth/{名称}/challenge`（整页跳转，不经请求层、不带令牌），带注册地租户（登录页那一栏；平台账号留空即不带）。
+ * 绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）。
+ */
+export function oauthChallengeUrl(provider: string, tenant?: string): string {
+  const query = new URLSearchParams({ mode: 'login' })
+  const home = tenant?.trim()
+  if (home)
+    query.set('tenant', home)
+  return endpointUrl(`/api/oauth/${encodeURIComponent(provider)}/challenge?${query.toString()}`)
 }
 export type SessionUser = Session['user']
 /** `auth.permissions`：有效权限码、角色、菜单树与页面码。 */
@@ -126,16 +201,8 @@ export const useAuthStore = defineStore('auth', () => {
         captchaId: params.captchaId ?? null,
         captchaCode: params.captchaCode ?? null,
       }, { anonymous: true })
-      if (result.twoFactor) {
-        return {
-          requiresTwoFactor: true,
-          availableTwoFactorMethods: result.twoFactor.methods.map(method => PAGE_METHODS[method]),
-          twoFactorMethod: result.twoFactor.method ? PAGE_METHODS[result.twoFactor.method] : undefined,
-          codeSent: result.twoFactor.codeSent,
-          twoFactorTicket: result.twoFactor.ticket,
-          token: null,
-        }
-      }
+      if (result.twoFactor)
+        return toPageChallenge(result.twoFactor)
       if (!result.token)
         throw new Error('登录响应既没有令牌也没有双因素挑战')
       await afterLogin(result.token, redirect)
@@ -153,9 +220,56 @@ export const useAuthStore = defineStore('auth', () => {
     await router.replace(safeRedirect(redirect))
   }
 
-  /** 第三方登录：提供方列表要等 OpenPlatform（N2 第六批）才有，登录页拿到的列表为空，不会走到这里 */
-  function startOAuthLogin(provider: OAuthProviderItem): never {
-    throw new Error(`第三方登录（${provider.name}）尚未接入 6.0 后端`)
+  /** 第三方登录（4.x 同为整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
+  function startOAuthLogin(provider: OAuthProviderItem, options: { tenant?: string, redirect?: string } = {}): void {
+    writeOAuthPending({ mode: 'login', provider: provider.name.toLowerCase(), startedAt: Date.now(), ...(options.redirect ? { redirect: options.redirect } : {}) })
+    window.location.assign(oauthChallengeUrl(provider.name, options.tenant))
+  }
+
+  /** 绑定第三方账号（个人中心发起，4.x 同为先换绑定票据再跳）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
+  async function startOAuthBind(provider: string): Promise<void> {
+    const url = await useAppContext().apis.beginOAuthBindApi(provider)
+    writeOAuthPending({ mode: 'bind', provider: provider.toLowerCase(), startedAt: Date.now() })
+    window.location.assign(endpointUrl(url))
+  }
+
+  /** 第三方登录换来的双因素挑战：登录页挂载时取走，直接进验证阶段 */
+  const pendingTwoFactor = ref<LoginResponse | null>(null)
+
+  /**
+   * 第三方登录回调（4.x 回调把令牌放在地址片段里直接落地；6.0 是一次性票据，经 `auth.external-login` 换）：
+   * 拿到令牌即与密码登录同样存会话、跳回跳地址；账号开了双因素即返回挑战——记下挑战、带着回跳地址回登录页，
+   * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）。
+   */
+  async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
+    if (loginLoading.value)
+      return
+    loginLoading.value = true
+    let challenge: LoginResponse
+    try {
+      const result = await authApi.externalLogin({ ticket }, { anonymous: true })
+      if (!result.twoFactor) {
+        if (!result.token)
+          throw new Error('登录响应既没有令牌也没有双因素挑战')
+        await afterLogin(result.token, redirect)
+        return
+      }
+      challenge = toPageChallenge(result.twoFactor)
+    }
+    finally {
+      loginLoading.value = false
+    }
+    pendingTwoFactor.value = challenge
+    const target = safeRedirect(redirect)
+    const router = await useAppContext().getRouter()
+    await router.replace({ path: LOGIN_PATH, query: target === '/' ? {} : { redirect: target } })
+  }
+
+  /** 取走（并清除）第三方登录留下的双因素挑战 */
+  function takePendingTwoFactor(): LoginResponse | null {
+    const pending = pendingTwoFactor.value
+    pendingTwoFactor.value = null
+    return pending
   }
 
   /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null。 */
@@ -293,6 +407,9 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     loginLoading,
     startOAuthLogin,
+    startOAuthBind,
+    handleOAuthCallback,
+    takePendingTwoFactor,
     refresh,
     loadPermissions,
     logout,

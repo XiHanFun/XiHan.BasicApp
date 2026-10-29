@@ -81,6 +81,8 @@ export interface SwitchTenantParams {
 export interface OAuthProviderItem {
   name: string
   displayName: string
+  /** 提供商类型（后端的规范名：github、wechat、lark 等；配置里的名称可能是别名或自定义名），选图标与对齐绑定用 */
+  type: string
 }
 
 export interface LoginConfig {

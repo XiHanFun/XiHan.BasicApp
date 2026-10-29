@@ -82,5 +82,15 @@
   "identity.api_credentials.not_found": "認証情報が存在しないか、操作する権限がありません。",
   "identity.api_credentials.algorithm_invalid": "サポートされていない署名アルゴリズムです：{value}。",
   "identity.api_credentials.ip_invalid": "IP 許可リストの形式が無効です：{value}",
-  "identity.api_credentials.ip_too_many": "IP 許可リストは最大 {max} 件です。"
+  "identity.api_credentials.ip_too_many": "IP 許可リストは最大 {max} 件です。",
+  "auth.external_login.description": "サードパーティーログイン：コールバックで発行された一回限りのチケットで、ログイン画面で選んだ登録先にひも付いたアカウントを探します。ひも付けがなければ拒否します（先にパスワードでログインし、個人センターでひも付けてください）。アカウント状態・ロック・二要素認証はパスワードログインと同じです。",
+  "profile.external_logins.description": "自分にひも付いたサードパーティーアカウントを一覧します。ログインのみ必要です。",
+  "profile.link_external.description": "ひも付けを確定します。ひも付けフローの一回限りのチケットで、サードパーティーアカウントを今ログインしている人にひも付けます。チケットはひも付けを開始した本人だけが確定でき、他の人がひも付け済みなら拒否します。代理ログイン中は使えません。",
+  "profile.unlink_external.description": "自分のサードパーティーアカウントのひも付けを解除します。代理ログイン中は使えません。",
+  "identity.external.ticket_invalid": "サードパーティーログインの有効期限が切れました。もう一度やり直してください。",
+  "identity.external.not_bound": "このサードパーティーアカウントはまだひも付けられていません。先にパスワードでログインし、個人センターでひも付けてください。",
+  "identity.external.taken": "このサードパーティーアカウントは他のユーザーにひも付けられています。",
+  "identity.external.not_found": "このサードパーティーのひも付けはありません。",
+  "profile.begin_external_bind.description": "ひも付けを開始します。ログイン中の本人にひも付けの意図（10 分、一回限り）を発行し、サードパーティーの認可画面への URL を返します。コールバックのチケットは本人だけが確定できます。代理ログイン中は使えません。",
+  "identity.external.provider_not_found": "このサードパーティーログイン方法は存在しないか、有効になっていません。"
 }
