@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "驗證器綁定已過期或尚未開始，請重新產生金鑰。",
   "identity.field_security.protected": "欄位 {field} 受欄位安全保護，不能用來篩選或排序。",
   "identity.field_security.read_only": "欄位 {field} 對你唯讀，不能填寫或修改。",
-  "auth.activate_roles.description": "切換目前工作階段啟用的角色（須都此刻持有、且不違反動態職責分離）；傳回新權杖。"
+  "auth.activate_roles.description": "切換目前工作階段啟用的角色（須都此刻持有、且不違反動態職責分離）；傳回新權杖。",
+  "sessions.list.description": "分頁列出目前租戶的線上使用者：每個有效工作階段一列，帶裝置、瀏覽器、遮蔽過的 IP、登入地點、登入與最後活動時間、是否即時在線；依資料範圍收窄。需要 identity.sessions.read 權限。",
+  "sessions.summary.description": "目前租戶的線上概況：有效工作階段數、有工作階段的使用者數與即時在線的使用者數。需要 identity.sessions.read 權限。",
+  "sessions.revoke.description": "強制登出：撤銷目前租戶裡的一批有效工作階段，用戶端經即時連線收到通知後登出；不能登出自己目前的工作階段。需要 identity.sessions.revoke 權限。",
+  "identity.session.not_found": "工作階段 {id} 不存在或已失效。",
+  "identity.session.current": "不能強制登出自己目前的工作階段，請使用登出。"
 }

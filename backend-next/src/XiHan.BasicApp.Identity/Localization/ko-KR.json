@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "인증 앱 등록이 만료되었거나 시작되지 않았습니다. 키를 다시 생성하세요.",
   "identity.field_security.protected": "필드 {field}은(는) 필드 보안으로 보호되어 필터나 정렬에 쓸 수 없습니다.",
   "identity.field_security.read_only": "필드 {field}은(는) 읽기 전용이어서 입력하거나 변경할 수 없습니다.",
-  "auth.activate_roles.description": "현재 세션에서 활성화할 역할을 바꿉니다(모두 지금 보유하고 동적 직무 분리를 위반하지 않아야 함). 새 토큰을 반환합니다."
+  "auth.activate_roles.description": "현재 세션에서 활성화할 역할을 바꿉니다(모두 지금 보유하고 동적 직무 분리를 위반하지 않아야 함). 새 토큰을 반환합니다.",
+  "sessions.list.description": "현재 테넌트의 온라인 사용자를 페이지 단위로 나열합니다. 유효한 세션마다 한 행이며 장치, 브라우저, 가린 IP, 로그인 위치, 로그인·마지막 활동 시간, 실시간 연결 여부를 포함하고 데이터 범위로 좁혀집니다. identity.sessions.read 권한이 필요합니다.",
+  "sessions.summary.description": "현재 테넌트의 온라인 개요: 유효한 세션 수, 세션이 있는 사용자 수, 실시간 연결된 사용자 수. identity.sessions.read 권한이 필요합니다.",
+  "sessions.revoke.description": "강제 로그아웃: 현재 테넌트의 유효한 세션을 폐기하며, 클라이언트는 실시간 연결로 알림을 받고 로그아웃합니다. 자신의 현재 세션은 대상이 될 수 없습니다. identity.sessions.revoke 권한이 필요합니다.",
+  "identity.session.not_found": "세션 {id}이(가) 없거나 이미 만료되었습니다.",
+  "identity.session.current": "자신의 현재 세션은 강제 로그아웃할 수 없습니다. 로그아웃을 사용하세요."
 }

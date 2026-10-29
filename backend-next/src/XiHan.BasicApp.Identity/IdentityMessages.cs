@@ -92,6 +92,31 @@ public static class IdentityMessages
     public const string UpdateUserSettingDescription = "user_settings.update.description";
 
     /// <summary>
+    /// 操作 <c>sessions.list</c> 的说明。
+    /// </summary>
+    public const string ListSessionsDescription = "sessions.list.description";
+
+    /// <summary>
+    /// 操作 <c>sessions.summary</c> 的说明。
+    /// </summary>
+    public const string GetSessionSummaryDescription = "sessions.summary.description";
+
+    /// <summary>
+    /// 操作 <c>sessions.revoke</c> 的说明。
+    /// </summary>
+    public const string RevokeSessionsDescription = "sessions.revoke.description";
+
+    /// <summary>
+    /// 会话不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SessionNotFound = "identity.session.not_found";
+
+    /// <summary>
+    /// 不能强制下线自己当前的会话。
+    /// </summary>
+    public const string CurrentSessionNotRevocable = "identity.session.current";
+
+    /// <summary>
     /// 用户不存在；参数 <c>id</c>。
     /// </summary>
     public const string UserNotFound = "identity.user.not_found";

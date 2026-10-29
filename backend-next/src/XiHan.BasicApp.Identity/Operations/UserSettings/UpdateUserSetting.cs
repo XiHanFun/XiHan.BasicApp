@@ -1,7 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
@@ -15,12 +17,13 @@ namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 
 /// <summary>
 /// 写本人的一条设置：<c>PUT /api/user-settings</c>（自助操作，只要求已认证）。按（用户, 场景, 设置键）有则覆盖、无则新建；值为 <c>null</c> 即清空。
-/// 其他端的实时回推随 Realtime 包接入（方案 5.11）。
+/// 写入提交后经实时连接把新值推给这个用户的所有端（<c>UserSettingChanged</c>，带请求里的客户端标识，发起端据此忽略回显）。
 /// </summary>
 /// <param name="settings">用户设置仓储。</param>
 /// <param name="ids">标识生成器。</param>
+/// <param name="pushes">实时推送（没装 Realtime 即没有）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings, IIdGenerator<Guid> ids) : IOperation<UpdateUserSettingRequest, UserSettingResponse>
+public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings, IIdGenerator<Guid> ids, IEnumerable<IRealtimePush> pushes) : IOperation<UpdateUserSettingRequest, UserSettingResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -55,6 +58,18 @@ public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings
             written = await settings.UpdateAsync(setting, context.CancellationToken).ConfigureAwait(false);
         }
 
-        return written.IsFailure ? written.Error! : new UserSettingResponse(scene, key, setting.Value, setting.ModifiedAt ?? setting.CreatedAt);
+        if (written.IsFailure)
+        {
+            return written.Error!;
+        }
+
+        // 设置随人走（不分租户）：推给这个用户在所有侧的连接
+        foreach (var push in pushes)
+        {
+            var changed = new UserSettingChangedPayload(scene, key, setting.Value, request.ClientId, request.Origin);
+            await push.SendAsync(RealtimeAudience.Users([userId]), RealtimeMethods.UserSettingChanged, changed, IdentityJsonContext.Default.UserSettingChangedPayload, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        return new UserSettingResponse(scene, key, setting.Value, setting.ModifiedAt ?? setting.CreatedAt);
     }
 }

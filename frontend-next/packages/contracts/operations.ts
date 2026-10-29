@@ -165,6 +165,9 @@ export const routes = {
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
   'session-roles.get': { method: 'GET', template: '/api/session-roles/{id}', path: ['id'], query: [], success: 200 },
   'session-roles.list': { method: 'POST', template: '/api/session-roles:list', path: [], query: [], success: 200 },
+  'sessions.list': { method: 'POST', template: '/api/sessions:list', path: [], query: [], success: 200 },
+  'sessions.revoke': { method: 'POST', template: '/api/sessions:revoke', path: [], query: [], success: 200 },
+  'sessions.summary': { method: 'GET', template: '/api/sessions:summary', path: [], query: [], success: 200 },
   'storage-configs.create': { method: 'POST', template: '/api/storage-configs', path: [], query: [], success: 201 },
   'storage-configs.delete': { method: 'DELETE', template: '/api/storage-configs', path: [], query: ['ids'], success: 200 },
   'storage-configs.get': { method: 'GET', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
@@ -503,6 +506,13 @@ export const roles = {
 export const sessionRoles = {
   get: (request: RequestOf<'session-roles.get'>, options?: CallOptions) => invoke<RequestOf<'session-roles.get'>, ResponseOf<'session-roles.get'>>('session-roles.get', routes['session-roles.get'], request, options),
   list: (request: RequestOf<'session-roles.list'>, options?: CallOptions) => invoke<RequestOf<'session-roles.list'>, ResponseOf<'session-roles.list'>>('session-roles.list', routes['session-roles.list'], request, options),
+}
+
+/** 资源 `sessions` 的操作。 */
+export const sessions = {
+  list: (request: RequestOf<'sessions.list'>, options?: CallOptions) => invoke<RequestOf<'sessions.list'>, ResponseOf<'sessions.list'>>('sessions.list', routes['sessions.list'], request, options),
+  revoke: (request: RequestOf<'sessions.revoke'>, options?: CallOptions) => invoke<RequestOf<'sessions.revoke'>, ResponseOf<'sessions.revoke'>>('sessions.revoke', routes['sessions.revoke'], request, options),
+  summary: (request: RequestOf<'sessions.summary'>, options?: CallOptions) => invoke<RequestOf<'sessions.summary'>, ResponseOf<'sessions.summary'>>('sessions.summary', routes['sessions.summary'], request, options),
 }
 
 /** 资源 `storage-configs` 的操作。 */

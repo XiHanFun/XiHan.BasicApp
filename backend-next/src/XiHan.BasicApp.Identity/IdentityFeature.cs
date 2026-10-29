@@ -79,6 +79,9 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<LoginSessions>();
         context.Services.AddScoped<UserAccountService>();
         context.Services.AddScoped<UserQueries>();
+        context.Services.AddScoped<SessionQueries>();
+        // 绕过内核管道的实时 Hub 用同一份会话判定
+        context.Services.AddSingleton<ISessionStatus, SessionStatus>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);

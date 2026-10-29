@@ -18219,6 +18219,238 @@
         }
       }
     },
+    "/api/sessions:list": {
+      "post": {
+        "operationId": "sessions.list",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Page through the online users of the current tenant: one row per active session with device, browser, masked IP, sign-in location, sign-in and last activity time and realtime presence; narrowed by data scope. Requires identity.sessions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.sessions.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfOnlineSessionResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OnlineSessionResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions:revoke": {
+      "post": {
+        "operationId": "sessions.revoke",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here. Requires identity.sessions.revoke.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.sessions.revoke",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RevokeSessionsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sessions:summary": {
+      "get": {
+        "operationId": "sessions.summary",
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Online overview of the current tenant: active sessions, users with an active session and users connected in real time. Requires identity.sessions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.sessions.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SessionSummaryResponse",
+                  "type": "object",
+                  "properties": {
+                    "activeSessions": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "activeUsers": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "realtimeOnlineUsers": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "activeSessions",
+                    "activeUsers",
+                    "realtimeOnlineUsers"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/storage-configs": {
       "delete": {
         "operationId": "storage-configs.delete",
@@ -21460,6 +21692,20 @@
                       "null"
                     ],
                     "maxLength": 262144
+                  },
+                  "clientId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "origin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
                   }
                 },
                 "required": [
@@ -25638,6 +25884,86 @@
           "Platform"
         ]
       },
+      "OnlineSessionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "device": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "browser": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "os": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ipAddressMasked": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "loginAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastActiveAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isRealtimeOnline": {
+            "type": "boolean"
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "impersonatorUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "userName",
+          "displayName",
+          "loginAt",
+          "lastActiveAt",
+          "isRealtimeOnline",
+          "isCurrent"
+        ]
+      },
       "OpenApiLogResponse": {
         "type": "object",
         "properties": {
@@ -27452,6 +27778,16 @@
         "code": "identity.impersonation.start",
         "displayName": "Impersonate users",
         "description": "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."
+      },
+      "identity.sessions.read": {
+        "code": "identity.sessions.read",
+        "displayName": "Read online users",
+        "description": "View the active sessions of the current tenant with device, address and realtime presence."
+      },
+      "identity.sessions.revoke": {
+        "code": "identity.sessions.revoke",
+        "displayName": "Force sign-out",
+        "description": "Revoke active sessions of the current tenant; the signed-out clients are notified in real time."
       },
       "identity.users.create": {
         "code": "identity.users.create",

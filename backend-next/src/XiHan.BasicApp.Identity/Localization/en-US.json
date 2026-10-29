@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "The authenticator binding has expired or was not started. Generate a new key.",
   "identity.field_security.protected": "Field {field} is protected by field security and cannot be used to filter or sort.",
   "identity.field_security.read_only": "Field {field} is read-only for you and cannot be filled in or changed.",
-  "auth.activate_roles.description": "Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens."
+  "auth.activate_roles.description": "Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens.",
+  "sessions.list.description": "Page through the online users of the current tenant: one row per active session with device, browser, masked IP, sign-in location, sign-in and last activity time and realtime presence; narrowed by data scope. Requires identity.sessions.read.",
+  "sessions.summary.description": "Online overview of the current tenant: active sessions, users with an active session and users connected in real time. Requires identity.sessions.read.",
+  "sessions.revoke.description": "Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here. Requires identity.sessions.revoke.",
+  "identity.session.not_found": "Session {id} does not exist or is no longer active.",
+  "identity.session.current": "You cannot force your own current session to sign out; sign out instead."
 }

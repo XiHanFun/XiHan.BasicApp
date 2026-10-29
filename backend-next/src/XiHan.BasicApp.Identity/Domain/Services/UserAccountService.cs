@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -26,6 +27,7 @@ public sealed class UserAccountService
     private readonly SessionGate _gate;
     private readonly TimeProvider _clock;
     private readonly IUserRoleResolver[] _roleResolvers;
+    private readonly IRealtimePush? _push;
 
     /// <summary>
     /// 构造服务。
@@ -39,10 +41,13 @@ public sealed class UserAccountService
         IdentityOptions options,
         SessionGate gate,
         TimeProvider clock,
-        IEnumerable<IUserRoleResolver> roleResolvers)
+        IEnumerable<IUserRoleResolver> roleResolvers,
+        IEnumerable<IRealtimePush> pushes)
     {
         ArgumentNullException.ThrowIfNull(roleResolvers);
+        ArgumentNullException.ThrowIfNull(pushes);
         _roleResolvers = roleResolvers.ToArray();
+        _push = pushes.FirstOrDefault();
         _users = users ?? throw new ArgumentNullException(nameof(users));
         _securities = securities ?? throw new ArgumentNullException(nameof(securities));
         _sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
@@ -117,11 +122,10 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 吊销用户的有效会话（改密、重置、锁定时），并让门禁缓存失效；<paramref name="except"/> 指定要保留的会话（本人改密时保留当前会话）。
+    /// 吊销用户的有效会话（改密、重置、锁定、删除时），经 <see cref="RevokeAsync"/> 让门禁缓存失效并在提交后通知这些会话的客户端；<paramref name="except"/> 指定要保留的会话（本人改密时保留当前会话）。
     /// </summary>
     public async Task<Result> RevokeSessionsAsync(Guid userId, string reason, CancellationToken cancellationToken, Guid? except = null)
     {
-        var now = _clock.GetUtcNow();
         // 可空值类型的判空写 HasValue：SqlSugar 会把 `s.RevokedAt == null` 译成永假的 `revoked_at = null`；框架 bb663929（ADR-0035）起适配层已把 == null 改写成 HasValue，这里按改写后的形态直接写
         var active = await _sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue)), cancellationToken).ConfigureAwait(false);
         if (except is { } keep)
@@ -129,18 +133,27 @@ public sealed class UserAccountService
             active = active.Where(s => s.Id != keep).ToList();
         }
 
-        if (active.Count == 0)
-        {
-            return Result.Success();
-        }
+        return active.Count == 0 ? Result.Success() : await RevokeAsync(active, reason, null, cancellationToken).ConfigureAwait(false);
+    }
 
-        foreach (var session in active)
+    /// <summary>
+    /// 吊销一批有效会话：记吊销时间与原因、让门禁缓存失效；调用提交之后经实时连接推送 <see cref="RealtimeMethods.ForceLogout"/> 并断开这些会话的连接。
+    /// </summary>
+    /// <param name="sessions">要吊销的会话（调用方已核对过有效与可见）。</param>
+    /// <param name="reason">吊销原因（<c>revoked</c>、<c>locked</c> 等，落库）。</param>
+    /// <param name="message">给被下线用户看的说明；为空即客户端的缺省文案。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task<Result> RevokeAsync(IReadOnlyList<SysUserSession> sessions, string reason, string? message, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(sessions);
+        var now = _clock.GetUtcNow();
+        foreach (var session in sessions)
         {
             session.RevokedAt = now;
             session.RevokeReason = reason;
         }
 
-        foreach (var outcome in await _sessions.UpdateRangeAsync(active, cancellationToken).ConfigureAwait(false))
+        foreach (var outcome in await _sessions.UpdateRangeAsync(sessions, cancellationToken).ConfigureAwait(false))
         {
             if (outcome.IsFailure)
             {
@@ -148,9 +161,16 @@ public sealed class UserAccountService
             }
         }
 
-        foreach (var session in active)
+        foreach (var session in sessions)
         {
             await _gate.InvalidateAsync(session.Id, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (_push is not null)
+        {
+            var ids = sessions.Select(static s => s.Id).ToList();
+            await _push.SendAsync(RealtimeAudience.Sessions(ids), RealtimeMethods.ForceLogout, new ForceLogoutPayload(message, ids), IdentityJsonContext.Default.ForceLogoutPayload, cancellationToken).ConfigureAwait(false);
+            await _push.DisconnectAsync(ids, cancellationToken).ConfigureAwait(false);
         }
 
         return Result.Success();

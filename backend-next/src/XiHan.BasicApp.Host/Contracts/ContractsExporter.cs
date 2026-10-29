@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.Framework.Protocols.Http.OpenApi;
 
 namespace XiHan.BasicApp.Host.Contracts;
@@ -10,7 +12,8 @@ namespace XiHan.BasicApp.Host.Contracts;
 /// <summary>
 /// <c>contracts export --out &lt;目录&gt;</c>：把宿主装配后的接口文档（<c>openapi.json</c>，含操作、权限码扩展与普通端点）写到目录，不启动应用、不连数据库。
 /// 文档输入由框架 <see cref="OpenApiDocumentSource.FromServices"/> 组装，与 <c>MapXiHanOpenApi</c> 服务的 <c>/openapi.json</c> 同源（集成测试逐字节比对）。
-/// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这个文件。
+/// 同目录另出 <c>realtime.json</c>：Hub 路径与服务端推送的方法名清单（方案 5.11，不是第二份 API 文档）。
+/// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这两个文件。
 /// </summary>
 public static class ContractsExporter
 {
@@ -18,6 +21,11 @@ public static class ContractsExporter
     /// 输出文件名。
     /// </summary>
     public const string FileName = "openapi.json";
+
+    /// <summary>
+    /// 推送方法清单的文件名。
+    /// </summary>
+    public const string RealtimeFileName = "realtime.json";
 
     /// <summary>
     /// 解析命令行：<c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）。不是这条命令返回假；是但缺 <c>--out</c> 抛出用法错误。
@@ -50,7 +58,7 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成文档并写到 <paramref name="outputDirectory"/>，把完整路径打到 stdout；返回进程退出码。
+    /// 生成文档与推送方法清单并写到 <paramref name="outputDirectory"/>，把完整路径打到 stdout；返回进程退出码。
     /// </summary>
     public static int Export(WebApplication app, string outputDirectory)
     {
@@ -61,7 +69,38 @@ public static class ContractsExporter
         var path = Path.Combine(outputDirectory, FileName);
         File.WriteAllBytes(path, document);
         Console.Out.WriteLine(Path.GetFullPath(path));
+        var realtime = Path.Combine(outputDirectory, RealtimeFileName);
+        File.WriteAllBytes(realtime, BuildRealtime());
+        Console.Out.WriteLine(Path.GetFullPath(realtime));
         return 0;
+    }
+
+    /// <summary>
+    /// 推送方法清单：<c>{"hubs":[{"path":"/hubs/notification","methods":[...]}]}</c>，方法按字母序，缩进两格、LF 换行。
+    /// </summary>
+    public static byte[] BuildRealtime()
+    {
+        using var buffer = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true, NewLine = "\n" }))
+        {
+            writer.WriteStartObject();
+            writer.WriteStartArray("hubs");
+            writer.WriteStartObject();
+            writer.WriteString("path", RealtimeHubs.Notification);
+            writer.WriteStartArray("methods");
+            foreach (var method in RealtimeMethods.All.Order(StringComparer.Ordinal))
+            {
+                writer.WriteStringValue(method);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        buffer.WriteByte((byte)'\n');
+        return buffer.ToArray();
     }
 
     /// <summary>

@@ -51,6 +51,16 @@ public static class IdentityPermissions
     public const string ImpersonationStart = "identity.impersonation.start";
 
     /// <summary>
+    /// 查看在线用户：<c>sessions.list</c>、<c>sessions.summary</c>。
+    /// </summary>
+    public const string SessionsRead = "identity.sessions.read";
+
+    /// <summary>
+    /// 强制下线：<c>sessions.revoke</c>。
+    /// </summary>
+    public const string SessionsRevoke = "identity.sessions.revoke";
+
+    /// <summary>
     /// 本包全部权限的描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -63,5 +73,7 @@ public static class IdentityPermissions
         new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
         new(UsersResetTwoFactor, "Reset two-factor", PermissionScope.Both, audited: true, description: "Clear a user's two-factor methods and authenticator key so they can sign in with the password and enroll again."),
         new(ImpersonationStart, "Impersonate users", PermissionScope.Both, audited: true, description: "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."),
+        new(SessionsRead, "Read online users", PermissionScope.Both, description: "View the active sessions of the current tenant with device, address and realtime presence."),
+        new(SessionsRevoke, "Force sign-out", PermissionScope.Both, audited: true, description: "Revoke active sessions of the current tenant; the signed-out clients are notified in real time."),
     ];
 }

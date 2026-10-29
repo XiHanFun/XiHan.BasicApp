@@ -83,7 +83,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[4]).toMatchObject({ url: '/api/impersonation:stop', body: {} })
   })
 
-  it('用户设置：壳层的场景数值与契约字面量互转，整体覆盖写入（clientId 不上行）', async () => {
+  it('用户设置：壳层的场景数值与契约字面量互转，整体覆盖写入；clientId / origin 上行供实时回推过滤回显', async () => {
     const calls: Call[] = []
     record(calls, url => url.startsWith('/api/user-settings?')
       ? json(200, { scene: 'Preference', key: 'global', value: '{"a":1}', modifiedAt: '2026-10-28T00:00:00Z' })
@@ -91,8 +91,8 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     const { userSettingApi } = useAppContext().apis
     expect(await userSettingApi.get({ scene: 0, settingKey: 'global' })).toEqual({ scene: 0, settingKey: 'global', settingValue: '{"a":1}' })
     expect(calls[0]).toEqual({ method: 'GET', url: '/api/user-settings?scene=Preference&key=global', body: null })
-    expect(await userSettingApi.save({ scene: 1, settingKey: 'identity.users', settingValue: null, clientId: 'c-1' })).toEqual({ scene: 1, settingKey: 'identity.users', settingValue: null })
-    expect(calls[1]).toEqual({ method: 'PUT', url: '/api/user-settings', body: { scene: 'Page', key: 'identity.users', value: null } })
+    expect(await userSettingApi.save({ scene: 1, settingKey: 'identity.users', settingValue: null, clientId: 'c-1', origin: '40,60' })).toEqual({ scene: 1, settingKey: 'identity.users', settingValue: null })
+    expect(calls[1]).toEqual({ method: 'PUT', url: '/api/user-settings', body: { scene: 'Page', key: 'identity.users', value: null, clientId: 'c-1', origin: '40,60' } })
   })
 
   it('字典选项：取 dicts.options 的 items（已深度优先展平）', async () => {

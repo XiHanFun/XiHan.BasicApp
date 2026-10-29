@@ -2243,6 +2243,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sessions:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Page through the online users of the current tenant: one row per active session with device, browser, masked IP, sign-in location, sign-in and last activity time and realtime presence; narrowed by data scope. Requires identity.sessions.read. */
+        post: operations["sessions.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sessions:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here. Requires identity.sessions.revoke. */
+        post: operations["sessions.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sessions:summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online overview of the current tenant: active sessions, users with an active session and users connected in real time. Requires identity.sessions.read. */
+        get: operations["sessions.summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/storage-configs": {
         parameters: {
             query?: never;
@@ -3610,6 +3661,27 @@ export interface components {
         };
         /** @enum {string} */
         NumberingScope: "Auto" | "Tenant" | "Platform";
+        OnlineSessionResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            device?: string | null;
+            browser?: string | null;
+            os?: string | null;
+            ipAddressMasked?: string | null;
+            location?: string | null;
+            /** Format: date-time */
+            loginAt: string;
+            /** Format: date-time */
+            lastActiveAt: string;
+            isRealtimeOnline: boolean;
+            isCurrent: boolean;
+            /** Format: uuid */
+            impersonatorUserId?: string | null;
+        };
         OpenApiLogResponse: {
             /** Format: uuid */
             id: string;
@@ -11791,6 +11863,124 @@ export interface operations {
             };
         };
     };
+    "sessions.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OnlineSessionResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sessions.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "sessions.summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        activeSessions: number;
+                        /** Format: int32 */
+                        activeUsers: number;
+                        /** Format: int32 */
+                        realtimeOnlineUsers: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "storage-configs.create": {
         parameters: {
             query?: never;
@@ -13192,6 +13382,8 @@ export interface operations {
                     scene: components["schemas"]["UserSettingScene"];
                     key: string;
                     value?: string | null;
+                    clientId?: string | null;
+                    origin?: string | null;
                 };
             };
         };

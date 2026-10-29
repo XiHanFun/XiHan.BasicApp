@@ -57,5 +57,10 @@
   "identity.two_factor.totp_setup_missing": "认证器绑定已过期或尚未开始，请重新生成密钥。",
   "identity.field_security.protected": "字段 {field} 受字段安全保护，不能拿来筛选或排序。",
   "identity.field_security.read_only": "字段 {field} 对你只读，不能填写或修改。",
-  "auth.activate_roles.description": "切换当前会话激活的角色（须都此刻持有、且不违反动态职责分离）；返回新令牌。"
+  "auth.activate_roles.description": "切换当前会话激活的角色（须都此刻持有、且不违反动态职责分离）；返回新令牌。",
+  "sessions.list.description": "分页列出当前租户的在线用户：每个有效会话一行，带设备、浏览器、遮掩过的 IP、登录地点、登录与最后活动时间、是否实时在线；按数据范围收窄。需要 identity.sessions.read 权限。",
+  "sessions.summary.description": "当前租户的在线概况：有效会话数、有会话的用户数与实时在线的用户数。需要 identity.sessions.read 权限。",
+  "sessions.revoke.description": "强制下线：吊销当前租户里的一批有效会话，客户端经实时连接收到通知后退出登录；不能下线自己当前的会话。需要 identity.sessions.revoke 权限。",
+  "identity.session.not_found": "会话 {id} 不存在或已失效。",
+  "identity.session.current": "不能强制下线自己当前的会话，请使用退出登录。"
 }

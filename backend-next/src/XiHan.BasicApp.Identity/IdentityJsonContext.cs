@@ -6,7 +6,9 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Impersonation;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Profile;
+using XiHan.BasicApp.Identity.Operations.Sessions;
 using XiHan.BasicApp.Identity.Operations.UserSettings;
 using XiHan.BasicApp.Identity.Operations.Users;
 
@@ -42,6 +44,13 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(GetUserSettingRequest))]
 [JsonSerializable(typeof(UpdateUserSettingRequest))]
 [JsonSerializable(typeof(UserSettingResponse))]
+[JsonSerializable(typeof(OnlineSessionResponse))]
+[JsonSerializable(typeof(PageResult<OnlineSessionResponse>))]
+[JsonSerializable(typeof(SessionSummaryRequest))]
+[JsonSerializable(typeof(SessionSummaryResponse))]
+[JsonSerializable(typeof(RevokeSessionsRequest))]
+[JsonSerializable(typeof(ForceLogoutPayload))]
+[JsonSerializable(typeof(UserSettingChangedPayload))]
 [JsonSerializable(typeof(SwitchTenantRequest))]
 [JsonSerializable(typeof(ActivateRolesRequest))]
 [JsonSerializable(typeof(StartImpersonationRequest))]

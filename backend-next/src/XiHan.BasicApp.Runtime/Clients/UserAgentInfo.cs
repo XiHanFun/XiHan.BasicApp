@@ -1,10 +1,10 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-namespace XiHan.BasicApp.Auditing.Domain.Services;
+namespace XiHan.BasicApp.Runtime.Clients;
 
 /// <summary>
-/// 从 User-Agent 粗分出的浏览器、操作系统与设备类型（日志的展示列，不做精确识别；认不出即为 <see langword="null"/>）。
+/// 从 User-Agent 粗分出的浏览器、操作系统与设备类型（日志与在线会话的展示列，不做精确识别；认不出即为 <see langword="null"/>）。
 /// </summary>
 /// <param name="Browser">浏览器。</param>
 /// <param name="Os">操作系统。</param>

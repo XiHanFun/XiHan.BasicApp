@@ -9,6 +9,7 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Runtime.Clients;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Auditing.Abstractions.Pipeline;
 using XiHan.Framework.Hosting.AspNetCore;
