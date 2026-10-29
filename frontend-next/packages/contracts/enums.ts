@@ -137,6 +137,12 @@ export type NumberingResetCycle = (typeof NumberingResetCycle)[number]
 export const NumberingScope = ['Auto', 'Tenant', 'Platform'] as const
 export type NumberingScope = (typeof NumberingScope)[number]
 
+export const OAuthAppType = ['Web', 'Mobile', 'Desktop', 'Service'] as const
+export type OAuthAppType = (typeof OAuthAppType)[number]
+
+export const OAuthClientType = ['Confidential', 'Public'] as const
+export type OAuthClientType = (typeof OAuthClientType)[number]
+
 export const OrganizationStatus = ['Active', 'Disabled'] as const
 export type OrganizationStatus = (typeof OrganizationStatus)[number]
 
@@ -244,6 +250,8 @@ export const enums = {
   NumberingDateFormat,
   NumberingResetCycle,
   NumberingScope,
+  OAuthAppType,
+  OAuthClientType,
   OrganizationStatus,
   PermissionAction,
   PermissionChangeType,

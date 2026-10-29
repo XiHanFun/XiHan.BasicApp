@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, UserProfile } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, MyOAuthAppItem, MyOAuthAppSecret, UserProfile } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myApiCredentials as myApiCredentialOps, myOauthApps as myOAuthAppOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 
@@ -128,6 +128,34 @@ function toShellCallSettings(settings: ResponseOf<'my-api-credentials.settings'>
   return { signAlgorithm: settings.signatureAlgorithm, ipWhitelist: [...settings.ipAllowList], algorithms: [...settings.algorithms] }
 }
 
+/** `my-oauth-apps.*` → 4.x 个人中心「OAuth 应用」的条目：主键沿用 basicId，启停换成状态字面量，授权类型与范围用逗号、回调地址按行拼成 4.x 的字符串 */
+function toShellOAuthApp(app: ResponseOf<'my-oauth-apps.get'>): MyOAuthAppItem {
+  return {
+    basicId: app.id,
+    clientId: app.clientId,
+    appName: app.appName,
+    appDescription: app.appDescription ?? null,
+    homepage: app.homepage ?? null,
+    logo: app.logo ?? null,
+    redirectUris: app.redirectUris.join('\n'),
+    clientType: app.clientType,
+    grantTypes: app.grantTypes.join(','),
+    scopes: app.scopes.join(','),
+    status: app.isEnabled ? 'Enabled' : 'Disabled',
+    createdTime: app.createdAt,
+  }
+}
+
+/** 一次性客户端密钥：公开客户端没有密钥（后端给 null），壳层按空串判断不显示 */
+function toShellOAuthSecret(secret: ResponseOf<'my-oauth-apps.create'>): MyOAuthAppSecret {
+  return { basicId: secret.id, clientId: secret.clientId, clientType: secret.clientType, clientSecret: secret.clientSecret ?? '' }
+}
+
+/** 4.x 的回调地址是一段文本（换行或逗号分隔）：拆成 6.0 的地址列表，去掉空项 */
+function splitRedirectUris(value: string): string[] {
+  return value.split(/[\n,]/).map(uri => uri.trim()).filter(Boolean)
+}
+
 /** 时区目录：浏览器自带的 IANA 清单（后端时区目录接入后换成 metadata 操作） */
 function timeZoneOptions() {
   const now = new Date()
@@ -236,9 +264,57 @@ export function registerApplicationContext(router: Router): void {
     createApiCredentialApi: async credentialName => toShellSecret(await myApiCredentialOps.create({ name: credentialName ?? null })),
     rotateApiCredentialSecretApi: async id => toShellSecret(await myApiCredentialOps.rotateSecret({ id: String(id) })),
     updateApiCredentialStatusApi: async (id, status) => toShellCredential(await myApiCredentialOps.update({ id: String(id), isEnabled: status === 'Enabled' })),
-    deleteApiCredentialApi: id => myApiCredentialOps.delete({ ids: [String(id)] }),
+    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带错误码，不当成删除成功
+    deleteApiCredentialApi: async (id) => {
+      const result = await myApiCredentialOps.delete({ ids: [String(id)] })
+      if (result.failed.length > 0)
+        throw new Error(result.failed.map(failure => failure.code).join('; '))
+      return result
+    },
     getApiCallSettingsApi: async () => toShellCallSettings(await myApiCredentialOps.settings({})),
     saveApiCallSettingsApi: async input => toShellCallSettings(await myApiCredentialOps.updateSettings({ signatureAlgorithm: input.signAlgorithm, ipAllowList: input.ipWhitelist })),
+    // 我的 OAuth 应用（OpenPlatform 的 my-oauth-apps.*，只要求已登录）：修改是整体替换（含启停），壳层的修改不带状态、启停只带状态，都先取最新一份再改
+    getMyOAuthAppsApi: async () => (await myOAuthAppOps.list({})).items.map(toShellOAuthApp),
+    createMyOAuthAppApi: async input => toShellOAuthSecret(await myOAuthAppOps.create({
+      appName: input.appName,
+      clientType: input.clientType,
+      homepage: input.homepage ?? null,
+      appDescription: input.appDescription ?? null,
+      redirectUris: splitRedirectUris(input.redirectUris),
+      logo: input.logo ?? null,
+    })),
+    updateMyOAuthAppApi: async (input) => {
+      const current = await myOAuthAppOps.get({ id: String(input.basicId) })
+      return toShellOAuthApp(await myOAuthAppOps.update({
+        id: current.id,
+        appName: input.appName,
+        homepage: input.homepage ?? null,
+        appDescription: input.appDescription ?? null,
+        redirectUris: splitRedirectUris(input.redirectUris),
+        logo: input.logo ?? null,
+        isEnabled: current.isEnabled,
+      }))
+    },
+    regenerateMyOAuthAppSecretApi: async id => toShellOAuthSecret(await myOAuthAppOps.resetSecret({ id: String(id) })),
+    updateMyOAuthAppStatusApi: async (id, status) => {
+      const current = await myOAuthAppOps.get({ id: String(id) })
+      return toShellOAuthApp(await myOAuthAppOps.update({
+        id: current.id,
+        appName: current.appName,
+        homepage: current.homepage ?? null,
+        appDescription: current.appDescription ?? null,
+        redirectUris: current.redirectUris,
+        logo: current.logo ?? null,
+        isEnabled: status === 'Enabled',
+      }))
+    },
+    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带错误码，不当成删除成功
+    deleteMyOAuthAppApi: async (id) => {
+      const result = await myOAuthAppOps.delete({ ids: [String(id)] })
+      if (result.failed.length > 0)
+        throw new Error(result.failed.map(failure => failure.code).join('; '))
+      return result
+    },
     enumApi: {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),

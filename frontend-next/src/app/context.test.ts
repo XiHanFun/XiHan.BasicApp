@@ -111,6 +111,39 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[4]).toEqual({ method: 'POST', url: '/api/my-api-credentials:update-settings', body: { signatureAlgorithm: 'HmacSHA512', ipAllowList: ['10.0.0.0/24'] } })
   })
 
+  it('我的 OAuth 应用：my-oauth-apps.* 投影成 4.x 的条目与一次性密钥；回调地址文本拆成列表，修改与启停取最新一份整体替换，删除被拒即报错', async () => {
+    const calls: Call[] = []
+    const app = { id: 'o-1', appName: '我的集成', appDescription: null, clientId: 'cid_x', clientType: 'Confidential', appType: 'Web', grantTypes: ['authorization_code', 'refresh_token'], redirectUris: ['https://a.example/cb', 'https://b.example/cb'], scopes: ['openid', 'profile'], accessTokenLifetime: 3600, refreshTokenLifetime: 2592000, authorizationCodeLifetime: 300, logo: null, homepage: 'https://a.example', skipConsent: false, isEnabled: true, ownerUserId: 'u-1', ownerUserName: 'alice', remark: null, createdAt: '2026-10-30T00:00:00Z', modifiedAt: null }
+    let deleteFails = false
+    record(calls, (url) => {
+      if (url.endsWith('/api/my-oauth-apps') && calls.at(-1)?.method === 'GET')
+        return json(200, { items: [app] })
+      if (url.endsWith('/api/my-oauth-apps'))
+        return json(201, { id: 'o-2', clientId: 'cid_p', clientType: 'Public', clientSecret: null })
+      if (url.includes(':reset-secret'))
+        return json(200, { id: 'o-1', clientId: 'cid_x', clientType: 'Confidential', clientSecret: 'cs_y' })
+      if (url.includes('?ids='))
+        return json(200, deleteFails ? { succeeded: [], failed: [{ id: 'o-1', code: 'OPENPLATFORM_NOTFOUND_001' }] } : { succeeded: ['o-1'], failed: [] })
+      return json(200, calls.at(-1)?.method === 'PUT' ? { ...app, ...(calls.at(-1)?.body as object) } : app)
+    })
+    const apis = useAppContext().apis
+    expect(await apis.getMyOAuthAppsApi()).toEqual([{ basicId: 'o-1', clientId: 'cid_x', appName: '我的集成', appDescription: null, homepage: 'https://a.example', logo: null, redirectUris: 'https://a.example/cb\nhttps://b.example/cb', clientType: 'Confidential', grantTypes: 'authorization_code,refresh_token', scopes: 'openid,profile', status: 'Enabled', createdTime: '2026-10-30T00:00:00Z' }])
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/my-oauth-apps', body: null })
+    expect(await apis.createMyOAuthAppApi({ appName: 'SPA', clientType: 'Public', redirectUris: ' https://c.example/cb \n\nhttps://d.example/cb, ' })).toEqual({ basicId: 'o-2', clientId: 'cid_p', clientType: 'Public', clientSecret: '' })
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/my-oauth-apps', body: { appName: 'SPA', clientType: 'Public', homepage: null, appDescription: null, redirectUris: ['https://c.example/cb', 'https://d.example/cb'], logo: null } })
+    expect(await apis.updateMyOAuthAppApi({ basicId: 'o-1', appName: '改名', redirectUris: 'https://a.example/cb' })).toMatchObject({ appName: '改名', status: 'Enabled', redirectUris: 'https://a.example/cb' })
+    expect(calls[2]).toEqual({ method: 'GET', url: '/api/my-oauth-apps/o-1', body: null })
+    expect(calls[3]).toEqual({ method: 'PUT', url: '/api/my-oauth-apps/o-1', body: { appName: '改名', homepage: null, appDescription: null, redirectUris: ['https://a.example/cb'], logo: null, isEnabled: true } })
+    expect(await apis.updateMyOAuthAppStatusApi('o-1', 'Disabled')).toMatchObject({ basicId: 'o-1', status: 'Disabled' })
+    expect(calls[5]).toEqual({ method: 'PUT', url: '/api/my-oauth-apps/o-1', body: { appName: '我的集成', homepage: 'https://a.example', appDescription: null, redirectUris: ['https://a.example/cb', 'https://b.example/cb'], logo: null, isEnabled: false } })
+    expect(await apis.regenerateMyOAuthAppSecretApi('o-1')).toEqual({ basicId: 'o-1', clientId: 'cid_x', clientType: 'Confidential', clientSecret: 'cs_y' })
+    expect(calls[6]).toMatchObject({ method: 'POST', url: '/api/my-oauth-apps/o-1:reset-secret' })
+    await apis.deleteMyOAuthAppApi('o-1')
+    expect(calls[7]).toEqual({ method: 'DELETE', url: '/api/my-oauth-apps?ids=o-1', body: null })
+    deleteFails = true
+    await expect(apis.deleteMyOAuthAppApi('o-1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001')
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {

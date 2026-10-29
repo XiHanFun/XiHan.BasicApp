@@ -82,4 +82,49 @@ public static class OpenPlatformErrors
     /// 随机串在时间窗内已经用过（重放）。
     /// </summary>
     public const string NonceReplayed = "OPENPLATFORM_CONFLICT_001";
+
+    /// <summary>
+    /// OAuth 应用不存在（我的应用里也指别人的与平台的）；参数 <c>id</c>。
+    /// </summary>
+    public const string OAuthAppNotFound = "OPENPLATFORM_NOTFOUND_001";
+
+    /// <summary>
+    /// ClientId 已被占用（全局唯一）；参数 <c>clientId</c>。
+    /// </summary>
+    public const string ClientIdTaken = "OPENPLATFORM_CONFLICT_002";
+
+    /// <summary>
+    /// 公开客户端没有密钥，不能重置。
+    /// </summary>
+    public const string PublicClientHasNoSecret = "OPENPLATFORM_CONFLICT_003";
+
+    /// <summary>
+    /// ClientId 格式不对（3 到 100 位字母、数字、<c>. _ -</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string ClientIdInvalid = "OPENPLATFORM_VALIDATION_008";
+
+    /// <summary>
+    /// 授权类型不支持（须含 <c>authorization_code</c>，可加 <c>refresh_token</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string GrantTypeUnsupported = "OPENPLATFORM_VALIDATION_009";
+
+    /// <summary>
+    /// 授权范围不支持（须含 <c>openid</c>，可加 <c>profile email phone</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string ScopeUnsupported = "OPENPLATFORM_VALIDATION_010";
+
+    /// <summary>
+    /// 回调地址不对（1 到 10 条绝对地址、不带片段，http 只限本机）；参数 <c>value</c>。
+    /// </summary>
+    public const string RedirectUriInvalid = "OPENPLATFORM_VALIDATION_011";
+
+    /// <summary>
+    /// 主页或 Logo 不是 http / https 地址；参数 <c>value</c>。
+    /// </summary>
+    public const string UrlInvalid = "OPENPLATFORM_VALIDATION_012";
+
+    /// <summary>
+    /// 不支持的筛选或排序；消息用 <c>FilterUnsupported</c> 或 <c>SortUnsupported</c>。
+    /// </summary>
+    public const string QueryUnsupported = "OPENPLATFORM_VALIDATION_013";
 }

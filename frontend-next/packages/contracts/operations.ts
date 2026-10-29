@@ -144,6 +144,12 @@ export const routes = {
   'my-api-credentials.settings': { method: 'GET', template: '/api/my-api-credentials:settings', path: [], query: [], success: 200 },
   'my-api-credentials.update': { method: 'PUT', template: '/api/my-api-credentials/{id}', path: ['id'], query: [], success: 200 },
   'my-api-credentials.update-settings': { method: 'POST', template: '/api/my-api-credentials:update-settings', path: [], query: [], success: 200 },
+  'my-oauth-apps.create': { method: 'POST', template: '/api/my-oauth-apps', path: [], query: [], success: 201 },
+  'my-oauth-apps.delete': { method: 'DELETE', template: '/api/my-oauth-apps', path: [], query: ['ids'], success: 200 },
+  'my-oauth-apps.get': { method: 'GET', template: '/api/my-oauth-apps/{id}', path: ['id'], query: [], success: 200 },
+  'my-oauth-apps.list': { method: 'GET', template: '/api/my-oauth-apps', path: [], query: [], success: 200 },
+  'my-oauth-apps.reset-secret': { method: 'POST', template: '/api/my-oauth-apps/{id}:reset-secret', path: ['id'], query: [], success: 200 },
+  'my-oauth-apps.update': { method: 'PUT', template: '/api/my-oauth-apps/{id}', path: ['id'], query: [], success: 200 },
   'notifications.create': { method: 'POST', template: '/api/notifications', path: [], query: [], success: 201 },
   'notifications.delete': { method: 'DELETE', template: '/api/notifications', path: [], query: ['ids'], success: 200 },
   'notifications.get': { method: 'GET', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
@@ -162,6 +168,12 @@ export const routes = {
   'numbering-rules.preview': { method: 'GET', template: '/api/numbering-rules:preview', path: [], query: ['prefix', 'separator', 'dateFormat', 'serialLength', 'resetCycle', 'timeZoneId', 'startValue', 'count'], success: 200 },
   'numbering-rules.reset': { method: 'POST', template: '/api/numbering-rules/{id}:reset', path: ['id'], query: [], success: 200 },
   'numbering-rules.update': { method: 'PUT', template: '/api/numbering-rules/{id}', path: ['id'], query: [], success: 200 },
+  'oauth-apps.create': { method: 'POST', template: '/api/oauth-apps', path: [], query: [], success: 201 },
+  'oauth-apps.delete': { method: 'DELETE', template: '/api/oauth-apps', path: [], query: ['ids'], success: 200 },
+  'oauth-apps.get': { method: 'GET', template: '/api/oauth-apps/{id}', path: ['id'], query: [], success: 200 },
+  'oauth-apps.list': { method: 'POST', template: '/api/oauth-apps:list', path: [], query: [], success: 200 },
+  'oauth-apps.reset-secret': { method: 'POST', template: '/api/oauth-apps/{id}:reset-secret', path: ['id'], query: [], success: 200 },
+  'oauth-apps.update': { method: 'PUT', template: '/api/oauth-apps/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.get': { method: 'GET', template: '/api/open-api-logs/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.list': { method: 'POST', template: '/api/open-api-logs:list', path: [], query: [], success: 200 },
   'open.echo': { method: 'POST', template: '/api/open:echo', path: [], query: [], success: 200 },
@@ -534,6 +546,16 @@ export const myApiCredentials = {
   updateSettings: (request: RequestOf<'my-api-credentials.update-settings'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.update-settings'>, ResponseOf<'my-api-credentials.update-settings'>>('my-api-credentials.update-settings', routes['my-api-credentials.update-settings'], request, options),
 }
 
+/** 资源 `my-oauth-apps` 的操作。 */
+export const myOauthApps = {
+  create: (request: RequestOf<'my-oauth-apps.create'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.create'>, ResponseOf<'my-oauth-apps.create'>>('my-oauth-apps.create', routes['my-oauth-apps.create'], request, options),
+  delete: (request: RequestOf<'my-oauth-apps.delete'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.delete'>, ResponseOf<'my-oauth-apps.delete'>>('my-oauth-apps.delete', routes['my-oauth-apps.delete'], request, options),
+  get: (request: RequestOf<'my-oauth-apps.get'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.get'>, ResponseOf<'my-oauth-apps.get'>>('my-oauth-apps.get', routes['my-oauth-apps.get'], request, options),
+  list: (request: RequestOf<'my-oauth-apps.list'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.list'>, ResponseOf<'my-oauth-apps.list'>>('my-oauth-apps.list', routes['my-oauth-apps.list'], request, options),
+  resetSecret: (request: RequestOf<'my-oauth-apps.reset-secret'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.reset-secret'>, ResponseOf<'my-oauth-apps.reset-secret'>>('my-oauth-apps.reset-secret', routes['my-oauth-apps.reset-secret'], request, options),
+  update: (request: RequestOf<'my-oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.update'>, ResponseOf<'my-oauth-apps.update'>>('my-oauth-apps.update', routes['my-oauth-apps.update'], request, options),
+}
+
 /** 资源 `notifications` 的操作。 */
 export const notifications = {
   create: (request: RequestOf<'notifications.create'>, options?: CallOptions) => invoke<RequestOf<'notifications.create'>, ResponseOf<'notifications.create'>>('notifications.create', routes['notifications.create'], request, options),
@@ -558,6 +580,16 @@ export const numberingRules = {
   preview: (request: RequestOf<'numbering-rules.preview'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.preview'>, ResponseOf<'numbering-rules.preview'>>('numbering-rules.preview', routes['numbering-rules.preview'], request, options),
   reset: (request: RequestOf<'numbering-rules.reset'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.reset'>, ResponseOf<'numbering-rules.reset'>>('numbering-rules.reset', routes['numbering-rules.reset'], request, options),
   update: (request: RequestOf<'numbering-rules.update'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.update'>, ResponseOf<'numbering-rules.update'>>('numbering-rules.update', routes['numbering-rules.update'], request, options),
+}
+
+/** 资源 `oauth-apps` 的操作。 */
+export const oauthApps = {
+  create: (request: RequestOf<'oauth-apps.create'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.create'>, ResponseOf<'oauth-apps.create'>>('oauth-apps.create', routes['oauth-apps.create'], request, options),
+  delete: (request: RequestOf<'oauth-apps.delete'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.delete'>, ResponseOf<'oauth-apps.delete'>>('oauth-apps.delete', routes['oauth-apps.delete'], request, options),
+  get: (request: RequestOf<'oauth-apps.get'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.get'>, ResponseOf<'oauth-apps.get'>>('oauth-apps.get', routes['oauth-apps.get'], request, options),
+  list: (request: RequestOf<'oauth-apps.list'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.list'>, ResponseOf<'oauth-apps.list'>>('oauth-apps.list', routes['oauth-apps.list'], request, options),
+  resetSecret: (request: RequestOf<'oauth-apps.reset-secret'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.reset-secret'>, ResponseOf<'oauth-apps.reset-secret'>>('oauth-apps.reset-secret', routes['oauth-apps.reset-secret'], request, options),
+  update: (request: RequestOf<'oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.update'>, ResponseOf<'oauth-apps.update'>>('oauth-apps.update', routes['oauth-apps.update'], request, options),
 }
 
 /** 资源 `open-api-logs` 的操作。 */

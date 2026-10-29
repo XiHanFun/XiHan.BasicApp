@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.OpenPlatform</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 开放平台能力包（Tier 2）：签名开放接口（HMAC-SHA256 / SHA512 签名、可选 AES-CBC 加密请求与响应、时间窗与防重放、IP 白名单，凭证经 Contracts 的凭证目录取）与开放接口日志（写进 Auditing）。</Description>
+    <Description>XiHan.BasicApp 6.0 开放平台能力包（Tier 2）：签名开放接口（HMAC-SHA256 / SHA512 签名、可选 AES-CBC 加密请求与响应、时间窗与防重放、IP 白名单，凭证经 Contracts 的凭证目录取）与开放接口日志（写进 Auditing）；OAuth 应用（平台管理与个人的我的应用）。</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,12 +16,16 @@
 
   <ItemGroup>
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
     <XiHanFrameworkReference Include="XiHan.Framework.Protocols.Http" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>
 
   <ItemGroup>

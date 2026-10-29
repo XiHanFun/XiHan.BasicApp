@@ -105,6 +105,116 @@ public static class OpenPlatformMessages
     /// </summary>
     public const string NonceReplayed = "openplatform.signing.nonce_replayed";
 
+    /// <summary>
+    /// 操作 <c>oauth-apps.list</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsListDescription = "oauth_apps.list.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-apps.get</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsGetDescription = "oauth_apps.get.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-apps.create</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsCreateDescription = "oauth_apps.create.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-apps.update</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsUpdateDescription = "oauth_apps.update.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-apps.reset-secret</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsResetSecretDescription = "oauth_apps.reset_secret.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-apps.delete</c> 的说明。
+    /// </summary>
+    public const string OAuthAppsDeleteDescription = "oauth_apps.delete.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.list</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsListDescription = "my_oauth_apps.list.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.get</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsGetDescription = "my_oauth_apps.get.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.create</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsCreateDescription = "my_oauth_apps.create.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.update</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsUpdateDescription = "my_oauth_apps.update.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.reset-secret</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsResetSecretDescription = "my_oauth_apps.reset_secret.description";
+
+    /// <summary>
+    /// 操作 <c>my-oauth-apps.delete</c> 的说明。
+    /// </summary>
+    public const string MyOAuthAppsDeleteDescription = "my_oauth_apps.delete.description";
+
+    /// <summary>
+    /// 不支持的筛选；参数 <c>field</c>、<c>operator</c>。
+    /// </summary>
+    public const string FilterUnsupported = "openplatform.query.filter_unsupported";
+
+    /// <summary>
+    /// 不支持的排序；参数 <c>field</c>。
+    /// </summary>
+    public const string SortUnsupported = "openplatform.query.sort_unsupported";
+
+    /// <summary>
+    /// OAuth 应用不存在（我的应用里也指别人的与平台的）；参数 <c>id</c>。
+    /// </summary>
+    public const string OAuthAppNotFound = "openplatform.oauth_apps.not_found";
+
+    /// <summary>
+    /// ClientId 已被占用（全局唯一）；参数 <c>clientId</c>。
+    /// </summary>
+    public const string ClientIdTaken = "openplatform.oauth_apps.client_id_taken";
+
+    /// <summary>
+    /// 公开客户端没有密钥，不能重置。
+    /// </summary>
+    public const string PublicClientHasNoSecret = "openplatform.oauth_apps.public_client_no_secret";
+
+    /// <summary>
+    /// ClientId 格式不对（3 到 100 位字母、数字、<c>. _ -</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string ClientIdInvalid = "openplatform.oauth_apps.client_id_invalid";
+
+    /// <summary>
+    /// 授权类型不支持（须含 <c>authorization_code</c>，可加 <c>refresh_token</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string GrantTypeUnsupported = "openplatform.oauth_apps.grant_type_unsupported";
+
+    /// <summary>
+    /// 授权范围不支持（须含 <c>openid</c>，可加 <c>profile email phone</c>）；参数 <c>value</c>。
+    /// </summary>
+    public const string ScopeUnsupported = "openplatform.oauth_apps.scope_unsupported";
+
+    /// <summary>
+    /// 回调地址不对（1 到 10 条绝对地址、不带片段，http 只限本机）；参数 <c>value</c>。
+    /// </summary>
+    public const string RedirectUriInvalid = "openplatform.oauth_apps.redirect_uri_invalid";
+
+    /// <summary>
+    /// 主页或 Logo 不是 http / https 地址；参数 <c>value</c>。
+    /// </summary>
+    public const string UrlInvalid = "openplatform.oauth_apps.url_invalid";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(OpenPlatformMessages)));
 
     /// <summary>
