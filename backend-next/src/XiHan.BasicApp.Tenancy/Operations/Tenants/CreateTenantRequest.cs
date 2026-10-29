@@ -14,10 +14,14 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="ExpiresAt">到期时间（UTC），可空。</param>
 /// <param name="Order">排序号。</param>
 /// <param name="EditionId">套餐；不填即缺省套餐（没有缺省套餐时 <c>TENANCY_VALIDATION_003</c>）。</param>
+/// <param name="UserLimit">租户自己的席位上限，覆盖套餐的；为空即沿用套餐。</param>
+/// <param name="StorageLimitMb">租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。</param>
 public sealed record CreateTenantRequest(
     [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string TenantId,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
     [StringLength(512)] string? Description = null,
     DateTimeOffset? ExpiresAt = null,
     [Range(0, 100_000)] int Order = 0,
-    Guid? EditionId = null);
+    Guid? EditionId = null,
+    [Range(0, 10_000_000)] int? UserLimit = null,
+    [Range(0, 1_000_000_000)] long? StorageLimitMb = null);

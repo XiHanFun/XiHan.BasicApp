@@ -41,6 +41,8 @@ public sealed class UpdateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
         tenant.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         tenant.ExpiresAt = request.ExpiresAt;
         tenant.Order = request.Order;
+        tenant.UserLimit = request.UserLimit;
+        tenant.StorageLimitMb = request.StorageLimitMb;
         var updated = await tenants.UpdateAsync(tenant, context.CancellationToken).ConfigureAwait(false);
         if (updated.IsFailure)
         {

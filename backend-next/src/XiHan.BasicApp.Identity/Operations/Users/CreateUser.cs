@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -23,8 +24,9 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="statistics">用户统计仓储（带分片的调用落 <c>shard</c> 连接）。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="ids">标识生成器（UUID v7）。</param>
+/// <param name="quotas">租户配额（租户一侧建用户占一个席位；没装 Tenancy 即不限）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
-public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<SysUserStatistics, Guid> statistics, UserAccountService accounts, IIdGenerator<Guid> ids) : IOperation<CreateUserRequest, UserResponse>
+public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<SysUserStatistics, Guid> statistics, UserAccountService accounts, IIdGenerator<Guid> ids, IEnumerable<ITenantQuota> quotas) : IOperation<CreateUserRequest, UserResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -71,6 +73,16 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
             HomeTenantId = homeTenant,
             Status = UserStatus.Active,
         };
+
+        // 席位配额（4.x 同）：只约束租户主体的调用，平台代租户建用户不受限
+        foreach (var quota in quotas)
+        {
+            var seat = await quota.EnsureSeatsAsync(context, homeTenant, 1).ConfigureAwait(false);
+            if (seat.IsFailure)
+            {
+                return seat.Error!;
+            }
+        }
 
         // 仓储返回 Result 而不是抛异常：失败直接作为操作结果，工作单元回滚全部写入
         var added = await users.AddAsync(user, context.CancellationToken).ConfigureAwait(false);

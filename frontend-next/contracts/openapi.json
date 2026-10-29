@@ -5768,6 +5768,43 @@
                       "type": "string"
                     },
                     "maxItems": 500
+                  },
+                  "userLimit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 10000000
+                  },
+                  "storageLimitMb": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 0,
+                    "maximum": 1000000000
+                  },
+                  "price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "format": "decimal"
+                  },
+                  "billingPeriodMonths": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 120
+                  },
+                  "isFree": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -5928,6 +5965,43 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "userLimit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 10000000
+                  },
+                  "storageLimitMb": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 0,
+                    "maximum": 1000000000
+                  },
+                  "price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "format": "decimal"
+                  },
+                  "billingPeriodMonths": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 120
+                  },
+                  "isFree": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -18276,6 +18350,128 @@
         }
       }
     },
+    "/api/subscription": {
+      "get": {
+        "operationId": "subscription.get",
+        "tags": [
+          "subscription"
+        ],
+        "summary": "Get the tenant\u0027s own subscription: edition, expiry, effective seat and storage limits and usage. Tenant side only; requires tenancy.subscription.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.subscription.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SubscriptionResponse",
+                  "type": "object",
+                  "properties": {
+                    "tenantId": {
+                      "type": "string"
+                    },
+                    "tenantName": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/TenantStatus"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "isExpired": {
+                      "type": "boolean"
+                    },
+                    "editionCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "editionName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "editionDescription": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isFree": {
+                      "type": "boolean"
+                    },
+                    "price": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "decimal"
+                    },
+                    "billingPeriodMonths": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "userLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "usedSeats": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "storageLimitMb": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "usedStorageBytes": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "tenantId",
+                    "tenantName",
+                    "status",
+                    "isExpired",
+                    "isFree",
+                    "usedSeats",
+                    "usedStorageBytes"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tenant-members": {
       "delete": {
         "operationId": "tenant-members.delete",
@@ -18623,6 +18819,24 @@
                       "null"
                     ],
                     "format": "uuid"
+                  },
+                  "userLimit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 10000000
+                  },
+                  "storageLimitMb": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 0,
+                    "maximum": 1000000000
                   }
                 },
                 "required": [
@@ -18689,6 +18903,20 @@
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "userLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "storageLimitMb": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
                     }
                   },
                   "required": [
@@ -18757,11 +18985,15 @@
                     "userCount": {
                       "type": "integer",
                       "format": "int64"
+                    },
+                    "quota": {
+                      "$ref": "#/components/schemas/TenantQuotaResponse"
                     }
                   },
                   "required": [
                     "tenant",
-                    "userCount"
+                    "userCount",
+                    "quota"
                   ]
                 }
               }
@@ -18834,6 +19066,24 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "userLimit": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 10000000
+                  },
+                  "storageLimitMb": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 0,
+                    "maximum": 1000000000
                   }
                 },
                 "required": [
@@ -18900,6 +19150,20 @@
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "userLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "storageLimitMb": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
                     }
                   },
                   "required": [
@@ -19030,6 +19294,20 @@
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "userLimit": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "storageLimitMb": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
                     }
                   },
                   "required": [
@@ -19332,6 +19610,61 @@
                     "canAccessPlatform",
                     "platformIsCurrent",
                     "tenants"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tenants:quotas": {
+      "get": {
+        "operationId": "tenants.quotas",
+        "tags": [
+          "tenants"
+        ],
+        "summary": "List every tenant\u0027s effective quotas and usage (seats, storage), optionally only those over quota. Platform side only; requires tenancy.tenants.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenants.read",
+        "parameters": [
+          {
+            "name": "overOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TenantQuotasResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TenantQuotaResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -23036,6 +23369,37 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "userLimit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "storageLimitMb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "decimal"
+          },
+          "billingPeriodMonths": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "isFree": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -23046,7 +23410,8 @@
           "order",
           "permissionCount",
           "tenantCount",
-          "createdAt"
+          "createdAt",
+          "isFree"
         ]
       },
       "ExceptionLogResponse": {
@@ -25263,6 +25628,65 @@
           "Owner"
         ]
       },
+      "TenantQuotaResponse": {
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "editionCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "editionName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userLimit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "usedSeats": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "storageLimitMb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "usedStorageBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isOverSeats": {
+            "type": "boolean"
+          },
+          "isOverStorage": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tenantId",
+          "name",
+          "usedSeats",
+          "usedStorageBytes",
+          "isOverSeats",
+          "isOverStorage"
+        ]
+      },
       "TenantResponse": {
         "type": "object",
         "properties": {
@@ -25313,6 +25737,20 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "userLimit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "storageLimitMb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         },
         "required": [
@@ -26187,6 +26625,11 @@
         "code": "tenancy.editions.update",
         "displayName": "Update editions",
         "description": "Edit editions and replace their permission whitelists; tenants on them follow immediately."
+      },
+      "tenancy.subscription.read": {
+        "code": "tenancy.subscription.read",
+        "displayName": "Read subscription",
+        "description": "View the tenant\u0027s own edition, expiry, seat and storage usage."
       },
       "tenancy.tenant-members.create": {
         "code": "tenancy.tenant-members.create",

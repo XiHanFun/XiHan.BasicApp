@@ -61,6 +61,36 @@ public static class TenancyMessages
     public const string TenantNotFound = "tenancy.tenant.not_found";
 
     /// <summary>
+    /// 免费套餐不能标价。
+    /// </summary>
+    public const string FreeEditionPriced = "tenancy.edition.free_priced";
+
+    /// <summary>
+    /// 租户存储空间不足（已用、上限与这次需要，MB）。
+    /// </summary>
+    public const string StorageQuotaExceeded = "tenancy.quota.storage";
+
+    /// <summary>
+    /// 租户席位已达上限（已用与上限）。
+    /// </summary>
+    public const string SeatQuotaExceeded = "tenancy.quota.seats";
+
+    /// <summary>
+    /// 订阅属于租户，平台没有订阅。
+    /// </summary>
+    public const string SubscriptionTenantOnly = "tenancy.subscription.tenant_only";
+
+    /// <summary>
+    /// 操作 <c>tenants.quotas</c> 的说明。
+    /// </summary>
+    public const string ListTenantQuotasDescription = "tenants.quotas.description";
+
+    /// <summary>
+    /// 操作 <c>subscription.get</c> 的说明。
+    /// </summary>
+    public const string GetSubscriptionDescription = "subscription.get.description";
+
+    /// <summary>
     /// 租户 ID 已被占用；参数 <c>tenantId</c>。
     /// </summary>
     public const string TenantIdTaken = "tenancy.tenant.id_taken";

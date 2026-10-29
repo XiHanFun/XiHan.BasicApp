@@ -23,5 +23,13 @@ public static class TenancyPages
     /// <summary>
     /// 全部顶层页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Tenants, Editions];
+    /// <summary>
+    /// 我的订阅页（只在租户侧）。
+    /// </summary>
+    public static PageDescriptor Subscription { get; } = new("tenancy.subscription", "/tenancy/subscription", "tenancy.subscription.title", "lucide:receipt", 320, TenancyPermissions.SubscriptionRead);
+
+    /// <summary>
+    /// 全部顶层页面。
+    /// </summary>
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Tenants, Editions, Subscription];
 }

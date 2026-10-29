@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "Le code d'édition '{code}' est déjà pris.",
   "tenancy.edition.in_use": "L'édition '{code}' est encore utilisée par des locataires et ne peut pas être supprimée.",
   "tenancy.edition.permission_invalid": "La permission '{code}' n'est pas une permission côté locataire du catalogue et ne peut pas entrer dans une édition.",
-  "tenancy.edition.no_default": "Il n'y a pas d'édition par défaut ; indiquez-en une à la création d'un locataire."
+  "tenancy.edition.no_default": "Il n'y a pas d'édition par défaut ; indiquez-en une à la création d'un locataire.",
+  "tenancy.edition.free_priced": "Une édition gratuite ne peut pas avoir de prix.",
+  "tenancy.quota.storage": "L’espace de stockage du locataire est insuffisant ({used} Mo utilisés sur {limit} Mo) ; il faut {needed} Mo. Faites du ménage ou changez d’édition.",
+  "tenancy.quota.seats": "Le locataire a atteint sa limite de places ({used} sur {limit}) ; impossible d’ajouter des membres. Changez d’édition ou ajustez les places.",
+  "tenants.quotas.description": "Lister les quotas effectifs et l’usage (places, stockage) de chaque locataire, éventuellement les seuls dépassements. Côté plateforme uniquement ; nécessite tenancy.tenants.read.",
+  "subscription.get.description": "Obtenir l’abonnement du locataire : édition, échéance, limites effectives de places et de stockage et leur usage. Côté locataire uniquement ; nécessite tenancy.subscription.read.",
+  "tenancy.subscription.tenant_only": "Les abonnements appartiennent aux locataires ; la plateforme n’en a pas."
 }

@@ -57,12 +57,13 @@ public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, Editio
         bool IsBasic(PermissionDescriptor p) => IsRead(p) || ((p.Package is "identity" or "organization" or "settings" or "files") && !string.Equals(p.Resource, "impersonation", StringComparison.Ordinal));
         bool IsPro(PermissionDescriptor p) => IsBasic(p) || string.Equals(p.Package, "access", StringComparison.Ordinal);
 
-        (string Code, string Name, string Description, bool IsDefault, int Order, Func<PermissionDescriptor, bool> Includes)[] seeds =
+        // 价格、周期与配额同 4.x 的四档（存储按 MB）；企业版不限
+        (string Code, string Name, string Description, bool IsDefault, int Order, Func<PermissionDescriptor, bool> Includes, int? Users, long? StorageMb, decimal? Price, int? Months, bool IsFree)[] seeds =
         [
-            (Free, "Free", "Read-only access to members, organization and roles.", true, 10, IsRead),
-            (Basic, "Basic", "Free plus day-to-day management of users, the organization, settings and files.", false, 20, IsBasic),
-            (Pro, "Professional", "Basic plus role management, grants and assignments.", false, 30, IsPro),
-            (Enterprise, "Enterprise", "Every tenant-side permission available when the edition was created.", false, 40, static _ => true),
+            (Free, "Free", "Read-only access to members, organization and roles.", true, 10, IsRead, 5, 1024, 0m, 1, true),
+            (Basic, "Basic", "Free plus day-to-day management of users, the organization, settings and files.", false, 20, IsBasic, 20, 10240, 99m, 1, false),
+            (Pro, "Professional", "Basic plus role management, grants and assignments.", false, 30, IsPro, 100, 102400, 299m, 1, false),
+            (Enterprise, "Enterprise", "Every tenant-side permission available when the edition was created.", false, 40, static _ => true, null, null, null, 12, false),
         ];
 
         foreach (var seed in seeds)
@@ -72,7 +73,7 @@ public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, Editio
                 continue;
             }
 
-            var edition = new SysEdition { Id = ids.NewId(), Code = seed.Code, Name = seed.Name, Description = seed.Description, IsDefault = seed.IsDefault, Order = seed.Order };
+            var edition = new SysEdition { Id = ids.NewId(), Code = seed.Code, Name = seed.Name, Description = seed.Description, IsDefault = seed.IsDefault, Order = seed.Order, UserLimit = seed.Users, StorageLimitMb = seed.StorageMb, Price = seed.Price, BillingPeriodMonths = seed.Months, IsFree = seed.IsFree };
             var added = await editions.AddAsync(edition, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {

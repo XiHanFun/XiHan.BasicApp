@@ -17,6 +17,11 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// <param name="Order">排序号。</param>
 /// <param name="PermissionCount">白名单里的权限数。</param>
 /// <param name="TenantCount">绑定它的租户数。</param>
+/// <param name="UserLimit">席位上限；为空不限。</param>
+/// <param name="StorageLimitMb">存储空间上限（MB）；为空不限。</param>
+/// <param name="Price">价格（两位小数）；为空不标价。</param>
+/// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期。</param>
+/// <param name="IsFree">是否免费套餐（免费套餐不能标价）。</param>
 /// <param name="CreatedAt">创建时间（UTC）。</param>
 public sealed record EditionResponse(
     Guid Id,
@@ -27,7 +32,12 @@ public sealed record EditionResponse(
     int Order,
     int PermissionCount,
     int TenantCount,
-    DateTimeOffset CreatedAt)
+    DateTimeOffset CreatedAt,
+    int? UserLimit,
+    long? StorageLimitMb,
+    decimal? Price,
+    int? BillingPeriodMonths,
+    bool IsFree)
 {
     /// <summary>
     /// 由实体与计数投影。
@@ -35,7 +45,7 @@ public sealed record EditionResponse(
     public static EditionResponse From(SysEdition edition, int permissionCount, int tenantCount)
     {
         ArgumentNullException.ThrowIfNull(edition);
-        return new EditionResponse(edition.Id, edition.Code, edition.Name, edition.Description, edition.IsDefault, edition.Order, permissionCount, tenantCount, edition.CreatedAt);
+        return new EditionResponse(edition.Id, edition.Code, edition.Name, edition.Description, edition.IsDefault, edition.Order, permissionCount, tenantCount, edition.CreatedAt, edition.UserLimit, edition.StorageLimitMb, edition.Price, edition.BillingPeriodMonths, edition.IsFree);
     }
 }
 

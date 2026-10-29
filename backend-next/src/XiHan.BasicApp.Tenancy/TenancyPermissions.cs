@@ -76,6 +76,11 @@ public static class TenancyPermissions
     public const string EditionsDelete = "tenancy.editions.delete";
 
     /// <summary>
+    /// 查看本租户的订阅（套餐、到期、席位与存储用量）。
+    /// </summary>
+    public const string SubscriptionRead = "tenancy.subscription.read";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -93,5 +98,6 @@ public static class TenancyPermissions
         new(EditionsCreate, "Create editions", PermissionScope.Platform, audited: true, description: "Create editions with an initial permission whitelist."),
         new(EditionsUpdate, "Update editions", PermissionScope.Platform, audited: true, description: "Edit editions and replace their permission whitelists; tenants on them follow immediately."),
         new(EditionsDelete, "Delete editions", PermissionScope.Platform, audited: true, description: "Delete editions that no tenant uses."),
+        new(SubscriptionRead, "Read subscription", PermissionScope.Tenant, description: "View the tenant's own edition, expiry, seat and storage usage."),
     ];
 }

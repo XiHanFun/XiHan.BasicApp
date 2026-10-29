@@ -67,6 +67,8 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddScoped<TenantQueries>();
         context.Services.AddScoped<ITenantMembershipResolver, TenantMembershipResolver>();
         context.Services.AddScoped<EditionService>();
+        context.Services.AddScoped<TenantQuotas>();
+        context.Services.AddScoped<ITenantQuota>(static sp => sp.GetRequiredService<TenantQuotas>());
         context.Services.AddSingleton<EditionGate>();
         context.Services.AddSingleton<IEditionGate>(static sp => sp.GetRequiredService<EditionGate>());
         context.Services.AddSeeder<EditionSeeder>();

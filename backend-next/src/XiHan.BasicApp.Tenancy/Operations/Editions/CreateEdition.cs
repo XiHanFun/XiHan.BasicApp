@@ -46,6 +46,11 @@ public sealed class CreateEdition(IRepository<SysEdition, Guid> editions, Editio
             return normalized.Error!;
         }
 
+        if (request.IsFree && request.Price is > 0)
+        {
+            return Error.Validation(TenancyErrors.FreeEditionPriced, TenancyMessages.FreeEditionPriced);
+        }
+
         var edition = new SysEdition
         {
             Id = ids.NewId(),
@@ -54,6 +59,11 @@ public sealed class CreateEdition(IRepository<SysEdition, Guid> editions, Editio
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             IsDefault = request.IsDefault,
             Order = request.Order,
+            UserLimit = request.UserLimit,
+            StorageLimitMb = request.StorageLimitMb,
+            Price = request.Price is { } price ? decimal.Round(price, 2) : null,
+            BillingPeriodMonths = request.BillingPeriodMonths,
+            IsFree = request.IsFree,
         };
         var added = await editions.AddAsync(edition, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)

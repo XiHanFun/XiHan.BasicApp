@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "Der Editionscode '{code}' ist bereits vergeben.",
   "tenancy.edition.in_use": "Edition '{code}' wird noch von Mandanten genutzt und kann nicht gelöscht werden.",
   "tenancy.edition.permission_invalid": "Die Berechtigung '{code}' ist keine mandantenseitige Berechtigung im Katalog und kann nicht in eine Edition aufgenommen werden.",
-  "tenancy.edition.no_default": "Es gibt keine Standardedition; geben Sie beim Anlegen eines Mandanten eine an."
+  "tenancy.edition.no_default": "Es gibt keine Standardedition; geben Sie beim Anlegen eines Mandanten eine an.",
+  "tenancy.edition.free_priced": "Eine kostenlose Edition kann keinen Preis haben.",
+  "tenancy.quota.storage": "Der Speicher des Mandanten reicht nicht ({used} MB von {limit} MB belegt); benötigt werden {needed} MB. Räumen Sie Dateien auf oder wechseln Sie die Edition.",
+  "tenancy.quota.seats": "Der Mandant hat sein Platzlimit erreicht ({used} von {limit}); es können keine Mitglieder hinzugefügt werden. Wechseln Sie die Edition oder passen Sie die Plätze an.",
+  "tenants.quotas.description": "Effektive Kontingente und Nutzung (Plätze, Speicher) aller Mandanten auflisten, wahlweise nur überschrittene. Nur Plattformseite; erfordert tenancy.tenants.read.",
+  "subscription.get.description": "Das eigene Abonnement des Mandanten abrufen: Edition, Ablauf, effektive Platz- und Speichergrenzen und Nutzung. Nur Mandantenseite; erfordert tenancy.subscription.read.",
+  "tenancy.subscription.tenant_only": "Abonnements gehören zu Mandanten; die Plattform hat keines."
 }

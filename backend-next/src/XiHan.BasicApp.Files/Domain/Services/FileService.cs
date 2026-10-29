@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -42,6 +43,7 @@ public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, 
 /// <param name="ids">ID 生成器。</param>
 /// <param name="clock">时钟。</param>
 /// <param name="scopes">作用域工厂（下载计数在独立的短事务里写）。</param>
+/// <param name="quotas">租户配额（存储空间；没装 Tenancy 即不限）。</param>
 /// <param name="logger">日志。</param>
 public sealed partial class FileService(
     FileRows rows,
@@ -53,6 +55,7 @@ public sealed partial class FileService(
     IIdGenerator<Guid> ids,
     TimeProvider clock,
     IServiceScopeFactory scopes,
+    IEnumerable<ITenantQuota> quotas,
     ILogger<FileService> logger)
 {
     /// <summary>
@@ -110,6 +113,12 @@ public sealed partial class FileService(
             }
 
             var side = FileRows.SideOf(context);
+            var allowed = await EnsureQuotaAsync(context, side, written.Size).ConfigureAwait(false);
+            if (allowed.IsFailure)
+            {
+                return allowed.Error!;
+            }
+
             var reused = await ReuseAsync(side, written.Hash, written.Size, name, contentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
             if (reused.TryGetValue(out var copy))
             {
@@ -158,7 +167,15 @@ public sealed partial class FileService(
             return Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", options.MaxUploadBytes)));
         }
 
-        return Result.Success(await ReuseAsync(FileRows.SideOf(context), normalized, size, name, contentType, details, SourceFastUpload, context.CancellationToken).ConfigureAwait(false));
+        // 秒传也计入存储配额（4.x 不计）：用量按记录算，共用对象的文件各自占空间
+        var side = FileRows.SideOf(context);
+        var allowed = await EnsureQuotaAsync(context, side, size).ConfigureAwait(false);
+        if (allowed.IsFailure)
+        {
+            return allowed.Error!;
+        }
+
+        return Result.Success(await ReuseAsync(side, normalized, size, name, contentType, details, SourceFastUpload, context.CancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -513,6 +530,20 @@ public sealed partial class FileService(
         }
 
         return stores.For(config);
+    }
+
+    private async Task<Result> EnsureQuotaAsync(InvocationContext context, string side, long bytes)
+    {
+        foreach (var quota in quotas)
+        {
+            var allowed = await quota.EnsureStorageAsync(context, side, bytes).ConfigureAwait(false);
+            if (allowed.IsFailure)
+            {
+                return allowed;
+            }
+        }
+
+        return Result.Success();
     }
 
     private static string? NameOf(string? fileName)

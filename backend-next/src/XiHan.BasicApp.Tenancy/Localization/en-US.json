@@ -34,5 +34,11 @@
   "tenancy.edition.code_taken": "Edition code '{code}' is already taken.",
   "tenancy.edition.in_use": "Edition '{code}' is still used by tenants and cannot be deleted.",
   "tenancy.edition.permission_invalid": "Permission '{code}' is not a tenant-side permission in the catalog and cannot be put into an edition.",
-  "tenancy.edition.no_default": "There is no default edition; specify one when creating a tenant."
+  "tenancy.edition.no_default": "There is no default edition; specify one when creating a tenant.",
+  "tenancy.edition.free_priced": "A free edition cannot have a price.",
+  "tenancy.quota.storage": "The tenant is out of storage ({used} MB used of {limit} MB); this needs {needed} MB. Clean up files or upgrade the edition.",
+  "tenancy.quota.seats": "The tenant has reached its seat limit ({used} of {limit}); no more members can be added. Upgrade the edition or adjust the seats.",
+  "tenants.quotas.description": "List every tenant's effective quotas and usage (seats, storage), optionally only those over quota. Platform side only; requires tenancy.tenants.read.",
+  "subscription.get.description": "Get the tenant's own subscription: edition, expiry, effective seat and storage limits and usage. Tenant side only; requires tenancy.subscription.read.",
+  "tenancy.subscription.tenant_only": "Subscriptions belong to tenants; the platform has none."
 }

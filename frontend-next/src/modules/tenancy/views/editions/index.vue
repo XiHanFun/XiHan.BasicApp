@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import type { EditionRow } from './use-editions'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
+import { formatPrice } from '../subscription/subscription'
 import { editionsResource, setDefaultEdition, toWhitelistItems, useEditionEditor, useEditionPermissions } from './use-editions'
 
 defineOptions({ name: 'TenancyEditionsView' })
@@ -14,7 +15,7 @@ defineOptions({ name: 'TenancyEditionsView' })
 const { t } = useI18n()
 const auth = useAuthStore()
 const resource = editionsResource()
-const editor = useEditionEditor()
+const editor = useEditionEditor(t)
 const whitelist = useEditionPermissions()
 
 /** 白名单只读还是可改：改要 tenancy.editions.update，看只要能进本页 */
@@ -40,15 +41,40 @@ function renderName(row: EditionRow) {
   ])
 }
 
+/** 价格（4.x 同）：免费出标签，没标价为 -，其余带人民币符号与两位小数 */
+function renderPrice(row: EditionRow) {
+  if (row.isFree)
+    return renderTag(t('tenancy.editions.free'), 'success')
+  return row.price === null || row.price === undefined ? '-' : formatPrice(row.price)
+}
+
+function billingPeriodText(row: EditionRow): string {
+  return row.billingPeriodMonths === null || row.billingPeriodMonths === undefined ? '-' : t('tenancy.editions.billing_period_months', { count: row.billingPeriodMonths })
+}
+
+/** 上限为空即不限 */
+function userLimitText(row: EditionRow): string {
+  return row.userLimit === null || row.userLimit === undefined ? t('tenancy.editions.unlimited') : String(row.userLimit)
+}
+
+function storageLimitText(row: EditionRow): string {
+  return row.storageLimitMb === null || row.storageLimitMb === undefined ? t('tenancy.editions.unlimited') : t('tenancy.editions.storage_mb', { size: row.storageLimitMb })
+}
+
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'code', title: t('tenancy.editions.fields.code'), dataType: 'string', exportable: true, minWidth: 140, order: 1 },
   { key: 'name', title: t('tenancy.editions.fields.name'), dataType: 'string', exportable: true, render: row => renderName(asRow(row)), minWidth: 180, order: 2 },
-  { key: 'isDefault', title: t('tenancy.editions.fields.is_default'), dataType: 'boolean', exportable: true, render: row => (asRow(row).isDefault ? renderTag(t('tenancy.editions.default_badge'), 'warning') : '-'), width: 100, order: 3 },
-  { key: 'permissionCount', title: t('tenancy.editions.fields.permissions'), dataType: 'number', exportable: true, width: 100, order: 4 },
-  { key: 'tenantCount', title: t('tenancy.editions.fields.tenants'), dataType: 'number', exportable: true, width: 100, order: 5 },
-  { key: 'order', title: t('tenancy.editions.fields.order'), dataType: 'number', exportable: true, width: 80, order: 6 },
-  { key: 'description', title: t('tenancy.editions.fields.description'), dataType: 'text', visible: false, exportable: true, order: 6.5 },
-  { key: 'createdAt', title: t('tenancy.editions.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 7 },
+  { key: 'price', title: t('tenancy.editions.fields.price'), dataType: 'money', exportable: true, render: row => renderPrice(asRow(row)), width: 110, order: 3 },
+  { key: 'billingPeriodMonths', title: t('tenancy.editions.fields.billing_period'), dataType: 'number', exportable: true, render: row => billingPeriodText(asRow(row)), width: 100, order: 4 },
+  { key: 'userLimit', title: t('tenancy.editions.fields.user_limit'), dataType: 'number', exportable: true, render: row => userLimitText(asRow(row)), width: 100, order: 5 },
+  { key: 'storageLimitMb', title: t('tenancy.editions.fields.storage_limit'), dataType: 'number', exportable: true, render: row => storageLimitText(asRow(row)), width: 120, order: 6 },
+  { key: 'isFree', title: t('tenancy.editions.fields.is_free'), dataType: 'boolean', exportable: true, render: row => renderTag(asRow(row).isFree ? t('common.statuses.yes') : t('common.statuses.no'), asRow(row).isFree ? 'success' : 'neutral'), width: 86, order: 7 },
+  { key: 'isDefault', title: t('tenancy.editions.fields.is_default'), dataType: 'boolean', exportable: true, render: row => (asRow(row).isDefault ? renderTag(t('tenancy.editions.default_badge'), 'warning') : '-'), width: 100, order: 8 },
+  { key: 'permissionCount', title: t('tenancy.editions.fields.permissions'), dataType: 'number', exportable: true, width: 100, order: 9 },
+  { key: 'tenantCount', title: t('tenancy.editions.fields.tenants'), dataType: 'number', exportable: true, width: 100, order: 10 },
+  { key: 'order', title: t('tenancy.editions.fields.order'), dataType: 'number', exportable: true, width: 80, order: 11 },
+  { key: 'description', title: t('tenancy.editions.fields.description'), dataType: 'text', visible: false, exportable: true, order: 11.5 },
+  { key: 'createdAt', title: t('tenancy.editions.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 12 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -188,6 +214,58 @@ async function saveWhitelist() {
             {{ editor.fieldError('name') }}
           </XhFieldErrorText>
         </XhFieldRoot>
+        <!-- 免费套餐不能标价（4.x 同）：打开免费即清空价格、价格框禁用 -->
+        <XhFieldRoot :invalid="!!editor.fieldError('price')">
+          <XhFieldLabel>{{ t('tenancy.editions.fields.price') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.price" name="price" :min="0" :max="99999999" :precision="2" :disabled="editor.form.isFree" :placeholder="t('tenancy.editions.price_placeholder')" />
+          </XhFieldControl>
+          <XhFieldDescription v-if="editor.form.isFree">
+            {{ t('tenancy.editions.price_free_hint') }}
+          </XhFieldDescription>
+          <XhFieldErrorText v-if="editor.fieldError('price')">
+            {{ editor.fieldError('price') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('billingPeriodMonths')">
+          <XhFieldLabel>{{ t('tenancy.editions.billing_period_form') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.billingPeriodMonths" name="billingPeriodMonths" :min="1" :max="120" :precision="0" :placeholder="t('tenancy.editions.billing_period_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('billingPeriodMonths')">
+            {{ editor.fieldError('billingPeriodMonths') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('userLimit')">
+          <XhFieldLabel>{{ t('tenancy.editions.fields.user_limit') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.userLimit" name="userLimit" :min="0" :max="10000000" :precision="0" :placeholder="t('tenancy.editions.limit_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('userLimit')">
+            {{ editor.fieldError('userLimit') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('storageLimitMb')">
+          <XhFieldLabel>{{ t('tenancy.editions.storage_limit_form') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.storageLimitMb" name="storageLimitMb" :min="0" :max="1000000000" :precision="0" :placeholder="t('tenancy.editions.limit_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('storageLimitMb')">
+            {{ editor.fieldError('storageLimitMb') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('tenancy.editions.fields.is_free') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch :checked="editor.form.isFree" name="isFree" @update:checked="editor.setFree" />
+          </XhFieldControl>
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('tenancy.editions.fields.is_default') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="editor.form.isDefault" name="isDefault" />
+          </XhFieldControl>
+        </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('order')">
           <XhFieldLabel>{{ t('tenancy.editions.fields.order') }}</XhFieldLabel>
           <XhFieldControl>
@@ -196,12 +274,6 @@ async function saveWhitelist() {
           <XhFieldErrorText v-if="editor.fieldError('order')">
             {{ editor.fieldError('order') }}
           </XhFieldErrorText>
-        </XhFieldRoot>
-        <XhFieldRoot>
-          <XhFieldLabel>{{ t('tenancy.editions.fields.is_default') }}</XhFieldLabel>
-          <XhFieldControl>
-            <XhSwitch v-model:checked="editor.form.isDefault" name="isDefault" />
-          </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('description')">
           <XhFieldLabel>{{ t('tenancy.editions.fields.description') }}</XhFieldLabel>
