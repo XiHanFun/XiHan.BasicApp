@@ -10,6 +10,7 @@ export const routes = {
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
   'auth.activate-roles': { method: 'POST', template: '/api/auth:activate-roles', path: [], query: [], success: 200 },
   'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
+  'auth.lock': { method: 'POST', template: '/api/auth:lock', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
   'auth.login-config': { method: 'GET', template: '/api/auth:login-config', path: [], query: [], success: 200 },
   'auth.logout': { method: 'POST', template: '/api/auth:logout', path: [], query: [], success: 200 },
@@ -18,6 +19,7 @@ export const routes = {
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
   'auth.session-roles': { method: 'GET', template: '/api/auth:session-roles', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
+  'auth.unlock': { method: 'POST', template: '/api/auth:unlock', path: [], query: [], success: 200 },
   'auth.verify-two-factor': { method: 'POST', template: '/api/auth:verify-two-factor', path: [], query: [], success: 200 },
   'bot-configs.create': { method: 'POST', template: '/api/bot-configs', path: [], query: [], success: 201 },
   'bot-configs.delete': { method: 'DELETE', template: '/api/bot-configs', path: [], query: ['ids'], success: 200 },
@@ -287,6 +289,7 @@ export const accessLogs = {
 export const auth = {
   activateRoles: (request: RequestOf<'auth.activate-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.activate-roles'>, ResponseOf<'auth.activate-roles'>>('auth.activate-roles', routes['auth.activate-roles'], request, options),
   captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
+  lock: (request: RequestOf<'auth.lock'>, options?: CallOptions) => invoke<RequestOf<'auth.lock'>, ResponseOf<'auth.lock'>>('auth.lock', routes['auth.lock'], request, options),
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
   loginConfig: (request: RequestOf<'auth.login-config'>, options?: CallOptions) => invoke<RequestOf<'auth.login-config'>, ResponseOf<'auth.login-config'>>('auth.login-config', routes['auth.login-config'], request, options),
   logout: (request: RequestOf<'auth.logout'>, options?: CallOptions) => invoke<RequestOf<'auth.logout'>, ResponseOf<'auth.logout'>>('auth.logout', routes['auth.logout'], request, options),
@@ -295,6 +298,7 @@ export const auth = {
   refresh: (request: RequestOf<'auth.refresh'>, options?: CallOptions) => invoke<RequestOf<'auth.refresh'>, ResponseOf<'auth.refresh'>>('auth.refresh', routes['auth.refresh'], request, options),
   sessionRoles: (request: RequestOf<'auth.session-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.session-roles'>, ResponseOf<'auth.session-roles'>>('auth.session-roles', routes['auth.session-roles'], request, options),
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
+  unlock: (request: RequestOf<'auth.unlock'>, options?: CallOptions) => invoke<RequestOf<'auth.unlock'>, ResponseOf<'auth.unlock'>>('auth.unlock', routes['auth.unlock'], request, options),
   verifyTwoFactor: (request: RequestOf<'auth.verify-two-factor'>, options?: CallOptions) => invoke<RequestOf<'auth.verify-two-factor'>, ResponseOf<'auth.verify-two-factor'>>('auth.verify-two-factor', routes['auth.verify-two-factor'], request, options),
 }
 

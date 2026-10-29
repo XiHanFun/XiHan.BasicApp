@@ -62,5 +62,12 @@
   "sessions.summary.description": "Online-Übersicht des aktuellen Mandanten: aktive Sitzungen, Benutzer mit aktiver Sitzung und in Echtzeit verbundene Benutzer. Erfordert identity.sessions.read.",
   "sessions.revoke.description": "Zwangsabmeldung: widerruft aktive Sitzungen des aktuellen Mandanten; die Clients werden in Echtzeit benachrichtigt und melden sich ab. Die eigene aktuelle Sitzung kann hier nicht widerrufen werden. Erfordert identity.sessions.revoke.",
   "identity.session.not_found": "Die Sitzung {id} existiert nicht oder ist nicht mehr aktiv.",
-  "identity.session.current": "Die eigene aktuelle Sitzung kann nicht zwangsweise abgemeldet werden; melden Sie sich stattdessen ab."
+  "identity.session.current": "Die eigene aktuelle Sitzung kann nicht zwangsweise abgemeldet werden; melden Sie sich stattdessen ab.",
+  "auth.lock.description": "Sperrt die aktuelle Sitzung (Bildschirmsperre) mit einem einmaligen Sperrkennwort; danach wird jede Anfrage dieser Sitzung außer Entsperren und Abmelden mit IDENTITY_DENIED_002 abgelehnt. Erfordert nur die Anmeldung.",
+  "auth.unlock.description": "Entsperrt die aktuelle Sitzung mit ihrem Sperrkennwort; fünf Fehlversuche in Folge widerrufen die Sitzung (wie eine Zwangsabmeldung). Erfordert nur die Anmeldung und funktioniert auch im gesperrten Zustand.",
+  "identity.auth.session_locked": "Diese Sitzung ist gesperrt; entsperren Sie sie zuerst.",
+  "identity.auth.lock_password_required": "Das Sperrkennwort darf nicht leer sein.",
+  "identity.auth.unlock_password_wrong": "Falsches Sperrkennwort; noch {remaining} Versuche.",
+  "identity.auth.unlock_exhausted": "Zu viele fehlgeschlagene Entsperrversuche; die Sitzung ist beendet. Bitte melden Sie sich erneut an.",
+  "identity.auth.lock_reason_unsupported": "Die Sitzung ist aus einem Grund gesperrt, den ein Sperrkennwort nicht aufheben kann."
 }

@@ -62,5 +62,12 @@
   "sessions.summary.description": "現在のテナントのオンライン概況：有効なセッション数、セッションを持つユーザー数、リアルタイム接続中のユーザー数。identity.sessions.read 権限が必要です。",
   "sessions.revoke.description": "強制ログアウト：現在のテナントの有効なセッションを失効させ、クライアントはリアルタイム接続で通知を受けてログアウトします。自分の現在のセッションは対象にできません。identity.sessions.revoke 権限が必要です。",
   "identity.session.not_found": "セッション {id} は存在しないか、すでに無効です。",
-  "identity.session.current": "自分の現在のセッションは強制ログアウトできません。ログアウトしてください。"
+  "identity.session.current": "自分の現在のセッションは強制ログアウトできません。ログアウトしてください。",
+  "auth.lock.description": "現在のセッションをロックします（画面ロック）。このセッション限りのロックパスワードを設定し、以降はロック解除とログアウト以外の要求をすべて IDENTITY_DENIED_002 で拒否します。ログインのみ必要です。",
+  "auth.unlock.description": "ロックパスワードで現在のセッションのロックを解除します。5 回続けて間違えるとセッションを失効させます（強制ログアウトと同じ）。ログインのみ必要で、ロック中も呼び出せます。",
+  "identity.auth.session_locked": "このセッションはロックされています。先にロックを解除してください。",
+  "identity.auth.lock_password_required": "ロックパスワードを入力してください。",
+  "identity.auth.unlock_password_wrong": "ロックパスワードが違います。あと {remaining} 回試せます。",
+  "identity.auth.unlock_exhausted": "ロック解除の失敗が多すぎるため、セッションは失効しました。もう一度ログインしてください。",
+  "identity.auth.lock_reason_unsupported": "このセッションのロック理由はパスワードでは解除できません。"
 }

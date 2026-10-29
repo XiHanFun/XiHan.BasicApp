@@ -62,5 +62,12 @@
   "sessions.summary.description": "当前租户的在线概况：有效会话数、有会话的用户数与实时在线的用户数。需要 identity.sessions.read 权限。",
   "sessions.revoke.description": "强制下线：吊销当前租户里的一批有效会话，客户端经实时连接收到通知后退出登录；不能下线自己当前的会话。需要 identity.sessions.revoke 权限。",
   "identity.session.not_found": "会话 {id} 不存在或已失效。",
-  "identity.session.current": "不能强制下线自己当前的会话，请使用退出登录。"
+  "identity.session.current": "不能强制下线自己当前的会话，请使用退出登录。",
+  "auth.lock.description": "锁定当前会话（锁屏）：设一个本会话一次性的锁屏密码，之后这个会话除解锁与注销外的请求一律以 IDENTITY_DENIED_002 拒绝。只要求已登录。",
+  "auth.unlock.description": "用锁屏密码解锁当前会话；连续错 5 次即吊销会话（等同下线）。只要求已登录，锁屏中也能调用。",
+  "identity.auth.session_locked": "当前会话已锁屏，请先解锁。",
+  "identity.auth.lock_password_required": "锁屏密码不能为空。",
+  "identity.auth.unlock_password_wrong": "锁屏密码错误，还可尝试 {remaining} 次。",
+  "identity.auth.unlock_exhausted": "解锁失败次数过多，会话已失效，请重新登录。",
+  "identity.auth.lock_reason_unsupported": "当前会话的锁定原因不支持口令解锁。"
 }

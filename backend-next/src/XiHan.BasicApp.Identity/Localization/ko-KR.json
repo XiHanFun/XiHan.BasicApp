@@ -62,5 +62,12 @@
   "sessions.summary.description": "현재 테넌트의 온라인 개요: 유효한 세션 수, 세션이 있는 사용자 수, 실시간 연결된 사용자 수. identity.sessions.read 권한이 필요합니다.",
   "sessions.revoke.description": "강제 로그아웃: 현재 테넌트의 유효한 세션을 폐기하며, 클라이언트는 실시간 연결로 알림을 받고 로그아웃합니다. 자신의 현재 세션은 대상이 될 수 없습니다. identity.sessions.revoke 권한이 필요합니다.",
   "identity.session.not_found": "세션 {id}이(가) 없거나 이미 만료되었습니다.",
-  "identity.session.current": "자신의 현재 세션은 강제 로그아웃할 수 없습니다. 로그아웃을 사용하세요."
+  "identity.session.current": "자신의 현재 세션은 강제 로그아웃할 수 없습니다. 로그아웃을 사용하세요.",
+  "auth.lock.description": "현재 세션을 잠급니다(화면 잠금). 이 세션에서만 쓰는 잠금 비밀번호를 정하며, 이후 잠금 해제와 로그아웃을 뺀 모든 요청은 IDENTITY_DENIED_002로 거부됩니다. 로그인만 필요합니다.",
+  "auth.unlock.description": "잠금 비밀번호로 현재 세션의 잠금을 풉니다. 연속 5번 틀리면 세션을 취소합니다(강제 로그아웃과 같음). 로그인만 필요하며 잠긴 동안에도 호출할 수 있습니다.",
+  "identity.auth.session_locked": "이 세션은 잠겨 있습니다. 먼저 잠금을 해제하세요.",
+  "identity.auth.lock_password_required": "잠금 비밀번호를 입력하세요.",
+  "identity.auth.unlock_password_wrong": "잠금 비밀번호가 틀렸습니다. {remaining}번 더 시도할 수 있습니다.",
+  "identity.auth.unlock_exhausted": "잠금 해제에 너무 많이 실패하여 세션이 만료되었습니다. 다시 로그인하세요.",
+  "identity.auth.lock_reason_unsupported": "이 세션의 잠금 이유는 비밀번호로 풀 수 없습니다."
 }

@@ -62,5 +62,12 @@
   "sessions.summary.description": "Resumen en línea del inquilino actual: sesiones activas, usuarios con sesión activa y usuarios conectados en tiempo real. Requiere identity.sessions.read.",
   "sessions.revoke.description": "Cierre de sesión forzado: revoca sesiones activas del inquilino actual; los clientes reciben el aviso en tiempo real y cierran la sesión. No puede revocar aquí su propia sesión actual. Requiere identity.sessions.revoke.",
   "identity.session.not_found": "La sesión {id} no existe o ya no está activa.",
-  "identity.session.current": "No puede forzar el cierre de su propia sesión actual; cierre la sesión en su lugar."
+  "identity.session.current": "No puede forzar el cierre de su propia sesión actual; cierre la sesión en su lugar.",
+  "auth.lock.description": "Bloquea la sesión actual (pantalla bloqueada) con una contraseña de bloqueo de un solo uso; después, toda petición de esta sesión salvo desbloquear y cerrar sesión se rechaza con IDENTITY_DENIED_002. Solo requiere iniciar sesión.",
+  "auth.unlock.description": "Desbloquea la sesión actual con su contraseña de bloqueo; cinco errores seguidos revocan la sesión (como un cierre de sesión forzado). Solo requiere iniciar sesión y funciona mientras está bloqueada.",
+  "identity.auth.session_locked": "Esta sesión está bloqueada; desbloquéela primero.",
+  "identity.auth.lock_password_required": "La contraseña de bloqueo no puede estar vacía.",
+  "identity.auth.unlock_password_wrong": "Contraseña de bloqueo incorrecta; quedan {remaining} intentos.",
+  "identity.auth.unlock_exhausted": "Demasiados intentos fallidos de desbloqueo; la sesión ha terminado. Vuelva a iniciar sesión.",
+  "identity.auth.lock_reason_unsupported": "La sesión está bloqueada por un motivo que una contraseña no puede quitar."
 }

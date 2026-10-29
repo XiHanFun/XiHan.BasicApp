@@ -62,5 +62,12 @@
   "sessions.summary.description": "Visão geral online do locatário atual: sessões ativas, usuários com sessão ativa e usuários conectados em tempo real. Requer identity.sessions.read.",
   "sessions.revoke.description": "Saída forçada: revoga sessões ativas do locatário atual; os clientes são avisados em tempo real e saem. Sua própria sessão atual não pode ser revogada aqui. Requer identity.sessions.revoke.",
   "identity.session.not_found": "A sessão {id} não existe ou não está mais ativa.",
-  "identity.session.current": "Você não pode forçar a saída da sua própria sessão atual; use sair."
+  "identity.session.current": "Você não pode forçar a saída da sua própria sessão atual; use sair.",
+  "auth.lock.description": "Bloqueia a sessão atual (tela bloqueada) com uma senha de bloqueio de uso único; depois, toda requisição desta sessão, exceto desbloquear e sair, é recusada com IDENTITY_DENIED_002. Requer apenas login.",
+  "auth.unlock.description": "Desbloqueia a sessão atual com a senha de bloqueio; cinco erros seguidos revogam a sessão (como um logout forçado). Requer apenas login e funciona enquanto bloqueada.",
+  "identity.auth.session_locked": "Esta sessão está bloqueada; desbloqueie-a primeiro.",
+  "identity.auth.lock_password_required": "A senha de bloqueio não pode ficar vazia.",
+  "identity.auth.unlock_password_wrong": "Senha de bloqueio incorreta; restam {remaining} tentativas.",
+  "identity.auth.unlock_exhausted": "Tentativas de desbloqueio demais; a sessão foi encerrada. Faça login novamente.",
+  "identity.auth.lock_reason_unsupported": "A sessão está bloqueada por um motivo que uma senha não pode remover."
 }

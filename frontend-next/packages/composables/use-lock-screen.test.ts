@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HOME_PATH, LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'
 import { i18n } from '~/locales'
+import { ApiError } from '~/request'
 import { useAuthStore } from '~/stores'
 import { registerAppContext } from '~/stores/app-context'
 import { SESSION_LOCK_CHANGED_EVENT } from './session-lock'
@@ -63,7 +64,7 @@ beforeEach(() => {
   replaceSpy = vi.fn()
   registerAppContext({
     apis: { lockSessionApi, unlockSessionApi, changePasswordApi } as never,
-    getRouter: () => Promise.resolve({ replace: replaceSpy } as never),
+    getRouter: () => Promise.resolve({ replace: replaceSpy, currentRoute: { value: { path: '/notification/inbox', query: { tab: 'all' }, hash: '' } } } as never),
   })
 
   logoutSpy = vi.fn(async () => {})
@@ -245,6 +246,27 @@ describe('doUnlock 解锁', () => {
     expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
     expect(lock.lockMode.value).toBe('off')
     expect(lock.unlockPwd.value).toBe('')
+  })
+
+  it('锁定中整页刷新过（权限与菜单没装载）：解锁后在当前地址强制重走守卫', async () => {
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    const { lock } = mountLockScreen()
+    lock.unlockPwd.value = 'abcd'
+
+    await lock.doUnlock()
+
+    expect(replaceSpy).toHaveBeenCalledWith({ path: '/notification/inbox', query: { tab: 'all' }, hash: '', force: true })
+  })
+
+  it('后端错误只显示文案，不带错误码前缀', async () => {
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    unlockSessionApi.mockRejectedValueOnce(new ApiError(403, { code: 'IDENTITY_DENIED_013', status: 403, detail: '锁屏密码错误，还可尝试 4 次。' }))
+    const { lock } = mountLockScreen()
+    lock.unlockPwd.value = 'wrong'
+
+    await lock.doUnlock()
+
+    expect(lock.unlockError.value).toBe('锁屏密码错误，还可尝试 4 次。')
   })
 
   it('解锁失败时清空输入并展示错误，遮罩仍在', async () => {

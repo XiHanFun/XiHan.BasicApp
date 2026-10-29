@@ -13,5 +13,9 @@ public sealed class SessionStatus(SessionGate gate) : ISessionStatus
 {
     /// <inheritdoc />
     public async ValueTask<bool> IsActiveAsync(Guid sessionId, CancellationToken cancellationToken)
-        => (await gate.ValidateAsync(sessionId, cancellationToken).ConfigureAwait(false)).IsSuccess;
+    {
+        // 锁屏的会话仍算有效（实时连接照旧，能收到强制下线），只是请求被门禁挡住
+        var checkedSession = await gate.ValidateAsync(sessionId, cancellationToken).ConfigureAwait(false);
+        return checkedSession.IsSuccess || string.Equals(checkedSession.Error!.Code, IdentityErrors.SessionLocked, StringComparison.Ordinal);
+    }
 }

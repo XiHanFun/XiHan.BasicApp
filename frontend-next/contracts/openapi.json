@@ -443,6 +443,74 @@
         }
       }
     },
+    "/api/auth:lock": {
+      "post": {
+        "operationId": "auth.lock",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Lock the current session (screen lock) with a one-off lock password; afterwards every request of this session except unlock and logout is rejected with IDENTITY_DENIED_002. Requires sign-in only.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LockRequest",
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LockResponse",
+                  "type": "object",
+                  "properties": {
+                    "reason": {
+                      "type": "string"
+                    },
+                    "lockedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "reason",
+                    "lockedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:login": {
       "post": {
         "operationId": "auth.login",
@@ -1061,6 +1129,69 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:unlock": {
+      "post": {
+        "operationId": "auth.unlock",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Unlock the current session with its lock password; five wrong attempts in a row revoke the session (a forced sign-out). Requires sign-in only and works while locked.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UnlockRequest",
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UnlockResponse",
+                  "type": "object",
+                  "properties": {
+                    "unlocked": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "unlocked"
                   ]
                 }
               }
