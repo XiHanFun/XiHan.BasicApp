@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Seeding;
 
 /// <summary>
-/// 种子运行器：把已登记的 <see cref="ISeeder"/> 按 <c>Order</c> 排序，每个在一次独立调用（完整管道、自己的工作单元、无租户）里执行；任一失败即停止并返回该失败。
-/// 由宿主的 <c>seed</c> 命令调用，要求应用处于服务状态。
+/// 种子运行器：按 <c>Order</c> 依次执行已登记的种子。
 /// </summary>
+/// <remarks>
+/// 把已登记的 <see cref="ISeeder"/> 按 <c>Order</c> 排序，每个在一次独立调用（完整管道、自己的工作单元、无租户）里执行；任一失败即停止并返回该失败。
+/// 由宿主的 <c>seed</c> 命令调用，要求应用处于服务状态。
+/// </remarks>
 public sealed partial class SeedRunner
 {
     private readonly App _app;
@@ -42,8 +45,10 @@ public sealed partial class SeedRunner
     }
 
     /// <summary>
-    /// 执行种子；<paramref name="only"/> 非空时只执行名字在其中的种子。
+    /// 执行种子。
     /// </summary>
+    /// <param name="only">非空时只执行名字在其中的种子。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     public async Task<Result> RunAsync(IReadOnlyCollection<string>? only, CancellationToken cancellationToken)
     {
         foreach (var (name, order) in await DescribeAsync(cancellationToken).ConfigureAwait(false))

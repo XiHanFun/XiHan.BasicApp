@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Runtime;
 
 /// <summary>
-/// 运行时基座的错误码：<c>RUNTIME_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// 运行时基座的错误码。
 /// </summary>
+/// <remarks>
+/// 格式 <c>RUNTIME_&lt;KIND&gt;_&lt;NNN&gt;</c>。
+/// </remarks>
 public static class RuntimeErrors
 {
     /// <summary>

@@ -11,19 +11,29 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// SqlSugar 方式一的配置回调：由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次。
-/// 这里只负责库类型、连接串、操作人字段与 snake_case 命名；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加。
+/// SqlSugar 方式一的配置回调。
 /// </summary>
+/// <remarks>
+/// 由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次。
+/// 这里只负责库类型、连接串、操作人字段与 snake_case 命名；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加。
+/// </remarks>
 public static class SqlSugarRuntime
 {
     /// <summary>
-    /// 数据库绑定名（<c>XiHan:Bindings:db</c>）；主值是连接串，属性 <c>provider</c> 是库类型（缺省 PostgreSQL）。
+    /// 数据库绑定名（<c>XiHan:Bindings:db</c>）。
     /// </summary>
+    /// <remarks>
+    /// 主值是连接串，属性 <c>provider</c> 是库类型（缺省 PostgreSQL）。
+    /// </remarks>
     public const string BindingName = "db";
 
     /// <summary>
-    /// 配置一个连接：没有绑定即启动失败（数据库是硬要求，不做回退）；租户分片的绑定由框架按租户属性 <c>ConnectionString</c> / <c>DatabaseProvider</c> 推出后交到这里。
+    /// 配置一个连接。
     /// </summary>
+    /// <remarks>
+    /// 租户分片的绑定由框架按租户属性 <c>ConnectionString</c> / <c>DatabaseProvider</c> 推出后交到这里。
+    /// </remarks>
+    /// <exception cref="FrameworkException">没有绑定即启动失败（数据库是硬要求，不做回退）。</exception>
     public static void Configure(Maybe<BindingValue> binding, ConnectionConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);

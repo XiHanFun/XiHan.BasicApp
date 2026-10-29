@@ -7,8 +7,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 数据库绑定 <c>provider</c> 属性（也是租户记录的 <c>DatabaseProvider</c> 属性）到 SqlSugar 库类型的映射。
+/// 数据库绑定的 <c>provider</c> 属性到 SqlSugar 库类型的映射。
 /// </summary>
+/// <remarks>
+/// <c>provider</c> 也是租户记录的 <c>DatabaseProvider</c> 属性。
+/// </remarks>
 public static class DatabaseProviders
 {
     /// <summary>
@@ -32,8 +35,12 @@ public static class DatabaseProviders
     public const string SqlServer = "sqlserver";
 
     /// <summary>
-    /// 按名字取库类型；<see langword="null"/> 或空取 PostgreSQL，不认识的名字是装配错误。
+    /// 按名字取库类型。
     /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> 或空取 PostgreSQL。
+    /// </remarks>
+    /// <exception cref="FrameworkException">不认识的名字是装配错误。</exception>
     public static DbType Parse(string? provider)
     {
         if (string.IsNullOrWhiteSpace(provider))

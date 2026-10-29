@@ -18,8 +18,11 @@ using XiHan.Framework.Primitives.Manifests;
 namespace XiHan.BasicApp.Runtime;
 
 /// <summary>
-/// 运行时基座能力包（Tier 0）：在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；提供 <c>basicapp.runtime@1</c> 供各能力包依赖。
+/// 运行时基座能力包（Tier 0）。
 /// </summary>
+/// <remarks>
+/// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；提供 <c>basicapp.runtime@1</c> 供各能力包依赖。
+/// </remarks>
 public sealed class RuntimeFeature : IFeature
 {
     /// <inheritdoc />
