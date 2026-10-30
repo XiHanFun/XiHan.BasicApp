@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Crear ediciones",
   "permissions.tenancy.editions.update.name": "Editar ediciones",
   "permissions.tenancy.editions.delete.name": "Eliminar ediciones",
-  "permissions.tenancy.subscription.read.name": "Ver suscripción"
+  "permissions.tenancy.subscription.read.name": "Ver suscripción",
+  "tenants.transfer_owner.title": "Transferir la propiedad del inquilino",
+  "tenants.transfer_owner.description": "Transfiere la propiedad del inquilino a un usuario de este inquilino o a un miembro normal vigente (habilitado y sin bloquear). El nuevo propietario recibe el rol de administrador integrado y el anterior conserva sus roles. Solo en la plataforma.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Transferir la propiedad del inquilino",
+  "tenancy.owner.missing": "El inquilino '{tenantId}' aún no tiene propietario. Inicializa primero su administrador.",
+  "tenancy.owner.already": "El usuario '{userId}' ya es propietario del inquilino '{tenantId}'.",
+  "tenancy.owner.removal": "El usuario '{userId}' es propietario del inquilino '{tenantId}'. Transfiere la propiedad antes de quitarlo.",
+  "tenancy.owner.ineligible": "El usuario '{userId}' no puede ser propietario del inquilino '{tenantId}': debe pertenecer a este inquilino o ser un miembro normal vigente, habilitado y sin bloquear.",
+  "tenancy.member.type_mismatch": "El usuario '{userId}' no puede unirse como '{memberType}': las cuentas de plataforma solo se unen como soporte y los miembros de soporte deben ser cuentas de plataforma.",
+  "tenancy.member.window_invalid": "La fecha de vencimiento debe ser posterior a la de inicio."
 }

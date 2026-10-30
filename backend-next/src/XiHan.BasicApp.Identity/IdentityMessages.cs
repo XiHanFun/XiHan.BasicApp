@@ -155,6 +155,11 @@ public static class IdentityMessages
     public const string SelfOperation = "identity.user.self_operation";
 
     /// <summary>
+    /// 用户是租户的所有者，不能删除或锁定。
+    /// </summary>
+    public const string TenantOwner = "identity.user.tenant_owner";
+
+    /// <summary>
     /// 显示名只有空白。
     /// </summary>
     /// <remarks>

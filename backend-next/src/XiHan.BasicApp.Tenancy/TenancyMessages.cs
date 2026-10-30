@@ -59,6 +59,11 @@ public static class TenancyMessages
     public const string InitializeAdminDescription = "tenants.initialize_admin.description";
 
     /// <summary>
+    /// 操作 <c>tenants.transfer-owner</c> 的说明。
+    /// </summary>
+    public const string TransferOwnerDescription = "tenants.transfer_owner.description";
+
+    /// <summary>
     /// 租户不存在。
     /// </summary>
     /// <remarks>
@@ -272,6 +277,50 @@ public static class TenancyMessages
     /// 没有缺省套餐。
     /// </summary>
     public const string NoDefaultEdition = "tenancy.edition.no_default";
+    /// <summary>
+    /// 租户还没有所有者。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
+    public const string OwnerMissing = "tenancy.owner.missing";
+
+    /// <summary>
+    /// 已经是所有者。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>、<c>userId</c>。
+    /// </remarks>
+    public const string AlreadyOwner = "tenancy.owner.already";
+
+    /// <summary>
+    /// 所有者不能移出成员。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>、<c>userId</c>。
+    /// </remarks>
+    public const string OwnerRemoval = "tenancy.owner.removal";
+
+    /// <summary>
+    /// 新所有者不合格。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>、<c>userId</c>。
+    /// </remarks>
+    public const string OwnerIneligible = "tenancy.owner.ineligible";
+
+    /// <summary>
+    /// 成员类型与账号不符。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>userId</c>、<c>memberType</c>。
+    /// </remarks>
+    public const string MemberTypeMismatch = "tenancy.member.type_mismatch";
+
+    /// <summary>
+    /// 成员的到期时间不晚于生效时间。
+    /// </summary>
+    public const string MemberWindowInvalid = "tenancy.member.window_invalid";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 

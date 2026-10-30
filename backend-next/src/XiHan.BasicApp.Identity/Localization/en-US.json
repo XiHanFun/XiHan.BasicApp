@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Reset two-factor",
   "permissions.identity.impersonation.start.name": "Impersonate users",
   "permissions.identity.sessions.read.name": "Read online users",
-  "permissions.identity.sessions.revoke.name": "Force sign-out"
+  "permissions.identity.sessions.revoke.name": "Force sign-out",
+  "identity.user.tenant_owner": "This account owns a tenant. Transfer the ownership first."
 }

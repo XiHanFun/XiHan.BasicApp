@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Editionen anlegen",
   "permissions.tenancy.editions.update.name": "Editionen bearbeiten",
   "permissions.tenancy.editions.delete.name": "Editionen löschen",
-  "permissions.tenancy.subscription.read.name": "Abonnement lesen"
+  "permissions.tenancy.subscription.read.name": "Abonnement lesen",
+  "tenants.transfer_owner.title": "Mandanteneigentum übertragen",
+  "tenants.transfer_owner.description": "Überträgt das Eigentum am Mandanten an einen Benutzer dieses Mandanten oder an ein aktives reguläres Mitglied (aktiviert und nicht gesperrt). Der neue Eigentümer erhält die integrierte Administratorrolle, der bisherige behält seine Rollen. Nur auf Plattformseite.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Mandanteneigentum übertragen",
+  "tenancy.owner.missing": "Der Mandant '{tenantId}' hat noch keinen Eigentümer. Initialisieren Sie zuerst den Administrator.",
+  "tenancy.owner.already": "Der Benutzer '{userId}' ist bereits Eigentümer des Mandanten '{tenantId}'.",
+  "tenancy.owner.removal": "Der Benutzer '{userId}' ist Eigentümer des Mandanten '{tenantId}'. Übertragen Sie das Eigentum, bevor Sie ihn entfernen.",
+  "tenancy.owner.ineligible": "Der Benutzer '{userId}' kann nicht Eigentümer des Mandanten '{tenantId}' werden: Er muss zu diesem Mandanten gehören oder ein aktives reguläres Mitglied sein, aktiviert und nicht gesperrt.",
+  "tenancy.member.type_mismatch": "Der Benutzer '{userId}' kann nicht als '{memberType}' beitreten: Plattformkonten treten nur als Support bei, und Support-Mitglieder müssen Plattformkonten sein.",
+  "tenancy.member.window_invalid": "Der Ablaufzeitpunkt muss nach dem Gültigkeitsbeginn liegen."
 }

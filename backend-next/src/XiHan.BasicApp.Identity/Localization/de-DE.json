@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Zwei-Faktor-Authentifizierung zurücksetzen",
   "permissions.identity.impersonation.start.name": "Benutzer imitieren",
   "permissions.identity.sessions.read.name": "Online-Benutzer lesen",
-  "permissions.identity.sessions.revoke.name": "Abmeldung erzwingen"
+  "permissions.identity.sessions.revoke.name": "Abmeldung erzwingen",
+  "identity.user.tenant_owner": "Dieses Konto ist Eigentümer eines Mandanten. Übertragen Sie zuerst das Eigentum."
 }

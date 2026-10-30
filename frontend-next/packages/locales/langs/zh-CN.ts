@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: '普通成员',
           owner: '租户所有者',
+          support: '运维支持',
         },
         section_desc: '您当前可访问的租户组织及其成员角色',
         section_title: '我的租户',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: '所有者',
         member: '成员',
+        support: '运维支持',
       },
     },
     auth: {

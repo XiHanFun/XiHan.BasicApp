@@ -201,6 +201,7 @@ export default {
         delegation: '권한 위임',
         condition_change: '권한 조건',
         constraint_violation: '제약 규칙 위반',
+        tenant_owner: '테넌트 소유권 이전',
       },
       role_id: '역할 ID',
       role_name: '역할',

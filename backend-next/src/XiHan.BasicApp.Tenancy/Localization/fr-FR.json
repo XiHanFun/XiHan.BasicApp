@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Créer des éditions",
   "permissions.tenancy.editions.update.name": "Modifier les éditions",
   "permissions.tenancy.editions.delete.name": "Supprimer les éditions",
-  "permissions.tenancy.subscription.read.name": "Consulter l’abonnement"
+  "permissions.tenancy.subscription.read.name": "Consulter l’abonnement",
+  "tenants.transfer_owner.title": "Transférer la propriété du locataire",
+  "tenants.transfer_owner.description": "Transfère la propriété du locataire à un utilisateur de ce locataire ou à un membre ordinaire en vigueur (activé et non verrouillé). Le nouveau propriétaire reçoit le rôle d'administrateur intégré ; l'ancien conserve ses rôles. Côté plateforme uniquement.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Transférer la propriété du locataire",
+  "tenancy.owner.missing": "Le locataire '{tenantId}' n'a pas encore de propriétaire. Initialisez d'abord son administrateur.",
+  "tenancy.owner.already": "L'utilisateur '{userId}' est déjà propriétaire du locataire '{tenantId}'.",
+  "tenancy.owner.removal": "L'utilisateur '{userId}' est propriétaire du locataire '{tenantId}'. Transférez la propriété avant de le retirer.",
+  "tenancy.owner.ineligible": "L'utilisateur '{userId}' ne peut pas devenir propriétaire du locataire '{tenantId}' : il doit appartenir à ce locataire ou être un membre ordinaire en vigueur, activé et non verrouillé.",
+  "tenancy.member.type_mismatch": "L'utilisateur '{userId}' ne peut pas rejoindre en tant que '{memberType}' : les comptes plateforme ne rejoignent qu'en support, et les membres support doivent être des comptes plateforme.",
+  "tenancy.member.window_invalid": "L'échéance doit être postérieure à la date d'effet."
 }

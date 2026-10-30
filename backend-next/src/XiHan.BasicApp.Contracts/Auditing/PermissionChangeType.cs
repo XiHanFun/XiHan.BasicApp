@@ -102,4 +102,9 @@ public enum PermissionChangeType
     /// 违反了处理方式为警告或只记录的约束规则（拒绝与需审批的不落地，调用直接失败）。
     /// </summary>
     ConstraintViolation = 18,
+
+    /// <summary>
+    /// 转移租户所有权。
+    /// </summary>
+    TenantOwner = 19,
 }

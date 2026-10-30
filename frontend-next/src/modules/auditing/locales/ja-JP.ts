@@ -201,6 +201,7 @@ export default {
         delegation: '権限の委任',
         condition_change: '権限条件',
         constraint_violation: '制約ルール違反',
+        tenant_owner: 'テナント所有権の移譲',
       },
       role_id: 'ロール ID',
       role_name: 'ロール',

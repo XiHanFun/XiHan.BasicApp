@@ -28,6 +28,7 @@ namespace XiHan.BasicApp.Tenancy;
 [JsonSerializable(typeof(UpdateTenantRequest))]
 [JsonSerializable(typeof(TenantIdsRequest))]
 [JsonSerializable(typeof(InitializeAdminRequest))]
+[JsonSerializable(typeof(TransferOwnerRequest))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(TenantResponse))]
 [JsonSerializable(typeof(TenantDetailResponse))]

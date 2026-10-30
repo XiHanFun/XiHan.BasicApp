@@ -64,19 +64,21 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[2]).toMatchObject({ method: 'GET', url: '/api/inbox:banners' })
   })
 
-  it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型，加入时间换成 joinedTime）', async () => {
+  it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型，所有者原样带出，加入时间换成 joinedTime）', async () => {
     const calls: Call[] = []
     record(calls, () => json(200, {
       canAccessPlatform: true,
       platformIsCurrent: true,
       tenants: [
-        { tenantId: 'demo', name: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false, joinedAt: '2026-10-01T00:00:00Z' },
-        { tenantId: 'acme', name: 'Acme', isHome: true, memberType: null, isCurrent: true, joinedAt: '2026-01-01T00:00:00Z' },
+        { tenantId: 'demo', name: 'Demo Tenant', isHome: false, memberType: 'Member', isOwner: true, isCurrent: false, joinedAt: '2026-10-01T00:00:00Z' },
+        { tenantId: 'beta', name: 'Beta', isHome: false, memberType: 'Support', isOwner: false, isCurrent: false, joinedAt: '2026-10-02T00:00:00Z' },
+        { tenantId: 'acme', name: 'Acme', isHome: true, memberType: null, isOwner: false, isCurrent: true, joinedAt: '2026-01-01T00:00:00Z' },
       ],
     }))
     expect(await useAppContext().apis.tenantApi.myAvailableTenants()).toEqual([
-      { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false, joinedTime: '2026-10-01T00:00:00Z' },
-      { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isCurrent: true, joinedTime: '2026-01-01T00:00:00Z' },
+      { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Member', isOwner: true, isCurrent: false, joinedTime: '2026-10-01T00:00:00Z' },
+      { tenantId: 'beta', tenantName: 'Beta', isHome: false, memberType: 'Support', isOwner: false, isCurrent: false, joinedTime: '2026-10-02T00:00:00Z' },
+      { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isOwner: false, isCurrent: true, joinedTime: '2026-01-01T00:00:00Z' },
     ])
     expect(calls).toEqual([{ method: 'GET', url: '/api/tenants:mine', body: null }])
   })

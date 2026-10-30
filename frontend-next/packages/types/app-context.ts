@@ -16,7 +16,8 @@ import type { NotificationContentFormat, NotificationPriority, NotificationStatu
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEmailParams, ChangePasswordParams, ChangePhoneParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
- * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户；
+ * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`（Member 普通成员 / Support 运维支持）；
+ * `isOwner` 是该租户的所有者（租户的 AdminUserId，与注册地、成员类型无关）；`isCurrent` 是当前会话所在的租户；
  * `joinedTime` 沿用 4.x 的字段名（后端 joinedAt）：成员是成为成员的时间，注册地是账号建立的时间。
  */
 export interface AppTenantSwitcherItem {
@@ -24,6 +25,7 @@ export interface AppTenantSwitcherItem {
   tenantName: string
   isHome: boolean
   memberType: null | TenantMemberType
+  isOwner: boolean
   isCurrent: boolean
   joinedTime: string
 }

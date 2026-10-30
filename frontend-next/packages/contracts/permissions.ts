@@ -156,6 +156,7 @@ export const permissionDefinitions = {
   'tenancy.tenants.initialize-admin': { code: 'tenancy.tenants.initialize-admin', displayName: 'Initialize tenant administrators', description: 'Create the first administrator of a tenant with every tenant-side permission.' },
   'tenancy.tenants.read': { code: 'tenancy.tenants.read', displayName: 'Read tenants', description: 'View tenants and their administrators.' },
   'tenancy.tenants.suspend': { code: 'tenancy.tenants.suspend', displayName: 'Suspend tenants', description: 'Suspend and resume tenants; suspended tenants cannot sign in.' },
+  'tenancy.tenants.transfer-owner': { code: 'tenancy.tenants.transfer-owner', displayName: 'Transfer tenant ownership', description: 'Hand a tenant\'s ownership to one of its users or members; the previous owner stays an administrator.' },
   'tenancy.tenants.update': { code: 'tenancy.tenants.update', displayName: 'Update tenants', description: 'Edit tenant names, descriptions, expiry and order.' },
 } as const
 
@@ -387,6 +388,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'tenants.quotas': 'tenancy.tenants.read',
   'tenants.resume': 'tenancy.tenants.suspend',
   'tenants.suspend': 'tenancy.tenants.suspend',
+  'tenants.transfer-owner': 'tenancy.tenants.transfer-owner',
   'tenants.update': 'tenancy.tenants.update',
   'traces.timeline': 'auditing.traces.read',
   'user-data-scopes.get': 'access.user-data-scopes.read',

@@ -201,6 +201,7 @@ export default {
         delegation: 'Delegação',
         condition_change: 'Condição de permissão',
         constraint_violation: 'Violação de restrição',
+        tenant_owner: 'Transferência de propriedade do locatário',
       },
       role_id: 'ID do papel',
       role_name: 'Papel',

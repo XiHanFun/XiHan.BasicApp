@@ -133,7 +133,7 @@ public sealed class PermissionChangeLogEntry : AuditLogEntry
     public string? EditionCode { get; set; }
 
     /// <summary>
-    /// 换套餐的租户。
+    /// 换套餐或转移所有权的租户。
     /// </summary>
     public string? TargetTenantId { get; set; }
 

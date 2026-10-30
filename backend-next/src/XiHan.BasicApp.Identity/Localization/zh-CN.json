@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "重置双因素认证",
   "permissions.identity.impersonation.start.name": "模仿登录",
   "permissions.identity.sessions.read.name": "读取在线用户",
-  "permissions.identity.sessions.revoke.name": "强制下线"
+  "permissions.identity.sessions.revoke.name": "强制下线",
+  "identity.user.tenant_owner": "这个账号是某个租户的所有者，请先转移所有权。"
 }

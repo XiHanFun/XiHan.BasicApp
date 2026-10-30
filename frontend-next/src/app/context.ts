@@ -437,7 +437,7 @@ export function registerApplicationContext(router: Router): void {
     },
     // 控制中心与个人中心「我的租户」：我能进入的租户（注册地 + 成员）与能否进入平台；切换走 auth.switch-tenant，在目标上下文续接当前会话
     tenantApi: {
-      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isCurrent: tenant.isCurrent, joinedTime: tenant.joinedAt })),
+      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isOwner: tenant.isOwner, isCurrent: tenant.isCurrent, joinedTime: tenant.joinedAt })),
       switchTenant: input => authOps.switchTenant({ tenantId: input.tenantId ?? null }),
     },
     // 切换角色：auth.session-roles 列出持有与激活，auth.activate-roles 换激活集并续接会话（Access 的动态职责分离在服务端判定）

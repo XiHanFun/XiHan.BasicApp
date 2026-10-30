@@ -77,6 +77,7 @@ export function permissionChangeLabel(t: Translate, value: PermissionChangeType)
     case 'Delegation': return t('auditing.permission_change_logs.types.delegation')
     case 'ConditionChange': return t('auditing.permission_change_logs.types.condition_change')
     case 'ConstraintViolation': return t('auditing.permission_change_logs.types.constraint_violation')
+    case 'TenantOwner': return t('auditing.permission_change_logs.types.tenant_owner')
   }
 }
 

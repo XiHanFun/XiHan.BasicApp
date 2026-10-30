@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Auditing.Operations.PermissionChangeLogs;
 /// <param name="TargetUserName">目标用户的登录名。</param>
 /// <param name="EditionId">套餐。</param>
 /// <param name="EditionCode">套餐编码。</param>
-/// <param name="TargetTenantId">换套餐的租户。</param>
+/// <param name="TargetTenantId">换套餐或转移所有权的租户。</param>
 /// <param name="PermissionCodes">涉及的权限码，逗号分隔。</param>
 /// <param name="Detail">补充说明。</param>
 public sealed record PermissionChangeLogResponse(

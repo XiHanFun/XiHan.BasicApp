@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Seeds;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -20,24 +21,64 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// <remarks>
 /// 为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去。
 /// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用。
+/// 转移所有权时新所有者同样指派进 <c>admin</c>（新加的记一条指派日志），原所有者的角色不动；两人的指派缓存随即失效（判定与下次续签立即看到）。
 /// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>
 /// <param name="grants">角色授予。</param>
 /// <param name="ids">标识生成器。</param>
+/// <param name="assignments">指派缓存。</param>
 public sealed class TenantRoleInitializer(
     IRepository<SysRole, Guid> roles,
     IRepository<SysUserRole, Guid> members,
     RoleService service,
     RoleGrants grants,
-    IIdGenerator<Guid> ids) : ITenantInitializer
+    IIdGenerator<Guid> ids,
+    RoleAssignments assignments) : ITenantInitializer
 {
     /// <inheritdoc />
     public async Task<Result> InitializeAsync(string tenantId, Guid adminUserId, InvocationContext context)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentNullException.ThrowIfNull(context);
+        var ensured = await EnsureAdminAsync(tenantId, adminUserId, context).ConfigureAwait(false);
+        if (ensured.IsFailure)
+        {
+            return ensured.Error!;
+        }
+
+        await assignments.InvalidateAsync(tenantId, adminUserId, context.CancellationToken).ConfigureAwait(false);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> TransferOwnerAsync(string tenantId, Guid previousOwnerId, Guid ownerId, InvocationContext context)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentNullException.ThrowIfNull(context);
+        var ensured = await EnsureAdminAsync(tenantId, ownerId, context).ConfigureAwait(false);
+        if (!ensured.TryGetValue(out var outcome))
+        {
+            return ensured.Error!;
+        }
+
+        if (outcome.Assigned)
+        {
+            context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleAssign) { RoleId = outcome.Role.Id, RoleName = outcome.Role.Name, TargetUserId = ownerId, TargetTenantId = tenantId });
+        }
+
+        await assignments.InvalidateAsync(tenantId, ownerId, context.CancellationToken).ConfigureAwait(false);
+        await assignments.InvalidateAsync(tenantId, previousOwnerId, context.CancellationToken).ConfigureAwait(false);
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// 备好租户的 <c>admin</c> 角色并把用户指派进去。
+    /// </summary>
+    /// <returns>角色，以及这次是否新加了指派。</returns>
+    private async Task<Result<(SysRole Role, bool Assigned)>> EnsureAdminAsync(string tenantId, Guid adminUserId, InvocationContext context)
+    {
         SysRole admin;
         if ((await service.FindByCodeAsync(tenantId, PlatformRoleSeeder.AdminRoleCode, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var found))
         {
@@ -49,7 +90,7 @@ public sealed class TenantRoleInitializer(
             var added = await roles.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {
-                return added;
+                return added.Error!;
             }
         }
 
@@ -60,15 +101,19 @@ public sealed class TenantRoleInitializer(
             {
                 if (outcome.Outcome.IsFailure)
                 {
-                    return outcome.Outcome;
+                    return outcome.Outcome.Error!;
                 }
             }
         }
 
         var roleId = admin.Id;
         var assigned = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.UserId == adminUserId && m.RoleId == roleId)).Page(0, 1), context.CancellationToken).ConfigureAwait(false);
-        return assigned.Count > 0
-            ? Result.Success()
-            : await members.AddAsync(new SysUserRole { Id = ids.NewId(), OwnerTenantId = tenantId, UserId = adminUserId, RoleId = roleId }, context.CancellationToken).ConfigureAwait(false);
+        if (assigned.Count > 0)
+        {
+            return (admin, false);
+        }
+
+        var joined = await members.AddAsync(new SysUserRole { Id = ids.NewId(), OwnerTenantId = tenantId, UserId = adminUserId, RoleId = roleId }, context.CancellationToken).ConfigureAwait(false);
+        return joined.IsFailure ? joined.Error! : (admin, true);
     }
 }

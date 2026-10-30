@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: '일반 구성원',
           owner: '테넌트 소유자',
+          support: '운영 지원',
         },
         section_desc: '현재 접근할 수 있는 테넌트 조직과 멤버 역할이에요',
         section_title: '내 테넌트',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: '소유자',
         member: '구성원',
+        support: '운영 지원',
       },
     },
     auth: {

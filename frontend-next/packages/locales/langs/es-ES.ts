@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: 'Miembro',
           owner: 'Propietario del inquilino',
+          support: 'Soporte',
         },
         section_desc: 'Las organizaciones inquilinas a las que puede acceder actualmente y sus roles de miembro',
         section_title: 'Mis inquilinos',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'Propietario',
         member: 'Miembro',
+        support: 'Soporte',
       },
     },
     auth: {

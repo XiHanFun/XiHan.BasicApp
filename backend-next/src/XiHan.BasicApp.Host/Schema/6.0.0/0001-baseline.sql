@@ -1156,6 +1156,8 @@ CREATE TABLE IF NOT EXISTS "sys_tenant_member" (
     "tenant_id" character varying(512) NOT NULL,
     "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
     "member_type" integer DEFAULT 0 NOT NULL,
+    "effective_at" timestamp with time zone NULL,
+    "expires_at" timestamp with time zone NULL,
     "modified_at" timestamp with time zone NULL,
     "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
     "is_deleted" boolean DEFAULT false NOT NULL,

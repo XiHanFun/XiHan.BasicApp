@@ -1,6 +1,6 @@
 /**
  * 个人中心「我的租户」（ProfileTabTenants.vue，4.x 原样搬入）：
- * 注册地（没有成员类型）、所有者、成员各打身份标签，说明行带加入时间（注册地是账号建立的时间）；
+ * 所有者（先于注册地判定）、注册地（没有成员类型）、运维支持、普通成员各打身份标签，说明行带加入时间（注册地是账号建立的时间）；
  * 当前租户打「当前」、不给切换，其余切换交给 auth store（与控制中心同一个入口），被拒即提示后端文案；没有租户显示空态。
  */
 import type { AppContextApis, AppTenantSwitcherItem } from '~/types'
@@ -19,9 +19,11 @@ const apis = {
 }
 
 const tenants: AppTenantSwitcherItem[] = [
-  { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isCurrent: true, joinedTime: '2026-01-02T12:00:00Z' },
-  { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false, joinedTime: '2026-03-04T12:00:00Z' },
-  { tenantId: 'beta', tenantName: 'Beta', isHome: false, memberType: 'Member', isCurrent: false, joinedTime: '2026-05-06T12:00:00Z' },
+  { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isOwner: false, isCurrent: true, joinedTime: '2026-01-02T12:00:00Z' },
+  { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Member', isOwner: true, isCurrent: false, joinedTime: '2026-03-04T12:00:00Z' },
+  { tenantId: 'beta', tenantName: 'Beta', isHome: false, memberType: 'Member', isOwner: false, isCurrent: false, joinedTime: '2026-05-06T12:00:00Z' },
+  { tenantId: 'ops', tenantName: 'Ops', isHome: false, memberType: 'Support', isOwner: false, isCurrent: false, joinedTime: '2026-07-08T12:00:00Z' },
+  { tenantId: 'own', tenantName: 'Own', isHome: true, memberType: null, isOwner: true, isCurrent: false, joinedTime: '2026-09-10T12:00:00Z' },
 ]
 
 beforeEach(() => {
@@ -48,18 +50,21 @@ function joined(tenant: AppTenantSwitcherItem) {
 }
 
 describe('我的租户页签', () => {
-  it('注册地、所有者、成员各打身份标签并带加入时间；当前租户打「当前」、不给切换', async () => {
+  it('所有者、注册地、运维支持、成员各打身份标签并带加入时间；所有者先于注册地；当前租户打「当前」、不给切换', async () => {
     const wrapper = await render()
     const rows = wrapper.findAll('.pf-list-item').map(item => ({
       title: text(item.find('.pf-list-title').text()),
       desc: text(item.find('.pf-list-desc').text()),
       tag: item.find('.pf-tenant-actions [data-part="label"]').text(),
+      tone: item.find('.pf-tenant-actions [data-part="root"]').attributes('data-tone') ?? null,
       action: item.find('.pf-tenant-actions button').exists() ? item.find('.pf-tenant-actions button').text() : null,
     }))
     expect(rows).toEqual([
-      { title: 'Acme 当前', desc: `注册地 · ${joined(tenants[0]!)}`, tag: '注册地', action: null },
-      { title: 'Demo Tenant', desc: `租户所有者 · ${joined(tenants[1]!)}`, tag: '租户所有者', action: '切换' },
-      { title: 'Beta', desc: `普通成员 · ${joined(tenants[2]!)}`, tag: '普通成员', action: '切换' },
+      { title: 'Acme 当前', desc: `注册地 · ${joined(tenants[0]!)}`, tag: '注册地', tone: 'brand', action: null },
+      { title: 'Demo Tenant', desc: `租户所有者 · ${joined(tenants[1]!)}`, tag: '租户所有者', tone: 'warning', action: '切换' },
+      { title: 'Beta', desc: `普通成员 · ${joined(tenants[2]!)}`, tag: '普通成员', tone: 'neutral', action: '切换' },
+      { title: 'Ops', desc: `运维支持 · ${joined(tenants[3]!)}`, tag: '运维支持', tone: 'info', action: '切换' },
+      { title: 'Own', desc: `租户所有者 · ${joined(tenants[4]!)}`, tag: '租户所有者', tone: 'warning', action: '切换' },
     ])
     expect(wrapper.findAll('.pf-list-item')[0]!.classes()).toContain('pf-list-item--active')
   })

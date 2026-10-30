@@ -79,19 +79,28 @@ async function handleLogout() {
   await authStore.logout()
 }
 
-/** 身份标签：注册地、所有者、成员（文案键静态写出以便 i18n 门禁核对） */
+/**
+ * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地、运维支持、普通成员
+ * （文案键静态写出以便 i18n 门禁核对；与个人中心「我的租户」同口径）
+ */
 function membershipLabel(tenant: AppTenantSwitcherItem): string {
+  if (tenant.isOwner) {
+    return t('page.control_center.member_type.owner')
+  }
   if (tenant.isHome) {
     return t('page.control_center.home_tenant')
   }
-  return tenant.memberType === 'Owner' ? t('page.control_center.member_type.owner') : t('page.control_center.member_type.member')
+  return tenant.memberType === 'Support' ? t('page.control_center.member_type.support') : t('page.control_center.member_type.member')
 }
 
 function membershipTone(tenant: AppTenantSwitcherItem) {
+  if (tenant.isOwner) {
+    return 'warning'
+  }
   if (tenant.isHome) {
     return 'brand'
   }
-  return tenant.memberType === 'Owner' ? 'warning' : 'neutral'
+  return tenant.memberType === 'Support' ? 'info' : 'neutral'
 }
 
 onMounted(loadTenants)

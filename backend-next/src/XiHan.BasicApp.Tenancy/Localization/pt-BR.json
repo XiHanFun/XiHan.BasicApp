@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Criar edições",
   "permissions.tenancy.editions.update.name": "Editar edições",
   "permissions.tenancy.editions.delete.name": "Excluir edições",
-  "permissions.tenancy.subscription.read.name": "Ver assinatura"
+  "permissions.tenancy.subscription.read.name": "Ver assinatura",
+  "tenants.transfer_owner.title": "Transferir a propriedade do locatário",
+  "tenants.transfer_owner.description": "Transfere a propriedade do locatário para um usuário deste locatário ou para um membro comum vigente (habilitado e não bloqueado). O novo proprietário recebe a função de administrador integrada; o anterior mantém suas funções. Somente na plataforma.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Transferir a propriedade do locatário",
+  "tenancy.owner.missing": "O locatário '{tenantId}' ainda não tem proprietário. Inicialize primeiro o administrador.",
+  "tenancy.owner.already": "O usuário '{userId}' já é proprietário do locatário '{tenantId}'.",
+  "tenancy.owner.removal": "O usuário '{userId}' é proprietário do locatário '{tenantId}'. Transfira a propriedade antes de removê-lo.",
+  "tenancy.owner.ineligible": "O usuário '{userId}' não pode ser proprietário do locatário '{tenantId}': precisa pertencer a este locatário ou ser um membro comum vigente, habilitado e não bloqueado.",
+  "tenancy.member.type_mismatch": "O usuário '{userId}' não pode entrar como '{memberType}': contas da plataforma entram apenas como suporte, e membros de suporte devem ser contas da plataforma.",
+  "tenancy.member.window_invalid": "A data de expiração deve ser posterior à de início."
 }

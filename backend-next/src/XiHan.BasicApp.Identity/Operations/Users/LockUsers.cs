@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Kernel.Operations;
@@ -14,12 +15,13 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 批量锁定用户。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/users:lock</c>。状态置为 <c>Locked</c>、吊销全部会话；不能锁自己。
+/// <c>POST /api/users:lock</c>。状态置为 <c>Locked</c>、吊销全部会话；不能锁自己，租户的所有者要先转移所有权。
 /// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
+/// <param name="memberships">成员关系（Tenancy 实现：租户的所有者逐项拒绝）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersLock)]
-public sealed class LockUsers(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<UserIdsRequest, BatchResult>
+public sealed class LockUsers(IRepository<SysUser, Guid> users, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -32,6 +34,7 @@ public sealed class LockUsers(IRepository<SysUser, Guid> users, UserAccountServi
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var (targets, failed) = await UserBatch.ResolveAsync(users, request.Ids, context, rejectSelf: true).ConfigureAwait(false);
+        await UserBatch.ExcludeOwnersAsync(targets, failed, memberships, context.CancellationToken).ConfigureAwait(false);
         if (targets.Count == 0)
         {
             return new BatchResult([], failed);

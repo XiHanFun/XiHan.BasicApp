@@ -71,8 +71,8 @@ describe('字符串枚举与后端序列化口径', () => {
     expect(memberNames(NotificationStatus)).toStrictEqual(['Unread', 'Read', 'Deleted'])
   })
 
-  it('租户成员类型取契约层的值集：成员与所有者，控制中心按所有者做标签配色', () => {
-    expect([...TenantMemberType]).toStrictEqual(['Member', 'Owner'])
+  it('租户成员类型取契约层的值集：普通成员与运维支持（所有者是租户上的 AdminUserId，不是成员类型）', () => {
+    expect([...TenantMemberType]).toStrictEqual(['Member', 'Support'])
   })
 })
 

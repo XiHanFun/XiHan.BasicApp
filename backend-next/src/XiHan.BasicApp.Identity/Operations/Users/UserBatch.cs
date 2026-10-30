@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Security;
@@ -49,6 +50,27 @@ internal static class UserBatch
         }
 
         return (targets, failed);
+    }
+
+    /// <summary>
+    /// 把租户的所有者从目标里剔出、记为失败。
+    /// </summary>
+    /// <remarks>
+    /// 所有者不能被删除或锁定，要先转移所有权（<see cref="IdentityErrors.TenantOwner"/>）；没有成员关系实现时没有所有者。
+    /// </remarks>
+    public static async Task ExcludeOwnersAsync(List<SysUser> targets, List<BatchFailure> failed, IEnumerable<ITenantMembershipResolver> memberships, CancellationToken cancellationToken)
+    {
+        var owners = new HashSet<Guid>();
+        foreach (var resolver in memberships)
+        {
+            owners.UnionWith(await resolver.OwnersAmongAsync(targets.Select(static u => u.Id).ToList(), cancellationToken).ConfigureAwait(false));
+        }
+
+        foreach (var owner in targets.Where(u => owners.Contains(u.Id)).ToList())
+        {
+            targets.Remove(owner);
+            failed.Add(new BatchFailure(owner.Id, IdentityErrors.TenantOwner));
+        }
     }
 
     /// <summary>

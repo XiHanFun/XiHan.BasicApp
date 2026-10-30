@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: 'Mitglied',
           owner: 'Mandanteninhaber',
+          support: 'Support',
         },
         section_desc: 'Die Mandantenorganisationen, auf die Sie derzeit zugreifen können, und Ihre Mitgliedsrollen',
         section_title: 'Meine Mandanten',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'Eigentümer',
         member: 'Mitglied',
+        support: 'Support',
       },
     },
     auth: {

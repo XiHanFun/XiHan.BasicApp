@@ -21,4 +21,12 @@ public interface ITenantInitializer
     /// 重复调用必须幂等。
     /// </remarks>
     Task<Result> InitializeAsync(string tenantId, Guid adminUserId, InvocationContext context);
+
+    /// <summary>
+    /// 所有权从 <paramref name="previousOwnerId"/> 转给 <paramref name="ownerId"/> 之后的处理。
+    /// </summary>
+    /// <remarks>
+    /// 新所有者拿到管理员身份（同 <see cref="InitializeAsync"/>，幂等），原所有者保留已有的角色（降为管理员）；两人的授权缓存随即失效。
+    /// </remarks>
+    Task<Result> TransferOwnerAsync(string tenantId, Guid previousOwnerId, Guid ownerId, InvocationContext context);
 }

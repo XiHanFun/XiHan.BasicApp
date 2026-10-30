@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: 'Member',
           owner: 'Tenant Owner',
+          support: 'Support',
         },
         section_desc: 'The tenant organizations you can currently access and your member roles',
         section_title: 'My Tenants',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'Owner',
         member: 'Member',
+        support: 'Support',
       },
     },
     auth: {

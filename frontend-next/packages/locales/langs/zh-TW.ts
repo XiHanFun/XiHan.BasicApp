@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: '一般成員',
           owner: '租戶擁有者',
+          support: '維運支援',
         },
         section_desc: '您目前可存取的租戶組織及其成員角色',
         section_title: '我的租戶',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: '擁有者',
         member: '成員',
+        support: '維運支援',
       },
     },
     auth: {

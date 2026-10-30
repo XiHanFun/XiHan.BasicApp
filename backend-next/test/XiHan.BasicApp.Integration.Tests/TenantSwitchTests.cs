@@ -55,20 +55,24 @@ public sealed class TenantSwitchTests : IDisposable
         Assert.True(mineBody.GetProperty("canAccessPlatform").GetBoolean());
         Assert.True(mineBody.GetProperty("platformIsCurrent").GetBoolean());
         Assert.Equal(["demo"], mineBody.GetProperty("tenants").EnumerateArray().Select(static t => t.GetProperty("tenantId").GetString()).ToList());
-        Assert.Equal("Owner", mineBody.GetProperty("tenants")[0].GetProperty("memberType").GetString());
+        Assert.Equal("Support", mineBody.GetProperty("tenants")[0].GetProperty("memberType").GetString());
+        Assert.False(mineBody.GetProperty("tenants")[0].GetProperty("isOwner").GetBoolean());
         // 加入时间：成员是成为成员的时间
         Assert.True(mineBody.GetProperty("tenants")[0].GetProperty("joinedAt").GetDateTimeOffset() > DateTimeOffset.UnixEpoch);
 
-        // 加成员：operator 进 contoso；重复与注册地用户都是冲突；租户 / 用户不存在各自 404
-        var (added, addedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}"}""", superadmin));
+        // 加成员：平台账号 operator 只能以运维支持进 contoso（以普通成员加入是 400）；重复与注册地用户都是冲突；租户 / 用户不存在各自 404
+        var (asMember, asMemberBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, asMember.StatusCode);
+        Assert.Equal("TENANCY_VALIDATION_006", asMemberBody.GetProperty("code").GetString());
+        var (added, addedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}","memberType":"Support"}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, added.StatusCode);
         Assert.Equal("operator", addedBody.GetProperty("userName").GetString());
-        Assert.Equal("Member", addedBody.GetProperty("memberType").GetString());
+        Assert.Equal("Support", addedBody.GetProperty("memberType").GetString());
         var memberId = addedBody.GetProperty("id").GetString()!;
-        var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}"}""", superadmin));
+        var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}","memberType":"Support"}""", superadmin));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         Assert.Equal("TENANCY_CONFLICT_005", duplicateBody.GetProperty("code").GetString());
-        var (noTenant, noTenantBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"nope","userId":"{{operatorId}}"}""", superadmin));
+        var (noTenant, noTenantBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"nope","userId":"{{operatorId}}","memberType":"Support"}""", superadmin));
         Assert.Equal(HttpStatusCode.NotFound, noTenant.StatusCode);
         Assert.Equal("TENANCY_NOTFOUND_001", noTenantBody.GetProperty("code").GetString());
         var (noUser, noUserBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{Guid.NewGuid()}}"}""", superadmin));

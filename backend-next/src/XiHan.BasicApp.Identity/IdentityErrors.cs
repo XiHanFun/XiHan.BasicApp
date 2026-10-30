@@ -407,4 +407,12 @@ public static class IdentityErrors
     /// 参数 <c>method</c>（<c>Email</c> 或 <c>Phone</c>）；改用密码登录。
     /// </remarks>
     public const string TwoFactorSameAsLogin = "IDENTITY_DENIED_017";
+
+    /// <summary>
+    /// 用户是某个租户的所有者，不能删除或锁定。
+    /// </summary>
+    /// <remarks>
+    /// 要先转移所有权（<c>tenants.transfer-owner</c>）。
+    /// </remarks>
+    public const string TenantOwner = "IDENTITY_CONFLICT_011";
 }

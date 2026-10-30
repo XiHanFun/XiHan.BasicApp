@@ -16,6 +16,8 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// <param name="DisplayName">显示名。</param>
 /// <param name="HomeTenantId">用户的注册地租户。</param>
 /// <param name="MemberType">成员类型。</param>
+/// <param name="EffectiveAt">生效时间（UTC）；为空即加入即生效。</param>
+/// <param name="ExpiresAt">到期时间（UTC）；为空即不到期。</param>
 /// <param name="CreatedAt">加入时间（UTC）。</param>
 public sealed record TenantMemberResponse(
     Guid Id,
@@ -25,6 +27,8 @@ public sealed record TenantMemberResponse(
     string DisplayName,
     string HomeTenantId,
     TenantMemberType MemberType,
+    DateTimeOffset? EffectiveAt,
+    DateTimeOffset? ExpiresAt,
     DateTimeOffset CreatedAt)
 {
     /// <summary>
@@ -34,6 +38,6 @@ public sealed record TenantMemberResponse(
     {
         ArgumentNullException.ThrowIfNull(member);
         ArgumentNullException.ThrowIfNull(user);
-        return new TenantMemberResponse(member.Id, member.TenantId, member.UserId, user.UserName, user.DisplayName, user.HomeTenantId, member.MemberType, member.CreatedAt);
+        return new TenantMemberResponse(member.Id, member.TenantId, member.UserId, user.UserName, user.DisplayName, user.HomeTenantId, member.MemberType, member.EffectiveAt, member.ExpiresAt, member.CreatedAt);
     }
 }

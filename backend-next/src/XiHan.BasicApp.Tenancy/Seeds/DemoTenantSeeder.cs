@@ -105,14 +105,14 @@ public sealed class DemoTenantSeeder(
             }
         }
 
-        // 平台超级管理员是演示租户的成员：切换租户、在其中发起模仿都要它；只首写
+        // 平台超级管理员是演示租户的运维支持成员：切换租户、在其中发起模仿都要它；只首写
         if ((await accounts.FindByNameAsync(TenantIds.Platform, SeedOptions.SuperAdminUserName, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var superAdmin))
         {
             var superAdminId = superAdmin.Id;
             var existing = await members.CountAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.TenantId == DemoTenantId && m.UserId == superAdminId)), context.CancellationToken).ConfigureAwait(false);
             if (existing == 0)
             {
-                var joined = await members.AddAsync(new SysTenantMember { Id = ids.NewId(), TenantId = DemoTenantId, UserId = superAdminId, MemberType = TenantMemberType.Owner }, context.CancellationToken).ConfigureAwait(false);
+                var joined = await members.AddAsync(new SysTenantMember { Id = ids.NewId(), TenantId = DemoTenantId, UserId = superAdminId, MemberType = TenantMemberType.Support }, context.CancellationToken).ConfigureAwait(false);
                 if (joined.IsFailure)
                 {
                     return joined;

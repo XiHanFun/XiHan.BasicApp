@@ -19,14 +19,15 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// 我能进入的租户。
 /// </summary>
 /// <remarks>
-/// <c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 成员租户，只列正常状态的；平台账号另告知能进入平台。
+/// <c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 生效中的成员租户，只列正常状态的；平台账号另告知能进入平台。所有者按租户的 <c>AdminUserId</c> 判定。
 /// 控制中心据此画卡片，切换走 <c>auth.switch-tenant</c>。
 /// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="members">成员仓储。</param>
+/// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysTenant, Guid> tenants, IRepository<SysTenantMember, Guid> members) : IOperation<MyTenantsRequest, MyTenantsResponse>
+public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysTenant, Guid> tenants, IRepository<SysTenantMember, Guid> members, TimeProvider clock) : IOperation<MyTenantsRequest, MyTenantsResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -45,7 +46,9 @@ public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysT
         }
 
         var current = security.Tenant?.Id;
-        var memberships = await members.ListAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.UserId == userId)), context.CancellationToken).ConfigureAwait(false);
+        var now = clock.GetUtcNow();
+        var memberships = (await members.ListAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.UserId == userId)), context.CancellationToken).ConfigureAwait(false))
+            .Where(m => m.IsInEffect(now)).ToList();
         var wanted = memberships.Select(static m => m.TenantId).ToList();
         if (!string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal))
         {
@@ -63,7 +66,7 @@ public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysT
             foreach (var tenant in rows)
             {
                 var isHome = string.Equals(tenant.TenantId, user.HomeTenantId, StringComparison.Ordinal);
-                items.Add(new AvailableTenantResponse(tenant.TenantId, tenant.Name, isHome, isHome ? null : joined[tenant.TenantId].MemberType, string.Equals(tenant.TenantId, current, StringComparison.Ordinal), isHome ? user.CreatedAt : joined[tenant.TenantId].CreatedAt));
+                items.Add(new AvailableTenantResponse(tenant.TenantId, tenant.Name, isHome, isHome ? null : joined[tenant.TenantId].MemberType, tenant.AdminUserId == userId, string.Equals(tenant.TenantId, current, StringComparison.Ordinal), isHome ? user.CreatedAt : joined[tenant.TenantId].CreatedAt));
             }
         }
 

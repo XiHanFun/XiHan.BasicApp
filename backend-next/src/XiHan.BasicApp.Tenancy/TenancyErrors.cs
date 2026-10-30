@@ -110,4 +110,39 @@ public static class TenancyErrors
     /// 订阅属于租户，平台没有订阅。
     /// </summary>
     public const string SubscriptionTenantOnly = "TENANCY_DENIED_002";
+    /// <summary>
+    /// 租户还没有所有者（未初始化管理员）。
+    /// </summary>
+    public const string OwnerMissing = "TENANCY_CONFLICT_010";
+
+    /// <summary>
+    /// 该用户已经是这个租户的所有者。
+    /// </summary>
+    public const string AlreadyOwner = "TENANCY_CONFLICT_011";
+
+    /// <summary>
+    /// 所有者不能移出成员，要先转移所有权。
+    /// </summary>
+    public const string OwnerRemoval = "TENANCY_CONFLICT_012";
+
+    /// <summary>
+    /// 新所有者不合格。
+    /// </summary>
+    /// <remarks>
+    /// 须是该租户注册地的用户或生效中的普通成员，且启用、未锁定。
+    /// </remarks>
+    public const string OwnerIneligible = "TENANCY_VALIDATION_005";
+
+    /// <summary>
+    /// 成员类型与账号不符。
+    /// </summary>
+    /// <remarks>
+    /// 平台账号只能以运维支持加入，运维支持只能是平台账号。
+    /// </remarks>
+    public const string MemberTypeMismatch = "TENANCY_VALIDATION_006";
+
+    /// <summary>
+    /// 成员的到期时间不晚于生效时间。
+    /// </summary>
+    public const string MemberWindowInvalid = "TENANCY_VALIDATION_007";
 }

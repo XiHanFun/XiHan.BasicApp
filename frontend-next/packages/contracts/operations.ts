@@ -310,6 +310,7 @@ export const routes = {
   'tenants.quotas': { method: 'GET', template: '/api/tenants:quotas', path: [], query: ['overOnly'], success: 200 },
   'tenants.resume': { method: 'POST', template: '/api/tenants:resume', path: [], query: [], success: 200 },
   'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
+  'tenants.transfer-owner': { method: 'POST', template: '/api/tenants/{id}:transfer-owner', path: ['id'], query: [], success: 200 },
   'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
   'traces.timeline': { method: 'GET', template: '/api/traces:timeline', path: [], query: ['dimension', 'value', 'from', 'to', 'logTypes', 'maxPerType'], success: 200 },
   'user-data-scopes.get': { method: 'GET', template: '/api/user-data-scopes', path: [], query: ['userId'], success: 200 },
@@ -870,6 +871,7 @@ export const tenants = {
   quotas: (request: RequestOf<'tenants.quotas'>, options?: CallOptions) => invoke<RequestOf<'tenants.quotas'>, ResponseOf<'tenants.quotas'>>('tenants.quotas', routes['tenants.quotas'], request, options),
   resume: (request: RequestOf<'tenants.resume'>, options?: CallOptions) => invoke<RequestOf<'tenants.resume'>, ResponseOf<'tenants.resume'>>('tenants.resume', routes['tenants.resume'], request, options),
   suspend: (request: RequestOf<'tenants.suspend'>, options?: CallOptions) => invoke<RequestOf<'tenants.suspend'>, ResponseOf<'tenants.suspend'>>('tenants.suspend', routes['tenants.suspend'], request, options),
+  transferOwner: (request: RequestOf<'tenants.transfer-owner'>, options?: CallOptions) => invoke<RequestOf<'tenants.transfer-owner'>, ResponseOf<'tenants.transfer-owner'>>('tenants.transfer-owner', routes['tenants.transfer-owner'], request, options),
   update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),
 }
 
