@@ -3,6 +3,7 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Maintenance.Operations.Caches;
 using XiHan.BasicApp.Maintenance.Operations.JobRuns;
 using XiHan.BasicApp.Maintenance.Operations.Jobs;
 using XiHan.BasicApp.Maintenance.Operations.Migrations;
@@ -30,6 +31,17 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(RescheduleJobRequest))]
 [JsonSerializable(typeof(JobTypesRequest))]
 [JsonSerializable(typeof(JobTypesResponse))]
+[JsonSerializable(typeof(CacheNamespacesRequest))]
+[JsonSerializable(typeof(CacheNamespacesResponse))]
+[JsonSerializable(typeof(CacheKeysRequest))]
+[JsonSerializable(typeof(CacheKeysResponse))]
+[JsonSerializable(typeof(CacheKeyRequest))]
+[JsonSerializable(typeof(CacheEntryResponse))]
+[JsonSerializable(typeof(UpdateCacheRequest))]
+[JsonSerializable(typeof(CacheKeysDeleteRequest))]
+[JsonSerializable(typeof(CacheDeleteResult))]
+[JsonSerializable(typeof(CachePrefixRequest))]
+[JsonSerializable(typeof(CachePrefixDeleteResult))]
 [JsonSerializable(typeof(PageResult<JobRunResponse>))]
 [JsonSerializable(typeof(JobRunResponse))]
 [JsonSerializable(typeof(VersionIdRequest))]

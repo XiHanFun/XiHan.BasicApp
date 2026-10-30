@@ -501,6 +501,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/caches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update cache value
+         * @description Rewrite an existing text cache entry in an editable namespace, keeping its expiry; authentication-related namespaces are read-only. Platform side only.
+         *
+         *     Requires permission maintenance.caches.update (Update caches).
+         */
+        put: operations["caches.update"];
+        post?: never;
+        /**
+         * Delete caches
+         * @description Delete cache entries by key; every key must be within an open namespace and the cache rebuilds on demand. Platform side only.
+         *
+         *     Requires permission maintenance.caches.delete (Delete caches).
+         */
+        delete: operations["caches.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/caches:delete-by-prefix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete caches by prefix
+         * @description Delete every cache entry under a prefix within an open namespace (no wildcards). Platform side only.
+         *
+         *     Requires permission maintenance.caches.delete (Delete caches).
+         */
+        post: operations["caches.delete-by-prefix"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/caches:inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect cache entry
+         * @description Show a cache entry's size, remaining lifetime, sliding expiration and its value decoded as UTF-8 text. Platform side only.
+         *
+         *     Requires permission maintenance.caches.read (Read caches).
+         */
+        get: operations["caches.inspect"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/caches:keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List cache keys
+         * @description List cache keys by prefix page by page (follow the continuation token); the prefix must be within an open namespace. Platform side only.
+         *
+         *     Requires permission maintenance.caches.read (Read caches).
+         */
+        get: operations["caches.keys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/caches:namespaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List cache namespaces
+         * @description List the cache key namespaces open to management (prefixes registered by the packages) and whether they are editable; framework keys are not exposed. Platform side only.
+         *
+         *     Requires permission maintenance.caches.read (Read caches).
+         */
+        get: operations["caches.namespaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/condition-hits/{id}": {
         parameters: {
             query?: never;
@@ -6660,6 +6776,22 @@ export interface components {
          * @enum {string}
          */
         BotProvider: "DingTalk" | "Lark" | "WeCom";
+        /** @description 删除失败的一个键。 */
+        CacheDeleteFailure: {
+            /** @description 键。 */
+            key: string;
+            /** @description 原因码。 */
+            code: string;
+        };
+        /** @description 一个开放的缓存键命名空间。 */
+        CacheNamespaceResponse: {
+            /** @description 登记它的包。 */
+            package: string;
+            /** @description 键前缀，如 access:。 */
+            prefix: string;
+            /** @description 能否改写值（鉴权相关的只许删）。 */
+            editable: boolean;
+        };
         /** @description 条件属性目录里的一项。 */
         ConditionAttributeResponse: {
             /** @description 登记名（族以 .* 结尾）。 */
@@ -11543,6 +11675,274 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description caches.update 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 键，须在可改写的命名空间里且已存在。 */
+                    key: string;
+                    /** @description 新值（按 UTF-8 存），过期设置沿用原项。 */
+                    value: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一个缓存项。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 键。 */
+                        key: string;
+                        /**
+                         * Format: int64
+                         * @description 载荷字节数。
+                         */
+                        size: number;
+                        /**
+                         * Format: int64
+                         * @description 剩余存活秒数；不过期为空。
+                         */
+                        timeToLiveSeconds?: number | null;
+                        /**
+                         * Format: int64
+                         * @description 滑动过期的秒数；没有为空。
+                         */
+                        slidingSeconds?: number | null;
+                        /** @description 载荷按 UTF-8 解出的文本；不是合法 UTF-8 时为空。 */
+                        text?: string | null;
+                        /** @description 能否改写（命名空间允许且载荷是文本）。 */
+                        editable: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.delete": {
+        parameters: {
+            query: {
+                /** @description 要删的键，每个都须在开放的命名空间里。 */
+                keys: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 批量删除的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 删掉的键（本来就不存在的不在内）。 */
+                        removed: string[];
+                        /** @description 不在开放命名空间里的键与原因码。 */
+                        failed: components["schemas"]["CacheDeleteFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.delete-by-prefix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description caches.delete-by-prefix 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 前缀：某个开放命名空间的前缀，或更长的前缀。 */
+                    prefix: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 按前缀删除的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int64
+                         * @description 删掉的键数。
+                         */
+                        removed: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.inspect": {
+        parameters: {
+            query: {
+                /** @description 完整的键，须在开放的命名空间里。 */
+                key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一个缓存项。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 键。 */
+                        key: string;
+                        /**
+                         * Format: int64
+                         * @description 载荷字节数。
+                         */
+                        size: number;
+                        /**
+                         * Format: int64
+                         * @description 剩余存活秒数；不过期为空。
+                         */
+                        timeToLiveSeconds?: number | null;
+                        /**
+                         * Format: int64
+                         * @description 滑动过期的秒数；没有为空。
+                         */
+                        slidingSeconds?: number | null;
+                        /** @description 载荷按 UTF-8 解出的文本；不是合法 UTF-8 时为空。 */
+                        text?: string | null;
+                        /** @description 能否改写（命名空间允许且载荷是文本）。 */
+                        editable: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.keys": {
+        parameters: {
+            query: {
+                /** @description 键前缀：某个开放命名空间的前缀，或更长的前缀。 */
+                prefix: string;
+                /** @description 本页最多几个键。 */
+                limit?: number;
+                /** @description 上一页给的续页标记；第一页为空。 */
+                continuation?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一页缓存键。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 键，按存储返回的顺序（同一页内去重）。 */
+                        items: string[];
+                        /** @description 下一页的续页标记；没有下一页为空。 */
+                        continuation?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "caches.namespaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 开放的缓存键命名空间。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 命名空间，按前缀排序。 */
+                        items: components["schemas"]["CacheNamespaceResponse"][];
                     };
                 };
             };

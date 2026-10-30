@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.OpenPlatform.Domain.Services;
@@ -80,6 +81,8 @@ public sealed class OpenPlatformFeature : IFeature
         context.Services.AddSingleton<OAuthSigningKeys>();
         context.Services.AddJob<OAuthCleanupJob>(OAuthCleanupJob.Name, JobSchedule.FromCron("30 3 * * *"));
         context.Services.AddPermissionCatalog("openplatform", OpenPlatformPermissions.All);
+        // 缓存管理只开放登记过的命名空间；签名请求的防重放随机数，属鉴权数据，只许删、不许改写
+        context.Services.AddCacheNamespace("openplatform", editable: false);
         context.Services.AddPageCatalog("openplatform", OpenPlatformPages.All);
         foreach (var permission in OpenPlatformPermissions.All)
         {

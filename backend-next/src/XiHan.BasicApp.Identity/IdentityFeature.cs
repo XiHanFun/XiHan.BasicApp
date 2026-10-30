@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -115,6 +116,8 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddSeeder<PlatformIdentitySeeder>();
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);
+        // 缓存管理只开放登记过的命名空间；验证码、会话与两步验证的缓存，属鉴权数据，只许删、不许改写
+        context.Services.AddCacheNamespace("identity", editable: false);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
         context.Services.AddFieldSecurityCatalog("identity", IdentityFieldSecurity.All);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错

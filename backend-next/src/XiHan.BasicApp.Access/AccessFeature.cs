@@ -11,6 +11,7 @@ using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
@@ -141,6 +142,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddSeeder<MenuSeeder>();
         context.Services.AddSeeder<AccessPolicySeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);
+        // 缓存管理只开放登记过的命名空间；授权规则、指派与封禁的缓存，改写会让判定与库不一致，只许删、不许改写
+        context.Services.AddCacheNamespace("access", editable: false);
         context.Services.AddPageCatalog("access", AccessPages.All);
         foreach (var permission in AccessPermissions.All)
         {

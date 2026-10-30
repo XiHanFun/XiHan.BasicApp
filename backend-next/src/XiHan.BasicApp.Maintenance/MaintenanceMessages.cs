@@ -61,6 +61,36 @@ public static class MaintenanceMessages
     public const string ListJobTypesDescription = "jobs.types.description";
 
     /// <summary>
+    /// 操作 <c>caches.namespaces</c> 的说明。
+    /// </summary>
+    public const string ListCacheNamespacesDescription = "caches.namespaces.description";
+
+    /// <summary>
+    /// 操作 <c>caches.keys</c> 的说明。
+    /// </summary>
+    public const string ListCacheKeysDescription = "caches.keys.description";
+
+    /// <summary>
+    /// 操作 <c>caches.inspect</c> 的说明。
+    /// </summary>
+    public const string InspectCacheEntryDescription = "caches.inspect.description";
+
+    /// <summary>
+    /// 操作 <c>caches.update</c> 的说明。
+    /// </summary>
+    public const string UpdateCacheEntryDescription = "caches.update.description";
+
+    /// <summary>
+    /// 操作 <c>caches.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteCacheEntriesDescription = "caches.delete.description";
+
+    /// <summary>
+    /// 操作 <c>caches.delete-by-prefix</c> 的说明。
+    /// </summary>
+    public const string DeleteCacheByPrefixDescription = "caches.delete_by_prefix.description";
+
+    /// <summary>
     /// 操作 <c>job-runs.list</c> 的说明。
     /// </summary>
     public const string ListJobRunsDescription = "job_runs.list.description";
@@ -129,6 +159,43 @@ public static class MaintenanceMessages
     /// 参数 <c>id</c>、<c>count</c>。
     /// </remarks>
     public const string JobTriggersMany = "maintenance.jobs.triggers_many";
+
+    /// <summary>
+    /// 不在开放的缓存命名空间里。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
+    public const string CacheNamespaceDenied = "maintenance.caches.namespace_denied";
+
+    /// <summary>
+    /// 缓存命名空间只读。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>prefix</c>。
+    /// </remarks>
+    public const string CacheReadOnly = "maintenance.caches.read_only";
+
+    /// <summary>
+    /// 缓存项不存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
+    public const string CacheEntryNotFound = "maintenance.caches.not_found";
+
+    /// <summary>
+    /// 缓存项的值不是文本。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
+    public const string CacheValueNotText = "maintenance.caches.not_text";
+
+    /// <summary>
+    /// 缓存存储不支持键管理。
+    /// </summary>
+    public const string CacheInspectorUnavailable = "maintenance.caches.inspector_unavailable";
 
     /// <summary>
     /// 作业不存在。
