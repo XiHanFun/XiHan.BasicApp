@@ -116,7 +116,7 @@ export type JobRunState = (typeof JobRunState)[number]
 export const JobScheduleKind = ['Manual', 'Interval', 'Cron', 'Once'] as const
 export type JobScheduleKind = (typeof JobScheduleKind)[number]
 
-export const JobSource = ['Code', 'Runtime'] as const
+export const JobSource = ['Code', 'Runtime', 'Overridden'] as const
 export type JobSource = (typeof JobSource)[number]
 
 export const JobTrigger = ['Schedule', 'Manual', 'Recovery'] as const

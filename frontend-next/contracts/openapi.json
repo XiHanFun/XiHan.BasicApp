@@ -44913,7 +44913,8 @@
         "type": "string",
         "enum": [
           "Code",
-          "Runtime"
+          "Runtime",
+          "Overridden"
         ]
       },
       "JobTrigger": {
