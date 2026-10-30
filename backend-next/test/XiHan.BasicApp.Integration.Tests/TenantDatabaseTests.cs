@@ -5,7 +5,9 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.Framework.Auditing.Database.Trail;
 
@@ -123,5 +125,13 @@ public sealed class TenantDatabaseTests : IDisposable
         var platformLogs = Tables(_database.ConnectionString, "sys_login_log").Sum(table => Count(_database.ConnectionString, $"SELECT COUNT(*) FROM \"{table}\" WHERE tenant_id = 'iso'"));
         Assert.True(tenantLogs > 0);
         Assert.Equal(0, platformLogs);
+
+        // 停用之后，该租户的日志照样写进它自己的库（后台写入按租户目录绑定分片，不看租户是否启用）
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, "/api/tenants:suspend", $$"""{"ids":["{{isoId}}"]}""", superadmin)).Status);
+        var writer = server.Services.GetRequiredService<AuditLogWriter>();
+        Assert.True(writer.Enqueue(new SysLoginLog { Id = Guid.CreateVersion7(), TenantId = "iso", OccurredAt = DateTime.UtcNow, TraceId = "suspended", Event = LoginEvent.Login }));
+        await writer.FlushAsync(CancellationToken.None);
+        var afterSuspend = Tables(_tenantDatabase.ConnectionString, "sys_login_log").Sum(table => Count(_tenantDatabase.ConnectionString, $"SELECT COUNT(*) FROM \"{table}\" WHERE tenant_id = 'iso'"));
+        Assert.True(afterSuspend > tenantLogs);
     }
 }

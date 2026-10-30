@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Schema;
 using XiHan.BasicApp.Runtime.Security;
@@ -93,17 +92,16 @@ public sealed class ConfigureTenantDatabase(IRepository<SysTenant, Guid> tenants
 /// 初始化租户的独立库。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tenants/{id}:initialize-database</c>（平台侧）：进入该租户（<see cref="ITenantScopeRunner"/>，管道按目录解析出分片），
+/// <c>POST /api/tenants/{id}:initialize-database</c>（平台侧）：按租户目录绑定该租户的分片（框架 <c>TenantShardScope</c>，停用的租户也行），
 /// 建库、只建落租户库的实体的表、在该库登记当前结构版本（<see cref="TenantSchemas"/>，幂等）。
 /// 结果写回租户：成功即就绪，失败记原因（响应照常返回、状态为失败），可改连接后再试。
 /// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="service">租户域服务。</param>
-/// <param name="runner">按租户发起调用。</param>
 /// <param name="schemas">租户库的建库与建表。</param>
 /// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeDatabase)]
-public sealed class InitializeTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, ITenantScopeRunner runner, TenantSchemas schemas, TimeProvider clock) : IOperation<InitializeTenantDatabaseRequest, TenantResponse>
+public sealed class InitializeTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, TenantSchemas schemas, TimeProvider clock) : IOperation<InitializeTenantDatabaseRequest, TenantResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -135,11 +133,7 @@ public sealed class InitializeTenantDatabase(IRepository<SysTenant, Guid> tenant
             return Error.Conflict(TenancyErrors.DatabaseInitialized, TenancyMessages.DatabaseInitialized, MessageArguments.Of(("tenantId", tenant.TenantId)));
         }
 
-        var initialized = await runner.RunAsync(tenant.TenantId, async ctx =>
-        {
-            var result = await schemas.InitializeAsync(ctx).ConfigureAwait(false);
-            return result.IsFailure ? result.Error! : Result.Success();
-        }, context.CancellationToken).ConfigureAwait(false);
+        var initialized = await schemas.InitializeAsync(tenant.TenantId, context.CancellationToken).ConfigureAwait(false);
         var failure = initialized.IsFailure ? initialized.Error!.Message : null;
         tenant.DatabaseStatus = failure is null ? TenantDatabaseStatus.Ready : TenantDatabaseStatus.Failed;
         tenant.DatabaseError = failure is null ? null : failure[..Math.Min(failure.Length, 1024)];

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Auditing.Jobs;
 using XiHan.BasicApp.Auditing.Middleware;
@@ -107,9 +106,6 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         _writer = services.GetRequiredService<AuditLogWriter>();
         _stopping = new CancellationTokenSource();
         _loop = _writer.RunAsync(_stopping.Token);
-        // 独立库租户的日志要经管道写进它自己的库，而特性停止时应用已在排空、不再受理调用：主机开始停止时（各服务停止之前）先刷一次
-        var writer = _writer;
-        services.GetService<IHostApplicationLifetime>()?.ApplicationStopping.Register(() => writer.FlushAsync(CancellationToken.None).GetAwaiter().GetResult());
         return Task.CompletedTask;
     }
 

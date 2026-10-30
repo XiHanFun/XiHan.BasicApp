@@ -5,8 +5,7 @@ using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Auditing.Domain.Entities;
-using XiHan.BasicApp.Contracts.MultiTenancy;
-using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
@@ -246,22 +245,11 @@ public sealed partial class AuditLogWriter : IDisposable
     private async Task<Result> WriteGroupAsync(Type type, string tenantId, IReadOnlyList<AuditLogRecord> records)
     {
         await using var scope = _scopes.CreateAsyncScope();
-        // 独立库的租户：经 ITenantScopeRunner 进入该租户，管道解析出分片，日志落进它自己的库（停用的租户进不去，这批记失败）
-        if (await TenantShards.HasShardAsync(scope.ServiceProvider, tenantId, CancellationToken.None).ConfigureAwait(false))
+        // 独立库的租户：先按租户目录绑定分片（框架 TenantShardScope，不经管道、停用的租户也行），日志落进它自己的库；共库与平台一侧不绑定
+        var bound = await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(tenantId, CancellationToken.None).ConfigureAwait(false);
+        if (bound.IsFailure)
         {
-            var runner = scope.ServiceProvider.GetRequiredService<ITenantScopeRunner>();
-            return await runner.RunAsync(tenantId, async ctx =>
-            {
-                foreach (var result in await AddAsync(type, ctx.Services, records).ConfigureAwait(false))
-                {
-                    if (result.IsFailure)
-                    {
-                        return result;
-                    }
-                }
-
-                return Result.Success();
-            }, CancellationToken.None).ConfigureAwait(false);
+            return bound.Error!;
         }
 
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
