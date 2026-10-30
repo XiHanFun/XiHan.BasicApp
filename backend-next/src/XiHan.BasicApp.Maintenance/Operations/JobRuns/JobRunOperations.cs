@@ -70,8 +70,8 @@ public sealed record JobRunResponse(
 /// </summary>
 /// <remarks>
 /// <c>POST /api/job-runs:list</c>。按计划时间倒序。筛选支持 <c>job</c>（<c>eq</c>）、<c>state</c>、<c>trigger</c>（<c>eq</c> / <c>in</c>）、
-/// <c>scheduledAt</c>（<c>ge</c> / <c>lt</c>，ISO 8601）、<c>failed</c>（<c>eq</c>，有无错误码）；关键字匹配触发器名、节点与错误。
-/// 运行历史只保留框架配置的天数（缺省 7 天）；框架的查询不给总数，这里逐批取齐符合条件的再分页。只在平台一侧。
+/// <c>scheduledAt</c>（<c>ge</c> / <c>lt</c>，ISO 8601）、<c>failed</c>（<c>eq</c>，有无错误码）、<c>triggerName</c> 与 <c>node</c>（<c>eq</c>）；关键字匹配触发器名、节点与错误。
+/// 运行历史只保留框架配置的天数（缺省 7 天）。条件都能交给框架时总数取 <c>CountRunsAsync</c>、按偏移直接取一页；有触发方式或关键字时逐批取齐再筛。只在平台一侧。
 /// </remarks>
 /// <param name="scheduler">框架调度。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobRunsRead)]
@@ -96,6 +96,9 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
         List<JobRunState>? states = null;
         DateTimeOffset? from = null;
         DateTimeOffset? to = null;
+        string? triggerName = null;
+        string? node = null;
+        bool? hasError = null;
         var extra = new List<Func<JobRunRecord, bool>>();
         foreach (var filter in request.Filters)
         {
@@ -107,7 +110,9 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
                 ("trigger", "eq" or "in") when JobViews.EnumsOf<JobTrigger>(value) is { } triggers => Add(extra, r => triggers.Contains(r.Trigger)),
                 ("scheduledAt", "ge") when TimeOf(value) is { } start => Set(() => from = start),
                 ("scheduledAt", "lt") when TimeOf(value) is { } end => Set(() => to = end),
-                ("failed", "eq") when bool.TryParse(value, out var failed) => Add(extra, r => (r.ErrorCode is not null) == failed),
+                ("failed", "eq") when bool.TryParse(value, out var failed) => Set(() => hasError = failed),
+                ("triggerName", "eq") when value.Length > 0 => Set(() => triggerName = value),
+                ("node", "eq") when value.Length > 0 => Set(() => node = value),
                 _ => false,
             };
             if (!accepted)
@@ -130,11 +135,39 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
                 || (r.ErrorMessage?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        // 框架按计划时间倒序返回；逐批取到底，总数与分页都在这里算
-        var matched = new List<JobRunRecord>();
-        for (var skip = 0; ; skip += JobRunQuery.MaxLimit)
+        var query = new JobRunQuery { Job = job, States = states, From = from, To = to, Trigger = triggerName, Node = node, HasError = hasError };
+        var descending = request.Sorts.Count == 0 || request.Sorts[0].Descending;
+        if (extra.Count == 0)
         {
-            var batch = await scheduler.RunsAsync(new JobRunQuery { Job = job, States = states, From = from, To = to, Skip = skip, Limit = JobRunQuery.MaxLimit }, context.CancellationToken).ConfigureAwait(false);
+            // 条件都交给框架：总数取 CountRunsAsync，分页直接按偏移取（框架按计划时间倒序，正序时从尾部倒取）
+            var counted = await scheduler.CountRunsAsync(query, context.CancellationToken).ConfigureAwait(false);
+            if (!counted.TryGetValue(out var total))
+            {
+                return counted.Error!;
+            }
+
+            var skip = descending ? request.Page.Skip : Math.Max(0, total - request.Page.Skip - request.Page.Size);
+            var take = descending ? request.Page.Size : (int)Math.Max(0, Math.Min(request.Page.Size, total - request.Page.Skip));
+            if (take == 0 || skip >= total)
+            {
+                return new PageResult<JobRunResponse>([], total, request.Page);
+            }
+
+            var page = await scheduler.RunsAsync(query with { Skip = (int)skip, Limit = Math.Min(take, JobRunQuery.MaxLimit) }, context.CancellationToken).ConfigureAwait(false);
+            if (!page.TryGetValue(out var rows))
+            {
+                return page.Error!;
+            }
+
+            var items = descending ? rows : rows.Reverse();
+            return new PageResult<JobRunResponse>([.. items.Select(JobRunResponse.From)], total, request.Page);
+        }
+
+        // 还有框架不支持的条件（触发方式、关键字）：逐批取到底在这里筛，总数与分页都在这里算
+        var matched = new List<JobRunRecord>();
+        for (var offset = 0; ; offset += JobRunQuery.MaxLimit)
+        {
+            var batch = await scheduler.RunsAsync(query with { Skip = offset, Limit = JobRunQuery.MaxLimit }, context.CancellationToken).ConfigureAwait(false);
             if (!batch.TryGetValue(out var runs))
             {
                 return batch.Error!;
@@ -147,7 +180,7 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
             }
         }
 
-        if (request.Sorts.Count > 0 && !request.Sorts[0].Descending)
+        if (!descending)
         {
             matched.Reverse();
         }

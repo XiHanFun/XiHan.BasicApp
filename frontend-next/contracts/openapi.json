@@ -15443,6 +15443,180 @@
         }
       }
     },
+    "/api/jobs/{id}:reschedule": {
+      "post": {
+        "operationId": "jobs.reschedule",
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Reschedule job",
+        "description": "Replace a job\u0027s schedule (a cron expression or schedule text) and keep the rest of its registration and its paused state. A code job changed this way is marked overridden and keeps the change across restarts while its code definition is unchanged. The job must have a single trigger. Platform side only.\n\nRequires permission maintenance.jobs.reschedule (Reschedule jobs).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.jobs.reschedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u4F5C\u4E1A\u540D\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u4F5C\u4E1A\u540D\u3002",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "jobs.reschedule \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RescheduleJobRequest",
+                "description": "jobs.reschedule \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u4F5C\u4E1A\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "expression": {
+                    "description": "\u65B0\u8BA1\u5212\uFF1ACron \u8868\u8FBE\u5F0F\uFF085 \u5230 7 \u6BB5\uFF09\uFF0C\u6216\u8BA1\u5212\u7684\u6587\u672C\u5199\u6CD5\uFF08cron \u2026\u3001every \u2026\u3001once \u2026\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "timeZone": {
+                    "description": "Cron \u8868\u8FBE\u5F0F\u7684\u65F6\u533A\uFF08\u5982 Asia/Shanghai\uFF09\uFF1B\u4E0D\u586B\u6309 UTC\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "id",
+                  "expression"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u4F5C\u4E1A\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "JobResponse",
+                  "description": "\u4E00\u4E2A\u4F5C\u4E1A\u3002",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "\u4F5C\u4E1A\u540D\u3002",
+                      "type": "string"
+                    },
+                    "title": {
+                      "description": "\u663E\u793A\u540D\uFF08\u767B\u8BB0\u4F5C\u4E1A\u7684\u5305\u6309\u533A\u57DF\u7ED9\u51FA\uFF0C\u6CA1\u7ED9\u5373\u4F5C\u4E1A\u540D\uFF09\u3002",
+                      "type": "string"
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\uFF1B\u6CA1\u6709\u4E3A null\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "jobType": {
+                      "description": "\u4F5C\u4E1A\u7C7B\u578B\u7684\u767B\u8BB0\u952E\u3002",
+                      "type": "string"
+                    },
+                    "source": {
+                      "description": "\u6765\u6E90\uFF1A\u4EE3\u7801\u767B\u8BB0\u6216\u8FD0\u884C\u65F6\u767B\u8BB0\u3002",
+                      "$ref": "#/components/schemas/JobSource"
+                    },
+                    "paused": {
+                      "description": "\u662F\u5426\u6682\u505C\u3002",
+                      "type": "boolean"
+                    },
+                    "runningCount": {
+                      "description": "\u6B63\u5728\u8FD0\u884C\u7684\u6B21\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "allowConcurrent": {
+                      "description": "\u662F\u5426\u5141\u8BB8\u5E76\u53D1\u8FD0\u884C\u3002",
+                      "type": "boolean"
+                    },
+                    "runOnEveryInstance": {
+                      "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
+                      "type": "boolean"
+                    },
+                    "nextRunAt": {
+                      "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "triggers": {
+                      "description": "\u89E6\u53D1\u5668\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JobTriggerResponse"
+                      }
+                    },
+                    "last": {
+                      "description": "\u4E0A\u4E00\u6B21\u8FD0\u884C\u7684\u7ED3\u679C\uFF1B\u6CA1\u8FD0\u884C\u8FC7\u4E3A null\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/JobOutcomeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "\u767B\u8BB0\u6700\u540E\u66F4\u65B0\u7684\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "title",
+                    "jobType",
+                    "source",
+                    "paused",
+                    "runningCount",
+                    "allowConcurrent",
+                    "runOnEveryInstance",
+                    "triggers",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/jobs/{id}:trigger": {
       "post": {
         "operationId": "jobs.trigger",
@@ -15703,6 +15877,90 @@
         }
       }
     },
+    "/api/jobs:restore": {
+      "post": {
+        "operationId": "jobs.restore",
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Restore code definitions",
+        "description": "Restore jobs to the definitions registered in code (discarding runtime schedule changes) and keep their paused state; jobs without a code definition fail item by item. Platform side only.\n\nRequires permission maintenance.jobs.reschedule (Reschedule jobs).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.jobs.reschedule",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u6309\u540D\u79F0\u6307\u5B9A\u4E00\u6279\u4F5C\u4E1A\u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "JobIdsRequest",
+                "description": "\u6309\u540D\u79F0\u6307\u5B9A\u4E00\u6279\u4F5C\u4E1A\u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u4F5C\u4E1A\u540D\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6309\u4F5C\u4E1A\u540D\u7684\u6279\u91CF\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "JobBatchResult",
+                  "description": "\u6309\u4F5C\u4E1A\u540D\u7684\u6279\u91CF\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "description": "\u6210\u529F\u7684\u4F5C\u4E1A\u540D\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "description": "\u5931\u8D25\u7684\u4F5C\u4E1A\u4E0E\u539F\u56E0\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JobBatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/jobs:resume": {
       "post": {
         "operationId": "jobs.resume",
@@ -15769,6 +16027,55 @@
                   "required": [
                     "succeeded",
                     "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs:types": {
+      "get": {
+        "operationId": "jobs.types",
+        "tags": [
+          "jobs"
+        ],
+        "summary": "List job types",
+        "description": "List the registered job types (ordinal order), used to filter the job list by type. Platform side only.\n\nRequires permission maintenance.jobs.read (Read jobs).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.jobs.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u5DF2\u767B\u8BB0\u7684\u4F5C\u4E1A\u7C7B\u578B\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "JobTypesResponse",
+                  "description": "\u5DF2\u767B\u8BB0\u7684\u4F5C\u4E1A\u7C7B\u578B\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u4F5C\u4E1A\u7C7B\u578B\u7684\u767B\u8BB0\u952E\uFF0C\u6309\u5E8F\u6570\u6392\u5E8F\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -49494,6 +49801,11 @@
         "code": "maintenance.jobs.read",
         "displayName": "Read jobs",
         "description": "View the scheduled jobs, their schedules, state and last outcome."
+      },
+      "maintenance.jobs.reschedule": {
+        "code": "maintenance.jobs.reschedule",
+        "displayName": "Reschedule jobs",
+        "description": "Change a job\u0027s schedule or restore a code job to its code definition."
       },
       "maintenance.jobs.trigger": {
         "code": "maintenance.jobs.trigger",

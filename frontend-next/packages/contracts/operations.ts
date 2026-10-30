@@ -131,8 +131,11 @@ export const routes = {
   'jobs.get': { method: 'GET', template: '/api/jobs/{id}', path: ['id'], query: [], success: 200 },
   'jobs.list': { method: 'POST', template: '/api/jobs:list', path: [], query: [], success: 200 },
   'jobs.pause': { method: 'POST', template: '/api/jobs:pause', path: [], query: [], success: 200 },
+  'jobs.reschedule': { method: 'POST', template: '/api/jobs/{id}:reschedule', path: ['id'], query: [], success: 200 },
+  'jobs.restore': { method: 'POST', template: '/api/jobs:restore', path: [], query: [], success: 200 },
   'jobs.resume': { method: 'POST', template: '/api/jobs:resume', path: [], query: [], success: 200 },
   'jobs.trigger': { method: 'POST', template: '/api/jobs/{id}:trigger', path: ['id'], query: [], success: 200 },
+  'jobs.types': { method: 'GET', template: '/api/jobs:types', path: [], query: [], success: 200 },
   'jobs.validate-schedule': { method: 'GET', template: '/api/jobs:validate-schedule', path: [], query: ['expression', 'timeZone', 'count'], success: 200 },
   'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
   'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
@@ -562,8 +565,11 @@ export const jobs = {
   get: (request: RequestOf<'jobs.get'>, options?: CallOptions) => invoke<RequestOf<'jobs.get'>, ResponseOf<'jobs.get'>>('jobs.get', routes['jobs.get'], request, options),
   list: (request: RequestOf<'jobs.list'>, options?: CallOptions) => invoke<RequestOf<'jobs.list'>, ResponseOf<'jobs.list'>>('jobs.list', routes['jobs.list'], request, options),
   pause: (request: RequestOf<'jobs.pause'>, options?: CallOptions) => invoke<RequestOf<'jobs.pause'>, ResponseOf<'jobs.pause'>>('jobs.pause', routes['jobs.pause'], request, options),
+  reschedule: (request: RequestOf<'jobs.reschedule'>, options?: CallOptions) => invoke<RequestOf<'jobs.reschedule'>, ResponseOf<'jobs.reschedule'>>('jobs.reschedule', routes['jobs.reschedule'], request, options),
+  restore: (request: RequestOf<'jobs.restore'>, options?: CallOptions) => invoke<RequestOf<'jobs.restore'>, ResponseOf<'jobs.restore'>>('jobs.restore', routes['jobs.restore'], request, options),
   resume: (request: RequestOf<'jobs.resume'>, options?: CallOptions) => invoke<RequestOf<'jobs.resume'>, ResponseOf<'jobs.resume'>>('jobs.resume', routes['jobs.resume'], request, options),
   trigger: (request: RequestOf<'jobs.trigger'>, options?: CallOptions) => invoke<RequestOf<'jobs.trigger'>, ResponseOf<'jobs.trigger'>>('jobs.trigger', routes['jobs.trigger'], request, options),
+  types: (request: RequestOf<'jobs.types'>, options?: CallOptions) => invoke<RequestOf<'jobs.types'>, ResponseOf<'jobs.types'>>('jobs.types', routes['jobs.types'], request, options),
   validateSchedule: (request: RequestOf<'jobs.validate-schedule'>, options?: CallOptions) => invoke<RequestOf<'jobs.validate-schedule'>, ResponseOf<'jobs.validate-schedule'>>('jobs.validate-schedule', routes['jobs.validate-schedule'], request, options),
 }
 

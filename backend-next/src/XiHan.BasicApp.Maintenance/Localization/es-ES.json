@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "Registros de actualización",
   "openapi.tags.migrations.description": "Cada ejecución de un script de actualización: versión, script, duración, resultado y nodo.",
   "permissions.maintenance.versions.read.name": "Ver versiones",
-  "permissions.maintenance.migrations.read.name": "Ver registros de actualización"
+  "permissions.maintenance.migrations.read.name": "Ver registros de actualización",
+  "jobs.reschedule.title": "Cambiar la planificación del trabajo",
+  "jobs.reschedule.description": "Sustituye la planificación de un trabajo (expresión cron o texto de planificación) y conserva el resto de su registro y su estado de pausa. Un trabajo de código cambiado así se marca como modificado y conserva el cambio tras reinicios mientras su definición en código no cambie. El trabajo debe tener un solo disparador. Solo en la plataforma.",
+  "jobs.restore.title": "Restaurar definiciones de código",
+  "jobs.restore.description": "Devuelve los trabajos a las definiciones registradas en código (descartando cambios de planificación en ejecución) y conserva su estado de pausa; los trabajos sin definición en código fallan uno a uno. Solo en la plataforma.",
+  "jobs.types.title": "Listar tipos de trabajo",
+  "jobs.types.description": "Lista los tipos de trabajo registrados (en orden ordinal), usados para filtrar la lista de trabajos por tipo. Solo en la plataforma.",
+  "permissions.maintenance.jobs.reschedule.name": "Cambiar planificaciones de trabajos",
+  "maintenance.jobs.type_unknown": "El tipo '{type}' del trabajo '{id}' no está registrado; no se puede cambiar su planificación.",
+  "maintenance.jobs.triggers_many": "El trabajo '{id}' tiene {count} disparadores; su planificación no se puede sustituir en bloque."
 }

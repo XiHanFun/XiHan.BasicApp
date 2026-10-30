@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions.Messages;
@@ -80,6 +81,25 @@ internal static class JobViews
         }
 
         return "cron " + text + (string.IsNullOrWhiteSpace(timeZone) ? string.Empty : " tz=" + timeZone.Trim());
+    }
+
+    /// <summary>
+    /// 解析计划写法。
+    /// </summary>
+    /// <remarks>
+    /// 时区不认识也算解析失败。
+    /// </remarks>
+    public static bool TryParse(string expression, string? timeZone, [NotNullWhen(true)] out JobSchedule? schedule)
+    {
+        try
+        {
+            return JobSchedule.TryParse(TextOf(expression, timeZone), out schedule);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            schedule = null;
+            return false;
+        }
     }
 
     /// <summary>

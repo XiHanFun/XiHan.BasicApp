@@ -44,4 +44,14 @@ public static class MaintenanceErrors
     /// 参数 <c>id</c>。
     /// </remarks>
     public const string SchemaRecordNotFound = "MAINTENANCE_NOTFOUND_002";
+
+    /// <summary>
+    /// 作业的类型不在作业类型登记里，不能改计划。
+    /// </summary>
+    public const string JobTypeUnknown = "MAINTENANCE_CONFLICT_001";
+
+    /// <summary>
+    /// 作业有多个触发器，不能整体改计划。
+    /// </summary>
+    public const string JobTriggersMany = "MAINTENANCE_CONFLICT_002";
 }

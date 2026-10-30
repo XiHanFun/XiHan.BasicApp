@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "升级记录",
   "openapi.tags.migrations.description": "升级脚本每次执行的版本、脚本、耗时、结果与节点。",
   "permissions.maintenance.versions.read.name": "查看版本",
-  "permissions.maintenance.migrations.read.name": "查看升级记录"
+  "permissions.maintenance.migrations.read.name": "查看升级记录",
+  "jobs.reschedule.title": "修改作业计划",
+  "jobs.reschedule.description": "换作业的计划（Cron 表达式或计划写法），其余登记不变、暂停状态保留；代码登记的作业改过即标为「已改计划」，重启后代码定义没变就保留这次的修改。作业只能有一个触发器。只在平台侧。",
+  "jobs.restore.title": "恢复代码定义",
+  "jobs.restore.description": "批量把作业改回代码里登记的定义（丢弃运行时改过的计划），暂停状态保留；没有代码定义的作业逐项报错。只在平台侧。",
+  "jobs.types.title": "列出作业类型",
+  "jobs.types.description": "列出已登记的作业类型（按序数排序），作业列表按类型筛选时用。只在平台侧。",
+  "permissions.maintenance.jobs.reschedule.name": "修改作业计划",
+  "maintenance.jobs.type_unknown": "作业 '{id}' 的类型 '{type}' 没有登记，不能改计划。",
+  "maintenance.jobs.triggers_many": "作业 '{id}' 有 {count} 个触发器，不能整体改计划。"
 }

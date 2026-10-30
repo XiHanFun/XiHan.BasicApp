@@ -1,6 +1,6 @@
 import type { Tone } from '@xihan-ui/core'
-import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, ResponseOf, TriggerState } from '~/contracts'
+import type { SchemaQueryParams, SchemaResource, SchemaSelectOption } from '~/components'
+import type { JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'
 import { jobRuns as jobRunsApi, jobs as jobsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError } from '~/request'
 
@@ -10,6 +10,8 @@ export type Translate = (key: string, values?: Record<string, unknown>) => strin
 export type JobResponse = ResponseOf<'jobs.list'>['items'][number]
 export type JobTriggerInfo = JobResponse['triggers'][number]
 export type JobRunRow = ResponseOf<'job-runs.list'>['items'][number]
+/** jobs.validate-schedule 的结果：规范写法、计划种类与接下来的运行时间（UTC） */
+export type SchedulePreview = ResponseOf<'jobs.validate-schedule'>
 type PageFilter = PageRequest['filters'][number]
 
 /** 任务的运行状态（4.x 的 RunTaskStatus 去掉「已停止」）：6.0 没有这一列，由运行中次数、暂停与上次结果推出来 */
@@ -128,8 +130,33 @@ export function statusOptions(t: Translate): { label: string, value: string }[] 
   ]
 }
 
+/** 登记来源：代码登记、运行时登记，或代码登记后在运行时改过计划（重启后代码定义没变就保留这次修改） */
 export function sourceLabel(t: Translate, source: JobSource): string {
-  return source === 'Runtime' ? t('maintenance.jobs.sources.runtime') : t('maintenance.jobs.sources.code')
+  switch (source) {
+    case 'Runtime': return t('maintenance.jobs.sources.runtime')
+    case 'Overridden': return t('maintenance.jobs.sources.overridden')
+    default: return t('maintenance.jobs.sources.code')
+  }
+}
+
+/** 登记来源的语气：代码登记中性、运行时登记蓝、已改计划黄（与代码定义不一致，提醒可恢复） */
+export function sourceTone(source: JobSource): Tone {
+  switch (source) {
+    case 'Runtime': return 'info'
+    case 'Overridden': return 'warning'
+    default: return 'neutral'
+  }
+}
+
+/** 登记来源的搜索选项：后端按 `source eq` 匹配 */
+export function sourceOptions(t: Translate): { label: string, value: JobSource }[] {
+  return (['Code', 'Runtime', 'Overridden'] as const).map(source => ({ label: sourceLabel(t, source), value: source }))
+}
+
+/** 作业类型的搜索选项：取自 jobs.types（已登记的类型键，按序数排序），键即显示文本；多选时后端按 `jobType in` 匹配 */
+export async function loadJobTypeOptions(): Promise<SchemaSelectOption<string>[]> {
+  const { items } = await jobsApi.types({})
+  return items.map(type => ({ label: type, value: type }))
 }
 
 /** 一次运行的状态 */
@@ -204,9 +231,14 @@ export function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error ?? '')
 }
 
-/** 批量暂停 / 恢复只回失败项的错误码：认得的翻成文案，其余原样 */
+/** 批量暂停 / 恢复 / 恢复代码计划只回失败项的错误码：认得的翻成文案，其余原样 */
 export function batchFailureMessage(t: Translate, code: string): string {
-  return code === 'MAINTENANCE_NOTFOUND_001' ? t('maintenance.jobs.job_not_found') : code
+  switch (code) {
+    case 'MAINTENANCE_NOTFOUND_001': return t('maintenance.jobs.job_not_found')
+    // 恢复代码计划：作业没有代码定义（运行时登记的作业没有可恢复的定义）
+    case 'SCHEDULING_NOTFOUND_005': return t('maintenance.jobs.no_code_definition')
+    default: return code
+  }
 }
 
 /** 批量结果里有失败项即抛错：逐项原因去重后拼成一条 */
@@ -216,11 +248,12 @@ export function assertBatch(t: Translate, result: { failed: readonly { code: str
 }
 
 /**
- * 列表的后端筛选：关键字匹配作业名、显示名与说明；触发类型与启停精确匹配；
+ * 列表的后端筛选：关键字匹配作业名、显示名与说明；触发类型、启停与登记来源精确匹配；作业类型多选（`in`，逗号分隔）；
  * 运行状态不是后端字段，由 runStatusFilters 换成 running / paused 两条。
  */
 export const JOB_QUERY: PageQueryMapping = {
-  filters: { kind: 'eq', paused: 'eq' },
+  filters: { kind: 'eq', paused: 'eq', source: 'eq' },
+  multiples: ['jobType'],
 }
 
 /** SchemaPage 的查询 → jobs.list 的分页请求 */
@@ -255,12 +288,98 @@ export async function triggerJob(name: string): Promise<string> {
   return (await jobsApi.trigger({ id: name })).trigger
 }
 
-/** 执行日志抽屉的查询：按作业过滤，状态单选，关键字匹配触发器名、节点与错误（替 4.x 的批次号）；后端按计划时间倒序 */
+/** 计划触发器的个数：框架为立即执行（manual-）与故障恢复（recovery-）排进的临时触发器不算，改计划时后端也保留它们 */
+export function activeTriggerCount(job: Pick<JobResponse, 'triggers'>): number {
+  return job.triggers.filter(trigger => !trigger.name.startsWith('manual-') && !trigger.name.startsWith('recovery-')).length
+}
+
+/** 能否修改计划：后端只换唯一一个计划触发器的计划，多个即 MAINTENANCE_CONFLICT_002（没有触发器的按缺省名登记一个） */
+export function canReschedule(job: Pick<JobResponse, 'triggers'>): boolean {
+  return activeTriggerCount(job) <= 1
+}
+
+/** 能否恢复代码计划：只有代码登记后在运行时改过计划的作业（已改计划）有可恢复的代码定义 */
+export function canRestore(job: Pick<JobResponse, 'source'>): boolean {
+  return job.source === 'Overridden'
+}
+
+/** 修改计划弹窗的表单：计划（Cron 表达式或计划写法）与时区（只对 Cron 表达式生效，空即 UTC） */
+export interface ScheduleForm {
+  expression: string
+  timeZone: string
+}
+
+/** 弹窗的初值：Cron 触发器拆成表达式与时区，其余取计划的文本写法（every … / once … / manual），没有触发器为空 */
+export function scheduleFormOf(job: Pick<JobResponse, 'triggers'>): ScheduleForm {
+  const trigger = job.triggers[0]
+  if (!trigger)
+    return { expression: '', timeZone: '' }
+  if (trigger.kind === 'Cron' && trigger.cron)
+    return { expression: trigger.cron, timeZone: trigger.timeZone ?? '' }
+  return { expression: trigger.schedule, timeZone: '' }
+}
+
+/** 计划去空白；时区去空白后留空即不填（后端按 UTC） */
+function scheduleParts(form: ScheduleForm): { expression: string, timeZone: null | string } {
+  const timeZone = form.timeZone.trim()
+  return { expression: form.expression.trim(), timeZone: timeZone || null }
+}
+
+/** jobs.reschedule 的请求：作业名进路由值 `{id}`，请求体只有计划与时区 */
+export function toRescheduleRequest(name: string, form: ScheduleForm): RequestOf<'jobs.reschedule'> {
+  return { id: name, ...scheduleParts(form) }
+}
+
+/** 修改计划：其余登记与暂停状态不变，返回改后的作业 */
+export async function rescheduleJob(name: string, form: ScheduleForm): Promise<JobRow> {
+  return toJobRow(await jobsApi.reschedule(toRescheduleRequest(name, form)))
+}
+
+/** 预览列出的下次运行个数（4.x 的 Cron 构建器同为 5 次） */
+export const SCHEDULE_PREVIEW_COUNT = 5
+
+/** 校验计划并列出接下来的运行时间（不改任何作业）；写错即 MAINTENANCE_VALIDATION_002 */
+export async function previewSchedule(form: ScheduleForm): Promise<SchedulePreview> {
+  return jobsApi.validateSchedule({ ...scheduleParts(form), count: SCHEDULE_PREVIEW_COUNT })
+}
+
+/** 恢复代码计划（按作业名批量）：丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；逐项失败翻成文案抛出 */
+export async function restoreJobs(t: Translate, names: readonly string[]): Promise<void> {
+  assertBatch(t, await jobsApi.restore({ ids: [...names] }))
+}
+
+/** 修改计划的常用预设（沿用 4.x Cron 构建器的六个；周按 Unix 约定，1 是周一） */
+export function schedulePresets(t: Translate): { label: string, value: string }[] {
+  return [
+    { label: t('maintenance.jobs.presets.per_minute'), value: '0 * * * * ?' },
+    { label: t('maintenance.jobs.presets.per_5min'), value: '0 0/5 * * * ?' },
+    { label: t('maintenance.jobs.presets.hourly'), value: '0 0 * * * ?' },
+    { label: t('maintenance.jobs.presets.daily'), value: '0 0 0 * * ?' },
+    { label: t('maintenance.jobs.presets.weekly'), value: '0 0 0 ? * 1' },
+    { label: t('maintenance.jobs.presets.monthly'), value: '0 0 0 1 * ?' },
+  ]
+}
+
+/** 执行日志「是否出错」的选项：后端按 `failed eq true / false`（有无错误码）筛 */
+export function runFailedOptions(t: Translate): { label: string, value: string }[] {
+  return [
+    { label: t('maintenance.jobs.log_failed_options.yes'), value: 'true' },
+    { label: t('maintenance.jobs.log_failed_options.no'), value: 'false' },
+  ]
+}
+
+/**
+ * 执行日志抽屉的查询：按作业过滤，状态单选，是否出错（有无错误码）、触发器名与节点精确匹配，
+ * 关键字匹配触发器名、节点与错误（替 4.x 的批次号）；后端按计划时间倒序，总数为真实总数。
+ */
 export interface JobRunsQuery {
   job: string
   page: number
   pageSize: number
   state: JobRunState | null
+  failed: boolean | null
+  triggerName: string
+  node: string
   keyword: string
 }
 
@@ -268,6 +387,14 @@ export function toJobRunsRequest(query: JobRunsQuery): PageRequest {
   const filters: PageFilter[] = [{ field: 'job', operator: 'eq', value: query.job }]
   if (query.state)
     filters.push({ field: 'state', operator: 'eq', value: query.state })
+  if (query.failed !== null)
+    filters.push({ field: 'failed', operator: 'eq', value: String(query.failed) })
+  const triggerName = query.triggerName.trim()
+  if (triggerName)
+    filters.push({ field: 'triggerName', operator: 'eq', value: triggerName })
+  const node = query.node.trim()
+  if (node)
+    filters.push({ field: 'node', operator: 'eq', value: node })
   const keyword = query.keyword.trim()
   return {
     page: { index: query.page, size: query.pageSize },
