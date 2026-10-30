@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "Моя подписка",
   "openapi.tags.subscription.description": "Подписка своего арендатора: редакция, срок, квоты и использование.",
   "openapi.groups.tenancy.name": "Арендаторы и редакции",
-  "openapi.groups.tenancy.description": "Создание и жизненный цикл арендаторов, участники, редакции и подписки."
+  "openapi.groups.tenancy.description": "Создание и жизненный цикл арендаторов, участники, редакции и подписки.",
+  "permissions.tenancy.tenants.read.name": "Просмотр арендаторов",
+  "permissions.tenancy.tenants.create.name": "Создание арендаторов",
+  "permissions.tenancy.tenants.update.name": "Изменение арендаторов",
+  "permissions.tenancy.tenants.suspend.name": "Приостановка арендаторов",
+  "permissions.tenancy.tenants.delete.name": "Удаление арендаторов",
+  "permissions.tenancy.tenants.initialize_admin.name": "Создание администраторов арендаторов",
+  "permissions.tenancy.tenant_members.read.name": "Просмотр участников арендатора",
+  "permissions.tenancy.tenant_members.create.name": "Добавление участников арендатора",
+  "permissions.tenancy.tenant_members.delete.name": "Удаление участников арендатора",
+  "permissions.tenancy.editions.read.name": "Просмотр редакций",
+  "permissions.tenancy.editions.create.name": "Создание редакций",
+  "permissions.tenancy.editions.update.name": "Изменение редакций",
+  "permissions.tenancy.editions.delete.name": "Удаление редакций",
+  "permissions.tenancy.subscription.read.name": "Просмотр подписки"
 }

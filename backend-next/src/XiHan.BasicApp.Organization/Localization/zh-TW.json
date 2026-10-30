@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "部門成員",
   "openapi.tags.memberships.description": "使用者在部門中的歸屬：加入、任職修改與移出。",
   "openapi.groups.organization.name": "組織架構",
-  "openapi.groups.organization.description": "部門、崗位與使用者的部門歸屬。"
+  "openapi.groups.organization.description": "部門、崗位與使用者的部門歸屬。",
+  "permissions.organization.departments.read.name": "讀取部門",
+  "permissions.organization.departments.create.name": "新增部門",
+  "permissions.organization.departments.update.name": "修改部門",
+  "permissions.organization.departments.delete.name": "刪除部門",
+  "permissions.organization.positions.read.name": "讀取崗位",
+  "permissions.organization.positions.create.name": "新增崗位",
+  "permissions.organization.positions.update.name": "修改崗位",
+  "permissions.organization.positions.delete.name": "刪除崗位",
+  "permissions.organization.memberships.read.name": "讀取部門成員",
+  "permissions.organization.memberships.create.name": "新增部門成員",
+  "permissions.organization.memberships.update.name": "修改部門成員",
+  "permissions.organization.memberships.delete.name": "刪除部門成員"
 }

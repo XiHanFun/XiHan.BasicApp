@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "부서 소속",
   "openapi.tags.memberships.description": "사용자의 부서 소속 추가, 수정, 제거.",
   "openapi.groups.organization.name": "조직",
-  "openapi.groups.organization.description": "부서, 직위와 사용자의 부서 소속."
+  "openapi.groups.organization.description": "부서, 직위와 사용자의 부서 소속.",
+  "permissions.organization.departments.read.name": "부서 조회",
+  "permissions.organization.departments.create.name": "부서 생성",
+  "permissions.organization.departments.update.name": "부서 수정",
+  "permissions.organization.departments.delete.name": "부서 삭제",
+  "permissions.organization.positions.read.name": "직위 조회",
+  "permissions.organization.positions.create.name": "직위 생성",
+  "permissions.organization.positions.update.name": "직위 수정",
+  "permissions.organization.positions.delete.name": "직위 삭제",
+  "permissions.organization.memberships.read.name": "부서 소속 조회",
+  "permissions.organization.memberships.create.name": "부서 소속 생성",
+  "permissions.organization.memberships.update.name": "부서 소속 수정",
+  "permissions.organization.memberships.delete.name": "부서 소속 삭제"
 }

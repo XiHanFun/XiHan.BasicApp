@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "导入历史",
   "openapi.tags.import_histories.description": "记录导入结果，查看本人在各页最近的导入。",
   "openapi.groups.files.name": "文件与存储",
-  "openapi.groups.files.description": "文件的存取与副本、存储配置，以及导出中心与导入历史。"
+  "openapi.groups.files.description": "文件的存取与副本、存储配置，以及导出中心与导入历史。",
+  "permissions.files.files.read.name": "读取文件",
+  "permissions.files.files.create.name": "上传文件",
+  "permissions.files.files.update.name": "修改文件",
+  "permissions.files.files.delete.name": "删除文件",
+  "permissions.files.storage_configs.read.name": "读取存储配置",
+  "permissions.files.storage_configs.create.name": "新建存储配置",
+  "permissions.files.storage_configs.update.name": "修改存储配置",
+  "permissions.files.storage_configs.delete.name": "删除存储配置"
 }

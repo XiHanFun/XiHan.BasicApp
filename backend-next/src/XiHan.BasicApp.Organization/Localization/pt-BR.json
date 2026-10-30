@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Vínculos",
   "openapi.tags.memberships.description": "Vínculos de usuários a departamentos: adição, atualização e remoção.",
   "openapi.groups.organization.name": "Organização",
-  "openapi.groups.organization.description": "Departamentos, cargos e vínculos dos usuários a departamentos."
+  "openapi.groups.organization.description": "Departamentos, cargos e vínculos dos usuários a departamentos.",
+  "permissions.organization.departments.read.name": "Ver departamentos",
+  "permissions.organization.departments.create.name": "Criar departamentos",
+  "permissions.organization.departments.update.name": "Editar departamentos",
+  "permissions.organization.departments.delete.name": "Excluir departamentos",
+  "permissions.organization.positions.read.name": "Ver cargos",
+  "permissions.organization.positions.create.name": "Criar cargos",
+  "permissions.organization.positions.update.name": "Editar cargos",
+  "permissions.organization.positions.delete.name": "Excluir cargos",
+  "permissions.organization.memberships.read.name": "Ver vínculos",
+  "permissions.organization.memberships.create.name": "Criar vínculos",
+  "permissions.organization.memberships.update.name": "Editar vínculos",
+  "permissions.organization.memberships.delete.name": "Excluir vínculos"
 }

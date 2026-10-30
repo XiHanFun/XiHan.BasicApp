@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Pertenencias",
   "openapi.tags.memberships.description": "Pertenencias de usuarios a departamentos: alta, actualización y baja.",
   "openapi.groups.organization.name": "Organización",
-  "openapi.groups.organization.description": "Departamentos, puestos y pertenencias de los usuarios a departamentos."
+  "openapi.groups.organization.description": "Departamentos, puestos y pertenencias de los usuarios a departamentos.",
+  "permissions.organization.departments.read.name": "Ver departamentos",
+  "permissions.organization.departments.create.name": "Crear departamentos",
+  "permissions.organization.departments.update.name": "Editar departamentos",
+  "permissions.organization.departments.delete.name": "Eliminar departamentos",
+  "permissions.organization.positions.read.name": "Ver puestos",
+  "permissions.organization.positions.create.name": "Crear puestos",
+  "permissions.organization.positions.update.name": "Editar puestos",
+  "permissions.organization.positions.delete.name": "Eliminar puestos",
+  "permissions.organization.memberships.read.name": "Ver pertenencias",
+  "permissions.organization.memberships.create.name": "Crear pertenencias",
+  "permissions.organization.memberships.update.name": "Editar pertenencias",
+  "permissions.organization.memberships.delete.name": "Eliminar pertenencias"
 }

@@ -45957,7 +45957,6 @@
     {
       "name": "Authorization",
       "tags": [
-        "auth",
         "constraint-rules",
         "delegations",
         "field-security",

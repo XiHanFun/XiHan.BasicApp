@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "部门成员",
   "openapi.tags.memberships.description": "用户在部门中的归属：加入、任职修改与移出。",
   "openapi.groups.organization.name": "组织架构",
-  "openapi.groups.organization.description": "部门、岗位与用户的部门归属。"
+  "openapi.groups.organization.description": "部门、岗位与用户的部门归属。",
+  "permissions.organization.departments.read.name": "读取部门",
+  "permissions.organization.departments.create.name": "新建部门",
+  "permissions.organization.departments.update.name": "修改部门",
+  "permissions.organization.departments.delete.name": "删除部门",
+  "permissions.organization.positions.read.name": "读取岗位",
+  "permissions.organization.positions.create.name": "新建岗位",
+  "permissions.organization.positions.update.name": "修改岗位",
+  "permissions.organization.positions.delete.name": "删除岗位",
+  "permissions.organization.memberships.read.name": "读取部门成员",
+  "permissions.organization.memberships.create.name": "新建部门成员",
+  "permissions.organization.memberships.update.name": "修改部门成员",
+  "permissions.organization.memberships.delete.name": "删除部门成员"
 }

@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "部門所属",
   "openapi.tags.memberships.description": "ユーザーの部門所属の追加、更新、解除。",
   "openapi.groups.organization.name": "組織",
-  "openapi.groups.organization.description": "部門、役職とユーザーの部門所属。"
+  "openapi.groups.organization.description": "部門、役職とユーザーの部門所属。",
+  "permissions.organization.departments.read.name": "部門の参照",
+  "permissions.organization.departments.create.name": "部門の作成",
+  "permissions.organization.departments.update.name": "部門の更新",
+  "permissions.organization.departments.delete.name": "部門の削除",
+  "permissions.organization.positions.read.name": "役職の参照",
+  "permissions.organization.positions.create.name": "役職の作成",
+  "permissions.organization.positions.update.name": "役職の更新",
+  "permissions.organization.positions.delete.name": "役職の削除",
+  "permissions.organization.memberships.read.name": "部門所属の参照",
+  "permissions.organization.memberships.create.name": "部門所属の作成",
+  "permissions.organization.memberships.update.name": "部門所属の更新",
+  "permissions.organization.memberships.delete.name": "部門所属の削除"
 }

@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "Open-API-Zugangsdaten",
   "openapi.tags.my_api_credentials.description": "Eigene Open-API-Zugangsdaten erstellen, aktivieren oder deaktivieren, Geheimnis rotieren und löschen sowie die Aufrufsicherheit verwalten.",
   "openapi.groups.identity.name": "Identität und Konten",
-  "openapi.groups.identity.description": "Benutzer und Authentifizierung, Online-Benutzer, Imitation und das persönliche Profil."
+  "openapi.groups.identity.description": "Benutzer und Authentifizierung, Online-Benutzer, Imitation und das persönliche Profil.",
+  "permissions.identity.users.read.name": "Benutzer lesen",
+  "permissions.identity.users.create.name": "Benutzer anlegen",
+  "permissions.identity.users.update.name": "Benutzer bearbeiten",
+  "permissions.identity.users.delete.name": "Benutzer löschen",
+  "permissions.identity.users.lock.name": "Benutzer sperren",
+  "permissions.identity.users.reset_password.name": "Passwörter zurücksetzen",
+  "permissions.identity.users.reset_two_factor.name": "Zwei-Faktor-Authentifizierung zurücksetzen",
+  "permissions.identity.impersonation.start.name": "Benutzer imitieren",
+  "permissions.identity.sessions.read.name": "Online-Benutzer lesen",
+  "permissions.identity.sessions.revoke.name": "Abmeldung erzwingen"
 }

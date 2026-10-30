@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "OAuth-Zustimmungen",
   "openapi.tags.oauth_consents.description": "Vorschau, Erteilen und Ablehnen auf der Zustimmungsseite sowie Ansehen und Widerrufen der von Ihnen autorisierten Apps.",
   "openapi.groups.openplatform.name": "Offene Plattform",
-  "openapi.groups.openplatform.description": "Signierte Open-API-Aufrufe, OAuth-Apps und Autorisierungszustimmung."
+  "openapi.groups.openplatform.description": "Signierte Open-API-Aufrufe, OAuth-Apps und Autorisierungszustimmung.",
+  "permissions.openplatform.oauth_apps.read.name": "OAuth-Apps lesen",
+  "permissions.openplatform.oauth_apps.create.name": "OAuth-Apps anlegen",
+  "permissions.openplatform.oauth_apps.update.name": "OAuth-Apps bearbeiten",
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth-Apps löschen"
 }

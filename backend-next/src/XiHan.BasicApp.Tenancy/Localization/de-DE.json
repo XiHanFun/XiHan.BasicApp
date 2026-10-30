@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "Mein Abonnement",
   "openapi.tags.subscription.description": "Das eigene Abonnement des Mandanten: Edition, Ablauf, Kontingente und Nutzung.",
   "openapi.groups.tenancy.name": "Mandanten und Editionen",
-  "openapi.groups.tenancy.description": "Einrichtung und Lebenszyklus von Mandanten, Mandantenmitglieder, Editionen und Abonnements."
+  "openapi.groups.tenancy.description": "Einrichtung und Lebenszyklus von Mandanten, Mandantenmitglieder, Editionen und Abonnements.",
+  "permissions.tenancy.tenants.read.name": "Mandanten lesen",
+  "permissions.tenancy.tenants.create.name": "Mandanten anlegen",
+  "permissions.tenancy.tenants.update.name": "Mandanten bearbeiten",
+  "permissions.tenancy.tenants.suspend.name": "Mandanten sperren",
+  "permissions.tenancy.tenants.delete.name": "Mandanten löschen",
+  "permissions.tenancy.tenants.initialize_admin.name": "Mandantenadministratoren einrichten",
+  "permissions.tenancy.tenant_members.read.name": "Mandantenmitglieder lesen",
+  "permissions.tenancy.tenant_members.create.name": "Mandantenmitglieder hinzufügen",
+  "permissions.tenancy.tenant_members.delete.name": "Mandantenmitglieder entfernen",
+  "permissions.tenancy.editions.read.name": "Editionen lesen",
+  "permissions.tenancy.editions.create.name": "Editionen anlegen",
+  "permissions.tenancy.editions.update.name": "Editionen bearbeiten",
+  "permissions.tenancy.editions.delete.name": "Editionen löschen",
+  "permissions.tenancy.subscription.read.name": "Abonnement lesen"
 }

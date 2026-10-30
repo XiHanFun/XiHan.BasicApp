@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "История импорта",
   "openapi.tags.import_histories.description": "Запись результатов импорта и просмотр своих недавних импортов по страницам.",
   "openapi.groups.files.name": "Файлы и хранилище",
-  "openapi.groups.files.description": "Доступ к файлам и сохранённые копии, конфигурации хранилища, центр экспорта и история импорта."
+  "openapi.groups.files.description": "Доступ к файлам и сохранённые копии, конфигурации хранилища, центр экспорта и история импорта.",
+  "permissions.files.files.read.name": "Просмотр файлов",
+  "permissions.files.files.create.name": "Загрузка файлов",
+  "permissions.files.files.update.name": "Изменение файлов",
+  "permissions.files.files.delete.name": "Удаление файлов",
+  "permissions.files.storage_configs.read.name": "Просмотр конфигураций хранилища",
+  "permissions.files.storage_configs.create.name": "Создание конфигураций хранилища",
+  "permissions.files.storage_configs.update.name": "Изменение конфигураций хранилища",
+  "permissions.files.storage_configs.delete.name": "Удаление конфигураций хранилища"
 }

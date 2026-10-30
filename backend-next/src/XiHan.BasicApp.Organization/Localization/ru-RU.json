@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Членства в подразделениях",
   "openapi.tags.memberships.description": "Членство пользователей в подразделениях: добавление, изменение и удаление.",
   "openapi.groups.organization.name": "Организация",
-  "openapi.groups.organization.description": "Подразделения, должности и членство пользователей в подразделениях."
+  "openapi.groups.organization.description": "Подразделения, должности и членство пользователей в подразделениях.",
+  "permissions.organization.departments.read.name": "Просмотр подразделений",
+  "permissions.organization.departments.create.name": "Создание подразделений",
+  "permissions.organization.departments.update.name": "Изменение подразделений",
+  "permissions.organization.departments.delete.name": "Удаление подразделений",
+  "permissions.organization.positions.read.name": "Просмотр должностей",
+  "permissions.organization.positions.create.name": "Создание должностей",
+  "permissions.organization.positions.update.name": "Изменение должностей",
+  "permissions.organization.positions.delete.name": "Удаление должностей",
+  "permissions.organization.memberships.read.name": "Просмотр членств в подразделениях",
+  "permissions.organization.memberships.create.name": "Создание членств в подразделениях",
+  "permissions.organization.memberships.update.name": "Изменение членств в подразделениях",
+  "permissions.organization.memberships.delete.name": "Удаление членств в подразделениях"
 }

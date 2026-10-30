@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "開放介面憑證",
   "openapi.tags.my_api_credentials.description": "本人開放介面憑證的新建、啟停、密鑰輪替與刪除，以及呼叫安全設定。",
   "openapi.groups.identity.name": "身分與帳號",
-  "openapi.groups.identity.description": "使用者與認證、線上使用者、模仿登入與個人中心。"
+  "openapi.groups.identity.description": "使用者與認證、線上使用者、模仿登入與個人中心。",
+  "permissions.identity.users.read.name": "讀取使用者",
+  "permissions.identity.users.create.name": "新增使用者",
+  "permissions.identity.users.update.name": "修改使用者",
+  "permissions.identity.users.delete.name": "刪除使用者",
+  "permissions.identity.users.lock.name": "鎖定使用者",
+  "permissions.identity.users.reset_password.name": "重設密碼",
+  "permissions.identity.users.reset_two_factor.name": "重設雙因素驗證",
+  "permissions.identity.impersonation.start.name": "模仿登入",
+  "permissions.identity.sessions.read.name": "讀取線上使用者",
+  "permissions.identity.sessions.revoke.name": "強制登出"
 }

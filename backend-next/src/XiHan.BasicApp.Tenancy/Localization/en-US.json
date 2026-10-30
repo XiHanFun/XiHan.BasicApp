@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "My subscription",
   "openapi.tags.subscription.description": "The tenant's own subscription: edition, expiry, quotas and usage.",
   "openapi.groups.tenancy.name": "Tenants and editions",
-  "openapi.groups.tenancy.description": "Tenant provisioning and lifecycle, tenant members, editions and subscriptions."
+  "openapi.groups.tenancy.description": "Tenant provisioning and lifecycle, tenant members, editions and subscriptions.",
+  "permissions.tenancy.tenants.read.name": "Read tenants",
+  "permissions.tenancy.tenants.create.name": "Create tenants",
+  "permissions.tenancy.tenants.update.name": "Update tenants",
+  "permissions.tenancy.tenants.suspend.name": "Suspend tenants",
+  "permissions.tenancy.tenants.delete.name": "Delete tenants",
+  "permissions.tenancy.tenants.initialize_admin.name": "Initialize tenant administrators",
+  "permissions.tenancy.tenant_members.read.name": "Read tenant members",
+  "permissions.tenancy.tenant_members.create.name": "Add tenant members",
+  "permissions.tenancy.tenant_members.delete.name": "Remove tenant members",
+  "permissions.tenancy.editions.read.name": "Read editions",
+  "permissions.tenancy.editions.create.name": "Create editions",
+  "permissions.tenancy.editions.update.name": "Update editions",
+  "permissions.tenancy.editions.delete.name": "Delete editions",
+  "permissions.tenancy.subscription.read.name": "Read subscription"
 }

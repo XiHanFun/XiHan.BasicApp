@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "Credenciales de API abierta",
   "openapi.tags.my_api_credentials.description": "Creación, activación o desactivación, rotación del secreto y eliminación de sus credenciales de API abierta, y seguridad de llamadas.",
   "openapi.groups.identity.name": "Identidad y cuentas",
-  "openapi.groups.identity.description": "Usuarios y autenticación, usuarios en línea, suplantación y perfil personal."
+  "openapi.groups.identity.description": "Usuarios y autenticación, usuarios en línea, suplantación y perfil personal.",
+  "permissions.identity.users.read.name": "Ver usuarios",
+  "permissions.identity.users.create.name": "Crear usuarios",
+  "permissions.identity.users.update.name": "Editar usuarios",
+  "permissions.identity.users.delete.name": "Eliminar usuarios",
+  "permissions.identity.users.lock.name": "Bloquear usuarios",
+  "permissions.identity.users.reset_password.name": "Restablecer contraseñas",
+  "permissions.identity.users.reset_two_factor.name": "Restablecer la autenticación en dos pasos",
+  "permissions.identity.impersonation.start.name": "Suplantar usuarios",
+  "permissions.identity.sessions.read.name": "Ver usuarios en línea",
+  "permissions.identity.sessions.revoke.name": "Forzar cierre de sesión"
 }

@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "Mi suscripción",
   "openapi.tags.subscription.description": "La suscripción del propio inquilino: edición, caducidad, cuotas y uso.",
   "openapi.groups.tenancy.name": "Inquilinos y ediciones",
-  "openapi.groups.tenancy.description": "Aprovisionamiento y ciclo de vida de inquilinos, miembros, ediciones y suscripciones."
+  "openapi.groups.tenancy.description": "Aprovisionamiento y ciclo de vida de inquilinos, miembros, ediciones y suscripciones.",
+  "permissions.tenancy.tenants.read.name": "Ver inquilinos",
+  "permissions.tenancy.tenants.create.name": "Crear inquilinos",
+  "permissions.tenancy.tenants.update.name": "Editar inquilinos",
+  "permissions.tenancy.tenants.suspend.name": "Suspender inquilinos",
+  "permissions.tenancy.tenants.delete.name": "Eliminar inquilinos",
+  "permissions.tenancy.tenants.initialize_admin.name": "Inicializar administradores de inquilinos",
+  "permissions.tenancy.tenant_members.read.name": "Ver miembros del inquilino",
+  "permissions.tenancy.tenant_members.create.name": "Añadir miembros del inquilino",
+  "permissions.tenancy.tenant_members.delete.name": "Quitar miembros del inquilino",
+  "permissions.tenancy.editions.read.name": "Ver ediciones",
+  "permissions.tenancy.editions.create.name": "Crear ediciones",
+  "permissions.tenancy.editions.update.name": "Editar ediciones",
+  "permissions.tenancy.editions.delete.name": "Eliminar ediciones",
+  "permissions.tenancy.subscription.read.name": "Ver suscripción"
 }

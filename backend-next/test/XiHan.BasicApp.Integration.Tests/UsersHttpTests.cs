@@ -170,6 +170,15 @@ public sealed class UsersHttpTests : IDisposable
         var exported = Host.Contracts.ContractsExporter.Build(server.App);
         Assert.Equal(served, exported);
 
+        // 中文文档：权限的显示名按区域取（授权说明与 x-xihan-permissions 都是），不与英文混排；一个标签只出现在一个分组里
+        var (_, chinese) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/openapi.json", acceptLanguage: "zh-CN"));
+        Assert.Equal("读取用户", chinese.GetProperty("components").GetProperty("x-xihan-permissions").GetProperty("identity.users.read").GetProperty("displayName").GetString());
+        Assert.Contains("新建用户", chinese.GetProperty("paths").GetProperty("/api/users").GetProperty("post").GetProperty("description").GetString(), StringComparison.Ordinal);
+        var groups = chinese.GetProperty("x-tagGroups").EnumerateArray().ToList();
+        var tags = groups.SelectMany(static g => g.GetProperty("tags").EnumerateArray().Select(static t => t.GetString())).ToList();
+        Assert.Equal(tags.Count, tags.Distinct(StringComparer.Ordinal).Count());
+        Assert.Contains("auth", tags);
+
         // 实时 Hub 不进接口文档；推送方法另出 realtime.json（Hub 路径与前端订阅的方法名）
         Assert.False(document.GetProperty("paths").TryGetProperty("/hubs/notification", out _));
         using var realtime = JsonDocument.Parse(Host.Contracts.ContractsExporter.BuildRealtime());

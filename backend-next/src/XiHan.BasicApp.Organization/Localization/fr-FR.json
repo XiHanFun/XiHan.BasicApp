@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Affectations",
   "openapi.tags.memberships.description": "Affectations des utilisateurs aux services : ajout, modification et retrait.",
   "openapi.groups.organization.name": "Organisation",
-  "openapi.groups.organization.description": "Services, postes et affectations des utilisateurs aux services."
+  "openapi.groups.organization.description": "Services, postes et affectations des utilisateurs aux services.",
+  "permissions.organization.departments.read.name": "Consulter les services",
+  "permissions.organization.departments.create.name": "Créer des services",
+  "permissions.organization.departments.update.name": "Modifier les services",
+  "permissions.organization.departments.delete.name": "Supprimer les services",
+  "permissions.organization.positions.read.name": "Consulter les postes",
+  "permissions.organization.positions.create.name": "Créer des postes",
+  "permissions.organization.positions.update.name": "Modifier les postes",
+  "permissions.organization.positions.delete.name": "Supprimer les postes",
+  "permissions.organization.memberships.read.name": "Consulter les affectations",
+  "permissions.organization.memberships.create.name": "Créer des affectations",
+  "permissions.organization.memberships.update.name": "Modifier les affectations",
+  "permissions.organization.memberships.delete.name": "Supprimer les affectations"
 }

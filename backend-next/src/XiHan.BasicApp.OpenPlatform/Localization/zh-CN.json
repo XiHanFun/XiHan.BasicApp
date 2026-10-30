@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "OAuth 授权",
   "openapi.tags.oauth_consents.description": "授权同意页的预览、同意与拒绝，以及本人已授权应用的查看与撤销。",
   "openapi.groups.openplatform.name": "开放平台",
-  "openapi.groups.openplatform.description": "开放接口的签名调用、OAuth 应用与授权同意。"
+  "openapi.groups.openplatform.description": "开放接口的签名调用、OAuth 应用与授权同意。",
+  "permissions.openplatform.oauth_apps.read.name": "读取 OAuth 应用",
+  "permissions.openplatform.oauth_apps.create.name": "新建 OAuth 应用",
+  "permissions.openplatform.oauth_apps.update.name": "修改 OAuth 应用",
+  "permissions.openplatform.oauth_apps.delete.name": "删除 OAuth 应用"
 }

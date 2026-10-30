@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "OAuth 인가",
   "openapi.tags.oauth_consents.description": "동의 화면의 미리 보기·승인·거부와 내가 인가한 앱의 조회·취소.",
   "openapi.groups.openplatform.name": "오픈 플랫폼",
-  "openapi.groups.openplatform.description": "오픈 API 서명 호출, OAuth 앱, 인가 동의."
+  "openapi.groups.openplatform.description": "오픈 API 서명 호출, OAuth 앱, 인가 동의.",
+  "permissions.openplatform.oauth_apps.read.name": "OAuth 앱 조회",
+  "permissions.openplatform.oauth_apps.create.name": "OAuth 앱 생성",
+  "permissions.openplatform.oauth_apps.update.name": "OAuth 앱 수정",
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth 앱 삭제"
 }

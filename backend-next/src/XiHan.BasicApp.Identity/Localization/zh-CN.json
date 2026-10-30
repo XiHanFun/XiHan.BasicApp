@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "开放接口凭证",
   "openapi.tags.my_api_credentials.description": "本人开放接口凭证的新建、启停、密钥滚动与删除，以及调用安全设置。",
   "openapi.groups.identity.name": "身份与账号",
-  "openapi.groups.identity.description": "用户与认证、在线用户、模仿登录与个人中心。"
+  "openapi.groups.identity.description": "用户与认证、在线用户、模仿登录与个人中心。",
+  "permissions.identity.users.read.name": "读取用户",
+  "permissions.identity.users.create.name": "新建用户",
+  "permissions.identity.users.update.name": "修改用户",
+  "permissions.identity.users.delete.name": "删除用户",
+  "permissions.identity.users.lock.name": "锁定用户",
+  "permissions.identity.users.reset_password.name": "重置密码",
+  "permissions.identity.users.reset_two_factor.name": "重置双因素认证",
+  "permissions.identity.impersonation.start.name": "模仿登录",
+  "permissions.identity.sessions.read.name": "读取在线用户",
+  "permissions.identity.sessions.revoke.name": "强制下线"
 }

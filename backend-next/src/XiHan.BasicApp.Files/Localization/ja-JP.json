@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "インポート履歴",
   "openapi.tags.import_histories.description": "インポート結果の記録と、ページごとの自分の最近のインポートの参照。",
   "openapi.groups.files.name": "ファイルとストレージ",
-  "openapi.groups.files.description": "ファイルの入出力と保存コピー、ストレージ設定、エクスポートセンターとインポート履歴。"
+  "openapi.groups.files.description": "ファイルの入出力と保存コピー、ストレージ設定、エクスポートセンターとインポート履歴。",
+  "permissions.files.files.read.name": "ファイルの参照",
+  "permissions.files.files.create.name": "ファイルのアップロード",
+  "permissions.files.files.update.name": "ファイルの更新",
+  "permissions.files.files.delete.name": "ファイルの削除",
+  "permissions.files.storage_configs.read.name": "ストレージ設定の参照",
+  "permissions.files.storage_configs.create.name": "ストレージ設定の作成",
+  "permissions.files.storage_configs.update.name": "ストレージ設定の更新",
+  "permissions.files.storage_configs.delete.name": "ストレージ設定の削除"
 }

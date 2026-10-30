@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "我的訂閱",
   "openapi.tags.subscription.description": "本租戶的訂閱：套餐、到期與配額用量。",
   "openapi.groups.tenancy.name": "租戶與套餐",
-  "openapi.groups.tenancy.description": "租戶開通與啟停、租戶成員、套餐與訂閱。"
+  "openapi.groups.tenancy.description": "租戶開通與啟停、租戶成員、套餐與訂閱。",
+  "permissions.tenancy.tenants.read.name": "讀取租戶",
+  "permissions.tenancy.tenants.create.name": "新增租戶",
+  "permissions.tenancy.tenants.update.name": "修改租戶",
+  "permissions.tenancy.tenants.suspend.name": "停用租戶",
+  "permissions.tenancy.tenants.delete.name": "刪除租戶",
+  "permissions.tenancy.tenants.initialize_admin.name": "初始化租戶管理員",
+  "permissions.tenancy.tenant_members.read.name": "讀取租戶成員",
+  "permissions.tenancy.tenant_members.create.name": "新增租戶成員",
+  "permissions.tenancy.tenant_members.delete.name": "移除租戶成員",
+  "permissions.tenancy.editions.read.name": "讀取套餐",
+  "permissions.tenancy.editions.create.name": "新增套餐",
+  "permissions.tenancy.editions.update.name": "修改套餐",
+  "permissions.tenancy.editions.delete.name": "刪除套餐",
+  "permissions.tenancy.subscription.read.name": "讀取訂閱"
 }

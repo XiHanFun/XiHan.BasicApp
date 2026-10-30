@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "Minha assinatura",
   "openapi.tags.subscription.description": "A assinatura do próprio locatário: edição, vencimento, cotas e uso.",
   "openapi.groups.tenancy.name": "Locatários e edições",
-  "openapi.groups.tenancy.description": "Provisionamento e ciclo de vida de locatários, membros, edições e assinaturas."
+  "openapi.groups.tenancy.description": "Provisionamento e ciclo de vida de locatários, membros, edições e assinaturas.",
+  "permissions.tenancy.tenants.read.name": "Ver locatários",
+  "permissions.tenancy.tenants.create.name": "Criar locatários",
+  "permissions.tenancy.tenants.update.name": "Editar locatários",
+  "permissions.tenancy.tenants.suspend.name": "Suspender locatários",
+  "permissions.tenancy.tenants.delete.name": "Excluir locatários",
+  "permissions.tenancy.tenants.initialize_admin.name": "Inicializar administradores de locatários",
+  "permissions.tenancy.tenant_members.read.name": "Ver membros do locatário",
+  "permissions.tenancy.tenant_members.create.name": "Adicionar membros do locatário",
+  "permissions.tenancy.tenant_members.delete.name": "Remover membros do locatário",
+  "permissions.tenancy.editions.read.name": "Ver edições",
+  "permissions.tenancy.editions.create.name": "Criar edições",
+  "permissions.tenancy.editions.update.name": "Editar edições",
+  "permissions.tenancy.editions.delete.name": "Excluir edições",
+  "permissions.tenancy.subscription.read.name": "Ver assinatura"
 }

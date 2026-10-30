@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "Mon activité",
   "openapi.tags.my_activity.description": "Votre activité : nombre de connexions, d’accès et d’opérations avec la tendance quotidienne.",
   "openapi.groups.auditing.name": "Journaux d’audit",
-  "openapi.groups.auditing.description": "Consultation et traçage de tous les journaux, ainsi que vos propres journaux de connexion et votre activité."
+  "openapi.groups.auditing.description": "Consultation et traçage de tous les journaux, ainsi que vos propres journaux de connexion et votre activité.",
+  "permissions.auditing.access_logs.read.name": "Consulter les journaux d’accès",
+  "permissions.auditing.exception_logs.read.name": "Consulter les journaux d’exceptions",
+  "permissions.auditing.login_logs.read.name": "Consulter les journaux de connexion",
+  "permissions.auditing.operation_logs.read.name": "Consulter les journaux d’opérations",
+  "permissions.auditing.diff_logs.read.name": "Consulter les journaux de modifications de données",
+  "permissions.auditing.permission_change_logs.read.name": "Consulter les journaux de modifications de permissions",
+  "permissions.auditing.condition_hits.read.name": "Consulter les conditions satisfaites",
+  "permissions.auditing.open_api_logs.read.name": "Consulter les journaux d’API ouverte",
+  "permissions.auditing.traces.read.name": "Consulter le traçage des journaux"
 }

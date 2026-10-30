@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Abteilungszugehörigkeiten",
   "openapi.tags.memberships.description": "Zugehörigkeiten von Benutzern zu Abteilungen hinzufügen, ändern und entfernen.",
   "openapi.groups.organization.name": "Organisation",
-  "openapi.groups.organization.description": "Abteilungen, Stellen und Abteilungszugehörigkeiten der Benutzer."
+  "openapi.groups.organization.description": "Abteilungen, Stellen und Abteilungszugehörigkeiten der Benutzer.",
+  "permissions.organization.departments.read.name": "Abteilungen lesen",
+  "permissions.organization.departments.create.name": "Abteilungen anlegen",
+  "permissions.organization.departments.update.name": "Abteilungen bearbeiten",
+  "permissions.organization.departments.delete.name": "Abteilungen löschen",
+  "permissions.organization.positions.read.name": "Stellen lesen",
+  "permissions.organization.positions.create.name": "Stellen anlegen",
+  "permissions.organization.positions.update.name": "Stellen bearbeiten",
+  "permissions.organization.positions.delete.name": "Stellen löschen",
+  "permissions.organization.memberships.read.name": "Abteilungszugehörigkeiten lesen",
+  "permissions.organization.memberships.create.name": "Abteilungszugehörigkeiten anlegen",
+  "permissions.organization.memberships.update.name": "Abteilungszugehörigkeiten bearbeiten",
+  "permissions.organization.memberships.delete.name": "Abteilungszugehörigkeiten löschen"
 }

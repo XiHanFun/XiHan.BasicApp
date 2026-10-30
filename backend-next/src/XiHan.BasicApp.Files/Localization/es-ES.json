@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "Historial de importaciones",
   "openapi.tags.import_histories.description": "Registro de los resultados de importación y consulta de sus importaciones recientes por página.",
   "openapi.groups.files.name": "Archivos y almacenamiento",
-  "openapi.groups.files.description": "Acceso a archivos y copias almacenadas, configuraciones de almacenamiento, centro de exportación e historial de importaciones."
+  "openapi.groups.files.description": "Acceso a archivos y copias almacenadas, configuraciones de almacenamiento, centro de exportación e historial de importaciones.",
+  "permissions.files.files.read.name": "Ver archivos",
+  "permissions.files.files.create.name": "Subir archivos",
+  "permissions.files.files.update.name": "Editar archivos",
+  "permissions.files.files.delete.name": "Eliminar archivos",
+  "permissions.files.storage_configs.read.name": "Ver configuraciones de almacenamiento",
+  "permissions.files.storage_configs.create.name": "Crear configuraciones de almacenamiento",
+  "permissions.files.storage_configs.update.name": "Editar configuraciones de almacenamiento",
+  "permissions.files.storage_configs.delete.name": "Eliminar configuraciones de almacenamiento"
 }

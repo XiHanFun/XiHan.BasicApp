@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "Согласия OAuth",
   "openapi.tags.oauth_consents.description": "Предпросмотр, одобрение и отклонение на странице согласия, просмотр и отзыв авторизованных вами приложений.",
   "openapi.groups.openplatform.name": "Открытая платформа",
-  "openapi.groups.openplatform.description": "Подписанные вызовы открытого API, приложения OAuth и согласие на авторизацию."
+  "openapi.groups.openplatform.description": "Подписанные вызовы открытого API, приложения OAuth и согласие на авторизацию.",
+  "permissions.openplatform.oauth_apps.read.name": "Просмотр приложений OAuth",
+  "permissions.openplatform.oauth_apps.create.name": "Создание приложений OAuth",
+  "permissions.openplatform.oauth_apps.update.name": "Изменение приложений OAuth",
+  "permissions.openplatform.oauth_apps.delete.name": "Удаление приложений OAuth"
 }

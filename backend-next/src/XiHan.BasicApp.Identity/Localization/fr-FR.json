@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "Identifiants d'API ouverte",
   "openapi.tags.my_api_credentials.description": "Création, activation ou désactivation, renouvellement du secret et suppression de vos identifiants d'API ouverte, et réglages de sécurité d'appel.",
   "openapi.groups.identity.name": "Identité et comptes",
-  "openapi.groups.identity.description": "Utilisateurs et authentification, utilisateurs en ligne, usurpation et profil personnel."
+  "openapi.groups.identity.description": "Utilisateurs et authentification, utilisateurs en ligne, usurpation et profil personnel.",
+  "permissions.identity.users.read.name": "Consulter les utilisateurs",
+  "permissions.identity.users.create.name": "Créer des utilisateurs",
+  "permissions.identity.users.update.name": "Modifier les utilisateurs",
+  "permissions.identity.users.delete.name": "Supprimer les utilisateurs",
+  "permissions.identity.users.lock.name": "Verrouiller des utilisateurs",
+  "permissions.identity.users.reset_password.name": "Réinitialiser les mots de passe",
+  "permissions.identity.users.reset_two_factor.name": "Réinitialiser l’authentification à deux facteurs",
+  "permissions.identity.impersonation.start.name": "Usurper l’identité d’utilisateurs",
+  "permissions.identity.sessions.read.name": "Consulter les utilisateurs en ligne",
+  "permissions.identity.sessions.revoke.name": "Forcer la déconnexion"
 }
