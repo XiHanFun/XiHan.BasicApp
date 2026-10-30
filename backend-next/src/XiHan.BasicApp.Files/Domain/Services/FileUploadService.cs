@@ -439,7 +439,7 @@ public sealed partial class FileUploadService(
     /// </summary>
     private async Task<Result<Located>> LocateAsync(SysFileUpload upload, CancellationToken cancellationToken)
     {
-        if (!(await configs.FindAnyAsync(upload.StorageConfigId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await configs.FindForSideAsync(upload.StorageConfigId, upload.TenantId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", upload.StorageConfigId)));
         }
