@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "내 활동",
   "openapi.tags.my_activity.description": "내 활동: 로그인·접근·작업 횟수와 일별 추이.",
   "openapi.groups.auditing.name": "감사 로그",
-  "openapi.groups.auditing.description": "각종 로그 조회와 추적, 그리고 내 로그인 기록과 활동."
+  "openapi.groups.auditing.description": "각종 로그 조회와 추적, 그리고 내 로그인 기록과 활동.",
+  "permissions.auditing.access_logs.read.name": "접근 로그 조회",
+  "permissions.auditing.exception_logs.read.name": "예외 로그 조회",
+  "permissions.auditing.login_logs.read.name": "로그인 로그 조회",
+  "permissions.auditing.operation_logs.read.name": "작업 로그 조회",
+  "permissions.auditing.diff_logs.read.name": "데이터 변경 로그 조회",
+  "permissions.auditing.permission_change_logs.read.name": "권한 변경 로그 조회",
+  "permissions.auditing.condition_hits.read.name": "조건 적중 기록 조회",
+  "permissions.auditing.open_api_logs.read.name": "오픈 API 로그 조회",
+  "permissions.auditing.traces.read.name": "로그 추적 조회"
 }

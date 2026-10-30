@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "オープン API 認証情報",
   "openapi.tags.my_api_credentials.description": "自分のオープン API 認証情報の作成、有効化・無効化、シークレット更新と削除、呼び出しセキュリティ設定。",
   "openapi.groups.identity.name": "ID とアカウント",
-  "openapi.groups.identity.description": "ユーザーと認証、オンラインユーザー、代行ログインと個人センター。"
+  "openapi.groups.identity.description": "ユーザーと認証、オンラインユーザー、代行ログインと個人センター。",
+  "permissions.identity.users.read.name": "ユーザーの参照",
+  "permissions.identity.users.create.name": "ユーザーの作成",
+  "permissions.identity.users.update.name": "ユーザーの更新",
+  "permissions.identity.users.delete.name": "ユーザーの削除",
+  "permissions.identity.users.lock.name": "ユーザーのロック",
+  "permissions.identity.users.reset_password.name": "パスワードのリセット",
+  "permissions.identity.users.reset_two_factor.name": "二要素認証のリセット",
+  "permissions.identity.impersonation.start.name": "代行ログイン",
+  "permissions.identity.sessions.read.name": "オンラインユーザーの参照",
+  "permissions.identity.sessions.revoke.name": "強制ログアウト"
 }

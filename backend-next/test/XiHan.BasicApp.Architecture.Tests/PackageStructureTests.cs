@@ -61,11 +61,12 @@ public sealed class PackageStructureTests
                 .Select(static f => (string)f.GetRawConstantValue()!)
                 .ToList();
 
-            // 消息键常量之外，生成器按约定读的键（ADR-0052）：每个操作的 .title、本包的分组，以及本包登记的资源标签（每个资源恰好一个包登记，见下一个测试）
+            // 消息键常量之外，生成器按约定读的键（ADR-0052）：每个操作的 .title、本包的分组、本包每个权限的显示名，以及本包登记的资源标签（每个资源恰好一个包登记，见下一个测试）
             var operations = OperationContractTests.Operations().Where(o => string.Equals(o.Package, package, StringComparison.Ordinal)).Select(static o => o.Attribute.Id).ToList();
             var group = package.ToLowerInvariant();
             var conventional = operations.Select(static id => KeyOf(id) + ".title")
-                .Concat(operations.Count == 0 ? [] : [$"openapi.groups.{group}.name", $"openapi.groups.{group}.description"]);
+                .Concat(operations.Count == 0 ? [] : [$"openapi.groups.{group}.name", $"openapi.groups.{group}.description"])
+                .Concat(PermissionCatalog.Of(package).Select(static p => $"permissions.{KeyOf(p.Code)}.name"));
             var resources = operations.Select(static id => KeyOf(id[..id.LastIndexOf('.')])).ToHashSet(StringComparer.Ordinal);
             foreach (var locale in files)
             {
@@ -164,7 +165,7 @@ public sealed class PackageStructureTests
     /// 操作 ID 或资源段对应的消息键前缀。
     /// </summary>
     /// <remarks>
-    /// 资源段与动词段里的连字符换成下划线（<c>my-login-logs.list</c> → <c>my_login_logs.list</c>）。
+    /// 资源段与动词段里的连字符换成下划线（<c>my-login-logs.list</c> → <c>my_login_logs.list</c>），权限码同样换。
     /// </remarks>
     private static string KeyOf(string id) => id.Replace('-', '_');
 }

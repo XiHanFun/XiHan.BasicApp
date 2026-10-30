@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "내 구독",
   "openapi.tags.subscription.description": "이 테넌트의 구독(에디션, 만료, 할당량과 사용량).",
   "openapi.groups.tenancy.name": "테넌트와 에디션",
-  "openapi.groups.tenancy.description": "테넌트 개통과 수명 주기, 테넌트 구성원, 에디션과 구독."
+  "openapi.groups.tenancy.description": "테넌트 개통과 수명 주기, 테넌트 구성원, 에디션과 구독.",
+  "permissions.tenancy.tenants.read.name": "테넌트 조회",
+  "permissions.tenancy.tenants.create.name": "테넌트 생성",
+  "permissions.tenancy.tenants.update.name": "테넌트 수정",
+  "permissions.tenancy.tenants.suspend.name": "테넌트 일시 중지",
+  "permissions.tenancy.tenants.delete.name": "테넌트 삭제",
+  "permissions.tenancy.tenants.initialize_admin.name": "테넌트 관리자 초기화",
+  "permissions.tenancy.tenant_members.read.name": "테넌트 구성원 조회",
+  "permissions.tenancy.tenant_members.create.name": "테넌트 구성원 추가",
+  "permissions.tenancy.tenant_members.delete.name": "테넌트 구성원 제거",
+  "permissions.tenancy.editions.read.name": "에디션 조회",
+  "permissions.tenancy.editions.create.name": "에디션 생성",
+  "permissions.tenancy.editions.update.name": "에디션 수정",
+  "permissions.tenancy.editions.delete.name": "에디션 삭제",
+  "permissions.tenancy.subscription.read.name": "구독 조회"
 }

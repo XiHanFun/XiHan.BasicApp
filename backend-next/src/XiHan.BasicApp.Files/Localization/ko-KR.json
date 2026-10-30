@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "가져오기 기록",
   "openapi.tags.import_histories.description": "가져오기 결과 기록과 페이지별 내 최근 가져오기 조회.",
   "openapi.groups.files.name": "파일과 저장소",
-  "openapi.groups.files.description": "파일 입출력과 저장된 사본, 저장소 설정, 내보내기 센터와 가져오기 기록."
+  "openapi.groups.files.description": "파일 입출력과 저장된 사본, 저장소 설정, 내보내기 센터와 가져오기 기록.",
+  "permissions.files.files.read.name": "파일 조회",
+  "permissions.files.files.create.name": "파일 업로드",
+  "permissions.files.files.update.name": "파일 수정",
+  "permissions.files.files.delete.name": "파일 삭제",
+  "permissions.files.storage_configs.read.name": "저장소 설정 조회",
+  "permissions.files.storage_configs.create.name": "저장소 설정 생성",
+  "permissions.files.storage_configs.update.name": "저장소 설정 수정",
+  "permissions.files.storage_configs.delete.name": "저장소 설정 삭제"
 }

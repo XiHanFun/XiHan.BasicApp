@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "Open API credentials",
   "openapi.tags.my_api_credentials.description": "Create, enable or disable, rotate and delete your own open API credentials, and manage call security settings.",
   "openapi.groups.identity.name": "Identity and accounts",
-  "openapi.groups.identity.description": "Users and authentication, online users, impersonation and the personal profile."
+  "openapi.groups.identity.description": "Users and authentication, online users, impersonation and the personal profile.",
+  "permissions.identity.users.read.name": "Read users",
+  "permissions.identity.users.create.name": "Create users",
+  "permissions.identity.users.update.name": "Update users",
+  "permissions.identity.users.delete.name": "Delete users",
+  "permissions.identity.users.lock.name": "Lock users",
+  "permissions.identity.users.reset_password.name": "Reset passwords",
+  "permissions.identity.users.reset_two_factor.name": "Reset two-factor",
+  "permissions.identity.impersonation.start.name": "Impersonate users",
+  "permissions.identity.sessions.read.name": "Read online users",
+  "permissions.identity.sessions.revoke.name": "Force sign-out"
 }

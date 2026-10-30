@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "Importverlauf",
   "openapi.tags.import_histories.description": "Importergebnisse festhalten und die eigenen letzten Importe je Seite ansehen.",
   "openapi.groups.files.name": "Dateien und Speicher",
-  "openapi.groups.files.description": "Dateizugriff und gespeicherte Kopien, Speicherkonfigurationen, Exportcenter und Importverlauf."
+  "openapi.groups.files.description": "Dateizugriff und gespeicherte Kopien, Speicherkonfigurationen, Exportcenter und Importverlauf.",
+  "permissions.files.files.read.name": "Dateien lesen",
+  "permissions.files.files.create.name": "Dateien hochladen",
+  "permissions.files.files.update.name": "Dateien bearbeiten",
+  "permissions.files.files.delete.name": "Dateien löschen",
+  "permissions.files.storage_configs.read.name": "Speicherkonfigurationen lesen",
+  "permissions.files.storage_configs.create.name": "Speicherkonfigurationen anlegen",
+  "permissions.files.storage_configs.update.name": "Speicherkonfigurationen bearbeiten",
+  "permissions.files.storage_configs.delete.name": "Speicherkonfigurationen löschen"
 }

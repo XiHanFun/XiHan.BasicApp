@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "我的活躍度",
   "openapi.tags.my_activity.description": "本人的活躍度：登入、存取與操作的次數與按日趨勢。",
   "openapi.groups.auditing.name": "稽核日誌",
-  "openapi.groups.auditing.description": "各類日誌的查詢與鏈路追蹤，以及本人的登入日誌與活躍度。"
+  "openapi.groups.auditing.description": "各類日誌的查詢與鏈路追蹤，以及本人的登入日誌與活躍度。",
+  "permissions.auditing.access_logs.read.name": "讀取存取日誌",
+  "permissions.auditing.exception_logs.read.name": "讀取例外日誌",
+  "permissions.auditing.login_logs.read.name": "讀取登入日誌",
+  "permissions.auditing.operation_logs.read.name": "讀取操作日誌",
+  "permissions.auditing.diff_logs.read.name": "讀取資料變更日誌",
+  "permissions.auditing.permission_change_logs.read.name": "讀取權限變更日誌",
+  "permissions.auditing.condition_hits.read.name": "讀取條件命中記錄",
+  "permissions.auditing.open_api_logs.read.name": "讀取開放介面日誌",
+  "permissions.auditing.traces.read.name": "讀取鏈路追蹤"
 }

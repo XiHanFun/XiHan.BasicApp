@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "Учётные данные открытого API",
   "openapi.tags.my_api_credentials.description": "Создание, включение и отключение, обновление секрета и удаление ваших учётных данных открытого API, настройки безопасности вызовов.",
   "openapi.groups.identity.name": "Идентификация и учётные записи",
-  "openapi.groups.identity.description": "Пользователи и аутентификация, пользователи онлайн, имперсонация и личный профиль."
+  "openapi.groups.identity.description": "Пользователи и аутентификация, пользователи онлайн, имперсонация и личный профиль.",
+  "permissions.identity.users.read.name": "Просмотр пользователей",
+  "permissions.identity.users.create.name": "Создание пользователей",
+  "permissions.identity.users.update.name": "Изменение пользователей",
+  "permissions.identity.users.delete.name": "Удаление пользователей",
+  "permissions.identity.users.lock.name": "Блокировка пользователей",
+  "permissions.identity.users.reset_password.name": "Сброс паролей",
+  "permissions.identity.users.reset_two_factor.name": "Сброс двухфакторной аутентификации",
+  "permissions.identity.impersonation.start.name": "Имперсонация пользователей",
+  "permissions.identity.sessions.read.name": "Просмотр пользователей онлайн",
+  "permissions.identity.sessions.revoke.name": "Принудительный выход"
 }

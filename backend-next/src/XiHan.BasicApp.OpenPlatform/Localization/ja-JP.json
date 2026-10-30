@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "OAuth 認可",
   "openapi.tags.oauth_consents.description": "同意画面のプレビュー・承認・拒否と、自分が認可したアプリの参照・取り消し。",
   "openapi.groups.openplatform.name": "オープンプラットフォーム",
-  "openapi.groups.openplatform.description": "オープン API の署名付き呼び出し、OAuth アプリ、認可の同意。"
+  "openapi.groups.openplatform.description": "オープン API の署名付き呼び出し、OAuth アプリ、認可の同意。",
+  "permissions.openplatform.oauth_apps.read.name": "OAuth アプリの参照",
+  "permissions.openplatform.oauth_apps.create.name": "OAuth アプリの作成",
+  "permissions.openplatform.oauth_apps.update.name": "OAuth アプリの更新",
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth アプリの削除"
 }

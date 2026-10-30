@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "Meine Aktivität",
   "openapi.tags.my_activity.description": "Ihre Aktivität: Anzahl der Anmeldungen, Zugriffe und Vorgänge mit täglichem Verlauf.",
   "openapi.groups.auditing.name": "Auditprotokolle",
-  "openapi.groups.auditing.description": "Abfrage und Nachverfolgung aller Protokollarten sowie die eigenen Anmeldeprotokolle und die eigene Aktivität."
+  "openapi.groups.auditing.description": "Abfrage und Nachverfolgung aller Protokollarten sowie die eigenen Anmeldeprotokolle und die eigene Aktivität.",
+  "permissions.auditing.access_logs.read.name": "Zugriffsprotokolle lesen",
+  "permissions.auditing.exception_logs.read.name": "Ausnahmeprotokolle lesen",
+  "permissions.auditing.login_logs.read.name": "Anmeldeprotokolle lesen",
+  "permissions.auditing.operation_logs.read.name": "Vorgangsprotokolle lesen",
+  "permissions.auditing.diff_logs.read.name": "Datenänderungsprotokolle lesen",
+  "permissions.auditing.permission_change_logs.read.name": "Berechtigungsänderungsprotokolle lesen",
+  "permissions.auditing.condition_hits.read.name": "Bedingungstreffer lesen",
+  "permissions.auditing.open_api_logs.read.name": "Open-API-Protokolle lesen",
+  "permissions.auditing.traces.read.name": "Protokoll-Nachverfolgung lesen"
 }

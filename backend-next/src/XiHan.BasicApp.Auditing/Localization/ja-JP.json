@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "自分の活動状況",
   "openapi.tags.my_activity.description": "自分の活動状況：ログイン・アクセス・操作の回数と日別の推移。",
   "openapi.groups.auditing.name": "監査ログ",
-  "openapi.groups.auditing.description": "各種ログの照会とトレース、および自分のログイン記録と活動状況。"
+  "openapi.groups.auditing.description": "各種ログの照会とトレース、および自分のログイン記録と活動状況。",
+  "permissions.auditing.access_logs.read.name": "アクセスログの参照",
+  "permissions.auditing.exception_logs.read.name": "例外ログの参照",
+  "permissions.auditing.login_logs.read.name": "ログインログの参照",
+  "permissions.auditing.operation_logs.read.name": "操作ログの参照",
+  "permissions.auditing.diff_logs.read.name": "データ変更ログの参照",
+  "permissions.auditing.permission_change_logs.read.name": "権限変更ログの参照",
+  "permissions.auditing.condition_hits.read.name": "条件ヒット記録の参照",
+  "permissions.auditing.open_api_logs.read.name": "オープン API ログの参照",
+  "permissions.auditing.traces.read.name": "ログトレースの参照"
 }

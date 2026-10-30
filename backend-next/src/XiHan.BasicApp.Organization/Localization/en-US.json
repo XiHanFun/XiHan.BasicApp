@@ -49,5 +49,17 @@
   "openapi.tags.memberships.name": "Department members",
   "openapi.tags.memberships.description": "User memberships in departments: add, update assignments and remove.",
   "openapi.groups.organization.name": "Organization",
-  "openapi.groups.organization.description": "Departments, positions and users' department memberships."
+  "openapi.groups.organization.description": "Departments, positions and users' department memberships.",
+  "permissions.organization.departments.read.name": "Read departments",
+  "permissions.organization.departments.create.name": "Create departments",
+  "permissions.organization.departments.update.name": "Update departments",
+  "permissions.organization.departments.delete.name": "Delete departments",
+  "permissions.organization.positions.read.name": "Read positions",
+  "permissions.organization.positions.create.name": "Create positions",
+  "permissions.organization.positions.update.name": "Update positions",
+  "permissions.organization.positions.delete.name": "Delete positions",
+  "permissions.organization.memberships.read.name": "Read memberships",
+  "permissions.organization.memberships.create.name": "Create memberships",
+  "permissions.organization.memberships.update.name": "Update memberships",
+  "permissions.organization.memberships.delete.name": "Delete memberships"
 }

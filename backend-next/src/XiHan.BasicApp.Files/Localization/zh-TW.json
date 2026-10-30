@@ -92,5 +92,13 @@
   "openapi.tags.import_histories.name": "匯入歷史",
   "openapi.tags.import_histories.description": "記錄匯入結果，檢視本人在各頁最近的匯入。",
   "openapi.groups.files.name": "檔案與儲存",
-  "openapi.groups.files.description": "檔案的存取與副本、儲存設定，以及匯出中心與匯入歷史。"
+  "openapi.groups.files.description": "檔案的存取與副本、儲存設定，以及匯出中心與匯入歷史。",
+  "permissions.files.files.read.name": "讀取檔案",
+  "permissions.files.files.create.name": "上傳檔案",
+  "permissions.files.files.update.name": "修改檔案",
+  "permissions.files.files.delete.name": "刪除檔案",
+  "permissions.files.storage_configs.read.name": "讀取儲存設定",
+  "permissions.files.storage_configs.create.name": "新增儲存設定",
+  "permissions.files.storage_configs.update.name": "修改儲存設定",
+  "permissions.files.storage_configs.delete.name": "刪除儲存設定"
 }

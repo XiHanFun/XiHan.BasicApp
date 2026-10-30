@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "Mon abonnement",
   "openapi.tags.subscription.description": "L'abonnement du locataire : édition, échéance, quotas et usage.",
   "openapi.groups.tenancy.name": "Locataires et éditions",
-  "openapi.groups.tenancy.description": "Provisionnement et cycle de vie des locataires, membres, éditions et abonnements."
+  "openapi.groups.tenancy.description": "Provisionnement et cycle de vie des locataires, membres, éditions et abonnements.",
+  "permissions.tenancy.tenants.read.name": "Consulter les locataires",
+  "permissions.tenancy.tenants.create.name": "Créer des locataires",
+  "permissions.tenancy.tenants.update.name": "Modifier les locataires",
+  "permissions.tenancy.tenants.suspend.name": "Suspendre des locataires",
+  "permissions.tenancy.tenants.delete.name": "Supprimer les locataires",
+  "permissions.tenancy.tenants.initialize_admin.name": "Initialiser les administrateurs de locataire",
+  "permissions.tenancy.tenant_members.read.name": "Consulter les membres du locataire",
+  "permissions.tenancy.tenant_members.create.name": "Ajouter des membres du locataire",
+  "permissions.tenancy.tenant_members.delete.name": "Retirer des membres du locataire",
+  "permissions.tenancy.editions.read.name": "Consulter les éditions",
+  "permissions.tenancy.editions.create.name": "Créer des éditions",
+  "permissions.tenancy.editions.update.name": "Modifier les éditions",
+  "permissions.tenancy.editions.delete.name": "Supprimer les éditions",
+  "permissions.tenancy.subscription.read.name": "Consulter l’abonnement"
 }

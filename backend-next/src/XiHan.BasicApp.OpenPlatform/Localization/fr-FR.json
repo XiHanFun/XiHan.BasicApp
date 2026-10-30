@@ -74,5 +74,9 @@
   "openapi.tags.oauth_consents.name": "Consentements OAuth",
   "openapi.tags.oauth_consents.description": "Aperçu, accord et refus sur la page de consentement, consultation et révocation des applications que vous avez autorisées.",
   "openapi.groups.openplatform.name": "Plateforme ouverte",
-  "openapi.groups.openplatform.description": "Appels signés à l’API ouverte, applications OAuth et consentement d’autorisation."
+  "openapi.groups.openplatform.description": "Appels signés à l’API ouverte, applications OAuth et consentement d’autorisation.",
+  "permissions.openplatform.oauth_apps.read.name": "Consulter les applications OAuth",
+  "permissions.openplatform.oauth_apps.create.name": "Créer des applications OAuth",
+  "permissions.openplatform.oauth_apps.update.name": "Modifier les applications OAuth",
+  "permissions.openplatform.oauth_apps.delete.name": "Supprimer les applications OAuth"
 }

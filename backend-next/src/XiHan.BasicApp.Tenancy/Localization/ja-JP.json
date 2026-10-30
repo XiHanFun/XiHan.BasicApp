@@ -71,5 +71,19 @@
   "openapi.tags.subscription.name": "契約",
   "openapi.tags.subscription.description": "自テナントの契約（エディション、期限、割り当てと使用量）。",
   "openapi.groups.tenancy.name": "テナントとエディション",
-  "openapi.groups.tenancy.description": "テナントの開通とライフサイクル、テナントメンバー、エディションと契約。"
+  "openapi.groups.tenancy.description": "テナントの開通とライフサイクル、テナントメンバー、エディションと契約。",
+  "permissions.tenancy.tenants.read.name": "テナントの参照",
+  "permissions.tenancy.tenants.create.name": "テナントの作成",
+  "permissions.tenancy.tenants.update.name": "テナントの更新",
+  "permissions.tenancy.tenants.suspend.name": "テナントの停止",
+  "permissions.tenancy.tenants.delete.name": "テナントの削除",
+  "permissions.tenancy.tenants.initialize_admin.name": "テナント管理者の初期化",
+  "permissions.tenancy.tenant_members.read.name": "テナントメンバーの参照",
+  "permissions.tenancy.tenant_members.create.name": "テナントメンバーの追加",
+  "permissions.tenancy.tenant_members.delete.name": "テナントメンバーの除外",
+  "permissions.tenancy.editions.read.name": "エディションの参照",
+  "permissions.tenancy.editions.create.name": "エディションの作成",
+  "permissions.tenancy.editions.update.name": "エディションの更新",
+  "permissions.tenancy.editions.delete.name": "エディションの削除",
+  "permissions.tenancy.subscription.read.name": "契約の参照"
 }

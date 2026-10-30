@@ -172,5 +172,15 @@
   "openapi.tags.my_api_credentials.name": "오픈 API 자격 증명",
   "openapi.tags.my_api_credentials.description": "내 오픈 API 자격 증명의 생성, 사용·중지, 시크릿 교체와 삭제, 호출 보안 설정.",
   "openapi.groups.identity.name": "신원과 계정",
-  "openapi.groups.identity.description": "사용자와 인증, 온라인 사용자, 가장 로그인과 개인 센터."
+  "openapi.groups.identity.description": "사용자와 인증, 온라인 사용자, 가장 로그인과 개인 센터.",
+  "permissions.identity.users.read.name": "사용자 조회",
+  "permissions.identity.users.create.name": "사용자 생성",
+  "permissions.identity.users.update.name": "사용자 수정",
+  "permissions.identity.users.delete.name": "사용자 삭제",
+  "permissions.identity.users.lock.name": "사용자 잠금",
+  "permissions.identity.users.reset_password.name": "비밀번호 재설정",
+  "permissions.identity.users.reset_two_factor.name": "2단계 인증 재설정",
+  "permissions.identity.impersonation.start.name": "가장 로그인",
+  "permissions.identity.sessions.read.name": "온라인 사용자 조회",
+  "permissions.identity.sessions.revoke.name": "강제 로그아웃"
 }

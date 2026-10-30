@@ -68,5 +68,14 @@
   "openapi.tags.my_activity.name": "我的活跃度",
   "openapi.tags.my_activity.description": "本人的活跃度：登录、访问与操作的次数与按天趋势。",
   "openapi.groups.auditing.name": "审计日志",
-  "openapi.groups.auditing.description": "各类日志的查询与链路追踪，以及本人的登录日志与活跃度。"
+  "openapi.groups.auditing.description": "各类日志的查询与链路追踪，以及本人的登录日志与活跃度。",
+  "permissions.auditing.access_logs.read.name": "读取访问日志",
+  "permissions.auditing.exception_logs.read.name": "读取异常日志",
+  "permissions.auditing.login_logs.read.name": "读取登录日志",
+  "permissions.auditing.operation_logs.read.name": "读取操作日志",
+  "permissions.auditing.diff_logs.read.name": "读取数据变更日志",
+  "permissions.auditing.permission_change_logs.read.name": "读取权限变更日志",
+  "permissions.auditing.condition_hits.read.name": "读取条件命中记录",
+  "permissions.auditing.open_api_logs.read.name": "读取开放接口日志",
+  "permissions.auditing.traces.read.name": "读取链路追踪"
 }
