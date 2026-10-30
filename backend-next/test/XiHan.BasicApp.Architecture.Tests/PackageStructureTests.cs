@@ -56,22 +56,63 @@ public sealed class PackageStructureTests
             Assert.NotNull(messagesType);
             var files = Directory.EnumerateFiles(localization, "*.json").Select(static f => Path.GetFileNameWithoutExtension(f)).Order(StringComparer.Ordinal).ToList();
             Assert.Equal(SupportedLocales.All.Order(StringComparer.Ordinal), files);
-
-            var constants = messagesType.GetFields(BindingFlags.Public | BindingFlags.Static)
+            var messageConstants = messagesType.GetFields(BindingFlags.Public | BindingFlags.Static)
                 .Where(static f => f.IsLiteral && f.FieldType == typeof(string) && !string.Equals(f.Name, "CatalogName", StringComparison.Ordinal))
                 .Select(static f => (string)f.GetRawConstantValue()!)
-                .Order(StringComparer.Ordinal)
                 .ToList();
+
+            // 消息键常量之外，生成器按约定读的键（ADR-0052）：每个操作的 .title、本包的分组，以及本包登记的资源标签（每个资源恰好一个包登记，见下一个测试）
+            var operations = OperationContractTests.Operations().Where(o => string.Equals(o.Package, package, StringComparison.Ordinal)).Select(static o => o.Attribute.Id).ToList();
+            var group = package.ToLowerInvariant();
+            var conventional = operations.Select(static id => KeyOf(id) + ".title")
+                .Concat(operations.Count == 0 ? [] : [$"openapi.groups.{group}.name", $"openapi.groups.{group}.description"]);
+            var resources = operations.Select(static id => KeyOf(id[..id.LastIndexOf('.')])).ToHashSet(StringComparer.Ordinal);
             foreach (var locale in files)
             {
                 using var document = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(localization, locale + ".json")));
                 var keys = document.RootElement.EnumerateObject().Select(static p => p.Name).Order(StringComparer.Ordinal).ToList();
-                Assert.True(constants.SequenceEqual(keys), $"{package}/Localization/{locale}.json keys differ from {package}Messages constants.{Environment.NewLine}constants: {string.Join(", ", constants)}{Environment.NewLine}keys: {string.Join(", ", keys)}");
+                var tags = keys.Where(static k => k.StartsWith(TagPrefix, StringComparison.Ordinal)).ToList();
+                foreach (var tag in tags)
+                {
+                    var parts = tag[TagPrefix.Length..].Split('.');
+                    Assert.True(parts.Length == 2 && resources.Contains(parts[0]) && parts[1] is "name" or "description", $"{package}/{locale}: '{tag}' is not a tag of this package's resources");
+                }
+
+                var constants = messageConstants.Concat(conventional).Concat(tags).Order(StringComparer.Ordinal).ToList();
+                Assert.True(constants.SequenceEqual(keys), $"{package}/Localization/{locale}.json keys differ from {package}Messages constants and the OpenAPI keys.{Environment.NewLine}expected: {string.Join(", ", constants)}{Environment.NewLine}keys: {string.Join(", ", keys)}");
                 foreach (var key in keys)
                 {
                     Assert.True(MessageTemplate.IsValidKey(key), $"{package}/{locale}: '{key}' is not a valid message key");
                 }
             }
+        }
+    }
+
+    [Fact]
+    public void EveryOperationResource_HasItsTagRegisteredByExactlyOnePackage()
+    {
+        // 资源标签的显示名与说明（openapi.tags.<资源>.name / .description）：跨包的资源（如 auth）只由一个包登记
+        var owners = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        foreach (var (package, path) in Packages.Projects)
+        {
+            var file = Path.Combine(Path.GetDirectoryName(path)!, "Localization", "zh-CN.json");
+            if (!File.Exists(file))
+            {
+                continue;
+            }
+
+            using var document = JsonDocument.Parse(File.ReadAllBytes(file));
+            foreach (var key in document.RootElement.EnumerateObject().Select(static p => p.Name).Where(static k => k.StartsWith(TagPrefix, StringComparison.Ordinal) && k.EndsWith(".name", StringComparison.Ordinal)))
+            {
+                var resource = key[TagPrefix.Length..^".name".Length];
+                (owners.TryGetValue(resource, out var list) ? list : owners[resource] = []).Add(package);
+                Assert.True(document.RootElement.TryGetProperty(TagPrefix + resource + ".description", out _), $"{package}: tag '{resource}' has a name but no description");
+            }
+        }
+
+        foreach (var resource in OperationContractTests.Operations().Select(static o => KeyOf(o.Attribute.Id[..o.Attribute.Id.LastIndexOf('.')])).Distinct(StringComparer.Ordinal))
+        {
+            Assert.True(owners.TryGetValue(resource, out var list) && list.Count == 1, $"resource '{resource}': tag registered by {(list is null ? "no package" : string.Join(", ", list))}, expected exactly one");
         }
     }
 
@@ -116,4 +157,14 @@ public sealed class PackageStructureTests
             Assert.Equal(declared, feature.Manifest.Contributes.Permissions.Order(StringComparer.Ordinal));
         }
     }
+
+    private const string TagPrefix = "openapi.tags.";
+
+    /// <summary>
+    /// 操作 ID 或资源段对应的消息键前缀。
+    /// </summary>
+    /// <remarks>
+    /// 资源段与动词段里的连字符换成下划线（<c>my-login-logs.list</c> → <c>my_login_logs.list</c>）。
+    /// </remarks>
+    private static string KeyOf(string id) => id.Replace('-', '_');
 }
