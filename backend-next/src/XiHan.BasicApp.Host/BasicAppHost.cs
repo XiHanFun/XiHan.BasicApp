@@ -121,9 +121,17 @@ public static class BasicAppHost
         var apiDocs = ApiDocsOptions.FromConfiguration(app.Configuration, app.Environment);
         if (apiDocs.Enabled)
         {
-            // 一份 openapi.json、一个生成器、一份 Schema：操作 + 带元数据的普通端点；/scalar 读同一份
-            app.MapXiHanOpenApi(new OpenApiOptions { Title = AppInfo.Name, Version = AppInfo.Version });
-            PipelineBypassMetadata.BypassXiHanPipeline(app.MapScalarApiReference(static options => options.WithOpenApiRoutePattern(OpenApiEndpointRouteBuilderExtensions.DefaultPattern).WithTitle(AppInfo.Name)));
+            // 一个生成器、一份 Schema：全量 /openapi.json 带 x-tagGroups，每个包一组 /openapi/<组名>.json；/scalar 把全部文档列成可切换的下拉
+            var openApi = BasicAppOpenApi.Options();
+            app.MapXiHanOpenApi(openApi);
+            PipelineBypassMetadata.BypassXiHanPipeline(app.MapScalarApiReference(options =>
+            {
+                options.WithTitle(AppInfo.Name);
+                foreach (var link in app.GetXiHanOpenApiDocuments(openApi))
+                {
+                    options.AddDocument(link.Name, link.Title, link.Url);
+                }
+            }));
         }
 
         app.MapXiHanMcp();
