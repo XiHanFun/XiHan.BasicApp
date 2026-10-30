@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "Подтверждение почты",
   "identity.code.title.verify_phone": "Подтверждение телефона",
   "identity.code.title.change_email": "Смена почты",
-  "identity.code.title.change_phone": "Смена телефона"
+  "identity.code.title.change_phone": "Смена телефона",
+  "auth.send_login_code.description": "Отправляет код входа на почту или телефон: способ должен быть включён в системном параметре identity.login-methods; для несуществующей учётной записи ответ тот же — «отправлено» (ничего не отправляется). Анонимно.",
+  "auth.login_by_code.description": "Вход по коду, полученному на почту или телефон; учётным записям с двухфакторной защитой всё равно нужен второй шаг. Анонимно.",
+  "identity.login.method_disabled": "Этот способ входа не включён.",
+  "identity.login.methods_invalid": "Способы входа в системном параметре {key} указаны неверно; допустимы только password, email и phone.",
+  "identity.login.target_invalid": "Неверный формат адреса почты или номера телефона."
 }

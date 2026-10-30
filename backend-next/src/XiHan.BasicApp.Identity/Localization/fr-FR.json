@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "Vérifier votre adresse e-mail",
   "identity.code.title.verify_phone": "Vérifier votre numéro de téléphone",
   "identity.code.title.change_email": "Changer votre adresse e-mail",
-  "identity.code.title.change_phone": "Changer votre numéro de téléphone"
+  "identity.code.title.change_phone": "Changer votre numéro de téléphone",
+  "auth.send_login_code.description": "Envoie un code de connexion à une adresse e-mail ou un numéro : la méthode doit être activée dans le paramètre système identity.login-methods ; un compte inconnu reçoit la même réponse « envoyé » (rien n’est envoyé). Anonyme.",
+  "auth.login_by_code.description": "Connexion avec le code reçu par e-mail ou téléphone ; les comptes à deux facteurs doivent toujours passer la seconde étape. Anonyme.",
+  "identity.login.method_disabled": "Cette méthode de connexion n’est pas activée.",
+  "identity.login.methods_invalid": "Les méthodes de connexion du paramètre système {key} sont invalides ; seuls password, email et phone sont permis.",
+  "identity.login.target_invalid": "L’adresse e-mail ou le numéro de téléphone est mal formé."
 }

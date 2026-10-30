@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "メールアドレスの確認",
   "identity.code.title.verify_phone": "電話番号の確認",
   "identity.code.title.change_email": "メールアドレスの変更",
-  "identity.code.title.change_phone": "電話番号の変更"
+  "identity.code.title.change_phone": "電話番号の変更",
+  "auth.send_login_code.description": "メールアドレスまたは電話番号にサインインコードを送ります。この方式はシステムパラメーター identity.login-methods で有効にする必要があります。アカウントがなくても「送信済み」と答えます（送りません）。匿名。",
+  "auth.login_by_code.description": "メールまたは電話に届いたコードでサインインします。二要素を有効にしたアカウントは第 2 段階が必要です。匿名。",
+  "identity.login.method_disabled": "このサインイン方式は有効になっていません。",
+  "identity.login.methods_invalid": "システムパラメーター {key} のサインイン方式が正しくありません。password、email、phone のみ指定できます。",
+  "identity.login.target_invalid": "メールアドレスまたは電話番号の形式が正しくありません。"
 }

@@ -124,11 +124,15 @@ export interface RegisterParams {
 }
 
 export interface PhoneLoginParams {
+  /** 注册地租户 ID；平台账号不填（6.0 的账号属于注册地租户，4.x 没有这一项） */
+  tenant?: string
   phone: string
   code: string
 }
 
 export interface EmailLoginParams {
+  /** 注册地租户 ID；平台账号不填 */
+  tenant?: string
   email: string
   code: string
   deviceId?: string

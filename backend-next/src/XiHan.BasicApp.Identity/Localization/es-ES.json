@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "Verifica tu correo",
   "identity.code.title.verify_phone": "Verifica tu teléfono",
   "identity.code.title.change_email": "Cambia tu correo",
-  "identity.code.title.change_phone": "Cambia tu teléfono"
+  "identity.code.title.change_phone": "Cambia tu teléfono",
+  "auth.send_login_code.description": "Envía un código de inicio de sesión a un correo o teléfono: el método debe estar habilitado en el parámetro del sistema identity.login-methods; una cuenta inexistente recibe la misma respuesta de «enviado» (no se envía nada). Anónimo.",
+  "auth.login_by_code.description": "Inicia sesión con el código recibido por correo o teléfono; las cuentas con dos factores siguen necesitando el segundo paso. Anónimo.",
+  "identity.login.method_disabled": "Este método de inicio de sesión no está habilitado.",
+  "identity.login.methods_invalid": "Los métodos de inicio de sesión del parámetro del sistema {key} no son válidos; solo se admiten password, email y phone.",
+  "identity.login.target_invalid": "El correo o el teléfono no tiene un formato válido."
 }

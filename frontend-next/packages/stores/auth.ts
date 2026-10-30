@@ -1,5 +1,5 @@
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, SessionRoleOption, StartImpersonationParams } from '~/types'
+import type { EmailLoginParams, ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, PhoneLoginParams, SessionRoleOption, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
@@ -242,12 +242,30 @@ export const useAuthStore = defineStore('auth', () => {
    * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）。
    */
   async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.externalLogin({ ticket }, { anonymous: true }), redirect)
+  }
+
+  /**
+   * 验证码登录（4.x 同名；6.0 走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
+   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）。
+   */
+  async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.loginByCode({ channel: 'Phone', target: params.phone.trim(), code: params.code, tenant: params.tenant?.trim() || null }, { anonymous: true }), redirect)
+  }
+
+  /** 邮箱验证码登录（同上） */
+  async function loginByEmailCode(params: EmailLoginParams, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.loginByCode({ channel: 'Email', target: params.email.trim(), code: params.code, tenant: params.tenant?.trim() || null }, { anonymous: true }), redirect)
+  }
+
+  /** 第三方登录与验证码登录的共同收尾：有令牌即存会话、跳回跳地址；是双因素挑战即记下挑战、带着回跳地址回登录页 */
+  async function finishOrChallenge(signIn: () => Promise<ResponseOf<'auth.external-login'>>, redirect?: string): Promise<void> {
     if (loginLoading.value)
       return
     loginLoading.value = true
     let challenge: LoginResponse
     try {
-      const result = await authApi.externalLogin({ ticket }, { anonymous: true })
+      const result = await signIn()
       if (!result.twoFactor) {
         if (!result.token)
           throw new Error('登录响应既没有令牌也没有双因素挑战')
@@ -265,7 +283,7 @@ export const useAuthStore = defineStore('auth', () => {
     await router.replace({ path: LOGIN_PATH, query: target === '/' ? {} : { redirect: target } })
   }
 
-  /** 取走（并清除）第三方登录留下的双因素挑战 */
+  /** 取走（并清除）第三方登录或验证码登录留下的双因素挑战 */
   function takePendingTwoFactor(): LoginResponse | null {
     const pending = pendingTwoFactor.value
     pendingTwoFactor.value = null
@@ -415,6 +433,8 @@ export const useAuthStore = defineStore('auth', () => {
     startOAuthLogin,
     startOAuthBind,
     handleOAuthCallback,
+    loginByPhoneCode,
+    loginByEmailCode,
     takePendingTwoFactor,
     refresh,
     loadPermissions,

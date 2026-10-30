@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "이메일 인증",
   "identity.code.title.verify_phone": "휴대폰 번호 인증",
   "identity.code.title.change_email": "이메일 변경",
-  "identity.code.title.change_phone": "휴대폰 번호 변경"
+  "identity.code.title.change_phone": "휴대폰 번호 변경",
+  "auth.send_login_code.description": "이메일 또는 휴대폰 번호로 로그인 코드를 보냅니다. 이 방식은 시스템 매개변수 identity.login-methods 에서 열어야 하며, 계정이 없어도 \"보냄\"으로 답합니다(보내지 않음). 익명.",
+  "auth.login_by_code.description": "이메일이나 휴대폰으로 받은 코드로 로그인합니다. 2단계 인증을 켠 계정은 두 번째 단계가 필요합니다. 익명.",
+  "identity.login.method_disabled": "이 로그인 방식은 열려 있지 않습니다.",
+  "identity.login.methods_invalid": "시스템 매개변수 {key}의 로그인 방식이 잘못되었습니다. password, email, phone 만 쓸 수 있습니다.",
+  "identity.login.target_invalid": "이메일 또는 휴대폰 번호 형식이 잘못되었습니다."
 }

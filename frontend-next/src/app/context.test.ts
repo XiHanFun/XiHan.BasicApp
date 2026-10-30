@@ -392,6 +392,19 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(useUserStore().userInfo?.email).toBe('new@example.com')
   })
 
+  it('验证码登录发码：按渠道交给 auth.send-login-code（匿名），租户去空白、留空传 null', async () => {
+    const calls: Call[] = []
+    record(calls, () => json(200, { expiresInSeconds: 600 }))
+    const apis = useAppContext().apis
+
+    expect(await apis.sendEmailLoginCodeApi('ann@example.com', ' acme ')).toEqual({ expiresInSeconds: 600 })
+    await apis.sendPhoneLoginCodeApi('13800000000')
+    expect(calls).toEqual([
+      { method: 'POST', url: '/api/auth:send-login-code', body: { channel: 'Email', target: 'ann@example.com', tenant: 'acme' } },
+      { method: 'POST', url: '/api/auth:send-login-code', body: { channel: 'Phone', target: '13800000000', tenant: null } },
+    ])
+  })
+
   it('上传头像：multipart 字段 file 带令牌发给 POST /api/profile/avatar 并回报进度，返回新头像的文件主键，会话里的用户随之换掉', async () => {
     const requests: Array<{ method: string, url: string, headers: Record<string, string>, body: FormData }> = []
     // 上传走 XMLHttpRequest（要进度）：换成只记请求、立即回资料的替身

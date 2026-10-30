@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "驗證郵箱",
   "identity.code.title.verify_phone": "驗證手機號",
   "identity.code.title.change_email": "更換郵箱",
-  "identity.code.title.change_phone": "更換手機號"
+  "identity.code.title.change_phone": "更換手機號",
+  "auth.send_login_code.description": "寄送登入驗證碼到郵箱或手機號：這種登入方式要在系統參數 identity.login-methods 裡開放；帳號不存在也回答已寄送（不寄）。匿名。",
+  "auth.login_by_code.description": "用郵箱或手機收到的驗證碼登入：帳號開了雙因素照樣要第二步。匿名。",
+  "identity.login.method_disabled": "沒有開放這種登入方式。",
+  "identity.login.methods_invalid": "系統參數 {key} 裡的登入方式寫得不對，只能是 password、email、phone。",
+  "identity.login.target_invalid": "郵箱或手機號格式不對。"
 }

@@ -320,6 +320,9 @@ export function registerApplicationContext(router: Router): void {
       return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })), captchaEnabled: config.captchaEnabled }
     },
     getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),
+    // 验证码登录发码（auth.send-login-code，匿名）：租户留空即平台；账号不存在、不唯一也回答已发送（不发），不返回调试码
+    sendEmailLoginCodeApi: (email, tenant) => authOps.sendLoginCode({ channel: 'Email', target: email, tenant: tenant?.trim() || null }, { anonymous: true }),
+    sendPhoneLoginCodeApi: (phone, tenant) => authOps.sendLoginCode({ channel: 'Phone', target: phone, tenant: tenant?.trim() || null }, { anonymous: true }),
     logoutApi: () => useAuthStore().logout(),
     getUserInfoApi: () => notAvailable('getUserInfoApi'),
     getPermissionsApi: () => notAvailable('getPermissionsApi'),

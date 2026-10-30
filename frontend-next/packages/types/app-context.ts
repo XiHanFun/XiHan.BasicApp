@@ -137,6 +137,10 @@ export interface AppContextApis {
   uploadAvatarApi: (file: File, onProgress?: (percent: number) => void) => Promise<{ fileId: string }>
   /** 去掉本人的头像（回收头像文件），返回保存后的资料（4.x 经 updateProfileApi 写空串） */
   removeAvatarApi: () => Promise<UserProfile>
+  /** 邮箱验证码登录：发码（登录方式要在系统参数 identity.login-methods 里开放；账号不存在也回答已发送） */
+  sendEmailLoginCodeApi: (email: string, tenant?: string) => Promise<VerificationCodeResult>
+  /** 手机验证码登录：发码（手机号要已验证） */
+  sendPhoneLoginCodeApi: (phone: string, tenant?: string) => Promise<VerificationCodeResult>
   /** 改用户名（凭当前密码，90 天一次） */
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
   /** 验证当前邮箱：发验证码到它（6 位、10 分钟；同一目标 60 秒内不能再发） */

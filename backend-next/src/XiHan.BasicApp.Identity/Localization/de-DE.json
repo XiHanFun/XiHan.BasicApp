@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "E-Mail-Adresse bestätigen",
   "identity.code.title.verify_phone": "Telefonnummer bestätigen",
   "identity.code.title.change_email": "E-Mail-Adresse ändern",
-  "identity.code.title.change_phone": "Telefonnummer ändern"
+  "identity.code.title.change_phone": "Telefonnummer ändern",
+  "auth.send_login_code.description": "Sendet einen Anmeldecode an eine E-Mail-Adresse oder Telefonnummer: Die Methode muss im Systemparameter identity.login-methods aktiviert sein; ein unbekanntes Konto erhält dieselbe Antwort „gesendet“ (es wird nichts gesendet). Anonym.",
+  "auth.login_by_code.description": "Anmeldung mit dem per E-Mail oder Telefon erhaltenen Code; Konten mit Zwei-Faktor brauchen weiterhin den zweiten Schritt. Anonym.",
+  "identity.login.method_disabled": "Diese Anmeldemethode ist nicht aktiviert.",
+  "identity.login.methods_invalid": "Die Anmeldemethoden im Systemparameter {key} sind ungültig; erlaubt sind nur password, email und phone.",
+  "identity.login.target_invalid": "Die E-Mail-Adresse oder Telefonnummer ist ungültig."
 }

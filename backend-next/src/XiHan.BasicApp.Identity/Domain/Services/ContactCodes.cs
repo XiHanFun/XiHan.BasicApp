@@ -50,8 +50,9 @@ public sealed class ContactCodes(VerificationCodes codes, IEnumerable<IMessageSe
     /// <param name="code">要发的码的用途、主体与随码保存的内容。</param>
     /// <param name="template">模板编码与用途标题（登录码的模板没有标题）。</param>
     /// <param name="receiverId">收码的用户；还不知道是谁时为空。</param>
+    /// <param name="deliver">是否真的发出去；为假时照样签发并计入限频，只是不发（验证码登录找不到账号时，不让人从回答或限频上看出账号在不在）。</param>
     /// <returns>码的有效秒数。</returns>
-    public async Task<Result<int>> SendAsync(InvocationContext context, ContactChannel channel, string to, CodeRequest code, (string Code, string? Title) template, Guid? receiverId)
+    public async Task<Result<int>> SendAsync(InvocationContext context, ContactChannel channel, string to, CodeRequest code, (string Code, string? Title) template, Guid? receiverId, bool deliver = true)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentException.ThrowIfNullOrWhiteSpace(to);
@@ -67,6 +68,11 @@ public sealed class ContactCodes(VerificationCodes codes, IEnumerable<IMessageSe
         if (!issued.TryGetValue(out var sent))
         {
             return issued.Error!;
+        }
+
+        if (!deliver)
+        {
+            return sent.ExpiresInSeconds;
         }
 
         var parameters = new List<KeyValuePair<string, string?>>
