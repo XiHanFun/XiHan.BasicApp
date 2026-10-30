@@ -77,5 +77,7 @@
   "permissions.auditing.permission_change_logs.read.name": "Ver registros de alteração de permissões",
   "permissions.auditing.condition_hits.read.name": "Ver condições atendidas",
   "permissions.auditing.open_api_logs.read.name": "Ver registros de API aberta",
-  "permissions.auditing.traces.read.name": "Ver rastreamento de registros"
+  "permissions.auditing.traces.read.name": "Ver rastreamento de registros",
+  "jobs.auditing.retention.title": "Limpeza por retenção de logs",
+  "jobs.auditing.retention.description": "Excluir logs mais antigos que o período de retenção (dias do parâmetro de plataforma auditing.retention-days), para a plataforma e cada locatário."
 }

@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Ver configuraciones de almacenamiento",
   "permissions.files.storage_configs.create.name": "Crear configuraciones de almacenamiento",
   "permissions.files.storage_configs.update.name": "Editar configuraciones de almacenamiento",
-  "permissions.files.storage_configs.delete.name": "Eliminar configuraciones de almacenamiento"
+  "permissions.files.storage_configs.delete.name": "Eliminar configuraciones de almacenamiento",
+  "jobs.files.uploads.expire.title": "Caducar cargas multiparte",
+  "jobs.files.uploads.expire.description": "Marcar como caducadas las cargas multiparte que superaron su plazo y descartar sus partes en el almacenamiento, para la plataforma y cada inquilino."
 }

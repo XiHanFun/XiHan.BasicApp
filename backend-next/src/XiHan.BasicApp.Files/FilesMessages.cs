@@ -363,6 +363,16 @@ public static class FilesMessages
     /// </summary>
     public const string MultipartUnsupported = "files.upload.multipart_unsupported";
 
+    /// <summary>
+    /// 作业 <c>files.uploads.expire</c> 的显示名。
+    /// </summary>
+    public const string UploadExpiryJobTitle = "jobs.files.uploads.expire.title";
+
+    /// <summary>
+    /// 作业 <c>files.uploads.expire</c> 的说明。
+    /// </summary>
+    public const string UploadExpiryJobDescription = "jobs.files.uploads.expire.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(FilesMessages)));
 
     /// <summary>

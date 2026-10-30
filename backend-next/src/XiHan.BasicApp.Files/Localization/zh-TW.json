@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "讀取儲存設定",
   "permissions.files.storage_configs.create.name": "新增儲存設定",
   "permissions.files.storage_configs.update.name": "修改儲存設定",
-  "permissions.files.storage_configs.delete.name": "刪除儲存設定"
+  "permissions.files.storage_configs.delete.name": "刪除儲存設定",
+  "jobs.files.uploads.expire.title": "分片上傳過期處理",
+  "jobs.files.uploads.expire.description": "把過了時限的分片上傳記為過期，捨棄儲存裡已上傳的分片；平台與每個租戶分別處理。"
 }

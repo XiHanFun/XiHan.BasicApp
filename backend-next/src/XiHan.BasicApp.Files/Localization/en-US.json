@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Read storage configurations",
   "permissions.files.storage_configs.create.name": "Create storage configurations",
   "permissions.files.storage_configs.update.name": "Update storage configurations",
-  "permissions.files.storage_configs.delete.name": "Delete storage configurations"
+  "permissions.files.storage_configs.delete.name": "Delete storage configurations",
+  "jobs.files.uploads.expire.title": "Expire multipart uploads",
+  "jobs.files.uploads.expire.description": "Mark multipart uploads past their deadline as expired and abort their parts in storage, for the platform and each tenant."
 }

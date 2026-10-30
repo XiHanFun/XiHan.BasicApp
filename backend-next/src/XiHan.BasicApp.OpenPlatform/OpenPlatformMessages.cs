@@ -307,6 +307,16 @@ public static class OpenPlatformMessages
     /// </remarks>
     public const string AuthorizeRequestInvalid = "openplatform.oauth.authorize_invalid";
 
+    /// <summary>
+    /// 作业 <c>openplatform.oauth-cleanup</c> 的显示名。
+    /// </summary>
+    public const string OAuthCleanupJobTitle = "jobs.openplatform.oauth_cleanup.title";
+
+    /// <summary>
+    /// 作业 <c>openplatform.oauth-cleanup</c> 的说明。
+    /// </summary>
+    public const string OAuthCleanupJobDescription = "jobs.openplatform.oauth_cleanup.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(OpenPlatformMessages)));
 
     /// <summary>

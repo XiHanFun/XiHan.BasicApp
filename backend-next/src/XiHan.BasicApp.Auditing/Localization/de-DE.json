@@ -77,5 +77,7 @@
   "permissions.auditing.permission_change_logs.read.name": "Berechtigungsänderungsprotokolle lesen",
   "permissions.auditing.condition_hits.read.name": "Bedingungstreffer lesen",
   "permissions.auditing.open_api_logs.read.name": "Open-API-Protokolle lesen",
-  "permissions.auditing.traces.read.name": "Protokoll-Nachverfolgung lesen"
+  "permissions.auditing.traces.read.name": "Protokoll-Nachverfolgung lesen",
+  "jobs.auditing.retention.title": "Protokollaufbewahrung bereinigen",
+  "jobs.auditing.retention.description": "Protokolle löschen, die älter als die Aufbewahrungsfrist sind (Tage aus dem Plattformparameter auditing.retention-days), für die Plattform und jeden Mandanten."
 }

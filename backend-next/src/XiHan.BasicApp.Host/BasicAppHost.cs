@@ -9,6 +9,7 @@ using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Identity.Infrastructure.External;
+using XiHan.BasicApp.Maintenance;
 using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.OpenPlatform;
@@ -33,6 +34,7 @@ using XiHan.Framework.Protocols.Grpc.Services;
 using XiHan.Framework.Protocols.Http.OpenApi;
 using XiHan.Framework.Protocols.Http.Routing;
 using XiHan.Framework.Protocols.Mcp.Transports;
+using XiHan.Framework.Scheduling.Database;
 using XiHan.Framework.Security.Database;
 using XiHan.Framework.Security.Jwt;
 
@@ -73,6 +75,7 @@ public static class BasicAppHost
             .UseFeature<DatabaseMultiTenancyFeature>()
             .UseFeature<DatabaseSecurityFeature>()
             .UseFeature<DatabaseAuditingFeature>()
+            .UseFeature<DatabaseSchedulingFeature>()
             // 本地存储的签名地址由宿主代收发（Files 的存储配置用框架的命名存储实例，S3 兼容存储自己签名）
             .UseFeature<HostedBlobUrlFeature>()
             // 发件箱必装：领域事件与业务写入同事务派发
@@ -87,6 +90,7 @@ public static class BasicAppHost
             .UseFeature<NotificationFeature>()
             .UseFeature<AuditingFeature>()
             .UseFeature<RealtimeFeature>()
+            .UseFeature<MaintenanceFeature>()
             .UseFeature<OpenPlatformFeature>();
             if (modules.Workbench)
             {

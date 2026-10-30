@@ -19,6 +19,7 @@
     <ProjectReference Include="../XiHan.BasicApp.Notification/XiHan.BasicApp.Notification.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Maintenance/XiHan.BasicApp.Maintenance.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
     <!-- Tier 3 可选模块：按 BasicApp:Modules:<名>:Enabled 装配 -->
     <ProjectReference Include="../XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
@@ -33,6 +34,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
     <!-- 命令模式：help / graph / pipeline / operations / invoke 由框架提供，seed 由本宿主登记 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.CommandLine" />

@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "Просмотр приложений OAuth",
   "permissions.openplatform.oauth_apps.create.name": "Создание приложений OAuth",
   "permissions.openplatform.oauth_apps.update.name": "Изменение приложений OAuth",
-  "permissions.openplatform.oauth_apps.delete.name": "Удаление приложений OAuth"
+  "permissions.openplatform.oauth_apps.delete.name": "Удаление приложений OAuth",
+  "jobs.openplatform.oauth_cleanup.title": "Очистка просроченных разрешений OAuth",
+  "jobs.openplatform.oauth_cleanup.description": "Удалять коды авторизации, просроченные на сутки, и токены, просроченные на семь дней."
 }

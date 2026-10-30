@@ -156,6 +156,16 @@ public static class AuditingMessages
     /// </remarks>
     public const string TimeZoneInvalid = "auditing.time_zone.invalid";
 
+    /// <summary>
+    /// 作业 <c>auditing.retention</c> 的显示名。
+    /// </summary>
+    public const string RetentionJobTitle = "jobs.auditing.retention.title";
+
+    /// <summary>
+    /// 作业 <c>auditing.retention</c> 的说明。
+    /// </summary>
+    public const string RetentionJobDescription = "jobs.auditing.retention.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AuditingMessages)));
 
     /// <summary>

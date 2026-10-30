@@ -127,6 +127,13 @@ export const routes = {
   'inbox.mark-popup-shown': { method: 'POST', template: '/api/inbox/{id}:mark-popup-shown', path: ['id'], query: [], success: 200 },
   'inbox.mark-read': { method: 'POST', template: '/api/inbox:mark-read', path: [], query: [], success: 200 },
   'inbox.popups': { method: 'GET', template: '/api/inbox:popups', path: [], query: [], success: 200 },
+  'job-runs.list': { method: 'POST', template: '/api/job-runs:list', path: [], query: [], success: 200 },
+  'jobs.get': { method: 'GET', template: '/api/jobs/{id}', path: ['id'], query: [], success: 200 },
+  'jobs.list': { method: 'POST', template: '/api/jobs:list', path: [], query: [], success: 200 },
+  'jobs.pause': { method: 'POST', template: '/api/jobs:pause', path: [], query: [], success: 200 },
+  'jobs.resume': { method: 'POST', template: '/api/jobs:resume', path: [], query: [], success: 200 },
+  'jobs.trigger': { method: 'POST', template: '/api/jobs/{id}:trigger', path: ['id'], query: [], success: 200 },
+  'jobs.validate-schedule': { method: 'GET', template: '/api/jobs:validate-schedule', path: [], query: ['expression', 'timeZone', 'count'], success: 200 },
   'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
   'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
   'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
@@ -536,6 +543,21 @@ export const inbox = {
   markPopupShown: (request: RequestOf<'inbox.mark-popup-shown'>, options?: CallOptions) => invoke<RequestOf<'inbox.mark-popup-shown'>, ResponseOf<'inbox.mark-popup-shown'>>('inbox.mark-popup-shown', routes['inbox.mark-popup-shown'], request, options),
   markRead: (request: RequestOf<'inbox.mark-read'>, options?: CallOptions) => invoke<RequestOf<'inbox.mark-read'>, ResponseOf<'inbox.mark-read'>>('inbox.mark-read', routes['inbox.mark-read'], request, options),
   popups: (request: RequestOf<'inbox.popups'>, options?: CallOptions) => invoke<RequestOf<'inbox.popups'>, ResponseOf<'inbox.popups'>>('inbox.popups', routes['inbox.popups'], request, options),
+}
+
+/** 资源 `job-runs` 的操作。 */
+export const jobRuns = {
+  list: (request: RequestOf<'job-runs.list'>, options?: CallOptions) => invoke<RequestOf<'job-runs.list'>, ResponseOf<'job-runs.list'>>('job-runs.list', routes['job-runs.list'], request, options),
+}
+
+/** 资源 `jobs` 的操作。 */
+export const jobs = {
+  get: (request: RequestOf<'jobs.get'>, options?: CallOptions) => invoke<RequestOf<'jobs.get'>, ResponseOf<'jobs.get'>>('jobs.get', routes['jobs.get'], request, options),
+  list: (request: RequestOf<'jobs.list'>, options?: CallOptions) => invoke<RequestOf<'jobs.list'>, ResponseOf<'jobs.list'>>('jobs.list', routes['jobs.list'], request, options),
+  pause: (request: RequestOf<'jobs.pause'>, options?: CallOptions) => invoke<RequestOf<'jobs.pause'>, ResponseOf<'jobs.pause'>>('jobs.pause', routes['jobs.pause'], request, options),
+  resume: (request: RequestOf<'jobs.resume'>, options?: CallOptions) => invoke<RequestOf<'jobs.resume'>, ResponseOf<'jobs.resume'>>('jobs.resume', routes['jobs.resume'], request, options),
+  trigger: (request: RequestOf<'jobs.trigger'>, options?: CallOptions) => invoke<RequestOf<'jobs.trigger'>, ResponseOf<'jobs.trigger'>>('jobs.trigger', routes['jobs.trigger'], request, options),
+  validateSchedule: (request: RequestOf<'jobs.validate-schedule'>, options?: CallOptions) => invoke<RequestOf<'jobs.validate-schedule'>, ResponseOf<'jobs.validate-schedule'>>('jobs.validate-schedule', routes['jobs.validate-schedule'], request, options),
 }
 
 /** 资源 `login-bans` 的操作。 */

@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "저장소 설정 조회",
   "permissions.files.storage_configs.create.name": "저장소 설정 생성",
   "permissions.files.storage_configs.update.name": "저장소 설정 수정",
-  "permissions.files.storage_configs.delete.name": "저장소 설정 삭제"
+  "permissions.files.storage_configs.delete.name": "저장소 설정 삭제",
+  "jobs.files.uploads.expire.title": "분할 업로드 만료 처리",
+  "jobs.files.uploads.expire.description": "기한이 지난 분할 업로드를 만료로 표시하고 저장소의 조각을 버립니다. 플랫폼과 각 테넌트별로 처리합니다."
 }

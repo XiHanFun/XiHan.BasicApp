@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "Read OAuth apps",
   "permissions.openplatform.oauth_apps.create.name": "Create OAuth apps",
   "permissions.openplatform.oauth_apps.update.name": "Update OAuth apps",
-  "permissions.openplatform.oauth_apps.delete.name": "Delete OAuth apps"
+  "permissions.openplatform.oauth_apps.delete.name": "Delete OAuth apps",
+  "jobs.openplatform.oauth_cleanup.title": "Clean up expired OAuth grants",
+  "jobs.openplatform.oauth_cleanup.description": "Delete authorization codes expired for a day and tokens expired for seven days."
 }

@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "讀取 OAuth 應用",
   "permissions.openplatform.oauth_apps.create.name": "新增 OAuth 應用",
   "permissions.openplatform.oauth_apps.update.name": "修改 OAuth 應用",
-  "permissions.openplatform.oauth_apps.delete.name": "刪除 OAuth 應用"
+  "permissions.openplatform.oauth_apps.delete.name": "刪除 OAuth 應用",
+  "jobs.openplatform.oauth_cleanup.title": "清理過期授權",
+  "jobs.openplatform.oauth_cleanup.description": "實體刪除過期一天的授權碼與過期七天的權杖。"
 }
