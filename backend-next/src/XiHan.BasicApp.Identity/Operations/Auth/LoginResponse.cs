@@ -20,10 +20,11 @@ public sealed record LoginResponse(TokenResponse? Token, TwoFactorChallengeRespo
 /// </summary>
 /// <remarks>
 /// 凭票据调 <c>auth.verify-two-factor</c>，不必再输密码；票据过期或输错次数用完须重新登录。
+/// 邮箱与短信方式先凭票据调 <c>auth.send-two-factor-code</c> 发码。
 /// </remarks>
 /// <param name="Ticket">两步验证票据（只出现这一次）。</param>
 /// <param name="Methods">可用的方式。</param>
-/// <param name="Method">只有一种方式时就是它；有多种时为 <see langword="null"/>，由用户选。</param>
-/// <param name="CodeSent">是否已经发出验证码（邮箱、短信方式；认证器为否）。</param>
+/// <param name="Method">预先选定的方式：只有一种方式且是认证器时就是它，否则为 <see langword="null"/>，由用户选（邮箱与短信选中后发码）。</param>
+/// <param name="CodeSent">是否已经发出验证码；这一步不发码，总为否。</param>
 /// <param name="ExpiresAt">票据过期时间（UTC）。</param>
 public sealed record TwoFactorChallengeResponse(string Ticket, IReadOnlyList<TwoFactorMethod> Methods, TwoFactorMethod? Method, bool CodeSent, DateTimeOffset ExpiresAt);
