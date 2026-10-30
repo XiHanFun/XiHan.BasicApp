@@ -155,4 +155,34 @@ public static class FilesErrors
     /// 这次调用没有可以带给后台执行的登录凭据。
     /// </summary>
     public const string ExportCredentialMissing = "FILES_UNAVAILABLE_003";
+
+    /// <summary>
+    /// 分片上传不存在（或不是自己发起的）。
+    /// </summary>
+    public const string UploadNotFound = "FILES_NOTFOUND_006";
+
+    /// <summary>
+    /// 分片编号不在这次上传的范围里。
+    /// </summary>
+    public const string PartNumbersInvalid = "FILES_VALIDATION_015";
+
+    /// <summary>
+    /// 分片上传已结束（完成、放弃、过期或失败）。
+    /// </summary>
+    public const string UploadNotActive = "FILES_CONFLICT_008";
+
+    /// <summary>
+    /// 还有分片没有上传。
+    /// </summary>
+    public const string UploadPartsIncomplete = "FILES_CONFLICT_009";
+
+    /// <summary>
+    /// 已上传的分片与声明的大小不符。
+    /// </summary>
+    public const string UploadSizeMismatch = "FILES_CONFLICT_010";
+
+    /// <summary>
+    /// 上传目标的存储不支持分片上传。
+    /// </summary>
+    public const string MultipartUnsupported = "FILES_UNAVAILABLE_004";
 }

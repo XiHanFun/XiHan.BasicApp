@@ -308,6 +308,61 @@ public static class FilesMessages
     /// </summary>
     public const string ExportResultRemark = "files.export.result_remark";
 
+    /// <summary>
+    /// 操作 <c>files.start-upload</c> 的说明。
+    /// </summary>
+    public const string StartUploadDescription = "files.start_upload.description";
+
+    /// <summary>
+    /// 操作 <c>files.upload-session</c> 的说明。
+    /// </summary>
+    public const string UploadSessionDescription = "files.upload_session.description";
+
+    /// <summary>
+    /// 操作 <c>files.sign-upload-parts</c> 的说明。
+    /// </summary>
+    public const string SignUploadPartsDescription = "files.sign_upload_parts.description";
+
+    /// <summary>
+    /// 操作 <c>files.complete-upload</c> 的说明。
+    /// </summary>
+    public const string CompleteUploadDescription = "files.complete_upload.description";
+
+    /// <summary>
+    /// 操作 <c>files.abort-upload</c> 的说明。
+    /// </summary>
+    public const string AbortUploadDescription = "files.abort_upload.description";
+
+    /// <summary>
+    /// 分片上传不存在（{id}）。
+    /// </summary>
+    public const string UploadNotFound = "files.upload.not_found";
+
+    /// <summary>
+    /// 分片编号超出范围（{max}）。
+    /// </summary>
+    public const string PartNumbersInvalid = "files.upload.part_numbers_invalid";
+
+    /// <summary>
+    /// 分片上传已结束（{status}）。
+    /// </summary>
+    public const string UploadNotActive = "files.upload.not_active";
+
+    /// <summary>
+    /// 还有分片没有上传（{missing}、{first}）。
+    /// </summary>
+    public const string UploadPartsIncomplete = "files.upload.parts_incomplete";
+
+    /// <summary>
+    /// 已上传的大小与声明的不符（{actual}、{expected}）。
+    /// </summary>
+    public const string UploadSizeMismatch = "files.upload.size_mismatch";
+
+    /// <summary>
+    /// 存储不支持分片上传（{code}）。
+    /// </summary>
+    public const string MultipartUnsupported = "files.upload.multipart_unsupported";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(FilesMessages)));
 
     /// <summary>

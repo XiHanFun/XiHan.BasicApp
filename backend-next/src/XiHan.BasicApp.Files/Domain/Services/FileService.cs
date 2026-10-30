@@ -480,7 +480,7 @@ public sealed partial class FileService(
         {
             await using (blob.ConfigureAwait(false))
             {
-                var hash = await HashOfAsync(blob.Content, cancellationToken).ConfigureAwait(false);
+                var (hash, _) = await DigestAsync(blob.Content, cancellationToken).ConfigureAwait(false);
                 problem = string.Equals(hash, file.Hash, StringComparison.Ordinal) ? null : "hash-mismatch";
             }
         }
@@ -610,7 +610,58 @@ public sealed partial class FileService(
         file.LastDownloadedAt = now;
     }
 
-    private async Task<Result> EnsureQuotaAsync(InvocationContext context, string side, long bytes)
+    /// <summary>
+    /// 把分片上传拼好的对象落成文件。
+    /// </summary>
+    /// <remarks>
+    /// 内容按回读算出的 SHA-256 记；同一侧已有内容相同的正常文件就共用它的对象，刚拼好的对象随即删掉（删不掉只记警告），
+    /// 否则以发起时定下的文件 ID 新建文件与指向这个对象的主副本。
+    /// </remarks>
+    /// <param name="upload">分片上传。</param>
+    /// <param name="store">它的对象存储。</param>
+    /// <param name="hash">回读算出的 SHA-256。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>新文件。</returns>
+    internal async Task<SysFile> AdoptAsync(SysFileUpload upload, IBlobStore store, string hash, CancellationToken cancellationToken)
+    {
+        var details = new FileDetails(upload.AccessLevel, upload.IsTemporary, upload.FileExpiresAt, upload.Tags, upload.Remark);
+        var reused = await ReuseAsync(upload.TenantId, hash, upload.Size, upload.OriginalName, upload.ContentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
+        if (reused.TryGetValue(out var copy))
+        {
+            var removed = await store.DeleteAsync(upload.Bucket, upload.Key, cancellationToken).ConfigureAwait(false);
+            if (removed.Error is { } error)
+            {
+                LogDuplicateNotRemoved(logger, upload.Id, upload.Bucket, upload.Key, error.Code);
+            }
+
+            return copy;
+        }
+
+        var file = NewFile(upload.TenantId, upload.OriginalName, upload.ContentType, upload.Size, hash, details, SourceUpload, upload.FileId);
+        await rows.InsertAsync(file, cancellationToken).ConfigureAwait(false);
+        await rows.InsertAsync(new SysFileStorage
+        {
+            Id = ids.NewId(),
+            TenantId = upload.TenantId,
+            FileId = file.Id,
+            StorageConfigId = upload.StorageConfigId,
+            StorageType = upload.StorageType,
+            Bucket = upload.Bucket,
+            Key = upload.Key,
+            IsPrimary = true,
+            Status = FileStorageStatus.Normal,
+            VerifiedAt = clock.GetUtcNow(),
+        }, cancellationToken).ConfigureAwait(false);
+        return file;
+    }
+
+    /// <summary>
+    /// 核对一侧的存储配额。
+    /// </summary>
+    /// <remarks>
+    /// 只约束租户主体的调用；没装 Tenancy 即不限。
+    /// </remarks>
+    internal async Task<Result> EnsureQuotaAsync(InvocationContext context, string side, long bytes)
     {
         foreach (var quota in quotas)
         {
@@ -624,7 +675,13 @@ public sealed partial class FileService(
         return Result.Success();
     }
 
-    private static string? NameOf(string? fileName)
+    /// <summary>
+    /// 规范原始文件名。
+    /// </summary>
+    /// <remarks>
+    /// 去掉路径与首尾空白，过长的截掉主名、保留扩展名；为空时为 <see langword="null"/>。
+    /// </remarks>
+    internal static string? NameOf(string? fileName)
     {
         var name = Path.GetFileName(fileName?.Trim() ?? string.Empty);
         if (name.Length == 0)
@@ -642,16 +699,21 @@ public sealed partial class FileService(
         return name[..(255 - extension.Length)] + extension;
     }
 
-    private static async Task<string> HashOfAsync(Stream content, CancellationToken cancellationToken)
+    /// <summary>
+    /// 读完内容，算 SHA-256 与长度。
+    /// </summary>
+    internal static async Task<(string Hash, long Length)> DigestAsync(Stream content, CancellationToken cancellationToken)
     {
         using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+        long length = 0;
         try
         {
             int read;
             while ((read = await content.ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken).ConfigureAwait(false)) > 0)
             {
                 hasher.AppendData(buffer, 0, read);
+                length += read;
             }
         }
         finally
@@ -659,7 +721,7 @@ public sealed partial class FileService(
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        return Convert.ToHexStringLower(hasher.GetHashAndReset());
+        return (Convert.ToHexStringLower(hasher.GetHashAndReset()), length);
     }
 
     private static void Apply(SysFile file, FileDetails details)
@@ -807,11 +869,11 @@ public sealed partial class FileService(
         return file;
     }
 
-    private SysFile NewFile(string side, string name, string? contentType, long size, string hash, FileDetails details, string source)
+    private SysFile NewFile(string side, string name, string? contentType, long size, string hash, FileDetails details, string source, Guid? fileId = null)
     {
         var extension = FileKinds.ExtensionOf(name);
         var type = FileKinds.ContentTypeOf(contentType, name);
-        var id = ids.NewId();
+        var id = fileId ?? ids.NewId();
         var file = new SysFile
         {
             Id = id,
@@ -863,6 +925,9 @@ public sealed partial class FileService(
     }
 
     private sealed record Located(SysFileStorage Storage, SysStorageConfig Config, IBlobStore Store);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "The object {Bucket}/{Key} assembled by upload {UploadId} duplicates stored content and was not removed ({Code}).")]
+    private static partial void LogDuplicateNotRemoved(ILogger logger, Guid uploadId, string bucket, string key, string code);
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "The download of file {FileId} was not counted ({Code}).")]
     private static partial void LogDownloadNotCounted(ILogger logger, Guid fileId, string code);

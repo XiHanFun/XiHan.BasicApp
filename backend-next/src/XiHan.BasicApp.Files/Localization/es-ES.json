@@ -56,5 +56,16 @@
   "files.export.not_pending": "La tarea de exportación está {status}; solo las que están en cola se pueden cancelar y las que están en curso no se pueden eliminar.",
   "files.export.credential_missing": "Esta llamada no lleva credencial de inicio de sesión, así que la exportación no puede ejecutarse en segundo plano con su identidad.",
   "files.export.cancelled": "Cancelada",
-  "files.export.result_remark": "Resultado de exportación: {name}"
+  "files.export.result_remark": "Resultado de exportación: {name}",
+  "files.start_upload.description": "Inicia una carga multiparte: elige el destino de carga del lado del llamador, abre una carga multiparte en su almacenamiento y devuelve el tamaño y el número de partes (para enviar archivos grandes por partes directamente al almacenamiento). Requiere files.files.create.",
+  "files.upload_session.description": "Obtiene una de tus cargas multiparte y las partes ya subidas (para reanudar). Requiere files.files.create.",
+  "files.sign_upload_parts.description": "Firma direcciones de carga para partes de una de tus cargas multiparte: el cliente envía cada parte con PUT a su dirección sin credenciales (como máximo 100 partes por llamada). Requiere files.files.create.",
+  "files.complete_upload.description": "Completa una de tus cargas multiparte: las partes del almacenamiento se unen en el objeto, que se vuelve a leer para calcular su SHA-256, y se obtiene un archivo (un contenido idéntico en el lado del llamador comparte ese objeto). Requiere files.files.create.",
+  "files.abort_upload.description": "Cancela una de tus cargas multiparte y descarta las partes ya almacenadas. Requiere files.files.create.",
+  "files.upload.not_found": "La carga multiparte {id} no existe.",
+  "files.upload.part_numbers_invalid": "Los números de parte deben estar entre 1 y {max}.",
+  "files.upload.not_active": "La carga multiparte está en estado {status} y no puede continuar.",
+  "files.upload.parts_incomplete": "Faltan {missing} partes por subir; la primera que falta es la parte {first}.",
+  "files.upload.size_mismatch": "Las partes subidas suman {actual} bytes, no los {expected} bytes declarados.",
+  "files.upload.multipart_unsupported": "La configuración de almacenamiento {code} no admite cargas multiparte."
 }

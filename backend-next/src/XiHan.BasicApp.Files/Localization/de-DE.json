@@ -56,5 +56,16 @@
   "files.export.not_pending": "Die Exportaufgabe ist {status}; nur wartende Aufgaben lassen sich abbrechen, laufende nicht löschen.",
   "files.export.credential_missing": "Dieser Aufruf trägt keine Anmeldeinformation, daher kann der Export nicht im Hintergrund unter Ihrer Identität laufen.",
   "files.export.cancelled": "Abgebrochen",
-  "files.export.result_remark": "Exportergebnis: {name}"
+  "files.export.result_remark": "Exportergebnis: {name}",
+  "files.start_upload.description": "Startet einen mehrteiligen Upload: wählt das Upload-Ziel auf der Seite des Aufrufers, öffnet in dessen Speicher einen mehrteiligen Upload und liefert Teilgröße und Teilanzahl (um große Dateien in Teilen direkt an den Speicher zu senden). Erfordert files.files.create.",
+  "files.upload_session.description": "Liefert einen eigenen mehrteiligen Upload und die bereits hochgeladenen Teile (zum Fortsetzen). Erfordert files.files.create.",
+  "files.sign_upload_parts.description": "Signiert Upload-Adressen für Teile eines eigenen mehrteiligen Uploads: Der Client sendet jeden Teil ohne Anmeldedaten per PUT an seine Adresse (höchstens 100 Teile pro Aufruf). Erfordert files.files.create.",
+  "files.complete_upload.description": "Schließt einen eigenen mehrteiligen Upload ab: Die Teile im Speicher werden zum Objekt zusammengesetzt, das zur Berechnung von SHA-256 zurückgelesen wird, und ergeben eine Datei (identischer Inhalt auf der Seite des Aufrufers teilt dessen Objekt). Erfordert files.files.create.",
+  "files.abort_upload.description": "Bricht einen eigenen mehrteiligen Upload ab und verwirft die bereits im Speicher liegenden Teile. Erfordert files.files.create.",
+  "files.upload.not_found": "Der mehrteilige Upload {id} existiert nicht.",
+  "files.upload.part_numbers_invalid": "Teilnummern müssen zwischen 1 und {max} liegen.",
+  "files.upload.not_active": "Der mehrteilige Upload ist im Status {status} und kann nicht fortgesetzt werden.",
+  "files.upload.parts_incomplete": "{missing} Teile wurden noch nicht hochgeladen; der erste fehlende ist Teil {first}.",
+  "files.upload.size_mismatch": "Die hochgeladenen Teile umfassen {actual} Bytes statt der angegebenen {expected} Bytes.",
+  "files.upload.multipart_unsupported": "Die Speicherkonfiguration {code} unterstützt keine mehrteiligen Uploads."
 }

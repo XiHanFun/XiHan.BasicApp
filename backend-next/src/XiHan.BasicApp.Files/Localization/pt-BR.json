@@ -56,5 +56,16 @@
   "files.export.not_pending": "A tarefa de exportação está {status}; só as na fila podem ser canceladas e as em execução não podem ser excluídas.",
   "files.export.credential_missing": "Esta chamada não traz credencial de login, então a exportação não pode rodar em segundo plano com a sua identidade.",
   "files.export.cancelled": "Cancelada",
-  "files.export.result_remark": "Resultado da exportação: {name}"
+  "files.export.result_remark": "Resultado da exportação: {name}",
+  "files.start_upload.description": "Inicia um envio em partes: escolhe o destino do envio no lado do chamador, abre um envio em partes no armazenamento e retorna o tamanho e a quantidade de partes (para enviar arquivos grandes em partes direto ao armazenamento). Requer files.files.create.",
+  "files.upload_session.description": "Obtém um dos seus envios em partes e as partes já enviadas (para retomar). Requer files.files.create.",
+  "files.sign_upload_parts.description": "Assina endereços de envio para partes de um dos seus envios em partes: o cliente envia cada parte com PUT para o endereço, sem credenciais (no máximo 100 partes por chamada). Requer files.files.create.",
+  "files.complete_upload.description": "Conclui um dos seus envios em partes: as partes no armazenamento são unidas no objeto, que é relido para calcular o SHA-256, gerando um arquivo (conteúdo idêntico no lado do chamador compartilha esse objeto). Requer files.files.create.",
+  "files.abort_upload.description": "Cancela um dos seus envios em partes e descarta as partes já armazenadas. Requer files.files.create.",
+  "files.upload.not_found": "O envio em partes {id} não existe.",
+  "files.upload.part_numbers_invalid": "Os números das partes devem estar entre 1 e {max}.",
+  "files.upload.not_active": "O envio em partes está no estado {status} e não pode continuar.",
+  "files.upload.parts_incomplete": "Faltam {missing} partes a enviar; a primeira que falta é a parte {first}.",
+  "files.upload.size_mismatch": "As partes enviadas somam {actual} bytes, não os {expected} bytes declarados.",
+  "files.upload.multipart_unsupported": "A configuração de armazenamento {code} não oferece suporte a envios em partes."
 }

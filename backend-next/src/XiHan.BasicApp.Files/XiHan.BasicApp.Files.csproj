@@ -25,6 +25,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.FileSystem" />
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.S3" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

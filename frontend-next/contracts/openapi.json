@@ -10162,7 +10162,113 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileResponse"
+                  "title": "FileResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "originalName": {
+                      "type": "string"
+                    },
+                    "extension": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/FileKind"
+                    },
+                    "contentType": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "hash": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FileStatus"
+                    },
+                    "accessLevel": {
+                      "$ref": "#/components/schemas/FileAccessLevel"
+                    },
+                    "isTemporary": {
+                      "type": "boolean"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "downloadCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lastDownloadedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "originalName",
+                    "kind",
+                    "contentType",
+                    "size",
+                    "hash",
+                    "status",
+                    "accessLevel",
+                    "isTemporary",
+                    "source",
+                    "downloadCount",
+                    "createdAt"
+                  ]
                 }
               }
             }
@@ -11097,6 +11203,172 @@
         }
       }
     },
+    "/api/files:abort-upload": {
+      "post": {
+        "operationId": "files.abort-upload",
+        "tags": [
+          "files"
+        ],
+        "summary": "Abort one of your multipart uploads and discard the parts already in storage. Requires files.files.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UploadSessionRequest",
+                "type": "object",
+                "properties": {
+                  "uploadId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "uploadId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FileUploadResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "fileId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "originalName": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partSize": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FileUploadStatus"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "uploadedParts": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "fileId",
+                    "originalName",
+                    "size",
+                    "partSize",
+                    "partCount",
+                    "status",
+                    "expiresAt",
+                    "uploadedParts"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files:complete-upload": {
+      "post": {
+        "operationId": "files.complete-upload",
+        "tags": [
+          "files"
+        ],
+        "summary": "Complete one of your multipart uploads: the parts in storage are assembled into the object, which is read back for its SHA-256, giving a file (content identical to an existing file on the caller\u0027s side shares that object). Requires files.files.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UploadSessionRequest",
+                "type": "object",
+                "properties": {
+                  "uploadId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "uploadId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/files:fast-upload": {
       "post": {
         "operationId": "files.fast-upload",
@@ -11369,6 +11641,338 @@
                   "required": [
                     "succeeded",
                     "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files:sign-upload-parts": {
+      "post": {
+        "operationId": "files.sign-upload-parts",
+        "tags": [
+          "files"
+        ],
+        "summary": "Sign upload links for parts of one of your multipart uploads: the client PUTs each part to its link without credentials (at most 100 parts per call). Requires files.files.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SignUploadPartsRequest",
+                "type": "object",
+                "properties": {
+                  "uploadId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "partNumbers": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "uploadId",
+                  "partNumbers"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SignUploadPartsResponse",
+                  "type": "object",
+                  "properties": {
+                    "parts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SignedPartResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "parts"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files:start-upload": {
+      "post": {
+        "operationId": "files.start-upload",
+        "tags": [
+          "files"
+        ],
+        "summary": "Start a multipart upload: picks the upload target on the caller\u0027s side and opens a multipart upload in its storage, returning the part size and part count (for sending large files straight to storage in parts). Requires files.files.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "StartUploadRequest",
+                "type": "object",
+                "properties": {
+                  "originalName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "size": {
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 9.223372036854776E+18
+                  },
+                  "contentType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "accessLevel": {
+                    "$ref": "#/components/schemas/FileAccessLevel"
+                  },
+                  "isTemporary": {
+                    "type": "boolean"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "tags": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "originalName",
+                  "size"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FileUploadResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "fileId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "originalName": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partSize": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FileUploadStatus"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "uploadedParts": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "fileId",
+                    "originalName",
+                    "size",
+                    "partSize",
+                    "partCount",
+                    "status",
+                    "expiresAt",
+                    "uploadedParts"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files:upload-session": {
+      "get": {
+        "operationId": "files.upload-session",
+        "tags": [
+          "files"
+        ],
+        "summary": "Get one of your multipart uploads and the parts already uploaded (for resuming). Requires files.files.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.create",
+        "parameters": [
+          {
+            "name": "uploadId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FileUploadResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "fileId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "originalName": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partSize": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "partCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FileUploadStatus"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "uploadedParts": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "fileId",
+                    "originalName",
+                    "size",
+                    "partSize",
+                    "partCount",
+                    "status",
+                    "expiresAt",
+                    "uploadedParts"
                   ]
                 }
               }
@@ -36336,6 +36940,16 @@
           "Unavailable"
         ]
       },
+      "FileUploadStatus": {
+        "type": "string",
+        "enum": [
+          "Uploading",
+          "Completed",
+          "Aborted",
+          "Expired",
+          "Failed"
+        ]
+      },
       "GrantSubjectKind": {
         "type": "string",
         "enum": [
@@ -38924,6 +39538,27 @@
         "enum": [
           "Active",
           "Disabled"
+        ]
+      },
+      "SignedPartResponse": {
+        "type": "object",
+        "properties": {
+          "partNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "partNumber",
+          "url",
+          "expiresAt"
         ]
       },
       "SmsConfigResponse": {
