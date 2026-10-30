@@ -22,6 +22,13 @@ const resource = departmentsResource((rows) => {
   treeRows.value = rows
 })
 const editor = useDepartmentEditor(treeRows)
+/** 负责人要检索用户：看不了用户时不显示这一栏，编辑时原样带回 */
+const canPickLeader = computed(() => hasPermission('identity.users.read'))
+
+function onSearchLeaders(keyword: string) {
+  editor.searchLeaders(keyword).catch((error: unknown) => toast.danger((error as Error).message || t('organization.departments.msg_load_users_failed')))
+}
+
 const canReadMembers = () => hasPermission('organization.memberships.read')
 const detail = useDepartmentDetail(canReadMembers)
 const memberEditor = useMembershipEditor()
@@ -99,7 +106,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row)
-        editor.startEdit(row)
+        editor.startEdit(row, canPickLeader.value)
       break
     case 'toggle':
       if (row)
@@ -152,7 +159,7 @@ function editFromDetail() {
   if (!row)
     return
   detail.open.value = false
-  editor.startEdit(row)
+  editor.startEdit(row, canPickLeader.value)
 }
 
 function formatNullable(value: unknown): string {
@@ -461,6 +468,24 @@ function confirmRemoveMember(member: MembershipRow) {
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('parentId')">
             {{ editor.fieldError('parentId') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot v-if="canPickLeader" :invalid="!!editor.fieldError('leaderUserId')">
+          <XhFieldLabel>{{ t('organization.departments.fields.leader') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XCombobox
+              v-model:value="editor.form.leaderUserId"
+              name="leaderUserId"
+              remote
+              :options="editor.leaderOptions.value"
+              :loading="editor.leaderLoading.value"
+              clearable
+              :placeholder="t('organization.departments.leader_placeholder')"
+              @search="onSearchLeaders"
+            />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('leaderUserId')">
+            {{ editor.fieldError('leaderUserId') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('order')">

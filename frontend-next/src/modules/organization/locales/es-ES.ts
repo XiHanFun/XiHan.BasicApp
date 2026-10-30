@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Añadir miembro',
       edit_member_title: 'Editar asignación - {name}',
       user_placeholder: 'Escriba para filtrar usuarios',
+      leader_placeholder: 'Escribe para buscar un responsable',
+      msg_load_users_failed: 'No se pudieron cargar los usuarios',
       position_placeholder: 'Seleccione un puesto (opcional)',
       confirm_remove_member: '¿Quitar a «{name}» de este departamento?',
       member_removed: 'Quitado del departamento',

@@ -57,6 +57,8 @@ export default {
       add_member_title: '添加成员',
       edit_member_title: '编辑任职 - {name}',
       user_placeholder: '输入以筛选用户',
+      leader_placeholder: '输入以检索负责人',
+      msg_load_users_failed: '加载用户失败',
       position_placeholder: '选择岗位（可留空）',
       confirm_remove_member: '确定将「{name}」移出本部门？',
       member_removed: '已移出部门',

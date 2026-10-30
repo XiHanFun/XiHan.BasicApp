@@ -57,6 +57,8 @@ export default {
       add_member_title: 'メンバーを追加',
       edit_member_title: '在籍情報を編集 - {name}',
       user_placeholder: '入力してユーザーを絞り込む',
+      leader_placeholder: '入力して責任者を検索',
+      msg_load_users_failed: 'ユーザーの読み込みに失敗しました',
       position_placeholder: '役職を選択（省略可）',
       confirm_remove_member: '「{name}」をこの部門から外しますか？',
       member_removed: '部門から外しました',

@@ -1,5 +1,5 @@
 import type { DepartmentRow } from './use-departments'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { configureRequest } from '~/request'
 import { departmentsResource, removeMembership, setPrimaryMembership, toParentOptions, useDepartmentDetail, useDepartmentEditor, useMembershipEditor } from './use-departments'
@@ -114,15 +114,35 @@ describe('useDepartmentEditor', () => {
     Object.assign(editor.form, { code: ' ops ', name: ' Ops ', description: '  ' })
     expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/departments', body: { code: 'ops', name: 'Ops', parentId: 'd-1', order: 0, description: null } })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/departments', body: { code: 'ops', name: 'Ops', parentId: 'd-1', leaderUserId: null, order: 0, description: null } })
+  })
+
+  it('负责人按关键字检索用户（只认最后一次检索），新建时一并提交', async () => {
+    const calls = record(call => call.url.startsWith('/api/users')
+      ? json(200, { items: [{ id: 'u-7', userName: 'alice', displayName: 'Alice' }], total: 1, page: { index: 1, size: 100 } })
+      : json(201, department('d-9', 'ops', 'Ops', null)))
+    const editor = useDepartmentEditor(tree)
+    editor.startCreate()
+    await editor.searchLeaders(' ali ')
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list', body: { keyword: 'ali' } })
+    expect(editor.leaderOptions.value).toEqual([{ label: 'Alice', value: 'u-7', description: 'alice' }])
+    Object.assign(editor.form, { code: 'ops', name: 'Ops', leaderUserId: 'u-7' })
+    expect(await editor.submit()).toBe(true)
+    expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/departments', body: { code: 'ops', leaderUserId: 'u-7' } })
   })
 
   it('编辑时上级候选去掉自己的子树；上级变了先整体更新再 departments.move，没变不移动', async () => {
-    const calls = record(call => json(200, call.url.endsWith(':move') ? { ...rd, parentId: null } : rd))
+    const calls = record(call => call.method === 'GET'
+      ? json(200, { id: 'u-9', userName: 'leader', displayName: 'Leader' })
+      : json(200, call.url.endsWith(':move') ? { ...rd, parentId: null } : rd))
     const editor = useDepartmentEditor(tree)
-    editor.startEdit(row(rd, [row(lab)], 2))
+    editor.startEdit(row(rd, [row(lab)], 2), true)
     expect(editor.isEdit.value).toBe(true)
-    expect(editor.form).toMatchObject({ code: 'rd', name: 'R&D', parentId: 'd-1', order: 10, description: 'Research', status: 'Active' })
+    expect(editor.form).toMatchObject({ code: 'rd', name: 'R&D', parentId: 'd-1', leaderUserId: 'u-9', order: 10, description: 'Research', status: 'Active' })
+    // 现任负责人按用户详情放进候选，与检索结果同样显示显示名与登录名
+    await vi.waitFor(() => expect(editor.leaderOptions.value).toEqual([{ label: 'Leader', value: 'u-9', description: 'leader' }]))
+    expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/users/u-9' })
+    calls.length = 0
     expect(editor.parentOptions.value.map(o => o.value)).toEqual(['d-1'])
     expect(editor.parentOptions.value[0]!.children?.map(o => o.value)).toEqual(['d-3'])
 
@@ -136,6 +156,7 @@ describe('useDepartmentEditor', () => {
     calls.length = 0
     editor.startEdit(row(rd, [row(lab)], 2))
     expect(await editor.submit()).toBe(true)
+    // 看不了用户时不取负责人，只有一次整体更新
     expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/departments/d-2'])
   })
 

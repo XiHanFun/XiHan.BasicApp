@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Add Member',
       edit_member_title: 'Edit Assignment - {name}',
       user_placeholder: 'Type to filter users',
+      leader_placeholder: 'Type to search for a leader',
+      msg_load_users_failed: 'Failed to load users',
       position_placeholder: 'Select position (optional)',
       confirm_remove_member: 'Remove "{name}" from this department?',
       member_removed: 'Removed from the department',

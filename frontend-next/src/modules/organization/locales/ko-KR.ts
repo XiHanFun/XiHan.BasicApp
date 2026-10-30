@@ -57,6 +57,8 @@ export default {
       add_member_title: '구성원 추가',
       edit_member_title: '재직 정보 편집 - {name}',
       user_placeholder: '입력해서 사용자 찾기',
+      leader_placeholder: '입력하여 책임자 검색',
+      msg_load_users_failed: '사용자를 불러오지 못했습니다',
       position_placeholder: '직위 선택(비워 둘 수 있어요)',
       confirm_remove_member: '「{name}」을(를) 이 부서에서 제외할까요?',
       member_removed: '부서에서 제외했어요',
