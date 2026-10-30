@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Добавить участника',
       edit_member_title: 'Изменить назначение - {name}',
       user_placeholder: 'Введите для поиска пользователей',
+      leader_placeholder: 'Введите, чтобы найти руководителя',
+      msg_load_users_failed: 'Не удалось загрузить пользователей',
       position_placeholder: 'Выберите должность (необязательно)',
       confirm_remove_member: 'Убрать «{name}» из этого подразделения?',
       member_removed: 'Убран из подразделения',

@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Mitglied hinzufügen',
       edit_member_title: 'Zuordnung bearbeiten - {name}',
       user_placeholder: 'Tippen, um Benutzer zu filtern',
+      leader_placeholder: 'Tippen, um eine Leitung zu suchen',
+      msg_load_users_failed: 'Benutzer konnten nicht geladen werden',
       position_placeholder: 'Stelle auswählen (optional)',
       confirm_remove_member: '„{name}“ aus dieser Abteilung entfernen?',
       member_removed: 'Aus der Abteilung entfernt',

@@ -28,6 +28,8 @@ export interface DepartmentForm {
   code: string
   name: string
   parentId: null | string
+  /** 负责人（本租户的用户）；为空即没有 */
+  leaderUserId: null | string
   order: null | number
   description: string
   status: DepartmentStatus
@@ -113,12 +115,13 @@ export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): S
 }
 
 function emptyDepartmentForm(): DepartmentForm {
-  return { code: '', name: '', parentId: null, order: 0, description: '', status: 'Active' }
+  return { code: '', name: '', parentId: null, leaderUserId: null, order: 0, description: '', status: 'Active' }
 }
 
 /**
  * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑。
- * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move。负责人页面不提供选择，编辑时原样带回。
+ * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move。
+ * 负责人按关键字远程检索用户（users.list，要能查看用户）；编辑时先按用户详情把现任负责人放进候选，组合框才显示得出名字。
  * 字段级错误挂回对应字段，其余错误给整条提示。
  */
 export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
@@ -129,6 +132,9 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   const fieldErrors = ref<Record<string, string[]>>({})
   const submitError = ref<string | null>(null)
   const submitting = ref(false)
+  const leaderOptions = ref<UserOption[]>([])
+  const leaderLoading = ref(false)
+  let leaderSeq = 0
 
   const isEdit = computed(() => mode.value === 'edit')
   const parentOptions = computed(() => toParentOptions(tree.value, isEdit.value ? editing.value?.id : undefined))
@@ -137,6 +143,27 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     Object.assign(form, emptyDepartmentForm(), next)
     fieldErrors.value = {}
     submitError.value = null
+    leaderOptions.value = []
+  }
+
+  /** 只认最后一次检索的结果，免得慢请求把新结果盖掉；当前选中的负责人始终留在候选里 */
+  async function searchLeaders(keyword: string) {
+    const seq = ++leaderSeq
+    leaderLoading.value = true
+    try {
+      const result = await usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [], sorts: [{ field: 'userName' }], keyword: keyword.trim() || null })
+      if (seq !== leaderSeq)
+        return
+      const options: UserOption[] = result.items.map(user => ({ label: user.displayName, value: user.id, description: user.userName }))
+      const selected = leaderOptions.value.find(option => option.value === form.leaderUserId)
+      if (selected && !options.some(option => option.value === selected.value))
+        options.unshift(selected)
+      leaderOptions.value = options
+    }
+    finally {
+      if (seq === leaderSeq)
+        leaderLoading.value = false
+    }
   }
 
   /** 新建：给了上级即「新增子部门」 */
@@ -147,11 +174,26 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     open.value = true
   }
 
-  function startEdit(row: DepartmentRow) {
+  /** leaders：能检索用户时才取现任负责人（看不了用户时负责人一栏不显示，原样带回） */
+  function startEdit(row: DepartmentRow, leaders = false) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, parentId: row.parentId ?? null, order: row.order, description: row.description ?? '', status: row.status })
+    reset({ code: row.code, name: row.name, parentId: row.parentId ?? null, leaderUserId: row.leaderUserId ?? null, order: row.order, description: row.description ?? '', status: row.status })
     open.value = true
+    if (leaders && row.leaderUserId)
+      void seedLeader(row.id, row.leaderUserId)
+  }
+
+  /** 现任负责人可能不在第一页候选里：按用户详情放进候选，与检索结果同样显示显示名与登录名 */
+  async function seedLeader(departmentId: string, userId: string) {
+    try {
+      const user = await usersApi.get({ id: userId })
+      if (editing.value?.id === departmentId && form.leaderUserId === userId && !leaderOptions.value.some(option => option.value === userId))
+        leaderOptions.value = [{ label: user.displayName, value: user.id, description: user.userName }, ...leaderOptions.value]
+    }
+    catch (error) {
+      submitError.value = describe(error)
+    }
   }
 
   function fieldError(field: keyof DepartmentForm): string | undefined {
@@ -168,7 +210,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
         await departmentsApi.update({
           id: current.id,
           name: form.name.trim(),
-          leaderUserId: current.leaderUserId ?? null,
+          leaderUserId: form.leaderUserId,
           order: form.order ?? 0,
           description: blankToNull(form.description),
           status: form.status,
@@ -182,6 +224,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
           code: form.code.trim(),
           name: form.name.trim(),
           parentId: form.parentId,
+          leaderUserId: form.leaderUserId,
           order: form.order ?? 0,
           description: blankToNull(form.description),
         })
@@ -205,7 +248,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, parentOptions, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return { open, mode, isEdit, editing, form, parentOptions, leaderOptions, leaderLoading, searchLeaders, fieldError, submitError, submitting, startCreate, startEdit, submit }
 }
 
 function listMembers(departmentId: string) {

@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Ajouter un membre',
       edit_member_title: 'Modifier l\'affectation - {name}',
       user_placeholder: 'Saisir pour filtrer les utilisateurs',
+      leader_placeholder: 'Saisissez pour rechercher un responsable',
+      msg_load_users_failed: 'Échec du chargement des utilisateurs',
       position_placeholder: 'Choisir un poste (facultatif)',
       confirm_remove_member: 'Retirer « {name} » de ce service ?',
       member_removed: 'Retiré du service',

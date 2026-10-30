@@ -57,6 +57,8 @@ export default {
       add_member_title: 'Adicionar membro',
       edit_member_title: 'Editar vínculo - {name}',
       user_placeholder: 'Digite para filtrar usuários',
+      leader_placeholder: 'Digite para buscar um responsável',
+      msg_load_users_failed: 'Falha ao carregar os usuários',
       position_placeholder: 'Selecione um cargo (opcional)',
       confirm_remove_member: 'Remover "{name}" deste departamento?',
       member_removed: 'Removido do departamento',
