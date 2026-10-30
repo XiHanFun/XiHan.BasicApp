@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "O usuário '{userId}' é proprietário do locatário '{tenantId}'. Transfira a propriedade antes de removê-lo.",
   "tenancy.owner.ineligible": "O usuário '{userId}' não pode ser proprietário do locatário '{tenantId}': precisa pertencer a este locatário ou ser um membro comum vigente, habilitado e não bloqueado.",
   "tenancy.member.type_mismatch": "O usuário '{userId}' não pode entrar como '{memberType}': contas da plataforma entram apenas como suporte, e membros de suporte devem ser contas da plataforma.",
-  "tenancy.member.window_invalid": "A data de expiração deve ser posterior à de início."
+  "tenancy.member.window_invalid": "A data de expiração deve ser posterior à de início.",
+  "tenants.configure_database.title": "Configurar o banco do locatário",
+  "tenants.configure_database.description": "Define o isolamento do locatário (banco compartilhado ou dedicado) e a cadeia de conexão e o provedor do banco dedicado; não pode mudar depois de pronto. A cadeia é guardada criptografada e nunca é retornada. Somente na plataforma.",
+  "tenants.initialize_database.title": "Inicializar o banco do locatário",
+  "tenants.initialize_database.description": "Cria o banco dedicado de um locatário, suas tabelas (somente dados do locatário) e a versão do esquema; falhas ficam registradas e é possível tentar de novo após corrigir a conexão. Somente na plataforma.",
+  "permissions.tenancy.tenants.configure_database.name": "Configurar bancos de locatários",
+  "permissions.tenancy.tenants.initialize_database.name": "Inicializar bancos de locatários",
+  "tenancy.database.initialized": "O banco dedicado do locatário '{tenantId}' já está pronto e não pode ser alterado nem inicializado de novo.",
+  "tenancy.database.not_ready": "O banco dedicado do locatário '{tenantId}' ainda não está pronto. Inicialize o banco primeiro.",
+  "tenancy.database.connection_required": "Um banco dedicado precisa de uma cadeia de conexão.",
+  "tenancy.database.not_isolated": "O locatário '{tenantId}' usa o banco compartilhado; não há banco dedicado para inicializar."
 }

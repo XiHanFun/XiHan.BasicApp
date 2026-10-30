@@ -64,6 +64,16 @@ public static class TenancyMessages
     public const string TransferOwnerDescription = "tenants.transfer_owner.description";
 
     /// <summary>
+    /// 操作 <c>tenants.configure-database</c> 的说明。
+    /// </summary>
+    public const string ConfigureDatabaseDescription = "tenants.configure_database.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.initialize-database</c> 的说明。
+    /// </summary>
+    public const string InitializeDatabaseDescription = "tenants.initialize_database.description";
+
+    /// <summary>
     /// 租户不存在。
     /// </summary>
     /// <remarks>
@@ -321,6 +331,35 @@ public static class TenancyMessages
     /// 成员的到期时间不晚于生效时间。
     /// </summary>
     public const string MemberWindowInvalid = "tenancy.member.window_invalid";
+
+    /// <summary>
+    /// 独立库已就绪。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
+    public const string DatabaseInitialized = "tenancy.database.initialized";
+
+    /// <summary>
+    /// 独立库还没就绪。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
+    public const string DatabaseNotReady = "tenancy.database.not_ready";
+
+    /// <summary>
+    /// 独立库要给连接串。
+    /// </summary>
+    public const string ConnectionRequired = "tenancy.database.connection_required";
+
+    /// <summary>
+    /// 租户是共库。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
+    public const string NotIsolated = "tenancy.database.not_isolated";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 

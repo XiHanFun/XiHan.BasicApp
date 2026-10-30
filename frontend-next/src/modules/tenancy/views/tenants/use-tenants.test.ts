@@ -2,7 +2,7 @@ import type { EditionOption } from './use-tenants'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { inheritedEdition, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, databaseConfiguration, inheritedEdition, initializeTenantDatabase, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -13,7 +13,12 @@ function problem(status: number, code: string, detail: string, errors?: Record<s
 }
 
 function tenant(extra: Record<string, unknown> = {}) {
-  return { id: 't-1', tenantId: 'contoso', name: 'Contoso', description: null, status: 'Active', expiresAt: null, adminUserId: null, editionId: 'e-1', order: 10, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, ...extra }
+  return { id: 't-1', tenantId: 'contoso', name: 'Contoso', description: null, status: 'Active', expiresAt: null, adminUserId: null, editionId: 'e-1', order: 10, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, isolationMode: 'Field', databaseProvider: null, databaseStatus: 'NotRequired', databaseError: null, ...extra }
+}
+
+/** 独立库租户：缺省待初始化、库类型 PostgreSQL */
+function dedicated(extra: Record<string, unknown> = {}) {
+  return tenant({ isolationMode: 'Database', databaseProvider: 'postgresql', databaseStatus: 'Pending', ...extra })
 }
 
 function quota(tenantId: string, extra: Record<string, unknown> = {}) {
@@ -163,13 +168,14 @@ describe('useEditionOptions', () => {
 describe('useTenantEditor', () => {
   it('开通：不选套餐即缺省套餐（发 null），到期时间按 ISO 发出，返回建好的租户并关掉弹窗', async () => {
     const calls = record(() => json(201, tenant({ id: 't-2', tenantId: 'fabrikam' })))
-    const editor = useTenantEditor()
+    const editor = useTenantEditor(() => true)
     editor.startCreate()
     expect(editor.isEdit.value).toBe(false)
     Object.assign(editor.form, { tenantId: ' fabrikam ', name: ' Fabrikam ', expiresAt: Date.UTC(2027, 0, 1), userLimit: 30 })
     const saved = await editor.submit()
     expect(saved?.id).toBe('t-2')
     expect(editor.open.value).toBe(false)
+    expect(calls).toHaveLength(1)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tenants' })
     expect(calls[0]!.body).toEqual({ tenantId: 'fabrikam', name: 'Fabrikam', description: null, expiresAt: '2027-01-01T00:00:00.000Z', order: 0, editionId: null, userLimit: 30, storageLimitMb: null })
   })
@@ -177,7 +183,7 @@ describe('useTenantEditor', () => {
   it('编辑：资料与上限走 tenants.update（整体覆盖，上限清空即沿用套餐）；套餐没变不换，清空即换成不受套餐限制（change-edition 发 null）', async () => {
     const row = tenant({ description: 'Main', expiresAt: '2027-01-01T00:00:00Z', userLimit: 50, storageLimitMb: 2048 }) as never
     let calls = record(call => json(200, tenant({ editionId: call.url.endsWith(':change-edition') ? null : 'e-1' })))
-    const editor = useTenantEditor()
+    const editor = useTenantEditor(() => true)
     editor.startEdit(row)
     expect(editor.form).toMatchObject({ tenantId: 'contoso', name: 'Contoso', description: 'Main', order: 10, editionId: 'e-1', expiresAt: Date.UTC(2027, 0, 1), userLimit: 50, storageLimitMb: 2048 })
     editor.form.name = 'Contoso Ltd'
@@ -197,7 +203,7 @@ describe('useTenantEditor', () => {
 
   it('字段级错误挂回字段，其余错误给整条提示，弹窗保持打开', async () => {
     record(() => problem(400, 'KERNEL_VALIDATION_003', 'invalid', { tenantId: ['pattern'] }))
-    const editor = useTenantEditor()
+    const editor = useTenantEditor(() => true)
     editor.startCreate()
     Object.assign(editor.form, { tenantId: 'bad id!', name: 'x' })
     expect(await editor.submit()).toBeNull()
@@ -209,6 +215,147 @@ describe('useTenantEditor', () => {
     expect(await editor.submit()).toBeNull()
     expect(editor.fieldError('tenantId')).toBeUndefined()
     expect(editor.submitError.value).toBe('tenant id taken')
+  })
+})
+
+describe('独立库设置', () => {
+  it('相对租户现状才发：共库不变不发、改回共库只发隔离方式；独立库换方式、填了连接串或换了库类型才发，连接串留空发 null；已就绪一律不发', () => {
+    const form = (extra: Record<string, unknown> = {}) => ({ isolationMode: 'Database' as const, databaseProvider: null, connectionString: '', ...extra })
+    expect(databaseConfiguration(form({ isolationMode: 'Field' }), tenant() as never)).toBeNull()
+    expect(databaseConfiguration(form({ isolationMode: 'Field' }), dedicated() as never)).toEqual({ isolationMode: 'Field' })
+    expect(databaseConfiguration(form({ connectionString: ' Host=db;Database=contoso ', databaseProvider: 'mysql' }), tenant() as never))
+      .toEqual({ isolationMode: 'Database', connectionString: 'Host=db;Database=contoso', databaseProvider: 'mysql' })
+    // 从共库改过来没填连接串也照发（null），由后端拒绝 TENANCY_VALIDATION_008
+    expect(databaseConfiguration(form(), tenant() as never)).toEqual({ isolationMode: 'Database', connectionString: null, databaseProvider: null })
+    expect(databaseConfiguration(form({ databaseProvider: 'postgresql' }), dedicated() as never)).toBeNull()
+    expect(databaseConfiguration(form({ databaseProvider: 'postgresql', connectionString: '   ' }), dedicated({ databaseStatus: 'Failed' }) as never)).toBeNull()
+    expect(databaseConfiguration(form({ databaseProvider: null }), dedicated() as never)).toEqual({ isolationMode: 'Database', connectionString: null, databaseProvider: null })
+    expect(databaseConfiguration(form({ databaseProvider: 'postgresql', connectionString: 'Host=db2' }), dedicated({ databaseStatus: 'Failed' }) as never))
+      .toEqual({ isolationMode: 'Database', connectionString: 'Host=db2', databaseProvider: 'postgresql' })
+    expect(databaseConfiguration(form({ isolationMode: 'Field' }), dedicated({ databaseStatus: 'Ready' }) as never)).toBeNull()
+    expect(databaseConfiguration(form({ connectionString: 'Host=db3' }), dedicated({ databaseStatus: 'Ready' }) as never)).toBeNull()
+  })
+
+  it('开通独立库租户：先 tenants.create（不带隔离设置）再 configure-database，返回配好的租户；选共库只开通', async () => {
+    let calls = record(call => (call.url.endsWith(':configure-database')
+      ? json(200, dedicated({ id: 't-2', tenantId: 'fabrikam' }))
+      : json(201, tenant({ id: 't-2', tenantId: 'fabrikam' }))))
+    const editor = useTenantEditor(() => true)
+    editor.startCreate()
+    expect(editor.form).toMatchObject({ isolationMode: 'Field', databaseProvider: null, connectionString: '' })
+    expect(editor.hasConnection.value).toBe(false)
+    Object.assign(editor.form, { tenantId: 'fabrikam', name: 'Fabrikam', isolationMode: 'Database', databaseProvider: 'postgresql', connectionString: 'Host=db;Database=fabrikam' })
+    const saved = await editor.submit()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['POST /api/tenants', 'POST /api/tenants/t-2:configure-database'])
+    expect(calls[0]!.body).not.toHaveProperty('isolationMode')
+    expect(calls[0]!.body).not.toHaveProperty('connectionString')
+    expect(calls[1]!.body).toEqual({ isolationMode: 'Database', connectionString: 'Host=db;Database=fabrikam', databaseProvider: 'postgresql' })
+    expect(saved).toMatchObject({ id: 't-2', isolationMode: 'Database', databaseStatus: 'Pending' })
+    expect(editor.open.value).toBe(false)
+
+    calls = record(() => json(201, tenant({ id: 't-3', tenantId: 'litware' })))
+    editor.startCreate()
+    Object.assign(editor.form, { tenantId: 'litware', name: 'Litware', databaseProvider: 'mysql', connectionString: 'ignored' })
+    expect((await editor.submit())?.isolationMode).toBe('Field')
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['POST /api/tenants'])
+  })
+
+  it('开通成功而配库失败：弹窗转为编辑这个已开通的租户（套餐按建好的回填），再保存走更新与配库、不会重复开通', async () => {
+    let calls = record(call => (call.url.endsWith(':configure-database')
+      ? problem(400, 'TENANCY_VALIDATION_008', 'connection string required')
+      : json(201, tenant({ id: 't-2', tenantId: 'fabrikam', editionId: 'e-default' }))))
+    const editor = useTenantEditor(() => true)
+    editor.startCreate()
+    Object.assign(editor.form, { tenantId: ' fabrikam ', name: 'Fabrikam', isolationMode: 'Database' })
+    expect(await editor.submit()).toBeNull()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['POST /api/tenants', 'POST /api/tenants/t-2:configure-database'])
+    expect(calls[1]!.body).toEqual({ isolationMode: 'Database', connectionString: null, databaseProvider: null })
+    expect(editor.open.value).toBe(true)
+    expect(editor.isEdit.value).toBe(true)
+    expect(editor.editing.value?.id).toBe('t-2')
+    expect(editor.form).toMatchObject({ tenantId: 'fabrikam', editionId: 'e-default', isolationMode: 'Database' })
+    expect(editor.submitError.value).toBe('connection string required')
+
+    calls = record(call => (call.url.endsWith(':configure-database') ? json(200, dedicated({ id: 't-2' })) : json(200, tenant({ id: 't-2', editionId: 'e-default' }))))
+    editor.form.connectionString = 'Host=db;Database=fabrikam'
+    const saved = await editor.submit()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/tenants/t-2', 'POST /api/tenants/t-2:configure-database'])
+    expect(calls[1]!.body).toEqual({ isolationMode: 'Database', connectionString: 'Host=db;Database=fabrikam', databaseProvider: null })
+    expect(saved?.databaseStatus).toBe('Pending')
+    expect(editor.open.value).toBe(false)
+  })
+
+  it('编辑：回填隔离方式与库类型、连接串不回显；没改不配库，只换库类型时连接串发 null（沿用），改回共库只发隔离方式', async () => {
+    const row = dedicated() as never
+    let calls = record(() => json(200, dedicated()))
+    const editor = useTenantEditor(() => true)
+    editor.startEdit(row)
+    expect(editor.form).toMatchObject({ isolationMode: 'Database', databaseProvider: 'postgresql', connectionString: '' })
+    expect(editor.hasConnection.value).toBe(true)
+    expect(editor.databaseLocked.value).toBe(false)
+    await editor.submit()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/tenants/t-1'])
+
+    calls = record(call => json(200, call.url.endsWith(':configure-database') ? dedicated({ databaseProvider: 'mysql' }) : dedicated()))
+    editor.startEdit(row)
+    editor.form.databaseProvider = 'mysql'
+    expect((await editor.submit())?.databaseProvider).toBe('mysql')
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/tenants/t-1', 'POST /api/tenants/t-1:configure-database'])
+    expect(calls[1]!.body).toEqual({ isolationMode: 'Database', connectionString: null, databaseProvider: 'mysql' })
+
+    calls = record(call => json(200, call.url.endsWith(':configure-database') ? tenant() : dedicated()))
+    editor.startEdit(row)
+    editor.form.isolationMode = 'Field'
+    expect((await editor.submit())?.databaseStatus).toBe('NotRequired')
+    expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/tenants/t-1:configure-database', body: { isolationMode: 'Field' } })
+    expect(calls[1]!.body).toEqual({ isolationMode: 'Field' })
+  })
+
+  it('已就绪的独立库只读、不再配库；没有配库权限时也不配', async () => {
+    let calls = record(() => json(200, dedicated({ databaseStatus: 'Ready' })))
+    const editor = useTenantEditor(() => true)
+    editor.startEdit(dedicated({ databaseStatus: 'Ready' }) as never)
+    expect(editor.databaseLocked.value).toBe(true)
+    Object.assign(editor.form, { isolationMode: 'Field', connectionString: 'Host=elsewhere' })
+    await editor.submit()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/tenants/t-1'])
+
+    calls = record(() => json(201, tenant({ id: 't-2' })))
+    const restricted = useTenantEditor(() => false)
+    restricted.startCreate()
+    Object.assign(restricted.form, { tenantId: 'fabrikam', name: 'Fabrikam', isolationMode: 'Database', connectionString: 'Host=db' })
+    await restricted.submit()
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['POST /api/tenants'])
+  })
+
+  it('初始化独立库：就绪即成功；初始化失败照常 200、带回原因；请求被拒（已就绪等）给错误详情', async () => {
+    let calls = record(() => json(200, dedicated({ databaseStatus: 'Ready' })))
+    let outcome = await initializeTenantDatabase(dedicated() as never)
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tenants/t-1:initialize-database', body: {} })
+    expect(outcome).toMatchObject({ ready: true, error: null, tenant: { databaseStatus: 'Ready' } })
+
+    record(() => json(200, dedicated({ databaseStatus: 'Failed', databaseError: 'connection refused' })))
+    outcome = await initializeTenantDatabase(dedicated() as never)
+    expect(outcome).toMatchObject({ ready: false, error: 'connection refused', tenant: { databaseStatus: 'Failed' } })
+
+    calls = record(() => problem(409, 'TENANCY_CONFLICT_013', 'database already initialized'))
+    outcome = await initializeTenantDatabase(dedicated() as never)
+    expect(calls).toHaveLength(1)
+    expect(outcome).toEqual({ ready: false, tenant: null, error: 'database already initialized' })
+  })
+
+  it('开通三步的门控：独立库没就绪才出「初始化数据库」；没有管理员且共库或独立库已就绪才出「初始化管理员」', () => {
+    expect(canInitializeDatabase(tenant() as never)).toBe(false)
+    expect(canInitializeDatabase(dedicated() as never)).toBe(true)
+    expect(canInitializeDatabase(dedicated({ databaseStatus: 'Failed' }) as never)).toBe(true)
+    expect(canInitializeDatabase(dedicated({ databaseStatus: 'Ready' }) as never)).toBe(false)
+
+    expect(canInitializeAdmin(tenant() as never)).toBe(true)
+    expect(canInitializeAdmin(tenant({ adminUserId: 'u-0' }) as never)).toBe(false)
+    expect(canInitializeAdmin(dedicated() as never)).toBe(false)
+    expect(canInitializeAdmin(dedicated({ databaseStatus: 'Failed' }) as never)).toBe(false)
+    expect(canInitializeAdmin(dedicated({ databaseStatus: 'Ready' }) as never)).toBe(true)
+    expect(canInitializeAdmin(dedicated({ databaseStatus: 'Ready', adminUserId: 'u-0' }) as never)).toBe(false)
   })
 })
 

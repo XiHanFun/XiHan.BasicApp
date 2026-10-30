@@ -1,6 +1,6 @@
 import type { HintTone } from '../subscription/subscription'
 import type { SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
@@ -16,8 +16,20 @@ export type TenantMember = ResponseOf<'tenant-members.list'>['items'][number]
 export type TenantStatus = TenantRow['status']
 export type TenantMemberType = TenantMember['memberType']
 export type UserRow = ResponseOf<'users.list'>['items'][number]
+export type TenantIsolationMode = TenantRow['isolationMode']
+export type TenantDatabaseStatus = TenantRow['databaseStatus']
+/** tenants.configure-database 除租户主键以外的部分：隔离方式与独立库的连接 */
+export type DatabaseConfiguration = Omit<RequestOf<'tenants.configure-database'>, 'id'>
 
 export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended']
+/** 隔离方式：共库（与平台同一个库、按租户字段隔离）与独立库（租户的业务数据在自己的库里） */
+export const TENANT_ISOLATION_MODES: readonly TenantIsolationMode[] = ['Field', 'Database']
+/** 独立库的状态：共库即无需独立库；独立库从待初始化起，初始化成功即就绪、失败可改正连接后再试 */
+export const TENANT_DATABASE_STATUSES: readonly TenantDatabaseStatus[] = ['NotRequired', 'Pending', 'Ready', 'Failed']
+/** 独立库的库类型（与 tenants.configure-database 接受的取值一致）；不选即与平台库相同 */
+export const TENANT_DATABASE_PROVIDERS = ['postgresql', 'sqlite', 'mysql', 'sqlserver'] as const
+/** 库类型的显示名是产品名，不随区域翻译 */
+export const DATABASE_PROVIDER_NAMES: Readonly<Record<string, string>> = { postgresql: 'PostgreSQL', sqlite: 'SQLite', mysql: 'MySQL', sqlserver: 'SQL Server' }
 /** 成员类型：普通成员（注册地在别的租户的用户，占席位）与运维支持（平台账号，不占席位、不能当所有者）；所有者是租户上的 adminUserId，不是成员类型 */
 export const TENANT_MEMBER_TYPES: readonly TenantMemberType[] = ['Member', 'Support']
 
@@ -49,6 +61,12 @@ export interface TenantForm {
   userLimit: number | null
   /** 租户自己的存储上限（MB），覆盖套餐的；空即沿用套餐 */
   storageLimitMb: number | null
+  /** 隔离方式：开通与更新都不带，存好后另走 tenants.configure-database */
+  isolationMode: TenantIsolationMode
+  /** 独立库的库类型；空即与平台库相同 */
+  databaseProvider: null | string
+  /** 独立库的连接串：后端从不返回，编辑时留空即沿用已配置的 */
+  connectionString: string
 }
 
 export type TenantEditorMode = 'create' | 'edit'
@@ -256,15 +274,73 @@ export function useQuotaAudit() {
   return { open, loading, items, error, load, start }
 }
 
+// ── 独立库（开通三步：开通 →（独立库）初始化数据库 → 初始化管理员） ──
+
+/**
+ * 弹窗里的隔离设置相对租户现状要不要另走 `tenants.configure-database`（开通与更新都不带这几项）：
+ * 独立库已就绪即不能再改（TENANCY_CONFLICT_013），不发；改回共库只发隔离方式（后端清掉连接）；
+ * 独立库在换了隔离方式、填了新连接串或换了库类型时才发，连接串留空发 null（已配过的沿用，没配过的由后端拒绝 TENANCY_VALIDATION_008）。
+ */
+export function databaseConfiguration(
+  form: Pick<TenantForm, 'connectionString' | 'databaseProvider' | 'isolationMode'>,
+  tenant: Pick<TenantRow, 'databaseProvider' | 'databaseStatus' | 'isolationMode'>,
+): DatabaseConfiguration | null {
+  if (tenant.databaseStatus === 'Ready')
+    return null
+  if (form.isolationMode === 'Field')
+    return tenant.isolationMode === 'Field' ? null : { isolationMode: 'Field' }
+  const connectionString = blankToNull(form.connectionString)
+  const databaseProvider = form.databaseProvider ?? null
+  if (tenant.isolationMode === 'Database' && connectionString === null && databaseProvider === (tenant.databaseProvider ?? null))
+    return null
+  return { isolationMode: 'Database', connectionString, databaseProvider }
+}
+
+/** 能初始化独立库：独立库且还没就绪（待初始化或上次失败；已就绪的后端拒绝 TENANCY_CONFLICT_013） */
+export function canInitializeDatabase(row: Pick<TenantRow, 'databaseStatus' | 'isolationMode'>): boolean {
+  return row.isolationMode === 'Database' && row.databaseStatus !== 'Ready'
+}
+
+/** 能初始化管理员：还没有管理员，且是共库或独立库已就绪（独立库没就绪时后端拒绝 TENANCY_CONFLICT_014） */
+export function canInitializeAdmin(row: Pick<TenantRow, 'adminUserId' | 'databaseStatus' | 'isolationMode'>): boolean {
+  return !row.adminUserId && (row.isolationMode === 'Field' || row.databaseStatus === 'Ready')
+}
+
+/** 初始化独立库的结果：ready 即已就绪；没就绪时 error 是原因 */
+export interface DatabaseInitOutcome {
+  ready: boolean
+  /** 初始化后的租户；请求本身被拒（不是独立库、已就绪等）时为 null */
+  tenant: null | TenantRow
+  /** 初始化失败（照常 200、状态为 Failed）取 databaseError，请求被拒取错误详情；成功为 null */
+  error: null | string
+}
+
+/**
+ * 初始化独立库（`tenants.initialize-database`，平台侧）：建库、建表并登记结构版本。
+ * 初始化失败不是请求失败——响应照常返回、databaseStatus 为 Failed 并带 databaseError，改正连接后可以再试。
+ */
+export async function initializeTenantDatabase(row: Pick<TenantRow, 'id'>): Promise<DatabaseInitOutcome> {
+  try {
+    const tenant = await tenantsApi.initializeDatabase({ id: row.id })
+    const ready = tenant.databaseStatus === 'Ready'
+    return { ready, tenant, error: ready ? null : (tenant.databaseError ?? null) }
+  }
+  catch (e) {
+    return { ready: false, tenant: null, error: describe(e) }
+  }
+}
+
 function emptyForm(): TenantForm {
-  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null, userLimit: null, storageLimitMb: null }
+  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null, userLimit: null, storageLimitMb: null, isolationMode: 'Field', databaseProvider: null, connectionString: '' }
 }
 
 /**
  * 开通 / 编辑弹窗。编辑时套餐与资料分属两个操作（`tenants.update` 不含套餐，换套餐走 `tenants.change-edition`）：
  * 先存资料，套餐变了再换，与 4.x 编辑弹窗里改状态的做法相同。字段级错误挂回对应字段。
+ * 隔离方式与独立库的连接同样另走 `tenants.configure-database`（canConfigureDatabase 为真、且相对租户现状有变化时，在开通或更新之后）。
+ * 开通成功而配库失败时弹窗转为编辑这个已开通的租户：再保存走更新与配库，不会重复开通。
  */
-export function useTenantEditor() {
+export function useTenantEditor(canConfigureDatabase: () => boolean) {
   const open = ref(false)
   const mode = ref<TenantEditorMode>('create')
   const editing = ref<TenantRow | null>(null)
@@ -274,6 +350,10 @@ export function useTenantEditor() {
   const submitting = ref(false)
 
   const isEdit = computed(() => mode.value === 'edit')
+  /** 独立库已就绪：隔离方式与连接不能再改 */
+  const databaseLocked = computed(() => isEdit.value && editing.value?.databaseStatus === 'Ready')
+  /** 已配过独立库的连接：编辑时连接串留空即沿用（连接串从不回显） */
+  const hasConnection = computed(() => isEdit.value && editing.value?.isolationMode === 'Database')
 
   function reset(next: Partial<TenantForm> = {}) {
     Object.assign(form, emptyForm(), next)
@@ -300,6 +380,8 @@ export function useTenantEditor() {
       editionId: row.editionId ?? null,
       userLimit: row.userLimit ?? null,
       storageLimitMb: row.storageLimitMb ?? null,
+      isolationMode: row.isolationMode,
+      databaseProvider: row.databaseProvider ?? null,
     })
     open.value = true
   }
@@ -308,11 +390,23 @@ export function useTenantEditor() {
     return fieldErrors.value[field]?.[0]
   }
 
-  /** 保存成功返回保存后的租户（开通时页面据此接着初始化管理员），失败返回 null、弹窗保持打开 */
+  /** 开通成功、后面一步失败：转为编辑这个已开通的租户，套餐按建好的回填（开通时留空即缺省套餐，回填后再存不会误换成不受限） */
+  function adopt(created: TenantRow) {
+    mode.value = 'edit'
+    editing.value = created
+    form.tenantId = created.tenantId
+    form.editionId = created.editionId ?? null
+  }
+
+  /**
+   * 保存成功返回保存后的租户（开通时页面据此接着初始化数据库或管理员），失败返回 null、弹窗保持打开。
+   * 开通成功而配库失败时也返回 null，此时 isEdit 已转为真（页面据此刷新列表）。
+   */
   async function submit(): Promise<null | TenantRow> {
     submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
+    let created: null | TenantRow = null
     try {
       const current = editing.value
       let saved: TenantRow
@@ -332,7 +426,7 @@ export function useTenantEditor() {
           saved = await tenantsApi.changeEdition({ id: current.id, editionId: form.editionId })
       }
       else {
-        saved = await tenantsApi.create({
+        saved = created = await tenantsApi.create({
           tenantId: form.tenantId.trim(),
           name: form.name.trim(),
           description: blankToNull(form.description),
@@ -343,10 +437,16 @@ export function useTenantEditor() {
           storageLimitMb: form.storageLimitMb,
         })
       }
+      // 更新与换套餐不动隔离设置：保存后的租户就是配库前的现状（开通的即共库）
+      const database = canConfigureDatabase() ? databaseConfiguration(form, saved) : null
+      if (database)
+        saved = await tenantsApi.configureDatabase({ id: saved.id, ...database })
       open.value = false
       return saved
     }
     catch (error) {
+      if (created)
+        adopt(created)
       captureErrors(error, fieldErrors, submitError)
       return null
     }
@@ -355,7 +455,7 @@ export function useTenantEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return { open, mode, isEdit, editing, form, databaseLocked, hasConnection, fieldError, submitError, submitting, startCreate, startEdit, submit }
 }
 
 function emptyAdminForm(): AdminForm {

@@ -10,8 +10,11 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Host;
+using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel.Pipeline;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.MultiTenancy.Database.Tenants;
 using XiHan.Framework.Primitives;
@@ -127,7 +130,12 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         {
             if (tenants.Count > 0)
             {
-                foreach (var outcome in await ctx.Services.GetRequiredService<TenantRecordStore>().UpsertAsync(tenants, ctx.CancellationToken))
+                // 应用写进租户目录的连接串是密文（Tenancy 同样这样写），由 Runtime 的分片解析器解密
+                var protector = ctx.Services.GetRequiredService<ISecretProtector>();
+                var stored = tenants.Select(tenant => tenant.Properties.TryGetValue(TenantShardKeys.ConnectionString, out var connection)
+                    ? tenant with { Properties = new Dictionary<string, string>(tenant.Properties, StringComparer.Ordinal) { [TenantShardKeys.ConnectionString] = protector.Protect(ProtectedTenantShardResolver.Purpose, connection) } }
+                    : tenant).ToList();
+                foreach (var outcome in await ctx.Services.GetRequiredService<TenantRecordStore>().UpsertAsync(stored, ctx.CancellationToken))
                 {
                     outcome.Outcome.ThrowIfFailure();
                 }

@@ -194,6 +194,12 @@ export type StorageType = (typeof StorageType)[number]
 export const TemplateChannel = ['Email', 'Sms'] as const
 export type TemplateChannel = (typeof TemplateChannel)[number]
 
+export const TenantDatabaseStatus = ['NotRequired', 'Pending', 'Ready', 'Failed'] as const
+export type TenantDatabaseStatus = (typeof TenantDatabaseStatus)[number]
+
+export const TenantIsolationMode = ['Field', 'Database'] as const
+export type TenantIsolationMode = (typeof TenantIsolationMode)[number]
+
 export const TenantMemberType = ['Member', 'Support'] as const
 export type TenantMemberType = (typeof TenantMemberType)[number]
 
@@ -293,6 +299,8 @@ export const enums = {
   StorageConfigStatus,
   StorageType,
   TemplateChannel,
+  TenantDatabaseStatus,
+  TenantIsolationMode,
   TenantMemberType,
   TenantStatus,
   TraceDimension,

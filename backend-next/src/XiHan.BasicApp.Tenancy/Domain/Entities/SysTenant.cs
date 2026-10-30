@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
@@ -9,7 +10,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 租户（平台库业务实体）。
 /// </summary>
 /// <remarks>
-/// 套餐、到期、配额、状态归这里；租户目录（ID、显示名、是否启用、分片连接）是框架的 <c>TenantRecord</c>，开通 / 启停 / 改名时在同一工作单元里同步。
+/// 套餐、到期、配额、状态归这里；租户目录（ID、显示名、是否启用、分片连接）是框架的 <c>TenantRecord</c>，开通 / 启停 / 改名 / 配置独立库时在同一工作单元里同步。
 /// <see cref="TenantId"/> 是目录键（登录与令牌里的 <c>tenant</c>），创建后不可改。
 /// </remarks>
 public sealed class SysTenant : AppAuditedEntity
@@ -78,4 +79,42 @@ public sealed class SysTenant : AppAuditedEntity
     /// 为空即沿用套餐。
     /// </remarks>
     public long? StorageLimitMb { get; set; }
+    /// <summary>
+    /// 隔离方式。
+    /// </summary>
+    public TenantIsolationMode IsolationMode { get; set; }
+
+    /// <summary>
+    /// 独立库的库类型。
+    /// </summary>
+    /// <remarks>
+    /// <c>postgresql</c>、<c>sqlite</c>、<c>mysql</c> 或 <c>sqlserver</c>；为空即与平台库相同。
+    /// </remarks>
+    [StringLength(32)]
+    public string? DatabaseProvider { get; set; }
+
+    /// <summary>
+    /// 独立库的连接串（密文）。
+    /// </summary>
+    /// <remarks>
+    /// 经 <c>ISecretProtector</c> 加密存放，同步进租户目录时仍是密文，由 Runtime 的分片解析器解密；不进任何响应。
+    /// </remarks>
+    [StringLength(2048)]
+    public string? ConnectionString { get; set; }
+
+    /// <summary>
+    /// 独立库的状态。
+    /// </summary>
+    public TenantDatabaseStatus DatabaseStatus { get; set; }
+
+    /// <summary>
+    /// 最近一次初始化失败的原因。
+    /// </summary>
+    [StringLength(1024)]
+    public string? DatabaseError { get; set; }
+
+    /// <summary>
+    /// 独立库就绪的时间（UTC）。
+    /// </summary>
+    public DateTimeOffset? DatabaseInitializedAt { get; set; }
 }

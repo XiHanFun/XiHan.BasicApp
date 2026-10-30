@@ -5689,6 +5689,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tenants/{id}:configure-database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Configure tenant database
+         * @description Set the tenant's isolation (shared or dedicated database) and the dedicated connection string and provider; it cannot change once the dedicated database is ready. The connection string is stored encrypted and never returned. Platform side only.
+         *
+         *     Requires permission tenancy.tenants.configure-database (Configure tenant databases).
+         */
+        post: operations["tenants.configure-database"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenants/{id}:initialize-admin": {
         parameters: {
             query?: never;
@@ -5705,6 +5727,28 @@ export interface paths {
          *     Requires permission tenancy.tenants.initialize-admin (Initialize tenant administrators).
          */
         post: operations["tenants.initialize-admin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/{id}:initialize-database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initialize tenant database
+         * @description Create the dedicated database of a tenant, its tables (tenant data only) and its schema version; failures are recorded and can be retried after fixing the connection. Platform side only.
+         *
+         *     Requires permission tenancy.tenants.initialize-database (Initialize tenant databases).
+         */
+        post: operations["tenants.initialize-database"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9683,6 +9727,16 @@ export interface components {
          * @enum {string}
          */
         TemplateChannel: "Email" | "Sms";
+        /**
+         * @description 租户独立库的状态。
+         * @enum {string}
+         */
+        TenantDatabaseStatus: "NotRequired" | "Pending" | "Ready" | "Failed";
+        /**
+         * @description 租户数据的隔离方式。
+         * @enum {string}
+         */
+        TenantIsolationMode: "Field" | "Database";
         /** @description 租户成员的响应形态：成员行加上用户的登录名与显示名（用户在平台库，按主键补）。 */
         TenantMemberResponse: {
             /**
@@ -9811,6 +9865,14 @@ export interface components {
              * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
              */
             storageLimitMb?: number | null;
+            /** @description 隔离方式。 */
+            isolationMode: components["schemas"]["TenantIsolationMode"];
+            /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+            databaseProvider?: string | null;
+            /** @description 独立库的状态。 */
+            databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+            /** @description 最近一次初始化失败的原因。 */
+            databaseError?: string | null;
         };
         /**
          * @description 租户状态。
@@ -28963,6 +29025,14 @@ export interface operations {
                          * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
                          */
                         storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
                     };
                 };
             };
@@ -29158,6 +29228,14 @@ export interface operations {
                          * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
                          */
                         storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
                     };
                 };
             };
@@ -29255,6 +29333,120 @@ export interface operations {
                          * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
                          */
                         storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.configure-database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 租户主键。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description tenants.configure-database 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
+                    id: string;
+                    /** @description 隔离方式；改回共库即清掉连接。 */
+                    isolationMode: components["schemas"]["TenantIsolationMode"];
+                    /** @description 独立库的连接串；独立库时必填，已配过时留空即沿用原来的。 */
+                    connectionString?: string | null;
+                    /** @description 独立库的库类型：postgresql、sqlite、mysql 或 sqlserver；为空即与平台库相同。 */
+                    databaseProvider?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
+                        tenantId: string;
+                        /** @description 名称。 */
+                        name: string;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["TenantStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
+                        expiresAt?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
+                        adminUserId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
+                        editionId?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
+                        userLimit?: number | null;
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
+                        storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
                     };
                 };
             };
@@ -29322,6 +29514,106 @@ export interface operations {
                         createdBy?: string | null;
                         /** Format: uuid */
                         avatarFileId?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.initialize-database": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 租户主键。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description tenants.initialize-database 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
+                        tenantId: string;
+                        /** @description 名称。 */
+                        name: string;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["TenantStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
+                        expiresAt?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
+                        adminUserId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
+                        editionId?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
+                        userLimit?: number | null;
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
+                        storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
                     };
                 };
             };
@@ -29419,6 +29711,14 @@ export interface operations {
                          * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
                          */
                         storageLimitMb?: number | null;
+                        /** @description 隔离方式。 */
+                        isolationMode: components["schemas"]["TenantIsolationMode"];
+                        /** @description 独立库的库类型；为空即与平台库相同。连接串不出现在响应里。 */
+                        databaseProvider?: string | null;
+                        /** @description 独立库的状态。 */
+                        databaseStatus: components["schemas"]["TenantDatabaseStatus"];
+                        /** @description 最近一次初始化失败的原因。 */
+                        databaseError?: string | null;
                     };
                 };
             };

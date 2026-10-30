@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "Der Benutzer '{userId}' ist Eigentümer des Mandanten '{tenantId}'. Übertragen Sie das Eigentum, bevor Sie ihn entfernen.",
   "tenancy.owner.ineligible": "Der Benutzer '{userId}' kann nicht Eigentümer des Mandanten '{tenantId}' werden: Er muss zu diesem Mandanten gehören oder ein aktives reguläres Mitglied sein, aktiviert und nicht gesperrt.",
   "tenancy.member.type_mismatch": "Der Benutzer '{userId}' kann nicht als '{memberType}' beitreten: Plattformkonten treten nur als Support bei, und Support-Mitglieder müssen Plattformkonten sein.",
-  "tenancy.member.window_invalid": "Der Ablaufzeitpunkt muss nach dem Gültigkeitsbeginn liegen."
+  "tenancy.member.window_invalid": "Der Ablaufzeitpunkt muss nach dem Gültigkeitsbeginn liegen.",
+  "tenants.configure_database.title": "Mandantendatenbank konfigurieren",
+  "tenants.configure_database.description": "Legt die Isolation des Mandanten (gemeinsame oder eigene Datenbank) sowie Verbindungszeichenfolge und Anbieter der eigenen Datenbank fest; nach der Bereitstellung nicht mehr änderbar. Die Verbindungszeichenfolge wird verschlüsselt gespeichert und nie zurückgegeben. Nur auf Plattformseite.",
+  "tenants.initialize_database.title": "Mandantendatenbank initialisieren",
+  "tenants.initialize_database.description": "Legt die eigene Datenbank eines Mandanten, ihre Tabellen (nur Mandantendaten) und die Schemaversion an; Fehler werden festgehalten und können nach Korrektur der Verbindung erneut versucht werden. Nur auf Plattformseite.",
+  "permissions.tenancy.tenants.configure_database.name": "Mandantendatenbanken konfigurieren",
+  "permissions.tenancy.tenants.initialize_database.name": "Mandantendatenbanken initialisieren",
+  "tenancy.database.initialized": "Die eigene Datenbank des Mandanten '{tenantId}' ist bereit und kann nicht mehr geändert oder erneut initialisiert werden.",
+  "tenancy.database.not_ready": "Die eigene Datenbank des Mandanten '{tenantId}' ist noch nicht bereit. Initialisieren Sie zuerst die Datenbank.",
+  "tenancy.database.connection_required": "Eine eigene Datenbank benötigt eine Verbindungszeichenfolge.",
+  "tenancy.database.not_isolated": "Der Mandant '{tenantId}' nutzt die gemeinsame Datenbank; es gibt keine eigene Datenbank zu initialisieren."
 }

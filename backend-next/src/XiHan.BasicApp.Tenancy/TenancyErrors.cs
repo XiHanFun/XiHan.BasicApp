@@ -145,4 +145,24 @@ public static class TenancyErrors
     /// 成员的到期时间不晚于生效时间。
     /// </summary>
     public const string MemberWindowInvalid = "TENANCY_VALIDATION_007";
+
+    /// <summary>
+    /// 独立库已就绪，不能再改隔离方式与连接，也不用再初始化。
+    /// </summary>
+    public const string DatabaseInitialized = "TENANCY_CONFLICT_013";
+
+    /// <summary>
+    /// 独立库还没就绪，先初始化数据库。
+    /// </summary>
+    public const string DatabaseNotReady = "TENANCY_CONFLICT_014";
+
+    /// <summary>
+    /// 独立库要给连接串。
+    /// </summary>
+    public const string ConnectionRequired = "TENANCY_VALIDATION_008";
+
+    /// <summary>
+    /// 租户是共库，没有独立库可初始化。
+    /// </summary>
+    public const string NotIsolated = "TENANCY_VALIDATION_009";
 }
