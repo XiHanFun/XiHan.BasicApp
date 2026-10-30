@@ -17205,6 +17205,10 @@ export interface operations {
                 tenantId?: string | null;
                 /** @description 关键字，匹配登录名与显示名；可空。 */
                 keyword?: string | null;
+                /** @description 页码，从 1 起。 */
+                pageIndex?: number;
+                /** @description 页大小，1 到 100。 */
+                pageSize?: number;
             };
             header?: never;
             path?: never;
@@ -17212,15 +17216,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description impersonation.candidates 的响应。 */
+            /** @description Success */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description 候选用户。 */
                         items: components["schemas"]["ImpersonationCandidateResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
