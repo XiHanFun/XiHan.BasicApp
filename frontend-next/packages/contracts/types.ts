@@ -8085,7 +8085,7 @@ export interface components {
         /** @enum {string} */
         JobScheduleKind: "Manual" | "Interval" | "Cron" | "Once";
         /** @enum {string} */
-        JobSource: "Code" | "Runtime";
+        JobSource: "Code" | "Runtime" | "Overridden";
         /** @enum {string} */
         JobTrigger: "Schedule" | "Manual" | "Recovery";
         /** @description 作业的一个触发器。 */
