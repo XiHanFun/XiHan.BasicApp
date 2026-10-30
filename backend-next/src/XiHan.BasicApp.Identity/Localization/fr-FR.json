@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "Supprime votre avatar ; le fichier est récupéré. Téléversez-en un nouveau avec POST /api/profile/avatar. Requiert seulement la connexion.",
   "identity.avatar.invalid": "L’avatar doit être une image JPEG ou PNG de {max} Mo au plus.",
   "identity.user_name.unchanged": "Le nouveau nom d’utilisateur est identique à l’actuel.",
-  "identity.user_name.too_soon": "Le nom d’utilisateur ne peut être changé qu’une fois tous les 90 jours ; réessayez dans {days} jours."
+  "identity.user_name.too_soon": "Le nom d’utilisateur ne peut être changé qu’une fois tous les 90 jours ; réessayez dans {days} jours.",
+  "profile.send_verification_code.description": "Envoie un code de vérification à votre adresse e-mail ou numéro de téléphone actuel (pour le vérifier). Nécessite une connexion.",
+  "profile.verify_contact.description": "Confirme votre adresse e-mail ou numéro de téléphone actuel avec le code reçu et le marque comme vérifié. Nécessite une connexion.",
+  "profile.send_change_contact_code.description": "Première étape du changement d’adresse e-mail ou de numéro : vérifie votre mot de passe actuel et envoie un code au nouveau. Nécessite une connexion ; indisponible en usurpation.",
+  "profile.change_contact.description": "Deuxième étape du changement d’adresse e-mail ou de numéro : confirmez avec le code envoyé au nouveau, qui remplace l’ancien et devient vérifié. Nécessite une connexion ; indisponible en usurpation.",
+  "identity.code.too_frequent": "Les codes sont demandés trop souvent ; réessayez dans {seconds} secondes.",
+  "identity.code.target_daily_limit": "Cette adresse e-mail ou ce numéro a reçu le maximum de codes pour aujourd’hui ; réessayez demain.",
+  "identity.code.address_daily_limit": "Ce réseau a demandé le maximum de codes pour aujourd’hui ; réessayez demain.",
+  "identity.code.locked": "Trop de codes erronés ; la vérification est bloquée pendant {minutes} minutes.",
+  "identity.code.channel_unavailable": "Aucune configuration d’envoi d’e-mail ou de SMS n’est disponible ; impossible d’envoyer un code pour le moment.",
+  "identity.code.invalid": "Le code de vérification est invalide ou a expiré.",
+  "identity.contact.missing": "Votre compte n’a ni adresse e-mail ni numéro de téléphone à vérifier.",
+  "identity.contact.invalid": "La nouvelle adresse e-mail ou le nouveau numéro est mal formé ou identique à l’actuel.",
+  "identity.contact.taken": "Cette adresse e-mail ou ce numéro est déjà utilisé par un autre compte du même locataire.",
+  "identity.code.title.verify_email": "Vérifier votre adresse e-mail",
+  "identity.code.title.verify_phone": "Vérifier votre numéro de téléphone",
+  "identity.code.title.change_email": "Changer votre adresse e-mail",
+  "identity.code.title.change_phone": "Changer votre numéro de téléphone"
 }

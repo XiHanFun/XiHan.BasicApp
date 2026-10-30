@@ -302,4 +302,66 @@ public static class IdentityErrors
     /// 参数 <c>days</c>（还要等几天）。
     /// </remarks>
     public const string UserNameChangeTooSoon = "IDENTITY_CONFLICT_009";
+    /// <summary>
+    /// 验证码发得太频繁。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>seconds</c>（两次发码的最短间隔）。
+    /// </remarks>
+    public const string CodeTooFrequent = "IDENTITY_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 这个邮箱或手机号今天收码的次数已达上限。
+    /// </summary>
+    public const string CodeTargetDailyLimit = "IDENTITY_UNAVAILABLE_003";
+
+    /// <summary>
+    /// 当前网络今天发码的次数已达上限。
+    /// </summary>
+    public const string CodeAddressDailyLimit = "IDENTITY_UNAVAILABLE_004";
+
+    /// <summary>
+    /// 验证码输错次数过多，暂时锁定。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>minutes</c>（锁定分钟数）。
+    /// </remarks>
+    public const string CodeLocked = "IDENTITY_UNAVAILABLE_005";
+
+    /// <summary>
+    /// 没有可用的邮件或短信发送配置。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>（<c>Email</c> 或 <c>Phone</c>）。
+    /// </remarks>
+    public const string CodeChannelUnavailable = "IDENTITY_UNAVAILABLE_006";
+
+    /// <summary>
+    /// 验证码无效或已过期。
+    /// </summary>
+    public const string CodeInvalid = "IDENTITY_VALIDATION_018";
+
+    /// <summary>
+    /// 当前账号没有绑定要验证的邮箱或手机号。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>。
+    /// </remarks>
+    public const string ContactMissing = "IDENTITY_VALIDATION_019";
+
+    /// <summary>
+    /// 新的邮箱或手机号格式不对，或与现在的相同。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>。
+    /// </remarks>
+    public const string ContactInvalid = "IDENTITY_VALIDATION_020";
+
+    /// <summary>
+    /// 邮箱或手机号已被同一租户的别的账号使用。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>。
+    /// </remarks>
+    public const string ContactTaken = "IDENTITY_CONFLICT_010";
 }

@@ -118,8 +118,8 @@ function toShellProfile(profile: ProfileResponse): UserProfile {
     isSystemAccount: false,
     twoFactorEnabled: profile.twoFactorEnabled,
     twoFactorMethod: profile.twoFactorMethods.reduce((bits, method) => bits | TWO_FACTOR_FLAGS[method], 0),
-    emailVerified: false,
-    phoneVerified: false,
+    emailVerified: profile.emailVerified,
+    phoneVerified: profile.phoneVerified,
     ...(profile.passwordChangedAt ? { lastPasswordChangeTime: profile.passwordChangedAt } : {}),
     ...(profile.userNameChangedAt ? { lastUserNameChangeTime: profile.userNameChangedAt } : {}),
     canChangeUserName: !profile.userNameChangeableAt || Date.parse(profile.userNameChangeableAt) <= Date.now(),
@@ -353,6 +353,16 @@ export function registerApplicationContext(router: Router): void {
     },
     removeAvatarApi: async () => applyProfile(await profileOps.removeAvatar({})),
     changeUserNameApi: async input => applyProfile(await profileOps.changeUsername({ userName: input.userName, password: input.password })),
+    // 邮箱 / 手机的验证与换绑（profile.send-verification-code / verify-contact / send-change-contact-code / change-contact）：码经 Notification 的发件箱发出，
+    // 租户没有自己启用的缺省邮件 / 短信配置时由平台代发；换绑凭当前密码、码发到新的，模仿会话被拒
+    sendEmailVerifyCodeApi: () => profileOps.sendVerificationCode({ channel: 'Email' }),
+    sendPhoneVerifyCodeApi: () => profileOps.sendVerificationCode({ channel: 'Phone' }),
+    verifyEmailApi: async code => applyProfile(await profileOps.verifyContact({ channel: 'Email', code })),
+    verifyPhoneApi: async code => applyProfile(await profileOps.verifyContact({ channel: 'Phone', code })),
+    sendChangeEmailCodeApi: input => profileOps.sendChangeContactCode({ channel: 'Email', newValue: input.newEmail, password: input.password }),
+    sendChangePhoneCodeApi: input => profileOps.sendChangeContactCode({ channel: 'Phone', newValue: input.newPhone, password: input.password }),
+    confirmChangeEmailApi: async code => applyProfile(await profileOps.changeContact({ channel: 'Email', code })),
+    confirmChangePhoneApi: async code => applyProfile(await profileOps.changeContact({ channel: 'Phone', code })),
     setup2FAApi: async () => {
       const setup = await profileOps.setupTotp({})
       return { sharedKey: setup.sharedKey, authenticatorUri: setup.authenticatorUri }

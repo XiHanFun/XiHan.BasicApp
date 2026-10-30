@@ -1,11 +1,11 @@
 /**
  * 个人中心「个人资料」（ProfileTabInfo.vue，4.x 原样搬入）：
  * 表单照资料填，保存把整份资料交给壳层（生日转 ISO），取消即回到资料；能改用户名时给「修改」，90 天内改过即提示还要等几天；
- * 邮箱 / 手机只显示当前值（6.0 还没有发码，4.x 的验证状态、验证与换绑不显示）；
+ * 邮箱 / 手机显示当前值与验证状态（4.x 同）：没验证的给「验证」（发码后输满 6 位确认），有值的给「修改」、没有的给「绑定」（对话框里凭当前密码发码到新的，再输码确认）；
  * 头像先在前端认格式与大小，上传即换好（不再经保存资料写头像），去掉头像先确认再交给壳层；被拒都提示后端文案。
  */
 import type { AppContextApis, UserProfile } from '~/types'
-import { flushPromises, mount } from '@vue/test-utils'
+import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureDynamicIsland, dialog, prompt, toast } from '~/composables'
@@ -25,6 +25,10 @@ const apis = {
   removeAvatarApi: vi.fn(),
   changeUserNameApi: vi.fn(),
   getFilePresignedUrlApi: vi.fn(),
+  sendEmailVerifyCodeApi: vi.fn(),
+  verifyEmailApi: vi.fn(),
+  sendChangePhoneCodeApi: vi.fn(),
+  confirmChangePhoneApi: vi.fn(),
 }
 
 const DAY = 24 * 60 * 60 * 1000
@@ -84,6 +88,22 @@ function field(wrapper: Wrapper, label: string) {
   return wrapper.find(`[aria-label="${label}"]`)
 }
 
+function contactRows(wrapper: Wrapper) {
+  return wrapper.findAll('.pf-subgroup')[1]!.findAll('.pf-setting-row')
+}
+
+function buttonIn(root: DOMWrapper<Element>, label: string) {
+  return root.findAll('button').find(item => item.text() === label)!
+}
+
+/** 验证码格子一格一位：逐格输入 */
+async function fillCode(root: Pick<DOMWrapper<Element>, 'findAll'>, code: string) {
+  const cells = root.findAll('input')
+  for (const [index, digit] of [...code].entries())
+    await cells[index]!.setValue(digit)
+  await flushPromises()
+}
+
 function usernameRow(wrapper: Wrapper) {
   return wrapper.findAll('.pf-setting-row').find(row => row.find('.pf-setting-row__label').text().startsWith('用户名'))!
 }
@@ -96,7 +116,7 @@ async function chooseAvatar(wrapper: Wrapper, file: File) {
 }
 
 describe('个人资料页签', () => {
-  it('表单照资料填，用户名带 @ 并给「修改」；邮箱 / 手机只显示当前值，没有的显示「未设置」，不出验证状态与验证、换绑入口', async () => {
+  it('表单照资料填，用户名带 @ 并给「修改」；邮箱 / 手机显示当前值与验证状态，没验证的给「验证」，没有的显示「未设置」并给「绑定」', async () => {
     const wrapper = await render()
     expect((field(wrapper, '显示名称').element as HTMLInputElement).value).toBe('Alice')
     expect((field(wrapper, '真实姓名').element as HTMLInputElement).value).toBe('张三')
@@ -105,14 +125,62 @@ describe('个人资料页签', () => {
     expect(usernameRow(wrapper).find('.pf-setting-row__desc').text()).toBe('@alice')
     expect(usernameRow(wrapper).find('button').text()).toBe('修改')
 
-    const contact = wrapper.findAll('.pf-subgroup')[1]!
-    expect(contact.findAll('.pf-setting-row').map(row => [row.find('.pf-setting-row__label').text(), row.find('.pf-setting-row__desc').text()])).toEqual([
-      ['电子邮箱', 'alice@example.com'],
-      ['手机号码', '未设置'],
-    ])
-    expect(contact.findAll('button')).toHaveLength(0)
-    expect(contact.text()).not.toContain('验证')
+    const [email, phone] = contactRows(wrapper)
+    expect(email!.find('.pf-setting-row__desc').text()).toBe('alice@example.com')
+    expect(email!.find('.pf-setting-row__label').text()).toContain('未验证')
+    expect(email!.findAll('button').map(item => item.text())).toEqual(['修改', '验证'])
+    expect(phone!.find('.pf-setting-row__desc').text()).toBe('未设置')
+    expect(phone!.findAll('button').map(item => item.text())).toEqual(['绑定'])
     expect(wrapper.text()).not.toContain('component.profile')
+  })
+
+  it('验证当前邮箱：发码后出现验证码格子，输满 6 位才能确认，交给壳层、提示并通知重拉；已验证的不再给「验证」', async () => {
+    apis.sendEmailVerifyCodeApi.mockResolvedValue({ expiresInSeconds: 600 })
+    apis.verifyEmailApi.mockResolvedValue({})
+    const wrapper = await render()
+    await button(wrapper, '验证').trigger('click')
+    await flushPromises()
+    expect(apis.sendEmailVerifyCodeApi).toHaveBeenCalledOnce()
+    const confirm = button(wrapper, '确认')
+    expect(confirm.attributes('disabled')).toBeDefined()
+    await fillCode(wrapper.find('.pf-inline-form'), '123456')
+    await button(wrapper, '确认').trigger('click')
+    await flushPromises()
+    expect(apis.verifyEmailApi).toHaveBeenCalledWith('123456')
+    expect(wrapper.emitted('saved')).toHaveLength(1)
+    expect(wrapper.find('.pf-inline-form').exists()).toBe(false)
+
+    const verified = await render({ ...saved, emailVerified: true })
+    expect(contactRows(verified)[0]!.findAll('button').map(item => item.text())).toEqual(['修改'])
+    expect(contactRows(verified)[0]!.find('.pf-setting-row__label').text()).toContain('已验证')
+  })
+
+  it('绑定手机号：对话框里填新号与当前密码发码，再输码确认，交给壳层并通知重拉；发码被拒即提示后端文案、留在第一步', async () => {
+    const wrapper = await render()
+    const danger = vi.spyOn(toast, 'danger').mockImplementation(() => undefined as never)
+    apis.sendChangePhoneCodeApi.mockRejectedValueOnce(new ApiError(409, { code: 'IDENTITY_CONFLICT_010', detail: '这个邮箱或手机号已被同一租户的别的账号使用。' }))
+    await button(wrapper, '绑定').trigger('click')
+    await flushPromises()
+    const dialogRoot = () => new DOMWrapper(document.body.querySelector('[data-scope="dialog"][data-part="content"]')!)
+    await dialogRoot().find('input[type="password"]').setValue('Pass@123456')
+    await dialogRoot().find('input:not([type="password"])').setValue('13900000000')
+    await buttonIn(dialogRoot(), '发送验证码').trigger('click')
+    await flushPromises()
+    expect(danger).toHaveBeenCalledWith('这个邮箱或手机号已被同一租户的别的账号使用。')
+    expect(dialogRoot().find('input[type="password"]').exists()).toBe(true)
+
+    apis.sendChangePhoneCodeApi.mockResolvedValue({ expiresInSeconds: 600 })
+    apis.confirmChangePhoneApi.mockResolvedValue({})
+    await buttonIn(dialogRoot(), '发送验证码').trigger('click')
+    await flushPromises()
+    expect(apis.sendChangePhoneCodeApi).toHaveBeenLastCalledWith({ newPhone: '13900000000', password: 'Pass@123456' })
+    expect(dialogRoot().text()).toContain('13900000000')
+    await fillCode(dialogRoot(), '654321')
+    await buttonIn(dialogRoot(), '确认').trigger('click')
+    await flushPromises()
+    expect(apis.confirmChangePhoneApi).toHaveBeenCalledWith('654321')
+    expect(wrapper.emitted('saved')).toHaveLength(1)
+    danger.mockRestore()
   })
 
   it('90 天内改过用户名：标签提示还要等几天，不给「修改」', async () => {

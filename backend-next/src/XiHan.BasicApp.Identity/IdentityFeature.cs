@@ -81,6 +81,8 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddSingleton<Captchas>();
         context.Services.AddSingleton<LoginThrottle>();
         context.Services.AddSingleton<TwoFactorTickets>();
+        context.Services.AddSingleton<VerificationCodes>();
+        context.Services.AddScoped<ContactCodes>();
         context.Services.AddSingleton<TotpEnrollments>();
         context.Services.AddScoped<LoginSessions>();
         context.Services.AddScoped<UserAccountService>();

@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "Entfernt Ihren Avatar; die Avatardatei wird freigegeben. Einen neuen laden Sie mit POST /api/profile/avatar hoch. Erfordert nur die Anmeldung.",
   "identity.avatar.invalid": "Der Avatar muss ein JPEG- oder PNG-Bild von höchstens {max} MB sein.",
   "identity.user_name.unchanged": "Der neue Benutzername entspricht dem aktuellen.",
-  "identity.user_name.too_soon": "Der Benutzername kann nur alle 90 Tage geändert werden; versuchen Sie es in {days} Tagen erneut."
+  "identity.user_name.too_soon": "Der Benutzername kann nur alle 90 Tage geändert werden; versuchen Sie es in {days} Tagen erneut.",
+  "profile.send_verification_code.description": "Sendet einen Bestätigungscode an Ihre aktuelle E-Mail-Adresse oder Telefonnummer (um sie zu bestätigen). Erfordert eine Anmeldung.",
+  "profile.verify_contact.description": "Bestätigt Ihre aktuelle E-Mail-Adresse oder Telefonnummer mit dem erhaltenen Code und markiert sie als bestätigt. Erfordert eine Anmeldung.",
+  "profile.send_change_contact_code.description": "Erster Schritt zum Ändern Ihrer E-Mail-Adresse oder Telefonnummer: prüft Ihr aktuelles Passwort und sendet einen Code an die neue. Erfordert eine Anmeldung; nicht während einer Imitation.",
+  "profile.change_contact.description": "Zweiter Schritt zum Ändern Ihrer E-Mail-Adresse oder Telefonnummer: Bestätigung mit dem an die neue gesendeten Code, die dann die alte ersetzt und als bestätigt gilt. Erfordert eine Anmeldung; nicht während einer Imitation.",
+  "identity.code.too_frequent": "Bestätigungscodes werden zu oft angefordert; versuchen Sie es in {seconds} Sekunden erneut.",
+  "identity.code.target_daily_limit": "Diese E-Mail-Adresse oder Telefonnummer hat heute die Höchstzahl an Codes erhalten; versuchen Sie es morgen erneut.",
+  "identity.code.address_daily_limit": "Dieses Netzwerk hat heute die Höchstzahl an Codes angefordert; versuchen Sie es morgen erneut.",
+  "identity.code.locked": "Zu viele falsche Codes; die Bestätigung ist für {minutes} Minuten gesperrt.",
+  "identity.code.channel_unavailable": "Es ist keine E-Mail- oder SMS-Versandkonfiguration verfügbar, daher kann gerade kein Code gesendet werden.",
+  "identity.code.invalid": "Der Bestätigungscode ist ungültig oder abgelaufen.",
+  "identity.contact.missing": "Ihr Konto hat keine E-Mail-Adresse oder Telefonnummer, die bestätigt werden kann.",
+  "identity.contact.invalid": "Die neue E-Mail-Adresse oder Telefonnummer ist ungültig oder gleich der aktuellen.",
+  "identity.contact.taken": "Diese E-Mail-Adresse oder Telefonnummer wird bereits von einem anderen Konto desselben Mandanten verwendet.",
+  "identity.code.title.verify_email": "E-Mail-Adresse bestätigen",
+  "identity.code.title.verify_phone": "Telefonnummer bestätigen",
+  "identity.code.title.change_email": "E-Mail-Adresse ändern",
+  "identity.code.title.change_phone": "Telefonnummer ändern"
 }

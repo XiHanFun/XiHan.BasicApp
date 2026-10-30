@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Seeding;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Domain.Services;
@@ -22,12 +23,12 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
     /// <summary>
     /// 邮箱登录验证码。
     /// </summary>
-    public const string EmailLoginCode = "auth-email-login-code";
+    public const string EmailLoginCode = MessageTemplateCodes.EmailLoginCode;
 
     /// <summary>
     /// 邮箱验证码（绑定、换绑、双因素）。
     /// </summary>
-    public const string EmailVerificationCode = "auth-email-verification-code";
+    public const string EmailVerificationCode = MessageTemplateCodes.EmailVerificationCode;
 
     /// <summary>
     /// 重置密码邮件。
@@ -42,12 +43,12 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
     /// <summary>
     /// 短信登录验证码。
     /// </summary>
-    public const string SmsLoginCode = "auth-sms-login-code";
+    public const string SmsLoginCode = MessageTemplateCodes.SmsLoginCode;
 
     /// <summary>
     /// 短信验证码（绑定、换绑、双因素）。
     /// </summary>
-    public const string SmsVerificationCode = "auth-sms-verification-code";
+    public const string SmsVerificationCode = MessageTemplateCodes.SmsVerificationCode;
 
     private const string Footer = "<div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>";
 

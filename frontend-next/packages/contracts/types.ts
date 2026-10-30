@@ -2988,6 +2988,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:change-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Second step of changing your email address or phone number: confirm with the code sent to the new one, which then replaces the old one and is marked verified. Requires sign-in; not available while impersonating. */
+        post: operations["profile.change-contact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:change-password": {
         parameters: {
             query?: never;
@@ -3158,6 +3175,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:send-change-contact-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** First step of changing your email address or phone number: checks your current password and sends a code to the new one. Requires sign-in; not available while impersonating. */
+        post: operations["profile.send-change-contact-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:send-verification-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a verification code to your current email address or phone number (to verify it). Requires sign-in. */
+        post: operations["profile.send-verification-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:sessions": {
         parameters: {
             query?: never;
@@ -3220,6 +3271,23 @@ export interface paths {
         put?: never;
         /** Save your notification preferences (replaces them as a whole). Requires sign-in only. */
         post: operations["profile.update-notification-preference"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:verify-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm your current email address or phone number with the code you received and mark it verified. Requires sign-in. */
+        post: operations["profile.verify-contact"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4640,6 +4708,8 @@ export interface components {
         /** @enum {string} */
         ConstraintViolationAction: "Deny" | "Warning" | "Log" | "RequireApproval";
         /** @enum {string} */
+        ContactChannel: "Email" | "Phone";
+        /** @enum {string} */
         DataScope: "SelfOnly" | "DepartmentOnly" | "DepartmentAndChildren" | "All" | "Custom";
         DataScopeDepartmentRequest: {
             /** Format: uuid */
@@ -5606,6 +5676,8 @@ export interface components {
             userNameChangedAt?: string | null;
             /** Format: date-time */
             userNameChangeableAt?: string | null;
+            emailVerified: boolean;
+            phoneVerified: boolean;
         };
         RoleMemberResponse: {
             /** Format: uuid */
@@ -16341,6 +16413,8 @@ export interface operations {
                         userNameChangedAt?: string | null;
                         /** Format: date-time */
                         userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };
@@ -16403,6 +16477,8 @@ export interface operations {
                         userNameChangedAt?: string | null;
                         /** Format: date-time */
                         userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };
@@ -16490,6 +16566,42 @@ export interface operations {
             };
         };
     };
+    "profile.change-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.change-password": {
         parameters: {
             query?: never;
@@ -16554,7 +16666,30 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProfileResponse"];
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
+                    };
                 };
             };
             /** @description Error */
@@ -16611,6 +16746,8 @@ export interface operations {
                         userNameChangedAt?: string | null;
                         /** Format: date-time */
                         userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };
@@ -16668,6 +16805,8 @@ export interface operations {
                         userNameChangedAt?: string | null;
                         /** Format: date-time */
                         userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };
@@ -16833,6 +16972,8 @@ export interface operations {
                         userNameChangedAt?: string | null;
                         /** Format: date-time */
                         userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };
@@ -16906,6 +17047,84 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["MySessionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.send-change-contact-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                    newValue: string;
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.send-verification-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        expiresInSeconds: number;
                     };
                 };
             };
@@ -17059,6 +17278,65 @@ export interface operations {
                         typeAnnouncement: boolean;
                         typeTask: boolean;
                         typeSecurity: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.verify-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        /** Format: date-time */
+                        userNameChangedAt?: string | null;
+                        /** Format: date-time */
+                        userNameChangeableAt?: string | null;
+                        emailVerified: boolean;
+                        phoneVerified: boolean;
                     };
                 };
             };

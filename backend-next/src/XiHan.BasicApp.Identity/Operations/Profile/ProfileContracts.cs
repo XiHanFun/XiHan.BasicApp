@@ -33,6 +33,8 @@ public sealed record ProfileRequest;
 /// <param name="Remark">个人简介。</param>
 /// <param name="UserNameChangedAt">最近一次本人改用户名的时间；没改过为空。</param>
 /// <param name="UserNameChangeableAt">下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。</param>
+/// <param name="EmailVerified">邮箱是否已验证。</param>
+/// <param name="PhoneVerified">手机号是否已验证。</param>
 public sealed record ProfileResponse(
     UserResponse User,
     bool TwoFactorEnabled,
@@ -47,7 +49,9 @@ public sealed record ProfileResponse(
     string? Country,
     string? Remark,
     DateTimeOffset? UserNameChangedAt,
-    DateTimeOffset? UserNameChangeableAt)
+    DateTimeOffset? UserNameChangeableAt,
+    bool EmailVerified,
+    bool PhoneVerified)
 {
     /// <summary>
     /// 由账号与账号安全构造。
@@ -70,7 +74,9 @@ public sealed record ProfileResponse(
             user.Country,
             user.Remark,
             security.UserNameChangedAt,
-            security.UserNameChangedAt?.Add(UserNameChange.Cooldown));
+            security.UserNameChangedAt?.Add(UserNameChange.Cooldown),
+            user.EmailVerified,
+            user.PhoneVerified);
     }
 }
 
