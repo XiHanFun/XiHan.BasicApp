@@ -9440,9 +9440,9 @@ export interface components {
             ticket: string;
             /** @description 可用的方式。 */
             methods: components["schemas"]["TwoFactorMethod"][];
-            /** @description 只有一种方式时就是它；有多种时为 null，由用户选。 */
+            /** @description 预先选定的方式：只有一种方式且是认证器时就是它，否则为 null，由用户选（邮箱与短信选中后发码）。 */
             method?: components["schemas"]["TwoFactorMethod"] | null;
-            /** @description 是否已经发出验证码（邮箱、短信方式；认证器为否）。 */
+            /** @description 是否已经发出验证码；这一步不发码，总为否。 */
             codeSent: boolean;
             /**
              * Format: date-time
