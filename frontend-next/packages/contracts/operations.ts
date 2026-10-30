@@ -113,7 +113,7 @@ export const routes = {
   'files.update': { method: 'PUT', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
   'files.upload-session': { method: 'GET', template: '/api/files:upload-session', path: [], query: ['uploadId'], success: 200 },
   'files.verify-storage': { method: 'POST', template: '/api/files/{id}:verify-storage', path: ['id'], query: [], success: 200 },
-  'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
+  'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword', 'pageIndex', 'pageSize'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
   'import-histories.create': { method: 'POST', template: '/api/import-histories', path: [], query: [], success: 201 },

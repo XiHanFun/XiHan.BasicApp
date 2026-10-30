@@ -50,6 +50,16 @@ public sealed class ImpersonationTests : IDisposable
         var platformNames = platformBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList();
         Assert.Contains("helper", platformNames);
         Assert.DoesNotContain("superadmin", platformNames);
+        // 分页：带总数，按登录名排序；页大小 1 时第二页接着第一页
+        var platformTotal = platformBody.GetProperty("total").GetInt64();
+        Assert.Equal(platformNames.Count, platformTotal);
+        var (firstPage, firstPageBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates?pageIndex=1&pageSize=1", token: superadmin));
+        var (secondPage, secondPageBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates?pageIndex=2&pageSize=1", token: superadmin));
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (firstPage.StatusCode, secondPage.StatusCode));
+        Assert.Equal((platformTotal, platformTotal), (firstPageBody.GetProperty("total").GetInt64(), secondPageBody.GetProperty("total").GetInt64()));
+        Assert.Equal(platformNames.Take(2), firstPageBody.GetProperty("items").EnumerateArray().Concat(secondPageBody.GetProperty("items").EnumerateArray()).Select(static c => c.GetProperty("userName").GetString()));
+        var (oversized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates?pageSize=101", token: superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, oversized.StatusCode);
         var (demoCandidates, demoCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates?tenantId=demo&keyword=adm", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, demoCandidates.StatusCode);
         Assert.Equal(["admin"], demoCandidatesBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList());

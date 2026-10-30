@@ -14029,28 +14029,61 @@
               ],
               "maxLength": 64
             }
+          },
+          {
+            "name": "pageIndex",
+            "in": "query",
+            "description": "\u9875\u7801\uFF0C\u4ECE 1 \u8D77\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u9875\u7801\uFF0C\u4ECE 1 \u8D77\u3002",
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "\u9875\u5927\u5C0F\uFF0C1 \u5230 100\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u9875\u5927\u5C0F\uFF0C1 \u5230 100\u3002",
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 100
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "impersonation.candidates \u7684\u54CD\u5E94\u3002",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "ImpersonationCandidatesResponse",
-                  "description": "impersonation.candidates \u7684\u54CD\u5E94\u3002",
+                  "title": "PageResultOfImpersonationCandidateResponse",
                   "type": "object",
                   "properties": {
                     "items": {
-                      "description": "\u5019\u9009\u7528\u6237\u3002",
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ImpersonationCandidateResponse"
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
                     }
                   },
                   "required": [
-                    "items"
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
