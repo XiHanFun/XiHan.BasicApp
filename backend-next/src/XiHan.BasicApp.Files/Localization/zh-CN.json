@@ -56,5 +56,16 @@
   "files.export.not_pending": "导出任务处于 {status} 状态，只有排队中的能取消，执行中的不能删除。",
   "files.export.credential_missing": "这次调用没有登录凭据，导出无法在后台以你的身份执行。",
   "files.export.cancelled": "已取消",
-  "files.export.result_remark": "导出结果：{name}"
+  "files.export.result_remark": "导出结果：{name}",
+  "files.start_upload.description": "发起分片上传：选好当前一侧的上传目标、在存储里开一次分片上传，返回每片大小与分片数（大文件分段直传存储用）。需要 files.files.create 权限。",
+  "files.upload_session.description": "取自己的一次分片上传与已经上传的分片（断点续传用）。需要 files.files.create 权限。",
+  "files.sign_upload_parts.description": "为自己的分片上传签出分片的上传地址：客户端不带凭据把这一片 PUT 到地址（一次至多 100 片）。需要 files.files.create 权限。",
+  "files.complete_upload.description": "完成自己的分片上传：按存储里已上传的分片拼成对象、回读算 SHA-256，得到一个文件（内容与当前一侧已有的相同就共用已有的对象）。需要 files.files.create 权限。",
+  "files.abort_upload.description": "放弃自己的分片上传，丢弃存储里已上传的分片。需要 files.files.create 权限。",
+  "files.upload.not_found": "分片上传 {id} 不存在。",
+  "files.upload.part_numbers_invalid": "分片编号要在 1 到 {max} 之间。",
+  "files.upload.not_active": "分片上传处于 {status} 状态，不能再继续。",
+  "files.upload.parts_incomplete": "还有 {missing} 个分片没有上传，第一个缺的是第 {first} 片。",
+  "files.upload.size_mismatch": "已上传的分片共 {actual} 字节，与声明的 {expected} 字节不符。",
+  "files.upload.multipart_unsupported": "存储配置 {code} 不支持分片上传。"
 }

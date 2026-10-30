@@ -101,6 +101,9 @@ export type FileStatus = (typeof FileStatus)[number]
 export const FileStorageStatus = ['Normal', 'VerificationFailed', 'Unavailable'] as const
 export type FileStorageStatus = (typeof FileStorageStatus)[number]
 
+export const FileUploadStatus = ['Uploading', 'Completed', 'Aborted', 'Expired', 'Failed'] as const
+export type FileUploadStatus = (typeof FileUploadStatus)[number]
+
 export const GrantSubjectKind = ['Role', 'User'] as const
 export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
@@ -241,6 +244,7 @@ export const enums = {
   FileKind,
   FileStatus,
   FileStorageStatus,
+  FileUploadStatus,
   GrantSubjectKind,
   LoginEvent,
   MenuKind,

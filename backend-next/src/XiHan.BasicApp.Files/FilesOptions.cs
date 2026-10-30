@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using XiHan.Framework.ObjectStorage.Abstractions.Multipart;
 
 namespace XiHan.BasicApp.Files;
 
@@ -28,6 +29,19 @@ public sealed class FilesOptions
     /// 单个文件的大小上限（字节），缺省 100 MiB。
     /// </summary>
     public long MaxUploadBytes { get; init; } = 100L * 1024 * 1024;
+
+    /// <summary>
+    /// 分片上传每片的大小（字节），缺省 8 MiB。
+    /// </summary>
+    /// <remarks>
+    /// 不小于存储的最小分片（5 MiB）；文件大到超过一万片时按文件大小放大。
+    /// </remarks>
+    public long UploadPartBytes { get; init; } = 8L * 1024 * 1024;
+
+    /// <summary>
+    /// 分片上传从发起到完成的时限，缺省 24 小时。
+    /// </summary>
+    public TimeSpan UploadLifetime { get; init; } = TimeSpan.FromHours(24);
 
     /// <summary>
     /// 签名下载地址的缺省有效期，缺省 30 分钟。
@@ -61,6 +75,8 @@ public sealed class FilesOptions
         {
             LocalRootPath = Path.GetFullPath(root, environment?.ContentRootPath ?? Directory.GetCurrentDirectory()),
             MaxUploadBytes = long.TryParse(section[nameof(MaxUploadBytes)], out var max) && max > 0 ? max : defaults.MaxUploadBytes,
+            UploadPartBytes = long.TryParse(section[nameof(UploadPartBytes)], out var part) ? Math.Max(part, BlobMultipart.MinPartBytes) : defaults.UploadPartBytes,
+            UploadLifetime = TimeSpan.TryParse(section[nameof(UploadLifetime)], out var upload) && upload > TimeSpan.Zero ? upload : defaults.UploadLifetime,
             LinkLifetime = TimeSpan.TryParse(section[nameof(LinkLifetime)], out var lifetime) && lifetime > TimeSpan.Zero ? lifetime : defaults.LinkLifetime,
             MaxLinkLifetime = TimeSpan.TryParse(section[nameof(MaxLinkLifetime)], out var longest) && longest > TimeSpan.Zero ? longest : defaults.MaxLinkLifetime,
         };

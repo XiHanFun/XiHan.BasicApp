@@ -56,5 +56,16 @@
   "files.export.not_pending": "La tâche d’export est {status} ; seules les tâches en attente peuvent être annulées et celles en cours ne peuvent pas être supprimées.",
   "files.export.credential_missing": "Cet appel ne porte aucun identifiant de connexion ; l’export ne peut pas s’exécuter en arrière-plan sous votre identité.",
   "files.export.cancelled": "Annulé",
-  "files.export.result_remark": "Résultat d’export : {name}"
+  "files.export.result_remark": "Résultat d’export : {name}",
+  "files.start_upload.description": "Démarre un téléversement en plusieurs parties : choisit la cible du côté de l’appelant, ouvre un téléversement multipartie dans son stockage et renvoie la taille et le nombre de parties (pour envoyer de gros fichiers par parties directement au stockage). Nécessite files.files.create.",
+  "files.upload_session.description": "Récupère l’un de vos téléversements multipartie et les parties déjà envoyées (pour reprendre). Nécessite files.files.create.",
+  "files.sign_upload_parts.description": "Signe des adresses d’envoi pour des parties de l’un de vos téléversements multipartie : le client envoie chaque partie par PUT à son adresse, sans identifiants (100 parties au plus par appel). Nécessite files.files.create.",
+  "files.complete_upload.description": "Termine l’un de vos téléversements multipartie : les parties stockées sont assemblées en objet, relu pour calculer son SHA-256, ce qui donne un fichier (un contenu identique du côté de l’appelant partage cet objet). Nécessite files.files.create.",
+  "files.abort_upload.description": "Abandonne l’un de vos téléversements multipartie et supprime les parties déjà stockées. Nécessite files.files.create.",
+  "files.upload.not_found": "Le téléversement multipartie {id} n’existe pas.",
+  "files.upload.part_numbers_invalid": "Les numéros de partie doivent être compris entre 1 et {max}.",
+  "files.upload.not_active": "Le téléversement multipartie est à l’état {status} et ne peut pas continuer.",
+  "files.upload.parts_incomplete": "{missing} parties n’ont pas encore été envoyées ; la première manquante est la partie {first}.",
+  "files.upload.size_mismatch": "Les parties envoyées totalisent {actual} octets au lieu des {expected} octets déclarés.",
+  "files.upload.multipart_unsupported": "La configuration de stockage {code} ne prend pas en charge les téléversements multipartie."
 }

@@ -56,5 +56,16 @@
   "files.export.not_pending": "The export task is {status}; only queued tasks can be cancelled and running tasks cannot be deleted.",
   "files.export.credential_missing": "This call carries no sign-in credential, so the export cannot run in the background as you.",
   "files.export.cancelled": "Cancelled",
-  "files.export.result_remark": "Export result: {name}"
+  "files.export.result_remark": "Export result: {name}",
+  "files.start_upload.description": "Start a multipart upload: picks the upload target on the caller's side and opens a multipart upload in its storage, returning the part size and part count (for sending large files straight to storage in parts). Requires files.files.create.",
+  "files.upload_session.description": "Get one of your multipart uploads and the parts already uploaded (for resuming). Requires files.files.create.",
+  "files.sign_upload_parts.description": "Sign upload links for parts of one of your multipart uploads: the client PUTs each part to its link without credentials (at most 100 parts per call). Requires files.files.create.",
+  "files.complete_upload.description": "Complete one of your multipart uploads: the parts in storage are assembled into the object, which is read back for its SHA-256, giving a file (content identical to an existing file on the caller's side shares that object). Requires files.files.create.",
+  "files.abort_upload.description": "Abort one of your multipart uploads and discard the parts already in storage. Requires files.files.create.",
+  "files.upload.not_found": "Multipart upload {id} does not exist.",
+  "files.upload.part_numbers_invalid": "Part numbers must be between 1 and {max}.",
+  "files.upload.not_active": "The multipart upload is {status} and cannot continue.",
+  "files.upload.parts_incomplete": "{missing} parts have not been uploaded; the first missing one is part {first}.",
+  "files.upload.size_mismatch": "The uploaded parts total {actual} bytes, not the declared {expected} bytes.",
+  "files.upload.multipart_unsupported": "Storage configuration {code} does not support multipart uploads."
 }

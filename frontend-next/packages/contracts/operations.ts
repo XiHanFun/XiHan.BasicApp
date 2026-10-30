@@ -94,6 +94,8 @@ export const routes = {
   'field-security.get': { method: 'GET', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
   'field-security.list': { method: 'POST', template: '/api/field-security:list', path: [], query: [], success: 200 },
   'field-security.update': { method: 'PUT', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
+  'files.abort-upload': { method: 'POST', template: '/api/files:abort-upload', path: [], query: [], success: 200 },
+  'files.complete-upload': { method: 'POST', template: '/api/files:complete-upload', path: [], query: [], success: 200 },
   'files.delete': { method: 'DELETE', template: '/api/files', path: [], query: ['ids'], success: 200 },
   'files.fast-upload': { method: 'POST', template: '/api/files:fast-upload', path: [], query: [], success: 200 },
   'files.get': { method: 'GET', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
@@ -102,8 +104,11 @@ export const routes = {
   'files.set-primary-storage': { method: 'POST', template: '/api/files/{id}:set-primary-storage', path: ['id'], query: [], success: 200 },
   'files.set-status': { method: 'POST', template: '/api/files:set-status', path: [], query: [], success: 200 },
   'files.set-storage-status': { method: 'POST', template: '/api/files/{id}:set-storage-status', path: ['id'], query: [], success: 200 },
+  'files.sign-upload-parts': { method: 'POST', template: '/api/files:sign-upload-parts', path: [], query: [], success: 200 },
+  'files.start-upload': { method: 'POST', template: '/api/files:start-upload', path: [], query: [], success: 200 },
   'files.storages': { method: 'GET', template: '/api/files/{id}:storages', path: ['id'], query: [], success: 200 },
   'files.update': { method: 'PUT', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
+  'files.upload-session': { method: 'GET', template: '/api/files:upload-session', path: [], query: ['uploadId'], success: 200 },
   'files.verify-storage': { method: 'POST', template: '/api/files/{id}:verify-storage', path: ['id'], query: [], success: 200 },
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
@@ -478,6 +483,8 @@ export const fieldSecurity = {
 
 /** 资源 `files` 的操作。 */
 export const files = {
+  abortUpload: (request: RequestOf<'files.abort-upload'>, options?: CallOptions) => invoke<RequestOf<'files.abort-upload'>, ResponseOf<'files.abort-upload'>>('files.abort-upload', routes['files.abort-upload'], request, options),
+  completeUpload: (request: RequestOf<'files.complete-upload'>, options?: CallOptions) => invoke<RequestOf<'files.complete-upload'>, ResponseOf<'files.complete-upload'>>('files.complete-upload', routes['files.complete-upload'], request, options),
   delete: (request: RequestOf<'files.delete'>, options?: CallOptions) => invoke<RequestOf<'files.delete'>, ResponseOf<'files.delete'>>('files.delete', routes['files.delete'], request, options),
   fastUpload: (request: RequestOf<'files.fast-upload'>, options?: CallOptions) => invoke<RequestOf<'files.fast-upload'>, ResponseOf<'files.fast-upload'>>('files.fast-upload', routes['files.fast-upload'], request, options),
   get: (request: RequestOf<'files.get'>, options?: CallOptions) => invoke<RequestOf<'files.get'>, ResponseOf<'files.get'>>('files.get', routes['files.get'], request, options),
@@ -486,8 +493,11 @@ export const files = {
   setPrimaryStorage: (request: RequestOf<'files.set-primary-storage'>, options?: CallOptions) => invoke<RequestOf<'files.set-primary-storage'>, ResponseOf<'files.set-primary-storage'>>('files.set-primary-storage', routes['files.set-primary-storage'], request, options),
   setStatus: (request: RequestOf<'files.set-status'>, options?: CallOptions) => invoke<RequestOf<'files.set-status'>, ResponseOf<'files.set-status'>>('files.set-status', routes['files.set-status'], request, options),
   setStorageStatus: (request: RequestOf<'files.set-storage-status'>, options?: CallOptions) => invoke<RequestOf<'files.set-storage-status'>, ResponseOf<'files.set-storage-status'>>('files.set-storage-status', routes['files.set-storage-status'], request, options),
+  signUploadParts: (request: RequestOf<'files.sign-upload-parts'>, options?: CallOptions) => invoke<RequestOf<'files.sign-upload-parts'>, ResponseOf<'files.sign-upload-parts'>>('files.sign-upload-parts', routes['files.sign-upload-parts'], request, options),
+  startUpload: (request: RequestOf<'files.start-upload'>, options?: CallOptions) => invoke<RequestOf<'files.start-upload'>, ResponseOf<'files.start-upload'>>('files.start-upload', routes['files.start-upload'], request, options),
   storages: (request: RequestOf<'files.storages'>, options?: CallOptions) => invoke<RequestOf<'files.storages'>, ResponseOf<'files.storages'>>('files.storages', routes['files.storages'], request, options),
   update: (request: RequestOf<'files.update'>, options?: CallOptions) => invoke<RequestOf<'files.update'>, ResponseOf<'files.update'>>('files.update', routes['files.update'], request, options),
+  uploadSession: (request: RequestOf<'files.upload-session'>, options?: CallOptions) => invoke<RequestOf<'files.upload-session'>, ResponseOf<'files.upload-session'>>('files.upload-session', routes['files.upload-session'], request, options),
   verifyStorage: (request: RequestOf<'files.verify-storage'>, options?: CallOptions) => invoke<RequestOf<'files.verify-storage'>, ResponseOf<'files.verify-storage'>>('files.verify-storage', routes['files.verify-storage'], request, options),
 }
 

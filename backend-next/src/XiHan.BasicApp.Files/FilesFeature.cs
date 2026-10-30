@@ -10,6 +10,7 @@ using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Files.Domain.Services;
 using XiHan.BasicApp.Files.Infrastructure;
+using XiHan.BasicApp.Files.Jobs;
 using XiHan.BasicApp.Files.Queries;
 using XiHan.BasicApp.Files.Seeds;
 using XiHan.BasicApp.Runtime;
@@ -21,6 +22,7 @@ using XiHan.Framework.ObjectStorage.Abstractions;
 using XiHan.Framework.ObjectStorage.Abstractions.Stores;
 using XiHan.Framework.ObjectStorage.FileSystem;
 using XiHan.Framework.ObjectStorage.S3;
+using XiHan.Framework.Scheduling.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
@@ -35,6 +37,7 @@ namespace XiHan.BasicApp.Files;
 /// <remarks>
 /// Tier 2：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
 /// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行。
+/// 大文件走分片上传（<see cref="FileUploadService"/>，各分片经签名地址直传存储），过了时限的由作业 <see cref="FileUploadExpiryJob"/> 记为过期。
 /// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与按身份读（<c>GET /api/files/{id}/content</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
 /// 对象存储用框架的命名存储实例（<see cref="StorageInstances"/>）；签名地址要宿主装上代收发的签名端点（<c>HostedBlobUrlFeature</c> 与 <c>MapXiHanBlobs()</c>），本地存储的地址由它收发。
 /// </remarks>
@@ -62,6 +65,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
             new CapabilityRequirement(MultiTenancyCapabilities.Context, MultiTenancyCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
             new CapabilityRequirement(ObjectStorageCapabilities.Presign, ObjectStorageCapabilities.Version),
+            new CapabilityRequirement(SchedulingCapabilities.Jobs, SchedulingCapabilities.Version),
         ],
         Contributes = new Contributions
         {
@@ -83,6 +87,8 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddSingleton<StorageInstances>();
         context.Services.AddScoped<StorageConfigService>();
         context.Services.AddScoped<FileService>();
+        context.Services.AddScoped<FileUploadService>();
+        context.Services.AddJob<FileUploadExpiryJob>(FileUploadExpiryJob.Name, FileUploadExpiryJob.Schedule);
         context.Services.AddScoped<FileQueries>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
         context.Services.AddScoped<IAvatarFiles, AvatarFiles>();

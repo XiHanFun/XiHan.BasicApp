@@ -54,4 +54,9 @@ namespace XiHan.BasicApp.Files;
 [JsonSerializable(typeof(ImportHistoryResponse))]
 [JsonSerializable(typeof(RecentImportHistoriesRequest))]
 [JsonSerializable(typeof(ImportHistoriesResponse))]
+[JsonSerializable(typeof(StartUploadRequest))]
+[JsonSerializable(typeof(UploadSessionRequest))]
+[JsonSerializable(typeof(SignUploadPartsRequest))]
+[JsonSerializable(typeof(FileUploadResponse))]
+[JsonSerializable(typeof(SignUploadPartsResponse))]
 public sealed partial class FilesJsonContext : JsonSerializerContext;

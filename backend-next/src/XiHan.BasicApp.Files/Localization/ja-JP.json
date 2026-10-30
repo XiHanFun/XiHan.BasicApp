@@ -56,5 +56,16 @@
   "files.export.not_pending": "エクスポートタスクは {status} 状態です。取り消せるのは待機中だけで、実行中は削除できません。",
   "files.export.credential_missing": "この呼び出しにはサインインの資格情報がないため、エクスポートをあなたとしてバックグラウンドで実行できません。",
   "files.export.cancelled": "取り消し済み",
-  "files.export.result_remark": "エクスポート結果：{name}"
+  "files.export.result_remark": "エクスポート結果：{name}",
+  "files.start_upload.description": "マルチパートアップロードを開始します。呼び出し元の側のアップロード先を選び、そのストレージでマルチパートアップロードを開いて、パートのサイズと数を返します（大きなファイルを分割してストレージへ直接送るため）。files.files.create 権限が必要です。",
+  "files.upload_session.description": "自分のマルチパートアップロードとアップロード済みのパートを取得します（再開用）。files.files.create 権限が必要です。",
+  "files.sign_upload_parts.description": "自分のマルチパートアップロードのパート用アップロードアドレスを署名します。クライアントは資格情報なしで各パートをアドレスへ PUT します（1 回に最大 100 パート）。files.files.create 権限が必要です。",
+  "files.complete_upload.description": "自分のマルチパートアップロードを完了します。ストレージ内のパートをオブジェクトに結合し、読み戻して SHA-256 を計算してファイルにします（呼び出し元の側に同じ内容があればそのオブジェクトを共有します）。files.files.create 権限が必要です。",
+  "files.abort_upload.description": "自分のマルチパートアップロードを中止し、ストレージ内のアップロード済みパートを破棄します。files.files.create 権限が必要です。",
+  "files.upload.not_found": "マルチパートアップロード {id} は存在しません。",
+  "files.upload.part_numbers_invalid": "パート番号は 1 から {max} の範囲で指定してください。",
+  "files.upload.not_active": "マルチパートアップロードは {status} 状態のため続行できません。",
+  "files.upload.parts_incomplete": "{missing} 個のパートがまだアップロードされていません。最初に欠けているのはパート {first} です。",
+  "files.upload.size_mismatch": "アップロード済みのパートは合計 {actual} バイトで、宣言された {expected} バイトと一致しません。",
+  "files.upload.multipart_unsupported": "ストレージ設定 {code} はマルチパートアップロードに対応していません。"
 }

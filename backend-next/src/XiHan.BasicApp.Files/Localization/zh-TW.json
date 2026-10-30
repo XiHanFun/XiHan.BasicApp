@@ -56,5 +56,16 @@
   "files.export.not_pending": "匯出任務處於 {status} 狀態，只有排隊中的能取消，執行中的不能刪除。",
   "files.export.credential_missing": "這次呼叫沒有登入憑證，匯出無法在背景以你的身分執行。",
   "files.export.cancelled": "已取消",
-  "files.export.result_remark": "匯出結果：{name}"
+  "files.export.result_remark": "匯出結果：{name}",
+  "files.start_upload.description": "發起分片上傳：選好目前一側的上傳目標、在儲存裡開一次分片上傳，回傳每片大小與分片數（大檔案分段直傳儲存用）。需要 files.files.create 權限。",
+  "files.upload_session.description": "取自己的一次分片上傳與已上傳的分片（斷點續傳用）。需要 files.files.create 權限。",
+  "files.sign_upload_parts.description": "為自己的分片上傳簽出分片的上傳地址：用戶端不帶憑證把這一片 PUT 到地址（一次至多 100 片）。需要 files.files.create 權限。",
+  "files.complete_upload.description": "完成自己的分片上傳：依儲存裡已上傳的分片拼成物件、回讀計算 SHA-256，得到一個檔案（內容與目前一側已有的相同就共用已有的物件）。需要 files.files.create 權限。",
+  "files.abort_upload.description": "放棄自己的分片上傳，捨棄儲存裡已上傳的分片。需要 files.files.create 權限。",
+  "files.upload.not_found": "分片上傳 {id} 不存在。",
+  "files.upload.part_numbers_invalid": "分片編號要在 1 到 {max} 之間。",
+  "files.upload.not_active": "分片上傳處於 {status} 狀態，不能再繼續。",
+  "files.upload.parts_incomplete": "還有 {missing} 個分片沒有上傳，第一個缺的是第 {first} 片。",
+  "files.upload.size_mismatch": "已上傳的分片共 {actual} 位元組，與宣告的 {expected} 位元組不符。",
+  "files.upload.multipart_unsupported": "儲存設定 {code} 不支援分片上傳。"
 }

@@ -1315,6 +1315,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files:abort-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abort one of your multipart uploads and discard the parts already in storage. Requires files.files.create. */
+        post: operations["files.abort-upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:complete-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete one of your multipart uploads: the parts in storage are assembled into the object, which is read back for its SHA-256, giving a file (content identical to an existing file on the caller's side shares that object). Requires files.files.create. */
+        post: operations["files.complete-upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/files:fast-upload": {
         parameters: {
             query?: never;
@@ -1360,6 +1394,57 @@ export interface paths {
         put?: never;
         /** Archive or restore files in a batch; corrupted files are rejected one by one. Requires files.files.update. */
         post: operations["files.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:sign-upload-parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign upload links for parts of one of your multipart uploads: the client PUTs each part to its link without credentials (at most 100 parts per call). Requires files.files.create. */
+        post: operations["files.sign-upload-parts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:start-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a multipart upload: picks the upload target on the caller's side and opens a multipart upload in its storage, returning the part size and part count (for sending large files straight to storage in parts). Requires files.files.create. */
+        post: operations["files.start-upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files:upload-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one of your multipart uploads and the parts already uploaded (for resuming). Requires files.files.create. */
+        get: operations["files.upload-session"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4925,6 +5010,8 @@ export interface components {
         /** @enum {string} */
         FileStorageStatus: "Normal" | "VerificationFailed" | "Unavailable";
         /** @enum {string} */
+        FileUploadStatus: "Uploading" | "Completed" | "Aborted" | "Expired" | "Failed";
+        /** @enum {string} */
         GrantSubjectKind: "Role" | "User";
         ImpersonationCandidateResponse: {
             /** Format: uuid */
@@ -5597,6 +5684,13 @@ export interface components {
         SessionRoleStatus: "Active" | "Inactive" | "Expired";
         /** @enum {string} */
         SettingStatus: "Active" | "Disabled";
+        SignedPartResponse: {
+            /** Format: int32 */
+            partNumber: number;
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
         SmsConfigResponse: {
             /** Format: uuid */
             id: string;
@@ -10215,7 +10309,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FileResponse"];
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        originalName: string;
+                        extension?: string | null;
+                        kind: components["schemas"]["FileKind"];
+                        contentType: string;
+                        /** Format: int64 */
+                        size: number;
+                        hash: string;
+                        status: components["schemas"]["FileStatus"];
+                        accessLevel: components["schemas"]["FileAccessLevel"];
+                        isTemporary: boolean;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        source: string;
+                        tags?: string | null;
+                        remark?: string | null;
+                        /** Format: int32 */
+                        downloadCount: number;
+                        /** Format: date-time */
+                        lastDownloadedAt?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        createdBy?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
                 };
             };
             /** @description Error */
@@ -10617,6 +10739,96 @@ export interface operations {
             };
         };
     };
+    "files.abort-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    uploadId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        fileId: string;
+                        originalName: string;
+                        /** Format: int64 */
+                        size: number;
+                        /** Format: int64 */
+                        partSize: number;
+                        /** Format: int32 */
+                        partCount: number;
+                        status: components["schemas"]["FileUploadStatus"];
+                        /** Format: date-time */
+                        expiresAt: string;
+                        /** Format: date-time */
+                        endedAt?: string | null;
+                        uploadedParts: number[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.complete-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    uploadId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "files.fast-upload": {
         parameters: {
             query?: never;
@@ -10732,6 +10944,156 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.sign-upload-parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    uploadId: string;
+                    partNumbers: number[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        parts: components["schemas"]["SignedPartResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.start-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    originalName: string;
+                    /** Format: int64 */
+                    size: number;
+                    contentType?: string | null;
+                    accessLevel?: components["schemas"]["FileAccessLevel"];
+                    isTemporary?: boolean;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    tags?: string | null;
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        fileId: string;
+                        originalName: string;
+                        /** Format: int64 */
+                        size: number;
+                        /** Format: int64 */
+                        partSize: number;
+                        /** Format: int32 */
+                        partCount: number;
+                        status: components["schemas"]["FileUploadStatus"];
+                        /** Format: date-time */
+                        expiresAt: string;
+                        /** Format: date-time */
+                        endedAt?: string | null;
+                        uploadedParts: number[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.upload-session": {
+        parameters: {
+            query: {
+                uploadId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        fileId: string;
+                        originalName: string;
+                        /** Format: int64 */
+                        size: number;
+                        /** Format: int64 */
+                        partSize: number;
+                        /** Format: int32 */
+                        partCount: number;
+                        status: components["schemas"]["FileUploadStatus"];
+                        /** Format: date-time */
+                        expiresAt: string;
+                        /** Format: date-time */
+                        endedAt?: string | null;
+                        uploadedParts: number[];
                     };
                 };
             };
