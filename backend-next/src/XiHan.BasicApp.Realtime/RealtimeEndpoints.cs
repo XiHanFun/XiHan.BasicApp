@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Realtime.Infrastructure;
+using XiHan.Framework.Hosting.AspNetCore.Authentication;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 
 namespace XiHan.BasicApp.Realtime;
@@ -18,13 +19,13 @@ public static class RealtimeEndpoints
     /// 映射通知 Hub。
     /// </summary>
     /// <remarks>
-    /// 绕过内核管道（长连接不受 <c>xihan-deadline</c> 约束，内核停止后不被 503 打断），由 ASP.NET Core 的 JWT 认证与授权把关。
+    /// 绕过内核管道（长连接不受 <c>xihan-deadline</c> 约束，内核停止后不被 503 打断），由框架的认证方案 <c>XiHan</c> 与 ASP.NET Core 授权把关。
     /// 宿主须在 <c>UseXiHan()</c> 之前 <c>UseAuthentication()</c> / <c>UseAuthorization()</c>。
     /// </remarks>
     public static IEndpointRouteBuilder MapRealtimeHubs(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapHub<NotificationHub>(RealtimeHubs.Notification).RequireAuthorization(RealtimeAuthentication.Policy));
+        PipelineBypassMetadata.BypassXiHanPipeline(endpoints.MapHub<NotificationHub>(RealtimeHubs.Notification).RequireAuthorization(static policy => policy.AddAuthenticationSchemes(InvocationAuthenticationDefaults.AuthenticationScheme).RequireAuthenticatedUser()));
         return endpoints;
     }
 }

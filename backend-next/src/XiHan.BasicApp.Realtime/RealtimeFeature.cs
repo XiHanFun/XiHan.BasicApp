@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Realtime.Infrastructure;
 using XiHan.BasicApp.Realtime.Middleware;
 using XiHan.BasicApp.Runtime;
+using XiHan.Framework.Hosting.AspNetCore.Authentication;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
@@ -53,7 +54,9 @@ public sealed class RealtimeFeature : IFeature
     {
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddSignalR();
-        context.Services.AddRealtimeAuthentication();
+        // Hub 绕过内核管道：认证交给框架的 XiHan 方案（与内核同一套令牌校验，ADR-0051），浏览器的 WebSocket / EventSource 只在 Hub 路径下认查询串令牌；会话门禁由过滤器做
+        context.Services.AddAuthentication().AddXiHan(static options => options.QueryTokenPaths.Add(RealtimeHubs.Prefix));
+        context.Services.AddSingleton<IInvocationAuthenticationFilter, SessionAuthenticationFilter>();
         context.Services.AddSingleton<ConnectionRegistry>();
         context.Services.AddSingleton<IRealtimePresence>(static services => services.GetRequiredService<ConnectionRegistry>());
         context.Services.AddScoped<RealtimeOutbox>();

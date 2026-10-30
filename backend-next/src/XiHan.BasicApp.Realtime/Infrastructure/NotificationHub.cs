@@ -4,7 +4,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using XiHan.BasicApp.Contracts;
-using XiHan.BasicApp.Contracts.Security;
 
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
@@ -12,15 +11,13 @@ namespace XiHan.BasicApp.Realtime.Infrastructure;
 /// 通知 Hub（<c>/hubs/notification</c>）。
 /// </summary>
 /// <remarks>
-/// 只推不收，客户端没有可调用的方法。连接经 ASP.NET Core 的 JWT 认证后，
-/// 再按令牌的 <c>sid</c> 经 <see cref="ISessionStatus"/> 核对会话仍有效（Hub 绕过内核管道，HTTP 调用的会话门禁管不到这里），无效即断开；
-/// 有效则加入会话 / 用户 / 侧的组，再登记连接（在线状态显示为在线时一定已经收得到推送）。
+/// 只推不收，客户端没有可调用的方法。连接经框架的认证方案 <c>XiHan</c> 认证，会话仍有效由 <see cref="SessionAuthenticationFilter"/> 在认证时核对；
+/// 连上即加入会话 / 用户 / 侧的组，再登记连接（在线状态显示为在线时一定已经收得到推送）。
 /// </remarks>
 /// <param name="registry">连接登记。</param>
-/// <param name="sessions">会话状态。</param>
-internal sealed class NotificationHub(ConnectionRegistry registry, ISessionStatus sessions) : Hub
+internal sealed class NotificationHub(ConnectionRegistry registry) : Hub
 {
-    // Identity 签发的访问令牌声明（方案 5.8）；JWT 认证关掉了入站声明映射，按原始类型名读
+    // Identity 签发的访问令牌声明（方案 5.8），按原始类型名读
     private const string SubjectClaim = "sub";
     private const string SessionClaim = "sid";
     private const string TenantClaim = "tenant";
@@ -30,8 +27,7 @@ internal sealed class NotificationHub(ConnectionRegistry registry, ISessionStatu
     {
         var user = Context.User;
         if (!Guid.TryParse(user?.FindFirstValue(SubjectClaim), out var userId)
-            || !Guid.TryParse(user?.FindFirstValue(SessionClaim), out var sessionId)
-            || !await sessions.IsActiveAsync(sessionId, Context.ConnectionAborted).ConfigureAwait(false))
+            || !Guid.TryParse(user?.FindFirstValue(SessionClaim), out var sessionId))
         {
             Context.Abort();
             return;
