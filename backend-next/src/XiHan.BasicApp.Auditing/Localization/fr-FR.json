@@ -77,5 +77,7 @@
   "permissions.auditing.permission_change_logs.read.name": "Consulter les journaux de modifications de permissions",
   "permissions.auditing.condition_hits.read.name": "Consulter les conditions satisfaites",
   "permissions.auditing.open_api_logs.read.name": "Consulter les journaux d’API ouverte",
-  "permissions.auditing.traces.read.name": "Consulter le traçage des journaux"
+  "permissions.auditing.traces.read.name": "Consulter le traçage des journaux",
+  "jobs.auditing.retention.title": "Nettoyage selon la rétention des journaux",
+  "jobs.auditing.retention.description": "Supprimer les journaux plus anciens que la durée de rétention (jours du paramètre de plateforme auditing.retention-days), pour la plateforme et chaque locataire."
 }

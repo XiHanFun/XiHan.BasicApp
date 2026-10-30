@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "Ver aplicaciones OAuth",
   "permissions.openplatform.oauth_apps.create.name": "Crear aplicaciones OAuth",
   "permissions.openplatform.oauth_apps.update.name": "Editar aplicaciones OAuth",
-  "permissions.openplatform.oauth_apps.delete.name": "Eliminar aplicaciones OAuth"
+  "permissions.openplatform.oauth_apps.delete.name": "Eliminar aplicaciones OAuth",
+  "jobs.openplatform.oauth_cleanup.title": "Limpiar autorizaciones OAuth caducadas",
+  "jobs.openplatform.oauth_cleanup.description": "Eliminar los códigos de autorización caducados hace un día y los tokens caducados hace siete días."
 }

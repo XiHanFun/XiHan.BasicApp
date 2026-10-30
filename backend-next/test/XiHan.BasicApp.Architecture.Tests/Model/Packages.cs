@@ -10,6 +10,7 @@ using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Notification;
+using XiHan.BasicApp.Maintenance;
 using XiHan.BasicApp.OpenPlatform;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Organization;
@@ -94,6 +95,7 @@ public static class Packages
         typeof(NotificationFeature).Assembly,
         typeof(AuditingFeature).Assembly,
         typeof(RealtimeFeature).Assembly,
+        typeof(MaintenanceFeature).Assembly,
         typeof(OpenPlatformFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,
         typeof(BasicAppHost).Assembly,

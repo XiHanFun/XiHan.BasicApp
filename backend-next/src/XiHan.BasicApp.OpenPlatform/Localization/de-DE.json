@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "OAuth-Apps lesen",
   "permissions.openplatform.oauth_apps.create.name": "OAuth-Apps anlegen",
   "permissions.openplatform.oauth_apps.update.name": "OAuth-Apps bearbeiten",
-  "permissions.openplatform.oauth_apps.delete.name": "OAuth-Apps löschen"
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth-Apps löschen",
+  "jobs.openplatform.oauth_cleanup.title": "Abgelaufene OAuth-Berechtigungen bereinigen",
+  "jobs.openplatform.oauth_cleanup.description": "Autorisierungscodes, die seit einem Tag, und Tokens, die seit sieben Tagen abgelaufen sind, endgültig löschen."
 }

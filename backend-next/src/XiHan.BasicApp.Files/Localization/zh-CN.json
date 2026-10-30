@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "读取存储配置",
   "permissions.files.storage_configs.create.name": "新建存储配置",
   "permissions.files.storage_configs.update.name": "修改存储配置",
-  "permissions.files.storage_configs.delete.name": "删除存储配置"
+  "permissions.files.storage_configs.delete.name": "删除存储配置",
+  "jobs.files.uploads.expire.title": "分片上传过期处理",
+  "jobs.files.uploads.expire.description": "把过了时限的分片上传记为过期，放弃存储里已上传的分片；平台与每个租户分别处理。"
 }

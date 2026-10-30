@@ -34,6 +34,7 @@ public static class BasicAppOpenApi
             Group("files", 60, ["files"]),
             Group("notification", 70),
             Group("auditing", 80),
+            Group("maintenance", 85),
             Group("openplatform", 90),
         ],
     };

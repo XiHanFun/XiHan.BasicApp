@@ -15,6 +15,7 @@
     <Project Path="src/XiHan.BasicApp.Notification/XiHan.BasicApp.Notification.csproj" />
     <Project Path="src/XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
     <Project Path="src/XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
+    <Project Path="src/XiHan.BasicApp.Maintenance/XiHan.BasicApp.Maintenance.csproj" />
     <Project Path="src/XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
   </Folder>
   <Folder Name="/3.Optional/">

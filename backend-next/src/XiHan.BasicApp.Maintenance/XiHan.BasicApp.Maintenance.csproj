@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Maintenance</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 运维能力包（Tier 2）：作业与运行历史的管理面（架在框架调度之上，宿主接 Scheduling.Database），之后加缓存管理、服务监控、版本与升级记录；只在平台一侧。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

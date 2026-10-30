@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "Consulter les applications OAuth",
   "permissions.openplatform.oauth_apps.create.name": "Créer des applications OAuth",
   "permissions.openplatform.oauth_apps.update.name": "Modifier les applications OAuth",
-  "permissions.openplatform.oauth_apps.delete.name": "Supprimer les applications OAuth"
+  "permissions.openplatform.oauth_apps.delete.name": "Supprimer les applications OAuth",
+  "jobs.openplatform.oauth_cleanup.title": "Nettoyer les autorisations OAuth expirées",
+  "jobs.openplatform.oauth_cleanup.description": "Supprimer les codes d'autorisation expirés depuis un jour et les jetons expirés depuis sept jours."
 }

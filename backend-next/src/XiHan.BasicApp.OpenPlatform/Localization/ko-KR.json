@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "OAuth 앱 조회",
   "permissions.openplatform.oauth_apps.create.name": "OAuth 앱 생성",
   "permissions.openplatform.oauth_apps.update.name": "OAuth 앱 수정",
-  "permissions.openplatform.oauth_apps.delete.name": "OAuth 앱 삭제"
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth 앱 삭제",
+  "jobs.openplatform.oauth_cleanup.title": "만료된 OAuth 권한 정리",
+  "jobs.openplatform.oauth_cleanup.description": "만료 후 하루 지난 인증 코드와 7일 지난 토큰을 삭제합니다."
 }

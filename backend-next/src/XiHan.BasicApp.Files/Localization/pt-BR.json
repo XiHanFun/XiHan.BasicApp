@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Ver configurações de armazenamento",
   "permissions.files.storage_configs.create.name": "Criar configurações de armazenamento",
   "permissions.files.storage_configs.update.name": "Editar configurações de armazenamento",
-  "permissions.files.storage_configs.delete.name": "Excluir configurações de armazenamento"
+  "permissions.files.storage_configs.delete.name": "Excluir configurações de armazenamento",
+  "jobs.files.uploads.expire.title": "Expirar envios em partes",
+  "jobs.files.uploads.expire.description": "Marcar como expirados os envios em partes vencidos e descartar suas partes no armazenamento, para a plataforma e cada locatário."
 }

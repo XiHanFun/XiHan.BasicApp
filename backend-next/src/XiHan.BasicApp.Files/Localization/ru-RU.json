@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Просмотр конфигураций хранилища",
   "permissions.files.storage_configs.create.name": "Создание конфигураций хранилища",
   "permissions.files.storage_configs.update.name": "Изменение конфигураций хранилища",
-  "permissions.files.storage_configs.delete.name": "Удаление конфигураций хранилища"
+  "permissions.files.storage_configs.delete.name": "Удаление конфигураций хранилища",
+  "jobs.files.uploads.expire.title": "Истечение составных загрузок",
+  "jobs.files.uploads.expire.description": "Отмечать просроченные составные загрузки как истёкшие и отбрасывать их части в хранилище — для платформы и каждого арендатора."
 }

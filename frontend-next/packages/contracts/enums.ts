@@ -110,6 +110,18 @@ export type FileUploadStatus = (typeof FileUploadStatus)[number]
 export const GrantSubjectKind = ['Role', 'User'] as const
 export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
+export const JobRunState = ['Running', 'Succeeded', 'Failed', 'Canceled', 'Lost'] as const
+export type JobRunState = (typeof JobRunState)[number]
+
+export const JobScheduleKind = ['Manual', 'Interval', 'Cron', 'Once'] as const
+export type JobScheduleKind = (typeof JobScheduleKind)[number]
+
+export const JobSource = ['Code', 'Runtime'] as const
+export type JobSource = (typeof JobSource)[number]
+
+export const JobTrigger = ['Schedule', 'Manual', 'Recovery'] as const
+export type JobTrigger = (typeof JobTrigger)[number]
+
 export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset', 'RoleActivation'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
@@ -197,6 +209,9 @@ export type TraceItemStatus = (typeof TraceItemStatus)[number]
 export const TraceLogType = ['Access', 'OpenApi', 'Operation', 'Login', 'Exception', 'Diff', 'PermissionChange', 'ConditionHit'] as const
 export type TraceLogType = (typeof TraceLogType)[number]
 
+export const TriggerState = ['Waiting', 'Paused', 'Acquired', 'Blocked', 'Complete', 'Error'] as const
+export type TriggerState = (typeof TriggerState)[number]
+
 export const TwoFactorMethod = ['Totp', 'Email', 'Phone'] as const
 export type TwoFactorMethod = (typeof TwoFactorMethod)[number]
 
@@ -250,6 +265,10 @@ export const enums = {
   FileStorageStatus,
   FileUploadStatus,
   GrantSubjectKind,
+  JobRunState,
+  JobScheduleKind,
+  JobSource,
+  JobTrigger,
   LoginEvent,
   MenuKind,
   MessageSendStatus,
@@ -279,6 +298,7 @@ export const enums = {
   TraceDimension,
   TraceItemStatus,
   TraceLogType,
+  TriggerState,
   TwoFactorMethod,
   UserGender,
   UserNotificationStatus,

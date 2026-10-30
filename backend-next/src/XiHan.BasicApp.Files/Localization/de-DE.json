@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Speicherkonfigurationen lesen",
   "permissions.files.storage_configs.create.name": "Speicherkonfigurationen anlegen",
   "permissions.files.storage_configs.update.name": "Speicherkonfigurationen bearbeiten",
-  "permissions.files.storage_configs.delete.name": "Speicherkonfigurationen löschen"
+  "permissions.files.storage_configs.delete.name": "Speicherkonfigurationen löschen",
+  "jobs.files.uploads.expire.title": "Mehrteilige Uploads ablaufen lassen",
+  "jobs.files.uploads.expire.description": "Mehrteilige Uploads nach Fristablauf als abgelaufen markieren und ihre Teile im Speicher verwerfen, für die Plattform und jeden Mandanten."
 }

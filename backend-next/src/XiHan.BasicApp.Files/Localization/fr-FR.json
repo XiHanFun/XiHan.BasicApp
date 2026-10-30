@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "Consulter les configurations de stockage",
   "permissions.files.storage_configs.create.name": "Créer des configurations de stockage",
   "permissions.files.storage_configs.update.name": "Modifier les configurations de stockage",
-  "permissions.files.storage_configs.delete.name": "Supprimer les configurations de stockage"
+  "permissions.files.storage_configs.delete.name": "Supprimer les configurations de stockage",
+  "jobs.files.uploads.expire.title": "Expirer les envois en plusieurs parties",
+  "jobs.files.uploads.expire.description": "Marquer comme expirés les envois en plusieurs parties hors délai et abandonner leurs parties stockées, pour la plateforme et chaque locataire."
 }

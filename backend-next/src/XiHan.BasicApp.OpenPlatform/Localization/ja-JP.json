@@ -78,5 +78,7 @@
   "permissions.openplatform.oauth_apps.read.name": "OAuth アプリの参照",
   "permissions.openplatform.oauth_apps.create.name": "OAuth アプリの作成",
   "permissions.openplatform.oauth_apps.update.name": "OAuth アプリの更新",
-  "permissions.openplatform.oauth_apps.delete.name": "OAuth アプリの削除"
+  "permissions.openplatform.oauth_apps.delete.name": "OAuth アプリの削除",
+  "jobs.openplatform.oauth_cleanup.title": "期限切れ OAuth 認可のクリーンアップ",
+  "jobs.openplatform.oauth_cleanup.description": "期限切れから 1 日経った認可コードと 7 日経ったトークンを削除します。"
 }

@@ -115,5 +115,7 @@
   "permissions.files.storage_configs.read.name": "ストレージ設定の参照",
   "permissions.files.storage_configs.create.name": "ストレージ設定の作成",
   "permissions.files.storage_configs.update.name": "ストレージ設定の更新",
-  "permissions.files.storage_configs.delete.name": "ストレージ設定の削除"
+  "permissions.files.storage_configs.delete.name": "ストレージ設定の削除",
+  "jobs.files.uploads.expire.title": "マルチパートアップロードの期限切れ処理",
+  "jobs.files.uploads.expire.description": "期限を過ぎたマルチパートアップロードを期限切れにし、ストレージ上のパートを破棄します。プラットフォームとテナントごとに処理します。"
 }

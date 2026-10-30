@@ -2333,6 +2333,160 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/job-runs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List job runs
+         * @description List job run history page by page (newest scheduled first), filterable by job, state, trigger, time and failure; runs are kept for the days configured in the framework.
+         *
+         *     Requires permission maintenance.job-runs.read (Read job runs).
+         */
+        post: operations["job-runs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get job
+         * @description Get one job by its name.
+         *
+         *     Requires permission maintenance.jobs.read (Read jobs).
+         */
+        get: operations["jobs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{id}:trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run job now
+         * @description Queue a one-off manual trigger so any node runs the job once now, without waiting for the result, and return the trigger name; paused jobs can run too.
+         *
+         *     Requires permission maintenance.jobs.trigger (Run jobs now).
+         */
+        post: operations["jobs.trigger"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List jobs
+         * @description List code-registered and runtime-registered jobs page by page, with schedules, state, next run time and last outcome.
+         *
+         *     Requires permission maintenance.jobs.read (Read jobs).
+         */
+        post: operations["jobs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs:pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pause jobs
+         * @description Pause jobs in bulk: they stop firing on schedule, running ones are not affected, and they stay paused after a restart.
+         *
+         *     Requires permission maintenance.jobs.update (Pause and resume jobs).
+         */
+        post: operations["jobs.pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume jobs
+         * @description Resume jobs in bulk; they continue from their next scheduled fire time.
+         *
+         *     Requires permission maintenance.jobs.update (Pause and resume jobs).
+         */
+        post: operations["jobs.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs:validate-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Validate schedule
+         * @description Validate a cron expression or schedule text and return its normal form and the next run times; no job is changed.
+         *
+         *     Requires permission maintenance.jobs.read (Read jobs).
+         */
+        get: operations["jobs.validate-schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login-bans": {
         parameters: {
             query?: never;
@@ -7656,6 +7810,165 @@ export interface components {
              */
             depth: number;
         };
+        /** @description 批量里没成功的一个作业。 */
+        JobBatchFailure: {
+            /** @description 作业名。 */
+            id: string;
+            /** @description 错误码。 */
+            code: string;
+        };
+        /** @description 作业一次运行的结果。 */
+        JobOutcomeResponse: {
+            /** @description 运行 ID。 */
+            runId: string;
+            /** @description 怎么触发的：计划、手动或恢复。 */
+            trigger: components["schemas"]["JobTrigger"];
+            /**
+             * Format: date-time
+             * @description 开始时间。
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
+            completedAt: string;
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
+            durationMs: number;
+            /** @description 是否成功。 */
+            succeeded: boolean;
+            /** @description 失败的错误码；成功为 null。 */
+            errorCode?: string | null;
+            /** @description 失败的原因；成功为 null。 */
+            errorMessage?: string | null;
+        };
+        /** @description 一个作业。 */
+        JobResponse: {
+            /** @description 作业名。 */
+            name: string;
+            /** @description 显示名（登记作业的包按区域给出，没给即作业名）。 */
+            title: string;
+            /** @description 说明；没有为 null。 */
+            description?: string | null;
+            /** @description 作业类型的登记键。 */
+            jobType: string;
+            /** @description 来源：代码登记或运行时登记。 */
+            source: components["schemas"]["JobSource"];
+            /** @description 是否暂停。 */
+            paused: boolean;
+            /**
+             * Format: int32
+             * @description 正在运行的次数。
+             */
+            runningCount: number;
+            /** @description 是否允许并发运行。 */
+            allowConcurrent: boolean;
+            /** @description 是否每个节点都运行。 */
+            runOnEveryInstance: boolean;
+            /**
+             * Format: date-time
+             * @description 下次运行时间；暂停或没有计划时为 null。
+             */
+            nextRunAt?: string | null;
+            /** @description 触发器。 */
+            triggers: components["schemas"]["JobTriggerResponse"][];
+            /** @description 上一次运行的结果；没运行过为 null。 */
+            last?: components["schemas"]["JobOutcomeResponse"] | null;
+            /**
+             * Format: date-time
+             * @description 登记最后更新的时间。
+             */
+            updatedAt: string;
+        };
+        /** @description 作业的一次运行。 */
+        JobRunResponse: {
+            /** @description 运行 ID。 */
+            id: string;
+            /** @description 作业名。 */
+            job: string;
+            /** @description 触发器名；立即执行的是一次性触发器名。 */
+            triggerName?: string | null;
+            /** @description 怎么触发的：计划、手动或恢复。 */
+            trigger: components["schemas"]["JobTrigger"];
+            /**
+             * Format: date-time
+             * @description 计划的触发时间。
+             */
+            scheduledAt: string;
+            /**
+             * Format: date-time
+             * @description 开始时间。
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间；还在运行为 null。
+             */
+            completedAt?: string | null;
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）；还在运行为 null。
+             */
+            durationMs?: number | null;
+            /** @description 运行状态。 */
+            state: components["schemas"]["JobRunState"];
+            /** @description 失败的错误码。 */
+            errorCode?: string | null;
+            /** @description 失败的原因。 */
+            errorMessage?: string | null;
+            /** @description 执行的节点。 */
+            nodeId: string;
+            /** @description 是否已请求取消。 */
+            cancelRequested: boolean;
+        };
+        /** @enum {string} */
+        JobRunState: "Running" | "Succeeded" | "Failed" | "Canceled" | "Lost";
+        /** @enum {string} */
+        JobScheduleKind: "Manual" | "Interval" | "Cron" | "Once";
+        /** @enum {string} */
+        JobSource: "Code" | "Runtime";
+        /** @enum {string} */
+        JobTrigger: "Schedule" | "Manual" | "Recovery";
+        /** @description 作业的一个触发器。 */
+        JobTriggerResponse: {
+            /** @description 触发器名。 */
+            name: string;
+            /** @description 计划的文本写法（如 cron 0 0 3 * * ?、every 01:00:00）。 */
+            schedule: string;
+            /** @description 计划的种类。 */
+            kind: components["schemas"]["JobScheduleKind"];
+            /** @description Cron 表达式；不是 Cron 计划时为 null。 */
+            cron?: string | null;
+            /**
+             * Format: int64
+             * @description 间隔秒数；不是间隔计划时为 null。
+             */
+            intervalSeconds?: number | null;
+            /** @description Cron 计划的时区；缺省 UTC 时为 null。 */
+            timeZone?: string | null;
+            /** @description 触发器状态。 */
+            state: components["schemas"]["TriggerState"];
+            /**
+             * Format: date-time
+             * @description 下次触发时间。
+             */
+            nextFireAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 上次触发时间。
+             */
+            previousFireAt?: string | null;
+            /**
+             * Format: int64
+             * @description 已触发的次数。
+             */
+            fireCount: number;
+            /** @description 触发器出错的原因；没出错为 null。 */
+            error?: string | null;
+        };
         /** @description 登录失败自动封禁此刻生效的参数。 */
         LoginAutoBanSettingsResponse: {
             /** @description 系统参数键（在参数配置里改）。 */
@@ -9434,6 +9747,8 @@ export interface components {
              */
             count: number;
         };
+        /** @enum {string} */
+        TriggerState: "Waiting" | "Paused" | "Acquired" | "Blocked" | "Complete" | "Error";
         /** @description 两步验证的挑战。 */
         TwoFactorChallengeResponse: {
             /** @description 两步验证票据（只出现这一次）。 */
@@ -17347,6 +17662,330 @@ export interface operations {
                     "application/json": {
                         /** @description 条目。 */
                         items: components["schemas"]["InboxItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "job-runs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["JobRunResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 作业名（如 auditing.retention）。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一个作业。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 作业名。 */
+                        name: string;
+                        /** @description 显示名（登记作业的包按区域给出，没给即作业名）。 */
+                        title: string;
+                        /** @description 说明；没有为 null。 */
+                        description?: string | null;
+                        /** @description 作业类型的登记键。 */
+                        jobType: string;
+                        /** @description 来源：代码登记或运行时登记。 */
+                        source: components["schemas"]["JobSource"];
+                        /** @description 是否暂停。 */
+                        paused: boolean;
+                        /**
+                         * Format: int32
+                         * @description 正在运行的次数。
+                         */
+                        runningCount: number;
+                        /** @description 是否允许并发运行。 */
+                        allowConcurrent: boolean;
+                        /** @description 是否每个节点都运行。 */
+                        runOnEveryInstance: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 下次运行时间；暂停或没有计划时为 null。
+                         */
+                        nextRunAt?: string | null;
+                        /** @description 触发器。 */
+                        triggers: components["schemas"]["JobTriggerResponse"][];
+                        /** @description 上一次运行的结果；没运行过为 null。 */
+                        last?: components["schemas"]["JobOutcomeResponse"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 登记最后更新的时间。
+                         */
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 作业名（如 auditing.retention）。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 按名称指定一个作业的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名（如 auditing.retention）。 */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 立即执行作业的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 这次排进去的一次性触发器名（运行历史里的触发器名与它相同）。 */
+                        trigger: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["JobResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按名称指定一批作业的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 按作业名的批量结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 成功的作业名。 */
+                        succeeded: string[];
+                        /** @description 失败的作业与原因。 */
+                        failed: components["schemas"]["JobBatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按名称指定一批作业的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 按作业名的批量结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 成功的作业名。 */
+                        succeeded: string[];
+                        /** @description 失败的作业与原因。 */
+                        failed: components["schemas"]["JobBatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.validate-schedule": {
+        parameters: {
+            query: {
+                /** @description 计划：Cron 表达式（5 到 7 段），或计划的文本写法（cron …、every …、once …）。 */
+                expression: string;
+                /** @description Cron 表达式的时区（如 Asia/Shanghai）；不填按 UTC。 */
+                timeZone?: string | null;
+                /** @description 要列出的下次运行时间个数。 */
+                count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 校验计划的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 规范的文本写法。 */
+                        schedule: string;
+                        /** @description 计划的种类。 */
+                        kind: components["schemas"]["JobScheduleKind"];
+                        /** @description 接下来的运行时间（UTC，按请求的个数，计划已结束则更少）。 */
+                        nextRuns: string[];
                     };
                 };
             };
