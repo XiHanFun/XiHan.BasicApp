@@ -120,6 +120,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:login-by-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in with the code received by email or phone; accounts with two-factor still need the second step. Anonymous. */
+        post: operations["auth.login-by-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:login-config": {
         parameters: {
             query?: never;
@@ -199,6 +216,23 @@ export interface paths {
         put?: never;
         /** Exchange a refresh token for new tokens; the refresh token rotates and the old one stops working. */
         post: operations["auth.refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:send-login-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a sign-in code to an email address or phone number: the method must be enabled in the system parameter identity.login-methods; an unknown account gets the same "sent" answer (nothing is sent). Anonymous. */
+        post: operations["auth.send-login-code"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6328,6 +6362,47 @@ export interface operations {
             };
         };
     };
+    "auth.login-by-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                    target: string;
+                    code: string;
+                    tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token?: components["schemas"]["TokenResponse"] | null;
+                        twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "auth.login-config": {
         parameters: {
             query?: never;
@@ -6507,6 +6582,46 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.send-login-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    channel: components["schemas"]["ContactChannel"];
+                    target: string;
+                    tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        expiresInSeconds: number;
                     };
                 };
             };

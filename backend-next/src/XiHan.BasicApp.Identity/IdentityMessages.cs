@@ -743,6 +743,37 @@ public static class IdentityMessages
     /// </summary>
     public const string CodeTitleChangePhone = "identity.code.title.change_phone";
 
+    /// <summary>
+    /// 操作 <c>auth.send-login-code</c> 的说明。
+    /// </summary>
+    public const string SendLoginCodeDescription = "auth.send_login_code.description";
+
+    /// <summary>
+    /// 操作 <c>auth.login-by-code</c> 的说明。
+    /// </summary>
+    public const string LoginByCodeDescription = "auth.login_by_code.description";
+
+    /// <summary>
+    /// 没有开放这种登录方式。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>。
+    /// </remarks>
+    public const string LoginMethodDisabled = "identity.login.method_disabled";
+
+    /// <summary>
+    /// 系统参数里的登录方式写得不对。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
+    public const string LoginMethodsInvalid = "identity.login.methods_invalid";
+
+    /// <summary>
+    /// 登录用的邮箱或手机号格式不对。
+    /// </summary>
+    public const string LoginTargetInvalid = "identity.login.target_invalid";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

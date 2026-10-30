@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "验证邮箱",
   "identity.code.title.verify_phone": "验证手机号",
   "identity.code.title.change_email": "更换邮箱",
-  "identity.code.title.change_phone": "更换手机号"
+  "identity.code.title.change_phone": "更换手机号",
+  "auth.send_login_code.description": "发登录验证码到邮箱或手机号：这种登录方式要在系统参数 identity.login-methods 里开放；账号不存在也回答已发送（不发）。匿名。",
+  "auth.login_by_code.description": "用邮箱或手机收到的验证码登录：账号开了双因素照样要第二步。匿名。",
+  "identity.login.method_disabled": "没有开放这种登录方式。",
+  "identity.login.methods_invalid": "系统参数 {key} 里的登录方式写得不对，只能是 password、email、phone。",
+  "identity.login.target_invalid": "邮箱或手机号格式不对。"
 }

@@ -87,6 +87,36 @@ describe('auth store', () => {
     expect(replace).toHaveBeenCalledWith('/')
   })
 
+  it('code login sends channel, trimmed target and tenant anonymously; a token lands like a password login, a two-factor challenge is kept for the login page', async () => {
+    const bodies: { url: string, body: unknown, auth: string | null }[] = []
+    let twoFactor = false
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        bodies.push({ url: String(url), body: JSON.parse(String(init!.body)), auth: new Headers(init!.headers).get('Authorization') })
+        return json(200, twoFactor
+          ? { token: null, twoFactor: { ticket: 't-2', methods: ['Totp'], method: 'Totp', codeSent: false, expiresAt: '2026-10-28T00:10:00Z' } }
+          : { token: session('a-2', 'r-2'), twoFactor: null })
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: '/' } } } as unknown as Router) })
+    const store = useAuthStore()
+
+    await store.loginByEmailCode({ email: ' ann@example.com ', code: '135790', tenant: ' acme ' }, '/files/library')
+    expect(bodies[0]).toEqual({ url: '/api/auth:login-by-code', body: { channel: 'Email', target: 'ann@example.com', code: '135790', tenant: 'acme' }, auth: null })
+    expect(store.accessToken).toBe('a-2')
+    expect(replace).toHaveBeenLastCalledWith('/files/library')
+
+    twoFactor = true
+    await store.loginByPhoneCode({ phone: '13800000000', code: '246810' }, '/files/library')
+    expect(bodies[1]?.body).toEqual({ channel: 'Phone', target: '13800000000', code: '246810', tenant: null })
+    expect(replace).toHaveBeenLastCalledWith({ path: '/auth/login', query: { redirect: '/files/library' } })
+    expect(store.takePendingTwoFactor()).toMatchObject({ requiresTwoFactor: true, twoFactorTicket: 't-2', availableTwoFactorMethods: ['totp'] })
+    expect(store.takePendingTwoFactor()).toBeNull()
+  })
+
   it('refreshes once for concurrent callers and rotates the refresh token', async () => {
     localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {

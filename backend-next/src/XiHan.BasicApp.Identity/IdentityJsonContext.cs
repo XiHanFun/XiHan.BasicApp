@@ -78,6 +78,8 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(ContactCodeRequest))]
 [JsonSerializable(typeof(SendChangeContactCodeRequest))]
 [JsonSerializable(typeof(CodeSentResponse))]
+[JsonSerializable(typeof(SendLoginCodeRequest))]
+[JsonSerializable(typeof(LoginByCodeRequest))]
 [JsonSerializable(typeof(TotpSetupResponse))]
 [JsonSerializable(typeof(TwoFactorChangeRequest))]
 [JsonSerializable(typeof(ExternalLoginRequest))]

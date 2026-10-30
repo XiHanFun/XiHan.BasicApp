@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "Verifique seu e-mail",
   "identity.code.title.verify_phone": "Verifique seu telefone",
   "identity.code.title.change_email": "Troque seu e-mail",
-  "identity.code.title.change_phone": "Troque seu telefone"
+  "identity.code.title.change_phone": "Troque seu telefone",
+  "auth.send_login_code.description": "Envia um código de login para um e-mail ou telefone: o método precisa estar habilitado no parâmetro do sistema identity.login-methods; uma conta inexistente recebe a mesma resposta de \"enviado\" (nada é enviado). Anônimo.",
+  "auth.login_by_code.description": "Entra com o código recebido por e-mail ou telefone; contas com dois fatores ainda precisam da segunda etapa. Anônimo.",
+  "identity.login.method_disabled": "Este método de login não está habilitado.",
+  "identity.login.methods_invalid": "Os métodos de login do parâmetro do sistema {key} são inválidos; só são permitidos password, email e phone.",
+  "identity.login.target_invalid": "O e-mail ou telefone tem formato inválido."
 }

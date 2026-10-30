@@ -21,6 +21,18 @@ export const coreRoutes: RouteRecordRaw[] = [
         meta: { title: 'page.login.title', hidden: true },
       },
       {
+        path: 'code-login',
+        name: 'CodeLogin',
+        component: () => import('~/views/_core/authentication/code-login.vue'),
+        meta: { title: 'page.auth.mobile_login', hidden: true },
+      },
+      {
+        path: 'email-login',
+        name: 'EmailLogin',
+        component: () => import('~/views/_core/authentication/email-login.vue'),
+        meta: { title: 'page.auth.email_login', hidden: true },
+      },
+      {
         // 后端回调把浏览器带到这里（OAUTH_CALLBACK_PATH）：登录凭票据换会话，绑定由已登录的人在这里确认；已登录也放行（见守卫）
         path: 'oauth-callback',
         name: 'OAuthCallback',

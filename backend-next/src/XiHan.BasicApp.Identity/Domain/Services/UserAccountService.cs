@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
@@ -68,6 +69,26 @@ public sealed class UserAccountService
     {
         var rows = await _users.ListAsync(EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == homeTenantId && u.UserName == userName)).Page(0, 1), cancellationToken).ConfigureAwait(false);
         return rows.Count == 0 ? Maybe.None<SysUser>() : Maybe.Some(rows[0]);
+    }
+
+    /// <summary>
+    /// 按注册地租户与联系方式找能用验证码登录的用户。
+    /// </summary>
+    /// <remarks>
+    /// 邮箱不分大小写；手机号要已验证（4.x 同）。只取正常状态的，至多两个：调用方据此判断「恰好一个」。
+    /// </remarks>
+    /// <param name="homeTenantId">注册地租户。</param>
+    /// <param name="channel">渠道。</param>
+    /// <param name="target">邮箱（已转小写）或手机号。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配的用户，至多两个。</returns>
+    public async Task<IReadOnlyList<SysUser>> FindByContactAsync(string homeTenantId, ContactChannel channel, string target, CancellationToken cancellationToken)
+    {
+        var active = UserStatus.Active;
+        var matches = channel == ContactChannel.Email
+            ? new Specification<SysUser>(u => u.HomeTenantId == homeTenantId && u.Status == active && u.Email != null && SqlFunc.ToLower(u.Email) == target)
+            : new Specification<SysUser>(u => u.HomeTenantId == homeTenantId && u.Status == active && u.PhoneVerified && u.PhoneNumber == target);
+        return await _users.ListAsync(EntityQuery.All<SysUser>().Where(matches).Page(0, 2), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

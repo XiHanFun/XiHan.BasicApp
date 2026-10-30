@@ -120,5 +120,10 @@
   "identity.code.title.verify_email": "Verify your email",
   "identity.code.title.verify_phone": "Verify your phone number",
   "identity.code.title.change_email": "Change your email",
-  "identity.code.title.change_phone": "Change your phone number"
+  "identity.code.title.change_phone": "Change your phone number",
+  "auth.send_login_code.description": "Send a sign-in code to an email address or phone number: the method must be enabled in the system parameter identity.login-methods; an unknown account gets the same \"sent\" answer (nothing is sent). Anonymous.",
+  "auth.login_by_code.description": "Sign in with the code received by email or phone; accounts with two-factor still need the second step. Anonymous.",
+  "identity.login.method_disabled": "This sign-in method is not enabled.",
+  "identity.login.methods_invalid": "The sign-in methods in system parameter {key} are invalid; only password, email and phone are allowed.",
+  "identity.login.target_invalid": "The email address or phone number is malformed."
 }

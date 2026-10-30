@@ -364,4 +364,27 @@ public static class IdentityErrors
     /// 参数 <c>channel</c>。
     /// </remarks>
     public const string ContactTaken = "IDENTITY_CONFLICT_010";
+    /// <summary>
+    /// 没有开放这种登录方式。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>（<c>email</c> 或 <c>phone</c>）。
+    /// </remarks>
+    public const string LoginMethodDisabled = "IDENTITY_DENIED_016";
+
+    /// <summary>
+    /// 系统参数里的登录方式写得不对。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>（系统参数的键）。
+    /// </remarks>
+    public const string LoginMethodsInvalid = "IDENTITY_VALIDATION_021";
+
+    /// <summary>
+    /// 登录用的邮箱或手机号格式不对。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>。
+    /// </remarks>
+    public const string LoginTargetInvalid = "IDENTITY_VALIDATION_022";
 }

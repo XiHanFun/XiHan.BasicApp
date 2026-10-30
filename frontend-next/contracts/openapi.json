@@ -694,6 +694,101 @@
         }
       }
     },
+    "/api/auth:login-by-code": {
+      "post": {
+        "operationId": "auth.login-by-code",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with the code received by email or phone; accounts with two-factor still need the second step. Anonymous.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LoginByCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 10
+                  },
+                  "tenant": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "channel",
+                  "target",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LoginResponse",
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TokenResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "twoFactor": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TwoFactorChallengeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:login-config": {
       "get": {
         "operationId": "auth.login-config",
@@ -1053,6 +1148,82 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:send-login-code": {
+      "post": {
+        "operationId": "auth.send-login-code",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Send a sign-in code to an email address or phone number: the method must be enabled in the system parameter identity.login-methods; an unknown account gets the same \u0022sent\u0022 answer (nothing is sent). Anonymous.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SendLoginCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "tenant": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "channel",
+                  "target"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
                   ]
                 }
               }

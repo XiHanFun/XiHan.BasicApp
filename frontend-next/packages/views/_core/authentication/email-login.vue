@@ -1,0 +1,211 @@
+<script lang="ts" setup>
+import type { FormRules } from '@xihan-ui/headless'
+import {
+  XhButton,
+  XhFieldControl,
+  XhFieldLabel,
+  XhFieldRoot,
+  XhFormFieldGroup,
+  XhFormRoot,
+  XhFormSubmitTrigger,
+  XhPinInputInput,
+  XhPinInputRoot,
+} from '@xihan-ui/vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
+import { useTheme } from '~/hooks'
+import { useAppContext, useAuthStore } from '~/stores'
+import CodeCountdown from '../shared/CodeCountdown.vue'
+import { OTP_CODE_LENGTH, splitPinCode } from '../shared/pin-code'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
+
+defineOptions({ name: 'EmailLoginPage' })
+
+const { isDark } = useTheme()
+const { t } = useI18n()
+const authStore = useAuthStore()
+const { apis } = useAppContext()
+/** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
+const resendSeconds = ref(0)
+
+const formData = ref({
+  tenant: '',
+  email: '',
+  code: '',
+})
+
+/**
+ * 验证码的逐格值。表单里的 code 是拼接后的串（规则按长度校验、发码接口回填调试码都用它），
+ * 格子这边是逐格数组，两边在此互转：格子每次改动把串写回表单，表单的串被外部整份改写
+ * （回填调试码）时再拆回格子。用户逐格编辑不经串往返——见 splitPinCode 的说明。
+ */
+const codeCells = ref<string[]>([])
+
+watch(() => formData.value.code, (code) => {
+  if (code !== codeCells.value.join(''))
+    codeCells.value = splitPinCode(code, OTP_CODE_LENGTH)
+})
+
+// 规则写成 computed：文案要跟着语言切换
+const rules = computed<FormRules>(() => ({
+  email: [
+    { required: true, message: t('page.auth.email_placeholder') },
+    { type: 'email', message: t('page.auth.email_invalid') },
+  ],
+  code: [
+    { required: true, message: t('page.auth.code_required') },
+    // 组件库按 min/max 比长度，没有 len 这一档；两端同值即定长
+    { min: OTP_CODE_LENGTH, max: OTP_CODE_LENGTH, message: t('page.auth.code_length_tip') },
+  ],
+}))
+
+const EMAIL_RE = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+
+/**
+ * 发验证码只关邮箱这一个字段，而表单的公开 API 没有「单字段校验」这一项
+ * （逐字段校验是 blur / change 模式下的内部动作）。这里就地判一次格式，
+ * 提交那一路仍走表单自己的整表校验。
+ */
+function handleSendCode() {
+  if (!EMAIL_RE.test(formData.value.email)) {
+    toast.warning(t('page.auth.email_invalid'))
+    return
+  }
+  void (async () => {
+    try {
+      const response = await apis.sendEmailLoginCodeApi(formData.value.email, formData.value.tenant || undefined)
+      resendSeconds.value = 60
+      if (response.debugCode) {
+        formData.value.code = response.debugCode
+      }
+      toast.success(t('page.auth.code_sent'))
+    }
+    catch (err: unknown) {
+      const error = err as { message?: string }
+      toast.danger(error?.message || t('page.auth.code_send_failed'))
+    }
+  })()
+}
+
+/**
+ * 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显。
+ * 返回的 Promise 交给表单：落定前提交钮自己报在途、再按不重复提交，失败在这里接住
+ */
+async function onSubmit() {
+  try {
+    await authStore.loginByEmailCode({
+      tenant: formData.value.tenant || undefined,
+      email: formData.value.email,
+      code: formData.value.code,
+    })
+  }
+  catch (err: unknown) {
+    const error = err as { message?: string }
+    if (error?.message) {
+      toast.danger(error.message)
+    }
+  }
+}
+
+const onAuthInvalid = useAuthFormInvalid()
+</script>
+
+<template>
+  <div class="py-1">
+    <div class="mb-8">
+      <p
+        class="mt-3 auth-body"
+        :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+      >
+        {{ t('page.auth.email_login_subtitle') }}
+      </p>
+    </div>
+
+    <!-- 校验归表单：通过才发 submit，被拦下的错误由各字段的 error-text 自己显 -->
+    <XhFormRoot
+      v-model:values="formData"
+      :rules="rules"
+      validate-on="blur"
+      @invalid="onAuthInvalid"
+      @submit="onSubmit"
+    >
+      <!-- 字段靠占位文案表意，标签只留给读屏。
+           6.0 的账号属于注册地租户：租户账号填租户 ID，平台账号留空（同密码登录；4.x 先登录后选租户，没有这一栏） -->
+      <XhFormFieldGroup name="tenant" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.login.tenant') }}
+          </XhFieldLabel>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.tenant"
+              size="lg"
+              :placeholder="t('page.login.tenant_placeholder')"
+              autocomplete="organization"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+      <XhFormFieldGroup v-slot="{ value, setValue }" name="email" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.auth.email_placeholder') }}
+          </XhFieldLabel>
+          <XhFieldControl>
+            <XInput
+              size="lg"
+              :value="(value as string)"
+              :placeholder="t('page.auth.email_placeholder')"
+              @update:value="setValue"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+
+      <XhFormFieldGroup v-slot="{ setValue }" name="code" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.auth.code_required') }}
+          </XhFieldLabel>
+          <!-- 布局层留在控件外面：六格与发码钮同一行，放不下时钮换到下一行靠右。
+               格子取缺省档：正方格的缺省档与 lg 档文本框、发码钮同一个控件高度，lg 档格子会高出一截 -->
+          <div class="auth-code-row">
+            <XhFieldControl>
+              <XhPinInputRoot
+                v-model:value="codeCells"
+                :length="OTP_CODE_LENGTH"
+                type="numeric"
+                otp
+                @value-change="setValue($event.valueAsString)"
+              >
+                <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                <div style="display: flex">
+                  <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+                </div>
+              </XhPinInputRoot>
+            </XhFieldControl>
+            <XhButton
+              tone="brand"
+              variant="outline"
+              :disabled="resendSeconds > 0"
+              size="lg"
+              style="min-width: 132px"
+              @click="handleSendCode"
+            >
+              <CodeCountdown v-if="resendSeconds > 0" :seconds="resendSeconds" @finish="resendSeconds = 0" />
+              <template v-else>
+                {{ t('page.auth.send_code') }}
+              </template>
+            </XhButton>
+          </div>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+
+      <XhFormSubmitTrigger class="auth-submit">
+        {{ t('page.login.login_btn') }}
+      </XhFormSubmitTrigger>
+    </XhFormRoot>
+  </div>
+</template>
