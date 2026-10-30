@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "The value of cache entry '{key}' is not text and cannot be rewritten.",
   "maintenance.caches.inspector_unavailable": "The current cache store does not support key management.",
   "openapi.tags.caches.name": "Caches",
-  "openapi.tags.caches.description": "Cache keys of the application namespaces: list, inspect, rewrite and delete."
+  "openapi.tags.caches.description": "Cache keys of the application namespaces: list, inspect, rewrite and delete.",
+  "server.get.title": "Get server information",
+  "server.get.description": "Get the host runtime and process, processor, memory, disks, network interfaces, GPUs and board, plus the latest health checks of the providers; unreadable fields are null. Platform side only.",
+  "permissions.maintenance.server.read.name": "Read server monitor",
+  "maintenance.server.monitor_unavailable": "Host information (IHostMonitor) is not installed, so the server cannot be read.",
+  "openapi.tags.server.name": "Server monitor",
+  "openapi.tags.server.description": "Host runtime information and health checks."
 }

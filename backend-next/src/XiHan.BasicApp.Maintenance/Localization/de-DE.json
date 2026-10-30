@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "Der Wert des Cache-Eintrags '{key}' ist kein Text und kann nicht überschrieben werden.",
   "maintenance.caches.inspector_unavailable": "Der aktuelle Cache-Speicher unterstützt keine Schlüsselverwaltung.",
   "openapi.tags.caches.name": "Caches",
-  "openapi.tags.caches.description": "Cache-Schlüssel der Anwendungsnamensräume: auflisten, anzeigen, überschreiben und löschen."
+  "openapi.tags.caches.description": "Cache-Schlüssel der Anwendungsnamensräume: auflisten, anzeigen, überschreiben und löschen.",
+  "server.get.title": "Serverinformationen abrufen",
+  "server.get.description": "Liefert Laufzeit und Prozess, Prozessor, Arbeitsspeicher, Datenträger, Netzwerkschnittstellen, GPUs und Mainboard des Hosts sowie die letzten Integritätsprüfungen der Anbieter; nicht lesbare Felder sind leer. Nur auf Plattformseite.",
+  "permissions.maintenance.server.read.name": "Servermonitor anzeigen",
+  "maintenance.server.monitor_unavailable": "Hostinformationen (IHostMonitor) sind nicht installiert; der Server kann nicht gelesen werden.",
+  "openapi.tags.server.name": "Servermonitor",
+  "openapi.tags.server.description": "Laufzeitinformationen und Integritätsprüfungen des Hosts."
 }

@@ -21,6 +21,11 @@ public static class MaintenancePages
     public static PageDescriptor Caches { get; } = new("maintenance.caches", "/maintenance/caches", "maintenance.caches.title", "lucide:database", 650, MaintenancePermissions.CachesRead);
 
     /// <summary>
+    /// 服务监控。
+    /// </summary>
+    public static PageDescriptor Server { get; } = new("maintenance.server", "/maintenance/server", "maintenance.server.title", "lucide:server", 660, MaintenancePermissions.ServerRead);
+
+    /// <summary>
     /// 版本管理。
     /// </summary>
     public static PageDescriptor Versions { get; } = new("maintenance.versions", "/maintenance/versions", "maintenance.versions.title", "lucide:git-branch", 670, MaintenancePermissions.VersionsRead);
@@ -33,5 +38,5 @@ public static class MaintenancePages
     /// <summary>
     /// 本包全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Jobs, Caches, Versions, Migrations];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Jobs, Caches, Server, Versions, Migrations];
 }

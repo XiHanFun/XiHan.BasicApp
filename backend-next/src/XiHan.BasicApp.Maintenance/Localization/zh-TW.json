@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "快取項 '{key}' 的值不是文字，不能改寫。",
   "maintenance.caches.inspector_unavailable": "目前的快取儲存不支援鍵管理。",
   "openapi.tags.caches.name": "快取管理",
-  "openapi.tags.caches.description": "應用命名空間裡的快取鍵：列出、檢視、改寫與刪除。"
+  "openapi.tags.caches.description": "應用命名空間裡的快取鍵：列出、檢視、改寫與刪除。",
+  "server.get.title": "取得伺服器資訊",
+  "server.get.description": "取伺服器的執行階段與處理程序、處理器、記憶體、磁碟、網路卡、顯示卡、主機板，以及各 Provider 的健康項（最近一次檢查）；讀不到的欄位為空。只在平台側。",
+  "permissions.maintenance.server.read.name": "檢視服務監控",
+  "maintenance.server.monitor_unavailable": "沒有安裝執行資訊（IHostMonitor），讀不到伺服器資訊。",
+  "openapi.tags.server.name": "服務監控",
+  "openapi.tags.server.description": "伺服器的執行資訊與健康項。"
 }

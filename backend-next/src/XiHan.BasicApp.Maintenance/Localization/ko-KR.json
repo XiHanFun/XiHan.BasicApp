@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "캐시 항목 '{key}'의 값은 텍스트가 아니어서 다시 쓸 수 없습니다.",
   "maintenance.caches.inspector_unavailable": "현재 캐시 저장소는 키 관리를 지원하지 않습니다.",
   "openapi.tags.caches.name": "캐시 관리",
-  "openapi.tags.caches.description": "애플리케이션 네임스페이스의 캐시 키: 나열, 보기, 다시 쓰기, 삭제."
+  "openapi.tags.caches.description": "애플리케이션 네임스페이스의 캐시 키: 나열, 보기, 다시 쓰기, 삭제.",
+  "server.get.title": "서버 정보 가져오기",
+  "server.get.description": "호스트의 런타임과 프로세스, 프로세서, 메모리, 디스크, 네트워크 인터페이스, GPU, 메인보드와 각 공급자의 최근 상태 검사를 가져옵니다. 읽을 수 없는 필드는 null입니다. 플랫폼 측 전용.",
+  "permissions.maintenance.server.read.name": "서버 모니터 보기",
+  "maintenance.server.monitor_unavailable": "호스트 정보(IHostMonitor)가 설치되지 않아 서버를 읽을 수 없습니다.",
+  "openapi.tags.server.name": "서버 모니터",
+  "openapi.tags.server.description": "호스트 실행 정보와 상태 검사."
 }

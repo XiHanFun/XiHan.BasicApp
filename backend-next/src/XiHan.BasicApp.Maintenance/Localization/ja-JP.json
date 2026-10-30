@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "キャッシュ項目 '{key}' の値はテキストではないため書き換えられません。",
   "maintenance.caches.inspector_unavailable": "現在のキャッシュストアはキー管理に対応していません。",
   "openapi.tags.caches.name": "キャッシュ管理",
-  "openapi.tags.caches.description": "アプリの名前空間にあるキャッシュキー：一覧、表示、書き換え、削除。"
+  "openapi.tags.caches.description": "アプリの名前空間にあるキャッシュキー：一覧、表示、書き換え、削除。",
+  "server.get.title": "サーバー情報の取得",
+  "server.get.description": "ホストのランタイムとプロセス、プロセッサ、メモリ、ディスク、ネットワークインターフェイス、GPU、マザーボード、および各プロバイダーの最新のヘルスチェックを取得します。読み取れない項目は null です。プラットフォーム側のみ。",
+  "permissions.maintenance.server.read.name": "サーバー監視の閲覧",
+  "maintenance.server.monitor_unavailable": "ホスト情報（IHostMonitor）がインストールされていないため、サーバーを読み取れません。",
+  "openapi.tags.server.name": "サーバー監視",
+  "openapi.tags.server.description": "ホストの実行情報とヘルスチェック。"
 }

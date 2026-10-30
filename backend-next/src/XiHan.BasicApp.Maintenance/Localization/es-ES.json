@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "El valor de la entrada de caché '{key}' no es texto y no se puede reescribir.",
   "maintenance.caches.inspector_unavailable": "El almacén de caché actual no admite la gestión de claves.",
   "openapi.tags.caches.name": "Cachés",
-  "openapi.tags.caches.description": "Claves de caché de los espacios de la aplicación: listar, ver, reescribir y eliminar."
+  "openapi.tags.caches.description": "Claves de caché de los espacios de la aplicación: listar, ver, reescribir y eliminar.",
+  "server.get.title": "Obtener información del servidor",
+  "server.get.description": "Obtiene el entorno de ejecución y el proceso, procesador, memoria, discos, interfaces de red, GPU y placa del host, además de las últimas comprobaciones de estado de los proveedores; los campos ilegibles son nulos. Solo en la plataforma.",
+  "permissions.maintenance.server.read.name": "Ver el monitor del servidor",
+  "maintenance.server.monitor_unavailable": "La información del host (IHostMonitor) no está instalada; no se puede leer el servidor.",
+  "openapi.tags.server.name": "Monitor del servidor",
+  "openapi.tags.server.description": "Información de ejecución y comprobaciones de estado del host."
 }

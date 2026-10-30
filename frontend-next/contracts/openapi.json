@@ -246,6 +246,11 @@
       "description": "Create, read, update and delete roles, assign members, grant permissions and set inheritance."
     },
     {
+      "name": "server",
+      "x-displayName": "Server monitor",
+      "description": "Host runtime information and health checks."
+    },
+    {
       "name": "session-roles",
       "x-displayName": "Session roles",
       "description": "The roles each session has activated."
@@ -33618,6 +33623,99 @@
         }
       }
     },
+    "/api/server": {
+      "get": {
+        "operationId": "server.get",
+        "tags": [
+          "server"
+        ],
+        "summary": "Get server information",
+        "description": "Get the host runtime and process, processor, memory, disks, network interfaces, GPUs and board, plus the latest health checks of the providers; unreadable fields are null. Platform side only.\n\nRequires permission maintenance.server.read (Read server monitor).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.server.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u670D\u52A1\u5668\u7684\u8FD0\u884C\u4FE1\u606F\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ServerInfoResponse",
+                  "description": "\u670D\u52A1\u5668\u7684\u8FD0\u884C\u4FE1\u606F\u3002",
+                  "type": "object",
+                  "properties": {
+                    "runtime": {
+                      "description": "\u8FD0\u884C\u65F6\u4E0E\u8FDB\u7A0B\u3002",
+                      "$ref": "#/components/schemas/RuntimeInfo"
+                    },
+                    "processor": {
+                      "description": "\u5904\u7406\u5668\u3002",
+                      "$ref": "#/components/schemas/ProcessorInfo"
+                    },
+                    "memory": {
+                      "description": "\u5185\u5B58\u3002",
+                      "$ref": "#/components/schemas/MemoryInfo"
+                    },
+                    "disks": {
+                      "description": "\u78C1\u76D8\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DiskInfo"
+                      }
+                    },
+                    "networkInterfaces": {
+                      "description": "\u7F51\u5361\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NetworkInterfaceInfo"
+                      }
+                    },
+                    "gpus": {
+                      "description": "\u663E\u5361\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GpuInfo"
+                      }
+                    },
+                    "board": {
+                      "description": "\u4E3B\u677F\u4E0E BIOS\u3002",
+                      "$ref": "#/components/schemas/BoardInfo"
+                    },
+                    "health": {
+                      "description": "\u5065\u5EB7\u9879\uFF08\u5404 Provider \u81EA\u5E26\uFF0C\u8FD9\u91CC\u53EA\u5C55\u793A\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HealthItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "runtime",
+                    "processor",
+                    "memory",
+                    "disks",
+                    "networkInterfaces",
+                    "gpus",
+                    "board",
+                    "health"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/session-roles/{id}": {
       "get": {
         "operationId": "session-roles.get",
@@ -42364,6 +42462,21 @@
           "accesses"
         ]
       },
+      "Architecture": {
+        "type": "string",
+        "enum": [
+          "X86",
+          "X64",
+          "Arm",
+          "Arm64",
+          "Wasm",
+          "S390x",
+          "LoongArch64",
+          "Armv6",
+          "Ppc64le",
+          "RiscV64"
+        ]
+      },
       "AvailableTenantResponse": {
         "description": "\u5F53\u524D\u7528\u6237\u53EF\u8FDB\u5165\u7684\u4E00\u4E2A\u79DF\u6237\uFF08tenants.mine \u7684\u5217\u8868\u9879\uFF09\u3002",
         "type": "object",
@@ -42429,6 +42542,65 @@
           "id",
           "code"
         ]
+      },
+      "BoardInfo": {
+        "type": "object",
+        "properties": {
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "product": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemManufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "systemProduct": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "biosVendor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "biosVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "biosDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "BotConfigResponse": {
         "description": "\u4E00\u4E2A\u673A\u5668\u4EBA\u914D\u7F6E\uFF08\u7B7E\u540D\u5BC6\u94A5\u4E0D\u56DE\u663E\uFF09\u3002",
@@ -44114,6 +44286,77 @@
           "entityType"
         ]
       },
+      "DiskInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "device": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/DriveType"
+          },
+          "totalBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "freeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "availableBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usedBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usagePercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "totalBytes",
+          "freeBytes",
+          "availableBytes"
+        ]
+      },
+      "DriveType": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "NoRootDirectory",
+          "Removable",
+          "Fixed",
+          "Network",
+          "CDRom",
+          "Ram"
+        ]
+      },
       "EditionResponse": {
         "description": "\u5957\u9910\u7684\u54CD\u5E94\u5F62\u6001\uFF1A\u5217\u8868\u9879\u4E0E\u8BE6\u60C5\u91CC\u7684\u57FA\u672C\u4FE1\u606F\u5171\u7528\u3002",
         "type": "object",
@@ -45230,12 +45473,133 @@
           "Failed"
         ]
       },
+      "GpuInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vendor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vendorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deviceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driver": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driverVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "memoryBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "temperatureCelsius": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "GrantSubjectKind": {
         "description": "\u6388\u4E88\u89C4\u5219\u7684\u4E3B\u4F53\u7C7B\u578B\u3002",
         "type": "string",
         "enum": [
           "Role",
           "User"
+        ]
+      },
+      "HealthItemResponse": {
+        "description": "\u4E00\u4E2A\u5065\u5EB7\u9879\u3002",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u540D\u5B57\u3002",
+            "type": "string"
+          },
+          "state": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/LifecycleState"
+          },
+          "errorCode": {
+            "description": "\u51FA\u9519\u7684\u9519\u8BEF\u7801\uFF1B\u6B63\u5E38\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "description": "\u51FA\u9519\u539F\u56E0\uFF08\u6309\u533A\u57DF\uFF09\uFF1B\u6B63\u5E38\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "description": "\u8BF4\u660E\uFF1B\u6CA1\u6709\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checkedAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u68C0\u67E5\u7684\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "durationMs": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u68C0\u67E5\u7528\u4E86\u591A\u5C11\u6BEB\u79D2\u3002",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "data": {
+            "description": "\u660E\u7EC6\uFF08\u540D\u5B57\u5230\u503C\uFF0C\u503C\u6309\u4E0D\u53D8\u533A\u57DF\u5199\u6210\u6587\u672C\uFF09\u3002",
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "state",
+          "data"
         ]
       },
       "ImpersonationCandidateResponse": {
@@ -45848,6 +46212,20 @@
           "fireCount"
         ]
       },
+      "LifecycleState": {
+        "type": "string",
+        "enum": [
+          "Declared",
+          "Resolved",
+          "Configured",
+          "Started",
+          "Ready",
+          "Degraded",
+          "Draining",
+          "Stopped",
+          "Failed"
+        ]
+      },
       "LoginAutoBanSettingsResponse": {
         "description": "\u767B\u5F55\u5931\u8D25\u81EA\u52A8\u5C01\u7981\u6B64\u523B\u751F\u6548\u7684\u53C2\u6570\u3002",
         "type": "object",
@@ -46185,6 +46563,53 @@
           "order",
           "createdAt"
         ]
+      },
+      "MemoryInfo": {
+        "type": "object",
+        "properties": {
+          "totalBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "availableBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "freeBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "cachedBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "usedBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "usagePercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        }
       },
       "MenuKind": {
         "description": "\u83DC\u5355\u8282\u70B9\u7684\u79CD\u7C7B\u3002",
@@ -46734,6 +47159,147 @@
           "loginAt",
           "lastActiveAt",
           "isCurrent"
+        ]
+      },
+      "NetworkInterfaceInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "$ref": "#/components/schemas/NetworkInterfaceType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OperationalStatus"
+          },
+          "speedBitsPerSecond": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "physicalAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "iPv4Addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "iPv6Addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "gateways": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dnsServers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bytesReceived": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "bytesSent": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "packetsReceived": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "packetsSent": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "receiveBytesPerSecond": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "sendBytesPerSecond": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "status"
+        ]
+      },
+      "NetworkInterfaceType": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "Ethernet",
+          "TokenRing",
+          "Fddi",
+          "BasicIsdn",
+          "PrimaryIsdn",
+          "Ppp",
+          "Loopback",
+          "Ethernet3Megabit",
+          "Slip",
+          "Atm",
+          "GenericModem",
+          "FastEthernetT",
+          "Isdn",
+          "FastEthernetFx",
+          "Wireless80211",
+          "AsymmetricDsl",
+          "RateAdaptDsl",
+          "SymmetricDsl",
+          "VeryHighSpeedDsl",
+          "IPOverAtm",
+          "GigabitEthernet",
+          "Tunnel",
+          "MultiRateSymmetricDsl",
+          "HighPerformanceSerialBus",
+          "Wman",
+          "Wwanpp",
+          "Wwanpp2"
         ]
       },
       "NotificationContentFormat": {
@@ -47806,6 +48372,18 @@
           "succeeded"
         ]
       },
+      "OperationalStatus": {
+        "type": "string",
+        "enum": [
+          "Up",
+          "Down",
+          "Testing",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown"
+        ]
+      },
       "OrganizationStatus": {
         "description": "\u90E8\u95E8 / \u5C97\u4F4D\u7684\u542F\u505C\u72B6\u6001\u3002",
         "type": "string",
@@ -48274,6 +48852,62 @@
           "createdAt"
         ]
       },
+      "ProcessorInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vendor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "architecture": {
+            "$ref": "#/components/schemas/Architecture"
+          },
+          "physicalCores": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "logicalCores": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "frequencyMhz": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "cacheBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "usagePercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "required": [
+          "architecture",
+          "logicalCores"
+        ]
+      },
       "ProfileResponse": {
         "title": "ProfileResponse",
         "description": "\u672C\u4EBA\u7684\u8D44\u6599\u4E0E\u8D26\u53F7\u5B89\u5168\u6982\u51B5\uFF08\u4E2A\u4EBA\u4E2D\u5FC3\uFF09\u3002",
@@ -48580,6 +49214,145 @@
           "id",
           "code",
           "name"
+        ]
+      },
+      "RuntimeInfo": {
+        "type": "object",
+        "properties": {
+          "osDescription": {
+            "type": "string"
+          },
+          "osPlatform": {
+            "type": "string"
+          },
+          "osVersion": {
+            "type": "string"
+          },
+          "osArchitecture": {
+            "$ref": "#/components/schemas/Architecture"
+          },
+          "framework": {
+            "type": "string"
+          },
+          "runtimeIdentifier": {
+            "type": "string"
+          },
+          "processArchitecture": {
+            "$ref": "#/components/schemas/Architecture"
+          },
+          "machineName": {
+            "type": "string"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interactive": {
+            "type": "boolean"
+          },
+          "processId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processName": {
+            "type": "string"
+          },
+          "processStartedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "processUptime": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "duration"
+          },
+          "systemStartedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "systemUptime": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "duration"
+          },
+          "workingSetBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "privateBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "managedHeapBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "threadCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "handleCount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "gen0Collections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gen1Collections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gen2Collections": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processCpuUsagePercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        },
+        "required": [
+          "osDescription",
+          "osPlatform",
+          "osVersion",
+          "osArchitecture",
+          "framework",
+          "runtimeIdentifier",
+          "processArchitecture",
+          "machineName",
+          "interactive",
+          "processId",
+          "processName",
+          "workingSetBytes",
+          "managedHeapBytes",
+          "gen0Collections",
+          "gen1Collections",
+          "gen2Collections"
         ]
       },
       "SchemaVersionResponse": {
@@ -50374,6 +51147,11 @@
         "displayName": "Read upgrade records",
         "description": "View the upgrade script records."
       },
+      "maintenance.server.read": {
+        "code": "maintenance.server.read",
+        "displayName": "Read server monitor",
+        "description": "View the host runtime, processor, memory, disks, network, GPUs and board, and the health checks of the providers."
+      },
       "maintenance.versions.read": {
         "code": "maintenance.versions.read",
         "displayName": "Read versions",
@@ -50898,6 +51676,7 @@
         "job-runs",
         "jobs",
         "migrations",
+        "server",
         "versions"
       ]
     },

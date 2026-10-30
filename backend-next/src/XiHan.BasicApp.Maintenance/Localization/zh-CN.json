@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "缓存项 '{key}' 的值不是文本，不能改写。",
   "maintenance.caches.inspector_unavailable": "当前的缓存存储不支持键管理。",
   "openapi.tags.caches.name": "缓存管理",
-  "openapi.tags.caches.description": "应用命名空间里的缓存键：列出、查看、改写与删除。"
+  "openapi.tags.caches.description": "应用命名空间里的缓存键：列出、查看、改写与删除。",
+  "server.get.title": "获取服务器信息",
+  "server.get.description": "取服务器的运行时与进程、处理器、内存、磁盘、网卡、显卡、主板，以及各 Provider 的健康项（最近一次检查）；读不到的字段为空。只在平台侧。",
+  "permissions.maintenance.server.read.name": "查看服务监控",
+  "maintenance.server.monitor_unavailable": "没有装运行信息（IHostMonitor），读不到服务器信息。",
+  "openapi.tags.server.name": "服务监控",
+  "openapi.tags.server.description": "服务器的运行信息与健康项。"
 }

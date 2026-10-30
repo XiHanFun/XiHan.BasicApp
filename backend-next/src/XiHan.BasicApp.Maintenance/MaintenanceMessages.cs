@@ -91,6 +91,11 @@ public static class MaintenanceMessages
     public const string DeleteCacheByPrefixDescription = "caches.delete_by_prefix.description";
 
     /// <summary>
+    /// 操作 <c>server.get</c> 的说明。
+    /// </summary>
+    public const string GetServerInfoDescription = "server.get.description";
+
+    /// <summary>
     /// 操作 <c>job-runs.list</c> 的说明。
     /// </summary>
     public const string ListJobRunsDescription = "job_runs.list.description";
@@ -196,6 +201,11 @@ public static class MaintenanceMessages
     /// 缓存存储不支持键管理。
     /// </summary>
     public const string CacheInspectorUnavailable = "maintenance.caches.inspector_unavailable";
+
+    /// <summary>
+    /// 没有装运行信息。
+    /// </summary>
+    public const string HostMonitorUnavailable = "maintenance.server.monitor_unavailable";
 
     /// <summary>
     /// 作业不存在。

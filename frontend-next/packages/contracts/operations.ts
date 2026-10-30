@@ -277,6 +277,7 @@ export const routes = {
   'roles.unassign': { method: 'POST', template: '/api/roles/{id}:unassign', path: ['id'], query: [], success: 200 },
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
+  'server.get': { method: 'GET', template: '/api/server', path: [], query: [], success: 200 },
   'session-roles.get': { method: 'GET', template: '/api/session-roles/{id}', path: ['id'], query: [], success: 200 },
   'session-roles.list': { method: 'POST', template: '/api/session-roles:list', path: [], query: [], success: 200 },
   'sessions.list': { method: 'POST', template: '/api/sessions:list', path: [], query: [], success: 200 },
@@ -817,6 +818,11 @@ export const roles = {
   unassign: (request: RequestOf<'roles.unassign'>, options?: CallOptions) => invoke<RequestOf<'roles.unassign'>, ResponseOf<'roles.unassign'>>('roles.unassign', routes['roles.unassign'], request, options),
   update: (request: RequestOf<'roles.update'>, options?: CallOptions) => invoke<RequestOf<'roles.update'>, ResponseOf<'roles.update'>>('roles.update', routes['roles.update'], request, options),
   updateMember: (request: RequestOf<'roles.update-member'>, options?: CallOptions) => invoke<RequestOf<'roles.update-member'>, ResponseOf<'roles.update-member'>>('roles.update-member', routes['roles.update-member'], request, options),
+}
+
+/** 资源 `server` 的操作。 */
+export const server = {
+  get: (request: RequestOf<'server.get'>, options?: CallOptions) => invoke<RequestOf<'server.get'>, ResponseOf<'server.get'>>('server.get', routes['server.get'], request, options),
 }
 
 /** 资源 `session-roles` 的操作。 */

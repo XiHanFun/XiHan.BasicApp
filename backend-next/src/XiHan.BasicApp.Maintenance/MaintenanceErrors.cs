@@ -79,4 +79,9 @@ public static class MaintenanceErrors
     /// 缓存存储不支持键管理。
     /// </summary>
     public const string CacheInspectorUnavailable = "MAINTENANCE_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 没有装运行信息（IHostMonitor）。
+    /// </summary>
+    public const string HostMonitorUnavailable = "MAINTENANCE_UNAVAILABLE_002";
 }

@@ -73,5 +73,11 @@
   "maintenance.caches.not_text": "La valeur de l'entrée de cache '{key}' n'est pas du texte et ne peut pas être réécrite.",
   "maintenance.caches.inspector_unavailable": "Le stockage de cache actuel ne gère pas les clés.",
   "openapi.tags.caches.name": "Caches",
-  "openapi.tags.caches.description": "Clés de cache des espaces de l'application : lister, consulter, réécrire et supprimer."
+  "openapi.tags.caches.description": "Clés de cache des espaces de l'application : lister, consulter, réécrire et supprimer.",
+  "server.get.title": "Obtenir les informations du serveur",
+  "server.get.description": "Donne le runtime et le processus, le processeur, la mémoire, les disques, les interfaces réseau, les GPU et la carte mère de l'hôte, ainsi que les derniers contrôles de santé des fournisseurs ; les champs illisibles sont nuls. Côté plateforme uniquement.",
+  "permissions.maintenance.server.read.name": "Consulter le moniteur serveur",
+  "maintenance.server.monitor_unavailable": "Les informations d'hôte (IHostMonitor) ne sont pas installées ; le serveur ne peut pas être lu.",
+  "openapi.tags.server.name": "Moniteur serveur",
+  "openapi.tags.server.description": "Informations d'exécution et contrôles de santé de l'hôte."
 }

@@ -5217,6 +5217,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/server": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get server information
+         * @description Get the host runtime and process, processor, memory, disks, network interfaces, GPUs and board, plus the latest health checks of the providers; unreadable fields are null. Platform side only.
+         *
+         *     Requires permission maintenance.server.read (Read server monitor).
+         */
+        get: operations["server.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session-roles/{id}": {
         parameters: {
             query?: never;
@@ -6705,6 +6727,8 @@ export interface components {
              */
             accesses: number;
         };
+        /** @enum {string} */
+        Architecture: "X86" | "X64" | "Arm" | "Arm64" | "Wasm" | "S390x" | "LoongArch64" | "Armv6" | "Ppc64le" | "RiscV64";
         /** @description 当前用户可进入的一个租户（tenants.mine 的列表项）。 */
         AvailableTenantResponse: {
             /** @description 租户 ID（目录键，切换时传它）。 */
@@ -6729,6 +6753,17 @@ export interface components {
             /** Format: uuid */
             id: string;
             code: string;
+        };
+        BoardInfo: {
+            manufacturer?: string | null;
+            product?: string | null;
+            version?: string | null;
+            serialNumber?: string | null;
+            systemManufacturer?: string | null;
+            systemProduct?: string | null;
+            biosVendor?: string | null;
+            biosVersion?: string | null;
+            biosDate?: string | null;
         };
         /** @description 一个机器人配置（签名密钥不回显）。 */
         BotConfigResponse: {
@@ -7484,6 +7519,25 @@ export interface components {
             /** @description 有变化的列，逗号分隔。 */
             changedFields?: string | null;
         };
+        DiskInfo: {
+            name: string;
+            device?: string | null;
+            label?: string | null;
+            format?: string | null;
+            type: components["schemas"]["DriveType"];
+            /** Format: int64 */
+            totalBytes: number;
+            /** Format: int64 */
+            freeBytes: number;
+            /** Format: int64 */
+            availableBytes: number;
+            /** Format: int64 */
+            usedBytes?: number;
+            /** Format: double */
+            usagePercent?: number | null;
+        };
+        /** @enum {string} */
+        DriveType: "Unknown" | "NoRootDirectory" | "Removable" | "Fixed" | "Network" | "CDRom" | "Ram";
         /** @description 套餐的响应形态：列表项与详情里的基本信息共用。 */
         EditionResponse: {
             /**
@@ -8031,11 +8085,50 @@ export interface components {
          * @enum {string}
          */
         FileUploadStatus: "Uploading" | "Completed" | "Aborted" | "Expired" | "Failed";
+        GpuInfo: {
+            name?: string | null;
+            vendor?: string | null;
+            vendorId?: string | null;
+            deviceId?: string | null;
+            driver?: string | null;
+            driverVersion?: string | null;
+            /** Format: int64 */
+            memoryBytes?: number | null;
+            /** Format: double */
+            temperatureCelsius?: number | null;
+        };
         /**
          * @description 授予规则的主体类型。
          * @enum {string}
          */
         GrantSubjectKind: "Role" | "User";
+        /** @description 一个健康项。 */
+        HealthItemResponse: {
+            /** @description 名字。 */
+            name: string;
+            /** @description 状态。 */
+            state: components["schemas"]["LifecycleState"];
+            /** @description 出错的错误码；正常为空。 */
+            errorCode?: string | null;
+            /** @description 出错原因（按区域）；正常为空。 */
+            errorMessage?: string | null;
+            /** @description 说明；没有为空。 */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description 最近一次检查的时间。
+             */
+            checkedAt?: string | null;
+            /**
+             * Format: double
+             * @description 最近一次检查用了多少毫秒。
+             */
+            durationMs?: number | null;
+            /** @description 明细（名字到值，值按不变区域写成文本）。 */
+            data: {
+                [key: string]: string | null;
+            };
+        };
         /** @description 可被模仿的一个用户。 */
         ImpersonationCandidateResponse: {
             /**
@@ -8323,6 +8416,8 @@ export interface components {
             /** @description 触发器出错的原因；没出错为 null。 */
             error?: string | null;
         };
+        /** @enum {string} */
+        LifecycleState: "Declared" | "Resolved" | "Configured" | "Started" | "Ready" | "Degraded" | "Draining" | "Stopped" | "Failed";
         /** @description 登录失败自动封禁此刻生效的参数。 */
         LoginAutoBanSettingsResponse: {
             /** @description 系统参数键（在参数配置里改）。 */
@@ -8483,6 +8578,20 @@ export interface components {
              * @description 创建时间（UTC）。
              */
             createdAt: string;
+        };
+        MemoryInfo: {
+            /** Format: int64 */
+            totalBytes?: number | null;
+            /** Format: int64 */
+            availableBytes?: number | null;
+            /** Format: int64 */
+            freeBytes?: number | null;
+            /** Format: int64 */
+            cachedBytes?: number | null;
+            /** Format: int64 */
+            usedBytes?: number | null;
+            /** Format: double */
+            usagePercent?: number | null;
         };
         /**
          * @description 菜单节点的种类。
@@ -8730,6 +8839,34 @@ export interface components {
             /** @description 是否当前这个会话（不能在这里下线，用退出登录）。 */
             isCurrent: boolean;
         };
+        NetworkInterfaceInfo: {
+            id: string;
+            name: string;
+            description?: string | null;
+            type: components["schemas"]["NetworkInterfaceType"];
+            status: components["schemas"]["OperationalStatus"];
+            /** Format: int64 */
+            speedBitsPerSecond?: number | null;
+            physicalAddress?: string | null;
+            iPv4Addresses?: string[];
+            iPv6Addresses?: string[];
+            gateways?: string[];
+            dnsServers?: string[];
+            /** Format: int64 */
+            bytesReceived?: number | null;
+            /** Format: int64 */
+            bytesSent?: number | null;
+            /** Format: int64 */
+            packetsReceived?: number | null;
+            /** Format: int64 */
+            packetsSent?: number | null;
+            /** Format: double */
+            receiveBytesPerSecond?: number | null;
+            /** Format: double */
+            sendBytesPerSecond?: number | null;
+        };
+        /** @enum {string} */
+        NetworkInterfaceType: "Unknown" | "Ethernet" | "TokenRing" | "Fddi" | "BasicIsdn" | "PrimaryIsdn" | "Ppp" | "Loopback" | "Ethernet3Megabit" | "Slip" | "Atm" | "GenericModem" | "FastEthernetT" | "Isdn" | "FastEthernetFx" | "Wireless80211" | "AsymmetricDsl" | "RateAdaptDsl" | "SymmetricDsl" | "VeryHighSpeedDsl" | "IPOverAtm" | "GigabitEthernet" | "Tunnel" | "MultiRateSymmetricDsl" | "HighPerformanceSerialBus" | "Wman" | "Wwanpp" | "Wwanpp2";
         /**
          * @description 正文格式。
          * @enum {string}
@@ -9243,6 +9380,8 @@ export interface components {
              */
             durationMs?: number | null;
         };
+        /** @enum {string} */
+        OperationalStatus: "Up" | "Down" | "Testing" | "Unknown" | "Dormant" | "NotPresent" | "LowerLayerDown";
         /**
          * @description 部门 / 岗位的启停状态。
          * @enum {string}
@@ -9437,6 +9576,21 @@ export interface components {
              */
             createdAt: string;
         };
+        ProcessorInfo: {
+            name?: string | null;
+            vendor?: string | null;
+            architecture: components["schemas"]["Architecture"];
+            /** Format: int32 */
+            physicalCores?: number | null;
+            /** Format: int32 */
+            logicalCores: number;
+            /** Format: double */
+            frequencyMhz?: number | null;
+            /** Format: int64 */
+            cacheBytes?: number | null;
+            /** Format: double */
+            usagePercent?: number | null;
+        };
         /**
          * ProfileResponse
          * @description 本人的资料与账号安全概况（个人中心）。
@@ -9593,6 +9747,47 @@ export interface components {
             code: string;
             /** @description 显示名。 */
             name: string;
+        };
+        RuntimeInfo: {
+            osDescription: string;
+            osPlatform: string;
+            osVersion: string;
+            osArchitecture: components["schemas"]["Architecture"];
+            framework: string;
+            runtimeIdentifier: string;
+            processArchitecture: components["schemas"]["Architecture"];
+            machineName: string;
+            userName?: string | null;
+            interactive: boolean;
+            /** Format: int32 */
+            processId: number;
+            processName: string;
+            /** Format: date-time */
+            processStartedAt?: string | null;
+            /** Format: duration */
+            processUptime?: string | null;
+            /** Format: date-time */
+            systemStartedAt?: string | null;
+            /** Format: duration */
+            systemUptime?: string | null;
+            /** Format: int64 */
+            workingSetBytes: number;
+            /** Format: int64 */
+            privateBytes?: number | null;
+            /** Format: int64 */
+            managedHeapBytes: number;
+            /** Format: int32 */
+            threadCount?: number | null;
+            /** Format: int32 */
+            handleCount?: number | null;
+            /** Format: int32 */
+            gen0Collections: number;
+            /** Format: int32 */
+            gen1Collections: number;
+            /** Format: int32 */
+            gen2Collections: number;
+            /** Format: double */
+            processCpuUsagePercent?: number | null;
         };
         /** @description 一个库的版本台账。 */
         SchemaVersionResponse: {
@@ -27434,6 +27629,52 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "server.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 服务器的运行信息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 运行时与进程。 */
+                        runtime: components["schemas"]["RuntimeInfo"];
+                        /** @description 处理器。 */
+                        processor: components["schemas"]["ProcessorInfo"];
+                        /** @description 内存。 */
+                        memory: components["schemas"]["MemoryInfo"];
+                        /** @description 磁盘。 */
+                        disks: components["schemas"]["DiskInfo"][];
+                        /** @description 网卡。 */
+                        networkInterfaces: components["schemas"]["NetworkInterfaceInfo"][];
+                        /** @description 显卡。 */
+                        gpus: components["schemas"]["GpuInfo"][];
+                        /** @description 主板与 BIOS。 */
+                        board: components["schemas"]["BoardInfo"];
+                        /** @description 健康项（各 Provider 自带，这里只展示）。 */
+                        health: components["schemas"]["HealthItemResponse"][];
                     };
                 };
             };
