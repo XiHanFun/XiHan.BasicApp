@@ -8,7 +8,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an access log of the caller’s side. Requires auditing.access-logs.read. */
+        /**
+         * Get access log
+         * @description Get an access log of the caller’s side.
+         *
+         *     Requires permission auditing.access-logs.read (Read access logs).
+         */
         get: operations["access-logs.get"];
         put?: never;
         post?: never;
@@ -27,7 +32,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List access logs page by page: every operation call of the caller’s side with its result, duration and client; filter by time range, trace, user, session, operation, result and status code. Requires auditing.access-logs.read. */
+        /**
+         * List access logs
+         * @description List access logs page by page: every operation call of the caller’s side with its result, duration and client; filter by time range, trace, user, session, operation, result and status code.
+         *
+         *     Requires permission auditing.access-logs.read (Read access logs).
+         */
         post: operations["access-logs.list"];
         delete?: never;
         options?: never;
@@ -44,7 +54,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens. */
+        /**
+         * Switch active roles
+         * @description Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens.
+         *
+         *     Requires sign-in.
+         */
         post: operations["auth.activate-roles"];
         delete?: never;
         options?: never;
@@ -61,7 +76,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Issue a captcha (4 digits, valid for one use within 5 minutes). */
+        /**
+         * Get captcha
+         * @description Issue a captcha (4 digits, valid for one use within 5 minutes).
+         */
         post: operations["auth.captcha"];
         delete?: never;
         options?: never;
@@ -78,7 +96,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Third-party sign-in: exchanges the one-time ticket from the callback for the account bound in the chosen home tenant; unbound identities are rejected (sign in with a password and bind it in your profile first). Account status, lockout and two-factor apply as for password sign-in. */
+        /**
+         * Third-party sign-in
+         * @description Third-party sign-in: exchanges the one-time ticket from the callback for the account bound in the chosen home tenant; unbound identities are rejected (sign in with a password and bind it in your profile first). Account status, lockout and two-factor apply as for password sign-in.
+         */
         post: operations["auth.external-login"];
         delete?: never;
         options?: never;
@@ -95,7 +116,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lock the current session (screen lock) with a one-off lock password; afterwards every request of this session except unlock and logout is rejected with IDENTITY_DENIED_002. Requires sign-in only. */
+        /**
+         * Lock session
+         * @description Lock the current session (screen lock) with a one-off lock password; afterwards every request of this session except unlock and logout is rejected with IDENTITY_DENIED_002.
+         *
+         *     Requires sign-in.
+         */
         post: operations["auth.lock"];
         delete?: never;
         options?: never;
@@ -112,7 +138,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign in with user name and password (tenant optional; platform accounts leave it empty; when the captcha is on, include the id and code from auth.captcha). Returns a second-step ticket when the account has two-factor on, otherwise access and refresh tokens. */
+        /**
+         * Sign in
+         * @description Sign in with user name and password (tenant optional; platform accounts leave it empty; when the captcha is on, include the id and code from auth.captcha). Returns a second-step ticket when the account has two-factor on, otherwise access and refresh tokens.
+         */
         post: operations["auth.login"];
         delete?: never;
         options?: never;
@@ -127,7 +156,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Sign-in page settings: available sign-in methods, third-party providers and whether a captcha is required. */
+        /**
+         * Get sign-in settings
+         * @description Sign-in page settings: available sign-in methods, third-party providers and whether a captcha is required.
+         */
         get: operations["auth.login-config"];
         put?: never;
         post?: never;
@@ -146,7 +178,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke the session of the current token. */
+        /**
+         * Sign out
+         * @description Revoke the session of the current token.
+         *
+         *     Requires sign-in.
+         */
         post: operations["auth.logout"];
         delete?: never;
         options?: never;
@@ -161,7 +198,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Return the current user, tenant, session and roles. */
+        /**
+         * Get current user
+         * @description Return the current user, tenant, session and roles.
+         *
+         *     Requires sign-in.
+         */
         get: operations["auth.me"];
         put?: never;
         post?: never;
@@ -178,7 +220,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Return the current principal's effective permissions, roles, menu tree and page codes. */
+        /**
+         * My permissions and menus
+         * @description Return the current principal's effective permissions, roles, menu tree and page codes.
+         *
+         *     Requires sign-in.
+         */
         get: operations["auth.permissions"];
         put?: never;
         post?: never;
@@ -197,7 +244,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Exchange a refresh token for new tokens; the refresh token rotates and the old one stops working. */
+        /**
+         * Refresh tokens
+         * @description Exchange a refresh token for new tokens; the refresh token rotates and the old one stops working.
+         */
         post: operations["auth.refresh"];
         delete?: never;
         options?: never;
@@ -212,7 +262,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The roles the current session holds right now and which of them are activated. Requires signing in only. */
+        /**
+         * My session roles
+         * @description The roles the current session holds right now and which of them are activated.
+         *
+         *     Requires sign-in.
+         */
         get: operations["auth.session-roles"];
         put?: never;
         post?: never;
@@ -231,7 +286,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens. */
+        /**
+         * Switch tenant
+         * @description Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens.
+         *
+         *     Requires sign-in.
+         */
         post: operations["auth.switch-tenant"];
         delete?: never;
         options?: never;
@@ -248,7 +308,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Unlock the current session with its lock password; five wrong attempts in a row revoke the session (a forced sign-out). Requires sign-in only and works while locked. */
+        /**
+         * Unlock session
+         * @description Unlock the current session with its lock password; five wrong attempts in a row revoke the session (a forced sign-out). Works while locked.
+         *
+         *     Requires sign-in.
+         */
         post: operations["auth.unlock"];
         delete?: never;
         options?: never;
@@ -265,7 +330,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Second step of two-factor sign-in: submit the code with the ticket from auth.login; returns access and refresh tokens on success. */
+        /**
+         * Complete two-factor sign-in
+         * @description Second step of two-factor sign-in: submit the code with the ticket from auth.login; returns access and refresh tokens on success.
+         */
         post: operations["auth.verify-two-factor"];
         delete?: never;
         options?: never;
@@ -282,9 +350,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create bot configurations on the caller's side; codes are unique per side. Requires notification.bot-configs.create. */
+        /**
+         * Create bot configuration
+         * @description Create bot configurations on the caller's side; codes are unique per side.
+         *
+         *     Requires permission notification.bot-configs.create (Create bot configurations).
+         */
         post: operations["bot-configs.create"];
-        /** Delete bot configurations in bulk. Requires notification.bot-configs.delete. */
+        /**
+         * Delete bot configurations
+         * @description Delete bot configurations in bulk.
+         *
+         *     Requires permission notification.bot-configs.delete (Delete bot configurations).
+         */
         delete: operations["bot-configs.delete"];
         options?: never;
         head?: never;
@@ -298,9 +376,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the bot configurations. Requires notification.bot-configs.read. */
+        /**
+         * Get bot configuration
+         * @description Get one of the bot configurations.
+         *
+         *     Requires permission notification.bot-configs.read (Read bot configurations).
+         */
         get: operations["bot-configs.get"];
-        /** Edit bot configurations; the code does not change. Requires notification.bot-configs.update. */
+        /**
+         * Update bot configuration
+         * @description Edit bot configurations; the code does not change.
+         *
+         *     Requires permission notification.bot-configs.update (Update bot configurations).
+         */
         put: operations["bot-configs.update"];
         post?: never;
         delete?: never;
@@ -318,7 +406,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Make an enabled entry of the bot configurations the caller's side default used for sending. Requires notification.bot-configs.update. */
+        /**
+         * Set default bot configuration
+         * @description Make an enabled entry of the bot configurations the caller's side default used for sending.
+         *
+         *     Requires permission notification.bot-configs.update (Update bot configurations).
+         */
         post: operations["bot-configs.set-default"];
         delete?: never;
         options?: never;
@@ -335,7 +428,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the bot configurations of the caller's side. Requires notification.bot-configs.read. */
+        /**
+         * List bot configurations
+         * @description Page through the bot configurations of the caller's side.
+         *
+         *     Requires permission notification.bot-configs.read (Read bot configurations).
+         */
         post: operations["bot-configs.list"];
         delete?: never;
         options?: never;
@@ -350,7 +448,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a condition hit of the caller’s side. Requires auditing.condition-hits.read. */
+        /**
+         * Get condition hit
+         * @description Get a condition hit of the caller’s side.
+         *
+         *     Requires permission auditing.condition-hits.read (Read condition hits).
+         */
         get: operations["condition-hits.get"];
         put?: never;
         post?: never;
@@ -369,7 +472,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List condition hits page by page: access policy and permission condition hits of the caller’s side. Requires auditing.condition-hits.read. */
+        /**
+         * List condition hits
+         * @description List condition hits page by page: access policy and permission condition hits of the caller’s side.
+         *
+         *     Requires permission auditing.condition-hits.read (Read condition hits).
+         */
         post: operations["condition-hits.list"];
         delete?: never;
         options?: never;
@@ -386,9 +494,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a configuration entry on the caller’s side: the key is unique per side and the value is checked against the data type; a tenant entry with a platform key overrides it (rejected when the platform entry forbids overrides). Requires settings.configs.create. */
+        /**
+         * Create configuration entry
+         * @description Create a configuration entry on the caller’s side: the key is unique per side and the value is checked against the data type; a tenant entry with a platform key overrides it (rejected when the platform entry forbids overrides).
+         *
+         *     Requires permission settings.configs.create (Create configuration).
+         */
         post: operations["configs.create"];
-        /** Delete configuration entries on the caller’s side in bulk; built-in entries are rejected one by one. Requires settings.configs.delete. */
+        /**
+         * Delete configuration entries
+         * @description Delete configuration entries on the caller’s side in bulk; built-in entries are rejected one by one.
+         *
+         *     Requires permission settings.configs.delete (Delete configuration).
+         */
         delete: operations["configs.delete"];
         options?: never;
         head?: never;
@@ -402,9 +520,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a configuration entry (encrypted values are never returned). Requires settings.configs.read. */
+        /**
+         * Get configuration entry
+         * @description Get a configuration entry (encrypted values are never returned).
+         *
+         *     Requires permission settings.configs.read (Read configuration).
+         */
         get: operations["configs.get"];
-        /** Update a configuration entry on the caller’s side: name, group, value, default, data type, encryption, order, description and status (the key cannot change; an encrypted entry keeps its value when none is given). Requires settings.configs.update. */
+        /**
+         * Update configuration entry
+         * @description Update a configuration entry on the caller’s side: name, group, value, default, data type, encryption, order, description and status (the key cannot change; an encrypted entry keeps its value when none is given).
+         *
+         *     Requires permission settings.configs.update (Update configuration).
+         */
         put: operations["configs.update"];
         post?: never;
         delete?: never;
@@ -422,7 +550,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List configuration entries page by page: platform principals see platform entries, tenant principals see platform entries plus their own; encrypted values are never returned. Requires settings.configs.read. */
+        /**
+         * List configuration entries
+         * @description List configuration entries page by page: platform principals see platform entries, tenant principals see platform entries plus their own; encrypted values are never returned.
+         *
+         *     Requires permission settings.configs.read (Read configuration).
+         */
         post: operations["configs.list"];
         delete?: never;
         options?: never;
@@ -439,9 +572,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a constraint rule. Requires access.constraint-rules.create. */
+        /**
+         * Create constraint rule
+         * @description Create a constraint rule.
+         *
+         *     Requires permission access.constraint-rules.create (Create constraint rules).
+         */
         post: operations["constraint-rules.create"];
-        /** Delete constraint rules together with their items. Requires access.constraint-rules.delete. */
+        /**
+         * Delete constraint rules
+         * @description Delete constraint rules together with their items.
+         *
+         *     Requires permission access.constraint-rules.delete (Delete constraint rules).
+         */
         delete: operations["constraint-rules.delete"];
         options?: never;
         head?: never;
@@ -455,9 +598,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a constraint rule by ID. Requires access.constraint-rules.read. */
+        /**
+         * Get constraint rule
+         * @description Get a constraint rule by ID.
+         *
+         *     Requires permission access.constraint-rules.read (Read constraint rules).
+         */
         get: operations["constraint-rules.get"];
-        /** Replace a constraint rule, including its status and items. Requires access.constraint-rules.update. */
+        /**
+         * Update constraint rule
+         * @description Replace a constraint rule, including its status and items.
+         *
+         *     Requires permission access.constraint-rules.update (Update constraint rules).
+         */
         put: operations["constraint-rules.update"];
         post?: never;
         delete?: never;
@@ -475,7 +628,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enable or disable a constraint rule. Requires access.constraint-rules.update. */
+        /**
+         * Enable or disable constraint rule
+         * @description Enable or disable a constraint rule.
+         *
+         *     Requires permission access.constraint-rules.update (Update constraint rules).
+         */
         post: operations["constraint-rules.set-status"];
         delete?: never;
         options?: never;
@@ -492,7 +650,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List the constraint rules of the current side, by evaluation order by default. Requires access.constraint-rules.read. */
+        /**
+         * List constraint rules
+         * @description List the constraint rules of the current side, by evaluation order by default.
+         *
+         *     Requires permission access.constraint-rules.read (Read constraint rules).
+         */
         post: operations["constraint-rules.list"];
         delete?: never;
         options?: never;
@@ -509,9 +672,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a delegation: the delegator hands one permission or one role to the delegatee for a limited time, and must hold it now. Requires access.delegations.create. */
+        /**
+         * Create delegation
+         * @description Create a delegation: the delegator hands one permission or one role to the delegatee for a limited time, and must hold it now.
+         *
+         *     Requires permission access.delegations.create (Create delegations).
+         */
         post: operations["delegations.create"];
-        /** Delete delegation records; an active one stops taking effect. Requires access.delegations.delete. */
+        /**
+         * Delete delegations
+         * @description Delete delegation records; an active one stops taking effect.
+         *
+         *     Requires permission access.delegations.delete (Delete delegations).
+         */
         delete: operations["delegations.delete"];
         options?: never;
         head?: never;
@@ -527,7 +700,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke a pending or active delegation, keeping the record. Requires access.delegations.revoke. */
+        /**
+         * Revoke delegation
+         * @description Revoke a pending or active delegation, keeping the record.
+         *
+         *     Requires permission access.delegations.revoke (Revoke delegations).
+         */
         post: operations["delegations.revoke"];
         delete?: never;
         options?: never;
@@ -544,7 +722,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List the delegations of the current side with paging; their status follows from revocation and the validity window. Requires access.delegations.read. */
+        /**
+         * List delegations
+         * @description List the delegations of the current side with paging; their status follows from revocation and the validity window.
+         *
+         *     Requires permission access.delegations.read (Read delegations).
+         */
         post: operations["delegations.list"];
         delete?: never;
         options?: never;
@@ -561,9 +744,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a department anywhere in the tree (code unique within the tenant; parent must exist; leader must be a user of this tenant). Tenant side only; requires organization.departments.create. */
+        /**
+         * Create department
+         * @description Create a department anywhere in the tree (code unique within the tenant; parent must exist; leader must be a user of this tenant). Tenant side only.
+         *
+         *     Requires permission organization.departments.create (Create departments).
+         */
         post: operations["departments.create"];
-        /** Delete departments in batch; departments that still have children or members are rejected item by item. Requires organization.departments.delete. */
+        /**
+         * Delete departments
+         * @description Delete departments in batch; departments that still have children or members are rejected item by item.
+         *
+         *     Requires permission organization.departments.delete (Delete departments).
+         */
         delete: operations["departments.delete"];
         options?: never;
         head?: never;
@@ -577,9 +770,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a department with its ancestors, leader user name, child count and member count. Requires organization.departments.read. */
+        /**
+         * Get department details
+         * @description Get a department with its ancestors, leader user name, child count and member count.
+         *
+         *     Requires permission organization.departments.read (Read departments).
+         */
         get: operations["departments.get"];
-        /** Update a department's name, leader, order, description and status (the parent is changed with departments.move). Requires organization.departments.update. */
+        /**
+         * Update department
+         * @description Update a department's name, leader, order, description and status (the parent is changed with departments.move).
+         *
+         *     Requires permission organization.departments.update (Update departments).
+         */
         put: operations["departments.update"];
         post?: never;
         delete?: never;
@@ -597,7 +800,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Move a department under another parent or to the top level; moving under itself or a descendant is rejected. Requires organization.departments.update. */
+        /**
+         * Move department
+         * @description Move a department under another parent or to the top level; moving under itself or a descendant is rejected.
+         *
+         *     Requires permission organization.departments.update (Update departments).
+         */
         post: operations["departments.move"];
         delete?: never;
         options?: never;
@@ -612,7 +820,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The whole department tree of the current tenant with direct member counts. Requires organization.departments.read. */
+        /**
+         * Get department tree
+         * @description The whole department tree of the current tenant with direct member counts.
+         *
+         *     Requires permission organization.departments.read (Read departments).
+         */
         get: operations["departments.tree"];
         put?: never;
         post?: never;
@@ -629,12 +842,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all items of a dictionary (depth-first, with depth). Requires settings.dict-items.read. */
+        /**
+         * List dictionary items
+         * @description List all items of a dictionary (depth-first, with depth).
+         *
+         *     Requires permission settings.dict-items.read (Read dictionary items).
+         */
         get: operations["dict-items.list"];
         put?: never;
-        /** Create an item in an enabled dictionary on the caller’s side: the code is unique in the dictionary, the parent must be in the same dictionary, making it the default clears the other default. Requires settings.dict-items.create. */
+        /**
+         * Create dictionary item
+         * @description Create an item in an enabled dictionary on the caller’s side: the code is unique in the dictionary, the parent must be in the same dictionary, making it the default clears the other default.
+         *
+         *     Requires permission settings.dict-items.create (Create dictionary items).
+         */
         post: operations["dict-items.create"];
-        /** Delete dictionary items in bulk; items that still have children are rejected one by one. Requires settings.dict-items.delete. */
+        /**
+         * Delete dictionary items
+         * @description Delete dictionary items in bulk; items that still have children are rejected one by one.
+         *
+         *     Requires permission settings.dict-items.delete (Delete dictionary items).
+         */
         delete: operations["dict-items.delete"];
         options?: never;
         head?: never;
@@ -648,9 +876,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a dictionary item. Requires settings.dict-items.read. */
+        /**
+         * Get dictionary item
+         * @description Get a dictionary item.
+         *
+         *     Requires permission settings.dict-items.read (Read dictionary items).
+         */
         get: operations["dict-items.get"];
-        /** Update a dictionary item: parent, name, value, description, metadata, default, order and status (the code cannot change; an item cannot move under itself or its descendants). Requires settings.dict-items.update. */
+        /**
+         * Update dictionary item
+         * @description Update a dictionary item: parent, name, value, description, metadata, default, order and status (the code cannot change; an item cannot move under itself or its descendants).
+         *
+         *     Requires permission settings.dict-items.update (Update dictionary items).
+         */
         put: operations["dict-items.update"];
         post?: never;
         delete?: never;
@@ -668,9 +906,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a dictionary on the caller’s side; codes are unique across platform and tenants (dictionaries are never overridden). Requires settings.dicts.create. */
+        /**
+         * Create dictionary
+         * @description Create a dictionary on the caller’s side; codes are unique across platform and tenants (dictionaries are never overridden).
+         *
+         *     Requires permission settings.dicts.create (Create dictionaries).
+         */
         post: operations["dicts.create"];
-        /** Delete dictionaries on the caller’s side in bulk; built-in dictionaries and those that still have items are rejected one by one. Requires settings.dicts.delete. */
+        /**
+         * Delete dictionaries
+         * @description Delete dictionaries on the caller’s side in bulk; built-in dictionaries and those that still have items are rejected one by one.
+         *
+         *     Requires permission settings.dicts.delete (Delete dictionaries).
+         */
         delete: operations["dicts.delete"];
         options?: never;
         head?: never;
@@ -684,9 +932,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a dictionary. Requires settings.dicts.read. */
+        /**
+         * Get dictionary
+         * @description Get a dictionary.
+         *
+         *     Requires permission settings.dicts.read (Read dictionaries).
+         */
         get: operations["dicts.get"];
-        /** Update a dictionary on the caller’s side: name, category, description, order and status (the code cannot change). Requires settings.dicts.update. */
+        /**
+         * Update dictionary
+         * @description Update a dictionary on the caller’s side: name, category, description, order and status (the code cannot change).
+         *
+         *     Requires permission settings.dicts.update (Update dictionaries).
+         */
         put: operations["dicts.update"];
         post?: never;
         delete?: never;
@@ -704,7 +962,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List dictionaries page by page: platform dictionaries plus the caller’s tenant dictionaries. Requires settings.dicts.read. */
+        /**
+         * List dictionaries
+         * @description List dictionaries page by page: platform dictionaries plus the caller’s tenant dictionaries.
+         *
+         *     Requires permission settings.dicts.read (Read dictionaries).
+         */
         post: operations["dicts.list"];
         delete?: never;
         options?: never;
@@ -719,7 +982,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get the options of a dictionary by code: tree dictionaries are flattened depth-first, disabled items are flagged, a disabled dictionary has no options. Any signed-in user. */
+        /**
+         * Get dictionary options
+         * @description Get the options of a dictionary by code: tree dictionaries are flattened depth-first, disabled items are flagged, a disabled dictionary has no options.
+         *
+         *     Requires sign-in.
+         */
         get: operations["dicts.options"];
         put?: never;
         post?: never;
@@ -736,7 +1004,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a data change log of the caller’s side with field-level before and after values. Requires auditing.diff-logs.read. */
+        /**
+         * Get data change log
+         * @description Get a data change log of the caller’s side with field-level before and after values.
+         *
+         *     Requires permission auditing.diff-logs.read (Read data change logs).
+         */
         get: operations["diff-logs.get"];
         put?: never;
         post?: never;
@@ -755,7 +1028,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List data change logs page by page: entity inserts, updates and deletes of the caller’s side. Requires auditing.diff-logs.read. */
+        /**
+         * List data change logs
+         * @description List data change logs page by page: entity inserts, updates and deletes of the caller’s side.
+         *
+         *     Requires permission auditing.diff-logs.read (Read data change logs).
+         */
         post: operations["diff-logs.list"];
         delete?: never;
         options?: never;
@@ -770,12 +1048,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List every edition (by order, then code) with its whitelist size and the number of tenants on it. Platform side only; requires tenancy.editions.read. */
+        /**
+         * List editions
+         * @description List every edition (by order, then code) with its whitelist size and the number of tenants on it. Platform side only.
+         *
+         *     Requires permission tenancy.editions.read (Read editions).
+         */
         get: operations["editions.list"];
         put?: never;
-        /** Create an edition with an initial whitelist (tenant-side permissions only); it can become the default edition for new tenants. Requires tenancy.editions.create. */
+        /**
+         * Create edition
+         * @description Create an edition with an initial whitelist (tenant-side permissions only); it can become the default edition for new tenants.
+         *
+         *     Requires permission tenancy.editions.create (Create editions).
+         */
         post: operations["editions.create"];
-        /** Delete editions and their whitelists in batch; editions still used by tenants are rejected item by item. Requires tenancy.editions.delete. */
+        /**
+         * Delete editions
+         * @description Delete editions and their whitelists in batch; editions still used by tenants are rejected item by item.
+         *
+         *     Requires permission tenancy.editions.delete (Delete editions).
+         */
         delete: operations["editions.delete"];
         options?: never;
         head?: never;
@@ -789,9 +1082,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an edition with its permission whitelist. Requires tenancy.editions.read. */
+        /**
+         * Get edition details
+         * @description Get an edition with its permission whitelist.
+         *
+         *     Requires permission tenancy.editions.read (Read editions).
+         */
         get: operations["editions.get"];
-        /** Update an edition's name, description, default flag and order; the code cannot change. Requires tenancy.editions.update. */
+        /**
+         * Update edition
+         * @description Update an edition's name, description, default flag and order; the code cannot change.
+         *
+         *     Requires permission tenancy.editions.update (Update editions).
+         */
         put: operations["editions.update"];
         post?: never;
         delete?: never;
@@ -809,7 +1112,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Replace an edition's permission whitelist; the effective permissions of tenants on it narrow or widen immediately. Requires tenancy.editions.update. */
+        /**
+         * Set edition permission whitelist
+         * @description Replace an edition's permission whitelist; the effective permissions of tenants on it narrow or widen immediately.
+         *
+         *     Requires permission tenancy.editions.update (Update editions).
+         */
         post: operations["editions.set-permissions"];
         delete?: never;
         options?: never;
@@ -826,9 +1134,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create email configurations on the caller's side; codes are unique per side. Requires notification.email-configs.create. */
+        /**
+         * Create email configuration
+         * @description Create email configurations on the caller's side; codes are unique per side.
+         *
+         *     Requires permission notification.email-configs.create (Create email configurations).
+         */
         post: operations["email-configs.create"];
-        /** Delete email configurations in bulk. Requires notification.email-configs.delete. */
+        /**
+         * Delete email configurations
+         * @description Delete email configurations in bulk.
+         *
+         *     Requires permission notification.email-configs.delete (Delete email configurations).
+         */
         delete: operations["email-configs.delete"];
         options?: never;
         head?: never;
@@ -842,9 +1160,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the email configurations. Requires notification.email-configs.read. */
+        /**
+         * Get email configuration
+         * @description Get one of the email configurations.
+         *
+         *     Requires permission notification.email-configs.read (Read email configurations).
+         */
         get: operations["email-configs.get"];
-        /** Edit email configurations; the code does not change. Requires notification.email-configs.update. */
+        /**
+         * Update email configuration
+         * @description Edit email configurations; the code does not change.
+         *
+         *     Requires permission notification.email-configs.update (Update email configurations).
+         */
         put: operations["email-configs.update"];
         post?: never;
         delete?: never;
@@ -862,7 +1190,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Make an enabled entry of the email configurations the caller's side default used for sending. Requires notification.email-configs.update. */
+        /**
+         * Set default email configuration
+         * @description Make an enabled entry of the email configurations the caller's side default used for sending.
+         *
+         *     Requires permission notification.email-configs.update (Update email configurations).
+         */
         post: operations["email-configs.set-default"];
         delete?: never;
         options?: never;
@@ -879,7 +1212,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the email configurations of the caller's side. Requires notification.email-configs.read. */
+        /**
+         * List email configurations
+         * @description Page through the email configurations of the caller's side.
+         *
+         *     Requires permission notification.email-configs.read (Read email configurations).
+         */
         post: operations["email-configs.list"];
         delete?: never;
         options?: never;
@@ -897,7 +1235,12 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete email send records in bulk. Requires notification.emails.delete. */
+        /**
+         * Delete email send records
+         * @description Delete email send records in bulk.
+         *
+         *     Requires permission notification.emails.delete (Delete sent emails).
+         */
         delete: operations["emails.delete"];
         options?: never;
         head?: never;
@@ -911,7 +1254,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the email send records. Requires notification.emails.read. */
+        /**
+         * Get email send record
+         * @description Get one of the email send records.
+         *
+         *     Requires permission notification.emails.read (Read sent emails).
+         */
         get: operations["emails.get"];
         put?: never;
         post?: never;
@@ -930,7 +1278,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cancel queued email send records. Requires notification.emails.resend. */
+        /**
+         * Cancel queued emails
+         * @description Cancel queued email send records.
+         *
+         *     Requires permission notification.emails.resend (Resend emails).
+         */
         post: operations["emails.cancel"];
         delete?: never;
         options?: never;
@@ -947,7 +1300,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the email send records of the caller's side. Requires notification.emails.read. */
+        /**
+         * List email send records
+         * @description Page through the email send records of the caller's side.
+         *
+         *     Requires permission notification.emails.read (Read sent emails).
+         */
         post: operations["emails.list"];
         delete?: never;
         options?: never;
@@ -964,7 +1322,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resend email send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.emails.resend. */
+        /**
+         * Resend emails
+         * @description Resend email send records: back to queued with the attempt count reset; queued and sending ones are rejected.
+         *
+         *     Requires permission notification.emails.resend (Resend emails).
+         */
         post: operations["emails.resend"];
         delete?: never;
         options?: never;
@@ -979,7 +1342,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an exception log of the caller’s side, including the full stack trace. Requires auditing.exception-logs.read. */
+        /**
+         * Get exception log
+         * @description Get an exception log of the caller’s side, including the full stack trace.
+         *
+         *     Requires permission auditing.exception-logs.read (Read exception logs).
+         */
         get: operations["exception-logs.get"];
         put?: never;
         post?: never;
@@ -998,7 +1366,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List exception logs page by page: unhandled exceptions of the caller’s side with type, message and location. Requires auditing.exception-logs.read. */
+        /**
+         * List exception logs
+         * @description List exception logs page by page: unhandled exceptions of the caller’s side with type, message and location.
+         *
+         *     Requires permission auditing.exception-logs.read (Read exception logs).
+         */
         post: operations["exception-logs.list"];
         delete?: never;
         options?: never;
@@ -1016,7 +1389,12 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete your export tasks together with their result files; running ones are rejected one by one. Requires sign-in. */
+        /**
+         * Delete export tasks
+         * @description Delete your export tasks together with their result files; running ones are rejected one by one.
+         *
+         *     Requires sign-in.
+         */
         delete: operations["export-tasks.delete"];
         options?: never;
         head?: never;
@@ -1030,7 +1408,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of your export tasks. Requires sign-in. */
+        /**
+         * Get export task
+         * @description Get one of your export tasks.
+         *
+         *     Requires sign-in.
+         */
         get: operations["export-tasks.get"];
         put?: never;
         post?: never;
@@ -1049,7 +1432,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cancel one of your queued export tasks. Requires sign-in. */
+        /**
+         * Cancel export task
+         * @description Cancel one of your queued export tasks.
+         *
+         *     Requires sign-in.
+         */
         post: operations["export-tasks.cancel"];
         delete?: never;
         options?: never;
@@ -1066,7 +1454,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through your own export tasks. Requires sign-in. */
+        /**
+         * List export tasks
+         * @description Page through your own export tasks.
+         *
+         *     Requires sign-in.
+         */
         post: operations["export-tasks.list"];
         delete?: never;
         options?: never;
@@ -1083,7 +1476,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Submit an export: run a list operation's query as yourself in the background and write CSV or XLSX, kept as a temporary file for 7 days. Requires sign-in; the list operation checks its own permission as usual. */
+        /**
+         * Submit export
+         * @description Submit an export: run a list operation's query as yourself in the background and write CSV or XLSX, kept as a temporary file for 7 days. The list operation checks its own permission as usual.
+         *
+         *     Requires sign-in.
+         */
         post: operations["export-tasks.submit"];
         delete?: never;
         options?: never;
@@ -1100,9 +1498,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a field security rule: how a role, user or department reads a field and whether it may change it. Requires access.field-security.create. */
+        /**
+         * Create field security rule
+         * @description Create a field security rule: how a role, user or department reads a field and whether it may change it.
+         *
+         *     Requires permission access.field-security.create (Create field security).
+         */
         post: operations["field-security.create"];
-        /** Delete field security rules. Requires access.field-security.delete. */
+        /**
+         * Delete field security rules
+         * @description Delete field security rules.
+         *
+         *     Requires permission access.field-security.delete (Delete field security).
+         */
         delete: operations["field-security.delete"];
         options?: never;
         head?: never;
@@ -1116,9 +1524,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a field security rule. Requires access.field-security.read. */
+        /**
+         * Get field security rule
+         * @description Get a field security rule.
+         *
+         *     Requires permission access.field-security.read (Read field security).
+         */
         get: operations["field-security.get"];
-        /** Edit a field security rule, including enabling and disabling it. Requires access.field-security.update. */
+        /**
+         * Update field security rule
+         * @description Edit a field security rule, including enabling and disabling it.
+         *
+         *     Requires permission access.field-security.update (Update field security).
+         */
         put: operations["field-security.update"];
         post?: never;
         delete?: never;
@@ -1134,7 +1552,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the entities and fields that field security can protect (registered by each package). Requires access.field-security.read. */
+        /**
+         * List configurable fields
+         * @description List the entities and fields that field security can protect (registered by each package).
+         *
+         *     Requires permission access.field-security.read (Read field security).
+         */
         get: operations["field-security.entities"];
         put?: never;
         post?: never;
@@ -1153,7 +1576,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List the field security rules of the current side with paging. Requires access.field-security.read. */
+        /**
+         * List field security rules
+         * @description List the field security rules of the current side with paging.
+         *
+         *     Requires permission access.field-security.read (Read field security).
+         */
         post: operations["field-security.list"];
         delete?: never;
         options?: never;
@@ -1171,7 +1599,12 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete files in a batch; stored content goes once no other file uses it. Requires files.files.delete. */
+        /**
+         * Delete files
+         * @description Delete files in a batch; stored content goes once no other file uses it.
+         *
+         *     Requires permission files.files.delete (Delete files).
+         */
         delete: operations["files.delete"];
         options?: never;
         head?: never;
@@ -1204,7 +1637,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload one file as multipart form data (field `file`). */
+        /**
+         * Upload one file as multipart form data (field `file`).
+         * @description Requires permission files.files.create (Upload files).
+         */
         post: operations["files.upload"];
         delete?: never;
         options?: never;
@@ -1219,9 +1655,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a file. Requires files.files.read. */
+        /**
+         * Get file
+         * @description Get a file.
+         *
+         *     Requires permission files.files.read (Read files).
+         */
         get: operations["files.get"];
-        /** Edit a file's access level, temporary flag and expiry, tags and remark. Requires files.files.update. */
+        /**
+         * Edit file details
+         * @description Edit a file's access level, temporary flag and expiry, tags and remark.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
         put: operations["files.update"];
         post?: never;
         delete?: never;
@@ -1237,7 +1683,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read a file's content on the caller's side, subject to its access level. */
+        /**
+         * Read a file's content on the caller's side, subject to its access level.
+         * @description Requires sign-in.
+         */
         get: operations["files.content"];
         put?: never;
         post?: never;
@@ -1254,7 +1703,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Obtain a signed download link: files open to signed-in users need only a sign-in, files that need authorization require files.files.read; the link is not checked against an identity while it is valid. */
+        /**
+         * Get signed download link
+         * @description Obtain a signed download link: files open to signed-in users need only a sign-in, files that need authorization require files.files.read; the link is not checked against an identity while it is valid.
+         *
+         *     Requires sign-in.
+         */
         get: operations["files.presign"];
         put?: never;
         post?: never;
@@ -1273,7 +1727,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Make a normal, verified copy the primary copy; a corrupted file becomes normal again. Requires files.files.update. */
+        /**
+         * Set primary copy
+         * @description Make a normal, verified copy the primary copy; a corrupted file becomes normal again.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
         post: operations["files.set-primary-storage"];
         delete?: never;
         options?: never;
@@ -1290,7 +1749,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enable or disable a copy; the primary copy cannot be disabled and a failed copy must be verified again. Requires files.files.update. */
+        /**
+         * Enable or disable copy
+         * @description Enable or disable a copy; the primary copy cannot be disabled and a failed copy must be verified again.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
         post: operations["files.set-storage-status"];
         delete?: never;
         options?: never;
@@ -1305,7 +1769,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List a file's stored copies, primary copy first. Requires files.files.read. */
+        /**
+         * List file copies
+         * @description List a file's stored copies, primary copy first.
+         *
+         *     Requires permission files.files.read (Read files).
+         */
         get: operations["files.storages"];
         put?: never;
         post?: never;
@@ -1324,7 +1793,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Verify a copy by reading it and comparing its SHA-256; a mismatch or missing content marks it failed, and a failed primary copy marks the file corrupted. Requires files.files.update. */
+        /**
+         * Verify copy
+         * @description Verify a copy by reading it and comparing its SHA-256; a mismatch or missing content marks it failed, and a failed primary copy marks the file corrupted.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
         post: operations["files.verify-storage"];
         delete?: never;
         options?: never;
@@ -1341,7 +1815,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Instant upload: when a normal file with the same content already exists on the caller's side, a new record is created at once; a miss returns nothing. Requires files.files.create. */
+        /**
+         * Instant upload
+         * @description Instant upload: when a normal file with the same content already exists on the caller's side, a new record is created at once; a miss returns nothing.
+         *
+         *     Requires permission files.files.create (Upload files).
+         */
         post: operations["files.fast-upload"];
         delete?: never;
         options?: never;
@@ -1358,7 +1837,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the caller's side's files; the keyword matches the original name, stored name, extension, content type and tags. Requires files.files.read. */
+        /**
+         * List files
+         * @description Page through the caller's side's files; the keyword matches the original name, stored name, extension, content type and tags.
+         *
+         *     Requires permission files.files.read (Read files).
+         */
         post: operations["files.list"];
         delete?: never;
         options?: never;
@@ -1375,7 +1859,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Archive or restore files in a batch; corrupted files are rejected one by one. Requires files.files.update. */
+        /**
+         * Archive or restore files
+         * @description Archive or restore files in a batch; corrupted files are rejected one by one.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
         post: operations["files.set-status"];
         delete?: never;
         options?: never;
@@ -1390,7 +1879,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start. */
+        /**
+         * List impersonation candidates
+         * @description List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword.
+         *
+         *     Requires permission identity.impersonation.start (Impersonate users).
+         */
         get: operations["impersonation.candidates"];
         put?: never;
         post?: never;
@@ -1409,7 +1903,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign in as another user: opens a separate session for the target and returns tokens carrying the actor claim. Tenant subjects stay in their own tenant. Requires identity.impersonation.start. */
+        /**
+         * Start impersonation
+         * @description Sign in as another user: opens a separate session for the target and returns tokens carrying the actor claim. Tenant subjects stay in their own tenant.
+         *
+         *     Requires permission identity.impersonation.start (Impersonate users).
+         */
         post: operations["impersonation.start"];
         delete?: never;
         options?: never;
@@ -1426,7 +1925,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** End impersonation: revokes the impersonation session and returns tokens for the actor's original session. */
+        /**
+         * Stop impersonation
+         * @description End impersonation: revokes the impersonation session and returns tokens for the actor's original session.
+         *
+         *     Requires sign-in.
+         */
         post: operations["impersonation.stop"];
         delete?: never;
         options?: never;
@@ -1443,7 +1947,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Record the result of an import (the page creates the rows one by one). Requires sign-in. */
+        /**
+         * Record import result
+         * @description Record the result of an import (the page creates the rows one by one).
+         *
+         *     Requires sign-in.
+         */
         post: operations["import-histories.create"];
         delete?: never;
         options?: never;
@@ -1458,7 +1967,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List your most recent imports on a page. Requires sign-in. */
+        /**
+         * List recent imports
+         * @description List your most recent imports on a page.
+         *
+         *     Requires sign-in.
+         */
         get: operations["import-histories.recent"];
         put?: never;
         post?: never;
@@ -1478,7 +1992,12 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete entries from your own inbox; the notifications themselves are unaffected. Any signed-in user. */
+        /**
+         * Delete inbox entries
+         * @description Delete entries from your own inbox; the notifications themselves are unaffected.
+         *
+         *     Requires sign-in.
+         */
         delete: operations["inbox.delete"];
         options?: never;
         head?: never;
@@ -1494,7 +2013,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Confirm a notification in your inbox that asks for confirmation; it is marked read too. Any signed-in user. */
+        /**
+         * Confirm notification
+         * @description Confirm a notification in your inbox that asks for confirmation; it is marked read too.
+         *
+         *     Requires sign-in.
+         */
         post: operations["inbox.confirm"];
         delete?: never;
         options?: never;
@@ -1511,7 +2035,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Record that one of your popup notifications has been shown so it does not pop up again. Any signed-in user. */
+        /**
+         * Mark popup as shown
+         * @description Record that one of your popup notifications has been shown so it does not pop up again.
+         *
+         *     Requires sign-in.
+         */
         post: operations["inbox.mark-popup-shown"];
         delete?: never;
         options?: never;
@@ -1526,7 +2055,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your unread banner notifications, shown at the top of the page. Any signed-in user. */
+        /**
+         * Get banner notifications
+         * @description Your unread banner notifications, shown at the top of the page.
+         *
+         *     Requires sign-in.
+         */
         get: operations["inbox.banners"];
         put?: never;
         post?: never;
@@ -1545,7 +2079,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through your own inbox on the current side (published and within their visibility window): the keyword matches title and content; filter by read state and type or show only pending items. Any signed-in user. */
+        /**
+         * List inbox entries
+         * @description Page through your own inbox on the current side (published and within their visibility window): the keyword matches title and content; filter by read state and type or show only pending items.
+         *
+         *     Requires sign-in.
+         */
         post: operations["inbox.list"];
         delete?: never;
         options?: never;
@@ -1560,7 +2099,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your unread mandatory notifications; pages are blocked until they are read. Any signed-in user. */
+        /**
+         * Get mandatory notifications
+         * @description Your unread mandatory notifications; pages are blocked until they are read.
+         *
+         *     Requires sign-in.
+         */
         get: operations["inbox.mandatory"];
         put?: never;
         post?: never;
@@ -1579,7 +2123,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark every visible unread entry of your inbox on the current side as read. Any signed-in user. */
+        /**
+         * Mark all as read
+         * @description Mark every visible unread entry of your inbox on the current side as read.
+         *
+         *     Requires sign-in.
+         */
         post: operations["inbox.mark-all-read"];
         delete?: never;
         options?: never;
@@ -1596,7 +2145,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark entries of your own inbox as read. Any signed-in user. */
+        /**
+         * Mark as read
+         * @description Mark entries of your own inbox as read.
+         *
+         *     Requires sign-in.
+         */
         post: operations["inbox.mark-read"];
         delete?: never;
         options?: never;
@@ -1611,7 +2165,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your popup notifications not shown yet; each pops up once after sign-in. Any signed-in user. */
+        /**
+         * Get popup notifications
+         * @description Your popup notifications not shown yet; each pops up once after sign-in.
+         *
+         *     Requires sign-in.
+         */
         get: operations["inbox.popups"];
         put?: never;
         post?: never;
@@ -1628,7 +2187,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The login auto-ban settings in effect and the addresses banned right now (platform only). Requires access.login-bans.read. */
+        /**
+         * List login bans
+         * @description The login auto-ban settings in effect and the addresses banned right now (platform only).
+         *
+         *     Requires permission access.login-bans.read (Read login bans).
+         */
         get: operations["login-bans.list"];
         put?: never;
         post?: never;
@@ -1647,7 +2211,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lift the ban on an address together with its failure count in the current window (platform only). Requires access.login-bans.lift. */
+        /**
+         * Lift address ban
+         * @description Lift the ban on an address together with its failure count in the current window (platform only).
+         *
+         *     Requires permission access.login-bans.lift (Lift login bans).
+         */
         post: operations["login-bans.lift"];
         delete?: never;
         options?: never;
@@ -1662,7 +2231,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a sign-in log of the caller’s side. Requires auditing.login-logs.read. */
+        /**
+         * Get sign-in log
+         * @description Get a sign-in log of the caller’s side.
+         *
+         *     Requires permission auditing.login-logs.read (Read sign-in logs).
+         */
         get: operations["login-logs.get"];
         put?: never;
         post?: never;
@@ -1681,7 +2255,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List sign-in logs page by page: sign-in, refresh, sign-out, tenant switch, impersonation and password change events of the caller’s side, successful or not. Requires auditing.login-logs.read. */
+        /**
+         * List sign-in logs
+         * @description List sign-in logs page by page: sign-in, refresh, sign-out, tenant switch, impersonation and password change events of the caller’s side, successful or not.
+         *
+         *     Requires permission auditing.login-logs.read (Read sign-in logs).
+         */
         post: operations["login-logs.list"];
         delete?: never;
         options?: never;
@@ -1698,9 +2277,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add a user of this tenant to a department, optionally with a position; the first membership of a user becomes the primary one. Requires organization.memberships.create. */
+        /**
+         * Add department member
+         * @description Add a user of this tenant to a department, optionally with a position; the first membership of a user becomes the primary one.
+         *
+         *     Requires permission organization.memberships.create (Create memberships).
+         */
         post: operations["memberships.create"];
-        /** Remove users from departments in batch; when a primary membership is removed the next one becomes primary. Requires organization.memberships.delete. */
+        /**
+         * Remove department members
+         * @description Remove users from departments in batch; when a primary membership is removed the next one becomes primary.
+         *
+         *     Requires permission organization.memberships.delete (Delete memberships).
+         */
         delete: operations["memberships.delete"];
         options?: never;
         head?: never;
@@ -1715,7 +2304,12 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Update a membership's position, primary flag, employee number, grade, hire date and order. Requires organization.memberships.update. */
+        /**
+         * Update department member
+         * @description Update a membership's position, primary flag, employee number, grade, hire date and order.
+         *
+         *     Requires permission organization.memberships.update (Update memberships).
+         */
         put: operations["memberships.update"];
         post?: never;
         delete?: never;
@@ -1733,7 +2327,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List memberships filtered by department, user, position or primary flag, with user, department and position names. Requires organization.memberships.read. */
+        /**
+         * List department members
+         * @description List memberships filtered by department, user, position or primary flag, with user, department and position names.
+         *
+         *     Requires permission organization.memberships.read (Read memberships).
+         */
         post: operations["memberships.list"];
         delete?: never;
         options?: never;
@@ -1748,12 +2347,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only; requires access.menus.read. */
+        /**
+         * List menu tree
+         * @description List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.
+         *
+         *     Requires permission access.menus.read (Read menus).
+         */
         get: operations["menus.list"];
         put?: never;
-        /** Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created. Requires access.menus.create. */
+        /**
+         * Create menu
+         * @description Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created.
+         *
+         *     Requires permission access.menus.create (Create menus).
+         */
         post: operations["menus.create"];
-        /** Delete operator nodes in batch; page nodes and directories that still have children are rejected item by item. Requires access.menus.delete. */
+        /**
+         * Delete menus
+         * @description Delete operator nodes in batch; page nodes and directories that still have children are rejected item by item.
+         *
+         *     Requires permission access.menus.delete (Delete menus).
+         */
         delete: operations["menus.delete"];
         options?: never;
         head?: never;
@@ -1767,9 +2381,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one menu node. Requires access.menus.read. */
+        /**
+         * Get menu
+         * @description Get one menu node.
+         *
+         *     Requires permission access.menus.read (Read menus).
+         */
         get: operations["menus.get"];
-        /** Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission. Requires access.menus.update. */
+        /**
+         * Update menu
+         * @description Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission.
+         *
+         *     Requires permission access.menus.update (Update menus).
+         */
         put: operations["menus.update"];
         post?: never;
         delete?: never;
@@ -1787,7 +2411,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update. */
+        /**
+         * Reset menu defaults
+         * @description Restore a page node's presentation to its registration and clear the customization flag.
+         *
+         *     Requires permission access.menus.update (Update menus).
+         */
         post: operations["menus.reset"];
         delete?: never;
         options?: never;
@@ -1804,9 +2433,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create message templates on the caller's side; codes are unique per side. Requires notification.message-templates.create. */
+        /**
+         * Create message template
+         * @description Create message templates on the caller's side; codes are unique per side.
+         *
+         *     Requires permission notification.message-templates.create (Create message templates).
+         */
         post: operations["message-templates.create"];
-        /** Delete message templates in bulk. Requires notification.message-templates.delete. */
+        /**
+         * Delete message templates
+         * @description Delete message templates in bulk.
+         *
+         *     Requires permission notification.message-templates.delete (Delete message templates).
+         */
         delete: operations["message-templates.delete"];
         options?: never;
         head?: never;
@@ -1820,9 +2459,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the message templates. Requires notification.message-templates.read. */
+        /**
+         * Get message template
+         * @description Get one of the message templates.
+         *
+         *     Requires permission notification.message-templates.read (Read message templates).
+         */
         get: operations["message-templates.get"];
-        /** Edit message templates; the code does not change. Requires notification.message-templates.update. */
+        /**
+         * Update message template
+         * @description Edit message templates; the code does not change.
+         *
+         *     Requires permission notification.message-templates.update (Update message templates).
+         */
         put: operations["message-templates.update"];
         post?: never;
         delete?: never;
@@ -1840,7 +2489,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the message templates of the caller's side. Requires notification.message-templates.read. */
+        /**
+         * List message templates
+         * @description Page through the message templates of the caller's side.
+         *
+         *     Requires permission notification.message-templates.read (Read message templates).
+         */
         post: operations["message-templates.list"];
         delete?: never;
         options?: never;
@@ -1855,7 +2509,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your activity: sign-ins, accesses and operations today, this week and this month, the latest of each, and daily operations and accesses over the last 371 days, split by the requested time zone. Requires sign-in only. */
+        /**
+         * My activity
+         * @description Your activity: sign-ins, accesses and operations today, this week and this month, the latest of each, and daily operations and accesses over the last 371 days, split by the requested time zone.
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-activity.summary"];
         put?: never;
         post?: never;
@@ -1872,12 +2531,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List your own open API credentials (secrets are never shown). Requires sign-in only. */
+        /**
+         * My open API credentials
+         * @description List your own open API credentials (secrets are never shown).
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-api-credentials.list"];
         put?: never;
-        /** Create an open API credential (at most 5 per person); the secret is returned this once only. Not available in impersonation sessions. */
+        /**
+         * Create open API credential
+         * @description Create an open API credential (at most 5 per person); the secret is returned this once only. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["my-api-credentials.create"];
-        /** Delete your open API credentials; their AppKeys stop working at once. Not available in impersonation sessions. */
+        /**
+         * Delete open API credentials
+         * @description Delete your open API credentials; their AppKeys stop working at once. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         delete: operations["my-api-credentials.delete"];
         options?: never;
         head?: never;
@@ -1892,7 +2566,12 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Enable or disable one of your open API credentials. Not available in impersonation sessions. */
+        /**
+         * Enable or disable open API credential
+         * @description Enable or disable one of your open API credentials. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         put: operations["my-api-credentials.update"];
         post?: never;
         delete?: never;
@@ -1910,7 +2589,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Rotate the secret of one of your credentials: the old secret stops working at once and the new one is returned this once only. Not available in impersonation sessions. */
+        /**
+         * Rotate credential secret
+         * @description Rotate the secret of one of your credentials: the old secret stops working at once and the new one is returned this once only. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["my-api-credentials.rotate-secret"];
         delete?: never;
         options?: never;
@@ -1925,7 +2609,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your call security settings: the signature algorithm and IP allow-list, applied to all your credentials. Requires sign-in only. */
+        /**
+         * My call security settings
+         * @description Your call security settings: the signature algorithm and IP allow-list, applied to all your credentials.
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-api-credentials.settings"];
         put?: never;
         post?: never;
@@ -1944,7 +2633,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Save your call security settings (replaced as a whole and applied to all your credentials at once). Not available in impersonation sessions. */
+        /**
+         * Save call security settings
+         * @description Save your call security settings (replaced as a whole and applied to all your credentials at once). Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["my-api-credentials.update-settings"];
         delete?: never;
         options?: never;
@@ -1959,7 +2653,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List your own sign-in logs page by page (sign-in, refresh, sign-out, tenant switch, impersonation, password change and more, successful or not), newest first, up to 50 per page. Requires sign-in only. */
+        /**
+         * My sign-in logs
+         * @description List your own sign-in logs page by page (sign-in, refresh, sign-out, tenant switch, impersonation, password change and more, successful or not), newest first, up to 50 per page.
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-login-logs.list"];
         put?: never;
         post?: never;
@@ -1976,12 +2675,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List your own OAuth apps. Requires sign-in only. */
+        /**
+         * List my OAuth apps
+         * @description List your own OAuth apps.
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-oauth-apps.list"];
         put?: never;
-        /** Create one of your OAuth apps (authorization code and refresh token, scopes openid profile email, consent required); a confidential client’s secret is returned this once only. Not available in impersonation sessions. */
+        /**
+         * Create my OAuth app
+         * @description Create one of your OAuth apps (authorization code and refresh token, scopes openid profile email, consent required); a confidential client’s secret is returned this once only. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["my-oauth-apps.create"];
-        /** Delete your OAuth apps. Not available in impersonation sessions. */
+        /**
+         * Delete my OAuth apps
+         * @description Delete your OAuth apps. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         delete: operations["my-oauth-apps.delete"];
         options?: never;
         head?: never;
@@ -1995,9 +2709,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of your OAuth apps. Requires sign-in only. */
+        /**
+         * Get my OAuth app
+         * @description Get one of your OAuth apps.
+         *
+         *     Requires sign-in.
+         */
         get: operations["my-oauth-apps.get"];
-        /** Update one of your OAuth apps: name, homepage, description, redirect URIs, logo and enabled. Not available in impersonation sessions. */
+        /**
+         * Update my OAuth app
+         * @description Update one of your OAuth apps: name, homepage, description, redirect URIs, logo and enabled. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         put: operations["my-oauth-apps.update"];
         post?: never;
         delete?: never;
@@ -2015,7 +2739,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reset the secret of one of your OAuth apps (public clients have none). Not available in impersonation sessions. */
+        /**
+         * Reset my OAuth app secret
+         * @description Reset the secret of one of your OAuth apps (public clients have none). Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["my-oauth-apps.reset-secret"];
         delete?: never;
         options?: never;
@@ -2032,9 +2761,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a notification draft, optionally publishing it at once: role, department and user targets need at least one ID, and departments exist only on the tenant side. Requires notification.notifications.create, plus notification.notifications.publish to publish at once. */
+        /**
+         * Create notification
+         * @description Create a notification draft, optionally publishing it at once: role, department and user targets need at least one ID, and departments exist only on the tenant side. Publishing at once also needs notification.notifications.publish.
+         *
+         *     Requires permission notification.notifications.create (Create notifications).
+         */
         post: operations["notifications.create"];
-        /** Delete notifications in bulk; published ones also leave their recipients' inboxes. Requires notification.notifications.delete. */
+        /**
+         * Delete notifications
+         * @description Delete notifications in bulk; published ones also leave their recipients' inboxes.
+         *
+         *     Requires permission notification.notifications.delete (Delete notifications).
+         */
         delete: operations["notifications.delete"];
         options?: never;
         head?: never;
@@ -2048,9 +2787,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a notification with its delivery targets. Requires notification.notifications.read. */
+        /**
+         * Get notification
+         * @description Get a notification with its delivery targets.
+         *
+         *     Requires permission notification.notifications.read (Read notifications).
+         */
         get: operations["notifications.get"];
-        /** Replace a notification draft, including its targets; published notifications cannot be changed. Requires notification.notifications.update. */
+        /**
+         * Update notification
+         * @description Replace a notification draft, including its targets; published notifications cannot be changed.
+         *
+         *     Requires permission notification.notifications.update (Update notifications).
+         */
         put: operations["notifications.update"];
         post?: never;
         delete?: never;
@@ -2068,7 +2817,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Publish a draft: resolve the active recipients of the caller's side from its targets, write their inbox entries and push them in real time after commit; a notification is published only once. Requires notification.notifications.publish. */
+        /**
+         * Publish notification
+         * @description Publish a draft: resolve the active recipients of the caller's side from its targets, write their inbox entries and push them in real time after commit; a notification is published only once.
+         *
+         *     Requires permission notification.notifications.publish (Publish notifications).
+         */
         post: operations["notifications.publish"];
         delete?: never;
         options?: never;
@@ -2083,7 +2837,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read statistics: recipients, read, unread and confirmed counts. Requires notification.notifications.read. */
+        /**
+         * Get read statistics
+         * @description Read statistics: recipients, read, unread and confirmed counts.
+         *
+         *     Requires permission notification.notifications.read (Read notifications).
+         */
         get: operations["notifications.read-stats"];
         put?: never;
         post?: never;
@@ -2102,7 +2861,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the recipients of a published notification with their read and confirmation state; optionally only unread or unconfirmed ones. Requires notification.notifications.read. */
+        /**
+         * List recipients
+         * @description Page through the recipients of a published notification with their read and confirmation state; optionally only unread or unconfirmed ones.
+         *
+         *     Requires permission notification.notifications.read (Read notifications).
+         */
         post: operations["notifications.recipients"];
         delete?: never;
         options?: never;
@@ -2119,7 +2883,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Remind: push a published notification again to recipients who have not read it, or not confirmed it when confirmation is required. Requires notification.notifications.publish. */
+        /**
+         * Remind recipients
+         * @description Remind: push a published notification again to recipients who have not read it, or not confirmed it when confirmation is required.
+         *
+         *     Requires permission notification.notifications.publish (Publish notifications).
+         */
         post: operations["notifications.remind"];
         delete?: never;
         options?: never;
@@ -2136,7 +2905,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the caller's side's notifications: the keyword matches title and content; filter by type, priority, target and published state. Requires notification.notifications.read. */
+        /**
+         * List notifications
+         * @description Page through the caller's side's notifications: the keyword matches title and content; filter by type, priority, target and published state.
+         *
+         *     Requires permission notification.notifications.read (Read notifications).
+         */
         post: operations["notifications.list"];
         delete?: never;
         options?: never;
@@ -2153,9 +2927,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a numbering rule on the caller’s side: the date format must distinguish the reset cycle and the time zone is an IANA id. Requires settings.numbering-rules.create. */
+        /**
+         * Create numbering rule
+         * @description Create a numbering rule on the caller’s side: the date format must distinguish the reset cycle and the time zone is an IANA id.
+         *
+         *     Requires permission settings.numbering-rules.create (Create numbering rules).
+         */
         post: operations["numbering-rules.create"];
-        /** Delete numbering rules on the caller’s side in bulk; rules that have issued numbers are rejected one by one. Requires settings.numbering-rules.delete. */
+        /**
+         * Delete numbering rules
+         * @description Delete numbering rules on the caller’s side in bulk; rules that have issued numbers are rejected one by one.
+         *
+         *     Requires permission settings.numbering-rules.delete (Delete numbering rules).
+         */
         delete: operations["numbering-rules.delete"];
         options?: never;
         head?: never;
@@ -2169,9 +2953,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a numbering rule, including its current period and last issued sequence value. Requires settings.numbering-rules.read. */
+        /**
+         * Get numbering rule
+         * @description Get a numbering rule, including its current period and last issued sequence value.
+         *
+         *     Requires permission settings.numbering-rules.read (Read numbering rules).
+         */
         get: operations["numbering-rules.get"];
-        /** Update a numbering rule on the caller’s side; once it has issued numbers the format is frozen and only name, description, order, status and tenant sharing can change. Requires settings.numbering-rules.update. */
+        /**
+         * Update numbering rule
+         * @description Update a numbering rule on the caller’s side; once it has issued numbers the format is frozen and only name, description, order, status and tenant sharing can change.
+         *
+         *     Requires permission settings.numbering-rules.update (Update numbering rules).
+         */
         put: operations["numbering-rules.update"];
         post?: never;
         delete?: never;
@@ -2189,7 +2983,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List a rule’s issue records page by page (a tenant only sees the ones it requested). Requires settings.numbering-rules.read. */
+        /**
+         * List issue records
+         * @description List a rule’s issue records page by page (a tenant only sees the ones it requested).
+         *
+         *     Requires permission settings.numbering-rules.read (Read numbering rules).
+         */
         post: operations["numbering-rules.allocations"];
         delete?: never;
         options?: never;
@@ -2206,7 +3005,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Safely reset the sequence: the next value must exceed the highest value already issued in the current period (jumping forward is allowed), a reason is required and platform rules need the rule code typed back as confirmation. Requires settings.numbering-rules.reset. */
+        /**
+         * Reset sequence
+         * @description Safely reset the sequence: the next value must exceed the highest value already issued in the current period (jumping forward is allowed), a reason is required and platform rules need the rule code typed back as confirmation.
+         *
+         *     Requires permission settings.numbering-rules.reset (Reset numbering rules).
+         */
         post: operations["numbering-rules.reset"];
         delete?: never;
         options?: never;
@@ -2223,7 +3027,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Issue numbers from a rule: committed in its own transaction, numbers are consumed permanently; the same idempotency key replays with identical parameters and conflicts otherwise. Requires settings.numbering-rules.generate. */
+        /**
+         * Issue numbers
+         * @description Issue numbers from a rule: committed in its own transaction, numbers are consumed permanently; the same idempotency key replays with identical parameters and conflicts otherwise.
+         *
+         *     Requires permission settings.numbering-rules.generate (Issue numbers).
+         */
         post: operations["numbering-rules.generate"];
         delete?: never;
         options?: never;
@@ -2240,7 +3049,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List numbering rules page by page: platform principals see platform rules, tenant principals see their own rules plus platform rules shared with tenants. Requires settings.numbering-rules.read. */
+        /**
+         * List numbering rules
+         * @description List numbering rules page by page: platform principals see platform rules, tenant principals see their own rules plus platform rules shared with tenants.
+         *
+         *     Requires permission settings.numbering-rules.read (Read numbering rules).
+         */
         post: operations["numbering-rules.list"];
         delete?: never;
         options?: never;
@@ -2255,7 +3069,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Preview numbers for a given format (pure computation, nothing is issued, up to 50). Requires settings.numbering-rules.read. */
+        /**
+         * Preview number format
+         * @description Preview numbers for a given format (pure computation, nothing is issued, up to 50).
+         *
+         *     Requires permission settings.numbering-rules.read (Read numbering rules).
+         */
         get: operations["numbering-rules.preview"];
         put?: never;
         post?: never;
@@ -2274,9 +3093,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create an OAuth app: the ClientId is generated when omitted and is globally unique; a confidential client’s secret is returned this once only, a public client has none (its authorization codes need PKCE). Requires openplatform.oauth-apps.create. */
+        /**
+         * Create OAuth app
+         * @description Create an OAuth app: the ClientId is generated when omitted and is globally unique; a confidential client’s secret is returned this once only, a public client has none (its authorization codes need PKCE).
+         *
+         *     Requires permission openplatform.oauth-apps.create (Create OAuth apps).
+         */
         post: operations["oauth-apps.create"];
-        /** Delete OAuth apps in bulk (soft delete; tokens issued to them stop working with them). Requires openplatform.oauth-apps.delete. */
+        /**
+         * Delete OAuth apps
+         * @description Delete OAuth apps in bulk (soft delete; tokens issued to them stop working with them).
+         *
+         *     Requires permission openplatform.oauth-apps.delete (Delete OAuth apps).
+         */
         delete: operations["oauth-apps.delete"];
         options?: never;
         head?: never;
@@ -2290,9 +3119,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one OAuth app (the secret is never shown). Requires openplatform.oauth-apps.read. */
+        /**
+         * Get OAuth app
+         * @description Get one OAuth app (the secret is never shown).
+         *
+         *     Requires permission openplatform.oauth-apps.read (Read OAuth apps).
+         */
         get: operations["oauth-apps.get"];
-        /** Update an OAuth app (replaced as a whole, including enabled; the ClientId, client type and secret stay). Requires openplatform.oauth-apps.update. */
+        /**
+         * Update OAuth app
+         * @description Update an OAuth app (replaced as a whole, including enabled; the ClientId, client type and secret stay).
+         *
+         *     Requires permission openplatform.oauth-apps.update (Update OAuth apps).
+         */
         put: operations["oauth-apps.update"];
         post?: never;
         delete?: never;
@@ -2310,7 +3149,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reset an OAuth app’s secret: the old secret stops working at once and the new one is returned this once only; public clients have no secret. Requires openplatform.oauth-apps.update. */
+        /**
+         * Reset OAuth app secret
+         * @description Reset an OAuth app’s secret: the old secret stops working at once and the new one is returned this once only; public clients have no secret.
+         *
+         *     Requires permission openplatform.oauth-apps.update (Update OAuth apps).
+         */
         post: operations["oauth-apps.reset-secret"];
         delete?: never;
         options?: never;
@@ -2327,7 +3171,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List OAuth apps (created by the platform or by users under My apps) page by page; the keyword matches name, description, ClientId, homepage and remark, with filters for app type, client type, enabled, skip consent and personal apps. Requires openplatform.oauth-apps.read. */
+        /**
+         * List OAuth apps
+         * @description List OAuth apps (created by the platform or by users under My apps) page by page; the keyword matches name, description, ClientId, homepage and remark, with filters for app type, client type, enabled, skip consent and personal apps.
+         *
+         *     Requires permission openplatform.oauth-apps.read (Read OAuth apps).
+         */
         post: operations["oauth-apps.list"];
         delete?: never;
         options?: never;
@@ -2342,7 +3191,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the apps you have authorized and the scopes you granted. Requires sign-in only. */
+        /**
+         * List authorized apps
+         * @description List the apps you have authorized and the scopes you granted.
+         *
+         *     Requires sign-in.
+         */
         get: operations["oauth-consents.list"];
         put?: never;
         post?: never;
@@ -2361,7 +3215,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Approve the authorization: issues an authorization code, records the consent and returns the redirect URI with code and state. Not available in impersonation sessions. */
+        /**
+         * Approve authorization
+         * @description Approve the authorization: issues an authorization code, records the consent and returns the redirect URI with code and state. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["oauth-consents.approve"];
         delete?: never;
         options?: never;
@@ -2378,7 +3237,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Deny the authorization: returns the redirect URI with error=access_denied and state, only when the client and redirect URI are valid. Requires sign-in only. */
+        /**
+         * Deny authorization
+         * @description Deny the authorization: returns the redirect URI with error=access_denied and state, only when the client and redirect URI are valid.
+         *
+         *     Requires sign-in.
+         */
         post: operations["oauth-consents.deny"];
         delete?: never;
         options?: never;
@@ -2393,7 +3257,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Preview for the consent page: checks the authorization request (client, redirect URI, response_type, PKCE, scopes) and returns the app, the scopes and whether consent can be skipped. Requires sign-in only; not available in impersonation sessions. */
+        /**
+         * Preview authorization request
+         * @description Preview for the consent page: checks the authorization request (client, redirect URI, response_type, PKCE, scopes) and returns the app, the scopes and whether consent can be skipped. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         get: operations["oauth-consents.resolve"];
         put?: never;
         post?: never;
@@ -2412,7 +3281,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke your authorization of an app: deletes the consent and revokes all of your tokens it holds. Not available in impersonation sessions. */
+        /**
+         * Revoke app authorization
+         * @description Revoke your authorization of an app: deletes the consent and revokes all of your tokens it holds. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["oauth-consents.revoke"];
         delete?: never;
         options?: never;
@@ -2427,7 +3301,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an open API log of the caller’s side. Requires auditing.open-api-logs.read. */
+        /**
+         * Get open API log
+         * @description Get an open API log of the caller’s side.
+         *
+         *     Requires permission auditing.open-api-logs.read (Read open API logs).
+         */
         get: operations["open-api-logs.get"];
         put?: never;
         post?: never;
@@ -2446,7 +3325,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List open API logs page by page: signed open API calls of the caller’s side with their signature checks. Requires auditing.open-api-logs.read. */
+        /**
+         * List open API logs
+         * @description List open API logs page by page: signed open API calls of the caller’s side with their signature checks.
+         *
+         *     Requires permission auditing.open-api-logs.read (Read open API logs).
+         */
         post: operations["open-api-logs.list"];
         delete?: never;
         options?: never;
@@ -2463,7 +3347,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Echo: returns the request body as received, to check the content signature and encryption (the body may be AES-CBC encrypted, and the response is then encrypted too). Signed calls only. */
+        /**
+         * Echo request
+         * @description Echo: returns the request body as received, to check the content signature and encryption (the body may be AES-CBC encrypted, and the response is then encrypted too). Signed calls only.
+         */
         post: operations["open.echo"];
         delete?: never;
         options?: never;
@@ -2478,7 +3365,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Signature self-check: once the signature verifies, returns the AppKey, the credential owner and the server time. Callable only with requests signed by an open API credential (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature). */
+        /**
+         * Signature self-check
+         * @description Signature self-check: once the signature verifies, returns the AppKey, the credential owner and the server time. Callable only with requests signed by an open API credential (X-Access-Key, X-Timestamp, X-Nonce, X-Content-Sign, X-Signature).
+         */
         get: operations["open.ping"];
         put?: never;
         post?: never;
@@ -2495,7 +3385,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an operation log of the caller’s side, including its details. Requires auditing.operation-logs.read. */
+        /**
+         * Get operation log
+         * @description Get an operation log of the caller’s side, including its details.
+         *
+         *     Requires permission auditing.operation-logs.read (Read operation logs).
+         */
         get: operations["operation-logs.get"];
         put?: never;
         post?: never;
@@ -2514,7 +3409,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List operation logs page by page: audited business operations of the caller’s side with their results and durations. Requires auditing.operation-logs.read. */
+        /**
+         * List operation logs
+         * @description List operation logs page by page: audited business operations of the caller’s side with their results and durations.
+         *
+         *     Requires permission auditing.operation-logs.read (Read operation logs).
+         */
         post: operations["operation-logs.list"];
         delete?: never;
         options?: never;
@@ -2529,7 +3429,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a permission change log of the caller’s side. Requires auditing.permission-change-logs.read. */
+        /**
+         * Get permission change log
+         * @description Get a permission change log of the caller’s side.
+         *
+         *     Requires permission auditing.permission-change-logs.read (Read permission change logs).
+         */
         get: operations["permission-change-logs.get"];
         put?: never;
         post?: never;
@@ -2548,7 +3453,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List permission change logs page by page: grants, revocations, role membership, data scope and edition changes of the caller’s side. Requires auditing.permission-change-logs.read. */
+        /**
+         * List permission change logs
+         * @description List permission change logs page by page: grants, revocations, role membership, data scope and edition changes of the caller’s side.
+         *
+         *     Requires permission auditing.permission-change-logs.read (Read permission change logs).
+         */
         post: operations["permission-change-logs.list"];
         delete?: never;
         options?: never;
@@ -2563,12 +3473,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the grant bindings of a role or user and the condition clauses on them. Requires access.permission-conditions.read. */
+        /**
+         * List grant conditions
+         * @description List the grant bindings of a role or user and the condition clauses on them.
+         *
+         *     Requires permission access.permission-conditions.read (Read permission conditions).
+         */
         get: operations["permission-conditions.list"];
         put?: never;
-        /** Add a condition clause to a grant or denial: met to grant on a grant, met to deny on a denial. Requires access.permission-conditions.create. */
+        /**
+         * Add condition clause
+         * @description Add a condition clause to a grant or denial: met to grant on a grant, met to deny on a denial.
+         *
+         *     Requires permission access.permission-conditions.create (Create permission conditions).
+         */
         post: operations["permission-conditions.create"];
-        /** Delete condition clauses. Requires access.permission-conditions.delete. */
+        /**
+         * Delete condition clauses
+         * @description Delete condition clauses.
+         *
+         *     Requires permission access.permission-conditions.delete (Delete permission conditions).
+         */
         delete: operations["permission-conditions.delete"];
         options?: never;
         head?: never;
@@ -2583,7 +3508,12 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Edit a condition clause, including enabling and disabling it. Requires access.permission-conditions.update. */
+        /**
+         * Update condition clause
+         * @description Edit a condition clause, including enabling and disabling it.
+         *
+         *     Requires permission access.permission-conditions.update (Update permission conditions).
+         */
         put: operations["permission-conditions.update"];
         post?: never;
         delete?: never;
@@ -2599,7 +3529,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the condition attribute catalog (shared by permission conditions and access policies), with the operators each allows and whether it is known before authentication. Requires access.permission-conditions.read. */
+        /**
+         * List condition attributes
+         * @description List the condition attribute catalog (shared by permission conditions and access policies), with the operators each allows and whether it is known before authentication.
+         *
+         *     Requires permission access.permission-conditions.read (Read permission conditions).
+         */
         get: operations["permission-conditions.attributes"];
         put?: never;
         post?: never;
@@ -2616,7 +3551,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Impact trial: the current verdict for everyone a grant affects, up to 200 people. Requires access.permission-conditions.trial. */
+        /**
+         * Trial grant impact
+         * @description Impact trial: the current verdict for everyone a grant affects, up to 200 people.
+         *
+         *     Requires permission access.permission-conditions.trial (Trial permission conditions).
+         */
         get: operations["permission-conditions.batch-trial"];
         put?: never;
         post?: never;
@@ -2633,7 +3573,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Condition inventory: diagnostics for every condition on the current side and the conclusion of its group. Requires access.permission-conditions.trial. */
+        /**
+         * Inventory permission conditions
+         * @description Condition inventory: diagnostics for every condition on the current side and the conclusion of its group.
+         *
+         *     Requires permission access.permission-conditions.trial (Trial permission conditions).
+         */
         get: operations["permission-conditions.inventory"];
         put?: never;
         post?: never;
@@ -2650,7 +3595,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Condition trial: decide one permission for one user under the given request, explained group by group and clause by clause. Requires access.permission-conditions.trial. */
+        /**
+         * Trial permission conditions
+         * @description Condition trial: decide one permission for one user under the given request, explained group by group and clause by clause.
+         *
+         *     Requires permission access.permission-conditions.trial (Trial permission conditions).
+         */
         get: operations["permission-conditions.trial"];
         put?: never;
         post?: never;
@@ -2667,7 +3617,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the grantable permission catalog: the caller's side by default; platform principals may pass side=tenant for the tenant side (used to edit edition whitelists); for tenant principals the catalog is narrowed by their edition. Requires access.permissions.read. */
+        /**
+         * List permission catalog
+         * @description List the grantable permission catalog: the caller's side by default; platform principals may pass side=tenant for the tenant side (used to edit edition whitelists); for tenant principals the catalog is narrowed by their edition.
+         *
+         *     Requires permission access.permissions.read (Read permissions).
+         */
         get: operations["permissions.list"];
         put?: never;
         post?: never;
@@ -2686,9 +3641,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create an access policy; it always starts as log only and enabled. Requires access.policies.create. */
+        /**
+         * Create access policy
+         * @description Create an access policy; it always starts as log only and enabled.
+         *
+         *     Requires permission access.policies.create (Create access policies).
+         */
         post: operations["policies.create"];
-        /** Delete access policies. Requires access.policies.delete. */
+        /**
+         * Delete access policies
+         * @description Delete access policies.
+         *
+         *     Requires permission access.policies.delete (Delete access policies).
+         */
         delete: operations["policies.delete"];
         options?: never;
         head?: never;
@@ -2702,9 +3667,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get an access policy by ID. Requires access.policies.read. */
+        /**
+         * Get access policy
+         * @description Get an access policy by ID.
+         *
+         *     Requires permission access.policies.read (Read access policies).
+         */
         get: operations["policies.get"];
-        /** Replace the content and conditions of an access policy; its action and status stay. Requires access.policies.update. */
+        /**
+         * Update access policy
+         * @description Replace the content and conditions of an access policy; its action and status stay.
+         *
+         *     Requires permission access.policies.update (Update access policies).
+         */
         put: operations["policies.update"];
         post?: never;
         delete?: never;
@@ -2722,7 +3697,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change the action of an access policy: log only, deny or allow. Requires access.policies.update. */
+        /**
+         * Set access policy action
+         * @description Change the action of an access policy: log only, deny or allow.
+         *
+         *     Requires permission access.policies.update (Update access policies).
+         */
         post: operations["policies.set-action"];
         delete?: never;
         options?: never;
@@ -2739,7 +3719,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enable or disable an access policy. Requires access.policies.update. */
+        /**
+         * Enable or disable access policy
+         * @description Enable or disable an access policy.
+         *
+         *     Requires permission access.policies.update (Update access policies).
+         */
         post: operations["policies.set-status"];
         delete?: never;
         options?: never;
@@ -2754,7 +3739,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The condition attributes available to access policies, with the operators each allows and whether it is known before authentication. Requires access.policies.read. */
+        /**
+         * List policy condition attributes
+         * @description The condition attributes available to access policies, with the operators each allows and whether it is known before authentication.
+         *
+         *     Requires permission access.policies.read (Read access policies).
+         */
         get: operations["policies.attributes"];
         put?: never;
         post?: never;
@@ -2773,7 +3763,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List the access policies of the current side, by evaluation order by default. Requires access.policies.read. */
+        /**
+         * List access policies
+         * @description List the access policies of the current side, by evaluation order by default.
+         *
+         *     Requires permission access.policies.read (Read access policies).
+         */
         post: operations["policies.list"];
         delete?: never;
         options?: never;
@@ -2788,7 +3783,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the preset access policy templates. Requires access.policies.read. */
+        /**
+         * List access policy templates
+         * @description List the preset access policy templates.
+         *
+         *     Requires permission access.policies.read (Read access policies).
+         */
         get: operations["policies.templates"];
         put?: never;
         post?: never;
@@ -2807,7 +3807,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Trial an access policy: evaluate a saved policy or draft conditions under the given request, explained group by group and condition by condition. Requires access.policies.trial. */
+        /**
+         * Trial access policy
+         * @description Trial an access policy: evaluate a saved policy or draft conditions under the given request, explained group by group and condition by condition.
+         *
+         *     Requires permission access.policies.trial (Trial access policies).
+         */
         post: operations["policies.trial"];
         delete?: never;
         options?: never;
@@ -2824,9 +3829,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a position (code unique within the tenant). Requires organization.positions.create. */
+        /**
+         * Create position
+         * @description Create a position (code unique within the tenant).
+         *
+         *     Requires permission organization.positions.create (Create positions).
+         */
         post: operations["positions.create"];
-        /** Delete positions in batch; positions still referenced by memberships are rejected item by item. Requires organization.positions.delete. */
+        /**
+         * Delete positions
+         * @description Delete positions in batch; positions still referenced by memberships are rejected item by item.
+         *
+         *     Requires permission organization.positions.delete (Delete positions).
+         */
         delete: operations["positions.delete"];
         options?: never;
         head?: never;
@@ -2840,9 +3855,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a position. Requires organization.positions.read. */
+        /**
+         * Get position details
+         * @description Get a position.
+         *
+         *     Requires permission organization.positions.read (Read positions).
+         */
         get: operations["positions.get"];
-        /** Update a position's name, order, description and status. Requires organization.positions.update. */
+        /**
+         * Update position
+         * @description Update a position's name, order, description and status.
+         *
+         *     Requires permission organization.positions.update (Update positions).
+         */
         put: operations["positions.update"];
         post?: never;
         delete?: never;
@@ -2860,7 +3885,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List positions with paging, keyword, filters and sorting. Requires organization.positions.read. */
+        /**
+         * List positions
+         * @description List positions with paging, keyword, filters and sorting.
+         *
+         *     Requires permission organization.positions.read (Read positions).
+         */
         post: operations["positions.list"];
         delete?: never;
         options?: never;
@@ -2875,9 +3905,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your profile and account security summary (two-factor, last password change). Any signed-in user. */
+        /**
+         * My profile
+         * @description Your profile and account security summary (two-factor, last password change).
+         *
+         *     Requires sign-in.
+         */
         get: operations["profile.get"];
-        /** Save your profile: display name, real name, gender, birthday, country or region and bio (replaced as a whole; blanks count as empty). Requires sign-in only. */
+        /**
+         * Save profile
+         * @description Save your profile: display name, real name, gender, birthday, country or region and bio (replaced as a whole; blanks count as empty).
+         *
+         *     Requires sign-in.
+         */
         put: operations["profile.update"];
         post?: never;
         delete?: never;
@@ -2895,7 +3935,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload the signed-in user's avatar (JPEG or PNG, at most 2 MB) as multipart form data (field `file`). */
+        /**
+         * Upload the signed-in user's avatar (JPEG or PNG, at most 2 MB) as multipart form data (field `file`).
+         * @description Requires sign-in.
+         */
         post: operations["profile.upload-avatar"];
         delete?: never;
         options?: never;
@@ -2912,7 +3955,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start a binding: issues a binding intent for the signed-in user (10 minutes, single use) and returns the URL to the third-party authorization; only that user can confirm the resulting ticket. Not available in impersonation sessions. */
+        /**
+         * Start third-party binding
+         * @description Start a binding: issues a binding intent for the signed-in user (10 minutes, single use) and returns the URL to the third-party authorization; only that user can confirm the resulting ticket. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.begin-external-bind"];
         delete?: never;
         options?: never;
@@ -2929,7 +3977,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change your own password; requires the current password and revokes your other sessions. */
+        /**
+         * Change password
+         * @description Change your own password; requires the current password and revokes your other sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.change-password"];
         delete?: never;
         options?: never;
@@ -2946,7 +3999,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change your username: requires your current password, once every 90 days, unique within your home tenant. Not available in impersonation sessions. */
+        /**
+         * Change username
+         * @description Change your username: requires your current password, once every 90 days, unique within your home tenant. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.change-username"];
         delete?: never;
         options?: never;
@@ -2963,7 +4021,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating. */
+        /**
+         * Disable two-factor
+         * @description Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.disable-two-factor"];
         delete?: never;
         options?: never;
@@ -2980,7 +4043,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating. */
+        /**
+         * Enable two-factor
+         * @description Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.enable-two-factor"];
         delete?: never;
         options?: never;
@@ -2995,7 +4063,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the third-party accounts bound to you. Requires sign-in only. */
+        /**
+         * My third-party accounts
+         * @description List the third-party accounts bound to you.
+         *
+         *     Requires sign-in.
+         */
         get: operations["profile.external-logins"];
         put?: never;
         post?: never;
@@ -3014,7 +4087,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions. */
+        /**
+         * Confirm third-party binding
+         * @description Confirm a binding: binds the third-party account from the one-time ticket to the signed-in user; only the user who started the binding can confirm it, and it is refused when someone else has bound the account. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.link-external"];
         delete?: never;
         options?: never;
@@ -3029,7 +4107,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them. Requires sign-in only. */
+        /**
+         * My notification preferences
+         * @description Your notification preferences: in-app, email and SMS channels and announcement, task and security topics; everything is received until saved. Mandatory and emergency notifications ignore them.
+         *
+         *     Requires sign-in.
+         */
         get: operations["profile.notification-preference"];
         put?: never;
         post?: never;
@@ -3048,7 +4131,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar. Requires sign-in only. */
+        /**
+         * Remove avatar
+         * @description Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.remove-avatar"];
         delete?: never;
         options?: never;
@@ -3065,7 +4153,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign out all your devices except the current one, including impersonation sessions you started that are still open. Requires sign-in only. */
+        /**
+         * Sign out other devices
+         * @description Sign out all your devices except the current one, including impersonation sessions you started that are still open.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.revoke-other-sessions"];
         delete?: never;
         options?: never;
@@ -3082,7 +4175,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign out one of your devices; use sign-out for the current one. Requires sign-in only. */
+        /**
+         * Sign out device
+         * @description Sign out one of your devices; use sign-out for the current one.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.revoke-session"];
         delete?: never;
         options?: never;
@@ -3097,7 +4195,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List your signed-in devices: all your active sessions (platform and tenants alike), the current one first. Requires sign-in only. */
+        /**
+         * My signed-in devices
+         * @description List your signed-in devices: all your active sessions (platform and tenants alike), the current one first.
+         *
+         *     Requires sign-in.
+         */
         get: operations["profile.sessions"];
         put?: never;
         post?: never;
@@ -3116,7 +4219,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating. */
+        /**
+         * Start authenticator setup
+         * @description Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.setup-totp"];
         delete?: never;
         options?: never;
@@ -3133,7 +4241,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Unbind one of your third-party accounts. Not available in impersonation sessions. */
+        /**
+         * Unbind third-party account
+         * @description Unbind one of your third-party accounts. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.unlink-external"];
         delete?: never;
         options?: never;
@@ -3150,7 +4263,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Save your notification preferences (replaces them as a whole). Requires sign-in only. */
+        /**
+         * Save notification preferences
+         * @description Save your notification preferences (replaces them as a whole).
+         *
+         *     Requires sign-in.
+         */
         post: operations["profile.update-notification-preference"];
         delete?: never;
         options?: never;
@@ -3167,9 +4285,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a role on the current side (platform or tenant); the code is unique per side and cannot be changed. Requires access.roles.create. */
+        /**
+         * Create role
+         * @description Create a role on the current side (platform or tenant); the code is unique per side and cannot be changed.
+         *
+         *     Requires permission access.roles.create (Create roles).
+         */
         post: operations["roles.create"];
-        /** Delete roles in batch together with their members and permissions; built-in roles cannot be deleted. Requires access.roles.delete. */
+        /**
+         * Delete roles
+         * @description Delete roles in batch together with their members and permissions; built-in roles cannot be deleted.
+         *
+         *     Requires permission access.roles.delete (Delete roles).
+         */
         delete: operations["roles.delete"];
         options?: never;
         head?: never;
@@ -3183,9 +4311,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a role with its granted permissions and member count. Requires access.roles.read. */
+        /**
+         * Get role details
+         * @description Get a role with its granted permissions and member count.
+         *
+         *     Requires permission access.roles.read (Read roles).
+         */
         get: operations["roles.get"];
-        /** Update a role's name, description, order and status. Requires access.roles.update. */
+        /**
+         * Update role
+         * @description Update a role's name, description, order and status.
+         *
+         *     Requires permission access.roles.update (Update roles).
+         */
         put: operations["roles.update"];
         post?: never;
         delete?: never;
@@ -3203,7 +4341,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh. Requires access.roles.assign. */
+        /**
+         * Assign role members
+         * @description Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh.
+         *
+         *     Requires permission access.roles.assign (Assign members).
+         */
         post: operations["roles.assign"];
         delete?: never;
         options?: never;
@@ -3220,7 +4363,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Deny permissions on a role: revokes the same grants and writes Deny rules (optional validity window and reason); a role deny only removes that role's own grants. Requires access.roles.grant. */
+        /**
+         * Deny role permissions
+         * @description Deny permissions on a role: revokes the same grants and writes Deny rules (optional validity window and reason); a role deny only removes that role's own grants.
+         *
+         *     Requires permission access.roles.grant (Grant permissions).
+         */
         post: operations["roles.deny"];
         delete?: never;
         options?: never;
@@ -3237,7 +4385,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Grant permissions to a role; codes must exist in the catalog and match the role's side. Requires access.roles.grant. */
+        /**
+         * Grant role permissions
+         * @description Grant permissions to a role; codes must exist in the catalog and match the role's side.
+         *
+         *     Requires permission access.roles.grant (Grant permissions).
+         */
         post: operations["roles.grant"];
         delete?: never;
         options?: never;
@@ -3252,7 +4405,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get the inheritance of a role: all its parents, all its children, and the grants and denials it inherits. Requires access.roles.read. */
+        /**
+         * Get role inheritance
+         * @description Get the inheritance of a role: all its parents, all its children, and the grants and denials it inherits.
+         *
+         *     Requires permission access.roles.read (Read roles).
+         */
         get: operations["roles.hierarchy"];
         put?: never;
         post?: never;
@@ -3269,7 +4427,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the members of a role. Requires access.roles.read. */
+        /**
+         * List role members
+         * @description List the members of a role.
+         *
+         *     Requires permission access.roles.read (Read roles).
+         */
         get: operations["roles.members"];
         put?: never;
         post?: never;
@@ -3288,7 +4451,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke permissions from a role. Requires access.roles.grant. */
+        /**
+         * Revoke role permissions
+         * @description Revoke permissions from a role.
+         *
+         *     Requires permission access.roles.grant (Grant permissions).
+         */
         post: operations["roles.revoke"];
         delete?: never;
         options?: never;
@@ -3305,7 +4473,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set the direct parents of a role to the given set (empty removes all inheritance): its holders get the parents' grants right away, and the parents' denials apply to it too. Requires access.roles.set-parents. */
+        /**
+         * Set role parents
+         * @description Set the direct parents of a role to the given set (empty removes all inheritance): its holders get the parents' grants right away, and the parents' denials apply to it too.
+         *
+         *     Requires permission access.roles.set-parents (Set role parents).
+         */
         post: operations["roles.set-parents"];
         delete?: never;
         options?: never;
@@ -3322,7 +4495,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Remove users from a role. Takes effect at the user's next token refresh. Requires access.roles.assign. */
+        /**
+         * Remove role members
+         * @description Remove users from a role. Takes effect at the user's next token refresh.
+         *
+         *     Requires permission access.roles.assign (Assign members).
+         */
         post: operations["roles.unassign"];
         delete?: never;
         options?: never;
@@ -3339,7 +4517,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Change the validity window of a member assignment; expired or future assignments are dropped from decisions at once. Requires access.roles.assign. */
+        /**
+         * Update member validity
+         * @description Change the validity window of a member assignment; expired or future assignments are dropped from decisions at once.
+         *
+         *     Requires permission access.roles.assign (Assign members).
+         */
         post: operations["roles.update-member"];
         delete?: never;
         options?: never;
@@ -3354,7 +4537,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the roles a user holds on the current side (platform or tenant). Requires access.roles.read. */
+        /**
+         * List user roles
+         * @description List the roles a user holds on the current side (platform or tenant).
+         *
+         *     Requires permission access.roles.read (Read roles).
+         */
         get: operations["roles.by-user"];
         put?: never;
         post?: never;
@@ -3373,7 +4561,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List roles of the current side with paging, filters, keyword and sorting. Requires access.roles.read. */
+        /**
+         * List roles
+         * @description List roles of the current side with paging, filters, keyword and sorting.
+         *
+         *     Requires permission access.roles.read (Read roles).
+         */
         post: operations["roles.list"];
         delete?: never;
         options?: never;
@@ -3388,7 +4581,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one session role record by ID. Requires access.session-roles.read. */
+        /**
+         * Get session role
+         * @description Get one session role record by ID.
+         *
+         *     Requires permission access.session-roles.read (Read session roles).
+         */
         get: operations["session-roles.get"];
         put?: never;
         post?: never;
@@ -3407,7 +4605,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List the roles each session of the current side has activated. Requires access.session-roles.read. */
+        /**
+         * List session roles
+         * @description List the roles each session of the current side has activated.
+         *
+         *     Requires permission access.session-roles.read (Read session roles).
+         */
         post: operations["session-roles.list"];
         delete?: never;
         options?: never;
@@ -3424,7 +4627,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the online users of the current tenant: one row per active session with device, browser, masked IP, sign-in location, sign-in and last activity time and realtime presence; narrowed by data scope. Requires identity.sessions.read. */
+        /**
+         * List online users
+         * @description Page through the online users of the current tenant: one row per active session with device, browser, masked IP, sign-in location, sign-in and last activity time and realtime presence; narrowed by data scope.
+         *
+         *     Requires permission identity.sessions.read (Read online users).
+         */
         post: operations["sessions.list"];
         delete?: never;
         options?: never;
@@ -3441,7 +4649,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here. Requires identity.sessions.revoke. */
+        /**
+         * Force sign-out
+         * @description Force sign-out: revoke active sessions of the current tenant; the clients are notified in real time and sign out. Your own current session cannot be revoked here.
+         *
+         *     Requires permission identity.sessions.revoke (Force sign-out).
+         */
         post: operations["sessions.revoke"];
         delete?: never;
         options?: never;
@@ -3456,7 +4669,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Online overview of the current tenant: active sessions, users with an active session and users connected in real time. Requires identity.sessions.read. */
+        /**
+         * Get online summary
+         * @description Online overview of the current tenant: active sessions, users with an active session and users connected in real time.
+         *
+         *     Requires permission identity.sessions.read (Read online users).
+         */
         get: operations["sessions.summary"];
         put?: never;
         post?: never;
@@ -3476,7 +4694,12 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete SMS send records in bulk. Requires notification.sms.delete. */
+        /**
+         * Delete SMS send records
+         * @description Delete SMS send records in bulk.
+         *
+         *     Requires permission notification.sms.delete (Delete sent SMS).
+         */
         delete: operations["sms.delete"];
         options?: never;
         head?: never;
@@ -3492,9 +4715,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create SMS configurations on the caller's side; codes are unique per side. Requires notification.sms-configs.create. */
+        /**
+         * Create SMS configuration
+         * @description Create SMS configurations on the caller's side; codes are unique per side.
+         *
+         *     Requires permission notification.sms-configs.create (Create SMS configurations).
+         */
         post: operations["sms-configs.create"];
-        /** Delete SMS configurations in bulk. Requires notification.sms-configs.delete. */
+        /**
+         * Delete SMS configurations
+         * @description Delete SMS configurations in bulk.
+         *
+         *     Requires permission notification.sms-configs.delete (Delete SMS configurations).
+         */
         delete: operations["sms-configs.delete"];
         options?: never;
         head?: never;
@@ -3508,9 +4741,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the SMS configurations. Requires notification.sms-configs.read. */
+        /**
+         * Get SMS configuration
+         * @description Get one of the SMS configurations.
+         *
+         *     Requires permission notification.sms-configs.read (Read SMS configurations).
+         */
         get: operations["sms-configs.get"];
-        /** Edit SMS configurations; the code does not change. Requires notification.sms-configs.update. */
+        /**
+         * Update SMS configuration
+         * @description Edit SMS configurations; the code does not change.
+         *
+         *     Requires permission notification.sms-configs.update (Update SMS configurations).
+         */
         put: operations["sms-configs.update"];
         post?: never;
         delete?: never;
@@ -3528,7 +4771,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Make an enabled entry of the SMS configurations the caller's side default used for sending. Requires notification.sms-configs.update. */
+        /**
+         * Set default SMS configuration
+         * @description Make an enabled entry of the SMS configurations the caller's side default used for sending.
+         *
+         *     Requires permission notification.sms-configs.update (Update SMS configurations).
+         */
         post: operations["sms-configs.set-default"];
         delete?: never;
         options?: never;
@@ -3545,7 +4793,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the SMS configurations of the caller's side. Requires notification.sms-configs.read. */
+        /**
+         * List SMS configurations
+         * @description Page through the SMS configurations of the caller's side.
+         *
+         *     Requires permission notification.sms-configs.read (Read SMS configurations).
+         */
         post: operations["sms-configs.list"];
         delete?: never;
         options?: never;
@@ -3560,7 +4813,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one of the SMS send records. Requires notification.sms.read. */
+        /**
+         * Get SMS send record
+         * @description Get one of the SMS send records.
+         *
+         *     Requires permission notification.sms.read (Read sent SMS).
+         */
         get: operations["sms.get"];
         put?: never;
         post?: never;
@@ -3579,7 +4837,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Cancel queued SMS send records. Requires notification.sms.resend. */
+        /**
+         * Cancel queued SMS
+         * @description Cancel queued SMS send records.
+         *
+         *     Requires permission notification.sms.resend (Resend SMS).
+         */
         post: operations["sms.cancel"];
         delete?: never;
         options?: never;
@@ -3596,7 +4859,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the SMS send records of the caller's side. Requires notification.sms.read. */
+        /**
+         * List SMS send records
+         * @description Page through the SMS send records of the caller's side.
+         *
+         *     Requires permission notification.sms.read (Read sent SMS).
+         */
         post: operations["sms.list"];
         delete?: never;
         options?: never;
@@ -3613,7 +4881,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resend SMS send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.sms.resend. */
+        /**
+         * Resend SMS
+         * @description Resend SMS send records: back to queued with the attempt count reset; queued and sending ones are rejected.
+         *
+         *     Requires permission notification.sms.resend (Resend SMS).
+         */
         post: operations["sms.resend"];
         delete?: never;
         options?: never;
@@ -3630,9 +4903,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a local or S3-compatible storage configuration on the caller's side; the code is unique on the side and S3-compatible storage needs an endpoint and access keys. Requires files.storage-configs.create. */
+        /**
+         * Create storage configuration
+         * @description Create a local or S3-compatible storage configuration on the caller's side; the code is unique on the side and S3-compatible storage needs an endpoint and access keys.
+         *
+         *     Requires permission files.storage-configs.create (Create storage configurations).
+         */
         post: operations["storage-configs.create"];
-        /** Delete storage configurations in a batch; the default one and those holding copies are rejected one by one. Requires files.storage-configs.delete. */
+        /**
+         * Delete storage configurations
+         * @description Delete storage configurations in a batch; the default one and those holding copies are rejected one by one.
+         *
+         *     Requires permission files.storage-configs.delete (Delete storage configurations).
+         */
         delete: operations["storage-configs.delete"];
         options?: never;
         head?: never;
@@ -3646,9 +4929,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a storage configuration (the access key is never shown). Requires files.storage-configs.read. */
+        /**
+         * Get storage configuration
+         * @description Get a storage configuration (the access key is never shown).
+         *
+         *     Requires permission files.storage-configs.read (Read storage configurations).
+         */
         get: operations["storage-configs.get"];
-        /** Edit a storage configuration (the code stays; an empty access key keeps the current one). Requires files.storage-configs.update. */
+        /**
+         * Edit storage configuration
+         * @description Edit a storage configuration (the code stays; an empty access key keeps the current one).
+         *
+         *     Requires permission files.storage-configs.update (Update storage configurations).
+         */
         put: operations["storage-configs.update"];
         post?: never;
         delete?: never;
@@ -3666,7 +4959,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Make an enabled storage configuration the caller's side's default; later uploads go there. Requires files.storage-configs.update. */
+        /**
+         * Set default storage configuration
+         * @description Make an enabled storage configuration the caller's side's default; later uploads go there.
+         *
+         *     Requires permission files.storage-configs.update (Update storage configurations).
+         */
         post: operations["storage-configs.set-default"];
         delete?: never;
         options?: never;
@@ -3683,7 +4981,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Enable or disable a storage configuration; the default one cannot be disabled. Requires files.storage-configs.update. */
+        /**
+         * Enable or disable storage configuration
+         * @description Enable or disable a storage configuration; the default one cannot be disabled.
+         *
+         *     Requires permission files.storage-configs.update (Update storage configurations).
+         */
         post: operations["storage-configs.set-status"];
         delete?: never;
         options?: never;
@@ -3700,7 +5003,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the caller's side's storage configurations, default first; access keys are never shown. Requires files.storage-configs.read. */
+        /**
+         * List storage configurations
+         * @description Page through the caller's side's storage configurations, default first; access keys are never shown.
+         *
+         *     Requires permission files.storage-configs.read (Read storage configurations).
+         */
         post: operations["storage-configs.list"];
         delete?: never;
         options?: never;
@@ -3715,7 +5023,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get the tenant's own subscription: edition, expiry, effective seat and storage limits and usage. Tenant side only; requires tenancy.subscription.read. */
+        /**
+         * Get my subscription
+         * @description Get the tenant's own subscription: edition, expiry, effective seat and storage limits and usage. Tenant side only.
+         *
+         *     Requires permission tenancy.subscription.read (Read subscription).
+         */
         get: operations["subscription.get"];
         put?: never;
         post?: never;
@@ -3734,9 +5047,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a Telegram bot: names are unique and the token is stored encrypted; admins, the group allow-list and broadcast chats are comma-separated integer IDs, the command allow-list is comma-separated command names. Requires notification.telegram-bots.create. */
+        /**
+         * Create Telegram bot
+         * @description Create a Telegram bot: names are unique and the token is stored encrypted; admins, the group allow-list and broadcast chats are comma-separated integer IDs, the command allow-list is comma-separated command names.
+         *
+         *     Requires permission notification.telegram-bots.create (Create Telegram bots).
+         */
         post: operations["telegram-bots.create"];
-        /** Delete Telegram bots in bulk. Requires notification.telegram-bots.delete. */
+        /**
+         * Delete Telegram bots
+         * @description Delete Telegram bots in bulk.
+         *
+         *     Requires permission notification.telegram-bots.delete (Delete Telegram bots).
+         */
         delete: operations["telegram-bots.delete"];
         options?: never;
         head?: never;
@@ -3750,9 +5073,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a Telegram bot. Requires notification.telegram-bots.read. */
+        /**
+         * Get Telegram bot
+         * @description Get a Telegram bot.
+         *
+         *     Requires permission notification.telegram-bots.read (Read Telegram bots).
+         */
         get: operations["telegram-bots.get"];
-        /** Edit a Telegram bot; leaving the token empty keeps it. Requires notification.telegram-bots.update. */
+        /**
+         * Update Telegram bot
+         * @description Edit a Telegram bot; leaving the token empty keeps it.
+         *
+         *     Requires permission notification.telegram-bots.update (Update Telegram bots).
+         */
         put: operations["telegram-bots.update"];
         post?: never;
         delete?: never;
@@ -3770,7 +5103,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Page through the platform-hosted Telegram bots; tokens are never shown. Requires notification.telegram-bots.read. */
+        /**
+         * List Telegram bots
+         * @description Page through the platform-hosted Telegram bots; tokens are never shown.
+         *
+         *     Requires permission notification.telegram-bots.read (Read Telegram bots).
+         */
         post: operations["telegram-bots.list"];
         delete?: never;
         options?: never;
@@ -3785,12 +5123,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List a tenant's members (users whose home tenant is elsewhere and who enter it by membership) with user name and display name. Platform side only; requires tenancy.tenant-members.read. */
+        /**
+         * List tenant members
+         * @description List a tenant's members (users whose home tenant is elsewhere and who enter it by membership) with user name and display name. Platform side only.
+         *
+         *     Requires permission tenancy.tenant-members.read (Read tenant members).
+         */
         get: operations["tenant-members.list"];
         put?: never;
-        /** Add a user as a tenant member; rejected when the user is already a member or the tenant is the user's home. Platform side only; requires tenancy.tenant-members.create. */
+        /**
+         * Add tenant member
+         * @description Add a user as a tenant member; rejected when the user is already a member or the tenant is the user's home. Platform side only.
+         *
+         *     Requires permission tenancy.tenant-members.create (Add tenant members).
+         */
         post: operations["tenant-members.create"];
-        /** Remove tenant members in batch; they can no longer switch into the tenant. Platform side only; requires tenancy.tenant-members.delete. */
+        /**
+         * Remove tenant members
+         * @description Remove tenant members in batch; they can no longer switch into the tenant. Platform side only.
+         *
+         *     Requires permission tenancy.tenant-members.delete (Remove tenant members).
+         */
         delete: operations["tenant-members.delete"];
         options?: never;
         head?: never;
@@ -3806,9 +5159,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create. Without an edition the default edition applies (an error if there is none). */
+        /**
+         * Provision tenant
+         * @description Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only. Without an edition the default edition applies (an error if there is none).
+         *
+         *     Requires permission tenancy.tenants.create (Create tenants).
+         */
         post: operations["tenants.create"];
-        /** Delete tenants in batch and remove them from the directory; tenants that still have users are rejected item by item. Requires tenancy.tenants.delete. */
+        /**
+         * Delete tenants
+         * @description Delete tenants in batch and remove them from the directory; tenants that still have users are rejected item by item.
+         *
+         *     Requires permission tenancy.tenants.delete (Delete tenants).
+         */
         delete: operations["tenants.delete"];
         options?: never;
         head?: never;
@@ -3822,9 +5185,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a tenant with its administrator's user name and user count. Requires tenancy.tenants.read. */
+        /**
+         * Get tenant details
+         * @description Get a tenant with its administrator's user name and user count.
+         *
+         *     Requires permission tenancy.tenants.read (Read tenants).
+         */
         get: operations["tenants.get"];
-        /** Update a tenant's name, description, expiry and order; the name is mirrored to the directory. Requires tenancy.tenants.update. */
+        /**
+         * Update tenant
+         * @description Update a tenant's name, description, expiry and order; the name is mirrored to the directory.
+         *
+         *     Requires permission tenancy.tenants.update (Update tenants).
+         */
         put: operations["tenants.update"];
         post?: never;
         delete?: never;
@@ -3842,7 +5215,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Move a tenant to another edition, or lift edition limits; its users' effective permissions follow the new whitelist immediately. Requires tenancy.tenants.update. */
+        /**
+         * Change tenant edition
+         * @description Move a tenant to another edition, or lift edition limits; its users' effective permissions follow the new whitelist immediately.
+         *
+         *     Requires permission tenancy.tenants.update (Update tenants).
+         */
         post: operations["tenants.change-edition"];
         delete?: never;
         options?: never;
@@ -3859,7 +5237,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create the first administrator of a tenant with every tenant-side permission; the password must be changed at first sign-in. Once per tenant. Requires tenancy.tenants.initialize-admin. */
+        /**
+         * Initialize tenant administrator
+         * @description Create the first administrator of a tenant with every tenant-side permission; the password must be changed at first sign-in. Once per tenant.
+         *
+         *     Requires permission tenancy.tenants.initialize-admin (Initialize tenant administrators).
+         */
         post: operations["tenants.initialize-admin"];
         delete?: never;
         options?: never;
@@ -3876,7 +5259,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List tenants with paging, filters, keyword and sorting. Requires tenancy.tenants.read. */
+        /**
+         * List tenants
+         * @description List tenants with paging, filters, keyword and sorting.
+         *
+         *     Requires permission tenancy.tenants.read (Read tenants).
+         */
         post: operations["tenants.list"];
         delete?: never;
         options?: never;
@@ -3891,7 +5279,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant. */
+        /**
+         * Tenants I can enter
+         * @description Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant.
+         *
+         *     Requires sign-in.
+         */
         get: operations["tenants.mine"];
         put?: never;
         post?: never;
@@ -3908,7 +5301,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List every tenant's effective quotas and usage (seats, storage), optionally only those over quota. Platform side only; requires tenancy.tenants.read. */
+        /**
+         * List tenant quotas
+         * @description List every tenant's effective quotas and usage (seats, storage), optionally only those over quota. Platform side only.
+         *
+         *     Requires permission tenancy.tenants.read (Read tenants).
+         */
         get: operations["tenants.quotas"];
         put?: never;
         post?: never;
@@ -3927,7 +5325,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resume suspended tenants in batch. Requires tenancy.tenants.suspend. */
+        /**
+         * Resume tenants
+         * @description Resume suspended tenants in batch.
+         *
+         *     Requires permission tenancy.tenants.suspend (Suspend tenants).
+         */
         post: operations["tenants.resume"];
         delete?: never;
         options?: never;
@@ -3944,7 +5347,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Suspend tenants in batch: the directory marks them disabled, their users cannot sign in and calls carrying the tenant are rejected. Requires tenancy.tenants.suspend. */
+        /**
+         * Suspend tenants
+         * @description Suspend tenants in batch: the directory marks them disabled, their users cannot sign in and calls carrying the tenant are rejected.
+         *
+         *     Requires permission tenancy.tenants.suspend (Suspend tenants).
+         */
         post: operations["tenants.suspend"];
         delete?: never;
         options?: never;
@@ -3959,7 +5367,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Aggregate the logs of the caller’s side by trace, user, session or client address into one timeline, oldest first, with counts per log type. Requires auditing.traces.read. */
+        /**
+         * Trace logs
+         * @description Aggregate the logs of the caller’s side by trace, user, session or client address into one timeline, oldest first, with counts per log type.
+         *
+         *     Requires permission auditing.traces.read (Read traces).
+         */
         get: operations["traces.timeline"];
         put?: never;
         post?: never;
@@ -3976,7 +5389,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read a user's data scope override (tenant side only); without one the roles decide. Requires access.user-data-scopes.read. */
+        /**
+         * Get user data scope
+         * @description Read a user's data scope override (tenant side only); without one the roles decide.
+         *
+         *     Requires permission access.user-data-scopes.read (Read user data scopes).
+         */
         get: operations["user-data-scopes.get"];
         put?: never;
         post?: never;
@@ -3995,7 +5413,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set or clear a user's data scope override (tenant side only); the override replaces the roles' scopes entirely. Requires access.user-data-scopes.update. */
+        /**
+         * Set user data scope
+         * @description Set or clear a user's data scope override (tenant side only); the override replaces the roles' scopes entirely.
+         *
+         *     Requires permission access.user-data-scopes.update (Update user data scopes).
+         */
         post: operations["user-data-scopes.set"];
         delete?: never;
         options?: never;
@@ -4010,7 +5433,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the permissions granted or denied directly to a user on the current side, with windows and reasons. Requires access.user-grants.read. */
+        /**
+         * List user direct grants
+         * @description List the permissions granted or denied directly to a user on the current side, with windows and reasons.
+         *
+         *     Requires permission access.user-grants.read (Read user grants).
+         */
         get: operations["user-grants.list"];
         put?: never;
         post?: never;
@@ -4029,7 +5457,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Deny permissions directly on a user; a user deny overrides every grant. Requires access.user-grants.grant. */
+        /**
+         * Deny user permissions
+         * @description Deny permissions directly on a user; a user deny overrides every grant.
+         *
+         *     Requires permission access.user-grants.grant (Manage user grants).
+         */
         post: operations["user-grants.deny"];
         delete?: never;
         options?: never;
@@ -4046,7 +5479,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Grant permissions directly to a user (optional validity window and reason). Requires access.user-grants.grant. */
+        /**
+         * Grant user permissions
+         * @description Grant permissions directly to a user (optional validity window and reason).
+         *
+         *     Requires permission access.user-grants.grant (Manage user grants).
+         */
         post: operations["user-grants.grant"];
         delete?: never;
         options?: never;
@@ -4063,7 +5501,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Revoke direct grants or denies of a user. Requires access.user-grants.grant. */
+        /**
+         * Revoke user direct grants
+         * @description Revoke direct grants or denies of a user.
+         *
+         *     Requires permission access.user-grants.grant (Manage user grants).
+         */
         post: operations["user-grants.revoke"];
         delete?: never;
         options?: never;
@@ -4078,9 +5521,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read one of your own settings by scene and key; the value is empty until saved. Any signed-in user. */
+        /**
+         * Get user setting
+         * @description Read one of your own settings by scene and key; the value is empty until saved.
+         *
+         *     Requires sign-in.
+         */
         get: operations["user-settings.get"];
-        /** Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it. Any signed-in user. */
+        /**
+         * Save user setting
+         * @description Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it.
+         *
+         *     Requires sign-in.
+         */
         put: operations["user-settings.update"];
         post?: never;
         delete?: never;
@@ -4098,9 +5551,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a user: a tenant principal creates one in its own tenant; a platform principal may name the home tenant or create a platform account. Requires identity.users.create. */
+        /**
+         * Create user
+         * @description Create a user: a tenant principal creates one in its own tenant; a platform principal may name the home tenant or create a platform account.
+         *
+         *     Requires permission identity.users.create (Create users).
+         */
         post: operations["users.create"];
-        /** Delete users in batch (soft delete) and revoke their sessions; you cannot delete yourself. Requires identity.users.delete. */
+        /**
+         * Delete users
+         * @description Delete users in batch (soft delete) and revoke their sessions; you cannot delete yourself.
+         *
+         *     Requires permission identity.users.delete (Delete users).
+         */
         delete: operations["users.delete"];
         options?: never;
         head?: never;
@@ -4114,9 +5577,19 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a user by ID; tenant principals only see their own tenant. Requires identity.users.read. */
+        /**
+         * Get user
+         * @description Get a user by ID; tenant principals only see their own tenant.
+         *
+         *     Requires permission identity.users.read (Read users).
+         */
         get: operations["users.get"];
-        /** Update a user's display name, email and phone number. Requires identity.users.update. */
+        /**
+         * Update user
+         * @description Update a user's display name, email and phone number.
+         *
+         *     Requires permission identity.users.update (Update users).
+         */
         put: operations["users.update"];
         post?: never;
         delete?: never;
@@ -4134,7 +5607,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a new password for a user, revoke their sessions and require a change at next login. Requires identity.users.reset-password. */
+        /**
+         * Reset user password
+         * @description Set a new password for a user, revoke their sessions and require a change at next login.
+         *
+         *     Requires permission identity.users.reset-password (Reset passwords).
+         */
         post: operations["users.reset-password"];
         delete?: never;
         options?: never;
@@ -4151,7 +5629,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** List users with paging, filters, keyword and sorting; tenant principals only see their own tenant. Requires identity.users.read. */
+        /**
+         * List users
+         * @description List users with paging, filters, keyword and sorting; tenant principals only see their own tenant.
+         *
+         *     Requires permission identity.users.read (Read users).
+         */
         post: operations["users.list"];
         delete?: never;
         options?: never;
@@ -4168,7 +5651,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lock users in batch and revoke their sessions; you cannot lock yourself. Requires identity.users.lock. */
+        /**
+         * Lock users
+         * @description Lock users in batch and revoke their sessions; you cannot lock yourself.
+         *
+         *     Requires permission identity.users.lock (Lock users).
+         */
         post: operations["users.lock"];
         delete?: never;
         options?: never;
@@ -4185,7 +5673,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reset two-factor for users in bulk (clears all methods and authenticator keys); you cannot reset yourself. Requires identity.users.reset-two-factor. */
+        /**
+         * Reset user two-factor
+         * @description Reset two-factor for users in bulk (clears all methods and authenticator keys); you cannot reset yourself.
+         *
+         *     Requires permission identity.users.reset-two-factor (Reset two-factor).
+         */
         post: operations["users.reset-two-factor"];
         delete?: never;
         options?: never;
@@ -4202,7 +5695,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Unlock users in batch. Requires identity.users.lock. */
+        /**
+         * Unlock users
+         * @description Unlock users in batch.
+         *
+         *     Requires permission identity.users.lock (Lock users).
+         */
         post: operations["users.unlock"];
         delete?: never;
         options?: never;
@@ -4229,117 +5727,247 @@ export interface components {
                 [key: string]: string | number | boolean | null;
             };
         };
+        /** @description 一条访问日志。 */
         AccessLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 操作 ID。 */
             operationId: string;
+            /** @description 调用协议。 */
             protocol?: string | null;
+            /** @description 请求方法。 */
             method?: string | null;
+            /** @description 请求路径。 */
             path?: string | null;
+            /** @description 访问结果。 */
             result: components["schemas"]["AccessResult"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description HTTP 状态码。
+             */
             statusCode?: number | null;
+            /** @description 失败的错误码。 */
             errorCode?: string | null;
+            /** @description 失败的错误消息。 */
             errorMessage?: string | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
             durationMs: number;
+            /** @description 浏览器。 */
             browser?: string | null;
+            /** @description 操作系统。 */
             os?: string | null;
+            /** @description 设备类型。 */
             device?: string | null;
+            /** @description 请求来源。 */
             referer?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 访问策略命中时的动作。
+         * @enum {string}
+         */
         AccessPolicyAction: "LogOnly" | "Deny" | "Allow";
+        /** @description 访问策略的一条条件（请求）。 */
         AccessPolicyConditionRequest: {
+            /** @description 属性名（见 permission-conditions.attributes）。 */
             attributeName: string;
+            /** @description 运算符。 */
             operator: components["schemas"]["ConditionOperator"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号（同组取且、组间取或）。
+             */
             groupNo?: number;
+            /** @description 是否取反。 */
             isNegated?: boolean;
+            /** @description 条件值（判空类运算符不填）。 */
             value?: string | null;
+            /** @description 说明。 */
             description?: string | null;
         };
+        /** @description 访问策略的一条条件（响应）。 */
         AccessPolicyConditionResponse: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号。
+             */
             groupNo: number;
+            /** @description 属性名。 */
             attributeName: string;
+            /** @description 运算符。 */
             operator: components["schemas"]["ConditionOperator"];
+            /** @description 是否取反。 */
             isNegated: boolean;
+            /** @description 条件值。 */
             value?: string | null;
+            /** @description 说明。 */
             description?: string | null;
         };
+        /** @description 一条访问策略。 */
         AccessPolicyResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 策略 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 命中时的动作。 */
             action: components["schemas"]["AccessPolicyAction"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 优先级（越小越先求值）。
+             */
             priority: number;
+            /** @description 状态。 */
             status: components["schemas"]["AccessPolicyStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 失效时间。
+             */
             expiresAt?: string | null;
+            /** @description 此刻是否生效（启用且在有效期内）。 */
             isEffective: boolean;
+            /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
             phase: components["schemas"]["ConditionHitPhase"];
+            /** @description 来自哪个模板。 */
             templateCode?: string | null;
+            /** @description 备注。 */
             remark?: string | null;
+            /** @description 条件，按写入顺序。 */
             conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 访问策略的状态。
+         * @enum {string}
+         */
         AccessPolicyStatus: "Active" | "Disabled";
+        /** @description 一个预置模板。 */
         AccessPolicyTemplateResponse: {
+            /** @description 编码（平台种子写入的策略同名）。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 说明。 */
             description: string;
+            /** @description 平台种子写入时的动作（从模板新建一律只记录）。 */
             action: components["schemas"]["AccessPolicyAction"];
+            /** @description 平台种子写入时的状态。 */
             status: components["schemas"]["AccessPolicyStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 优先级。
+             */
             priority: number;
+            /** @description 在当前一侧的时机。 */
             phase: components["schemas"]["ConditionHitPhase"];
+            /** @description 条件。 */
             conditions: components["schemas"]["AccessPolicyConditionResponse"][];
         };
-        /** @enum {string} */
+        /**
+         * @description 访问结果：由调用结果的错误类别归并。
+         * @enum {string}
+         */
         AccessResult: "Success" | "Failed" | "Forbidden" | "Unauthorized" | "NotFound" | "ServerError";
+        /** @description 一段时间里的次数。 */
         ActivityCountsResponse: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 登录（成功的）。
+             */
             logins: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 访问（接口调用）。
+             */
             accesses: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 操作（记审计的写操作）。
+             */
             operations: number;
         };
+        /** @description 有活动的一天。 */
         ActivityDayResponse: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 日期（按请求的时区）。
+             */
             date: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 操作次数。
+             */
             operations: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 访问次数。
+             */
             accesses: number;
         };
+        /** @description 当前用户可进入的一个租户（tenants.mine 的列表项）。 */
         AvailableTenantResponse: {
+            /** @description 租户 ID（目录键，切换时传它）。 */
             tenantId: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 是否注册地租户。 */
             isHome: boolean;
+            /** @description 成员类型；注册地租户为空。 */
             memberType?: components["schemas"]["TenantMemberType"] | null;
+            /** @description 是否当前所在租户。 */
             isCurrent: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 加入时间：成员是成为成员的时间，注册地租户是账号建立的时间。
+             */
             joinedAt: string;
         };
         BatchFailure: {
@@ -4347,1073 +5975,2310 @@ export interface components {
             id: string;
             code: string;
         };
+        /** @description 一个机器人配置（签名密钥不回显）。 */
         BotConfigResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 配置 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 服务商。 */
             provider: components["schemas"]["BotProvider"];
+            /** @description Webhook 地址。 */
             webhookUrl: string;
+            /** @description 是否存了签名密钥。 */
             hasSecret: boolean;
+            /** @description 安全关键词。 */
             keyword?: string | null;
+            /** @description 是否本侧这个服务商的缺省。 */
             isDefault: boolean;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 群机器人的服务商。
+         * @enum {string}
+         */
         BotProvider: "DingTalk" | "Lark" | "WeCom";
+        /** @description 条件属性目录里的一项。 */
         ConditionAttributeResponse: {
+            /** @description 登记名（族以 .* 结尾）。 */
             name: string;
+            /** @description 值种类。 */
             kind: components["schemas"]["ConditionValueKind"];
+            /** @description 是否多值。 */
             isMultiValued: boolean;
+            /** @description 是否一族属性。 */
             isFamily: boolean;
+            /** @description 旧写法别名。 */
             aliases: string[];
+            /** @description 可用的运算符。 */
             operators: components["schemas"]["ConditionOperator"][];
+            /** @description 认证前是否取得到（访问策略的认证前时机只能用它们）。 */
             isBeforeAuthentication: boolean;
         };
+        /** @description 影响试算里一个人的结论。 */
         ConditionBatchTrialItemResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 结论。 */
             verdict: components["schemas"]["ConditionVerdict"];
         };
+        /** @description 主体上的一个授权绑定。 */
         ConditionBindingResponse: {
+            /** @description 权限码。 */
             permission: string;
+            /** @description 授予或拒绝。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
             expiresAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 盘点诊断。
+         * @enum {string}
+         */
         ConditionDiagnostic: "UnregisteredAttribute" | "LegacyName" | "InvalidCondition" | "BindingInactive";
-        /** @enum {string} */
+        /**
+         * @description 盘点里一个条件组的结论。
+         * @enum {string}
+         */
         ConditionGroupConclusion: "Evaluable" | "NeverMatches" | "BindingInactive" | "Disabled";
         /** @enum {string} */
         ConditionHitAction: "LogOnly" | "Deny" | "Allow";
         /** @enum {string} */
         ConditionHitPhase: "BeforeAuthentication" | "AfterAuthentication" | "Login" | "Authorization";
+        /** @description 一条条件命中记录。 */
         ConditionHitResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 来源。 */
             source: components["schemas"]["ConditionHitSource"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 访问策略。
+             */
             policyId?: string | null;
+            /** @description 策略编码（权限条件为权限码）。 */
             policyCode: string;
+            /** @description 策略名称。 */
             policyName?: string | null;
+            /** @description 规则要求的动作。 */
             action: components["schemas"]["ConditionHitAction"];
+            /** @description 求值时机。 */
             phase: components["schemas"]["ConditionHitPhase"];
+            /** @description 请求是否因此被拦下。 */
             isBlocked: boolean;
+            /** @description 操作 ID。 */
             operationId?: string | null;
+            /** @description 请求方法。 */
             method?: string | null;
+            /** @description 请求路径。 */
             path?: string | null;
+            /** @description 端点要求的权限码，逗号分隔。 */
             permissionCodes?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 这一分钟里的命中次数。
+             */
             hitCount: number;
         };
         /** @enum {string} */
         ConditionHitSource: "AccessPolicy" | "PermissionCondition";
+        /** @description 盘点里的一条子句。 */
         ConditionInventoryItemResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 子句 ID。
+             */
             conditionId: string;
+            /** @description 主体类别。 */
             subjectKind: components["schemas"]["GrantSubjectKind"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主体 ID。
+             */
             subjectId: string;
+            /** @description 主体名称。 */
             subjectName?: string | null;
+            /** @description 权限码。 */
             permission: string;
+            /** @description 授予或拒绝。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号。
+             */
             groupNo: number;
+            /** @description 属性名。 */
             attributeName: string;
+            /** @description 运算符。 */
             operator: components["schemas"]["ConditionOperator"];
+            /** @description 是否取反。 */
             isNegated: boolean;
+            /** @description 条件值。 */
             value?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["ConditionStatus"];
+            /** @description 诊断。 */
             diagnostics: components["schemas"]["ConditionDiagnostic"][];
+            /** @description 编译不过的原因（已翻译）。 */
             message?: string | null;
+            /** @description 所在组的结论。 */
             groupConclusion: components["schemas"]["ConditionGroupConclusion"];
         };
         /** @enum {string} */
         ConditionOperator: "Equals" | "NotEquals" | "GreaterThan" | "GreaterThanOrEquals" | "LessThan" | "LessThanOrEquals" | "Contains" | "NotContains" | "In" | "NotIn" | "Between" | "StartsWith" | "EndsWith" | "IsNull" | "IsNotNull";
         /** @enum {string} */
         ConditionOutcome: "Matched" | "NotMatched" | "Indeterminate" | "Pending";
-        /** @enum {string} */
+        /**
+         * @description 权限条件子句的状态。
+         * @enum {string}
+         */
         ConditionStatus: "Active" | "Disabled";
+        /** @description 一条子句的求值说明。 */
         ConditionTrialClauseResponse: {
+            /** @description 子句键（子句 ID）。 */
             key?: string | null;
+            /** @description 属性名。 */
             attributeName: string;
+            /** @description 运算符。 */
             operator: components["schemas"]["ConditionOperator"];
+            /** @description 是否取反。 */
             isNegated: boolean;
+            /** @description 条件值。 */
             value?: string | null;
+            /** @description 结果。 */
             outcome: components["schemas"]["ConditionOutcome"];
+            /** @description 属性此刻的取值。 */
             attributeValues: string[];
+            /** @description 无法判定的原因（已按请求的区域翻译）。 */
             reason?: string | null;
         };
+        /** @description 一个条件组的求值说明。 */
         ConditionTrialGroupResponse: {
+            /** @description 组号。 */
             key?: string | null;
+            /** @description 结果。 */
             outcome: components["schemas"]["ConditionOutcome"];
+            /** @description 子句。 */
             clauses: components["schemas"]["ConditionTrialClauseResponse"][];
         };
+        /** @description 一条授予路径的求值说明。 */
         ConditionTrialPathResponse: {
+            /** @description 来源：user、delegation、role 或 delegation-role。 */
             source: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色链的链首角色。
+             */
             roleId?: string | null;
+            /** @description 链首角色的名称。 */
             roleName?: string | null;
+            /** @description 有没有无条件的授予。 */
             hasUnconditionalGrant: boolean;
+            /** @description 有条件的授予。 */
             grantSets: components["schemas"]["ConditionTrialSetResponse"][];
+            /** @description 有条件的拒绝。 */
             denySets: components["schemas"]["ConditionTrialSetResponse"][];
+            /** @description 是否成立。 */
             holds: boolean;
         };
+        /** @description 一个绑定上的条件集求值说明。 */
         ConditionTrialSetResponse: {
+            /** @description 主体类别。 */
             subjectKind: components["schemas"]["GrantSubjectKind"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主体 ID。
+             */
             subjectId: string;
+            /** @description 主体名称（角色名或「显示名 (@登录名)」）。 */
             subjectName?: string | null;
+            /** @description 绑定的权限码（可能是 *）。 */
             binding: string;
+            /** @description 授予或拒绝。 */
             action: components["schemas"]["PermissionAction"];
+            /** @description 是否生效：授予侧为命中，拒绝侧为命中或无法编译。 */
             applies: boolean;
+            /** @description 求值结果（无法编译时为空）。 */
             outcome?: components["schemas"]["ConditionOutcome"] | null;
+            /** @description 各组。 */
             groups: components["schemas"]["ConditionTrialGroupResponse"][];
+            /** @description 编译错误（已翻译）。 */
             errors: string[];
         };
         /** @enum {string} */
         ConditionValueKind: "String" | "Number" | "Boolean" | "DateTime" | "Date" | "TimeOfDay" | "IpAddress";
-        /** @enum {string} */
+        /**
+         * @description 一个主体在一个权限码上按条件判定的结论。
+         * @enum {string}
+         */
         ConditionVerdict: "NotGranted" | "Unconditional" | "Granted" | "Denied";
-        /** @enum {string} */
+        /**
+         * @description 参数值的数据类型：保存时按它校验值与缺省值。
+         * @enum {string}
+         */
         ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
+        /** @description 参数的网络契约。 */
         ConfigResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 属主：platform 或租户 ID。 */
             ownerTenantId: string;
+            /** @description 是否为平台参数。 */
             isPlatform: boolean;
+            /** @description 参数键。 */
             key: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 分组。 */
             group?: string | null;
+            /** @description 数据类型。 */
             dataType: components["schemas"]["ConfigDataType"];
+            /** @description 值；加密时为 null。 */
             value?: string | null;
+            /** @description 缺省值。 */
             defaultValue?: string | null;
+            /** @description 是否有值（加密参数据此判断）。 */
             hasValue: boolean;
+            /** @description 是否加密。 */
             isEncrypted: boolean;
+            /** @description 是否内建。 */
             isBuiltIn: boolean;
+            /** @description 平台参数是否允许租户覆盖。 */
             allowTenantOverride: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["SettingStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 说明。 */
             description?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）。
+             */
             modifiedAt?: string | null;
         };
+        /** @description 约束规则的一个规则项（请求）。 */
         ConstraintItemRequest: {
+            /** @description 目标：角色 ID、权限码或用户 ID（按规则的目标类型）。 */
             targetId: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号（职责分离与互斥按组判定）。
+             */
             groupNo?: number;
+            /** @description 备注。 */
             remark?: string | null;
         };
+        /** @description 约束规则的一个规则项（响应）。 */
         ConstraintItemResponse: {
+            /** @description 目标。 */
             targetId: string;
+            /** @description 目标的显示名；目标已不在时为空。 */
             targetName?: string | null;
+            /** @description 角色编码、权限码或登录名。 */
             targetCode?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号。
+             */
             groupNo: number;
+            /** @description 备注。 */
             remark?: string | null;
         };
+        /** @description 一条约束规则。 */
         ConstraintRuleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 规则 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 约束类型。 */
             type: components["schemas"]["ConstraintType"];
+            /** @description 目标类型。 */
             targetType: components["schemas"]["ConstraintTargetType"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 数量上限（条件类不用）。
+             */
             maxAllowed: number;
+            /** @description 条件类的条件。 */
             conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+            /** @description 违规处理方式。 */
             violationAction: components["schemas"]["ConstraintViolationAction"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 优先级（越大越先）。
+             */
             priority: number;
+            /** @description 状态。 */
             status: components["schemas"]["ConstraintRuleStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 失效时间。
+             */
             expiresAt?: string | null;
+            /** @description 此刻是否生效（启用且在有效期内）。 */
             isEffective: boolean;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 备注。 */
             remark?: string | null;
+            /** @description 规则项。 */
             items: components["schemas"]["ConstraintItemResponse"][];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 约束规则的状态。
+         * @enum {string}
+         */
         ConstraintRuleStatus: "Active" | "Disabled";
-        /** @enum {string} */
+        /**
+         * @description 约束规则项的目标类型。
+         * @enum {string}
+         */
         ConstraintTargetType: "Role" | "Permission" | "User";
-        /** @enum {string} */
+        /**
+         * @description 约束类型。
+         * @enum {string}
+         */
         ConstraintType: "Ssd" | "Dsd" | "MutualExclusion" | "Cardinality" | "Condition";
-        /** @enum {string} */
+        /**
+         * @description 违规处理方式。
+         * @enum {string}
+         */
         ConstraintViolationAction: "Deny" | "Warning" | "Log" | "RequireApproval";
-        /** @enum {string} */
+        /**
+         * @description 角色的数据范围。
+         * @enum {string}
+         */
         DataScope: "SelfOnly" | "DepartmentOnly" | "DepartmentAndChildren" | "All" | "Custom";
+        /** @description 自定义数据范围里的一个部门（请求与响应共用）。 */
         DataScopeDepartmentRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 部门主键（当前租户）。
+             */
             departmentId: string;
+            /** @description 是否连同子部门。 */
             includeChildren?: boolean;
         };
+        /** @description 一条委托。 */
         DelegationResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 委托 ID。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 委托人。
+             */
             delegatorId: string;
+            /** @description 委托人的显示名（「显示名 (@登录名)」，用户已删除时为空）。 */
             delegatorName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 被委托人。
+             */
             delegateeId: string;
+            /** @description 被委托人的显示名。 */
             delegateeName?: string | null;
+            /** @description 委托的权限码。 */
             permission?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 委托的角色。
+             */
             roleId?: string | null;
+            /** @description 委托的角色名。 */
             roleName?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
             expiresAt: string;
+            /** @description 委托原因。 */
             reason?: string | null;
+            /** @description 此刻的状态（按撤销时间与有效期推出）。 */
             status: components["schemas"]["DelegationStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 撤销时间。
+             */
             revokedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 委托状态（由撤销时间与有效期推出，不落库）。
+         * @enum {string}
+         */
         DelegationStatus: "Pending" | "Active" | "Expired" | "Revoked";
-        /** @enum {string} */
+        /**
+         * @description 一种投递渠道（请求与响应里按名称列出，不用按位组合的数）。
+         * @enum {string}
+         */
         DeliveryChannel: "InApp" | "Email" | "Sms" | "Bot";
+        /** @description 部门树节点。 */
         DepartmentNode: {
+            /** @description 部门。 */
             department: components["schemas"]["DepartmentResponse"];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 直接成员数（不含子部门）。
+             */
             memberCount: number;
+            /** @description 子部门，按排序号与名称。 */
             children: components["schemas"]["DepartmentNode"][];
         };
+        /** @description 部门的网络契约。 */
         DepartmentResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 直接上级；为空即顶层。
+             */
             parentId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 负责人。
+             */
             leaderUserId?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["OrganizationStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 同级排序号。
+             */
             order: number;
+            /** @description 说明。 */
             description?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
+        /** @description 字典项的网络契约。 */
         DictItemResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 所在字典。
+             */
             dictId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 上级项。
+             */
             parentId?: string | null;
+            /** @description 编码。 */
             code: string;
+            /** @description 显示名。 */
             name: string;
+            /** @description 附加值。 */
             value?: string | null;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 扩展元数据（JSON）。 */
             metadata?: string | null;
+            /** @description 是否为缺省项。 */
             isDefault: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["SettingStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 层级（顶层为 0）。
+             */
             depth: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
+        /** @description 一个下拉选项：值是字典项编码（业务数据按它存）。 */
         DictOption: {
+            /** @description 字典项编码。 */
             value: string;
+            /** @description 显示名。 */
             label: string;
+            /** @description 上级项编码；顶层为 null。 */
             parentValue?: string | null;
+            /** @description 是否为缺省项。 */
             isDefault: boolean;
+            /** @description 是否停用（只用于回显历史数据，下拉里不能再选）。 */
             disabled: boolean;
         };
+        /** @description 字典的网络契约。 */
         DictResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 属主：platform 或租户 ID。 */
             ownerTenantId: string;
+            /** @description 是否为平台字典。 */
             isPlatform: boolean;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 分类。 */
             category?: string | null;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 是否内建。 */
             isBuiltIn: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["SettingStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 数据变更的种类。
+         * @enum {string}
+         */
         DiffKind: "Insert" | "Update" | "Delete";
+        /** @description 数据变更日志的列表项（不含前后值）。 */
         DiffLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 触发变更的操作 ID。 */
             operationId?: string | null;
+            /** @description 变更种类。 */
             kind: components["schemas"]["DiffKind"];
+            /** @description 实体类型名。 */
             entityType: string;
+            /** @description 表名。 */
             tableName?: string | null;
+            /** @description 主键值。 */
             entityId?: string | null;
+            /** @description 有变化的列，逗号分隔。 */
             changedFields?: string | null;
         };
+        /** @description 套餐的响应形态：列表项与详情里的基本信息共用。 */
         EditionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 是否新租户的缺省套餐。 */
             isDefault: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 白名单里的权限数。
+             */
             permissionCount: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 绑定它的租户数。
+             */
             tenantCount: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 席位上限；为空不限。
+             */
             userLimit?: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 存储空间上限（MB）；为空不限。
+             */
             storageLimitMb?: number | null;
-            /** Format: decimal */
+            /**
+             * Format: decimal
+             * @description 价格（两位小数）；为空不标价。
+             */
             price?: number | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 计费周期（月）；为空不标周期。
+             */
             billingPeriodMonths?: number | null;
+            /** @description 是否免费套餐（免费套餐不能标价）。 */
             isFree: boolean;
         };
+        /** @description 一个邮件配置（密码不回显）。 */
         EmailConfigResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 配置 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description SMTP 主机。 */
             smtpHost: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 端口。
+             */
             smtpPort: number;
+            /** @description 加密连接。 */
             useSsl: boolean;
+            /** @description 接受无效证书。 */
             acceptInvalidCertificate: boolean;
+            /** @description 发件地址。 */
             fromEmail: string;
+            /** @description 发件人名称。 */
             fromName?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
+            /** @description 是否存了密码。 */
             hasPassword: boolean;
+            /** @description 是否缺省。 */
             isDefault: boolean;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
+        /** @description 一条邮件发送记录。 */
         EmailRecordResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
             id: string;
+            /** @description 收件地址。 */
             toEmail: string;
+            /** @description 主题。 */
             subject: string;
+            /** @description 正文。 */
             content?: string | null;
+            /** @description 正文是 HTML。 */
             isHtml: boolean;
+            /** @description 模板编码。 */
             templateCode?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["MessageSendStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 已尝试次数。
+             */
             attempts: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 最多尝试次数。
+             */
             maxAttempts: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 下次尝试时间。
+             */
             nextAttemptAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发出时间。
+             */
             sentAt?: string | null;
+            /** @description 失败原因。 */
             errorMessage?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用的配置。
+             */
             configId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 发起人。
+             */
             senderId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 接收人。
+             */
             receiverId?: string | null;
+            /** @description 业务类型。 */
             businessType?: string | null;
+            /** @description 业务 ID。 */
             businessId?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 写入时间。
+             */
             createdAt: string;
         };
+        /** @description 异常日志的列表项（不含堆栈）。 */
         ExceptionLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 操作 ID。 */
             operationId?: string | null;
+            /** @description 调用协议。 */
             protocol?: string | null;
+            /** @description 请求方法。 */
             method?: string | null;
+            /** @description 请求路径。 */
             path?: string | null;
+            /** @description 异常类型。 */
             exceptionType: string;
+            /** @description 异常消息。 */
             message: string;
+            /** @description 异常源。 */
             source?: string | null;
+            /** @description 发生位置。 */
             location?: string | null;
+            /** @description 服务器主机名。 */
             machineName?: string | null;
+            /** @description 运行环境。 */
             environmentName?: string | null;
+            /** @description 应用版本。 */
             appVersion?: string | null;
         };
+        /** @description 导出的一列（请求）。 */
         ExportColumnRequest: {
+            /** @description 字段名（列表响应里的属性名）。 */
             key: string;
+            /** @description 表头。 */
             title: string;
+            /** @description 原值到显示文字的映射。 */
             valueMap?: {
                 [key: string]: string;
             } | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 导出格式。
+         * @enum {string}
+         */
         ExportFormat: "Csv" | "Xlsx";
-        /** @enum {string} */
+        /**
+         * @description 导出范围。
+         * @enum {string}
+         */
         ExportScope: "CurrentPage" | "SearchResult" | "All";
+        /** @description 一个导出任务。 */
         ExportTaskResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 任务 ID。
+             */
             id: string;
+            /** @description 导出的列表操作 ID。 */
             businessType: string;
+            /** @description 任务名称。 */
             taskName: string;
+            /** @description 范围。 */
             scope: components["schemas"]["ExportScope"];
+            /** @description 格式。 */
             format: components["schemas"]["ExportFormat"];
+            /** @description 状态。 */
             status: components["schemas"]["ExportTaskStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 进度（0–100）。
+             */
             progress: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 总行数。
+             */
             totalCount: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 已写出的行数。
+             */
             processedCount: number;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 结果文件 ID（下载经 files.presign）。
+             */
             fileId?: string | null;
+            /** @description 结果文件名。 */
             fileName?: string | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 结果文件大小（字节）。
+             */
             fileSize?: number | null;
+            /** @description 失败原因（取消、中断与执行错误）。 */
             errorMessage?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 开始时间。
+             */
             startedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
             finishedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 提交时间。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 导出任务状态。
+         * @enum {string}
+         */
         ExportTaskStatus: "Pending" | "Processing" | "Success" | "Failed";
+        /** @description 本人绑定的一个第三方账号。 */
         ExternalLoginResponse: {
+            /** @description 提供商类型。 */
             provider: string;
+            /** @description 第三方的显示名。 */
             displayName?: string | null;
+            /** @description 第三方的邮箱。 */
             email?: string | null;
+            /** @description 第三方的头像。 */
             avatarUrl?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 绑定时间。
+             */
             boundAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次用它登录的时间。
+             */
             lastLoginAt?: string | null;
         };
         /** @enum {string} */
         FieldMaskStrategy: "None" | "Hidden" | "FullMask" | "PartialMask" | "Hash" | "Redact";
-        /** @enum {string} */
+        /**
+         * @description 字段安全规则的状态。
+         * @enum {string}
+         */
         FieldRuleStatus: "Active" | "Disabled";
+        /** @description 字段安全里一个可配置的实体。 */
         FieldSecurityEntityResponse: {
+            /** @description 实体码。 */
             code: string;
+            /** @description 显示名的界面文案键。 */
             titleKey: string;
+            /** @description 可配置的字段。 */
             fields: components["schemas"]["FieldSecurityFieldResponse"][];
         };
+        /** @description 字段安全里一个可配置的字段。 */
         FieldSecurityFieldResponse: {
+            /** @description 字段名（与接口字段同名）。 */
             name: string;
+            /** @description 显示名的界面文案键。 */
             titleKey: string;
+            /** @description 是否文本；非文本只能明文只读或隐藏。 */
             isText: boolean;
+            /** @description 响应里是否可空；不可空的不能隐藏。 */
             isNullable: boolean;
         };
+        /** @description 一条字段安全规则。 */
         FieldSecurityRuleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 规则 ID。
+             */
             id: string;
+            /** @description 目标类型。 */
             targetKind: components["schemas"]["FieldSecurityTargetKind"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 目标 ID。
+             */
             targetId: string;
+            /** @description 目标显示名；目标已不存在时为空。 */
             targetName?: string | null;
+            /** @description 实体码。 */
             entity: string;
+            /** @description 字段名。 */
             field: string;
+            /** @description 读取方式。 */
             strategy: components["schemas"]["FieldMaskStrategy"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 部分脱敏保留前几位。
+             */
             keepHead?: number | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 部分脱敏保留后几位。
+             */
             keepTail?: number | null;
+            /** @description 固定文本。 */
             replacement?: string | null;
+            /** @description 能否改写。 */
             isEditable: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["FieldRuleStatus"];
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 字段安全规则的目标类型。
+         * @enum {string}
+         */
         FieldSecurityTargetKind: "Role" | "User" | "Department";
-        /** @enum {string} */
+        /**
+         * @description 文件访问级别：谁能换取下载地址（签名地址本身在有效期内不再校验身份）。
+         * @enum {string}
+         */
         FileAccessLevel: "Authenticated" | "Authorized" | "Public";
-        /** @enum {string} */
+        /**
+         * @description 文件大类。
+         * @enum {string}
+         */
         FileKind: "Image" | "Document" | "Video" | "Audio" | "Archive" | "Other";
-        /** FileResponse */
+        /**
+         * FileResponse
+         * @description 一个文件。
+         */
         FileResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 文件 ID。
+             */
             id: string;
+            /** @description 系统文件名。 */
             name: string;
+            /** @description 原始文件名。 */
             originalName: string;
+            /** @description 扩展名（小写含点）。 */
             extension?: string | null;
+            /** @description 文件大类。 */
             kind: components["schemas"]["FileKind"];
+            /** @description 内容类型。 */
             contentType: string;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 大小（字节）。
+             */
             size: number;
+            /** @description SHA-256。 */
             hash: string;
+            /** @description 状态。 */
             status: components["schemas"]["FileStatus"];
+            /** @description 访问级别。 */
             accessLevel: components["schemas"]["FileAccessLevel"];
+            /** @description 是否临时文件。 */
             isTemporary: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
             expiresAt?: string | null;
+            /** @description 来源。 */
             source: string;
+            /** @description 标签（逗号分隔）。 */
             tags?: string | null;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 下载次数。
+             */
             downloadCount: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次下载时间。
+             */
             lastDownloadedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 上传时间。
+             */
             createdAt: string;
+            /** @description 上传人（用户 ID）。 */
             createdBy?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 文件状态。
+         * @enum {string}
+         */
         FileStatus: "Normal" | "Archived" | "Corrupted";
+        /** @description 一个文件副本。 */
         FileStorageResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 副本 ID。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 存储配置 ID。
+             */
             storageConfigId: string;
+            /** @description 存储配置编码；配置已删为空。 */
             storageConfigCode?: string | null;
+            /** @description 存储配置名称。 */
             storageConfigName?: string | null;
+            /** @description 写入时的存储类型。 */
             storageType: components["schemas"]["StorageType"];
+            /** @description 桶名。 */
             bucket: string;
+            /** @description 对象键。 */
             key: string;
+            /** @description 是否主副本。 */
             isPrimary: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["FileStorageStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次校验时间。
+             */
             verifiedAt?: string | null;
+            /** @description 备注（校验失败的原因：missing 内容缺失、hash-mismatch 内容不符）。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 写入时间。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 副本状态。
+         * @enum {string}
+         */
         FileStorageStatus: "Normal" | "VerificationFailed" | "Unavailable";
-        /** @enum {string} */
+        /**
+         * @description 授予规则的主体类型。
+         * @enum {string}
+         */
         GrantSubjectKind: "Role" | "User";
+        /** @description 可被模仿的一个用户。 */
         ImpersonationCandidateResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             id: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 注册地租户。 */
             homeTenantId: string;
         };
+        /** @description 一条导入历史。 */
         ImportHistoryResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
             id: string;
+            /** @description 页面码。 */
             pageCode: string;
+            /** @description 资源码。 */
             resourceCode?: string | null;
+            /** @description 文件名。 */
             fileName: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 总行数。
+             */
             totalCount: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 成功行数。
+             */
             successCount: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 失败行数。
+             */
             failCount: number;
+            /** @description 错误摘要。 */
             errorSummary?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 导入时间。
+             */
             createdAt: string;
         };
+        /** @description 收件箱的一条（本人的，带通知的展示字段）。 */
         InboxItemResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 收件箱这一条的 ID（标已读、确认、删除都用它）。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 通知 ID。
+             */
             notificationId: string;
+            /** @description 标题。 */
             title: string;
+            /** @description 正文。 */
             content?: string | null;
+            /** @description 正文格式。 */
             contentFormat: components["schemas"]["NotificationContentFormat"];
+            /** @description 类型。 */
             notificationType: components["schemas"]["NotificationType"];
+            /** @description 优先级。 */
             priority: components["schemas"]["NotificationPriority"];
+            /** @description 阅读状态。 */
             status: components["schemas"]["UserNotificationStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发布时间。
+             */
             publishedAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 阅读时间。
+             */
             readAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 确认时间。
+             */
             confirmedAt?: string | null;
+            /** @description 是否发给当前一侧的全部账号。 */
             isGlobal: boolean;
+            /** @description 需要确认。 */
             needConfirm: boolean;
+            /** @description 强制阅读。 */
             isMandatory: boolean;
+            /** @description 横幅。 */
             isBanner: boolean;
+            /** @description 登录后弹窗。 */
             isPopup: boolean;
+            /** @description 图标。 */
             icon?: string | null;
+            /** @description 链接。 */
             link?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
             expiresAt?: string | null;
         };
+        /** @description 从此刻传得到授予的上级继承来的一条授予或拒绝。 */
         InheritedPermissionResponse: {
+            /** @description 权限码。 */
             permission: string;
+            /** @description 授予或拒绝（上级的拒绝同样作用于本角色）。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 来源上级。
+             */
             sourceRoleId: string;
+            /** @description 来源上级的名称。 */
             sourceRoleName: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 来源上级的深度。
+             */
             depth: number;
         };
+        /** @description 登录失败自动封禁此刻生效的参数。 */
         LoginAutoBanSettingsResponse: {
+            /** @description 系统参数键（在参数配置里改）。 */
             configKey: string;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 计数窗口（分钟）。
+             */
             windowMinutes: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 失败次数上限。
+             */
             maxFailures: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 首次封禁（分钟）。
+             */
             banMinutes: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 封禁上限（分钟）。
+             */
             maxBanMinutes: number;
+            /** @description 参数写错时的原因（按请求区域翻译；此时按缺省值显示、不计数）。 */
             error?: string | null;
         };
+        /** @description 一条封禁。 */
         LoginBanResponse: {
+            /** @description 地址。 */
             ip: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 解封时刻。
+             */
             until: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 还剩几秒。
+             */
             remainingSeconds: number;
         };
         /** @enum {string} */
         LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset" | "RoleActivation";
+        /** @description 一条登录日志。 */
         LoginLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 事件。 */
             event: components["schemas"]["LoginEvent"];
+            /** @description 是否成功。 */
             succeeded: boolean;
+            /** @description 失败的错误码。 */
             errorCode?: string | null;
+            /** @description 失败的错误消息。 */
             errorMessage?: string | null;
+            /** @description 账号所在的租户。 */
             accountTenantId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 模仿事件的发起人。
+             */
             impersonatorUserId?: string | null;
+            /** @description 补充说明。 */
             detail?: string | null;
+            /** @description 浏览器。 */
             browser?: string | null;
+            /** @description 操作系统。 */
             os?: string | null;
+            /** @description 设备类型。 */
             device?: string | null;
         };
+        /** @description 一个第三方登录提供方。 */
         LoginProviderResponse: {
+            /** @description 提供方标识。 */
             name: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 提供商类型（github、wechat 等规范名，前端据此选图标）。 */
             type: string;
         };
+        /** @description 归属的网络契约：带用户、部门、岗位的名称。 */
         MembershipResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId: string;
+            /** @description 用户登录名。 */
             userName: string;
+            /** @description 用户显示名。 */
             displayName: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 部门。
+             */
             departmentId: string;
+            /** @description 部门名称。 */
             departmentName: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 岗位。
+             */
             positionId?: string | null;
+            /** @description 岗位名称。 */
             positionName?: string | null;
+            /** @description 是否主部门。 */
             isPrimary: boolean;
+            /** @description 工号。 */
             employeeNumber?: string | null;
+            /** @description 职级。 */
             jobGrade?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 入职时间（UTC）。
+             */
             hiredAt?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 部门内排序号。
+             */
             order: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 菜单节点的种类。
+         * @enum {string}
+         */
         MenuKind: "Page" | "Directory" | "Link";
+        /** @description 菜单节点。 */
         MenuNode: {
+            /** @description 节点编码（页面码或 custom.<名>）。 */
             code: string;
+            /** @description 种类。 */
             kind: components["schemas"]["MenuKind"];
+            /** @description 路由路径；目录与外链为空。 */
             route: string;
+            /** @description 组件路径（<包>/<路径>/index）；目录与外链为空。 */
             component: string;
+            /** @description 标题文案键；运营节点为空。 */
             titleKey: string;
+            /** @description 标题原文：运营节点必有，页面节点非空即覆盖文案键。 */
             title?: string | null;
+            /** @description 图标。 */
             icon?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 所需权限码。 */
             permission?: string | null;
+            /** @description 外链地址；只有外链节点有。 */
             externalUrl?: string | null;
+            /** @description 导航里不显示（页面仍可直接访问）。 */
             hidden: boolean;
+            /** @description 页面标签是否参与缓存。 */
             keepAlive: boolean;
+            /** @description 是否固定在标签栏。 */
             affix: boolean;
+            /** @description 子节点。 */
             children: components["schemas"]["MenuNode"][];
         };
+        /** @description 菜单节点的管理视图（menus.*）。 */
         MenuResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 编码（页面码或 custom.<名>）。 */
             code: string;
+            /** @description 种类。 */
             kind: components["schemas"]["MenuKind"];
+            /** @description 所属包；运营节点是 custom。 */
             package: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 上级。
+             */
             parentId?: string | null;
+            /** @description 路由路径；目录与外链为空。 */
             route: string;
+            /** @description 组件路径；目录与外链为空。 */
             component: string;
+            /** @description 标题文案键；运营节点为空。 */
             titleKey: string;
+            /** @description 标题原文（运营节点）或覆盖（页面节点）。 */
             title?: string | null;
+            /** @description 图标。 */
             icon?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 所需权限码。 */
             permission?: string | null;
+            /** @description 外链地址。 */
             externalUrl?: string | null;
+            /** @description 是否在导航里显示。 */
             isVisible: boolean;
+            /** @description 页面标签是否参与缓存。 */
             keepAlive: boolean;
+            /** @description 是否固定在标签栏。 */
             isAffix: boolean;
+            /** @description 页面节点的展示是否被改过（可恢复默认）。 */
             isCustomized: boolean;
+            /** @description 子节点。 */
             children: components["schemas"]["MenuResponse"][];
         };
-        /** @enum {string} */
+        /**
+         * @description 邮件与短信发送记录的状态。
+         * @enum {string}
+         */
         MessageSendStatus: "Pending" | "Sending" | "Success" | "Failed" | "Cancelled";
+        /** @description 一个消息模板。 */
         MessageTemplateResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 模板 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 渠道。 */
             channel: components["schemas"]["TemplateChannel"];
+            /** @description 名称。 */
             name: string;
+            /** @description 主题。 */
             subject?: string | null;
+            /** @description 正文。 */
             content: string;
+            /** @description 正文是 HTML。 */
             isHtml: boolean;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
+        /** @description 本人的一个开放接口凭证（密钥不回显）。 */
         MyApiCredentialResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 凭证 ID。
+             */
             id: string;
+            /** @description 名称。 */
             name: string;
+            /** @description AppKey。 */
             appKey: string;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次验签通过的时间；从未用过为空。
+             */
             lastUsedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
         };
+        /** @description 本人的一条登录日志。 */
         MyLoginLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description 事件。 */
             event: components["schemas"]["LoginEvent"];
+            /** @description 是否成功。 */
             succeeded: boolean;
+            /** @description 失败的错误码。 */
             errorCode?: string | null;
+            /** @description 失败的错误消息。 */
             errorMessage?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description 浏览器。 */
             browser?: string | null;
+            /** @description 操作系统。 */
             os?: string | null;
+            /** @description 设备类型。 */
             device?: string | null;
+            /** @description 是否别人模仿本人时记下的。 */
             impersonated: boolean;
         };
+        /** @description 本人的一台登录设备（一个有效会话）。 */
         MySessionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话 ID。
+             */
             id: string;
+            /** @description 设备类型：Desktop、Mobile、Tablet、Bot；认不出为空。 */
             device?: string | null;
+            /** @description 浏览器。 */
             browser?: string | null;
+            /** @description 操作系统。 */
             os?: string | null;
+            /** @description 登录 IP（本人的设备不遮掩）。 */
             ipAddress?: string | null;
+            /** @description 登录地点。 */
             location?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 登录时间（会话签发）。
+             */
             loginAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最后活动时间（最近一次续签，没续签过即登录时间）。
+             */
             lastActiveAt: string;
+            /** @description 是否当前这个会话（不能在这里下线，用退出登录）。 */
             isCurrent: boolean;
         };
-        /** @enum {string} */
+        /**
+         * @description 正文格式。
+         * @enum {string}
+         */
         NotificationContentFormat: "Text" | "Markdown" | "Html";
-        /** @enum {string} */
+        /**
+         * @description 优先级。
+         * @enum {string}
+         */
         NotificationPriority: "Low" | "Normal" | "High" | "Urgent";
-        /** @enum {string} */
+        /**
+         * @description 接收人列表要看的范围。
+         * @enum {string}
+         */
         NotificationRecipientFilter: "All" | "Unread" | "Read" | "Unconfirmed";
+        /** @description 一个接收人。 */
         NotificationRecipientResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 阅读状态。 */
             status: components["schemas"]["UserNotificationStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 阅读时间。
+             */
             readAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 确认时间。
+             */
             confirmedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 送达时间。
+             */
             receivedAt: string;
         };
+        /** @description 一条通知公告。 */
         NotificationResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 通知 ID。
+             */
             id: string;
+            /** @description 标题。 */
             title: string;
+            /** @description 正文。 */
             content?: string | null;
+            /** @description 正文格式。 */
             contentFormat: components["schemas"]["NotificationContentFormat"];
+            /** @description 类型。 */
             notificationType: components["schemas"]["NotificationType"];
+            /** @description 优先级。 */
             priority: components["schemas"]["NotificationPriority"];
+            /** @description 图标。 */
             icon?: string | null;
+            /** @description 链接。 */
             link?: string | null;
+            /** @description 关联的业务类型。 */
             businessType?: string | null;
+            /** @description 关联的业务 ID。 */
             businessId?: string | null;
+            /** @description 投递渠道。 */
             deliveryChannels: components["schemas"]["DeliveryChannel"][];
+            /** @description 投递目标。 */
             targetType: components["schemas"]["NotificationTargetType"];
+            /** @description 目标 ID（角色、部门或用户）。 */
             targetIds: string[];
+            /** @description 需要确认。 */
             needConfirm: boolean;
+            /** @description 强制阅读。 */
             isMandatory: boolean;
+            /** @description 横幅。 */
             isBanner: boolean;
+            /** @description 登录后弹窗。 */
             isPopup: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 可见起始时间。
+             */
             startsAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
             expiresAt?: string | null;
+            /** @description 是否已发布。 */
             isPublished: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发布时间。
+             */
             publishedAt?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 发布人。
+             */
             publisherId?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 接收人数。
+             */
             recipientCount: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 投递目标。
+         * @enum {string}
+         */
         NotificationTargetType: "All" | "Role" | "Department" | "User";
-        /** @enum {string} */
+        /**
+         * @description 通知类型。
+         * @enum {string}
+         */
         NotificationType: "System" | "Security" | "Business" | "Todo" | "Emergency";
+        /** @description 一条发号记录。 */
         NumberingAllocationResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 发起调用的一侧。 */
             requestTenantId: string;
+            /** @description 幂等键。 */
             idempotencyKey: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 个数。
+             */
             count: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 起始流水值。
+             */
             startValue: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 结束流水值。
+             */
             endValue: number;
+            /** @description 周期键。 */
             periodKey: string;
+            /** @description 第一个号码。 */
             firstNumber: string;
+            /** @description 最后一个号码。 */
             lastNumber: string;
+            /** @description 业务类型。 */
             businessType?: string | null;
+            /** @description 业务单据主键。 */
             businessId?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发号时刻（UTC）。
+             */
             generatedAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 编号日期段的格式（按规则时区取当地日期）。
+         * @enum {string}
+         */
         NumberingDateFormat: "None" | "Yyyy" | "YyyyMM" | "YyyyMMdd" | "YyMM" | "YyMMdd" | "MMdd";
-        /** @enum {string} */
+        /**
+         * @description 流水的自动重置周期（按规则时区）。
+         * @enum {string}
+         */
         NumberingResetCycle: "Never" | "Daily" | "Monthly" | "Yearly";
+        /** @description 编号规则的网络契约。 */
         NumberingRuleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 属主：platform 或租户 ID。 */
             ownerTenantId: string;
+            /** @description 是否为平台规则。 */
             isPlatform: boolean;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 前缀。 */
             prefix?: string | null;
+            /** @description 分隔符。 */
             separator: string;
+            /** @description 日期格式。 */
             dateFormat: components["schemas"]["NumberingDateFormat"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 流水位数。
+             */
             serialLength: number;
+            /** @description 重置周期。 */
             resetCycle: components["schemas"]["NumberingResetCycle"];
+            /** @description 时区。 */
             timeZoneId: string;
+            /** @description 格式示意（如 ORD-yyyyMMdd-0000）。 */
             template: string;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 当前周期最后发出的流水值。
+             */
             currentValue: number;
+            /** @description 当前周期键（还没有基线时为空串）。 */
             currentPeriod: string;
+            /** @description 是否发过号（发过即格式冻结）。 */
             hasAllocated: boolean;
+            /** @description 平台规则是否供租户使用。 */
             allowTenantUse: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["SettingStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 说明。 */
             description?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）。
+             */
             modifiedAt?: string | null;
         };
         /** @enum {string} */
         NumberingScope: "Auto" | "Tenant" | "Platform";
+        /** @description 一个 OAuth 应用（密钥不回显）。 */
         OAuthAppResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 应用 ID。
+             */
             id: string;
+            /** @description 应用名称。 */
             appName: string;
+            /** @description 描述。 */
             appDescription?: string | null;
+            /** @description ClientId。 */
             clientId: string;
+            /** @description 客户端类型。 */
             clientType: components["schemas"]["OAuthClientType"];
+            /** @description 应用类型。 */
             appType: components["schemas"]["OAuthAppType"];
+            /** @description 授权类型。 */
             grantTypes: string[];
+            /** @description 回调地址。 */
             redirectUris: string[];
+            /** @description 授权范围。 */
             scopes: string[];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 访问令牌有效期（秒）。
+             */
             accessTokenLifetime: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 刷新令牌有效期（秒）。
+             */
             refreshTokenLifetime: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 授权码有效期（秒）。
+             */
             authorizationCodeLifetime: number;
+            /** @description Logo 地址。 */
             logo?: string | null;
+            /** @description 主页。 */
             homepage?: string | null;
+            /** @description 跳过同意页。 */
             skipConsent: boolean;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 归属人（我的应用）；平台建的为空。
+             */
             ownerUserId?: string | null;
+            /** @description 归属人的登录名。 */
             ownerUserName?: string | null;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description OAuth 应用类型（只用于展示）。
+         * @enum {string}
+         */
         OAuthAppType: "Web" | "Mobile" | "Desktop" | "Service";
-        /** @enum {string} */
+        /**
+         * @description OAuth 客户端类型。
+         * @enum {string}
+         */
         OAuthClientType: "Confidential" | "Public";
+        /** @description 本人授权过的一个应用。 */
         OAuthConsentResponse: {
+            /** @description ClientId。 */
             clientId: string;
+            /** @description 应用名称（应用已删除为空）。 */
             appName?: string | null;
+            /** @description Logo。 */
             logo?: string | null;
+            /** @description 主页。 */
             homepage?: string | null;
+            /** @description 同意过的范围。 */
             scopes: string[];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次同意的时间。
+             */
             grantedAt: string;
         };
+        /** @description 在线用户列表的一行：一个有效会话（同一用户多端登录即多行）。 */
         OnlineSessionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话 ID。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 设备类型：Desktop、Mobile、Tablet、Bot；认不出为空。 */
             device?: string | null;
+            /** @description 浏览器。 */
             browser?: string | null;
+            /** @description 操作系统。 */
             os?: string | null;
+            /** @description 登录 IP（IPv4 遮住末段、IPv6 只留前四组）。 */
             ipAddressMasked?: string | null;
+            /** @description 登录地点。 */
             location?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 登录时间（会话签发）。
+             */
             loginAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最后活动时间（最近一次续签，没续签过即登录时间）。
+             */
             lastActiveAt: string;
+            /** @description 此刻是否持有实时连接。 */
             isRealtimeOnline: boolean;
+            /** @description 是否调用方自己当前的会话（不能在这里强制下线）。 */
             isCurrent: boolean;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 模仿会话的发起人；普通会话为空。
+             */
             impersonatorUserId?: string | null;
         };
+        /** @description 开放接口日志的列表项（不含正文摘要）。 */
         OpenApiLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 接入应用的客户端标识。 */
             clientId?: string | null;
+            /** @description 接入应用名称。 */
             appName?: string | null;
+            /** @description 操作 ID。 */
             operationId?: string | null;
+            /** @description 请求方法。 */
             method: string;
+            /** @description 请求路径。 */
             path: string;
+            /** @description 签名算法。 */
             signatureAlgorithm?: string | null;
+            /** @description 签名是否有效。 */
             signatureValid: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description HTTP 状态码。
+             */
             statusCode: number;
+            /** @description 是否成功。 */
             succeeded: boolean;
+            /** @description 失败的错误码。 */
             errorCode?: string | null;
+            /** @description 失败的错误消息。 */
             errorMessage?: string | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
             durationMs: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 请求大小（字节）。
+             */
             requestSize: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 响应大小（字节）。
+             */
             responseSize: number;
         };
+        /** @description open.echo 的请求：原样回显，用于核对请求体、内容签名与加密。 */
         OpenEchoRequest: {
+            /** @description 任意文本。 */
             message?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 任意整数。
+             */
             number?: number | null;
         };
+        /** @description 操作日志的列表项。 */
         OperationLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 操作 ID（审计动作）。 */
             operationId: string;
+            /** @description 是否成功。 */
             succeeded: boolean;
+            /** @description 失败的错误码。 */
             errorCode?: string | null;
+            /** @description 失败的错误消息（有消息键的按调用方语言渲染）。 */
             errorMessage?: string | null;
+            /** @description 作用的资源名（xrn:）。 */
             resource?: string | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
             durationMs?: number | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 部门 / 岗位的启停状态。
+         * @enum {string}
+         */
         OrganizationStatus: "Active" | "Disabled";
         PageFilter: {
             field: string;
@@ -5430,437 +8295,949 @@ export interface components {
             field: string;
             descending?: boolean;
         };
-        /** @enum {string} */
+        /**
+         * @description 授予规则的动作。
+         * @enum {string}
+         */
         PermissionAction: "Grant" | "Deny";
+        /** @description 一条权限变更日志。 */
         PermissionChangeLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description User-Agent。 */
             userAgent?: string | null;
+            /** @description 变更类型。 */
             changeType: components["schemas"]["PermissionChangeType"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色。
+             */
             roleId?: string | null;
+            /** @description 角色名称。 */
             roleName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 目标用户。
+             */
             targetUserId?: string | null;
+            /** @description 目标用户的登录名。 */
             targetUserName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 套餐。
+             */
             editionId?: string | null;
+            /** @description 套餐编码。 */
             editionCode?: string | null;
+            /** @description 换套餐的租户。 */
             targetTenantId?: string | null;
+            /** @description 涉及的权限码，逗号分隔。 */
             permissionCodes?: string | null;
+            /** @description 补充说明。 */
             detail?: string | null;
         };
         /** @enum {string} */
         PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange" | "ConstraintViolation";
+        /** @description 一条条件子句。 */
         PermissionConditionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 子句 ID。
+             */
             id: string;
+            /** @description 绑定的权限码。 */
             permission: string;
+            /** @description 挂在授予还是拒绝上。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 组号。
+             */
             groupNo: number;
+            /** @description 属性名。 */
             attributeName: string;
+            /** @description 运算符。 */
             operator: components["schemas"]["ConditionOperator"];
+            /** @description 是否取反。 */
             isNegated: boolean;
+            /** @description 条件值。 */
             value?: string | null;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["ConditionStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
         };
+        /** @description 一个失败项。 */
         PermissionFailure: {
+            /** @description 权限码。 */
             permission: string;
+            /** @description 错误码。 */
             code: string;
         };
+        /** @description 一条权限描述。 */
         PermissionResponse: {
+            /** @description 权限码 <包>.<资源>.<动作>。 */
             code: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 包。 */
             package: string;
+            /** @description 资源。 */
             resource: string;
+            /** @description 动作。 */
             action: string;
+            /** @description 作用侧。 */
             scope: components["schemas"]["PermissionScope"];
+            /** @description 是否审计。 */
             audited: boolean;
         };
+        /** @description 一条授予规则。 */
         PermissionRuleResponse: {
+            /** @description 权限码。 */
             permission: string;
+            /** @description 授予还是拒绝。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间（不含）。
+             */
             expiresAt?: string | null;
+            /** @description 原因。 */
             reason?: string | null;
         };
         /** @enum {string} */
         PermissionScope: "Platform" | "Tenant" | "Both";
+        /** @description 岗位的网络契约。 */
         PositionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 状态。 */
             status: components["schemas"]["OrganizationStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 说明。 */
             description?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
-        /** ProfileResponse */
+        /**
+         * ProfileResponse
+         * @description 本人的资料与账号安全概况（个人中心）。
+         */
         ProfileResponse: {
+            /** @description 用户资料。 */
             user: components["schemas"]["UserResponse"];
+            /** @description 是否开启了双因素。 */
             twoFactorEnabled: boolean;
+            /** @description 开启的双因素方式。 */
             twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次改密时间。
+             */
             passwordChangedAt?: string | null;
+            /** @description 是否必须先改密。 */
             mustChangePassword: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+             */
             failedAccessCount: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 登录失败锁定的截止时间；没在锁定期为 null。
+             */
             lockoutEndAt?: string | null;
+            /** @description 真实姓名。 */
             realName?: string | null;
+            /** @description 性别。 */
             gender: components["schemas"]["UserGender"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生日。
+             */
             birthday?: string | null;
+            /** @description 国家或地区。 */
             country?: string | null;
+            /** @description 个人简介。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近一次本人改用户名的时间；没改过为空。
+             */
             userNameChangedAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+             */
             userNameChangeableAt?: string | null;
         };
+        /** @description 一个成员。 */
         RoleMemberResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 用户状态。 */
             status: components["schemas"]["UserStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 指派时间（UTC）。
+             */
             assignedAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间；为空即立即生效。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间（不含）；为空即长期有效。
+             */
             expiresAt?: string | null;
         };
+        /** @description 继承链上的一个角色。 */
         RoleRelativeResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色 ID。
+             */
             roleId: string;
+            /** @description 角色码。 */
             code: string;
+            /** @description 角色名。 */
             name: string;
+            /** @description 状态。 */
             status: components["schemas"]["RoleStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 最短的继承深度（直接为 1）。
+             */
             depth: number;
+            /** @description 最短路径上的角色名，按「上级 → 下级」排列，含两端。 */
             path: string[];
+            /** @description 授予此刻是否沿继承传到（路径上作为上级的角色都启用）。 */
             isEffective: boolean;
         };
+        /** @description 角色的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
         RoleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色 ID（也是令牌 role 声明与授予主体的值）。
+             */
             id: string;
+            /** @description 所属侧：platform 或租户 ID。 */
             ownerTenantId: string;
+            /** @description 角色码。 */
             code: string;
+            /** @description 显示名。 */
             name: string;
+            /** @description 说明。 */
             description?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
+            /** @description 是否内建。 */
             isBuiltIn: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["RoleStatus"];
+            /** @description 数据范围。 */
             dataScope: components["schemas"]["DataScope"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 角色状态。
+         * @enum {string}
+         */
         RoleStatus: "Active" | "Disabled";
+        /** @description 角色摘要。 */
         RoleSummary: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色 ID。
+             */
             id: string;
+            /** @description 角色码。 */
             code: string;
+            /** @description 显示名。 */
             name: string;
         };
+        /** @description 当前会话可激活的一个角色。 */
         SessionRoleItemResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色 ID。
+             */
             roleId: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 本会话是否激活着它（在令牌里）。 */
             isActive: boolean;
         };
+        /** @description 一行会话角色。 */
         SessionRoleResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
             id: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 角色。
+             */
             roleId: string;
+            /** @description 角色名称；角色已删除为空。 */
             roleName?: string | null;
+            /** @description 角色编码。 */
             roleCode?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["SessionRoleStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 激活时间。
+             */
             activatedAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 停用或到期的时间。
+             */
             deactivatedAt?: string | null;
+            /** @description 原因。 */
             reason?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 会话角色的状态。
+         * @enum {string}
+         */
         SessionRoleStatus: "Active" | "Inactive" | "Expired";
-        /** @enum {string} */
+        /**
+         * @description 参数、字典、字典项与编号规则的启停状态。
+         * @enum {string}
+         */
         SettingStatus: "Active" | "Disabled";
+        /** @description 一个短信配置（访问密钥不回显）。 */
         SmsConfigResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 配置 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 服务商。 */
             provider: components["schemas"]["SmsProvider"];
+            /** @description 访问密钥 ID。 */
             accessKeyId: string;
+            /** @description 是否存了访问密钥。 */
             hasAccessKeySecret: boolean;
+            /** @description 应用 ID。 */
             sdkAppId?: string | null;
+            /** @description 签名。 */
             signName: string;
+            /** @description 地域。 */
             region?: string | null;
+            /** @description 模板映射（JSON 对象）。 */
             templateMap?: string | null;
+            /** @description 是否缺省。 */
             isDefault: boolean;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 短信服务商。
+         * @enum {string}
+         */
         SmsProvider: "Aliyun" | "Tencent";
+        /** @description 一条短信发送记录。 */
         SmsRecordResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
             id: string;
+            /** @description 手机号。 */
             toPhone: string;
+            /** @description 正文。 */
             content: string;
+            /** @description 模板编码。 */
             templateCode?: string | null;
+            /** @description 模板参数（JSON）。 */
             templateParams?: string | null;
+            /** @description 服务商。 */
             provider?: components["schemas"]["SmsProvider"] | null;
+            /** @description 服务商消息 ID。 */
             providerMessageId?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["MessageSendStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 已尝试次数。
+             */
             attempts: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 最多尝试次数。
+             */
             maxAttempts: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 下次尝试时间。
+             */
             nextAttemptAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发出时间。
+             */
             sentAt?: string | null;
+            /** @description 失败原因。 */
             errorMessage?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用的配置。
+             */
             configId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 发起人。
+             */
             senderId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 接收人。
+             */
             receiverId?: string | null;
+            /** @description 业务类型。 */
             businessType?: string | null;
+            /** @description 业务 ID。 */
             businessId?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 写入时间。
+             */
             createdAt: string;
         };
+        /** @description 一条存储配置（访问密钥不回显）。 */
         StorageConfigResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 配置 ID。
+             */
             id: string;
+            /** @description 编码。 */
             code: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 存储类型。 */
             type: components["schemas"]["StorageType"];
+            /** @description 服务地址。 */
             endpoint?: string | null;
+            /** @description 区域。 */
             region?: string | null;
+            /** @description 桶名。 */
             bucket: string;
+            /** @description 访问密钥 ID。 */
             accessKeyId?: string | null;
+            /** @description 是否已设访问密钥。 */
             hasSecretAccessKey: boolean;
+            /** @description 是否这一侧的缺省配置。 */
             isDefault: boolean;
+            /** @description 状态。 */
             status: components["schemas"]["StorageConfigStatus"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 存储配置状态。
+         * @enum {string}
+         */
         StorageConfigStatus: "Active" | "Disabled";
-        /** @enum {string} */
+        /**
+         * @description 存储类型：本地目录，或经 S3 协议访问的对象存储。
+         * @enum {string}
+         */
         StorageType: "Local" | "S3" | "Oss" | "Cos" | "MinIO";
+        /** @description 一个 Telegram 机器人（令牌不回显）。 */
         TelegramBotResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 机器人 ID。
+             */
             id: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 是否存了令牌。 */
             hasToken: boolean;
+            /** @description 管理员用户 ID（逗号分隔）。 */
             adminUsers?: string | null;
+            /** @description 群组白名单（逗号分隔）。 */
             allowedGroupChatIds?: string | null;
+            /** @description 命令白名单（逗号分隔）。 */
             allowedCommands?: string | null;
+            /** @description 是否兜底回复。 */
             enableFallbackReply: boolean;
+            /** @description 广播群（逗号分隔）。 */
             broadcastChatIds?: string | null;
+            /** @description 是否启用。 */
             isEnabled: boolean;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序。
+             */
             order: number;
+            /** @description 备注。 */
             remark?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
             createdAt: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 修改时间。
+             */
             modifiedAt?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 消息模板的渠道。
+         * @enum {string}
+         */
         TemplateChannel: "Email" | "Sms";
+        /** @description 租户成员的响应形态：成员行加上用户的登录名与显示名（用户在平台库，按主键补）。 */
         TenantMemberResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 成员行主键。
+             */
             id: string;
+            /** @description 租户 ID（目录键）。 */
             tenantId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             userId: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 用户的注册地租户。 */
             homeTenantId: string;
+            /** @description 成员类型。 */
             memberType: components["schemas"]["TenantMemberType"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 加入时间（UTC）。
+             */
             createdAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 租户成员的类型。
+         * @enum {string}
+         */
         TenantMemberType: "Member" | "Owner";
+        /** @description 一个租户的配额与用量。 */
         TenantQuotaResponse: {
+            /** @description 租户 ID。 */
             tenantId: string;
+            /** @description 租户名称。 */
             name: string;
+            /** @description 套餐编码；没有为空。 */
             editionCode?: string | null;
+            /** @description 套餐名称。 */
             editionName?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 有效的席位上限（租户自己的，没有取套餐的）；为空不限。
+             */
             userLimit?: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 已用席位（注册地是该租户的用户与租户成员）。
+             */
             usedSeats: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 有效的存储上限（MB）；为空不限。
+             */
             storageLimitMb?: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 已用存储（字节）。
+             */
             usedStorageBytes: number;
+            /** @description 席位是否超额。 */
             isOverSeats: boolean;
+            /** @description 存储是否超额。 */
             isOverStorage: boolean;
         };
+        /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
         TenantResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
             id: string;
+            /** @description 租户 ID（目录键，登录时填的租户）。 */
             tenantId: string;
+            /** @description 名称。 */
             name: string;
+            /** @description 说明。 */
             description?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["TenantStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间（UTC）。
+             */
             expiresAt?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 租户管理员；为空即未初始化。
+             */
             adminUserId?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 套餐；为空即不受套餐限制。
+             */
             editionId?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
             order: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+             */
             userLimit?: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+             */
             storageLimitMb?: number | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 租户状态。
+         * @enum {string}
+         */
         TenantStatus: "Active" | "Suspended";
+        /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
         TokenResponse: {
+            /** @description 访问令牌，放 Authorization: Bearer。 */
             accessToken: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 访问令牌过期时间（UTC）。
+             */
             accessExpiresAt: string;
+            /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
             refreshToken: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 刷新令牌（会话）过期时间（UTC）。
+             */
             refreshExpiresAt: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话 ID（令牌的 sid）。
+             */
             sessionId: string;
+            /** @description 当前租户；平台账号为 null。 */
             tenantId?: string | null;
+            /** @description 是否必须先改密。 */
             mustChangePassword: boolean;
+            /** @description 用户资料。 */
             user: components["schemas"]["UserResponse"];
+            /** @description 当前租户的显示名；平台为 null。 */
             tenantName?: string | null;
+            /** @description 模仿会话的发起人登录名；普通会话为 null。 */
             impersonatorUserName?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 链路聚合的维度。
+         * @enum {string}
+         */
         TraceDimension: "TraceId" | "UserId" | "UserName" | "SessionId" | "ClientIp";
-        /** @enum {string} */
+        /**
+         * @description 时间线条目的状态。
+         * @enum {string}
+         */
         TraceItemStatus: "Success" | "Info" | "Warning" | "Failure";
-        /** @enum {string} */
+        /**
+         * @description 时间线上的日志类型。
+         * @enum {string}
+         */
         TraceLogType: "Access" | "OpenApi" | "Operation" | "Login" | "Exception" | "Diff" | "PermissionChange" | "ConditionHit";
+        /** @description 时间线上的一条。 */
         TraceTimelineItem: {
+            /** @description 日志类型。 */
             logType: components["schemas"]["TraceLogType"];
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 日志主键。
+             */
             id: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 发生时间。
+             */
             occurredAt: string;
+            /** @description 标题（操作 ID、事件、异常类型、实体类型等）。 */
             title: string;
+            /** @description 摘要（错误码、路径、消息等）。 */
             summary?: string | null;
+            /** @description 状态。 */
             status: components["schemas"]["TraceItemStatus"];
+            /** @description trace-id。 */
             traceId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
             userId?: string | null;
+            /** @description 登录名。 */
             userName?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
             sessionId?: string | null;
+            /** @description 客户端地址。 */
             clientIp?: string | null;
+            /** @description 请求方法。 */
             method?: string | null;
+            /** @description 请求路径。 */
             path?: string | null;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description HTTP 状态码。
+             */
             statusCode?: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
             durationMs?: number | null;
         };
+        /** @description 一类日志的条数。 */
         TraceTypeCount: {
+            /** @description 日志类型。 */
             logType: components["schemas"]["TraceLogType"];
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 条数。
+             */
             count: number;
         };
+        /** @description 两步验证的挑战。 */
         TwoFactorChallengeResponse: {
+            /** @description 两步验证票据（只出现这一次）。 */
             ticket: string;
+            /** @description 可用的方式。 */
             methods: components["schemas"]["TwoFactorMethod"][];
+            /** @description 只有一种方式时就是它；有多种时为 null，由用户选。 */
             method?: components["schemas"]["TwoFactorMethod"] | null;
+            /** @description 是否已经发出验证码（邮箱、短信方式；认证器为否）。 */
             codeSent: boolean;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 票据过期时间（UTC）。
+             */
             expiresAt: string;
         };
-        /** @enum {string} */
+        /**
+         * @description 一种双因素方式。
+         * @enum {string}
+         */
         TwoFactorMethod: "Totp" | "Email" | "Phone";
-        /** @enum {string} */
+        /**
+         * @description 性别。
+         * @enum {string}
+         */
         UserGender: "Unknown" | "Male" | "Female";
+        /** @description 一条直接授权。 */
         UserGrantResponse: {
+            /** @description 权限码（或 *）。 */
             permission: string;
+            /** @description 授予还是拒绝。 */
             action: components["schemas"]["PermissionAction"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 生效时间。
+             */
             effectiveAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 到期时间（不含）。
+             */
             expiresAt?: string | null;
+            /** @description 原因。 */
             reason?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 收件箱一条的阅读状态。
+         * @enum {string}
+         */
         UserNotificationStatus: "Unread" | "Read";
+        /** @description 用户的响应形态。 */
         UserResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
             id: string;
+            /** @description 登录名。 */
             userName: string;
+            /** @description 显示名。 */
             displayName: string;
+            /** @description 邮箱。 */
             email?: string | null;
+            /** @description 手机号。 */
             phoneNumber?: string | null;
+            /** @description 注册地租户 ID；平台账号为 platform。 */
             homeTenantId: string;
+            /** @description 状态。 */
             status: components["schemas"]["UserStatus"];
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 最近登录时间（UTC）。
+             */
             lastLoginAt?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
             createdAt: string;
+            /** @description 创建人（主体 ID）。 */
             createdBy?: string | null;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 头像文件（前端按它换签名地址显示）；没设为空。
+             */
             avatarFileId?: string | null;
         };
-        /** @enum {string} */
+        /**
+         * @description 用户设置的场景：一条设置由（用户, 场景, 设置键）唯一定位。
+         * @enum {string}
+         */
         UserSettingScene: "Preference" | "Page";
-        /** @enum {string} */
+        /**
+         * @description 用户状态。
+         * @enum {string}
+         */
         UserStatus: "Active" | "Disabled" | "Locked";
     };
     responses: never;
@@ -5876,45 +9253,79 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条访问日志。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 操作 ID。 */
                         operationId: string;
+                        /** @description 调用协议。 */
                         protocol?: string | null;
+                        /** @description 请求方法。 */
                         method?: string | null;
+                        /** @description 请求路径。 */
                         path?: string | null;
+                        /** @description 访问结果。 */
                         result: components["schemas"]["AccessResult"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description HTTP 状态码。
+                         */
                         statusCode?: number | null;
+                        /** @description 失败的错误码。 */
                         errorCode?: string | null;
+                        /** @description 失败的错误消息。 */
                         errorMessage?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
                         durationMs: number;
+                        /** @description 浏览器。 */
                         browser?: string | null;
+                        /** @description 操作系统。 */
                         os?: string | null;
+                        /** @description 设备类型。 */
                         device?: string | null;
+                        /** @description 请求来源。 */
                         referer?: string | null;
                     };
                 };
@@ -5980,33 +9391,51 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.activate-roles 的请求：本会话要激活的角色。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 要激活的角色 ID，1 到 100 个；须都此刻持有，且合起来不违反动态职责分离。 */
                     roleIds: string[];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -6029,22 +9458,28 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.captcha 的请求：没有输入。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个图形验证码：登录时把标识与用户看到的码一起提交。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 验证码标识。 */
                         captchaId: string;
+                        /** @description SVG 图片（data: 链接，直接放进 img）。 */
                         image: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 有效秒数。
+                         */
                         expiresInSeconds: number;
                     };
                 };
@@ -6067,22 +9502,26 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.external-login 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 第三方登录回调发给前端的一次性票据。 */
                     ticket: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description auth.login 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 令牌对与会话；需要第二步时为 null。 */
                         token?: components["schemas"]["TokenResponse"] | null;
+                        /** @description 第二步的挑战；不需要时为 null。 */
                         twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
                     };
                 };
@@ -6105,23 +9544,29 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.lock 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了，4.x 同）。 */
                     password?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description auth.lock 的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 锁定原因（ScreenLock）。 */
                         reason: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 锁定时间。
+                         */
                         lockedAt: string;
                     };
                 };
@@ -6144,26 +9589,34 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.login 的请求：密码登录。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 登录名。 */
                     userName: string;
+                    /** @description 密码。 */
                     password: string;
+                    /** @description 注册地租户 ID；平台账号不填。 */
                     tenant?: string | null;
+                    /** @description 图形验证码标识。 */
                     captchaId?: string | null;
+                    /** @description 图形验证码。 */
                     captchaCode?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description auth.login 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 令牌对与会话；需要第二步时为 null。 */
                         token?: components["schemas"]["TokenResponse"] | null;
+                        /** @description 第二步的挑战；不需要时为 null。 */
                         twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
                     };
                 };
@@ -6188,15 +9641,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 登录页的配置：可用的登录方式、第三方登录与是否要求图形验证码。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 登录方式（目前只有 password；验证码登录随 Notification、第三方登录随 OpenPlatform 加入）。 */
                         loginMethods: string[];
+                        /** @description 第三方登录提供方（配置 BasicApp:Auth:OAuth 里启用且填了 ClientId 的）。 */
                         oAuthProviders: components["schemas"]["LoginProviderResponse"][];
+                        /** @description 密码登录是否要求图形验证码。 */
                         captchaEnabled: boolean;
                     };
                 };
@@ -6219,22 +9675,29 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.logout 的请求：没有输入，注销的是当前令牌所属的会话。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description auth.logout 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 被吊销的会话。
+                         */
                         sessionId: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 吊销时间（UTC）；会话早已吊销时是原时间。
+                         */
                         revokedAt: string;
                     };
                 };
@@ -6259,20 +9722,29 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description auth.me 的响应：当前主体的资料、租户、会话与角色。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID；非本应用签发的令牌没有。
+                         */
                         sessionId?: string | null;
+                        /** @description 角色（令牌里的 role 声明）。 */
                         roles: string[];
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -6297,17 +9769,22 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description auth.permissions 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 有效权限码（* 已展开为本侧目录的全部码），按码排序。 */
                         permissions: string[];
+                        /** @description 令牌里的角色（本侧生效的）。 */
                         roles: components["schemas"]["RoleSummary"][];
+                        /** @description 菜单树。 */
                         menus: components["schemas"]["MenuNode"][];
+                        /** @description 可访问的页面码。 */
                         pages: string[];
+                        /** @description 是否平台侧。 */
                         isPlatform: boolean;
                     };
                 };
@@ -6330,33 +9807,51 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.refresh 的请求：用刷新令牌换新的访问令牌，刷新令牌随之轮换。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 上次登录或刷新得到的刷新令牌。 */
                     refreshToken: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -6381,13 +9876,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description auth.session-roles 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 此刻持有的角色，按排序号与编码。 */
                         items: components["schemas"]["SessionRoleItemResponse"][];
                     };
                 };
@@ -6410,33 +9906,51 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.switch-tenant 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 目标租户 ID；不填或填 platform 即平台。 */
                     tenantId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -6459,21 +9973,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.unlock 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 锁屏密码。 */
                     password?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description auth.unlock 的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 是否解开了（本来没锁为 false）。 */
                         unlocked: boolean;
                     };
                 };
@@ -6496,35 +10013,55 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description auth.verify-two-factor 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 两步验证票据。 */
                     ticket: string;
+                    /** @description 验证方式。 */
                     method: components["schemas"]["TwoFactorMethod"];
+                    /** @description 验证码。 */
                     code: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -6547,46 +10084,79 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description bot-configs.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（建好不改）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 服务商。 */
                     provider: components["schemas"]["BotProvider"];
+                    /** @description Webhook 地址。 */
                     webhookUrl: string;
+                    /** @description 签名密钥。 */
                     secret?: string | null;
+                    /** @description 安全关键词。 */
                     keyword?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个机器人配置（签名密钥不回显）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["BotProvider"];
+                        /** @description Webhook 地址。 */
                         webhookUrl: string;
+                        /** @description 是否存了签名密钥。 */
                         hasSecret: boolean;
+                        /** @description 安全关键词。 */
                         keyword?: string | null;
+                        /** @description 是否本侧这个服务商的缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -6605,6 +10175,7 @@ export interface operations {
     "bot-configs.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -6641,35 +10212,57 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个机器人配置（签名密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["BotProvider"];
+                        /** @description Webhook 地址。 */
                         webhookUrl: string;
+                        /** @description 是否存了签名密钥。 */
                         hasSecret: boolean;
+                        /** @description 安全关键词。 */
                         keyword?: string | null;
+                        /** @description 是否本侧这个服务商的缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -6690,51 +10283,87 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description bot-configs.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 服务商（缺省的不能换）。 */
                     provider: components["schemas"]["BotProvider"];
+                    /** @description Webhook 地址。 */
                     webhookUrl: string;
+                    /** @description 签名密钥。 */
                     secret?: string | null;
+                    /** @description 安全关键词。 */
                     keyword?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个机器人配置（签名密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["BotProvider"];
+                        /** @description Webhook 地址。 */
                         webhookUrl: string;
+                        /** @description 是否存了签名密钥。 */
                         hasSecret: boolean;
+                        /** @description 安全关键词。 */
                         keyword?: string | null;
+                        /** @description 是否本侧这个服务商的缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -6755,42 +10384,68 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个机器人配置（签名密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["BotProvider"];
+                        /** @description Webhook 地址。 */
                         webhookUrl: string;
+                        /** @description 是否存了签名密钥。 */
                         hasSecret: boolean;
+                        /** @description 安全关键词。 */
                         keyword?: string | null;
+                        /** @description 是否本侧这个服务商的缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -6854,44 +10509,77 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条条件命中记录。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 来源。 */
                         source: components["schemas"]["ConditionHitSource"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 访问策略。
+                         */
                         policyId?: string | null;
+                        /** @description 策略编码（权限条件为权限码）。 */
                         policyCode: string;
+                        /** @description 策略名称。 */
                         policyName?: string | null;
+                        /** @description 规则要求的动作。 */
                         action: components["schemas"]["ConditionHitAction"];
+                        /** @description 求值时机。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 请求是否因此被拦下。 */
                         isBlocked: boolean;
+                        /** @description 操作 ID。 */
                         operationId?: string | null;
+                        /** @description 请求方法。 */
                         method?: string | null;
+                        /** @description 请求路径。 */
                         path?: string | null;
+                        /** @description 端点要求的权限码，逗号分隔。 */
                         permissionCodes?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 这一分钟里的命中次数。
+                         */
                         hitCount: number;
                     };
                 };
@@ -6957,52 +10645,91 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description configs.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 参数键（本侧唯一）。 */
                     key: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 数据类型。 */
                     dataType?: components["schemas"]["ConfigDataType"];
+                    /** @description 分组。 */
                     group?: string | null;
+                    /** @description 值。 */
                     value?: string | null;
+                    /** @description 缺省值。 */
                     defaultValue?: string | null;
+                    /** @description 值是否加密落库。 */
                     isEncrypted?: boolean;
+                    /** @description 平台参数是否允许租户覆盖（租户参数忽略）。 */
                     allowTenantOverride?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 参数的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台参数。 */
                         isPlatform: boolean;
+                        /** @description 参数键。 */
                         key: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分组。 */
                         group?: string | null;
+                        /** @description 数据类型。 */
                         dataType: components["schemas"]["ConfigDataType"];
+                        /** @description 值；加密时为 null。 */
                         value?: string | null;
+                        /** @description 缺省值。 */
                         defaultValue?: string | null;
+                        /** @description 是否有值（加密参数据此判断）。 */
                         hasValue: boolean;
+                        /** @description 是否加密。 */
                         isEncrypted: boolean;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 平台参数是否允许租户覆盖。 */
                         allowTenantOverride: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7021,6 +10748,7 @@ export interface operations {
     "configs.delete": {
         parameters: {
             query: {
+                /** @description 参数主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -7057,40 +10785,67 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 参数主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 参数的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台参数。 */
                         isPlatform: boolean;
+                        /** @description 参数键。 */
                         key: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分组。 */
                         group?: string | null;
+                        /** @description 数据类型。 */
                         dataType: components["schemas"]["ConfigDataType"];
+                        /** @description 值；加密时为 null。 */
                         value?: string | null;
+                        /** @description 缺省值。 */
                         defaultValue?: string | null;
+                        /** @description 是否有值（加密参数据此判断）。 */
                         hasValue: boolean;
+                        /** @description 是否加密。 */
                         isEncrypted: boolean;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 平台参数是否允许租户覆盖。 */
                         allowTenantOverride: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7111,58 +10866,101 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 参数主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description configs.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 参数主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 数据类型（内建参数不能改）。 */
                     dataType?: components["schemas"]["ConfigDataType"];
+                    /** @description 分组。 */
                     group?: string | null;
+                    /** @description 值。 */
                     value?: string | null;
+                    /** @description 缺省值。 */
                     defaultValue?: string | null;
+                    /** @description 值是否加密落库。 */
                     isEncrypted?: boolean;
+                    /** @description 平台参数是否允许租户覆盖（租户参数忽略）。 */
                     allowTenantOverride?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["SettingStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 参数的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台参数。 */
                         isPlatform: boolean;
+                        /** @description 参数键。 */
                         key: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分组。 */
                         group?: string | null;
+                        /** @description 数据类型。 */
                         dataType: components["schemas"]["ConfigDataType"];
+                        /** @description 值；加密时为 null。 */
                         value?: string | null;
+                        /** @description 缺省值。 */
                         defaultValue?: string | null;
+                        /** @description 是否有值（加密参数据此判断）。 */
                         hasValue: boolean;
+                        /** @description 是否加密。 */
                         isEncrypted: boolean;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 平台参数是否允许租户覆盖。 */
                         allowTenantOverride: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7228,62 +11026,117 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description constraint-rules.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（同一侧唯一，不含空白）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 约束类型。 */
                     type: components["schemas"]["ConstraintType"];
+                    /** @description 目标类型（职责分离与条件为角色，互斥为权限，基数为角色或用户）。 */
                     targetType: components["schemas"]["ConstraintTargetType"];
+                    /** @description 规则项，1 到 200 个（职责分离与互斥至少 2 个）。 */
                     items: components["schemas"]["ConstraintItemRequest"][];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 数量上限（缺省 1）。
+                     */
                     maxAllowed?: number;
+                    /** @description 条件类的条件。 */
                     conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    /** @description 违规处理方式。 */
                     violationAction?: components["schemas"]["ConstraintViolationAction"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 优先级（越大越先）。
+                     */
                     priority?: number;
+                    /** @description 状态。 */
                     status?: components["schemas"]["ConstraintRuleStatus"];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 失效时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条约束规则。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 约束类型。 */
                         type: components["schemas"]["ConstraintType"];
+                        /** @description 目标类型。 */
                         targetType: components["schemas"]["ConstraintTargetType"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 数量上限（条件类不用）。
+                         */
                         maxAllowed: number;
+                        /** @description 条件类的条件。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** @description 违规处理方式。 */
                         violationAction: components["schemas"]["ConstraintViolationAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越大越先）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConstraintRuleStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 规则项。 */
                         items: components["schemas"]["ConstraintItemResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7302,6 +11155,7 @@ export interface operations {
     "constraint-rules.delete": {
         parameters: {
             query: {
+                /** @description 规则 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -7338,43 +11192,76 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条约束规则。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 约束类型。 */
                         type: components["schemas"]["ConstraintType"];
+                        /** @description 目标类型。 */
                         targetType: components["schemas"]["ConstraintTargetType"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 数量上限（条件类不用）。
+                         */
                         maxAllowed: number;
+                        /** @description 条件类的条件。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** @description 违规处理方式。 */
                         violationAction: components["schemas"]["ConstraintViolationAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越大越先）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConstraintRuleStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 规则项。 */
                         items: components["schemas"]["ConstraintItemResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7395,68 +11282,127 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description constraint-rules.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则 ID。
+                     */
                     id: string;
+                    /** @description 编码。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 约束类型。 */
                     type: components["schemas"]["ConstraintType"];
+                    /** @description 目标类型。 */
                     targetType: components["schemas"]["ConstraintTargetType"];
+                    /** @description 规则项（整组替换）。 */
                     items: components["schemas"]["ConstraintItemRequest"][];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 数量上限。
+                     */
                     maxAllowed?: number;
+                    /** @description 条件类的条件。 */
                     conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    /** @description 违规处理方式。 */
                     violationAction?: components["schemas"]["ConstraintViolationAction"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 优先级。
+                     */
                     priority?: number;
+                    /** @description 状态。 */
                     status?: components["schemas"]["ConstraintRuleStatus"];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 失效时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条约束规则。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 约束类型。 */
                         type: components["schemas"]["ConstraintType"];
+                        /** @description 目标类型。 */
                         targetType: components["schemas"]["ConstraintTargetType"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 数量上限（条件类不用）。
+                         */
                         maxAllowed: number;
+                        /** @description 条件类的条件。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** @description 违规处理方式。 */
                         violationAction: components["schemas"]["ConstraintViolationAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越大越先）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConstraintRuleStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 规则项。 */
                         items: components["schemas"]["ConstraintItemResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7477,51 +11423,89 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description constraint-rules.set-status 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则 ID。
+                     */
                     id: string;
+                    /** @description 启用或停用。 */
                     status: components["schemas"]["ConstraintRuleStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条约束规则。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 约束类型。 */
                         type: components["schemas"]["ConstraintType"];
+                        /** @description 目标类型。 */
                         targetType: components["schemas"]["ConstraintTargetType"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 数量上限（条件类不用）。
+                         */
                         maxAllowed: number;
+                        /** @description 条件类的条件。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
+                        /** @description 违规处理方式。 */
                         violationAction: components["schemas"]["ConstraintViolationAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越大越先）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConstraintRuleStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 规则项。 */
                         items: components["schemas"]["ConstraintItemResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -7587,53 +11571,101 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description delegations.create 的请求：在当前一侧新建委托。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 委托人：这一侧的用户，此刻须持有所委托的权限或角色。
+                     */
                     delegatorId: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 被委托人：这一侧的另一个用户。
+                     */
                     delegateeId: string;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（必填，晚于现在与生效时间）。
+                     */
                     expiresAt: string;
+                    /** @description 委托的权限码（与 RoleId 二选一）。 */
                     permission?: string | null;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 委托的角色（启用的非内置角色）。
+                     */
                     roleId?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
+                    /** @description 委托原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条委托。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托 ID。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托人。
+                         */
                         delegatorId: string;
+                        /** @description 委托人的显示名（「显示名 (@登录名)」，用户已删除时为空）。 */
                         delegatorName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 被委托人。
+                         */
                         delegateeId: string;
+                        /** @description 被委托人的显示名。 */
                         delegateeName?: string | null;
+                        /** @description 委托的权限码。 */
                         permission?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托的角色。
+                         */
                         roleId?: string | null;
+                        /** @description 委托的角色名。 */
                         roleName?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt: string;
+                        /** @description 委托原因。 */
                         reason?: string | null;
+                        /** @description 此刻的状态（按撤销时间与有效期推出）。 */
                         status: components["schemas"]["DelegationStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 撤销时间。
+                         */
                         revokedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -7652,6 +11684,7 @@ export interface operations {
     "delegations.delete": {
         parameters: {
             query: {
+                /** @description 委托 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -7688,47 +11721,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 委托 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description delegations.revoke 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 委托 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条委托。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托 ID。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托人。
+                         */
                         delegatorId: string;
+                        /** @description 委托人的显示名（「显示名 (@登录名)」，用户已删除时为空）。 */
                         delegatorName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 被委托人。
+                         */
                         delegateeId: string;
+                        /** @description 被委托人的显示名。 */
                         delegateeName?: string | null;
+                        /** @description 委托的权限码。 */
                         permission?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 委托的角色。
+                         */
                         roleId?: string | null;
+                        /** @description 委托的角色名。 */
                         roleName?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt: string;
+                        /** @description 委托原因。 */
                         reason?: string | null;
+                        /** @description 此刻的状态（按撤销时间与有效期推出）。 */
                         status: components["schemas"]["DelegationStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 撤销时间。
+                         */
                         revokedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -7794,42 +11862,74 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description departments.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（租户内唯一）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 直接上级；为空即顶层。
+                     */
                     parentId?: string | null;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 负责人（本租户的用户）。
+                     */
                     leaderUserId?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 同级排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 部门的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 直接上级；为空即顶层。
+                         */
                         parentId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 负责人。
+                         */
                         leaderUserId?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 同级排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -7848,6 +11948,7 @@ export interface operations {
     "departments.delete": {
         parameters: {
             query: {
+                /** @description 部门主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -7884,25 +11985,35 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 部门主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description departments.get 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 部门。 */
                         department: components["schemas"]["DepartmentResponse"];
+                        /** @description 祖先链，由近到远。 */
                         ancestors: components["schemas"]["DepartmentResponse"][];
+                        /** @description 负责人登录名；没有负责人为空。 */
                         leaderUserName?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 直接子部门数。
+                         */
                         childCount: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 直接成员数。
+                         */
                         memberCount: number;
                     };
                 };
@@ -7923,46 +12034,79 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 部门主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description departments.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 部门主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 负责人；为空即清除。
+                     */
                     leaderUserId?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 同级排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["OrganizationStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 部门的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 直接上级；为空即顶层。
+                         */
                         parentId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 负责人。
+                         */
                         leaderUserId?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 同级排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -7983,41 +12127,68 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 部门主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description departments.move 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 部门主键。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 新上级；为空即移到顶层。
+                     */
                     parentId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 部门的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 直接上级；为空即顶层。
+                         */
                         parentId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 负责人。
+                         */
                         leaderUserId?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 同级排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8042,15 +12213,19 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description departments.tree 的响应：当前租户的整棵部门树。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 顶层节点。 */
                         items: components["schemas"]["DepartmentNode"][];
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 部门总数。
+                         */
                         total: number;
                     };
                 };
@@ -8069,6 +12244,7 @@ export interface operations {
     "dict-items.list": {
         parameters: {
             query: {
+                /** @description 字典主键。 */
                 dictId: string;
             };
             header?: never;
@@ -8077,13 +12253,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description dict-items.list 的响应：深度优先，带层级。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 字典项。 */
                         items: components["schemas"]["DictItemResponse"][];
                     };
                 };
@@ -8106,50 +12283,91 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description dict-items.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 所在字典。
+                     */
                     dictId: string;
+                    /** @description 编码（字典内唯一）。 */
                     code: string;
+                    /** @description 显示名。 */
                     name: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 上级项（同一字典）。
+                     */
                     parentId?: string | null;
+                    /** @description 附加值。 */
                     value?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 扩展元数据（JSON）。 */
                     metadata?: string | null;
+                    /** @description 是否为缺省项。 */
                     isDefault?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 字典项的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 所在字典。
+                         */
                         dictId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级项。
+                         */
                         parentId?: string | null;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 显示名。 */
                         name: string;
+                        /** @description 附加值。 */
                         value?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 扩展元数据（JSON）。 */
                         metadata?: string | null;
+                        /** @description 是否为缺省项。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 层级（顶层为 0）。
+                         */
                         depth: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8168,6 +12386,7 @@ export interface operations {
     "dict-items.delete": {
         parameters: {
             query: {
+                /** @description 字典项主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -8204,37 +12423,63 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 字典项主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 字典项的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 所在字典。
+                         */
                         dictId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级项。
+                         */
                         parentId?: string | null;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 显示名。 */
                         name: string;
+                        /** @description 附加值。 */
                         value?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 扩展元数据（JSON）。 */
                         metadata?: string | null;
+                        /** @description 是否为缺省项。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 层级（顶层为 0）。
+                         */
                         depth: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8255,54 +12500,96 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 字典项主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description dict-items.update 的请求：编码不在这里改。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 字典项主键。
+                     */
                     id: string;
+                    /** @description 显示名。 */
                     name: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 上级项（同一字典，不能是自己或下级）。
+                     */
                     parentId?: string | null;
+                    /** @description 附加值。 */
                     value?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 扩展元数据（JSON）。 */
                     metadata?: string | null;
+                    /** @description 是否为缺省项。 */
                     isDefault?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 状态。 */
                     status?: components["schemas"]["SettingStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 字典项的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 所在字典。
+                         */
                         dictId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级项。
+                         */
                         parentId?: string | null;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 显示名。 */
                         name: string;
+                        /** @description 附加值。 */
                         value?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 扩展元数据（JSON）。 */
                         metadata?: string | null;
+                        /** @description 是否为缺省项。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 层级（顶层为 0）。
+                         */
                         depth: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8325,39 +12612,64 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description dicts.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（平台与租户之间也不重）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 分类。 */
                     category?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 字典的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台字典。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分类。 */
                         category?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8376,6 +12688,7 @@ export interface operations {
     "dicts.delete": {
         parameters: {
             query: {
+                /** @description 字典主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -8412,32 +12725,50 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 字典主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 字典的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台字典。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分类。 */
                         category?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8458,45 +12789,74 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 字典主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description dicts.update 的请求：编码不在这里改。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 字典主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 分类。 */
                     category?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 状态。 */
                     status?: components["schemas"]["SettingStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 字典的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台字典。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 分类。 */
                         category?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -8558,6 +12918,7 @@ export interface operations {
     "dicts.options": {
         parameters: {
             query: {
+                /** @description 字典编码。 */
                 code: string;
             };
             header?: never;
@@ -8566,13 +12927,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description dicts.options 的响应：深度优先展平。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 选项。 */
                         items: components["schemas"]["DictOption"][];
                     };
                 };
@@ -8593,38 +12955,63 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 数据变更日志详情：列表项的字段加前后值。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 触发变更的操作 ID。 */
                         operationId?: string | null;
+                        /** @description 变更种类。 */
                         kind: components["schemas"]["DiffKind"];
+                        /** @description 实体类型名。 */
                         entityType: string;
+                        /** @description 表名。 */
                         tableName?: string | null;
+                        /** @description 主键值。 */
                         entityId?: string | null;
+                        /** @description 有变化的列，逗号分隔。 */
                         changedFields?: string | null;
+                        /** @description 变更前的值（JSON 对象）。 */
                         before?: string | null;
+                        /** @description 变更后的值（JSON 对象）。 */
                         after?: string | null;
                     };
                 };
@@ -8692,13 +13079,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description editions.list 的响应：全部套餐，按排序号、编码排列。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 套餐。 */
                         items: components["schemas"]["EditionResponse"][];
                     };
                 };
@@ -8721,37 +13109,61 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description editions.create 的请求：新建套餐并给出初始白名单。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码：小写字母开头，只含小写字母、数字与 -，2 到 32 个字符；创建后不可改。 */
                     code: string;
+                    /** @description 名称：1 到 64 个字符。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
+                    /** @description 是否设为新租户的缺省套餐（其余套餐的缺省标记随之清掉）。 */
                     isDefault?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 白名单：租户能生效的权限码（作用侧 Tenant / Both），至多 500 个；缺省为空（什么都不放行）。 */
                     permissions?: string[] | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 席位上限；为空不限。
+                     */
                     userLimit?: number | null;
-                    /** Format: int64 */
+                    /**
+                     * Format: int64
+                     * @description 存储空间上限（MB）；为空不限。
+                     */
                     storageLimitMb?: number | null;
-                    /** Format: decimal */
+                    /**
+                     * Format: decimal
+                     * @description 价格（两位小数）；为空不标价。
+                     */
                     price?: number | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 计费周期（月）；为空不标周期。
+                     */
                     billingPeriodMonths?: number | null;
+                    /** @description 是否免费套餐（免费套餐不能标价）。 */
                     isFree?: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 套餐详情。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 套餐。 */
                         edition: components["schemas"]["EditionResponse"];
+                        /** @description 白名单（权限码，排序）。 */
                         permissions: string[];
                     };
                 };
@@ -8770,6 +13182,7 @@ export interface operations {
     "editions.delete": {
         parameters: {
             query: {
+                /** @description 套餐主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -8806,20 +13219,23 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 套餐主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 套餐详情。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 套餐。 */
                         edition: components["schemas"]["EditionResponse"];
+                        /** @description 白名单（权限码，排序）。 */
                         permissions: string[];
                     };
                 };
@@ -8840,41 +13256,67 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 套餐主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description editions.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 套餐主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
+                    /** @description 是否新租户的缺省套餐；取消后可以没有缺省套餐（开通租户时就必须指定）。 */
                     isDefault?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 席位上限；为空不限。
+                     */
                     userLimit?: number | null;
-                    /** Format: int64 */
+                    /**
+                     * Format: int64
+                     * @description 存储空间上限（MB）；为空不限。
+                     */
                     storageLimitMb?: number | null;
-                    /** Format: decimal */
+                    /**
+                     * Format: decimal
+                     * @description 价格（两位小数）；为空不标价。
+                     */
                     price?: number | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 计费周期（月）；为空不标周期。
+                     */
                     billingPeriodMonths?: number | null;
+                    /** @description 是否免费套餐（免费套餐不能标价）。 */
                     isFree?: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 套餐详情。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 套餐。 */
                         edition: components["schemas"]["EditionResponse"];
+                        /** @description 白名单（权限码，排序）。 */
                         permissions: string[];
                     };
                 };
@@ -8895,28 +13337,36 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 套餐主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description editions.set-permissions 的请求：整体替换白名单。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 套餐主键。
+                     */
                     id: string;
+                    /** @description 白名单：租户能生效的权限码，0 到 500 个；空即什么都不放行。 */
                     permissions: string[];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 套餐详情。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 套餐。 */
                         edition: components["schemas"]["EditionResponse"];
+                        /** @description 白名单（权限码，排序）。 */
                         permissions: string[];
                     };
                 };
@@ -8939,56 +13389,101 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description email-configs.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（建好不改）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description SMTP 主机。 */
                     smtpHost: string;
+                    /** @description 发件地址。 */
                     fromEmail: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 端口。
+                     */
                     smtpPort?: number;
+                    /** @description 加密连接。 */
                     useSsl?: boolean;
+                    /** @description 接受无效证书。 */
                     acceptInvalidCertificate?: boolean;
+                    /** @description 发件人名称。 */
                     fromName?: string | null;
+                    /** @description 登录名。 */
                     userName?: string | null;
+                    /** @description 密码。 */
                     password?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个邮件配置（密码不回显）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description SMTP 主机。 */
                         smtpHost: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
                         smtpPort: number;
+                        /** @description 加密连接。 */
                         useSsl: boolean;
+                        /** @description 接受无效证书。 */
                         acceptInvalidCertificate: boolean;
+                        /** @description 发件地址。 */
                         fromEmail: string;
+                        /** @description 发件人名称。 */
                         fromName?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
+                        /** @description 是否存了密码。 */
                         hasPassword: boolean;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -9007,6 +13502,7 @@ export interface operations {
     "email-configs.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -9043,40 +13539,68 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个邮件配置（密码不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description SMTP 主机。 */
                         smtpHost: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
                         smtpPort: number;
+                        /** @description 加密连接。 */
                         useSsl: boolean;
+                        /** @description 接受无效证书。 */
                         acceptInvalidCertificate: boolean;
+                        /** @description 发件地址。 */
                         fromEmail: string;
+                        /** @description 发件人名称。 */
                         fromName?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
+                        /** @description 是否存了密码。 */
                         hasPassword: boolean;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -9097,61 +13621,109 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description email-configs.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description SMTP 主机。 */
                     smtpHost: string;
+                    /** @description 发件地址。 */
                     fromEmail: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 端口。
+                     */
                     smtpPort?: number;
+                    /** @description 加密连接。 */
                     useSsl?: boolean;
+                    /** @description 接受无效证书。 */
                     acceptInvalidCertificate?: boolean;
+                    /** @description 发件人名称。 */
                     fromName?: string | null;
+                    /** @description 登录名。 */
                     userName?: string | null;
+                    /** @description 密码。 */
                     password?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个邮件配置（密码不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description SMTP 主机。 */
                         smtpHost: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
                         smtpPort: number;
+                        /** @description 加密连接。 */
                         useSsl: boolean;
+                        /** @description 接受无效证书。 */
                         acceptInvalidCertificate: boolean;
+                        /** @description 发件地址。 */
                         fromEmail: string;
+                        /** @description 发件人名称。 */
                         fromName?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
+                        /** @description 是否存了密码。 */
                         hasPassword: boolean;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -9172,47 +13744,79 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个邮件配置（密码不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description SMTP 主机。 */
                         smtpHost: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
                         smtpPort: number;
+                        /** @description 加密连接。 */
                         useSsl: boolean;
+                        /** @description 接受无效证书。 */
                         acceptInvalidCertificate: boolean;
+                        /** @description 发件地址。 */
                         fromEmail: string;
+                        /** @description 发件人名称。 */
                         fromName?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
+                        /** @description 是否存了密码。 */
                         hasPassword: boolean;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -9274,6 +13878,7 @@ export interface operations {
     "emails.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -9310,45 +13915,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条邮件发送记录。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 记录 ID。
+                         */
                         id: string;
+                        /** @description 收件地址。 */
                         toEmail: string;
+                        /** @description 主题。 */
                         subject: string;
+                        /** @description 正文。 */
                         content?: string | null;
+                        /** @description 正文是 HTML。 */
                         isHtml: boolean;
+                        /** @description 模板编码。 */
                         templateCode?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["MessageSendStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 已尝试次数。
+                         */
                         attempts: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 最多尝试次数。
+                         */
                         maxAttempts: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次尝试时间。
+                         */
                         nextAttemptAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发出时间。
+                         */
                         sentAt?: string | null;
+                        /** @description 失败原因。 */
                         errorMessage?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用的配置。
+                         */
                         configId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 发起人。
+                         */
                         senderId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 接收人。
+                         */
                         receiverId?: string | null;
+                        /** @description 业务类型。 */
                         businessType?: string | null;
+                        /** @description 业务 ID。 */
                         businessId?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 写入时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -9371,9 +14013,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -9452,9 +14096,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -9488,42 +14134,71 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 异常日志详情：列表项的字段加完整堆栈。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 操作 ID。 */
                         operationId?: string | null;
+                        /** @description 调用协议。 */
                         protocol?: string | null;
+                        /** @description 请求方法。 */
                         method?: string | null;
+                        /** @description 请求路径。 */
                         path?: string | null;
+                        /** @description 异常类型。 */
                         exceptionType: string;
+                        /** @description 异常消息。 */
                         message: string;
+                        /** @description 异常源。 */
                         source?: string | null;
+                        /** @description 发生位置。 */
                         location?: string | null;
+                        /** @description 服务器主机名。 */
                         machineName?: string | null;
+                        /** @description 运行环境。 */
                         environmentName?: string | null;
+                        /** @description 应用版本。 */
                         appVersion?: string | null;
+                        /** @description 异常堆栈（含内部异常）。 */
                         stackTrace?: string | null;
                     };
                 };
@@ -9585,6 +14260,7 @@ export interface operations {
     "export-tasks.delete": {
         parameters: {
             query: {
+                /** @description 任务 ID。 */
                 ids: string[];
             };
             header?: never;
@@ -9621,43 +14297,78 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 任务 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个导出任务。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 任务 ID。
+                         */
                         id: string;
+                        /** @description 导出的列表操作 ID。 */
                         businessType: string;
+                        /** @description 任务名称。 */
                         taskName: string;
+                        /** @description 范围。 */
                         scope: components["schemas"]["ExportScope"];
+                        /** @description 格式。 */
                         format: components["schemas"]["ExportFormat"];
+                        /** @description 状态。 */
                         status: components["schemas"]["ExportTaskStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 进度（0–100）。
+                         */
                         progress: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 总行数。
+                         */
                         totalCount: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 已写出的行数。
+                         */
                         processedCount: number;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 结果文件 ID（下载经 files.presign）。
+                         */
                         fileId?: string | null;
+                        /** @description 结果文件名。 */
                         fileName?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 结果文件大小（字节）。
+                         */
                         fileSize?: number | null;
+                        /** @description 失败原因（取消、中断与执行错误）。 */
                         errorMessage?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 开始时间。
+                         */
                         startedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 结束时间。
+                         */
                         finishedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -9678,50 +14389,89 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 任务 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 针对一个导出任务的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 任务 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个导出任务。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 任务 ID。
+                         */
                         id: string;
+                        /** @description 导出的列表操作 ID。 */
                         businessType: string;
+                        /** @description 任务名称。 */
                         taskName: string;
+                        /** @description 范围。 */
                         scope: components["schemas"]["ExportScope"];
+                        /** @description 格式。 */
                         format: components["schemas"]["ExportFormat"];
+                        /** @description 状态。 */
                         status: components["schemas"]["ExportTaskStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 进度（0–100）。
+                         */
                         progress: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 总行数。
+                         */
                         totalCount: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 已写出的行数。
+                         */
                         processedCount: number;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 结果文件 ID（下载经 files.presign）。
+                         */
                         fileId?: string | null;
+                        /** @description 结果文件名。 */
                         fileName?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 结果文件大小（字节）。
+                         */
                         fileSize?: number | null;
+                        /** @description 失败原因（取消、中断与执行错误）。 */
                         errorMessage?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 开始时间。
+                         */
                         startedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 结束时间。
+                         */
                         finishedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -9787,50 +14537,91 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description export-tasks.submit 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 要导出的列表操作 ID（如 users.list）。 */
                     businessType: string;
+                    /** @description 导出的列（顺序即表头顺序）。 */
                     columns: components["schemas"]["ExportColumnRequest"][];
+                    /** @description 任务名称；不填按「操作 ID_时间」起名。 */
                     taskName?: string | null;
+                    /** @description 范围：当前页、搜索结果或全部。 */
                     scope?: components["schemas"]["ExportScope"];
+                    /** @description 格式。 */
                     format?: components["schemas"]["ExportFormat"];
+                    /** @description 查询快照（列表操作的分页请求 JSON）。 */
                     querySnapshot?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个导出任务。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 任务 ID。
+                         */
                         id: string;
+                        /** @description 导出的列表操作 ID。 */
                         businessType: string;
+                        /** @description 任务名称。 */
                         taskName: string;
+                        /** @description 范围。 */
                         scope: components["schemas"]["ExportScope"];
+                        /** @description 格式。 */
                         format: components["schemas"]["ExportFormat"];
+                        /** @description 状态。 */
                         status: components["schemas"]["ExportTaskStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 进度（0–100）。
+                         */
                         progress: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 总行数。
+                         */
                         totalCount: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 已写出的行数。
+                         */
                         processedCount: number;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 结果文件 ID（下载经 files.presign）。
+                         */
                         fileId?: string | null;
+                        /** @description 结果文件名。 */
                         fileName?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 结果文件大小（字节）。
+                         */
                         fileSize?: number | null;
+                        /** @description 失败原因（取消、中断与执行错误）。 */
                         errorMessage?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 开始时间。
+                         */
                         startedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 结束时间。
+                         */
                         finishedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -9853,52 +14644,94 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description field-security.create 的请求：在当前一侧新建规则。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 目标类型（部门只在租户侧）。 */
                     targetKind: components["schemas"]["FieldSecurityTargetKind"];
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 目标 ID：这一侧的角色、用户或部门，须启用。
+                     */
                     targetId: string;
+                    /** @description 实体码（见 field-security.entities）。 */
                     entity: string;
+                    /** @description 字段名。 */
                     field: string;
+                    /** @description 读取方式。 */
                     strategy: components["schemas"]["FieldMaskStrategy"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部分脱敏保留前几位（0 到 32，只有部分脱敏时用）。
+                     */
                     keepHead?: number | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部分脱敏保留后几位（0 到 32，只有部分脱敏时用）。
+                     */
                     keepTail?: number | null;
+                    /** @description 固定文本（不超过 100 字，只有固定文本时用）。 */
                     replacement?: string | null;
+                    /** @description 能否改写：明文规则只能只读；脱敏且可改即只写。 */
                     isEditable?: boolean;
+                    /** @description 状态。 */
                     status?: components["schemas"]["FieldRuleStatus"];
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条字段安全规则。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 目标类型。 */
                         targetKind: components["schemas"]["FieldSecurityTargetKind"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 目标 ID。
+                         */
                         targetId: string;
+                        /** @description 目标显示名；目标已不存在时为空。 */
                         targetName?: string | null;
+                        /** @description 实体码。 */
                         entity: string;
+                        /** @description 字段名。 */
                         field: string;
+                        /** @description 读取方式。 */
                         strategy: components["schemas"]["FieldMaskStrategy"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留前几位。
+                         */
                         keepHead?: number | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留后几位。
+                         */
                         keepTail?: number | null;
+                        /** @description 固定文本。 */
                         replacement?: string | null;
+                        /** @description 能否改写。 */
                         isEditable: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["FieldRuleStatus"];
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -9917,6 +14750,7 @@ export interface operations {
     "field-security.delete": {
         parameters: {
             query: {
+                /** @description 规则 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -9953,37 +14787,62 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条字段安全规则。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 目标类型。 */
                         targetKind: components["schemas"]["FieldSecurityTargetKind"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 目标 ID。
+                         */
                         targetId: string;
+                        /** @description 目标显示名；目标已不存在时为空。 */
                         targetName?: string | null;
+                        /** @description 实体码。 */
                         entity: string;
+                        /** @description 字段名。 */
                         field: string;
+                        /** @description 读取方式。 */
                         strategy: components["schemas"]["FieldMaskStrategy"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留前几位。
+                         */
                         keepHead?: number | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留后几位。
+                         */
                         keepTail?: number | null;
+                        /** @description 固定文本。 */
                         replacement?: string | null;
+                        /** @description 能否改写。 */
                         isEditable: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["FieldRuleStatus"];
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -10004,58 +14863,104 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description field-security.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则 ID。
+                     */
                     id: string;
+                    /** @description 目标类型。 */
                     targetKind: components["schemas"]["FieldSecurityTargetKind"];
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 目标 ID。
+                     */
                     targetId: string;
+                    /** @description 实体码。 */
                     entity: string;
+                    /** @description 字段名。 */
                     field: string;
+                    /** @description 读取方式。 */
                     strategy: components["schemas"]["FieldMaskStrategy"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部分脱敏保留前几位。
+                     */
                     keepHead?: number | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部分脱敏保留后几位。
+                     */
                     keepTail?: number | null;
+                    /** @description 固定文本。 */
                     replacement?: string | null;
+                    /** @description 能否改写。 */
                     isEditable?: boolean;
+                    /** @description 状态。 */
                     status?: components["schemas"]["FieldRuleStatus"];
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条字段安全规则。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 规则 ID。
+                         */
                         id: string;
+                        /** @description 目标类型。 */
                         targetKind: components["schemas"]["FieldSecurityTargetKind"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 目标 ID。
+                         */
                         targetId: string;
+                        /** @description 目标显示名；目标已不存在时为空。 */
                         targetName?: string | null;
+                        /** @description 实体码。 */
                         entity: string;
+                        /** @description 字段名。 */
                         field: string;
+                        /** @description 读取方式。 */
                         strategy: components["schemas"]["FieldMaskStrategy"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留前几位。
+                         */
                         keepHead?: number | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部分脱敏保留后几位。
+                         */
                         keepTail?: number | null;
+                        /** @description 固定文本。 */
                         replacement?: string | null;
+                        /** @description 能否改写。 */
                         isEditable: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["FieldRuleStatus"];
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -10080,13 +14985,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description field-security.entities 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 实体。 */
                         items: components["schemas"]["FieldSecurityEntityResponse"][];
                     };
                 };
@@ -10148,6 +15054,7 @@ export interface operations {
     "files.delete": {
         parameters: {
             query: {
+                /** @description 文件 ID。 */
                 ids: string[];
             };
             header?: never;
@@ -10251,13 +15158,14 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个文件。 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -10282,58 +15190,104 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description files.update 的请求：修改访问级别、临时与到期、标签与备注。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 文件 ID。
+                     */
                     id: string;
+                    /** @description 访问级别。 */
                     accessLevel?: components["schemas"]["FileAccessLevel"];
+                    /** @description 是否临时文件。 */
                     isTemporary?: boolean;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 标签（逗号分隔）。 */
                     tags?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个文件。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 文件 ID。
+                         */
                         id: string;
+                        /** @description 系统文件名。 */
                         name: string;
+                        /** @description 原始文件名。 */
                         originalName: string;
+                        /** @description 扩展名（小写含点）。 */
                         extension?: string | null;
+                        /** @description 文件大类。 */
                         kind: components["schemas"]["FileKind"];
+                        /** @description 内容类型。 */
                         contentType: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 大小（字节）。
+                         */
                         size: number;
+                        /** @description SHA-256。 */
                         hash: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["FileStatus"];
+                        /** @description 访问级别。 */
                         accessLevel: components["schemas"]["FileAccessLevel"];
+                        /** @description 是否临时文件。 */
                         isTemporary: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 来源。 */
                         source: string;
+                        /** @description 标签（逗号分隔）。 */
                         tags?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 下载次数。
+                         */
                         downloadCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次下载时间。
+                         */
                         lastDownloadedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 上传时间。
+                         */
                         createdAt: string;
+                        /** @description 上传人（用户 ID）。 */
                         createdBy?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -10383,25 +15337,31 @@ export interface operations {
     "files.presign": {
         parameters: {
             query?: {
+                /** @description 有效期（秒）；不填取缺省值（30 分钟）。 */
                 expiresInSeconds?: number | null;
             };
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 签名下载地址。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 地址（相对接口根，如 /api/files/content/<令牌>）；加查询 download=true 即以附件下载。 */
                         url: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt: string;
                     };
                 };
@@ -10422,54 +15382,96 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 针对一个副本的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 文件 ID。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 副本 ID。
+                     */
                     storageId: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个文件。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 文件 ID。
+                         */
                         id: string;
+                        /** @description 系统文件名。 */
                         name: string;
+                        /** @description 原始文件名。 */
                         originalName: string;
+                        /** @description 扩展名（小写含点）。 */
                         extension?: string | null;
+                        /** @description 文件大类。 */
                         kind: components["schemas"]["FileKind"];
+                        /** @description 内容类型。 */
                         contentType: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 大小（字节）。
+                         */
                         size: number;
+                        /** @description SHA-256。 */
                         hash: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["FileStatus"];
+                        /** @description 访问级别。 */
                         accessLevel: components["schemas"]["FileAccessLevel"];
+                        /** @description 是否临时文件。 */
                         isTemporary: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 来源。 */
                         source: string;
+                        /** @description 标签（逗号分隔）。 */
                         tags?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 下载次数。
+                         */
                         downloadCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次下载时间。
+                         */
                         lastDownloadedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 上传时间。
+                         */
                         createdAt: string;
+                        /** @description 上传人（用户 ID）。 */
                         createdBy?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -10490,55 +15492,98 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description files.set-storage-status 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 文件 ID。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 副本 ID。
+                     */
                     storageId: string;
+                    /** @description 目标状态：Normal 或 Unavailable。 */
                     status: components["schemas"]["FileStorageStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个文件。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 文件 ID。
+                         */
                         id: string;
+                        /** @description 系统文件名。 */
                         name: string;
+                        /** @description 原始文件名。 */
                         originalName: string;
+                        /** @description 扩展名（小写含点）。 */
                         extension?: string | null;
+                        /** @description 文件大类。 */
                         kind: components["schemas"]["FileKind"];
+                        /** @description 内容类型。 */
                         contentType: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 大小（字节）。
+                         */
                         size: number;
+                        /** @description SHA-256。 */
                         hash: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["FileStatus"];
+                        /** @description 访问级别。 */
                         accessLevel: components["schemas"]["FileAccessLevel"];
+                        /** @description 是否临时文件。 */
                         isTemporary: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 来源。 */
                         source: string;
+                        /** @description 标签（逗号分隔）。 */
                         tags?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 下载次数。
+                         */
                         downloadCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次下载时间。
+                         */
                         lastDownloadedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 上传时间。
+                         */
                         createdAt: string;
+                        /** @description 上传人（用户 ID）。 */
                         createdBy?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -10559,19 +15604,21 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description files.storages 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 副本（主副本在前）。 */
                         items: components["schemas"]["FileStorageResponse"][];
                     };
                 };
@@ -10592,54 +15639,96 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 文件 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 针对一个副本的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 文件 ID。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 副本 ID。
+                     */
                     storageId: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个文件。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 文件 ID。
+                         */
                         id: string;
+                        /** @description 系统文件名。 */
                         name: string;
+                        /** @description 原始文件名。 */
                         originalName: string;
+                        /** @description 扩展名（小写含点）。 */
                         extension?: string | null;
+                        /** @description 文件大类。 */
                         kind: components["schemas"]["FileKind"];
+                        /** @description 内容类型。 */
                         contentType: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 大小（字节）。
+                         */
                         size: number;
+                        /** @description SHA-256。 */
                         hash: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["FileStatus"];
+                        /** @description 访问级别。 */
                         accessLevel: components["schemas"]["FileAccessLevel"];
+                        /** @description 是否临时文件。 */
                         isTemporary: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 来源。 */
                         source: string;
+                        /** @description 标签（逗号分隔）。 */
                         tags?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 下载次数。
+                         */
                         downloadCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次下载时间。
+                         */
                         lastDownloadedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 上传时间。
+                         */
                         createdAt: string;
+                        /** @description 上传人（用户 ID）。 */
                         createdBy?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -10662,31 +15751,46 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description files.fast-upload 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 内容的 SHA-256（64 位十六进制）。 */
                     hash: string;
-                    /** Format: int64 */
+                    /**
+                     * Format: int64
+                     * @description 大小（字节）。
+                     */
                     size: number;
+                    /** @description 原始文件名。 */
                     originalName: string;
+                    /** @description 内容类型。 */
                     contentType?: string | null;
+                    /** @description 访问级别。 */
                     accessLevel?: components["schemas"]["FileAccessLevel"];
+                    /** @description 是否临时文件。 */
                     isTemporary?: boolean;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 标签（逗号分隔）。 */
                     tags?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 秒传的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 新文件；没命中为空，前端再走普通上传。 */
                         file?: components["schemas"]["FileResponse"] | null;
                     };
                 };
@@ -10752,10 +15856,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description files.set-status 的请求：归档或恢复文件。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 文件 ID。 */
                     ids: string[];
+                    /** @description 目标状态。 */
                     status: components["schemas"]["FileStatus"];
                 };
             };
@@ -10787,7 +15894,9 @@ export interface operations {
     "impersonation.candidates": {
         parameters: {
             query?: {
+                /** @description 目标租户 ID；不填即发起人当前上下文（平台主体是平台、租户主体是自己的租户），填 platform 即平台。租户主体只能填自己所在的租户。 */
                 tenantId?: string | null;
+                /** @description 关键字，匹配登录名与显示名；可空。 */
                 keyword?: string | null;
             };
             header?: never;
@@ -10796,13 +15905,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description impersonation.candidates 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 候选用户。 */
                         items: components["schemas"]["ImpersonationCandidateResponse"][];
                     };
                 };
@@ -10825,36 +15935,58 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description impersonation.start 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 目标用户 ID。
+                     */
                     targetUserId: string;
+                    /** @description 目标租户 ID；不填即发起人当前上下文（平台主体是平台，目标须是平台账号；租户主体是自己的租户），填 platform 即平台。租户主体只能填自己所在的租户。 */
                     tenantId?: string | null;
+                    /** @description 事由，可空。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -10877,31 +16009,48 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description impersonation.stop 的请求：没有输入。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 访问令牌，放 Authorization: Bearer。 */
                         accessToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 访问令牌过期时间（UTC）。
+                         */
                         accessExpiresAt: string;
+                        /** @description 刷新令牌；每次刷新轮换，旧的立即失效。 */
                         refreshToken: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 刷新令牌（会话）过期时间（UTC）。
+                         */
                         refreshExpiresAt: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话 ID（令牌的 sid）。
+                         */
                         sessionId: string;
+                        /** @description 当前租户；平台账号为 null。 */
                         tenantId?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 当前租户的显示名；平台为 null。 */
                         tenantName?: string | null;
+                        /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
                     };
                 };
@@ -10924,43 +16073,76 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description import-histories.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 页面码。 */
                     pageCode: string;
+                    /** @description 导入的文件名。 */
                     fileName: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 总行数。
+                     */
                     totalCount: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 成功行数。
+                     */
                     successCount: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 失败行数。
+                     */
                     failCount: number;
+                    /** @description 资源码。 */
                     resourceCode?: string | null;
+                    /** @description 错误摘要（JSON）。 */
                     errorSummary?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条导入历史。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 记录 ID。
+                         */
                         id: string;
+                        /** @description 页面码。 */
                         pageCode: string;
+                        /** @description 资源码。 */
                         resourceCode?: string | null;
+                        /** @description 文件名。 */
                         fileName: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 总行数。
+                         */
                         totalCount: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 成功行数。
+                         */
                         successCount: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 失败行数。
+                         */
                         failCount: number;
+                        /** @description 错误摘要。 */
                         errorSummary?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 导入时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -10979,7 +16161,9 @@ export interface operations {
     "import-histories.recent": {
         parameters: {
             query: {
+                /** @description 页面码。 */
                 pageCode: string;
+                /** @description 条数（1–50，缺省 5）。 */
                 count?: number;
             };
             header?: never;
@@ -10988,13 +16172,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description import-histories.recent 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 最近的记录（新的在前）。 */
                         items: components["schemas"]["ImportHistoryResponse"][];
                     };
                 };
@@ -11013,6 +16198,7 @@ export interface operations {
     "inbox.delete": {
         parameters: {
             query: {
+                /** @description 收件箱条目 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -11049,27 +16235,35 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 收件箱这一条的 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 操作收件箱一条的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 收件箱这一条的 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 影响的条数。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 条数。
+                         */
                         count: number;
                     };
                 };
@@ -11090,27 +16284,35 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 收件箱这一条的 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 操作收件箱一条的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 收件箱这一条的 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 影响的条数。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 条数。
+                         */
                         count: number;
                     };
                 };
@@ -11135,13 +16337,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 横幅、弹窗与强制阅读的结果（至多 100 条，发布时间倒序）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 条目。 */
                         items: components["schemas"]["InboxItemResponse"][];
                     };
                 };
@@ -11209,13 +16412,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 横幅、弹窗与强制阅读的结果（至多 100 条，发布时间倒序）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 条目。 */
                         items: components["schemas"]["InboxItemResponse"][];
                     };
                 };
@@ -11238,20 +16442,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description inbox.mark-all-read 的请求（没有参数）。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 影响的条数。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 条数。
+                         */
                         count: number;
                     };
                 };
@@ -11274,9 +16482,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 批量操作收件箱的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 收件箱条目 ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -11314,13 +16524,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 横幅、弹窗与强制阅读的结果（至多 100 条，发布时间倒序）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 条目。 */
                         items: components["schemas"]["InboxItemResponse"][];
                     };
                 };
@@ -11345,14 +16556,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description login-bans.list 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 此刻生效的参数。 */
                         settings: components["schemas"]["LoginAutoBanSettingsResponse"];
+                        /** @description 当前封禁，按解封时刻排列。 */
                         items: components["schemas"]["LoginBanResponse"][];
                     };
                 };
@@ -11375,21 +16588,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description login-bans.lift 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 要解封的地址。 */
                     ip: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description login-bans.lift 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 已解封的地址。 */
                         ip: string;
                     };
                 };
@@ -11410,41 +16626,70 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条登录日志。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 事件。 */
                         event: components["schemas"]["LoginEvent"];
+                        /** @description 是否成功。 */
                         succeeded: boolean;
+                        /** @description 失败的错误码。 */
                         errorCode?: string | null;
+                        /** @description 失败的错误消息。 */
                         errorMessage?: string | null;
+                        /** @description 账号所在的租户。 */
                         accountTenantId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 模仿事件的发起人。
+                         */
                         impersonatorUserId?: string | null;
+                        /** @description 补充说明。 */
                         detail?: string | null;
+                        /** @description 浏览器。 */
                         browser?: string | null;
+                        /** @description 操作系统。 */
                         os?: string | null;
+                        /** @description 设备类型。 */
                         device?: string | null;
                     };
                 };
@@ -11510,53 +16755,100 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description memberships.create 的请求：把用户加进部门。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户（注册地必须是当前租户）。
+                     */
                     userId: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 部门。
+                     */
                     departmentId: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 岗位。
+                     */
                     positionId?: string | null;
+                    /** @description 设为主部门；用户的第一个归属自动是主部门。 */
                     isPrimary?: boolean;
+                    /** @description 工号。 */
                     employeeNumber?: string | null;
+                    /** @description 职级。 */
                     jobGrade?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 入职时间（UTC）。
+                     */
                     hiredAt?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部门内排序号。
+                     */
                     order?: number;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 归属的网络契约：带用户、部门、岗位的名称。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId: string;
+                        /** @description 用户登录名。 */
                         userName: string;
+                        /** @description 用户显示名。 */
                         displayName: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 部门。
+                         */
                         departmentId: string;
+                        /** @description 部门名称。 */
                         departmentName: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 岗位。
+                         */
                         positionId?: string | null;
+                        /** @description 岗位名称。 */
                         positionName?: string | null;
+                        /** @description 是否主部门。 */
                         isPrimary: boolean;
+                        /** @description 工号。 */
                         employeeNumber?: string | null;
+                        /** @description 职级。 */
                         jobGrade?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 入职时间（UTC）。
+                         */
                         hiredAt?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部门内排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -11575,6 +16867,7 @@ export interface operations {
     "memberships.delete": {
         parameters: {
             query: {
+                /** @description 归属主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -11611,55 +16904,100 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 归属主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description memberships.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 归属主键。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 岗位；为空即清除。
+                     */
                     positionId?: string | null;
+                    /** @description 设为主部门；主部门不能在这里取消（给另一条设主即可）。 */
                     isPrimary?: boolean;
+                    /** @description 工号。 */
                     employeeNumber?: string | null;
+                    /** @description 职级。 */
                     jobGrade?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 入职时间（UTC）。
+                     */
                     hiredAt?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 部门内排序号。
+                     */
                     order?: number;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 归属的网络契约：带用户、部门、岗位的名称。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId: string;
+                        /** @description 用户登录名。 */
                         userName: string;
+                        /** @description 用户显示名。 */
                         displayName: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 部门。
+                         */
                         departmentId: string;
+                        /** @description 部门名称。 */
                         departmentName: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 岗位。
+                         */
                         positionId?: string | null;
+                        /** @description 岗位名称。 */
                         positionName?: string | null;
+                        /** @description 是否主部门。 */
                         isPrimary: boolean;
+                        /** @description 工号。 */
                         employeeNumber?: string | null;
+                        /** @description 职级。 */
                         jobGrade?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 入职时间（UTC）。
+                         */
                         hiredAt?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 部门内排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -11727,13 +17065,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description menus.list 的响应：整棵树（按排序号、编码排列）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 顶层节点。 */
                         items: components["schemas"]["MenuResponse"][];
                     };
                 };
@@ -11756,51 +17095,89 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description menus.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 种类：Directory 或 Link。 */
                     kind: components["schemas"]["MenuKind"];
+                    /** @description 名称：小写字母开头，只含小写字母、数字与 -，2 到 32 个字符；存为 custom.<名>，创建后不可改。 */
                     code: string;
+                    /** @description 标题原文：1 到 64 个字符。 */
                     title: string;
+                    /** @description 图标（如 lucide:folder），可空。 */
                     icon?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 上级：目录只能在顶层；外链可在顶层或某个目录下。
+                     */
                     parentId?: string | null;
+                    /** @description 外链地址（http / https 绝对地址）；外链必填，目录不填。 */
                     externalUrl?: string | null;
+                    /** @description 所需权限码，可空；须在权限目录里。 */
                     permission?: string | null;
+                    /** @description 是否在导航里显示。 */
                     isVisible?: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 菜单节点的管理视图（menus.*）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码（页面码或 custom.<名>）。 */
                         code: string;
+                        /** @description 种类。 */
                         kind: components["schemas"]["MenuKind"];
+                        /** @description 所属包；运营节点是 custom。 */
                         package: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级。
+                         */
                         parentId?: string | null;
+                        /** @description 路由路径；目录与外链为空。 */
                         route: string;
+                        /** @description 组件路径；目录与外链为空。 */
                         component: string;
+                        /** @description 标题文案键；运营节点为空。 */
                         titleKey: string;
+                        /** @description 标题原文（运营节点）或覆盖（页面节点）。 */
                         title?: string | null;
+                        /** @description 图标。 */
                         icon?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 所需权限码。 */
                         permission?: string | null;
+                        /** @description 外链地址。 */
                         externalUrl?: string | null;
+                        /** @description 是否在导航里显示。 */
                         isVisible: boolean;
+                        /** @description 页面标签是否参与缓存。 */
                         keepAlive: boolean;
+                        /** @description 是否固定在标签栏。 */
                         isAffix: boolean;
+                        /** @description 页面节点的展示是否被改过（可恢复默认）。 */
                         isCustomized: boolean;
+                        /** @description 子节点。 */
                         children: components["schemas"]["MenuResponse"][];
                     };
                 };
@@ -11819,6 +17196,7 @@ export interface operations {
     "menus.delete": {
         parameters: {
             query: {
+                /** @description 菜单主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -11855,39 +17233,64 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 菜单主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 菜单节点的管理视图（menus.*）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码（页面码或 custom.<名>）。 */
                         code: string;
+                        /** @description 种类。 */
                         kind: components["schemas"]["MenuKind"];
+                        /** @description 所属包；运营节点是 custom。 */
                         package: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级。
+                         */
                         parentId?: string | null;
+                        /** @description 路由路径；目录与外链为空。 */
                         route: string;
+                        /** @description 组件路径；目录与外链为空。 */
                         component: string;
+                        /** @description 标题文案键；运营节点为空。 */
                         titleKey: string;
+                        /** @description 标题原文（运营节点）或覆盖（页面节点）。 */
                         title?: string | null;
+                        /** @description 图标。 */
                         icon?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 所需权限码。 */
                         permission?: string | null;
+                        /** @description 外链地址。 */
                         externalUrl?: string | null;
+                        /** @description 是否在导航里显示。 */
                         isVisible: boolean;
+                        /** @description 页面标签是否参与缓存。 */
                         keepAlive: boolean;
+                        /** @description 是否固定在标签栏。 */
                         isAffix: boolean;
+                        /** @description 页面节点的展示是否被改过（可恢复默认）。 */
                         isCustomized: boolean;
+                        /** @description 子节点。 */
                         children: components["schemas"]["MenuResponse"][];
                     };
                 };
@@ -11908,57 +17311,99 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 菜单主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description menus.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 菜单主键。
+                     */
                     id: string;
+                    /** @description 标题：运营节点必填；页面节点为空即用登记的文案。 */
                     title?: string | null;
+                    /** @description 图标，可空。 */
                     icon?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 上级：规则同新建；子页面只能留在登记的父页面下。
+                     */
                     parentId?: string | null;
+                    /** @description 是否在导航里显示（隐藏的页面仍可直接访问）。 */
                     isVisible?: boolean;
+                    /** @description 页面标签是否参与缓存。 */
                     keepAlive?: boolean;
+                    /** @description 是否固定在标签栏。 */
                     isAffix?: boolean;
+                    /** @description 外链地址：外链必填，其余为空。 */
                     externalUrl?: string | null;
+                    /** @description 所需权限码：运营节点可选，页面节点为空。 */
                     permission?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 菜单节点的管理视图（menus.*）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码（页面码或 custom.<名>）。 */
                         code: string;
+                        /** @description 种类。 */
                         kind: components["schemas"]["MenuKind"];
+                        /** @description 所属包；运营节点是 custom。 */
                         package: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级。
+                         */
                         parentId?: string | null;
+                        /** @description 路由路径；目录与外链为空。 */
                         route: string;
+                        /** @description 组件路径；目录与外链为空。 */
                         component: string;
+                        /** @description 标题文案键；运营节点为空。 */
                         titleKey: string;
+                        /** @description 标题原文（运营节点）或覆盖（页面节点）。 */
                         title?: string | null;
+                        /** @description 图标。 */
                         icon?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 所需权限码。 */
                         permission?: string | null;
+                        /** @description 外链地址。 */
                         externalUrl?: string | null;
+                        /** @description 是否在导航里显示。 */
                         isVisible: boolean;
+                        /** @description 页面标签是否参与缓存。 */
                         keepAlive: boolean;
+                        /** @description 是否固定在标签栏。 */
                         isAffix: boolean;
+                        /** @description 页面节点的展示是否被改过（可恢复默认）。 */
                         isCustomized: boolean;
+                        /** @description 子节点。 */
                         children: components["schemas"]["MenuResponse"][];
                     };
                 };
@@ -11979,46 +17424,75 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 菜单主键（页面节点）。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description menus.reset 的请求：标识由路由值 {id} 绑定。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 菜单主键（页面节点）。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 菜单节点的管理视图（menus.*）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码（页面码或 custom.<名>）。 */
                         code: string;
+                        /** @description 种类。 */
                         kind: components["schemas"]["MenuKind"];
+                        /** @description 所属包；运营节点是 custom。 */
                         package: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 上级。
+                         */
                         parentId?: string | null;
+                        /** @description 路由路径；目录与外链为空。 */
                         route: string;
+                        /** @description 组件路径；目录与外链为空。 */
                         component: string;
+                        /** @description 标题文案键；运营节点为空。 */
                         titleKey: string;
+                        /** @description 标题原文（运营节点）或覆盖（页面节点）。 */
                         title?: string | null;
+                        /** @description 图标。 */
                         icon?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 所需权限码。 */
                         permission?: string | null;
+                        /** @description 外链地址。 */
                         externalUrl?: string | null;
+                        /** @description 是否在导航里显示。 */
                         isVisible: boolean;
+                        /** @description 页面标签是否参与缓存。 */
                         keepAlive: boolean;
+                        /** @description 是否固定在标签栏。 */
                         isAffix: boolean;
+                        /** @description 页面节点的展示是否被改过（可恢复默认）。 */
                         isCustomized: boolean;
+                        /** @description 子节点。 */
                         children: components["schemas"]["MenuResponse"][];
                     };
                 };
@@ -12041,47 +17515,81 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description message-templates.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（建好不改）。 */
                     code: string;
+                    /** @description 渠道（建好不改）。 */
                     channel: components["schemas"]["TemplateChannel"];
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 正文。 */
                     content: string;
+                    /** @description 主题（邮件）。 */
                     subject?: string | null;
+                    /** @description 正文是 HTML。 */
                     isHtml?: boolean;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个消息模板。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 模板 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 渠道。 */
                         channel: components["schemas"]["TemplateChannel"];
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 主题。 */
                         subject?: string | null;
+                        /** @description 正文。 */
                         content: string;
+                        /** @description 正文是 HTML。 */
                         isHtml: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -12100,6 +17608,7 @@ export interface operations {
     "message-templates.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -12136,35 +17645,57 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个消息模板。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 模板 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 渠道。 */
                         channel: components["schemas"]["TemplateChannel"];
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 主题。 */
                         subject?: string | null;
+                        /** @description 正文。 */
                         content: string;
+                        /** @description 正文是 HTML。 */
                         isHtml: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -12185,51 +17716,87 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 模板 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description message-templates.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 模板 ID。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 正文。 */
                     content: string;
+                    /** @description 主题。 */
                     subject?: string | null;
+                    /** @description 正文是 HTML。 */
                     isHtml?: boolean;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个消息模板。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 模板 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 渠道。 */
                         channel: components["schemas"]["TemplateChannel"];
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 主题。 */
                         subject?: string | null;
+                        /** @description 正文。 */
                         content: string;
+                        /** @description 正文是 HTML。 */
                         isHtml: boolean;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -12291,6 +17858,7 @@ export interface operations {
     "my-activity.summary": {
         parameters: {
             query?: {
+                /** @description 按哪个时区分天（IANA 名称，如 Asia/Shanghai；缺省 UTC）。 */
                 timeZone?: string | null;
             };
             header?: never;
@@ -12299,22 +17867,35 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的活跃度。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 今天。 */
                         today: components["schemas"]["ActivityCountsResponse"];
+                        /** @description 本周（周一起）。 */
                         thisWeek: components["schemas"]["ActivityCountsResponse"];
+                        /** @description 本月。 */
                         thisMonth: components["schemas"]["ActivityCountsResponse"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最后登录（近一年内）。
+                         */
                         lastLoginAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最后访问（近一年内）。
+                         */
                         lastAccessAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最后操作（近一年内）。
+                         */
                         lastOperationAt?: string | null;
+                        /** @description 近 371 天里有活动的日子（稀疏，按日期正序；4.x 同）。 */
                         trend: components["schemas"]["ActivityDayResponse"][];
                     };
                 };
@@ -12339,13 +17920,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的全部开放接口凭证（按创建先后）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 凭证。 */
                         items: components["schemas"]["MyApiCredentialResponse"][];
                     };
                 };
@@ -12368,24 +17950,31 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description my-api-credentials.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 名称；不填即「默认凭证」（按当前区域）。 */
                     name?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或滚动后的凭证：密钥只在这一次返回。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 凭证 ID。
+                         */
                         id: string;
+                        /** @description AppKey。 */
                         appKey: string;
+                        /** @description 密钥明文。 */
                         secret: string;
                     };
                 };
@@ -12404,6 +17993,7 @@ export interface operations {
     "my-api-credentials.delete": {
         parameters: {
             query: {
+                /** @description 凭证 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -12440,35 +18030,53 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 凭证 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description my-api-credentials.update 的请求：启用或停用。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 凭证 ID。
+                     */
                     id: string;
+                    /** @description 是否启用。 */
                     isEnabled: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的一个开放接口凭证（密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 凭证 ID。
+                         */
                         id: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description AppKey。 */
                         appKey: string;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次验签通过的时间；从未用过为空。
+                         */
                         lastUsedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -12489,29 +18097,39 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 凭证 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description my-api-credentials.rotate-secret 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 凭证 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或滚动后的凭证：密钥只在这一次返回。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 凭证 ID。
+                         */
                         id: string;
+                        /** @description AppKey。 */
                         appKey: string;
+                        /** @description 密钥明文。 */
                         secret: string;
                     };
                 };
@@ -12536,15 +18154,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的调用安全设置（作用于本人全部凭证）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 签名算法。 */
                         signatureAlgorithm: string;
+                        /** @description IP 白名单（IP 或 CIDR）；空即不限。 */
                         ipAllowList: string[];
+                        /** @description 可选的签名算法。 */
                         algorithms: string[];
                     };
                 };
@@ -12567,24 +18188,30 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 写调用安全设置的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 签名算法（HmacSHA256 / HmacSHA512）。 */
                     signatureAlgorithm: string;
+                    /** @description IP 白名单（每条一个 IP 或 CIDR，最多 50 条）；空即不限。 */
                     ipAllowList?: string[] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的调用安全设置（作用于本人全部凭证）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 签名算法。 */
                         signatureAlgorithm: string;
+                        /** @description IP 白名单（IP 或 CIDR）；空即不限。 */
                         ipAllowList: string[];
+                        /** @description 可选的签名算法。 */
                         algorithms: string[];
                     };
                 };
@@ -12603,7 +18230,9 @@ export interface operations {
     "my-login-logs.list": {
         parameters: {
             query?: {
+                /** @description 页码，从 1 起。 */
                 page?: number;
+                /** @description 页大小（1–50，缺省 10；4.x 同）。 */
                 pageSize?: number;
             };
             header?: never;
@@ -12646,13 +18275,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的全部应用（按创建先后）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 应用。 */
                         items: components["schemas"]["OAuthAppResponse"][];
                     };
                 };
@@ -12675,30 +18305,43 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description my-oauth-apps.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 应用名称。 */
                     appName: string;
+                    /** @description 客户端类型（新建后不能改）。 */
                     clientType: components["schemas"]["OAuthClientType"];
+                    /** @description 主页。 */
                     homepage?: string | null;
+                    /** @description 描述。 */
                     appDescription?: string | null;
+                    /** @description 回调地址（1 到 10 条）。 */
                     redirectUris: string[];
+                    /** @description Logo 地址。 */
                     logo?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或重置密钥后的应用：机密客户端的密钥只在这一次返回，公开客户端为空。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 密钥明文。 */
                         clientSecret?: string | null;
                     };
                 };
@@ -12717,6 +18360,7 @@ export interface operations {
     "my-oauth-apps.delete": {
         parameters: {
             query: {
+                /** @description 应用 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -12753,46 +18397,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个 OAuth 应用（密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description 应用名称。 */
                         appName: string;
+                        /** @description 描述。 */
                         appDescription?: string | null;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 应用类型。 */
                         appType: components["schemas"]["OAuthAppType"];
+                        /** @description 授权类型。 */
                         grantTypes: string[];
+                        /** @description 回调地址。 */
                         redirectUris: string[];
+                        /** @description 授权范围。 */
                         scopes: string[];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 访问令牌有效期（秒）。
+                         */
                         accessTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 刷新令牌有效期（秒）。
+                         */
                         refreshTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 授权码有效期（秒）。
+                         */
                         authorizationCodeLifetime: number;
+                        /** @description Logo 地址。 */
                         logo?: string | null;
+                        /** @description 主页。 */
                         homepage?: string | null;
+                        /** @description 跳过同意页。 */
                         skipConsent: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 归属人（我的应用）；平台建的为空。
+                         */
                         ownerUserId?: string | null;
+                        /** @description 归属人的登录名。 */
                         ownerUserName?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -12813,59 +18493,105 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description my-oauth-apps.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 应用 ID。
+                     */
                     id: string;
+                    /** @description 应用名称。 */
                     appName: string;
+                    /** @description 主页。 */
                     homepage?: string | null;
+                    /** @description 描述。 */
                     appDescription?: string | null;
+                    /** @description 回调地址。 */
                     redirectUris: string[];
+                    /** @description Logo 地址。 */
                     logo?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个 OAuth 应用（密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description 应用名称。 */
                         appName: string;
+                        /** @description 描述。 */
                         appDescription?: string | null;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 应用类型。 */
                         appType: components["schemas"]["OAuthAppType"];
+                        /** @description 授权类型。 */
                         grantTypes: string[];
+                        /** @description 回调地址。 */
                         redirectUris: string[];
+                        /** @description 授权范围。 */
                         scopes: string[];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 访问令牌有效期（秒）。
+                         */
                         accessTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 刷新令牌有效期（秒）。
+                         */
                         refreshTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 授权码有效期（秒）。
+                         */
                         authorizationCodeLifetime: number;
+                        /** @description Logo 地址。 */
                         logo?: string | null;
+                        /** @description 主页。 */
                         homepage?: string | null;
+                        /** @description 跳过同意页。 */
                         skipConsent: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 归属人（我的应用）；平台建的为空。
+                         */
                         ownerUserId?: string | null;
+                        /** @description 归属人的登录名。 */
                         ownerUserName?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -12886,30 +18612,41 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 取或重置一个应用的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 应用 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或重置密钥后的应用：机密客户端的密钥只在这一次返回，公开客户端为空。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 密钥明文。 */
                         clientSecret?: string | null;
                     };
                 };
@@ -12932,75 +18669,142 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description notifications.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 标题。 */
                     title: string;
+                    /** @description 正文。 */
                     content?: string | null;
+                    /** @description 正文格式（缺省 Markdown）。 */
                     contentFormat?: components["schemas"]["NotificationContentFormat"];
+                    /** @description 类型（缺省系统公告）。 */
                     notificationType?: components["schemas"]["NotificationType"];
+                    /** @description 优先级（缺省普通）。 */
                     priority?: components["schemas"]["NotificationPriority"];
+                    /** @description 投递目标（缺省全部）。 */
                     targetType?: components["schemas"]["NotificationTargetType"];
+                    /** @description 目标 ID（角色、部门或用户）；全部为空即可。 */
                     targetIds?: string[] | null;
+                    /** @description 图标。 */
                     icon?: string | null;
+                    /** @description 链接。 */
                     link?: string | null;
+                    /** @description 关联的业务类型。 */
                     businessType?: string | null;
+                    /** @description 关联的业务 ID。 */
                     businessId?: string | null;
+                    /** @description 需要确认。 */
                     needConfirm?: boolean;
+                    /** @description 强制阅读。 */
                     isMandatory?: boolean;
+                    /** @description 横幅。 */
                     isBanner?: boolean;
+                    /** @description 登录后弹窗。 */
                     isPopup?: boolean;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 可见起始时间。
+                     */
                     startsAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
+                    /** @description 投递渠道（缺省只有站内信；须包含站内信）。 */
                     deliveryChannels?: components["schemas"]["DeliveryChannel"][] | null;
+                    /** @description 建好即发布（另需发布权限）。 */
                     publishImmediately?: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条通知公告。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
+                        /** @description 标题。 */
                         title: string;
+                        /** @description 正文。 */
                         content?: string | null;
+                        /** @description 正文格式。 */
                         contentFormat: components["schemas"]["NotificationContentFormat"];
+                        /** @description 类型。 */
                         notificationType: components["schemas"]["NotificationType"];
+                        /** @description 优先级。 */
                         priority: components["schemas"]["NotificationPriority"];
+                        /** @description 图标。 */
                         icon?: string | null;
+                        /** @description 链接。 */
                         link?: string | null;
+                        /** @description 关联的业务类型。 */
                         businessType?: string | null;
+                        /** @description 关联的业务 ID。 */
                         businessId?: string | null;
+                        /** @description 投递渠道。 */
                         deliveryChannels: components["schemas"]["DeliveryChannel"][];
+                        /** @description 投递目标。 */
                         targetType: components["schemas"]["NotificationTargetType"];
+                        /** @description 目标 ID（角色、部门或用户）。 */
                         targetIds: string[];
+                        /** @description 需要确认。 */
                         needConfirm: boolean;
+                        /** @description 强制阅读。 */
                         isMandatory: boolean;
+                        /** @description 横幅。 */
                         isBanner: boolean;
+                        /** @description 登录后弹窗。 */
                         isPopup: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 可见起始时间。
+                         */
                         startsAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 是否已发布。 */
                         isPublished: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
                         publishedAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 发布人。
+                         */
                         publisherId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 接收人数。
+                         */
                         recipientCount: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13019,6 +18823,7 @@ export interface operations {
     "notifications.delete": {
         parameters: {
             query: {
+                /** @description 通知 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -13055,52 +18860,95 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条通知公告。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
+                        /** @description 标题。 */
                         title: string;
+                        /** @description 正文。 */
                         content?: string | null;
+                        /** @description 正文格式。 */
                         contentFormat: components["schemas"]["NotificationContentFormat"];
+                        /** @description 类型。 */
                         notificationType: components["schemas"]["NotificationType"];
+                        /** @description 优先级。 */
                         priority: components["schemas"]["NotificationPriority"];
+                        /** @description 图标。 */
                         icon?: string | null;
+                        /** @description 链接。 */
                         link?: string | null;
+                        /** @description 关联的业务类型。 */
                         businessType?: string | null;
+                        /** @description 关联的业务 ID。 */
                         businessId?: string | null;
+                        /** @description 投递渠道。 */
                         deliveryChannels: components["schemas"]["DeliveryChannel"][];
+                        /** @description 投递目标。 */
                         targetType: components["schemas"]["NotificationTargetType"];
+                        /** @description 目标 ID（角色、部门或用户）。 */
                         targetIds: string[];
+                        /** @description 需要确认。 */
                         needConfirm: boolean;
+                        /** @description 强制阅读。 */
                         isMandatory: boolean;
+                        /** @description 横幅。 */
                         isBanner: boolean;
+                        /** @description 登录后弹窗。 */
                         isPopup: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 可见起始时间。
+                         */
                         startsAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 是否已发布。 */
                         isPublished: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
                         publishedAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 发布人。
+                         */
                         publisherId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 接收人数。
+                         */
                         recipientCount: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13121,80 +18969,150 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description notifications.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 通知 ID。
+                     */
                     id: string;
+                    /** @description 标题。 */
                     title: string;
+                    /** @description 正文。 */
                     content?: string | null;
+                    /** @description 正文格式（缺省 Markdown）。 */
                     contentFormat?: components["schemas"]["NotificationContentFormat"];
+                    /** @description 类型（缺省系统公告）。 */
                     notificationType?: components["schemas"]["NotificationType"];
+                    /** @description 优先级（缺省普通）。 */
                     priority?: components["schemas"]["NotificationPriority"];
+                    /** @description 投递目标（缺省全部）。 */
                     targetType?: components["schemas"]["NotificationTargetType"];
+                    /** @description 目标 ID（角色、部门或用户）；全部为空即可。 */
                     targetIds?: string[] | null;
+                    /** @description 图标。 */
                     icon?: string | null;
+                    /** @description 链接。 */
                     link?: string | null;
+                    /** @description 关联的业务类型。 */
                     businessType?: string | null;
+                    /** @description 关联的业务 ID。 */
                     businessId?: string | null;
+                    /** @description 需要确认。 */
                     needConfirm?: boolean;
+                    /** @description 强制阅读。 */
                     isMandatory?: boolean;
+                    /** @description 横幅。 */
                     isBanner?: boolean;
+                    /** @description 登录后弹窗。 */
                     isPopup?: boolean;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 可见起始时间。
+                     */
                     startsAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
+                    /** @description 投递渠道（缺省只有站内信；须包含站内信）。 */
                     deliveryChannels?: components["schemas"]["DeliveryChannel"][] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条通知公告。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
+                        /** @description 标题。 */
                         title: string;
+                        /** @description 正文。 */
                         content?: string | null;
+                        /** @description 正文格式。 */
                         contentFormat: components["schemas"]["NotificationContentFormat"];
+                        /** @description 类型。 */
                         notificationType: components["schemas"]["NotificationType"];
+                        /** @description 优先级。 */
                         priority: components["schemas"]["NotificationPriority"];
+                        /** @description 图标。 */
                         icon?: string | null;
+                        /** @description 链接。 */
                         link?: string | null;
+                        /** @description 关联的业务类型。 */
                         businessType?: string | null;
+                        /** @description 关联的业务 ID。 */
                         businessId?: string | null;
+                        /** @description 投递渠道。 */
                         deliveryChannels: components["schemas"]["DeliveryChannel"][];
+                        /** @description 投递目标。 */
                         targetType: components["schemas"]["NotificationTargetType"];
+                        /** @description 目标 ID（角色、部门或用户）。 */
                         targetIds: string[];
+                        /** @description 需要确认。 */
                         needConfirm: boolean;
+                        /** @description 强制阅读。 */
                         isMandatory: boolean;
+                        /** @description 横幅。 */
                         isBanner: boolean;
+                        /** @description 登录后弹窗。 */
                         isPopup: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 可见起始时间。
+                         */
                         startsAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 是否已发布。 */
                         isPublished: boolean;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
                         publishedAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 发布人。
+                         */
                         publisherId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 接收人数。
+                         */
                         recipientCount: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13215,31 +19133,45 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 取一条通知的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 通知 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 发布与提醒的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 这次送达的接收人数（发布：全部接收人；提醒：未读或未确认的）。
+                         */
                         recipientCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
                         publishedAt: string;
                     };
                 };
@@ -13260,29 +19192,46 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 阅读统计。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 接收人数（收件箱里还留着的）。
+                         */
                         recipientCount: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 已读。
+                         */
                         readCount: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 未读。
+                         */
                         unreadCount: number;
+                        /** @description 是否需要确认。 */
                         needConfirm: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 已确认。
+                         */
                         confirmedCount: number;
                     };
                 };
@@ -13303,16 +19252,23 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description notifications.recipients 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 通知 ID。
+                     */
                     id: string;
+                    /** @description 分页（缺省第 1 页 20 条）。 */
                     page?: components["schemas"]["PageInfo"] | null;
+                    /** @description 范围。 */
                     filter?: components["schemas"]["NotificationRecipientFilter"];
                 };
             };
@@ -13348,31 +19304,45 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 通知 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 取一条通知的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 通知 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 发布与提醒的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 通知 ID。
+                         */
                         id: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 这次送达的接收人数（发布：全部接收人；提醒：未读或未确认的）。
+                         */
                         recipientCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
                         publishedAt: string;
                     };
                 };
@@ -13438,59 +19408,108 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description numbering-rules.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（本侧唯一）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 前缀。 */
                     prefix?: string | null;
+                    /** @description 分隔符（可为空串）。 */
                     separator?: string | null;
+                    /** @description 日期格式。 */
                     dateFormat?: components["schemas"]["NumberingDateFormat"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 流水位数。
+                     */
                     serialLength?: number;
+                    /** @description 重置周期。 */
                     resetCycle?: components["schemas"]["NumberingResetCycle"];
+                    /** @description 时区（IANA 标识）。 */
                     timeZoneId?: string;
+                    /** @description 平台规则是否供租户使用（租户规则忽略）。 */
                     allowTenantUse?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 编号规则的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台规则。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 前缀。 */
                         prefix?: string | null;
+                        /** @description 分隔符。 */
                         separator: string;
+                        /** @description 日期格式。 */
                         dateFormat: components["schemas"]["NumberingDateFormat"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 流水位数。
+                         */
                         serialLength: number;
+                        /** @description 重置周期。 */
                         resetCycle: components["schemas"]["NumberingResetCycle"];
+                        /** @description 时区。 */
                         timeZoneId: string;
+                        /** @description 格式示意（如 ORD-yyyyMMdd-0000）。 */
                         template: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 当前周期最后发出的流水值。
+                         */
                         currentValue: number;
+                        /** @description 当前周期键（还没有基线时为空串）。 */
                         currentPeriod: string;
+                        /** @description 是否发过号（发过即格式冻结）。 */
                         hasAllocated: boolean;
+                        /** @description 平台规则是否供租户使用。 */
                         allowTenantUse: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13509,6 +19528,7 @@ export interface operations {
     "numbering-rules.delete": {
         parameters: {
             query: {
+                /** @description 规则主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -13545,45 +19565,79 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 编号规则的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台规则。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 前缀。 */
                         prefix?: string | null;
+                        /** @description 分隔符。 */
                         separator: string;
+                        /** @description 日期格式。 */
                         dateFormat: components["schemas"]["NumberingDateFormat"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 流水位数。
+                         */
                         serialLength: number;
+                        /** @description 重置周期。 */
                         resetCycle: components["schemas"]["NumberingResetCycle"];
+                        /** @description 时区。 */
                         timeZoneId: string;
+                        /** @description 格式示意（如 ORD-yyyyMMdd-0000）。 */
                         template: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 当前周期最后发出的流水值。
+                         */
                         currentValue: number;
+                        /** @description 当前周期键（还没有基线时为空串）。 */
                         currentPeriod: string;
+                        /** @description 是否发过号（发过即格式冻结）。 */
                         hasAllocated: boolean;
+                        /** @description 平台规则是否供租户使用。 */
                         allowTenantUse: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13604,65 +19658,118 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description numbering-rules.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 前缀。 */
                     prefix?: string | null;
+                    /** @description 分隔符。 */
                     separator?: string | null;
+                    /** @description 日期格式。 */
                     dateFormat?: components["schemas"]["NumberingDateFormat"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 流水位数。
+                     */
                     serialLength?: number;
+                    /** @description 重置周期。 */
                     resetCycle?: components["schemas"]["NumberingResetCycle"];
+                    /** @description 时区。 */
                     timeZoneId?: string;
+                    /** @description 平台规则是否供租户使用。 */
                     allowTenantUse?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["SettingStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 编号规则的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台规则。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 前缀。 */
                         prefix?: string | null;
+                        /** @description 分隔符。 */
                         separator: string;
+                        /** @description 日期格式。 */
                         dateFormat: components["schemas"]["NumberingDateFormat"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 流水位数。
+                         */
                         serialLength: number;
+                        /** @description 重置周期。 */
                         resetCycle: components["schemas"]["NumberingResetCycle"];
+                        /** @description 时区。 */
                         timeZoneId: string;
+                        /** @description 格式示意（如 ORD-yyyyMMdd-0000）。 */
                         template: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 当前周期最后发出的流水值。
+                         */
                         currentValue: number;
+                        /** @description 当前周期键（还没有基线时为空串）。 */
                         currentPeriod: string;
+                        /** @description 是否发过号（发过即格式冻结）。 */
                         hasAllocated: boolean;
+                        /** @description 平台规则是否供租户使用。 */
                         allowTenantUse: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13683,16 +19790,23 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description numbering-rules.allocations 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则主键。
+                     */
                     id: string;
+                    /** @description 分页。 */
                     page?: components["schemas"]["PageInfo"] | null;
+                    /** @description 关键字（匹配幂等键、业务类型与业务单据）。 */
                     keyword?: string | null;
                 };
             };
@@ -13728,55 +19842,96 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 规则主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description numbering-rules.reset 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 规则主键。
+                     */
                     id: string;
+                    /** @description 下一个要发出的流水值（字符串）。 */
                     nextValue: string;
+                    /** @description 理由（进操作审计）。 */
                     reason: string;
+                    /** @description 平台规则要回填的规则编码。 */
                     confirmCode?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 编号规则的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 属主：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 是否为平台规则。 */
                         isPlatform: boolean;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 前缀。 */
                         prefix?: string | null;
+                        /** @description 分隔符。 */
                         separator: string;
+                        /** @description 日期格式。 */
                         dateFormat: components["schemas"]["NumberingDateFormat"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 流水位数。
+                         */
                         serialLength: number;
+                        /** @description 重置周期。 */
                         resetCycle: components["schemas"]["NumberingResetCycle"];
+                        /** @description 时区。 */
                         timeZoneId: string;
+                        /** @description 格式示意（如 ORD-yyyyMMdd-0000）。 */
                         template: string;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 当前周期最后发出的流水值。
+                         */
                         currentValue: number;
+                        /** @description 当前周期键（还没有基线时为空串）。 */
                         currentPeriod: string;
+                        /** @description 是否发过号（发过即格式冻结）。 */
                         hasAllocated: boolean;
+                        /** @description 平台规则是否供租户使用。 */
                         allowTenantUse: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["SettingStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -13799,15 +19954,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description numbering-rules.generate 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 规则编码。 */
                     code: string;
+                    /** @description 幂等键（同一侧同一规则只发一次）。 */
                     idempotencyKey: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 个数（1 到 1000）。
+                     */
                     count?: number;
+                    /** @description 找规则的范围。 */
                     scope?: components["schemas"]["NumberingScope"];
+                    /** @description 业务类型。 */
                     businessType?: string | null;
+                    /** @description 业务单据主键。 */
                     businessId?: string | null;
                 };
             };
@@ -13895,13 +20059,21 @@ export interface operations {
     "numbering-rules.preview": {
         parameters: {
             query?: {
+                /** @description 前缀。 */
                 prefix?: string | null;
+                /** @description 分隔符。 */
                 separator?: string | null;
+                /** @description 日期格式。 */
                 dateFormat?: components["schemas"]["NumberingDateFormat"];
+                /** @description 流水位数。 */
                 serialLength?: number;
+                /** @description 重置周期。 */
                 resetCycle?: components["schemas"]["NumberingResetCycle"];
+                /** @description 时区。 */
                 timeZoneId?: string;
+                /** @description 起始流水值（字符串）。 */
                 startValue?: string;
+                /** @description 个数（1 到 50）。 */
                 count?: number;
             };
             header?: never;
@@ -13910,15 +20082,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description numbering-rules.preview 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 号码。 */
                         numbers: string[];
+                        /** @description 当前时刻的周期键。 */
                         periodKey: string;
+                        /** @description 当前时刻的日期段。 */
                         dateText?: string | null;
                     };
                 };
@@ -13941,43 +20116,72 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description oauth-apps.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 应用名称。 */
                     appName: string;
+                    /** @description 描述。 */
                     appDescription?: string | null;
+                    /** @description ClientId（3 到 100 位字母、数字、. _ -）；不填即 32 位十六进制。 */
                     clientId?: string | null;
+                    /** @description 客户端类型（新建后不能改）。 */
                     clientType: components["schemas"]["OAuthClientType"];
+                    /** @description 应用类型。 */
                     appType: components["schemas"]["OAuthAppType"];
+                    /** @description 授权类型（authorization_code 必选，可加 refresh_token）。 */
                     grantTypes: string[];
+                    /** @description 回调地址（1 到 10 条）。 */
                     redirectUris: string[];
+                    /** @description 授权范围（openid 必选，可加 profile email phone）。 */
                     scopes: string[];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 访问令牌有效期（秒，60 到 86400）。
+                     */
                     accessTokenLifetime: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 刷新令牌有效期（秒，3600 到 31536000）。
+                     */
                     refreshTokenLifetime: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 授权码有效期（秒，30 到 600）。
+                     */
                     authorizationCodeLifetime: number;
+                    /** @description Logo 地址（http / https）。 */
                     logo?: string | null;
+                    /** @description 主页（http / https）。 */
                     homepage?: string | null;
+                    /** @description 跳过同意页。 */
                     skipConsent: boolean;
+                    /** @description 是否启用。 */
                     isEnabled: boolean;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或重置密钥后的应用：机密客户端的密钥只在这一次返回，公开客户端为空。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 密钥明文。 */
                         clientSecret?: string | null;
                     };
                 };
@@ -13996,6 +20200,7 @@ export interface operations {
     "oauth-apps.delete": {
         parameters: {
             query: {
+                /** @description 应用 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -14032,46 +20237,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个 OAuth 应用（密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description 应用名称。 */
                         appName: string;
+                        /** @description 描述。 */
                         appDescription?: string | null;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 应用类型。 */
                         appType: components["schemas"]["OAuthAppType"];
+                        /** @description 授权类型。 */
                         grantTypes: string[];
+                        /** @description 回调地址。 */
                         redirectUris: string[];
+                        /** @description 授权范围。 */
                         scopes: string[];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 访问令牌有效期（秒）。
+                         */
                         accessTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 刷新令牌有效期（秒）。
+                         */
                         refreshTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 授权码有效期（秒）。
+                         */
                         authorizationCodeLifetime: number;
+                        /** @description Logo 地址。 */
                         logo?: string | null;
+                        /** @description 主页。 */
                         homepage?: string | null;
+                        /** @description 跳过同意页。 */
                         skipConsent: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 归属人（我的应用）；平台建的为空。
+                         */
                         ownerUserId?: string | null;
+                        /** @description 归属人的登录名。 */
                         ownerUserName?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -14092,70 +20333,130 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description oauth-apps.update 的请求（整体覆盖）。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 应用 ID。
+                     */
                     id: string;
+                    /** @description 应用名称。 */
                     appName: string;
+                    /** @description 描述。 */
                     appDescription?: string | null;
+                    /** @description 应用类型。 */
                     appType: components["schemas"]["OAuthAppType"];
+                    /** @description 授权类型。 */
                     grantTypes: string[];
+                    /** @description 回调地址。 */
                     redirectUris: string[];
+                    /** @description 授权范围。 */
                     scopes: string[];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 访问令牌有效期（秒）。
+                     */
                     accessTokenLifetime: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 刷新令牌有效期（秒）。
+                     */
                     refreshTokenLifetime: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 授权码有效期（秒）。
+                     */
                     authorizationCodeLifetime: number;
+                    /** @description Logo 地址。 */
                     logo?: string | null;
+                    /** @description 主页。 */
                     homepage?: string | null;
+                    /** @description 跳过同意页。 */
                     skipConsent: boolean;
+                    /** @description 是否启用。 */
                     isEnabled: boolean;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个 OAuth 应用（密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description 应用名称。 */
                         appName: string;
+                        /** @description 描述。 */
                         appDescription?: string | null;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 应用类型。 */
                         appType: components["schemas"]["OAuthAppType"];
+                        /** @description 授权类型。 */
                         grantTypes: string[];
+                        /** @description 回调地址。 */
                         redirectUris: string[];
+                        /** @description 授权范围。 */
                         scopes: string[];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 访问令牌有效期（秒）。
+                         */
                         accessTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 刷新令牌有效期（秒）。
+                         */
                         refreshTokenLifetime: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 授权码有效期（秒）。
+                         */
                         authorizationCodeLifetime: number;
+                        /** @description Logo 地址。 */
                         logo?: string | null;
+                        /** @description 主页。 */
                         homepage?: string | null;
+                        /** @description 跳过同意页。 */
                         skipConsent: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 归属人（我的应用）；平台建的为空。
+                         */
                         ownerUserId?: string | null;
+                        /** @description 归属人的登录名。 */
                         ownerUserName?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -14176,30 +20477,41 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 应用 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 取或重置一个应用的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 应用 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 新建或重置密钥后的应用：机密客户端的密钥只在这一次返回，公开客户端为空。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 应用 ID。
+                         */
                         id: string;
+                        /** @description ClientId。 */
                         clientId: string;
+                        /** @description 客户端类型。 */
                         clientType: components["schemas"]["OAuthClientType"];
+                        /** @description 密钥明文。 */
                         clientSecret?: string | null;
                     };
                 };
@@ -14267,13 +20579,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人授权过的全部应用（最近同意的在前）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 应用。 */
                         items: components["schemas"]["OAuthConsentResponse"][];
                     };
                 };
@@ -14296,28 +20609,38 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 授权请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description response_type。 */
                     responseType?: string | null;
+                    /** @description client_id。 */
                     clientId?: string | null;
+                    /** @description redirect_uri。 */
                     redirectUri?: string | null;
+                    /** @description scope。 */
                     scope?: string | null;
+                    /** @description state。 */
                     state?: string | null;
+                    /** @description code_challenge。 */
                     codeChallenge?: string | null;
+                    /** @description code_challenge_method。 */
                     codeChallengeMethod?: string | null;
+                    /** @description nonce。 */
                     nonce?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 同意或拒绝之后要整页跳去的地址。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 地址。 */
                         redirectUri: string;
                     };
                 };
@@ -14340,28 +20663,38 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 授权请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description response_type。 */
                     responseType?: string | null;
+                    /** @description client_id。 */
                     clientId?: string | null;
+                    /** @description redirect_uri。 */
                     redirectUri?: string | null;
+                    /** @description scope。 */
                     scope?: string | null;
+                    /** @description state。 */
                     state?: string | null;
+                    /** @description code_challenge。 */
                     codeChallenge?: string | null;
+                    /** @description code_challenge_method。 */
                     codeChallengeMethod?: string | null;
+                    /** @description nonce。 */
                     nonce?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 同意或拒绝之后要整页跳去的地址。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 地址。 */
                         redirectUri: string;
                     };
                 };
@@ -14380,13 +20713,21 @@ export interface operations {
     "oauth-consents.resolve": {
         parameters: {
             query?: {
+                /** @description response_type。 */
                 responseType?: string | null;
+                /** @description client_id。 */
                 clientId?: string | null;
+                /** @description redirect_uri。 */
                 redirectUri?: string | null;
+                /** @description scope。 */
                 scope?: string | null;
+                /** @description state。 */
                 state?: string | null;
+                /** @description code_challenge。 */
                 codeChallenge?: string | null;
+                /** @description code_challenge_method。 */
                 codeChallengeMethod?: string | null;
+                /** @description nonce。 */
                 nonce?: string | null;
             };
             header?: never;
@@ -14395,22 +20736,32 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 同意页的预览：应用信息与本次的范围。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 请求是否有效。 */
                         valid: boolean;
+                        /** @description OAuth 错误码。 */
                         error?: string | null;
+                        /** @description 错误说明。 */
                         errorDescription?: string | null;
+                        /** @description ClientId。 */
                         clientId?: string | null;
+                        /** @description 应用名称。 */
                         appName?: string | null;
+                        /** @description 应用描述。 */
                         appDescription?: string | null;
+                        /** @description Logo。 */
                         logo?: string | null;
+                        /** @description 主页。 */
                         homepage?: string | null;
+                        /** @description 不必再确认（应用跳过同意页，或此前同意过的范围已覆盖本次的）。 */
                         skipConsent: boolean;
+                        /** @description 本次的范围。 */
                         scopes: string[];
                     };
                 };
@@ -14433,21 +20784,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description oauth-consents.revoke 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description ClientId。 */
                     clientId: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description oauth-consents.revoke 的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 是否撤销了（成功即 true）。 */
                         revoked: boolean;
                     };
                 };
@@ -14468,50 +20822,91 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 开放接口日志详情：列表项的字段加正文摘要。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 接入应用的客户端标识。 */
                         clientId?: string | null;
+                        /** @description 接入应用名称。 */
                         appName?: string | null;
+                        /** @description 操作 ID。 */
                         operationId?: string | null;
+                        /** @description 请求方法。 */
                         method: string;
+                        /** @description 请求路径。 */
                         path: string;
+                        /** @description 签名算法。 */
                         signatureAlgorithm?: string | null;
+                        /** @description 签名是否有效。 */
                         signatureValid: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description HTTP 状态码。
+                         */
                         statusCode: number;
+                        /** @description 是否成功。 */
                         succeeded: boolean;
+                        /** @description 失败的错误码。 */
                         errorCode?: string | null;
+                        /** @description 失败的错误消息。 */
                         errorMessage?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
                         durationMs: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 请求大小（字节）。
+                         */
                         requestSize: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 响应大小（字节）。
+                         */
                         responseSize: number;
+                        /** @description 请求正文摘要。 */
                         requestBody?: string | null;
+                        /** @description 响应正文摘要。 */
                         responseBody?: string | null;
                     };
                 };
@@ -14577,28 +20972,40 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description open.echo 的请求：原样回显，用于核对请求体、内容签名与加密。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 任意文本。 */
                     message?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 任意整数。
+                     */
                     number?: number | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 回显的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 验签通过。 */
                         ok: boolean;
+                        /** @description 说明（按当前区域）。 */
                         message: string;
+                        /** @description 调用用的 AppKey。 */
                         appKey: string;
+                        /** @description 收到的请求（解密后）。 */
                         echo: components["schemas"]["OpenEchoRequest"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 服务端时间（UTC）。
+                         */
                         serverTime: string;
                     };
                 };
@@ -14623,19 +21030,28 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 签名自检的结果。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 验签通过。 */
                         ok: boolean;
+                        /** @description 说明（按当前区域）。 */
                         message: string;
+                        /** @description 调用用的 AppKey。 */
                         appKey: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 凭证归属人。
+                         */
                         ownerUserId: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 服务端时间（UTC，供接入方对时）。
+                         */
                         serverTime: string;
                     };
                 };
@@ -14656,38 +21072,65 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 操作日志详情：列表项的字段加原始细节。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 操作 ID（审计动作）。 */
                         operationId: string;
+                        /** @description 是否成功。 */
                         succeeded: boolean;
+                        /** @description 失败的错误码。 */
                         errorCode?: string | null;
+                        /** @description 失败的错误消息。 */
                         errorMessage?: string | null;
+                        /** @description 作用的资源名。 */
                         resource?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
                         durationMs?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 写入序号。
+                         */
                         sequence: number;
+                        /** @description 细节（JSON 对象文本）。 */
                         details?: string | null;
                     };
                 };
@@ -14751,43 +21194,76 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 日志主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条权限变更日志。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发生时间。
+                         */
                         occurredAt: string;
+                        /** @description trace-id。 */
                         traceId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId?: string | null;
+                        /** @description 客户端地址。 */
                         clientIp?: string | null;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
+                        /** @description 变更类型。 */
                         changeType: components["schemas"]["PermissionChangeType"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色。
+                         */
                         roleId?: string | null;
+                        /** @description 角色名称。 */
                         roleName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 目标用户。
+                         */
                         targetUserId?: string | null;
+                        /** @description 目标用户的登录名。 */
                         targetUserName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 套餐。
+                         */
                         editionId?: string | null;
+                        /** @description 套餐编码。 */
                         editionCode?: string | null;
+                        /** @description 换套餐的租户。 */
                         targetTenantId?: string | null;
+                        /** @description 涉及的权限码，逗号分隔。 */
                         permissionCodes?: string | null;
+                        /** @description 补充说明。 */
                         detail?: string | null;
                     };
                 };
@@ -14849,7 +21325,9 @@ export interface operations {
     "permission-conditions.list": {
         parameters: {
             query: {
+                /** @description 主体类别。 */
                 subjectKind: components["schemas"]["GrantSubjectKind"];
+                /** @description 主体 ID：这一侧的角色或用户。 */
                 subjectId: string;
             };
             header?: never;
@@ -14858,17 +21336,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.list 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 主体类别。 */
                         subjectKind: components["schemas"]["GrantSubjectKind"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主体 ID。
+                         */
                         subjectId: string;
+                        /** @description 此刻的授权绑定（授予与拒绝）。 */
                         bindings: components["schemas"]["ConditionBindingResponse"][];
+                        /** @description 全部子句（含停用的），按组号与创建时间排列。 */
                         conditions: components["schemas"]["PermissionConditionResponse"][];
                     };
                 };
@@ -14891,46 +21375,79 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description permission-conditions.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 主体类别。 */
                     subjectKind: components["schemas"]["GrantSubjectKind"];
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 主体 ID。
+                     */
                     subjectId: string;
+                    /** @description 绑定的权限码。 */
                     permission: string;
+                    /** @description 挂在授予（满足才授予）还是拒绝（满足才拒绝）上。 */
                     action: components["schemas"]["PermissionAction"];
+                    /** @description 属性名（见 permission-conditions.attributes）。 */
                     attributeName: string;
+                    /** @description 运算符。 */
                     operator: components["schemas"]["ConditionOperator"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 组号（同组取且、组间取或）。
+                     */
                     groupNo?: number;
+                    /** @description 是否取反。 */
                     isNegated?: boolean;
+                    /** @description 条件值（判空类运算符不填）。 */
                     value?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["ConditionStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条条件子句。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 子句 ID。
+                         */
                         id: string;
+                        /** @description 绑定的权限码。 */
                         permission: string;
+                        /** @description 挂在授予还是拒绝上。 */
                         action: components["schemas"]["PermissionAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 组号。
+                         */
                         groupNo: number;
+                        /** @description 属性名。 */
                         attributeName: string;
+                        /** @description 运算符。 */
                         operator: components["schemas"]["ConditionOperator"];
+                        /** @description 是否取反。 */
                         isNegated: boolean;
+                        /** @description 条件值。 */
                         value?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConditionStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -14949,6 +21466,7 @@ export interface operations {
     "permission-conditions.delete": {
         parameters: {
             query: {
+                /** @description 子句 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -14985,47 +21503,78 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 子句 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description permission-conditions.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 子句 ID。
+                     */
                     id: string;
+                    /** @description 属性名。 */
                     attributeName: string;
+                    /** @description 运算符。 */
                     operator: components["schemas"]["ConditionOperator"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 组号。
+                     */
                     groupNo?: number;
+                    /** @description 是否取反。 */
                     isNegated?: boolean;
+                    /** @description 条件值。 */
                     value?: string | null;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["ConditionStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条条件子句。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 子句 ID。
+                         */
                         id: string;
+                        /** @description 绑定的权限码。 */
                         permission: string;
+                        /** @description 挂在授予还是拒绝上。 */
                         action: components["schemas"]["PermissionAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 组号。
+                         */
                         groupNo: number;
+                        /** @description 属性名。 */
                         attributeName: string;
+                        /** @description 运算符。 */
                         operator: components["schemas"]["ConditionOperator"];
+                        /** @description 是否取反。 */
                         isNegated: boolean;
+                        /** @description 条件值。 */
                         value?: string | null;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["ConditionStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -15050,13 +21599,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.attributes 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 属性。 */
                         items: components["schemas"]["ConditionAttributeResponse"][];
                     };
                 };
@@ -15075,13 +21625,21 @@ export interface operations {
     "permission-conditions.batch-trial": {
         parameters: {
             query: {
+                /** @description 主体类别：角色即它及其下级角色的有效成员，用户即本人。 */
                 subjectKind: components["schemas"]["GrantSubjectKind"];
+                /** @description 主体 ID。 */
                 subjectId: string;
+                /** @description 权限码。 */
                 permission: string;
+                /** @description 客户端地址。 */
                 ip?: string | null;
+                /** @description 判定时刻；不填即现在。 */
                 time?: string | null;
+                /** @description 客户端 User-Agent。 */
                 userAgent?: string | null;
+                /** @description 请求路径。 */
                 path?: string | null;
+                /** @description 请求方法。 */
                 method?: string | null;
             };
             header?: never;
@@ -15090,17 +21648,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.batch-trial 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 权限码。 */
                         permission: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 影响到的总人数。
+                         */
                         totalUsers: number;
+                        /** @description 是否只列了前 200 人（按登录名）。 */
                         truncated: boolean;
+                        /** @description 各人的结论。 */
                         items: components["schemas"]["ConditionBatchTrialItemResponse"][];
                     };
                 };
@@ -15125,19 +21689,29 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.inventory 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生成时间。
+                         */
                         generatedAt: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 子句数。
+                         */
                         conditionCount: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 挂了条件的绑定数。
+                         */
                         bindingCount: number;
+                        /** @description 子句，按主体、权限码、动作、组号排列。 */
                         items: components["schemas"]["ConditionInventoryItemResponse"][];
                     };
                 };
@@ -15156,13 +21730,21 @@ export interface operations {
     "permission-conditions.trial": {
         parameters: {
             query: {
+                /** @description 用户：这一侧的用户，按他此刻的有效指派与委托。 */
                 userId: string;
+                /** @description 权限码。 */
                 permission: string;
+                /** @description 客户端地址。 */
                 ip?: string | null;
+                /** @description 判定时刻；不填即现在。 */
                 time?: string | null;
+                /** @description 客户端 User-Agent。 */
                 userAgent?: string | null;
+                /** @description 请求路径。 */
                 path?: string | null;
+                /** @description 请求方法。 */
                 method?: string | null;
+                /** @description 是否模仿登录。 */
                 isImpersonating?: boolean;
             };
             header?: never;
@@ -15171,23 +21753,36 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.trial 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 结论。 */
                         verdict: components["schemas"]["ConditionVerdict"];
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 权限码。 */
                         permission: string;
+                        /** @description 所用的客户端地址。 */
                         ip?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 所用的判定时刻。
+                         */
                         time: string;
+                        /** @description 条件所按的时区。 */
                         timeZone: string;
+                        /** @description 用户本身有条件的拒绝。 */
                         denies: components["schemas"]["ConditionTrialSetResponse"][];
+                        /** @description 授予路径。 */
                         paths: components["schemas"]["ConditionTrialPathResponse"][];
                     };
                 };
@@ -15206,6 +21801,7 @@ export interface operations {
     "permissions.list": {
         parameters: {
             query?: {
+                /** @description 要看的作用侧：platform 或 tenant；不填即调用方所在的一侧。平台主体可以看租户侧（编辑套餐白名单用），租户主体只能看租户侧。 */
                 side?: string | null;
             };
             header?: never;
@@ -15214,13 +21810,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permissions.list 的响应：调用方作用侧可授予的权限目录。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 权限，按权限码排序。 */
                         items: components["schemas"]["PermissionResponse"][];
                     };
                 };
@@ -15243,53 +21840,97 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description policies.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（同一侧唯一，不含空白）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 条件，1 到 100 条、最多 20 个组。 */
                     conditions: components["schemas"]["AccessPolicyConditionRequest"][];
+                    /** @description 说明。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 优先级（越小越先求值）。
+                     */
                     priority?: number;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 失效时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 来自哪个模板（见 policies.templates）。 */
                     templateCode?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条访问策略。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 策略 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 命中时的动作。 */
                         action: components["schemas"]["AccessPolicyAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越小越先求值）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["AccessPolicyStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 来自哪个模板。 */
                         templateCode?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 条件，按写入顺序。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -15308,6 +21949,7 @@ export interface operations {
     "policies.delete": {
         parameters: {
             query: {
+                /** @description 策略 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -15344,40 +21986,69 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 策略 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条访问策略。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 策略 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 命中时的动作。 */
                         action: components["schemas"]["AccessPolicyAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越小越先求值）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["AccessPolicyStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 来自哪个模板。 */
                         templateCode?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 条件，按写入顺序。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -15398,59 +22069,107 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 策略 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description policies.update 的请求：整体修改内容与条件，动作与状态不变。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 策略 ID。
+                     */
                     id: string;
+                    /** @description 编码。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 条件（整组替换）。 */
                     conditions: components["schemas"]["AccessPolicyConditionRequest"][];
+                    /** @description 说明。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 优先级。
+                     */
                     priority?: number;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 失效时间。
+                     */
                     expiresAt?: string | null;
+                    /** @description 来自哪个模板。 */
                     templateCode?: string | null;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条访问策略。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 策略 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 命中时的动作。 */
                         action: components["schemas"]["AccessPolicyAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越小越先求值）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["AccessPolicyStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 来自哪个模板。 */
                         templateCode?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 条件，按写入顺序。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -15471,48 +22190,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 策略 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description policies.set-action 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 策略 ID。
+                     */
                     id: string;
+                    /** @description 只记录、拒绝或放行。 */
                     action: components["schemas"]["AccessPolicyAction"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条访问策略。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 策略 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 命中时的动作。 */
                         action: components["schemas"]["AccessPolicyAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越小越先求值）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["AccessPolicyStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 来自哪个模板。 */
                         templateCode?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 条件，按写入顺序。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -15533,48 +22286,82 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 策略 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description policies.set-status 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 策略 ID。
+                     */
                     id: string;
+                    /** @description 启用或停用。 */
                     status: components["schemas"]["AccessPolicyStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条访问策略。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 策略 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 命中时的动作。 */
                         action: components["schemas"]["AccessPolicyAction"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 优先级（越小越先求值）。
+                         */
                         priority: number;
+                        /** @description 状态。 */
                         status: components["schemas"]["AccessPolicyStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 失效时间。
+                         */
                         expiresAt?: string | null;
+                        /** @description 此刻是否生效（启用且在有效期内）。 */
                         isEffective: boolean;
+                        /** @description 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 来自哪个模板。 */
                         templateCode?: string | null;
+                        /** @description 备注。 */
                         remark?: string | null;
+                        /** @description 条件，按写入顺序。 */
                         conditions: components["schemas"]["AccessPolicyConditionResponse"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -15599,13 +22386,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description permission-conditions.attributes 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 属性。 */
                         items: components["schemas"]["ConditionAttributeResponse"][];
                     };
                 };
@@ -15673,13 +22461,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description policies.templates 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 模板。 */
                         items: components["schemas"]["AccessPolicyTemplateResponse"][];
                     };
                 };
@@ -15702,47 +22491,81 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description policies.trial 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 已有策略；给了草稿条件即以草稿为准。
+                     */
                     policyId?: string | null;
+                    /** @description 按哪个动作试；不填即策略的动作（草稿为只记录）。 */
                     action?: components["schemas"]["AccessPolicyAction"] | null;
+                    /** @description 草稿条件。 */
                     conditions?: components["schemas"]["AccessPolicyConditionRequest"][] | null;
+                    /** @description 客户端地址；不填即取不到。 */
                     ip?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 时刻；不填即现在。
+                     */
                     time?: string | null;
+                    /** @description User-Agent。 */
                     userAgent?: string | null;
+                    /** @description 请求路径。 */
                     path?: string | null;
+                    /** @description 请求方法。 */
                     method?: string | null;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 已登录的用户（这一侧的用户）；不填即未登录。
+                     */
                     userId?: string | null;
+                    /** @description 本次调用要求的权限码。 */
                     permissionCodes?: string[] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description policies.trial 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 求值结果。 */
                         outcome?: components["schemas"]["ConditionOutcome"] | null;
+                        /** @description 按哪个动作试的。 */
                         action: components["schemas"]["AccessPolicyAction"];
+                        /** @description 是否会拦下（命中且动作为拒绝；同层的放行不计）。 */
                         wouldBlock: boolean;
+                        /** @description 时机。 */
                         phase: components["schemas"]["ConditionHitPhase"];
+                        /** @description 编译错误（按请求区域翻译）。 */
                         errors: string[];
+                        /** @description 客户端地址。 */
                         ip?: string | null;
+                        /** @description 地址的归属地（国家、省份、城市与运营商）。 */
                         location?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 判定时刻。
+                         */
                         time: string;
+                        /** @description 时段所按的时区。 */
                         timeZone: string;
+                        /** @description User-Agent。 */
                         userAgent?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId?: string | null;
+                        /** @description 登录名。 */
                         userName?: string | null;
+                        /** @description 逐组逐条件的说明。 */
                         groups: components["schemas"]["ConditionTrialGroupResponse"][];
                     };
                 };
@@ -15765,34 +22588,54 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description positions.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（租户内唯一）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 岗位的网络契约。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -15811,6 +22654,7 @@ export interface operations {
     "positions.delete": {
         parameters: {
             query: {
+                /** @description 岗位主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -15847,28 +22691,42 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 岗位主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 岗位的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -15889,40 +22747,64 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 岗位主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description positions.update 的请求：编码不在这里改。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 岗位主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 说明。 */
                     description?: string | null;
+                    /** @description 状态。 */
                     status?: components["schemas"]["OrganizationStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 岗位的网络契约。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["OrganizationStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -15990,32 +22872,58 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 是否开启了双因素。 */
                         twoFactorEnabled: boolean;
+                        /** @description 开启的双因素方式。 */
                         twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次改密时间。
+                         */
                         passwordChangedAt?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+                         */
                         failedAccessCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 登录失败锁定的截止时间；没在锁定期为 null。
+                         */
                         lockoutEndAt?: string | null;
+                        /** @description 真实姓名。 */
                         realName?: string | null;
+                        /** @description 性别。 */
                         gender: components["schemas"]["UserGender"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生日。
+                         */
                         birthday?: string | null;
+                        /** @description 国家或地区。 */
                         country?: string | null;
+                        /** @description 个人简介。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次本人改用户名的时间；没改过为空。
+                         */
                         userNameChangedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+                         */
                         userNameChangeableAt?: string | null;
                     };
                 };
@@ -16038,46 +22946,81 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 显示名（4.x 的昵称）。 */
                     displayName: string;
+                    /** @description 真实姓名。 */
                     realName?: string | null;
+                    /** @description 性别。 */
                     gender: components["schemas"]["UserGender"];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生日。
+                     */
                     birthday?: string | null;
+                    /** @description 国家或地区。 */
                     country?: string | null;
+                    /** @description 个人简介。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 是否开启了双因素。 */
                         twoFactorEnabled: boolean;
+                        /** @description 开启的双因素方式。 */
                         twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次改密时间。
+                         */
                         passwordChangedAt?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+                         */
                         failedAccessCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 登录失败锁定的截止时间；没在锁定期为 null。
+                         */
                         lockoutEndAt?: string | null;
+                        /** @description 真实姓名。 */
                         realName?: string | null;
+                        /** @description 性别。 */
                         gender: components["schemas"]["UserGender"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生日。
+                         */
                         birthday?: string | null;
+                        /** @description 国家或地区。 */
                         country?: string | null;
+                        /** @description 个人简介。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次本人改用户名的时间；没改过为空。
+                         */
                         userNameChangedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+                         */
                         userNameChangeableAt?: string | null;
                     };
                 };
@@ -16136,21 +23079,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.begin-external-bind 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 提供方标识（登录页配置里的名称）。 */
                     provider: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 发起绑定的地址。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 去第三方授权的地址（相对于后端根，带着一次性的绑定意图）。 */
                         url: string;
                     };
                 };
@@ -16173,26 +23119,36 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.change-password 的请求：本人改密，须给当前密码。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 当前密码。 */
                     currentPassword: string;
+                    /** @description 新密码（策略：最短 8 位、含字母与数字、不与最近的历史密码相同）。 */
                     newPassword: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 改密 / 重置密码的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间（UTC）。
+                         */
                         changedAt: string;
+                        /** @description 是否吊销了既有会话。 */
                         sessionsRevoked: boolean;
                     };
                 };
@@ -16215,16 +23171,19 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.change-username 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 新用户名（规则与新建用户相同）。 */
                     userName: string;
+                    /** @description 当前密码。 */
                     password: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -16251,41 +23210,70 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 开关双因素的请求：用该方式的验证码确认。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 方式。 */
                     method: components["schemas"]["TwoFactorMethod"];
+                    /** @description 验证码：开启认证器时是新绑定的认证器算出的码，关闭时是当前认证器的码。 */
                     code: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 是否开启了双因素。 */
                         twoFactorEnabled: boolean;
+                        /** @description 开启的双因素方式。 */
                         twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次改密时间。
+                         */
                         passwordChangedAt?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+                         */
                         failedAccessCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 登录失败锁定的截止时间；没在锁定期为 null。
+                         */
                         lockoutEndAt?: string | null;
+                        /** @description 真实姓名。 */
                         realName?: string | null;
+                        /** @description 性别。 */
                         gender: components["schemas"]["UserGender"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生日。
+                         */
                         birthday?: string | null;
+                        /** @description 国家或地区。 */
                         country?: string | null;
+                        /** @description 个人简介。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次本人改用户名的时间；没改过为空。
+                         */
                         userNameChangedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+                         */
                         userNameChangeableAt?: string | null;
                     };
                 };
@@ -16308,41 +23296,70 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 开关双因素的请求：用该方式的验证码确认。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 方式。 */
                     method: components["schemas"]["TwoFactorMethod"];
+                    /** @description 验证码：开启认证器时是新绑定的认证器算出的码，关闭时是当前认证器的码。 */
                     code: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 是否开启了双因素。 */
                         twoFactorEnabled: boolean;
+                        /** @description 开启的双因素方式。 */
                         twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次改密时间。
+                         */
                         passwordChangedAt?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+                         */
                         failedAccessCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 登录失败锁定的截止时间；没在锁定期为 null。
+                         */
                         lockoutEndAt?: string | null;
+                        /** @description 真实姓名。 */
                         realName?: string | null;
+                        /** @description 性别。 */
                         gender: components["schemas"]["UserGender"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生日。
+                         */
                         birthday?: string | null;
+                        /** @description 国家或地区。 */
                         country?: string | null;
+                        /** @description 个人简介。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次本人改用户名的时间；没改过为空。
+                         */
                         userNameChangedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+                         */
                         userNameChangeableAt?: string | null;
                     };
                 };
@@ -16367,13 +23384,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人绑定的全部第三方账号。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 绑定。 */
                         items: components["schemas"]["ExternalLoginResponse"][];
                     };
                 };
@@ -16396,28 +23414,40 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.link-external 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 绑定流程回调发给前端的一次性票据。 */
                     ticket: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人绑定的一个第三方账号。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 提供商类型。 */
                         provider: string;
+                        /** @description 第三方的显示名。 */
                         displayName?: string | null;
+                        /** @description 第三方的邮箱。 */
                         email?: string | null;
+                        /** @description 第三方的头像。 */
                         avatarUrl?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 绑定时间。
+                         */
                         boundAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次用它登录的时间。
+                         */
                         lastLoginAt?: string | null;
                     };
                 };
@@ -16442,18 +23472,24 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的通知偏好。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 收站内信。 */
                         channelInApp: boolean;
+                        /** @description 收邮件。 */
                         channelEmail: boolean;
+                        /** @description 收短信。 */
                         channelSms: boolean;
+                        /** @description 收公告（系统、业务等）。 */
                         typeAnnouncement: boolean;
+                        /** @description 收待办。 */
                         typeTask: boolean;
+                        /** @description 收安全通知。 */
                         typeSecurity: boolean;
                     };
                 };
@@ -16476,38 +23512,65 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 个人中心没有输入的请求。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的资料与账号安全概况（个人中心）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 用户资料。 */
                         user: components["schemas"]["UserResponse"];
+                        /** @description 是否开启了双因素。 */
                         twoFactorEnabled: boolean;
+                        /** @description 开启的双因素方式。 */
                         twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次改密时间。
+                         */
                         passwordChangedAt?: string | null;
+                        /** @description 是否必须先改密。 */
                         mustChangePassword: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 自上次成功登录以来的连续失败次数（含双因素码错误）。
+                         */
                         failedAccessCount: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 登录失败锁定的截止时间；没在锁定期为 null。
+                         */
                         lockoutEndAt?: string | null;
+                        /** @description 真实姓名。 */
                         realName?: string | null;
+                        /** @description 性别。 */
                         gender: components["schemas"]["UserGender"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生日。
+                         */
                         birthday?: string | null;
+                        /** @description 国家或地区。 */
                         country?: string | null;
+                        /** @description 个人简介。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近一次本人改用户名的时间；没改过为空。
+                         */
                         userNameChangedAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改。
+                         */
                         userNameChangeableAt?: string | null;
                     };
                 };
@@ -16530,19 +23593,21 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 个人中心没有输入的请求。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的登录设备：当前会话在最前，其余按最后活动倒序。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 设备。 */
                         items: components["schemas"]["MySessionResponse"][];
                     };
                 };
@@ -16565,22 +23630,27 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.revoke-session 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 要下线的会话。
+                     */
                     sessionId: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的登录设备：当前会话在最前，其余按最后活动倒序。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 设备。 */
                         items: components["schemas"]["MySessionResponse"][];
                     };
                 };
@@ -16605,13 +23675,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本人的登录设备：当前会话在最前，其余按最后活动倒序。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 设备。 */
                         items: components["schemas"]["MySessionResponse"][];
                     };
                 };
@@ -16634,22 +23705,28 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 个人中心没有输入的请求。 */
         requestBody: {
             content: {
                 "application/json": Record<string, never>;
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 绑定认证器用的新密钥。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 密钥（Base32，每 4 个字符一组便于手输）。 */
                         sharedKey: string;
+                        /** @description otpauth:// 链接（二维码内容）。 */
                         authenticatorUri: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 这个密钥待确认的截止时间（UTC）；过期须重新生成。
+                         */
                         expiresAt: string;
                     };
                 };
@@ -16672,21 +23749,24 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description profile.unlink-external 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 提供商类型或名称。 */
                     provider: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人绑定的全部第三方账号。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 绑定。 */
                         items: components["schemas"]["ExternalLoginResponse"][];
                     };
                 };
@@ -16709,31 +23789,44 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 保存通知偏好的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 收站内信。 */
                     channelInApp: boolean;
+                    /** @description 收邮件。 */
                     channelEmail: boolean;
+                    /** @description 收短信。 */
                     channelSms: boolean;
+                    /** @description 收公告（系统、业务等）。 */
                     typeAnnouncement: boolean;
+                    /** @description 收待办。 */
                     typeTask: boolean;
+                    /** @description 收安全通知。 */
                     typeSecurity: boolean;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 本人的通知偏好。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 收站内信。 */
                         channelInApp: boolean;
+                        /** @description 收邮件。 */
                         channelEmail: boolean;
+                        /** @description 收短信。 */
                         channelSms: boolean;
+                        /** @description 收公告（系统、业务等）。 */
                         typeAnnouncement: boolean;
+                        /** @description 收待办。 */
                         typeTask: boolean;
+                        /** @description 收安全通知。 */
                         typeSecurity: boolean;
                     };
                 };
@@ -16756,38 +23849,62 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description roles.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 角色码：2 到 64 个字符，小写字母开头，只含小写字母、数字、-；创建后不可改。 */
                     code: string;
+                    /** @description 显示名：1 到 64 个字符。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 数据范围；不写即平台角色全部、租户角色只看自己。平台角色只能全部。 */
                     dataScope?: components["schemas"]["DataScope"] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 角色的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色 ID（也是令牌 role 声明与授予主体的值）。
+                         */
                         id: string;
+                        /** @description 所属侧：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 角色码。 */
                         code: string;
+                        /** @description 显示名。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["RoleStatus"];
+                        /** @description 数据范围。 */
                         dataScope: components["schemas"]["DataScope"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -16806,6 +23923,7 @@ export interface operations {
     "roles.delete": {
         parameters: {
             query: {
+                /** @description 角色 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -16842,24 +23960,32 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description roles.get 的响应：角色、它当前的权限码与成员数。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 角色。 */
                         role: components["schemas"]["RoleResponse"];
+                        /** @description 已授予的权限码，按码排序。 */
                         permissions: string[];
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 成员数。
+                         */
                         memberCount: number;
+                        /** @description 自定义数据范围的部门（只有 DataScope 为 Custom 时非空）。 */
                         customDepartments: components["schemas"]["DataScopeDepartmentRequest"][];
+                        /** @description 授予规则：Deny 的权限码，以及带有效期或原因的授予（普通授予不在这里）。 */
                         rules: components["schemas"]["PermissionRuleResponse"][];
                     };
                 };
@@ -16880,45 +24006,74 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description roles.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 显示名。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
+                    /** @description 状态；停用的角色不进入成员的令牌。 */
                     status?: components["schemas"]["RoleStatus"];
+                    /** @description 数据范围；不写即保持。平台角色只能全部。 */
                     dataScope?: components["schemas"]["DataScope"] | null;
+                    /** @description 自定义数据范围的部门；DataScope 为 Custom 时至少一个，整体替换；不写即保持。 */
                     customDepartments?: components["schemas"]["DataScopeDepartmentRequest"][] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 角色的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色 ID（也是令牌 role 声明与授予主体的值）。
+                         */
                         id: string;
+                        /** @description 所属侧：platform 或租户 ID。 */
                         ownerTenantId: string;
+                        /** @description 角色码。 */
                         code: string;
+                        /** @description 显示名。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
+                        /** @description 是否内建。 */
                         isBuiltIn: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["RoleStatus"];
+                        /** @description 数据范围。 */
                         dataScope: components["schemas"]["DataScope"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -16939,19 +24094,31 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description roles.assign / roles.unassign 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 用户 ID，1 到 100 个；用户的注册地必须与角色同一侧。 */
                     userIds: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 新指派的生效时间；为空即立即生效（已是成员的不改，改有效期走 roles.update-member）。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 新指派的到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
                 };
             };
@@ -16985,33 +24152,48 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 角色授予、拒绝与撤销权限的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -17032,33 +24214,48 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 角色授予、拒绝与撤销权限的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -17079,23 +24276,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 角色的继承关系：全部上级、全部下级与继承来的授予。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色 ID。
+                         */
                         roleId: string;
+                        /** @description 全部上级（含停用与被截断的），按深度排列。 */
                         ancestors: components["schemas"]["RoleRelativeResponse"][];
+                        /** @description 全部下级，按深度排列。 */
                         descendants: components["schemas"]["RoleRelativeResponse"][];
+                        /** @description 继承来的授予与拒绝。 */
                         inherited: components["schemas"]["InheritedPermissionResponse"][];
                     };
                 };
@@ -17116,21 +24320,26 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description roles.members 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成员（最多前 500 个，按用户名排序）。 */
                         items: components["schemas"]["RoleMemberResponse"][];
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 成员总数。
+                         */
                         total: number;
                     };
                 };
@@ -17151,33 +24360,48 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 角色授予、拒绝与撤销权限的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -17198,31 +24422,43 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description roles.set-parents 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 直接上级，最多 50 个。 */
                     parentIds: string[];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 角色的继承关系：全部上级、全部下级与继承来的授予。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色 ID。
+                         */
                         roleId: string;
+                        /** @description 全部上级（含停用与被截断的），按深度排列。 */
                         ancestors: components["schemas"]["RoleRelativeResponse"][];
+                        /** @description 全部下级，按深度排列。 */
                         descendants: components["schemas"]["RoleRelativeResponse"][];
+                        /** @description 继承来的授予与拒绝。 */
                         inherited: components["schemas"]["InheritedPermissionResponse"][];
                     };
                 };
@@ -17243,19 +24479,31 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description roles.assign / roles.unassign 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
+                    /** @description 用户 ID，1 到 100 个；用户的注册地必须与角色同一侧。 */
                     userIds: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 新指派的生效时间；为空即立即生效（已是成员的不改，改有效期走 roles.update-member）。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 新指派的到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
                 };
             };
@@ -17289,42 +24537,71 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 角色 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description roles.update-member 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 角色 ID。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 成员的用户 ID。
+                     */
                     userId: string;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个成员。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 显示名。 */
                         displayName: string;
+                        /** @description 用户状态。 */
                         status: components["schemas"]["UserStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 指派时间（UTC）。
+                         */
                         assignedAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间；为空即立即生效。
+                         */
                         effectiveAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（不含）；为空即长期有效。
+                         */
                         expiresAt?: string | null;
                     };
                 };
@@ -17343,6 +24620,7 @@ export interface operations {
     "roles.by-user": {
         parameters: {
             query: {
+                /** @description 用户主键。 */
                 userId: string;
             };
             header?: never;
@@ -17351,13 +24629,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description roles.by-user 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 角色，按排序号与角色码。 */
                         items: components["schemas"]["RoleResponse"][];
                     };
                 };
@@ -17421,35 +24700,59 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 记录 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一行会话角色。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 记录 ID。
+                         */
                         id: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
                         sessionId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
                         userId: string;
+                        /** @description 登录名。 */
                         userName?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 角色。
+                         */
                         roleId: string;
+                        /** @description 角色名称；角色已删除为空。 */
                         roleName?: string | null;
+                        /** @description 角色编码。 */
                         roleCode?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["SessionRoleStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 激活时间。
+                         */
                         activatedAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 停用或到期的时间。
+                         */
                         deactivatedAt?: string | null;
+                        /** @description 原因。 */
                         reason?: string | null;
                     };
                 };
@@ -17558,10 +24861,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description sessions.revoke 的请求：强制下线一批会话。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 会话 ID。 */
                     ids: string[];
+                    /** @description 给被下线用户看的原因（弹窗里显示），不填即客户端的缺省文案。 */
                     reason?: string | null;
                 };
             };
@@ -17599,18 +24905,27 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 在线概况（当前一侧，不受数据范围收窄的只有实时在线用户数）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 有效会话数。
+                         */
                         activeSessions: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 有有效会话的用户数。
+                         */
                         activeUsers: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 持有实时连接的用户数。
+                         */
                         realtimeOnlineUsers: number;
                     };
                 };
@@ -17629,6 +24944,7 @@ export interface operations {
     "sms.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -17667,52 +24983,91 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description sms-configs.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（建好不改）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 服务商。 */
                     provider: components["schemas"]["SmsProvider"];
+                    /** @description 访问密钥 ID。 */
                     accessKeyId: string;
+                    /** @description 签名。 */
                     signName: string;
+                    /** @description 访问密钥。 */
                     accessKeySecret?: string | null;
+                    /** @description 应用 ID（腾讯云）。 */
                     sdkAppId?: string | null;
+                    /** @description 地域。 */
                     region?: string | null;
+                    /** @description 模板映射（JSON 对象：模板编码 → 服务商模板 ID）。 */
                     templateMap?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个短信配置（访问密钥不回显）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["SmsProvider"];
+                        /** @description 访问密钥 ID。 */
                         accessKeyId: string;
+                        /** @description 是否存了访问密钥。 */
                         hasAccessKeySecret: boolean;
+                        /** @description 应用 ID。 */
                         sdkAppId?: string | null;
+                        /** @description 签名。 */
                         signName: string;
+                        /** @description 地域。 */
                         region?: string | null;
+                        /** @description 模板映射（JSON 对象）。 */
                         templateMap?: string | null;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -17731,6 +25086,7 @@ export interface operations {
     "sms-configs.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -17767,38 +25123,63 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个短信配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["SmsProvider"];
+                        /** @description 访问密钥 ID。 */
                         accessKeyId: string;
+                        /** @description 是否存了访问密钥。 */
                         hasAccessKeySecret: boolean;
+                        /** @description 应用 ID。 */
                         sdkAppId?: string | null;
+                        /** @description 签名。 */
                         signName: string;
+                        /** @description 地域。 */
                         region?: string | null;
+                        /** @description 模板映射（JSON 对象）。 */
                         templateMap?: string | null;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -17819,57 +25200,99 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description sms-configs.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 服务商。 */
                     provider: components["schemas"]["SmsProvider"];
+                    /** @description 访问密钥 ID。 */
                     accessKeyId: string;
+                    /** @description 签名。 */
                     signName: string;
+                    /** @description 访问密钥。 */
                     accessKeySecret?: string | null;
+                    /** @description 应用 ID。 */
                     sdkAppId?: string | null;
+                    /** @description 地域。 */
                     region?: string | null;
+                    /** @description 模板映射。 */
                     templateMap?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个短信配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["SmsProvider"];
+                        /** @description 访问密钥 ID。 */
                         accessKeyId: string;
+                        /** @description 是否存了访问密钥。 */
                         hasAccessKeySecret: boolean;
+                        /** @description 应用 ID。 */
                         sdkAppId?: string | null;
+                        /** @description 签名。 */
                         signName: string;
+                        /** @description 地域。 */
                         region?: string | null;
+                        /** @description 模板映射（JSON 对象）。 */
                         templateMap?: string | null;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -17890,45 +25313,74 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 按 ID 操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个短信配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 服务商。 */
                         provider: components["schemas"]["SmsProvider"];
+                        /** @description 访问密钥 ID。 */
                         accessKeyId: string;
+                        /** @description 是否存了访问密钥。 */
                         hasAccessKeySecret: boolean;
+                        /** @description 应用 ID。 */
                         sdkAppId?: string | null;
+                        /** @description 签名。 */
                         signName: string;
+                        /** @description 地域。 */
                         region?: string | null;
+                        /** @description 模板映射（JSON 对象）。 */
                         templateMap?: string | null;
+                        /** @description 是否缺省。 */
                         isDefault: boolean;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -17992,46 +25444,84 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条短信发送记录。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 记录 ID。
+                         */
                         id: string;
+                        /** @description 手机号。 */
                         toPhone: string;
+                        /** @description 正文。 */
                         content: string;
+                        /** @description 模板编码。 */
                         templateCode?: string | null;
+                        /** @description 模板参数（JSON）。 */
                         templateParams?: string | null;
+                        /** @description 服务商。 */
                         provider?: components["schemas"]["SmsProvider"] | null;
+                        /** @description 服务商消息 ID。 */
                         providerMessageId?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["MessageSendStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 已尝试次数。
+                         */
                         attempts: number;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 最多尝试次数。
+                         */
                         maxAttempts: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 下次尝试时间。
+                         */
                         nextAttemptAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 发出时间。
+                         */
                         sentAt?: string | null;
+                        /** @description 失败原因。 */
                         errorMessage?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用的配置。
+                         */
                         configId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 发起人。
+                         */
                         senderId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 接收人。
+                         */
                         receiverId?: string | null;
+                        /** @description 业务类型。 */
                         businessType?: string | null;
+                        /** @description 业务 ID。 */
                         businessId?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 写入时间。
+                         */
                         createdAt: string;
                     };
                 };
@@ -18054,9 +25544,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -18135,9 +25627,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -18173,51 +25667,89 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description storage-configs.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 编码（同一侧唯一，不含空白）。 */
                     code: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 存储类型。 */
                     type: components["schemas"]["StorageType"];
+                    /** @description 桶名（本地存储是根目录下的子目录）。 */
                     bucket: string;
+                    /** @description 服务地址（S3 兼容存储必填）。 */
                     endpoint?: string | null;
+                    /** @description 区域。 */
                     region?: string | null;
+                    /** @description 访问密钥 ID（S3 兼容存储必填）。 */
                     accessKeyId?: string | null;
+                    /** @description 访问密钥（S3 兼容存储必填）。 */
                     secretAccessKey?: string | null;
+                    /** @description 是否设为这一侧的缺省配置。 */
                     isDefault?: boolean;
+                    /** @description 状态。 */
                     status?: components["schemas"]["StorageConfigStatus"];
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条存储配置（访问密钥不回显）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 存储类型。 */
                         type: components["schemas"]["StorageType"];
+                        /** @description 服务地址。 */
                         endpoint?: string | null;
+                        /** @description 区域。 */
                         region?: string | null;
+                        /** @description 桶名。 */
                         bucket: string;
+                        /** @description 访问密钥 ID。 */
                         accessKeyId?: string | null;
+                        /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["StorageConfigStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18236,6 +25768,7 @@ export interface operations {
     "storage-configs.delete": {
         parameters: {
             query: {
+                /** @description 配置 ID。 */
                 ids: string[];
             };
             header?: never;
@@ -18272,37 +25805,61 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条存储配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 存储类型。 */
                         type: components["schemas"]["StorageType"];
+                        /** @description 服务地址。 */
                         endpoint?: string | null;
+                        /** @description 区域。 */
                         region?: string | null;
+                        /** @description 桶名。 */
                         bucket: string;
+                        /** @description 访问密钥 ID。 */
                         accessKeyId?: string | null;
+                        /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["StorageConfigStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18323,54 +25880,93 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description storage-configs.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 存储类型。 */
                     type: components["schemas"]["StorageType"];
+                    /** @description 桶名。 */
                     bucket: string;
+                    /** @description 服务地址。 */
                     endpoint?: string | null;
+                    /** @description 区域。 */
                     region?: string | null;
+                    /** @description 访问密钥 ID。 */
                     accessKeyId?: string | null;
+                    /** @description 新的访问密钥；不填即保留原值。 */
                     secretAccessKey?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条存储配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 存储类型。 */
                         type: components["schemas"]["StorageType"];
+                        /** @description 服务地址。 */
                         endpoint?: string | null;
+                        /** @description 区域。 */
                         region?: string | null;
+                        /** @description 桶名。 */
                         bucket: string;
+                        /** @description 访问密钥 ID。 */
                         accessKeyId?: string | null;
+                        /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["StorageConfigStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18391,44 +25987,72 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description 针对一条存储配置的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条存储配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 存储类型。 */
                         type: components["schemas"]["StorageType"];
+                        /** @description 服务地址。 */
                         endpoint?: string | null;
+                        /** @description 区域。 */
                         region?: string | null;
+                        /** @description 桶名。 */
                         bucket: string;
+                        /** @description 访问密钥 ID。 */
                         accessKeyId?: string | null;
+                        /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["StorageConfigStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18449,45 +26073,74 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 配置 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description storage-configs.set-status 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 配置 ID。
+                     */
                     id: string;
+                    /** @description 目标状态。 */
                     status: components["schemas"]["StorageConfigStatus"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条存储配置（访问密钥不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 配置 ID。
+                         */
                         id: string;
+                        /** @description 编码。 */
                         code: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 存储类型。 */
                         type: components["schemas"]["StorageType"];
+                        /** @description 服务地址。 */
                         endpoint?: string | null;
+                        /** @description 区域。 */
                         region?: string | null;
+                        /** @description 桶名。 */
                         bucket: string;
+                        /** @description 访问密钥 ID。 */
                         accessKeyId?: string | null;
+                        /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
+                        /** @description 状态。 */
                         status: components["schemas"]["StorageConfigStatus"];
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18555,34 +26208,63 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 本租户的订阅。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 租户 ID。 */
                         tenantId: string;
+                        /** @description 租户名称。 */
                         tenantName: string;
+                        /** @description 租户状态。 */
                         status: components["schemas"]["TenantStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间；为空即长期有效。
+                         */
                         expiresAt?: string | null;
+                        /** @description 是否已到期。 */
                         isExpired: boolean;
+                        /** @description 套餐编码；没有套餐为空。 */
                         editionCode?: string | null;
+                        /** @description 套餐名称。 */
                         editionName?: string | null;
+                        /** @description 套餐说明。 */
                         editionDescription?: string | null;
+                        /** @description 是否免费套餐。 */
                         isFree: boolean;
-                        /** Format: decimal */
+                        /**
+                         * Format: decimal
+                         * @description 套餐价格；为空不标价。
+                         */
                         price?: number | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 计费周期（月）。
+                         */
                         billingPeriodMonths?: number | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 有效的席位上限；为空不限。
+                         */
                         userLimit?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 已用席位。
+                         */
                         usedSeats: number;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 有效的存储上限（MB）；为空不限。
+                         */
                         storageLimitMb?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 已用存储（字节）。
+                         */
                         usedStorageBytes: number;
                     };
                 };
@@ -18605,47 +26287,81 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description telegram-bots.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 名称（唯一）。 */
                     name: string;
+                    /** @description 令牌（形如 123456:ABC…）。 */
                     token: string;
+                    /** @description 管理员用户 ID（逗号分隔）。 */
                     adminUsers?: string | null;
+                    /** @description 群组白名单（逗号分隔）。 */
                     allowedGroupChatIds?: string | null;
+                    /** @description 命令白名单（逗号分隔）。 */
                     allowedCommands?: string | null;
+                    /** @description 是否兜底回复。 */
                     enableFallbackReply?: boolean;
+                    /** @description 广播群（逗号分隔）。 */
                     broadcastChatIds?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个 Telegram 机器人（令牌不回显）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 机器人 ID。
+                         */
                         id: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 是否存了令牌。 */
                         hasToken: boolean;
+                        /** @description 管理员用户 ID（逗号分隔）。 */
                         adminUsers?: string | null;
+                        /** @description 群组白名单（逗号分隔）。 */
                         allowedGroupChatIds?: string | null;
+                        /** @description 命令白名单（逗号分隔）。 */
                         allowedCommands?: string | null;
+                        /** @description 是否兜底回复。 */
                         enableFallbackReply: boolean;
+                        /** @description 广播群（逗号分隔）。 */
                         broadcastChatIds?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18664,6 +26380,7 @@ export interface operations {
     "telegram-bots.delete": {
         parameters: {
             query: {
+                /** @description ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -18700,35 +26417,57 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个 Telegram 机器人（令牌不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 机器人 ID。
+                         */
                         id: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 是否存了令牌。 */
                         hasToken: boolean;
+                        /** @description 管理员用户 ID（逗号分隔）。 */
                         adminUsers?: string | null;
+                        /** @description 群组白名单（逗号分隔）。 */
                         allowedGroupChatIds?: string | null;
+                        /** @description 命令白名单（逗号分隔）。 */
                         allowedCommands?: string | null;
+                        /** @description 是否兜底回复。 */
                         enableFallbackReply: boolean;
+                        /** @description 广播群（逗号分隔）。 */
                         broadcastChatIds?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18749,53 +26488,91 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 机器人 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description telegram-bots.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 机器人 ID。
+                     */
                     id: string;
+                    /** @description 名称（唯一）。 */
                     name: string;
+                    /** @description 令牌。 */
                     token?: string | null;
+                    /** @description 管理员用户 ID（逗号分隔）。 */
                     adminUsers?: string | null;
+                    /** @description 群组白名单（逗号分隔）。 */
                     allowedGroupChatIds?: string | null;
+                    /** @description 命令白名单（逗号分隔）。 */
                     allowedCommands?: string | null;
+                    /** @description 是否兜底回复。 */
                     enableFallbackReply?: boolean;
+                    /** @description 广播群（逗号分隔）。 */
                     broadcastChatIds?: string | null;
+                    /** @description 是否启用。 */
                     isEnabled?: boolean;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序。
+                     */
                     order?: number;
+                    /** @description 备注。 */
                     remark?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个 Telegram 机器人（令牌不回显）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 机器人 ID。
+                         */
                         id: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 是否存了令牌。 */
                         hasToken: boolean;
+                        /** @description 管理员用户 ID（逗号分隔）。 */
                         adminUsers?: string | null;
+                        /** @description 群组白名单（逗号分隔）。 */
                         allowedGroupChatIds?: string | null;
+                        /** @description 命令白名单（逗号分隔）。 */
                         allowedCommands?: string | null;
+                        /** @description 是否兜底回复。 */
                         enableFallbackReply: boolean;
+                        /** @description 广播群（逗号分隔）。 */
                         broadcastChatIds?: string | null;
+                        /** @description 是否启用。 */
                         isEnabled: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序。
+                         */
                         order: number;
+                        /** @description 备注。 */
                         remark?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
                         createdAt: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 修改时间。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -18857,6 +26634,7 @@ export interface operations {
     "tenant-members.list": {
         parameters: {
             query: {
+                /** @description 租户 ID（目录键）。 */
                 tenantId: string;
             };
             header?: never;
@@ -18865,13 +26643,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description tenant-members.list 的响应：某租户的全部成员。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成员。 */
                         items: components["schemas"]["TenantMemberResponse"][];
                     };
                 };
@@ -18894,34 +26673,54 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description tenant-members.create 的请求：把一个用户加为某租户的成员。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 租户 ID（目录键）。 */
                     tenantId: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID；注册地不能就是该租户（注册地用户天然可进入）。
+                     */
                     userId: string;
+                    /** @description 成员类型；缺省普通成员。 */
                     memberType?: components["schemas"]["TenantMemberType"];
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 租户成员的响应形态：成员行加上用户的登录名与显示名（用户在平台库，按主键补）。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 成员行主键。
+                         */
                         id: string;
+                        /** @description 租户 ID（目录键）。 */
                         tenantId: string;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 显示名。 */
                         displayName: string;
+                        /** @description 用户的注册地租户。 */
                         homeTenantId: string;
+                        /** @description 成员类型。 */
                         memberType: components["schemas"]["TenantMemberType"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 加入时间（UTC）。
+                         */
                         createdAt: string;
                     };
                 };
@@ -18940,6 +26739,7 @@ export interface operations {
     "tenant-members.delete": {
         parameters: {
             query: {
+                /** @description 成员行主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -18978,52 +26778,99 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description tenants.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 租户 ID：字母或数字开头，只含字母、数字、.、_、-，最长 64；创建后不可改。 */
                     tenantId: string;
+                    /** @description 名称：1 到 128 个字符。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（UTC），可空。
+                     */
                     expiresAt?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 套餐；不填即缺省套餐（没有缺省套餐时 TENANCY_VALIDATION_003）。
+                     */
                     editionId?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                     */
                     userLimit?: number | null;
-                    /** Format: int64 */
+                    /**
+                     * Format: int64
+                     * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                     */
                     storageLimitMb?: number | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
                         tenantId: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["TenantStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
                         expiresAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
                         adminUserId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
                         editionId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
                         userLimit?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
                         storageLimitMb?: number | null;
                     };
                 };
@@ -19042,6 +26889,7 @@ export interface operations {
     "tenants.delete": {
         parameters: {
             query: {
+                /** @description 租户主键，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -19078,23 +26926,30 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 租户主键。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description tenants.get 的响应：租户、管理员登录名与用户数。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 租户。 */
                         tenant: components["schemas"]["TenantResponse"];
+                        /** @description 租户管理员登录名；未初始化为空。 */
                         adminUserName?: string | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 注册地是该租户的用户数。
+                         */
                         userCount: number;
+                        /** @description 有效配额与用量（席位、存储）。 */
                         quota: components["schemas"]["TenantQuotaResponse"];
                     };
                 };
@@ -19115,55 +26970,102 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 租户主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description tenants.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
                     id: string;
+                    /** @description 名称。 */
                     name: string;
+                    /** @description 说明，可空。 */
                     description?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（UTC），可空。
+                     */
                     expiresAt?: string | null;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
                     order?: number;
-                    /** Format: int32 */
+                    /**
+                     * Format: int32
+                     * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                     */
                     userLimit?: number | null;
-                    /** Format: int64 */
+                    /**
+                     * Format: int64
+                     * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                     */
                     storageLimitMb?: number | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
                         tenantId: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["TenantStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
                         expiresAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
                         adminUserId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
                         editionId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
                         userLimit?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
                         storageLimitMb?: number | null;
                     };
                 };
@@ -19184,47 +27086,83 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 租户主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description tenants.change-edition 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
                     id: string;
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 新套餐；为空即不受套餐限制（显式选择，不是缺省回退）。
+                     */
                     editionId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
                         id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
                         tenantId: string;
+                        /** @description 名称。 */
                         name: string;
+                        /** @description 说明。 */
                         description?: string | null;
+                        /** @description 状态。 */
                         status: components["schemas"]["TenantStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
                         expiresAt?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
                         adminUserId?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
                         editionId?: string | null;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
                         order: number;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
                         userLimit?: number | null;
-                        /** Format: int64 */
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
                         storageLimitMb?: number | null;
                     };
                 };
@@ -19245,18 +27183,27 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 租户主键。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description tenants.initialize-admin 的请求：给租户建第一个管理员。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
                     id: string;
+                    /** @description 管理员登录名：3 到 64 个字符，小写字母开头，只含小写字母、数字、.、_、-。 */
                     userName: string;
+                    /** @description 初始密码（策略：最短 8 位、含字母与数字）；管理员首次登录必须改密。 */
                     password: string;
+                    /** @description 显示名；不填用登录名。 */
                     displayName?: string | null;
+                    /** @description 邮箱，可空。 */
                     email?: string | null;
                 };
             };
@@ -19350,15 +27297,18 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description tenants.mine 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 是否平台账号（注册地是平台）。 */
                         canAccessPlatform: boolean;
+                        /** @description 当前是否在平台侧（令牌不带租户）。 */
                         platformIsCurrent: boolean;
+                        /** @description 可进入的租户（只含正常状态的）。 */
                         tenants: components["schemas"]["AvailableTenantResponse"][];
                     };
                 };
@@ -19377,6 +27327,7 @@ export interface operations {
     "tenants.quotas": {
         parameters: {
             query?: {
+                /** @description 只列超额的（配额审计）。 */
                 overOnly?: boolean;
             };
             header?: never;
@@ -19385,13 +27336,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description tenants.quotas 的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 各租户的配额与用量（按排序号、再按租户 ID）。 */
                         items: components["schemas"]["TenantQuotaResponse"][];
                     };
                 };
@@ -19414,9 +27366,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 租户批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 租户主键，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -19452,9 +27406,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 租户批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 租户主键，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -19486,11 +27442,17 @@ export interface operations {
     "traces.timeline": {
         parameters: {
             query: {
+                /** @description 聚合维度。 */
                 dimension?: components["schemas"]["TraceDimension"];
+                /** @description 维度的值（trace-id、用户主键、登录名、会话主键或客户端地址）。 */
                 value: string;
+                /** @description 起始时间（含）。 */
                 from?: string | null;
+                /** @description 结束时间（含）。 */
                 to?: string | null;
+                /** @description 只取这几类日志。 */
                 logTypes?: components["schemas"]["TraceLogType"][] | null;
+                /** @description 每类日志最多取多少条（1 到 MaxTake，缺省 200）。 */
                 maxPerType?: number;
             };
             header?: never;
@@ -19499,17 +27461,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 链路时间线：各类日志按发生时间正序合并。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 时间线上的条目。 */
                         items: components["schemas"]["TraceTimelineItem"][];
+                        /** @description 各类日志取到的条数（截断前）。 */
                         counts: components["schemas"]["TraceTypeCount"][];
+                        /** @description 是否有一类日志超出了每类上限而被截断。 */
                         truncated: boolean;
-                        /** Format: int32 */
+                        /**
+                         * Format: int32
+                         * @description 条目总数。
+                         */
                         total: number;
                     };
                 };
@@ -19528,6 +27496,7 @@ export interface operations {
     "user-data-scopes.get": {
         parameters: {
             query: {
+                /** @description 用户 ID。 */
                 userId: string;
             };
             header?: never;
@@ -19536,16 +27505,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个用户的数据范围设置。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
+                        /** @description 覆盖后的数据范围；为空即按角色。 */
                         dataScope?: components["schemas"]["DataScope"] | null;
+                        /** @description 自定义范围的部门。 */
                         departments: components["schemas"]["DataScopeDepartmentRequest"][];
                     };
                 };
@@ -19568,27 +27542,38 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description user-data-scopes.set 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID；注册地须是当前租户。
+                     */
                     userId: string;
+                    /** @description 覆盖后的数据范围；为空即清除覆盖、按角色。 */
                     dataScope?: components["schemas"]["DataScope"] | null;
+                    /** @description 自定义范围的部门（只有 Custom 时给，至少一个）。 */
                     departments?: components["schemas"]["DataScopeDepartmentRequest"][] | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一个用户的数据范围设置。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
+                        /** @description 覆盖后的数据范围；为空即按角色。 */
                         dataScope?: components["schemas"]["DataScope"] | null;
+                        /** @description 自定义范围的部门。 */
                         departments: components["schemas"]["DataScopeDepartmentRequest"][];
                     };
                 };
@@ -19607,6 +27592,7 @@ export interface operations {
     "user-grants.list": {
         parameters: {
             query: {
+                /** @description 用户 ID。 */
                 userId: string;
             };
             header?: never;
@@ -19615,15 +27601,19 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一个用户在当前这一侧的直接授权。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
+                        /** @description 直接授予与拒绝，按权限码排序。 */
                         grants: components["schemas"]["UserGrantResponse"][];
                     };
                 };
@@ -19646,29 +27636,43 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description user-grants.grant / deny / revoke 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID；注册地须是当前这一侧。
+                     */
                     userId: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -19691,29 +27695,43 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description user-grants.grant / deny / revoke 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID；注册地须是当前这一侧。
+                     */
                     userId: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -19736,29 +27754,43 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description user-grants.grant / deny / revoke 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID；注册地须是当前这一侧。
+                     */
                     userId: string;
+                    /** @description 权限码，1 到 200 个。 */
                     permissions: string[];
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 生效时间；为空即立即生效。
+                     */
                     effectiveAt?: string | null;
-                    /** Format: date-time */
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（不含）；为空即长期有效。
+                     */
                     expiresAt?: string | null;
+                    /** @description 原因。 */
                     reason?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 按权限码的批量结果（授予 / 撤销）。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 成功的权限码。 */
                         succeeded: string[];
+                        /** @description 失败的权限码与错误码。 */
                         failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
@@ -19777,7 +27809,9 @@ export interface operations {
     "user-settings.get": {
         parameters: {
             query: {
+                /** @description 场景。 */
                 scene: components["schemas"]["UserSettingScene"];
+                /** @description 设置键。 */
                 key: string;
             };
             header?: never;
@@ -19786,17 +27820,23 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 一条用户设置。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 场景。 */
                         scene: components["schemas"]["UserSettingScene"];
+                        /** @description 设置键。 */
                         key: string;
+                        /** @description 设置载荷（JSON）。 */
                         value?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最后写入时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -19819,29 +27859,41 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description user-settings.update 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 场景。 */
                     scene: components["schemas"]["UserSettingScene"];
+                    /** @description 设置键。 */
                     key: string;
+                    /** @description 设置载荷（JSON）。 */
                     value?: string | null;
+                    /** @description 发起写入的客户端标识（每个标签页一个），原样放进推给其他端的 UserSettingChanged，发起端据此忽略自己的回显；不落库。 */
                     clientId?: string | null;
+                    /** @description 随推送中转给其他端的附带信息（主题切换的点击位置）；不落库。 */
                     origin?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 一条用户设置。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @description 场景。 */
                         scene: components["schemas"]["UserSettingScene"];
+                        /** @description 设置键。 */
                         key: string;
+                        /** @description 设置载荷（JSON）。 */
                         value?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最后写入时间（UTC）。
+                         */
                         modifiedAt?: string | null;
                     };
                 };
@@ -19864,40 +27916,66 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description users.create 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 登录名：3 到 64 个字符，小写字母开头，只含小写字母、数字、.、_、-。 */
                     userName: string;
+                    /** @description 显示名：1 到 64 个字符。 */
                     displayName: string;
+                    /** @description 邮箱，可空。 */
                     email?: string | null;
+                    /** @description 手机号，可空。 */
                     phoneNumber?: string | null;
+                    /** @description 初始密码；不填则账号在管理员重置前不能登录。 */
                     password?: string | null;
+                    /** @description 注册地租户：租户主体只能是当前租户（可不填）；平台主体不填即建平台账号。 */
                     homeTenantId?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 用户的响应形态。 */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         id: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 显示名。 */
                         displayName: string;
+                        /** @description 邮箱。 */
                         email?: string | null;
+                        /** @description 手机号。 */
                         phoneNumber?: string | null;
+                        /** @description 注册地租户 ID；平台账号为 platform。 */
                         homeTenantId: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["UserStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近登录时间（UTC）。
+                         */
                         lastLoginAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
+                        /** @description 创建人（主体 ID）。 */
                         createdBy?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 头像文件（前端按它换签名地址显示）；没设为空。
+                         */
                         avatarFileId?: string | null;
                     };
                 };
@@ -19916,6 +27994,7 @@ export interface operations {
     "users.delete": {
         parameters: {
             query: {
+                /** @description 目标用户 ID，1 到 100 个。 */
                 ids: string[];
             };
             header?: never;
@@ -19952,33 +28031,53 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 用户 ID。 */
                 id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description 用户的响应形态。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         id: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 显示名。 */
                         displayName: string;
+                        /** @description 邮箱。 */
                         email?: string | null;
+                        /** @description 手机号。 */
                         phoneNumber?: string | null;
+                        /** @description 注册地租户 ID；平台账号为 platform。 */
                         homeTenantId: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["UserStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近登录时间（UTC）。
+                         */
                         lastLoginAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
+                        /** @description 创建人（主体 ID）。 */
                         createdBy?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 头像文件（前端按它换签名地址显示）；没设为空。
+                         */
                         avatarFileId?: string | null;
                     };
                 };
@@ -19999,43 +28098,70 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 用户 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description users.update 的请求：修改资料。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID。
+                     */
                     id: string;
+                    /** @description 显示名。 */
                     displayName: string;
+                    /** @description 邮箱，可空；格式在操作里按字段安全决定之后才校验（交回的脱敏值不像邮箱，但视为没改）。 */
                     email?: string | null;
+                    /** @description 手机号，可空。 */
                     phoneNumber?: string | null;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 用户的响应形态。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         id: string;
+                        /** @description 登录名。 */
                         userName: string;
+                        /** @description 显示名。 */
                         displayName: string;
+                        /** @description 邮箱。 */
                         email?: string | null;
+                        /** @description 手机号。 */
                         phoneNumber?: string | null;
+                        /** @description 注册地租户 ID；平台账号为 platform。 */
                         homeTenantId: string;
+                        /** @description 状态。 */
                         status: components["schemas"]["UserStatus"];
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 最近登录时间（UTC）。
+                         */
                         lastLoginAt?: string | null;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
                         createdAt: string;
+                        /** @description 创建人（主体 ID）。 */
                         createdBy?: string | null;
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 头像文件（前端按它换签名地址显示）；没设为空。
+                         */
                         avatarFileId?: string | null;
                     };
                 };
@@ -20056,31 +28182,44 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 用户 ID。 */
                 id: string;
             };
             cookie?: never;
         };
+        /** @description users.reset-password 的请求。 */
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID。
+                     */
                     id: string;
+                    /** @description 新密码（策略：最短 8 位、含字母与数字、不与最近的历史密码相同）。 */
                     newPassword: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
+            /** @description 改密 / 重置密码的响应。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID。
+                         */
                         userId: string;
-                        /** Format: date-time */
+                        /**
+                         * Format: date-time
+                         * @description 生效时间（UTC）。
+                         */
                         changedAt: string;
+                        /** @description 是否吊销了既有会话。 */
                         sessionsRevoked: boolean;
                     };
                 };
@@ -20146,9 +28285,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 用户批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 目标用户 ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -20184,9 +28325,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 用户批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 目标用户 ID，1 到 100 个。 */
                     ids: string[];
                 };
             };
@@ -20222,9 +28365,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description 用户批量操作的请求。 */
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description 目标用户 ID，1 到 100 个。 */
                     ids: string[];
                 };
             };

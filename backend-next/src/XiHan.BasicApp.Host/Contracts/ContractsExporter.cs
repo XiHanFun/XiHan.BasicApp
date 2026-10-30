@@ -128,7 +128,7 @@ public static class ContractsExporter
     {
         ArgumentNullException.ThrowIfNull(app);
         var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(static source => source.Endpoints);
-        var source = OpenApiDocumentSource.FromServices(app.Services, new OpenApiOptions { Title = AppInfo.Name, Version = AppInfo.Version }, endpoints);
+        var source = OpenApiDocumentSource.FromServices(app.Services, BasicAppOpenApi.Options(), endpoints);
         return OpenApiDocumentBuilder.Build(source);
     }
 }
