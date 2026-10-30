@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "二要素認証のリセット",
   "permissions.identity.impersonation.start.name": "代行ログイン",
   "permissions.identity.sessions.read.name": "オンラインユーザーの参照",
-  "permissions.identity.sessions.revoke.name": "強制ログアウト"
+  "permissions.identity.sessions.revoke.name": "強制ログアウト",
+  "identity.user.tenant_owner": "このアカウントはテナントの所有者です。先に所有権を移転してください。"
 }

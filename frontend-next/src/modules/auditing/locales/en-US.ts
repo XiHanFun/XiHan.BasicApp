@@ -201,6 +201,7 @@ export default {
         delegation: 'Delegation',
         condition_change: 'Permission condition',
         constraint_violation: 'Constraint violation',
+        tenant_owner: 'Tenant ownership transfer',
       },
       role_id: 'Role ID',
       role_name: 'Role',

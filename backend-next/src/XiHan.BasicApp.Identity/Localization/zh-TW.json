@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "重設雙因素驗證",
   "permissions.identity.impersonation.start.name": "模仿登入",
   "permissions.identity.sessions.read.name": "讀取線上使用者",
-  "permissions.identity.sessions.revoke.name": "強制登出"
+  "permissions.identity.sessions.revoke.name": "強制登出",
+  "identity.user.tenant_owner": "這個帳號是某個租戶的所有者，請先轉移所有權。"
 }

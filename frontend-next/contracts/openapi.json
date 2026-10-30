@@ -25518,7 +25518,7 @@
                       ]
                     },
                     "targetTenantId": {
-                      "description": "\u6362\u5957\u9910\u7684\u79DF\u6237\u3002",
+                      "description": "\u6362\u5957\u9910\u6216\u8F6C\u79FB\u6240\u6709\u6743\u7684\u79DF\u6237\u3002",
                       "type": [
                         "string",
                         "null"
@@ -36849,8 +36849,24 @@
                     "format": "uuid"
                   },
                   "memberType": {
-                    "description": "\u6210\u5458\u7C7B\u578B\uFF1B\u7F3A\u7701\u666E\u901A\u6210\u5458\u3002",
+                    "description": "\u6210\u5458\u7C7B\u578B\uFF1B\u7F3A\u7701\u666E\u901A\u6210\u5458\u3002\u5E73\u53F0\u8D26\u53F7\u53EA\u80FD\u662F\u8FD0\u7EF4\u652F\u6301\uFF0C\u8FD0\u7EF4\u652F\u6301\u53EA\u80FD\u662F\u5E73\u53F0\u8D26\u53F7\u3002",
                     "$ref": "#/components/schemas/TenantMemberType"
+                  },
+                  "effectiveAt": {
+                    "description": "\u751F\u6548\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u52A0\u5165\u5373\u751F\u6548\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "description": "\u5230\u671F\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u5230\u671F\uFF0C\u987B\u665A\u4E8E\u751F\u6548\u65F6\u95F4\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -36900,6 +36916,22 @@
                     "memberType": {
                       "description": "\u6210\u5458\u7C7B\u578B\u3002",
                       "$ref": "#/components/schemas/TenantMemberType"
+                    },
+                    "effectiveAt": {
+                      "description": "\u751F\u6548\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u52A0\u5165\u5373\u751F\u6548\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "description": "\u5230\u671F\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u5230\u671F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "createdAt": {
                       "description": "\u52A0\u5165\u65F6\u95F4\uFF08UTC\uFF09\u3002",
@@ -37797,6 +37829,168 @@
                     "displayName",
                     "homeTenantId",
                     "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}:transfer-owner": {
+      "post": {
+        "operationId": "tenants.transfer-owner",
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Transfer tenant ownership",
+        "description": "Hand the tenant\u0027s ownership to a user whose home is this tenant or to an active regular member (enabled and not locked). The new owner gets the built-in administrator role; the previous owner keeps their roles. Platform side only.\n\nRequires permission tenancy.tenants.transfer-owner (Transfer tenant ownership).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenants.transfer-owner",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u79DF\u6237\u4E3B\u952E\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u79DF\u6237\u4E3B\u952E\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "tenants.transfer-owner \u7684\u8BF7\u6C42\uFF1A\u628A\u79DF\u6237\u6240\u6709\u6743\u8F6C\u7ED9\u53E6\u4E00\u4E2A\u7528\u6237\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TransferOwnerRequest",
+                "description": "tenants.transfer-owner \u7684\u8BF7\u6C42\uFF1A\u628A\u79DF\u6237\u6240\u6709\u6743\u8F6C\u7ED9\u53E6\u4E00\u4E2A\u7528\u6237\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u79DF\u6237\u4E3B\u952E\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "description": "\u65B0\u6240\u6709\u8005\uFF1A\u8BE5\u79DF\u6237\u6CE8\u518C\u5730\u7684\u7528\u6237\u6216\u751F\u6548\u4E2D\u7684\u666E\u901A\u6210\u5458\uFF0C\u542F\u7528\u4E14\u672A\u9501\u5B9A\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id",
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u79DF\u6237\u7684\u54CD\u5E94\u5F62\u6001\uFF1A\u5217\u8868\u9879\u3001\u521B\u5EFA / \u4FEE\u6539\u7684\u54CD\u5E94\u4E0E\u8BE6\u60C5\u91CC\u7684\u57FA\u672C\u4FE1\u606F\u5171\u7528\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TenantResponse",
+                  "description": "\u79DF\u6237\u7684\u54CD\u5E94\u5F62\u6001\uFF1A\u5217\u8868\u9879\u3001\u521B\u5EFA / \u4FEE\u6539\u7684\u54CD\u5E94\u4E0E\u8BE6\u60C5\u91CC\u7684\u57FA\u672C\u4FE1\u606F\u5171\u7528\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "description": "\u79DF\u6237 ID\uFF08\u76EE\u5F55\u952E\uFF0C\u767B\u5F55\u65F6\u586B\u7684\u79DF\u6237\uFF09\u3002",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/TenantStatus"
+                    },
+                    "expiresAt": {
+                      "description": "\u5230\u671F\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "adminUserId": {
+                      "description": "\u79DF\u6237\u7BA1\u7406\u5458\uFF1B\u4E3A\u7A7A\u5373\u672A\u521D\u59CB\u5316\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "editionId": {
+                      "description": "\u5957\u9910\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u53D7\u5957\u9910\u9650\u5236\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "userLimit": {
+                      "description": "\u79DF\u6237\u81EA\u5DF1\u7684\u5E2D\u4F4D\u4E0A\u9650\uFF0C\u8986\u76D6\u5957\u9910\u7684\uFF1B\u4E3A\u7A7A\u5373\u6CBF\u7528\u5957\u9910\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "storageLimitMb": {
+                      "description": "\u79DF\u6237\u81EA\u5DF1\u7684\u5B58\u50A8\u7A7A\u95F4\u4E0A\u9650\uFF08MB\uFF09\uFF0C\u8986\u76D6\u5957\u9910\u7684\uFF1B\u4E3A\u7A7A\u5373\u6CBF\u7528\u5957\u9910\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "tenantId",
+                    "name",
+                    "status",
+                    "order",
                     "createdAt"
                   ]
                 }
@@ -40884,6 +41078,10 @@
               }
             ]
           },
+          "isOwner": {
+            "description": "\u662F\u5426\u8BE5\u79DF\u6237\u7684\u6240\u6709\u8005\uFF08SysTenant.AdminUserId\uFF09\u3002",
+            "type": "boolean"
+          },
           "isCurrent": {
             "description": "\u662F\u5426\u5F53\u524D\u6240\u5728\u79DF\u6237\u3002",
             "type": "boolean"
@@ -40898,6 +41096,7 @@
           "tenantId",
           "name",
           "isHome",
+          "isOwner",
           "isCurrent",
           "joinedAt"
         ]
@@ -46432,7 +46631,7 @@
             ]
           },
           "targetTenantId": {
-            "description": "\u6362\u5957\u9910\u7684\u79DF\u6237\u3002",
+            "description": "\u6362\u5957\u9910\u6216\u8F6C\u79FB\u6240\u6709\u6743\u7684\u79DF\u6237\u3002",
             "type": [
               "string",
               "null"
@@ -46481,7 +46680,8 @@
           "RoleInheritance",
           "Delegation",
           "ConditionChange",
-          "ConstraintViolation"
+          "ConstraintViolation",
+          "TenantOwner"
         ]
       },
       "PermissionConditionResponse": {
@@ -47733,6 +47933,22 @@
             "description": "\u6210\u5458\u7C7B\u578B\u3002",
             "$ref": "#/components/schemas/TenantMemberType"
           },
+          "effectiveAt": {
+            "description": "\u751F\u6548\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u52A0\u5165\u5373\u751F\u6548\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "description": "\u5230\u671F\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u5230\u671F\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "createdAt": {
             "description": "\u52A0\u5165\u65F6\u95F4\uFF08UTC\uFF09\u3002",
             "type": "string",
@@ -47755,7 +47971,7 @@
         "type": "string",
         "enum": [
           "Member",
-          "Owner"
+          "Support"
         ]
       },
       "TenantQuotaResponse": {
@@ -49135,6 +49351,11 @@
         "code": "tenancy.tenants.suspend",
         "displayName": "Suspend tenants",
         "description": "Suspend and resume tenants; suspended tenants cannot sign in."
+      },
+      "tenancy.tenants.transfer-owner": {
+        "code": "tenancy.tenants.transfer-owner",
+        "displayName": "Transfer tenant ownership",
+        "description": "Hand a tenant\u0027s ownership to one of its users or members; the previous owner stays an administrator."
       },
       "tenancy.tenants.update": {
         "code": "tenancy.tenants.update",

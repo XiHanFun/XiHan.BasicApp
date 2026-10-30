@@ -9,7 +9,7 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, 
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { inheritedEdition, seatUsage, storageUsage, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { inheritedEdition, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 defineOptions({ name: 'TenancyTenantsView' })
 
@@ -24,6 +24,7 @@ const editor = useTenantEditor()
 const admin = useAdminInitializer()
 const detail = useTenantDetail(() => auth.can('tenancy.tenant-members.read'))
 const memberEditor = useMemberEditor()
+const ownerTransfer = useOwnerTransfer()
 
 /** 套餐下拉要读套餐；没有这项权限时不出套餐字段（开通即缺省套餐、编辑不动套餐） */
 const canReadEditions = computed(() => auth.can('tenancy.editions.read'))
@@ -31,11 +32,18 @@ const canReadMembers = computed(() => auth.can('tenancy.tenant-members.read'))
 /** 添加成员要从用户里挑人：同时要能读用户 */
 const canAddMember = computed(() => auth.can('tenancy.tenant-members.create') && auth.can('identity.users.read'))
 const canRemoveMember = computed(() => auth.can('tenancy.tenant-members.delete'))
+/** 转移所有权要从用户里挑新所有者：同时要能读用户（平台侧权限，只在平台一侧出现） */
+const canTransferOwner = computed(() => auth.can('tenancy.tenants.transfer-owner') && auth.can('identity.users.read'))
+/** 成员表的操作列：能移除或能「设为所有者」才出 */
+const showMemberActions = computed(() => canRemoveMember.value || canTransferOwner.value)
+/** 现任所有者（租户的 adminUserId）：成员表打「所有者」、不给移除 */
+const ownerId = computed(() => detail.detail.value?.tenant.adminUserId ?? null)
 
 /** 弹窗的保存钮靠这些 id 关联到各自的表单，点它才会走整表提交 */
 const editFormId = useId()
 const adminFormId = useId()
 const memberFormId = useId()
+const ownerFormId = useId()
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
 
 function reload() {
@@ -56,7 +64,12 @@ function statusLabel(status: TenantStatus): string {
 }
 
 function memberTypeLabel(type: TenantMemberType): string {
-  return type === 'Owner' ? t('tenancy.tenants.members.types.owner') : t('tenancy.tenants.members.types.member')
+  return type === 'Support' ? t('tenancy.tenants.members.types.support') : t('tenancy.tenants.members.types.member')
+}
+
+/** 运维支持（平台账号）与普通成员分开着色；所有者另打一个标签 */
+function memberTypeTone(type: TenantMemberType) {
+  return type === 'Support' ? 'info' : 'neutral'
 }
 
 /** 列表与详情里的套餐：没绑定即不受套餐限制 */
@@ -240,13 +253,47 @@ async function setStatus(row: TenantRow, enabled: boolean) {
 }
 
 // ── 成员 ──
-async function onMemberSubmit() {
+function startAddMember() {
   const tenant = detail.detail.value?.tenant
-  if (!tenant)
-    return
-  if (await memberEditor.submit(tenant.tenantId)) {
+  if (tenant)
+    memberEditor.start(tenant.tenantId)
+}
+
+/** 用户一栏随成员类型换说法：运维支持只在平台账号里挑（4.x「支持人员入驻」的写法） */
+const memberUserLabel = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.platform_user') : t('tenancy.tenants.members.user')))
+const memberUserPlaceholder = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.platform_user_placeholder') : t('tenancy.tenants.members.user_placeholder')))
+const memberTypeHint = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.type_hint_support') : t('tenancy.tenants.members.type_hint_member')))
+
+async function onMemberSubmit() {
+  if (await memberEditor.submit()) {
     toast.success(t('tenancy.tenants.members.added'))
     await detail.loadMembers()
+  }
+}
+
+/** 到期时间：没有即长期有效 */
+function memberExpiry(member: TenantMember): string {
+  return member.expiresAt ? formatDate(member.expiresAt) : t('tenancy.tenants.members.never_expires')
+}
+
+// ── 所有权 ──
+/** 概览里「转移所有权」不预选；成员行「设为所有者」预选该成员。候选里的成员取详情抽屉已取的（读不了成员即只在本租户用户里挑） */
+function startOwnerTransfer(preset: null | string = null) {
+  const current = detail.detail.value
+  if (current)
+    ownerTransfer.start(current.tenant, canReadMembers.value ? detail.members.value : [], preset)
+}
+
+async function onOwnerSubmit() {
+  if (!await ownerTransfer.submit())
+    return
+  toast.success(t('tenancy.tenants.owner.success'))
+  reload()
+  try {
+    await detail.refresh()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.load_failed'))
   }
 }
 
@@ -336,9 +383,27 @@ function formatNullableDate(value: null | string | undefined): string {
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.edition') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ editionLabel(detail.detail.value.tenant.editionId) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
+                  <!-- 所有者即租户的 adminUserId（初始化管理员时定下）；转移改写它，新所有者获得管理员角色 -->
                   <XhDescriptionsItem>
-                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.admin') }}</XhDescriptionsLabel>
-                    <XhDescriptionsValue>{{ detail.detail.value.adminUserName ?? t('tenancy.tenants.admin_none') }}</XhDescriptionsValue>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.owner') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span>{{ detail.detail.value.adminUserName ?? t('tenancy.tenants.admin_none') }}</span>
+                        <XhButton
+                          v-if="canTransferOwner && detail.detail.value.tenant.adminUserId"
+                          variant="ghost"
+                          tone="brand"
+                          size="sm"
+                          data-testid="transfer-owner"
+                          @click="startOwnerTransfer()"
+                        >
+                          <XhButtonIndicator>
+                            <Icon icon="lucide:arrow-right-left" width="14" />
+                          </XhButtonIndicator>
+                          <XhButtonLabel>{{ t('tenancy.tenants.owner.transfer') }}</XhButtonLabel>
+                        </XhButton>
+                      </div>
+                    </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.user_count') }}</XhDescriptionsLabel>
@@ -374,7 +439,7 @@ function formatNullableDate(value: null | string | undefined): string {
               <XhTabsContent v-if="canReadMembers" value="members">
                 <div class="tenant-member-toolbar">
                   <span class="text-caption text-fg-muted">{{ t('tenancy.tenants.members.hint') }}</span>
-                  <XhButton v-if="canAddMember" variant="subtle" size="sm" tone="brand" @click="memberEditor.start()">
+                  <XhButton v-if="canAddMember" variant="subtle" size="sm" tone="brand" @click="startAddMember()">
                     {{ t('tenancy.tenants.members.add') }}
                   </XhButton>
                 </div>
@@ -409,7 +474,8 @@ function formatNullableDate(value: null | string | undefined): string {
                         <th>{{ t('tenancy.tenants.members.home_tenant') }}</th>
                         <th>{{ t('tenancy.tenants.members.type') }}</th>
                         <th>{{ t('tenancy.tenants.members.joined_at') }}</th>
-                        <th v-if="canRemoveMember">
+                        <th>{{ t('tenancy.tenants.members.expires_at') }}</th>
+                        <th v-if="showMemberActions">
                           {{ t('tenancy.tenants.members.operation') }}
                         </th>
                       </tr>
@@ -420,15 +486,35 @@ function formatNullableDate(value: null | string | undefined): string {
                         <td>{{ formatNullable(member.displayName) }}</td>
                         <td>{{ member.homeTenantId }}</td>
                         <td>
-                          <XhTagRoot variant="subtle" size="sm" :tone="member.memberType === 'Owner' ? 'warning' : 'neutral'">
-                            <XhTagLabel>{{ memberTypeLabel(member.memberType) }}</XhTagLabel>
-                          </XhTagRoot>
+                          <div class="flex flex-wrap items-center gap-1">
+                            <XhTagRoot variant="subtle" size="sm" :tone="memberTypeTone(member.memberType)">
+                              <XhTagLabel>{{ memberTypeLabel(member.memberType) }}</XhTagLabel>
+                            </XhTagRoot>
+                            <XhTagRoot v-if="member.userId === ownerId" variant="subtle" size="sm" tone="warning">
+                              <XhTagLabel>{{ t('tenancy.tenants.members.owner_tag') }}</XhTagLabel>
+                            </XhTagRoot>
+                          </div>
                         </td>
                         <td>{{ formatDate(member.createdAt) }}</td>
-                        <td v-if="canRemoveMember">
-                          <XhButton variant="subtle" size="sm" tone="danger" @click="confirmRemoveMember(member)">
-                            {{ t('tenancy.tenants.members.remove') }}
-                          </XhButton>
+                        <td>
+                          <div class="flex flex-wrap items-center gap-1">
+                            <span>{{ memberExpiry(member) }}</span>
+                            <XhTagRoot v-if="isMemberExpired(member)" variant="subtle" size="sm" tone="danger">
+                              <XhTagLabel>{{ t('tenancy.tenants.members.expired') }}</XhTagLabel>
+                            </XhTagRoot>
+                          </div>
+                        </td>
+                        <td v-if="showMemberActions">
+                          <div class="flex flex-wrap items-center gap-1">
+                            <!-- 4.x 同：能接任的成员行上「设为所有者」，打开转移弹窗并预选该成员 -->
+                            <XhButton v-if="canTransferOwner && isOwnerCandidate(member, ownerId)" variant="subtle" size="sm" @click="startOwnerTransfer(member.userId)">
+                              {{ t('tenancy.tenants.owner.set_owner') }}
+                            </XhButton>
+                            <!-- 所有者的成员行后端拒绝移除（TENANCY_CONFLICT_012），先转移所有权 -->
+                            <XhButton v-if="canRemoveMember && member.userId !== ownerId" variant="subtle" size="sm" tone="danger" @click="confirmRemoveMember(member)">
+                              {{ t('tenancy.tenants.members.remove') }}
+                            </XhButton>
+                          </div>
                         </td>
                       </tr>
                     </tbody>
@@ -639,8 +725,21 @@ function formatNullableDate(value: null | string | undefined): string {
       :form-id="memberFormId"
     >
       <XhFormRoot :id="memberFormId" class="xh-edit-form-grid" data-testid="member-form" @submit="onMemberSubmit">
+        <!-- 先定类型：用户候选按类型分平台账号与租户用户，换类型即清掉已选的用户重新检索 -->
+        <XhFieldRoot class="xh-span-2" :invalid="!!memberEditor.fieldError('memberType')" required>
+          <XhFieldLabel>{{ t('tenancy.tenants.members.type') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect :value="memberEditor.form.memberType" name="memberType" :options="memberTypeOptions" @update:value="memberEditor.changeMemberType" />
+          </XhFieldControl>
+          <XhFieldDescription>
+            {{ memberTypeHint }}
+          </XhFieldDescription>
+          <XhFieldErrorText v-if="memberEditor.fieldError('memberType')">
+            {{ memberEditor.fieldError('memberType') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" :invalid="!!(memberEditor.fieldError('userId') || memberEditor.userError.value)" required>
-          <XhFieldLabel>{{ t('tenancy.tenants.members.user') }}</XhFieldLabel>
+          <XhFieldLabel>{{ memberUserLabel }}</XhFieldLabel>
           <XhFieldControl>
             <XCombobox
               v-model:value="memberEditor.form.userId"
@@ -649,7 +748,7 @@ function formatNullableDate(value: null | string | undefined): string {
               clearable
               :loading="memberEditor.userLoading.value"
               :options="memberEditor.userOptions.value"
-              :placeholder="t('tenancy.tenants.members.user_placeholder')"
+              :placeholder="memberUserPlaceholder"
               @search="memberEditor.searchUsers"
             />
           </XhFieldControl>
@@ -657,17 +756,65 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ memberEditor.fieldError('userId') ?? memberEditor.userError.value }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <XhFieldRoot :invalid="!!memberEditor.fieldError('memberType')">
-          <XhFieldLabel>{{ t('tenancy.tenants.members.type') }}</XhFieldLabel>
+        <XhFieldRoot :invalid="!!memberEditor.fieldError('effectiveAt')">
+          <XhFieldLabel>{{ t('tenancy.tenants.members.effective_at') }}</XhFieldLabel>
           <XhFieldControl>
-            <XSelect v-model:value="memberEditor.form.memberType" name="memberType" :options="memberTypeOptions" />
+            <XDatePicker v-model:value="memberEditor.form.effectiveAt" name="effectiveAt" clearable show-time :placeholder="t('tenancy.tenants.members.effective_placeholder')" />
           </XhFieldControl>
-          <XhFieldErrorText v-if="memberEditor.fieldError('memberType')">
-            {{ memberEditor.fieldError('memberType') }}
+          <XhFieldErrorText v-if="memberEditor.fieldError('effectiveAt')">
+            {{ memberEditor.fieldError('effectiveAt') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <!-- 到期须晚于生效（TENANCY_VALIDATION_007）：选择器从生效时间起可选 -->
+        <XhFieldRoot :invalid="!!memberEditor.fieldError('expiresAt')">
+          <XhFieldLabel>{{ t('tenancy.tenants.members.expires_at') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XDatePicker v-model:value="memberEditor.form.expiresAt" name="expiresAt" clearable show-time :min="memberEditor.form.effectiveAt" :placeholder="t('tenancy.tenants.members.expires_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="memberEditor.fieldError('expiresAt')">
+            {{ memberEditor.fieldError('expiresAt') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <p v-if="memberEditor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ memberEditor.submitError.value }}
+        </p>
+      </XhFormRoot>
+    </XEditModal>
+
+    <XEditModal
+      v-model:show="ownerTransfer.open.value"
+      :title="t('tenancy.tenants.owner.title', { name: ownerTransfer.tenant.value?.name ?? '' })"
+      :loading="ownerTransfer.submitting.value"
+      :save-disabled="!ownerTransfer.userId.value"
+      :form-id="ownerFormId"
+    >
+      <XhFormRoot :id="ownerFormId" class="xh-edit-form-grid" data-testid="owner-form" @submit="onOwnerSubmit">
+        <p class="xh-span-2 text-caption text-fg-muted">
+          {{ t('tenancy.tenants.owner.current', { name: detail.detail.value?.adminUserName ?? '-' }) }}
+        </p>
+        <XhFieldRoot class="xh-span-2" :invalid="!!(ownerTransfer.fieldError('userId') || ownerTransfer.loadError.value)" required>
+          <XhFieldLabel>{{ t('tenancy.tenants.owner.user') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XCombobox
+              v-model:value="ownerTransfer.userId.value"
+              name="userId"
+              remote
+              clearable
+              :loading="ownerTransfer.loading.value"
+              :options="ownerTransfer.options.value"
+              :placeholder="t('tenancy.tenants.owner.user_placeholder')"
+              @search="ownerTransfer.search"
+            />
+          </XhFieldControl>
+          <XhFieldDescription>
+            {{ t('tenancy.tenants.owner.hint') }}
+          </XhFieldDescription>
+          <XhFieldErrorText v-if="ownerTransfer.fieldError('userId') || ownerTransfer.loadError.value">
+            {{ ownerTransfer.fieldError('userId') ?? ownerTransfer.loadError.value }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <p v-if="ownerTransfer.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
+          {{ ownerTransfer.submitError.value }}
         </p>
       </XhFormRoot>
     </XEditModal>

@@ -26,12 +26,13 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldEmail = "email";
     private const string FieldStatus = "status";
     private const string FieldCreatedAt = "createdAt";
+    private const string FieldHomeTenantId = "homeTenantId";
 
     /// <summary>
     /// 分页列出用户。
     /// </summary>
     /// <remarks>
-    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 与 <c>status</c> 的 <c>eq</c>；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序。
+    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 、<c>status</c> 的 <c>eq</c> 与 <c>homeTenantId</c> 的 <c>eq / ne</c>（平台侧挑某租户的用户或平台账号；租户侧本就只看本租户）；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序。
     /// </remarks>
     public async ValueTask<Result<PageResult<UserResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -121,6 +122,8 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
             (FieldDisplayName, "contains") => Result.Success(query.Where(u => u.DisplayName.Contains(value))),
             (FieldEmail, "eq") => Result.Success(query.Where(u => u.Email == value)),
             (FieldEmail, "contains") => Result.Success(query.Where(u => u.Email != null && u.Email.Contains(value))),
+            (FieldHomeTenantId, "eq") => Result.Success(query.Where(u => u.HomeTenantId == value)),
+            (FieldHomeTenantId, "ne") => Result.Success(query.Where(u => u.HomeTenantId != value)),
             (FieldStatus, "eq") when Enum.TryParse<UserStatus>(value, ignoreCase: true, out var status) => Result.Success(query.Where(u => u.Status == status)),
             _ => Error.Validation(IdentityErrors.QueryUnsupported, IdentityMessages.FilterUnsupported, MessageArguments.Of(("field", filter.Field), ("operator", filter.Operator))),
         };

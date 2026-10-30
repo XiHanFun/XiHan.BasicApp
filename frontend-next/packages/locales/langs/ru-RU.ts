@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: 'Участник',
           owner: 'Владелец арендатора',
+          support: 'Поддержка',
         },
         section_desc: 'Организации-арендаторы, к которым у вас сейчас есть доступ, и ваши роли участника',
         section_title: 'Мои арендаторы',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'Владелец',
         member: 'Участник',
+        support: 'Поддержка',
       },
     },
     auth: {

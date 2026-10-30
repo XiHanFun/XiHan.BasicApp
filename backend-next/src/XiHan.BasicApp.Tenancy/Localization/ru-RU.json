@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Создание редакций",
   "permissions.tenancy.editions.update.name": "Изменение редакций",
   "permissions.tenancy.editions.delete.name": "Удаление редакций",
-  "permissions.tenancy.subscription.read.name": "Просмотр подписки"
+  "permissions.tenancy.subscription.read.name": "Просмотр подписки",
+  "tenants.transfer_owner.title": "Передать владение арендатором",
+  "tenants.transfer_owner.description": "Передаёт владение арендатором пользователю этого арендатора или действующему обычному участнику (включённому и не заблокированному). Новый владелец получает встроенную роль администратора, прежний сохраняет свои роли. Только на стороне платформы.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Передать владение арендатором",
+  "tenancy.owner.missing": "У арендатора '{tenantId}' ещё нет владельца. Сначала инициализируйте администратора.",
+  "tenancy.owner.already": "Пользователь '{userId}' уже владеет арендатором '{tenantId}'.",
+  "tenancy.owner.removal": "Пользователь '{userId}' владеет арендатором '{tenantId}'. Передайте владение, прежде чем удалять его.",
+  "tenancy.owner.ineligible": "Пользователь '{userId}' не может стать владельцем арендатора '{tenantId}': он должен принадлежать этому арендатору или быть действующим обычным участником, включённым и не заблокированным.",
+  "tenancy.member.type_mismatch": "Пользователь '{userId}' не может присоединиться как '{memberType}': учётные записи платформы присоединяются только как поддержка, а участники поддержки должны быть учётными записями платформы.",
+  "tenancy.member.window_invalid": "Срок окончания должен быть позже срока начала."
 }

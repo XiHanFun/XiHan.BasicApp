@@ -1,7 +1,8 @@
 import type { EditionOption } from './use-tenants'
+import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { inheritedEdition, seatUsage, storageUsage, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { inheritedEdition, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -26,7 +27,12 @@ function edition(id: string, extra: Partial<EditionOption> = {}): EditionOption 
 const MB = 1024 * 1024
 
 function member(id: string, userName: string, extra: Record<string, unknown> = {}) {
-  return { id, tenantId: 'contoso', userId: `u-${id}`, userName, displayName: userName, homeTenantId: 'platform', memberType: 'Member', createdAt: '2026-10-28T00:00:00Z', ...extra }
+  return { id, tenantId: 'contoso', userId: `u-${id}`, userName, displayName: userName, homeTenantId: 'fabrikam', memberType: 'Member', effectiveAt: null, expiresAt: null, createdAt: '2026-10-28T00:00:00Z', ...extra }
+}
+
+/** users.list 的一项：显示名取登录名首字母大写 */
+function user(id: string, userName: string, homeTenantId: string) {
+  return { id, userName, displayName: userName.charAt(0).toUpperCase() + userName.slice(1), homeTenantId, status: 'Active', createdAt: '2026-10-28T00:00:00Z' }
 }
 
 interface Call { method: string, url: string, body: unknown }
@@ -228,7 +234,7 @@ describe('useAdminInitializer', () => {
 
 describe('useTenantDetail', () => {
   it('取详情后按目录键取成员；移除被逐项拒绝时以错误码抛出，成功后重取成员', async () => {
-    let roster = [member('m-1', 'alice'), member('m-2', 'bob', { memberType: 'Owner' })]
+    let roster = [member('m-1', 'alice'), member('m-2', 'bob', { memberType: 'Support', homeTenantId: 'platform' })]
     const calls = record((call) => {
       if (call.url === '/api/tenants/t-1')
         return json(200, { tenant: tenant({ adminUserId: 'u-0' }), adminUserName: 'admin', userCount: 3, quota: quota('contoso', { usedSeats: 4 }) })
@@ -252,6 +258,27 @@ describe('useTenantDetail', () => {
     expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])
   })
 
+  it('原地重取（转移所有权之后）：不清空已显示的详情，重取租户与成员；读失败原样抛出', async () => {
+    let owner = 'u-0'
+    const calls = record((call) => {
+      if (call.url === '/api/tenants/t-1')
+        return owner === 'gone' ? problem(404, 'TENANCY_NOTFOUND_001', 'tenant gone') : json(200, { tenant: tenant({ adminUserId: owner }), adminUserName: owner, userCount: 3, quota: quota('contoso') })
+      return json(200, { items: [member('m-1', 'alice')] })
+    })
+    const detail = useTenantDetail(() => true)
+    await detail.show(tenant() as never)
+    owner = 'u-a'
+    const refreshing = detail.refresh()
+    expect(detail.detail.value?.tenant.adminUserId).toBe('u-0')
+    await refreshing
+    expect(detail.detail.value?.tenant.adminUserId).toBe('u-a')
+    expect(calls.map(c => c.url)).toEqual(['/api/tenants/t-1', '/api/tenant-members?tenantId=contoso', '/api/tenants/t-1', '/api/tenant-members?tenantId=contoso'])
+
+    owner = 'gone'
+    await expect(detail.refresh()).rejects.toThrow()
+    expect(detail.detail.value?.tenant.adminUserId).toBe('u-a')
+  })
+
   it('没有读成员的权限就不取成员；详情读失败给出原因', async () => {
     let calls = record(() => json(200, { tenant: tenant(), adminUserName: null, userCount: 0, quota: quota('contoso') }))
     const detail = useTenantDetail(() => false)
@@ -268,26 +295,167 @@ describe('useTenantDetail', () => {
 })
 
 describe('useMemberEditor', () => {
-  it('打开即按空关键字检索用户作候选，提交按目录键加成员；冲突给整条提示', async () => {
-    let calls = record(() => json(200, { items: [{ id: 'u-7', userName: 'carol', displayName: 'Carol', homeTenantId: 'platform', status: 'Active', createdAt: '2026-10-28T00:00:00Z' }], total: 1, page: { index: 1, size: 20 } }))
+  it('打开即按空关键字检索普通成员的候选（只在租户用户里挑、去掉注册地就是本租户的），提交按目录键加成员；冲突给整条提示', async () => {
+    let calls = record(() => json(200, { items: [user('u-7', 'carol', 'fabrikam'), user('u-8', 'dave', 'contoso')], total: 2, page: { index: 1, size: 20 } }))
     const editor = useMemberEditor()
-    editor.start()
-    await editor.searchUsers('')
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list', body: { page: { index: 1, size: 20 }, filters: [], sorts: [], keyword: null } })
-    expect(editor.userOptions.value).toEqual([{ label: 'carol', value: 'u-7', description: 'Carol · platform' }])
-    expect(await editor.submit('contoso')).toBe(false)
+    editor.start('contoso')
+    await flushPromises()
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list', body: { page: { index: 1, size: 20 }, filters: [{ field: 'homeTenantId', operator: 'ne', value: 'platform' }], sorts: [], keyword: null } })
+    expect(editor.userOptions.value).toEqual([{ label: 'carol', value: 'u-7', description: 'Carol · fabrikam' }])
+    expect(await editor.submit()).toBe(false)
 
-    calls = record(() => json(201, member('m-3', 'carol', { memberType: 'Owner' })))
+    calls = record(() => json(201, member('m-3', 'carol')))
     editor.form.userId = 'u-7'
-    editor.form.memberType = 'Owner'
-    expect(await editor.submit('contoso')).toBe(true)
+    expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tenant-members', body: { tenantId: 'contoso', userId: 'u-7', memberType: 'Owner' } })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tenant-members', body: { tenantId: 'contoso', userId: 'u-7', memberType: 'Member', effectiveAt: null, expiresAt: null } })
 
     record(() => problem(409, 'TENANCY_CONFLICT_005', 'already a member'))
     editor.open.value = true
-    expect(await editor.submit('contoso')).toBe(false)
+    expect(await editor.submit()).toBe(false)
     expect(editor.open.value).toBe(true)
     expect(editor.submitError.value).toBe('already a member')
+  })
+
+  it('换成运维支持：清掉已选的用户，按空关键字只在平台账号里重新检索；换回同一类型不重查', async () => {
+    let calls = record(() => json(200, { items: [user('u-7', 'carol', 'fabrikam')], total: 1, page: { index: 1, size: 20 } }))
+    const editor = useMemberEditor()
+    editor.start('contoso')
+    await flushPromises()
+    editor.form.userId = 'u-7'
+
+    calls = record(() => json(200, { items: [user('u-1', 'ops', 'platform')], total: 1, page: { index: 1, size: 20 } }))
+    editor.changeMemberType('Support')
+    expect(editor.form).toMatchObject({ memberType: 'Support', userId: null })
+    await flushPromises()
+    expect(calls).toHaveLength(1)
+    expect(calls[0]!.body).toEqual({ page: { index: 1, size: 20 }, filters: [{ field: 'homeTenantId', operator: 'eq', value: 'platform' }], sorts: [], keyword: null })
+    expect(editor.userOptions.value.map(o => o.value)).toEqual(['u-1'])
+
+    editor.changeMemberType('Support')
+    editor.changeMemberType('Owner')
+    await flushPromises()
+    expect(calls).toHaveLength(1)
+  })
+
+  it('有效期按 ISO 发出：生效与到期都选了即带上，类型与账号不符给整条提示', async () => {
+    record(() => json(200, { items: [], total: 0, page: { index: 1, size: 20 } }))
+    const editor = useMemberEditor()
+    editor.start('contoso')
+    await flushPromises()
+    editor.changeMemberType('Support')
+    await flushPromises()
+
+    let calls = record(() => json(201, member('m-4', 'ops', { memberType: 'Support', homeTenantId: 'platform', effectiveAt: '2026-11-01T00:00:00Z', expiresAt: '2026-12-01T00:00:00Z' })))
+    Object.assign(editor.form, { userId: 'u-1', effectiveAt: Date.UTC(2026, 10, 1), expiresAt: Date.UTC(2026, 11, 1) })
+    expect(await editor.submit()).toBe(true)
+    expect(calls[0]!.body).toEqual({ tenantId: 'contoso', userId: 'u-1', memberType: 'Support', effectiveAt: '2026-11-01T00:00:00.000Z', expiresAt: '2026-12-01T00:00:00.000Z' })
+
+    calls = record(() => problem(400, 'TENANCY_VALIDATION_006', 'support must be a platform account'))
+    editor.open.value = true
+    expect(await editor.submit()).toBe(false)
+    expect(calls).toHaveLength(1)
+    expect(editor.submitError.value).toBe('support must be a platform account')
+  })
+
+  it('只认最后一次检索：先发的慢请求回来不盖掉后发的结果', async () => {
+    const pending: Array<(response: Response) => void> = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 't',
+      fetch: (() => new Promise<Response>(resolve => pending.push(resolve))) as unknown as typeof fetch,
+    })
+    const editor = useMemberEditor()
+    editor.start('contoso')
+    const latest = editor.searchUsers('dave')
+    pending[1]!(json(200, { items: [user('u-9', 'dave', 'fabrikam')], total: 1, page: { index: 1, size: 20 } }))
+    await latest
+    pending[0]!(json(200, { items: [user('u-7', 'carol', 'fabrikam')], total: 1, page: { index: 1, size: 20 } }))
+    await flushPromises()
+    expect(editor.userOptions.value.map(o => o.value)).toEqual(['u-9'])
+    expect(editor.userLoading.value).toBe(false)
+  })
+})
+
+describe('成员有效期', () => {
+  const now = Date.UTC(2026, 9, 30)
+
+  it('生效时间为空或已到、到期时间为空或还没到即生效中；到了到期时间即已到期', () => {
+    expect(isMemberInEffect({ effectiveAt: null, expiresAt: null }, now)).toBe(true)
+    expect(isMemberInEffect({ effectiveAt: '2026-10-01T00:00:00Z', expiresAt: '2026-11-01T00:00:00Z' }, now)).toBe(true)
+    expect(isMemberInEffect({ effectiveAt: '2026-11-01T00:00:00Z', expiresAt: null }, now)).toBe(false)
+    expect(isMemberInEffect({ effectiveAt: null, expiresAt: '2026-10-30T00:00:00Z' }, now)).toBe(false)
+    expect(isMemberExpired({ expiresAt: '2026-10-30T00:00:00Z' }, now)).toBe(true)
+    expect(isMemberExpired({ expiresAt: '2026-10-31T00:00:00Z' }, now)).toBe(false)
+    expect(isMemberExpired({ expiresAt: null }, now)).toBe(false)
+  })
+})
+
+describe('转移所有权', () => {
+  const now = Date.UTC(2026, 9, 30)
+
+  it('候选：本租户用户在前、生效中的普通成员在后，去掉现任所有者与重复；运维支持、已到期与未生效的成员不进候选，成员按关键字本地匹配', () => {
+    const users = [user('u-0', 'admin', 'contoso'), user('u-2', 'erin', 'contoso')] as never[]
+    const roster = [
+      member('m-1', 'alice', { userId: 'u-a' }),
+      member('m-2', 'ops', { userId: 'u-s', memberType: 'Support' }),
+      member('m-3', 'gone', { userId: 'u-g', expiresAt: '2026-10-01T00:00:00Z' }),
+      member('m-4', 'later', { userId: 'u-l', effectiveAt: '2026-11-01T00:00:00Z' }),
+      member('m-5', 'Bob', { userId: 'u-b', homeTenantId: 'fabrikam', displayName: 'Bobby' }),
+    ] as never[]
+    expect(ownerCandidates(users, roster, '', 'u-0', now)).toEqual([
+      { label: 'erin', value: 'u-2', description: 'Erin · contoso' },
+      { label: 'alice', value: 'u-a', description: 'alice · fabrikam' },
+      { label: 'Bob', value: 'u-b', description: 'Bobby · fabrikam' },
+    ])
+    expect(ownerCandidates([], roster, ' bobb ', 'u-0', now).map(o => o.value)).toEqual(['u-b'])
+    expect(isOwnerCandidate(roster[0]!, 'u-0', now)).toBe(true)
+    expect(isOwnerCandidate(roster[1]!, 'u-0', now)).toBe(false)
+    expect(isOwnerCandidate(roster[0]!, 'u-a', now)).toBe(false)
+    expect(isOwnerCandidate(roster[0]!, null, now)).toBe(false)
+  })
+
+  it('打开即按空关键字检索本租户的启用用户并并入成员候选；提交走 tenants.transfer-owner，成功返回转移后的租户并关掉弹窗', async () => {
+    let calls = record(() => json(200, { items: [user('u-0', 'admin', 'contoso'), user('u-2', 'erin', 'contoso')], total: 2, page: { index: 1, size: 20 } }))
+    const transfer = useOwnerTransfer()
+    transfer.start(tenant({ adminUserId: 'u-0' }) as never, [member('m-1', 'alice', { userId: 'u-a' })] as never[])
+    await flushPromises()
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list' })
+    expect(calls[0]!.body).toEqual({ page: { index: 1, size: 20 }, filters: [{ field: 'homeTenantId', operator: 'eq', value: 'contoso' }, { field: 'status', operator: 'eq', value: 'Active' }], sorts: [], keyword: null })
+    expect(transfer.options.value.map(o => o.value)).toEqual(['u-2', 'u-a'])
+    expect(await transfer.submit()).toBeNull()
+
+    calls = record(() => json(200, tenant({ adminUserId: 'u-a' })))
+    transfer.userId.value = 'u-a'
+    const saved = await transfer.submit()
+    expect(saved?.adminUserId).toBe('u-a')
+    expect(transfer.open.value).toBe(false)
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/tenants/t-1:transfer-owner' })
+    expect(calls[0]!.body).toMatchObject({ userId: 'u-a' })
+  })
+
+  it('从成员行进来即预选该成员（检索换了候选也留着）；用户检索失败时成员候选照给并报原因；不合格给整条提示、弹窗保持打开', async () => {
+    record(() => problem(403, 'SECURITY_DENIED_002', 'denied'))
+    const transfer = useOwnerTransfer()
+    const roster = [member('m-1', 'alice', { userId: 'u-a' }), member('m-2', 'bob', { userId: 'u-b' })] as never[]
+    transfer.start(tenant({ adminUserId: 'u-0' }) as never, roster, 'u-b')
+    expect(transfer.userId.value).toBe('u-b')
+    await flushPromises()
+    expect(transfer.loadError.value).toBe('denied')
+    expect(transfer.options.value.map(o => o.value)).toEqual(['u-a', 'u-b'])
+
+    record(() => json(200, { items: [], total: 0, page: { index: 1, size: 20 } }))
+    await transfer.search('ali')
+    expect(transfer.loadError.value).toBeNull()
+    expect(transfer.options.value.map(o => o.value)).toEqual(['u-b', 'u-a'])
+
+    record(() => problem(400, 'TENANCY_VALIDATION_005', 'not eligible'))
+    expect(await transfer.submit()).toBeNull()
+    expect(transfer.open.value).toBe(true)
+    expect(transfer.submitError.value).toBe('not eligible')
+
+    // 预选的不是能接任的成员（运维支持）就不预选
+    transfer.start(tenant({ adminUserId: 'u-0' }) as never, [member('m-3', 'ops', { userId: 'u-s', memberType: 'Support' })] as never[], 'u-s')
+    expect(transfer.userId.value).toBeNull()
   })
 })

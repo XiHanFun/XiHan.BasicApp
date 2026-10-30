@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "Create editions",
   "permissions.tenancy.editions.update.name": "Update editions",
   "permissions.tenancy.editions.delete.name": "Delete editions",
-  "permissions.tenancy.subscription.read.name": "Read subscription"
+  "permissions.tenancy.subscription.read.name": "Read subscription",
+  "tenants.transfer_owner.title": "Transfer tenant ownership",
+  "tenants.transfer_owner.description": "Hand the tenant's ownership to a user whose home is this tenant or to an active regular member (enabled and not locked). The new owner gets the built-in administrator role; the previous owner keeps their roles. Platform side only.",
+  "permissions.tenancy.tenants.transfer_owner.name": "Transfer tenant ownership",
+  "tenancy.owner.missing": "Tenant '{tenantId}' has no owner yet. Initialize its administrator first.",
+  "tenancy.owner.already": "User '{userId}' already owns tenant '{tenantId}'.",
+  "tenancy.owner.removal": "User '{userId}' owns tenant '{tenantId}'. Transfer the ownership before removing them.",
+  "tenancy.owner.ineligible": "User '{userId}' cannot own tenant '{tenantId}': they must belong to this tenant or be an active regular member, enabled and not locked.",
+  "tenancy.member.type_mismatch": "User '{userId}' cannot join as '{memberType}': platform accounts join only as support, and support members must be platform accounts.",
+  "tenancy.member.window_invalid": "The expiry time must be later than the effective time."
 }

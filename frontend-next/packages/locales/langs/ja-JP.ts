@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: '一般メンバー',
           owner: 'テナント所有者',
+          support: '運用サポート',
         },
         section_desc: '現在アクセスできるテナント組織と、そのメンバーロールです',
         section_title: 'マイテナント',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'オーナー',
         member: 'メンバー',
+        support: '運用サポート',
       },
     },
     auth: {

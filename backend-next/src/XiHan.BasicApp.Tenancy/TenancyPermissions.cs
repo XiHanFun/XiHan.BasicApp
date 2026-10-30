@@ -41,6 +41,11 @@ public static class TenancyPermissions
     public const string TenantsInitializeAdmin = "tenancy.tenants.initialize-admin";
 
     /// <summary>
+    /// 转移租户所有权。
+    /// </summary>
+    public const string TenantsTransferOwner = "tenancy.tenants.transfer-owner";
+
+    /// <summary>
     /// 查看租户成员：<c>tenant-members.list</c>。
     /// </summary>
     public const string TenantMembersRead = "tenancy.tenant-members.read";
@@ -94,6 +99,7 @@ public static class TenancyPermissions
         new(TenantsSuspend, "Suspend tenants", PermissionScope.Platform, audited: true, description: "Suspend and resume tenants; suspended tenants cannot sign in."),
         new(TenantsDelete, "Delete tenants", PermissionScope.Platform, audited: true, description: "Delete tenants without users and remove them from the directory."),
         new(TenantsInitializeAdmin, "Initialize tenant administrators", PermissionScope.Platform, audited: true, description: "Create the first administrator of a tenant with every tenant-side permission."),
+        new(TenantsTransferOwner, "Transfer tenant ownership", PermissionScope.Platform, audited: true, description: "Hand a tenant's ownership to one of its users or members; the previous owner stays an administrator."),
         new(TenantMembersRead, "Read tenant members", PermissionScope.Platform, description: "View which users may enter a tenant as members."),
         new(TenantMembersCreate, "Add tenant members", PermissionScope.Platform, audited: true, description: "Let a user whose home tenant is elsewhere enter a tenant."),
         new(TenantMembersDelete, "Remove tenant members", PermissionScope.Platform, audited: true, description: "Revoke a member's access to a tenant."),

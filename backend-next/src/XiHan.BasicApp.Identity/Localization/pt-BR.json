@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Redefinir a autenticação em dois fatores",
   "permissions.identity.impersonation.start.name": "Personificar usuários",
   "permissions.identity.sessions.read.name": "Ver usuários online",
-  "permissions.identity.sessions.revoke.name": "Forçar logout"
+  "permissions.identity.sessions.revoke.name": "Forçar logout",
+  "identity.user.tenant_owner": "Esta conta é proprietária de um locatário. Transfira a propriedade primeiro."
 }

@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "エディションの作成",
   "permissions.tenancy.editions.update.name": "エディションの更新",
   "permissions.tenancy.editions.delete.name": "エディションの削除",
-  "permissions.tenancy.subscription.read.name": "契約の参照"
+  "permissions.tenancy.subscription.read.name": "契約の参照",
+  "tenants.transfer_owner.title": "テナント所有権の移転",
+  "tenants.transfer_owner.description": "テナントの所有権を、このテナントに所属するユーザーまたは有効期間内の一般メンバー（有効でロックされていないこと）に移転します。新しい所有者は組み込みの管理者ロールを得て、元の所有者は既存のロールを保持します。プラットフォーム側のみ。",
+  "permissions.tenancy.tenants.transfer_owner.name": "テナント所有権の移転",
+  "tenancy.owner.missing": "テナント '{tenantId}' にはまだ所有者がいません。先に管理者を初期化してください。",
+  "tenancy.owner.already": "ユーザー '{userId}' はすでにテナント '{tenantId}' の所有者です。",
+  "tenancy.owner.removal": "ユーザー '{userId}' はテナント '{tenantId}' の所有者です。外す前に所有権を移転してください。",
+  "tenancy.owner.ineligible": "ユーザー '{userId}' はテナント '{tenantId}' の所有者になれません。このテナントに所属するか有効期間内の一般メンバーで、有効かつロックされていない必要があります。",
+  "tenancy.member.type_mismatch": "ユーザー '{userId}' は '{memberType}' として参加できません。プラットフォームアカウントは運用サポートとしてのみ参加でき、運用サポートはプラットフォームアカウントに限られます。",
+  "tenancy.member.window_invalid": "有効期限は開始日時より後にしてください。"
 }

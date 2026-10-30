@@ -116,8 +116,8 @@ public sealed class ImpersonationTests : IDisposable
         var demoAdmin = demoAdminLogin.GetProperty("accessToken").GetString()!;
         var (ownCandidates, ownCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates", token: demoAdmin));
         Assert.Equal(HttpStatusCode.OK, ownCandidates.StatusCode);
-        // 超管是 demo 的成员（演示种子），也在候选里
-        Assert.Equal(["clerk", "superadmin"], ownCandidatesBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList());
+        // 超管是 demo 的运维支持成员（演示种子），不算租户内的用户，不在候选里
+        Assert.Equal(["clerk"], ownCandidatesBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList());
         var (leave, leaveBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{helperId}}","tenantId":"platform"}""", demoAdmin));
         Assert.Equal(HttpStatusCode.Forbidden, leave.StatusCode);
         Assert.Equal("IDENTITY_DENIED_006", leaveBody.GetProperty("code").GetString());

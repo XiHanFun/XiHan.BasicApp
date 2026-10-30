@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.BasicApp.Tenancy.Domain.Services;
@@ -18,6 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// </summary>
 /// <remarks>
 /// <c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行。
+/// 平台账号只能以运维支持加入、运维支持只能是平台账号（对应 4.x 的支持人员入驻）；到期须晚于生效。
 /// </remarks>
 /// <param name="members">成员仓储。</param>
 /// <param name="users">用户仓储。</param>
@@ -41,6 +43,11 @@ public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, 
             return denied;
         }
 
+        if (request.EffectiveAt is { } effective && request.ExpiresAt is { } expires && expires <= effective)
+        {
+            return Error.Validation(TenancyErrors.MemberWindowInvalid, TenancyMessages.MemberWindowInvalid);
+        }
+
         var tenantId = request.TenantId.Trim();
         if (!(await service.FindByTenantIdAsync(tenantId, context.CancellationToken).ConfigureAwait(false)).HasValue)
         {
@@ -52,6 +59,12 @@ public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, 
             return Error.NotFound(TenancyErrors.MemberUserNotFound, TenancyMessages.MemberUserNotFound, MessageArguments.Of(("userId", request.UserId)));
         }
 
+        var isPlatformAccount = string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal);
+        if (isPlatformAccount != (request.MemberType == TenantMemberType.Support))
+        {
+            return Error.Validation(TenancyErrors.MemberTypeMismatch, TenancyMessages.MemberTypeMismatch, MessageArguments.Of(("userId", user.Id), ("memberType", request.MemberType.ToString())));
+        }
+
         var userId = user.Id;
         var exists = string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)
             || await members.CountAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.TenantId == tenantId && m.UserId == userId)), context.CancellationToken).ConfigureAwait(false) > 0;
@@ -60,7 +73,7 @@ public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, 
             return Error.Conflict(TenancyErrors.MemberExists, TenancyMessages.MemberExists, MessageArguments.Of(("tenantId", tenantId), ("userId", userId)));
         }
 
-        var member = new SysTenantMember { Id = ids.NewId(), TenantId = tenantId, UserId = userId, MemberType = request.MemberType };
+        var member = new SysTenantMember { Id = ids.NewId(), TenantId = tenantId, UserId = userId, MemberType = request.MemberType, EffectiveAt = request.EffectiveAt, ExpiresAt = request.ExpiresAt };
         var added = await members.AddAsync(member, context.CancellationToken).ConfigureAwait(false);
         return added.IsFailure ? added.Error! : TenantMemberResponse.From(member, user);
     }

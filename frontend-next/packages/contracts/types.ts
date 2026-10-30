@@ -5711,6 +5711,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tenants/{id}:transfer-owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transfer tenant ownership
+         * @description Hand the tenant's ownership to a user whose home is this tenant or to an active regular member (enabled and not locked). The new owner gets the built-in administrator role; the previous owner keeps their roles. Platform side only.
+         *
+         *     Requires permission tenancy.tenants.transfer-owner (Transfer tenant ownership).
+         */
+        post: operations["tenants.transfer-owner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenants:list": {
         parameters: {
             query?: never;
@@ -6467,6 +6489,8 @@ export interface components {
             isHome: boolean;
             /** @description 成员类型；注册地租户为空。 */
             memberType?: components["schemas"]["TenantMemberType"] | null;
+            /** @description 是否该租户的所有者（SysTenant.AdminUserId）。 */
+            isOwner: boolean;
             /** @description 是否当前所在租户。 */
             isCurrent: boolean;
             /**
@@ -9055,7 +9079,7 @@ export interface components {
             editionId?: string | null;
             /** @description 套餐编码。 */
             editionCode?: string | null;
-            /** @description 换套餐的租户。 */
+            /** @description 换套餐或转移所有权的租户。 */
             targetTenantId?: string | null;
             /** @description 涉及的权限码，逗号分隔。 */
             permissionCodes?: string | null;
@@ -9063,7 +9087,7 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange" | "ConstraintViolation";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity" | "RoleInheritance" | "Delegation" | "ConditionChange" | "ConstraintViolation" | "TenantOwner";
         /** @description 一条条件子句。 */
         PermissionConditionResponse: {
             /**
@@ -9683,6 +9707,16 @@ export interface components {
             memberType: components["schemas"]["TenantMemberType"];
             /**
              * Format: date-time
+             * @description 生效时间（UTC）；为空即加入即生效。
+             */
+            effectiveAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 到期时间（UTC）；为空即不到期。
+             */
+            expiresAt?: string | null;
+            /**
+             * Format: date-time
              * @description 加入时间（UTC）。
              */
             createdAt: string;
@@ -9691,7 +9725,7 @@ export interface components {
          * @description 租户成员的类型。
          * @enum {string}
          */
-        TenantMemberType: "Member" | "Owner";
+        TenantMemberType: "Member" | "Support";
         /** @description 一个租户的配额与用量。 */
         TenantQuotaResponse: {
             /** @description 租户 ID。 */
@@ -22957,7 +22991,7 @@ export interface operations {
                         editionId?: string | null;
                         /** @description 套餐编码。 */
                         editionCode?: string | null;
-                        /** @description 换套餐的租户。 */
+                        /** @description 换套餐或转移所有权的租户。 */
                         targetTenantId?: string | null;
                         /** @description 涉及的权限码，逗号分隔。 */
                         permissionCodes?: string | null;
@@ -28715,8 +28749,18 @@ export interface operations {
                      * @description 用户 ID；注册地不能就是该租户（注册地用户天然可进入）。
                      */
                     userId: string;
-                    /** @description 成员类型；缺省普通成员。 */
+                    /** @description 成员类型；缺省普通成员。平台账号只能是运维支持，运维支持只能是平台账号。 */
                     memberType?: components["schemas"]["TenantMemberType"];
+                    /**
+                     * Format: date-time
+                     * @description 生效时间（UTC）；为空即加入即生效。
+                     */
+                    effectiveAt?: string | null;
+                    /**
+                     * Format: date-time
+                     * @description 到期时间（UTC）；为空即不到期，须晚于生效时间。
+                     */
+                    expiresAt?: string | null;
                 };
             };
         };
@@ -28748,6 +28792,16 @@ export interface operations {
                         homeTenantId: string;
                         /** @description 成员类型。 */
                         memberType: components["schemas"]["TenantMemberType"];
+                        /**
+                         * Format: date-time
+                         * @description 生效时间（UTC）；为空即加入即生效。
+                         */
+                        effectiveAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）；为空即不到期。
+                         */
+                        expiresAt?: string | null;
                         /**
                          * Format: date-time
                          * @description 加入时间（UTC）。
@@ -29262,6 +29316,103 @@ export interface operations {
                         createdBy?: string | null;
                         /** Format: uuid */
                         avatarFileId?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.transfer-owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 租户主键。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description tenants.transfer-owner 的请求：把租户所有权转给另一个用户。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 租户主键。
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description 新所有者：该租户注册地的用户或生效中的普通成员，启用且未锁定。
+                     */
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 租户的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 租户 ID（目录键，登录时填的租户）。 */
+                        tenantId: string;
+                        /** @description 名称。 */
+                        name: string;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["TenantStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
+                        expiresAt?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 租户管理员；为空即未初始化。
+                         */
+                        adminUserId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 套餐；为空即不受套餐限制。
+                         */
+                        editionId?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: int32
+                         * @description 租户自己的席位上限，覆盖套餐的；为空即沿用套餐。
+                         */
+                        userLimit?: number | null;
+                        /**
+                         * Format: int64
+                         * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。
+                         */
+                        storageLimitMb?: number | null;
                     };
                 };
             };

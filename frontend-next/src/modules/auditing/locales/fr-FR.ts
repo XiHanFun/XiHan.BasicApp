@@ -201,6 +201,7 @@ export default {
         delegation: 'Délégation',
         condition_change: 'Condition de permission',
         constraint_violation: 'Violation de contrainte',
+        tenant_owner: 'Transfert de propriété du locataire',
       },
       role_id: 'ID du rôle',
       role_name: 'Rôle',

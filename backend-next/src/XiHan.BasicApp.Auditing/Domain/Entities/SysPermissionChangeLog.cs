@@ -58,7 +58,7 @@ public sealed class SysPermissionChangeLog : AuditLogRecord
     public string? EditionCode { get; set; }
 
     /// <summary>
-    /// 换套餐的租户。
+    /// 换套餐或转移所有权的租户。
     /// </summary>
     [StringLength(64)]
     public string? TargetTenantId { get; set; }

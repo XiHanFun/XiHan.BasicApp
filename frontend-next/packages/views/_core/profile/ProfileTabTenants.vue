@@ -17,14 +17,18 @@ const authStore = useAuthStore()
 const { t } = useI18n()
 
 /**
- * 身份标签：注册地（没有成员类型）、所有者、成员。4.x 取后端 TenantMemberType 枚举元数据，
- * 6.0 没有枚举元数据、成员类型只有 Owner / Member，与控制中心同口径用本地文案（键静态写出以便 i18n 门禁核对）
+ * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地（没有成员类型）、运维支持、普通成员。
+ * 4.x 取后端 TenantMemberType 枚举元数据；6.0 没有枚举元数据，成员类型只有 Member / Support、所有者单独由 isOwner 给出，
+ * 与控制中心同口径用本地文案（键静态写出以便 i18n 门禁核对）
  */
 function memberTypeLabel(tenant: AppTenantSwitcherItem) {
+  if (tenant.isOwner) {
+    return t('component.profile.tenants.member_type.owner')
+  }
   if (tenant.isHome) {
     return t('component.profile.tenants.home_tenant')
   }
-  return tenant.memberType === 'Owner' ? t('component.profile.tenants.member_type.owner') : t('component.profile.tenants.member_type.member')
+  return tenant.memberType === 'Support' ? t('component.profile.tenants.member_type.support') : t('component.profile.tenants.member_type.member')
 }
 
 const loading = ref(false)
@@ -66,13 +70,16 @@ async function switchTo(tenantId: string) {
   }
 }
 
-/** 身份 → 标签语气（注册地、所有者高亮，与控制中心一致） */
+/** 身份 → 标签语气（所有者、注册地、运维支持各自高亮，与控制中心一致） */
 function memberTagType(tenant: AppTenantSwitcherItem) {
+  if (tenant.isOwner) {
+    return 'warning'
+  }
   if (tenant.isHome) {
     return 'brand'
   }
-  if (tenant.memberType === 'Owner') {
-    return 'warning'
+  if (tenant.memberType === 'Support') {
+    return 'info'
   }
   return 'neutral'
 }

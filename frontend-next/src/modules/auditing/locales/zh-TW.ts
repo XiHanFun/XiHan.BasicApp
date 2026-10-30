@@ -201,6 +201,7 @@ export default {
         delegation: '權限委託',
         condition_change: '權限條件',
         constraint_violation: '違反約束規則',
+        tenant_owner: '轉移租戶擁有權',
       },
       role_id: '角色 ID',
       role_name: '角色',

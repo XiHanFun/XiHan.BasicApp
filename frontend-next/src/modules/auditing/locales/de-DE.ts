@@ -201,6 +201,7 @@ export default {
         delegation: 'Delegierung',
         condition_change: 'Berechtigungsbedingung',
         constraint_violation: 'Einschränkungsverstoß',
+        tenant_owner: 'Übertragung des Mandanteneigentums',
       },
       role_id: 'Rollen-ID',
       role_name: 'Rolle',

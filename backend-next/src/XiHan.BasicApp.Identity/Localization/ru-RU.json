@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Сброс двухфакторной аутентификации",
   "permissions.identity.impersonation.start.name": "Имперсонация пользователей",
   "permissions.identity.sessions.read.name": "Просмотр пользователей онлайн",
-  "permissions.identity.sessions.revoke.name": "Принудительный выход"
+  "permissions.identity.sessions.revoke.name": "Принудительный выход",
+  "identity.user.tenant_owner": "Эта учётная запись владеет арендатором. Сначала передайте владение."
 }

@@ -684,6 +684,7 @@ export default {
         member_type: {
           member: 'Membre',
           owner: 'Propriétaire du locataire',
+          support: 'Support',
         },
         section_desc: 'Les organisations locataires auxquelles vous avez actuellement accès et vos rôles de membre',
         section_title: 'Mes locataires',
@@ -924,6 +925,7 @@ export default {
       member_type: {
         owner: 'Propriétaire',
         member: 'Membre',
+        support: 'Support',
       },
     },
     auth: {

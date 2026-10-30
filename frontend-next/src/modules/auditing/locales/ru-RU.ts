@@ -201,6 +201,7 @@ export default {
         delegation: 'Делегирование',
         condition_change: 'Условие разрешения',
         constraint_violation: 'Нарушение ограничения',
+        tenant_owner: 'Передача владения арендатором',
       },
       role_id: 'ID роли',
       role_name: 'Роль',

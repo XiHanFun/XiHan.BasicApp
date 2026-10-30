@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Réinitialiser l’authentification à deux facteurs",
   "permissions.identity.impersonation.start.name": "Usurper l’identité d’utilisateurs",
   "permissions.identity.sessions.read.name": "Consulter les utilisateurs en ligne",
-  "permissions.identity.sessions.revoke.name": "Forcer la déconnexion"
+  "permissions.identity.sessions.revoke.name": "Forcer la déconnexion",
+  "identity.user.tenant_owner": "Ce compte est propriétaire d'un locataire. Transférez d'abord la propriété."
 }

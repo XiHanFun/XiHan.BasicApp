@@ -218,5 +218,6 @@
   "permissions.identity.users.reset_two_factor.name": "Restablecer la autenticación en dos pasos",
   "permissions.identity.impersonation.start.name": "Suplantar usuarios",
   "permissions.identity.sessions.read.name": "Ver usuarios en línea",
-  "permissions.identity.sessions.revoke.name": "Forzar cierre de sesión"
+  "permissions.identity.sessions.revoke.name": "Forzar cierre de sesión",
+  "identity.user.tenant_owner": "Esta cuenta es propietaria de un inquilino. Transfiere primero la propiedad."
 }

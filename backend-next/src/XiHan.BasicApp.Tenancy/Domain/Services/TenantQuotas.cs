@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Services;
 /// <param name="Tenant">租户。</param>
 /// <param name="Edition">套餐；没有为空。</param>
 /// <param name="UserLimit">有效的席位上限（租户自己的，没有取套餐的）；为空不限。</param>
-/// <param name="UsedSeats">已用席位（注册地是该租户的用户与租户成员）。</param>
+/// <param name="UsedSeats">已用席位（注册地是该租户的用户与普通成员；运维支持成员不占席位）。</param>
 /// <param name="StorageLimitMb">有效的存储上限（MB）；为空不限。</param>
 /// <param name="UsedStorageBytes">已用存储（字节）。</param>
 public sealed record TenantQuotaView(SysTenant Tenant, SysEdition? Edition, int? UserLimit, long UsedSeats, long? StorageLimitMb, long UsedStorageBytes)
@@ -109,7 +109,7 @@ public sealed class TenantQuotas(IRepository<SysTenant, Guid> tenants, IReposito
             .Select(u => new { Tenant = u.HomeTenantId, Count = SqlFunc.AggregateCount(u.Id) })
             .ToListAsync(cancellationToken).ConfigureAwait(false);
         var members = await unitOfWork.ConnectionFor(typeof(SysTenantMember)).Queryable<SysTenantMember>()
-            .Where(m => ids.Contains(m.TenantId) && !m.IsDeleted)
+            .Where(m => ids.Contains(m.TenantId) && !m.IsDeleted && m.MemberType == TenantMemberType.Member)
             .GroupBy(m => m.TenantId)
             .Select(m => new { Tenant = m.TenantId, Count = SqlFunc.AggregateCount(m.Id) })
             .ToListAsync(cancellationToken).ConfigureAwait(false);

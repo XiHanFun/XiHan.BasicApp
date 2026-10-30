@@ -2,6 +2,7 @@ import type { HintTone } from '../subscription/subscription'
 import type { SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref, shallowRef } from 'vue'
+import { PLATFORM_TENANT_ID } from '~/constants'
 import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { formatFileSize } from '~/utils'
@@ -14,12 +15,25 @@ export type EditionOption = ResponseOf<'editions.list'>['items'][number]
 export type TenantMember = ResponseOf<'tenant-members.list'>['items'][number]
 export type TenantStatus = TenantRow['status']
 export type TenantMemberType = TenantMember['memberType']
+export type UserRow = ResponseOf<'users.list'>['items'][number]
 
 export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended']
-export const TENANT_MEMBER_TYPES: readonly TenantMemberType[] = ['Member', 'Owner']
+/** 成员类型：普通成员（注册地在别的租户的用户，占席位）与运维支持（平台账号，不占席位、不能当所有者）；所有者是租户上的 adminUserId，不是成员类型 */
+export const TENANT_MEMBER_TYPES: readonly TenantMemberType[] = ['Member', 'Support']
 
 /** 成员弹窗里用户候选每次取回的条数 */
 export const MEMBER_USER_PAGE_SIZE = 20
+
+/** 用户候选（组合框选项）：登录名为主、显示名与注册地作副文本，成员与所有者两个弹窗同一写法 */
+export interface UserOption {
+  label: string
+  value: string
+  description: string
+}
+
+function userOption(user: { userName: string, displayName: string, homeTenantId: string }, id: string): UserOption {
+  return { label: user.userName, value: id, description: `${user.displayName} · ${user.homeTenantId}` }
+}
 
 /** 弹窗表单：开通与编辑共用一份（租户 ID 只在开通时可填） */
 export interface TenantForm {
@@ -49,6 +63,10 @@ export interface AdminForm {
 export interface MemberForm {
   userId: null | string
   memberType: TenantMemberType
+  /** 生效时间（毫秒时间戳，日期选择的取值）；空即加入即生效 */
+  effectiveAt: number | null
+  /** 到期时间（毫秒时间戳）；空即不到期，须晚于生效时间 */
+  expiresAt: number | null
 }
 
 function blankToNull(value: string): null | string {
@@ -66,6 +84,24 @@ function toIso(value: number | null): null | string {
 
 function describe(error: unknown): string {
   return error instanceof ApiError ? error.detail : String(error)
+}
+
+/** 成员是否在有效期里：生效时间为空或已到、到期时间为空或还没到（与后端 IsInEffect 同口径） */
+export function isMemberInEffect(member: Pick<TenantMember, 'effectiveAt' | 'expiresAt'>, now = Date.now()): boolean {
+  const from = toTimestamp(member.effectiveAt)
+  const until = toTimestamp(member.expiresAt)
+  return (from === null || from <= now) && (until === null || until > now)
+}
+
+/** 成员是否已到期（到了到期时间，不能再进入该租户） */
+export function isMemberExpired(member: Pick<TenantMember, 'expiresAt'>, now = Date.now()): boolean {
+  const until = toTimestamp(member.expiresAt)
+  return until !== null && until <= now
+}
+
+/** 成员候选的用户范围（users.list 的 homeTenantId 筛选）：运维支持只能是平台账号，普通成员只能是租户用户（注册地就是本租户的另由调用方去掉） */
+export function memberUserFilters(memberType: TenantMemberType): { field: string, operator: 'eq' | 'ne', value: string }[] {
+  return [{ field: 'homeTenantId', operator: memberType === 'Support' ? 'eq' : 'ne', value: PLATFORM_TENANT_ID }]
 }
 
 /** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
@@ -430,48 +466,91 @@ export function useTenantDetail(canReadMembers: () => boolean) {
       await loadMembers()
   }
 
-  /** 移除成员：成员行不存在由后端逐项拒绝（TENANCY_NOTFOUND_002），以错误码抛出；成功后重取成员 */
+  /** 原地重取详情与成员（转移所有权之后）：不清空已显示的内容，读失败原样抛出、由调用方提示 */
+  async function refresh() {
+    const current = detail.value
+    if (!current)
+      return
+    detail.value = await tenantsApi.get({ id: current.tenant.id })
+    if (canReadMembers())
+      await loadMembers()
+  }
+
+  /** 移除成员：成员行不存在（TENANCY_NOTFOUND_002）、是租户所有者（TENANCY_CONFLICT_012）由后端逐项拒绝，以错误码抛出；成功后重取成员 */
   async function removeMember(member: TenantMember) {
     failedCodes(await tenantMembersApi.delete({ ids: [member.id] }))
     await loadMembers()
   }
 
-  return { open, loading, detail, error, members, membersLoading, membersError, show, loadMembers, removeMember }
+  return { open, loading, detail, error, members, membersLoading, membersError, show, refresh, loadMembers, removeMember }
+}
+
+function emptyMemberForm(): MemberForm {
+  return { userId: null, memberType: 'Member', effectiveAt: null, expiresAt: null }
 }
 
 /**
- * 添加成员弹窗：用户从平台可见的用户里远程检索（`users.list` 关键字匹配登录名与显示名），成员类型缺省为成员。
- * 注册地就是该租户的用户与已有成员由后端拒绝（TENANCY_CONFLICT_005）。
+ * 添加成员弹窗（4.x「支持人员入驻」与加成员合在这一处）：先选成员类型，用户按类型远程检索（`users.list` 关键字匹配登录名与显示名）——
+ * 运维支持只在平台账号里挑（homeTenantId eq platform），普通成员只在租户用户里挑（homeTenantId ne platform，注册地就是本租户的也去掉）；
+ * 换类型即清掉已选的用户、按空关键字重新检索。生效与到期时间可选，按 ISO 发出、留空发 null。
+ * 已有成员（TENANCY_CONFLICT_005）、类型与账号不符（TENANCY_VALIDATION_006）、到期不晚于生效（TENANCY_VALIDATION_007）由后端拒绝。
  */
 export function useMemberEditor() {
   const open = ref(false)
-  const form = reactive<MemberForm>({ userId: null, memberType: 'Member' })
-  const userOptions = ref<{ label: string, value: string, description: string }[]>([])
+  /** 目标租户的目录键（成员按目录键挂，不是租户主键） */
+  const tenantId = ref<null | string>(null)
+  const form = reactive<MemberForm>(emptyMemberForm())
+  const userOptions = ref<UserOption[]>([])
   const userLoading = ref(false)
   const userError = ref<null | string>(null)
   const fieldErrors = ref<Record<string, string[]>>({})
   const submitError = ref<null | string>(null)
   const submitting = ref(false)
+  let searchSeq = 0
 
+  /** 只认最后一次检索的结果（连续打字、换类型时慢请求不盖掉新结果）；当前选中的用户始终留在候选里 */
   async function searchUsers(keyword: string) {
+    const seq = ++searchSeq
+    const home = tenantId.value
     userLoading.value = true
     userError.value = null
     try {
-      const result = await usersApi.list({ page: { index: 1, size: MEMBER_USER_PAGE_SIZE }, filters: [], sorts: [], keyword: blankToNull(keyword) })
-      userOptions.value = result.items.map(user => ({ label: user.userName, value: user.id, description: `${user.displayName} · ${user.homeTenantId}` }))
+      const result = await usersApi.list({ page: { index: 1, size: MEMBER_USER_PAGE_SIZE }, filters: memberUserFilters(form.memberType), sorts: [], keyword: blankToNull(keyword) })
+      if (seq !== searchSeq)
+        return
+      const options = result.items.filter(user => user.homeTenantId !== home).map(user => userOption(user, user.id))
+      const selected = userOptions.value.find(option => option.value === form.userId)
+      if (selected && !options.some(option => option.value === selected.value))
+        options.unshift(selected)
+      userOptions.value = options
     }
     catch (e) {
+      if (seq !== searchSeq)
+        return
       userOptions.value = []
       userError.value = describe(e)
     }
     finally {
-      userLoading.value = false
+      if (seq === searchSeq)
+        userLoading.value = false
     }
   }
 
-  function start() {
+  /** 换成员类型：候选范围跟着换，已选的用户不再适用，清掉后按空关键字重新检索 */
+  function changeMemberType(value: unknown) {
+    const next = TENANT_MEMBER_TYPES.find(type => type === value)
+    if (!next || next === form.memberType)
+      return
+    form.memberType = next
     form.userId = null
-    form.memberType = 'Member'
+    userOptions.value = []
+    void searchUsers('')
+  }
+
+  /** 给目录键为 target 的租户加成员：缺省普通成员、加入即生效、不到期 */
+  function start(target: string) {
+    tenantId.value = target
+    Object.assign(form, emptyMemberForm())
     fieldErrors.value = {}
     submitError.value = null
     userOptions.value = []
@@ -483,15 +562,21 @@ export function useMemberEditor() {
     return fieldErrors.value[field]?.[0]
   }
 
-  /** 加进目录键为 tenantId 的租户（成员按目录键挂，不是租户主键） */
-  async function submit(tenantId: string): Promise<boolean> {
-    if (!form.userId)
+  async function submit(): Promise<boolean> {
+    const target = tenantId.value
+    if (!target || !form.userId)
       return false
     submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
     try {
-      await tenantMembersApi.create({ tenantId, userId: form.userId, memberType: form.memberType })
+      await tenantMembersApi.create({
+        tenantId: target,
+        userId: form.userId,
+        memberType: form.memberType,
+        effectiveAt: toIso(form.effectiveAt),
+        expiresAt: toIso(form.expiresAt),
+      })
       open.value = false
       return true
     }
@@ -504,5 +589,134 @@ export function useMemberEditor() {
     }
   }
 
-  return { open, form, userOptions, userLoading, userError, fieldError, submitError, submitting, searchUsers, start, submit }
+  return { open, tenantId, form, userOptions, userLoading, userError, fieldError, submitError, submitting, searchUsers, changeMemberType, start, submit }
+}
+
+/**
+ * 所有权候选：注册地是该租户的用户（users.list 已按注册地与启用状态筛过）在前，生效中的普通成员在后（成员已全量取回，按关键字在本地匹配登录名与显示名）；
+ * 去掉现任所有者，同一用户只出一次。运维支持与不在有效期里的成员不能接任，不进候选（与后端 tenants.transfer-owner 的校验同口径）。
+ */
+export function ownerCandidates(users: readonly UserRow[], members: readonly TenantMember[], keyword: string, ownerId: null | string | undefined, now = Date.now()): UserOption[] {
+  const term = keyword.trim().toLowerCase()
+  const seen = new Set<string>(ownerId ? [ownerId] : [])
+  const options: UserOption[] = []
+  for (const user of users) {
+    if (seen.has(user.id))
+      continue
+    seen.add(user.id)
+    options.push(userOption(user, user.id))
+  }
+  for (const member of members) {
+    if (member.memberType !== 'Member' || !isMemberInEffect(member, now) || seen.has(member.userId))
+      continue
+    if (term && !member.userName.toLowerCase().includes(term) && !member.displayName.toLowerCase().includes(term))
+      continue
+    seen.add(member.userId)
+    options.push(userOption(member, member.userId))
+  }
+  return options
+}
+
+/** 能接任所有者的成员（成员行「设为所有者」）：生效中的普通成员、不是现任所有者 */
+export function isOwnerCandidate(member: TenantMember, ownerId: null | string | undefined, now = Date.now()): boolean {
+  return !!ownerId && member.memberType === 'Member' && member.userId !== ownerId && isMemberInEffect(member, now)
+}
+
+/**
+ * 转移所有权弹窗（`tenants.transfer-owner`，平台侧；4.x 是成员行上的「设为所有者」）：新所有者从候选里挑——
+ * 注册地是该租户的启用用户（`users.list` 按 homeTenantId eq 与 status eq Active 远程检索）与生效中的普通成员（详情抽屉已取的成员）。
+ * 新所有者获得管理员角色，原所有者保留已有的角色。还没有所有者（TENANCY_CONFLICT_010）、已是所有者（TENANCY_CONFLICT_011）、
+ * 不合格（TENANCY_VALIDATION_005：停用、锁定、不在有效期或是运维支持）由后端拒绝，给整条提示。
+ */
+export function useOwnerTransfer() {
+  const open = ref(false)
+  const tenant = ref<null | TenantRow>(null)
+  const userId = ref<null | string>(null)
+  const options = ref<UserOption[]>([])
+  const loading = ref(false)
+  const loadError = ref<null | string>(null)
+  const fieldErrors = ref<Record<string, string[]>>({})
+  const submitError = ref<null | string>(null)
+  const submitting = ref(false)
+  let roster: readonly TenantMember[] = []
+  let searchSeq = 0
+
+  /** 只认最后一次检索；当前选中的始终留在候选里。用户检索失败时成员候选照给，原因另报 */
+  async function search(keyword: string) {
+    const current = tenant.value
+    if (!current)
+      return
+    const seq = ++searchSeq
+    loading.value = true
+    loadError.value = null
+    let users: UserRow[] = []
+    try {
+      users = (await usersApi.list({
+        page: { index: 1, size: MEMBER_USER_PAGE_SIZE },
+        filters: [{ field: 'homeTenantId', operator: 'eq', value: current.tenantId }, { field: 'status', operator: 'eq', value: 'Active' }],
+        sorts: [],
+        keyword: blankToNull(keyword),
+      })).items
+    }
+    catch (e) {
+      if (seq === searchSeq)
+        loadError.value = describe(e)
+    }
+    finally {
+      if (seq === searchSeq)
+        loading.value = false
+    }
+    if (seq !== searchSeq)
+      return
+    const next = ownerCandidates(users, roster, keyword, current.adminUserId)
+    const selected = options.value.find(option => option.value === userId.value)
+    if (selected && !next.some(option => option.value === selected.value))
+      next.unshift(selected)
+    options.value = next
+  }
+
+  /**
+   * members：详情抽屉已取的成员（读不了成员时传空，只在本租户的用户里挑）；
+   * preset：从成员行「设为所有者」进来时预选的用户（须是能接任的成员）。
+   */
+  function start(target: TenantRow, members: readonly TenantMember[], preset: null | string = null) {
+    tenant.value = target
+    roster = members
+    const seeded = preset ? ownerCandidates([], members, '', target.adminUserId).filter(option => option.value === preset) : []
+    userId.value = seeded.length > 0 ? preset : null
+    options.value = seeded
+    loadError.value = null
+    fieldErrors.value = {}
+    submitError.value = null
+    open.value = true
+    void search('')
+  }
+
+  function fieldError(field: 'userId'): string | undefined {
+    return fieldErrors.value[field]?.[0]
+  }
+
+  /** 成功返回转移后的租户（adminUserId 已是新所有者）并关掉弹窗；失败返回 null、弹窗保持打开 */
+  async function submit(): Promise<null | TenantRow> {
+    const current = tenant.value
+    if (!current || !userId.value)
+      return null
+    submitting.value = true
+    submitError.value = null
+    fieldErrors.value = {}
+    try {
+      const saved = await tenantsApi.transferOwner({ id: current.id, userId: userId.value })
+      open.value = false
+      return saved
+    }
+    catch (error) {
+      captureErrors(error, fieldErrors, submitError)
+      return null
+    }
+    finally {
+      submitting.value = false
+    }
+  }
+
+  return { open, tenant, userId, options, loading, loadError, fieldError, submitError, submitting, search, start, submit }
 }

@@ -85,5 +85,14 @@
   "permissions.tenancy.editions.create.name": "新增套餐",
   "permissions.tenancy.editions.update.name": "修改套餐",
   "permissions.tenancy.editions.delete.name": "刪除套餐",
-  "permissions.tenancy.subscription.read.name": "讀取訂閱"
+  "permissions.tenancy.subscription.read.name": "讀取訂閱",
+  "tenants.transfer_owner.title": "轉移租戶所有權",
+  "tenants.transfer_owner.description": "把租戶所有權轉給該租戶註冊地的使用者或生效中的普通成員（啟用且未鎖定）；新所有者取得內建管理員角色，原所有者保留已有角色。只在平台側。",
+  "permissions.tenancy.tenants.transfer_owner.name": "轉移租戶所有權",
+  "tenancy.owner.missing": "租戶 '{tenantId}' 還沒有所有者，請先初始化管理員。",
+  "tenancy.owner.already": "使用者 '{userId}' 已經是租戶 '{tenantId}' 的所有者。",
+  "tenancy.owner.removal": "使用者 '{userId}' 是租戶 '{tenantId}' 的所有者，請先轉移所有權再移出。",
+  "tenancy.owner.ineligible": "使用者 '{userId}' 不能成為租戶 '{tenantId}' 的所有者：須是該租戶註冊地的使用者或生效中的普通成員，且啟用、未鎖定。",
+  "tenancy.member.type_mismatch": "使用者 '{userId}' 不能以 '{memberType}' 加入：平台帳號只能以維運支援加入，維運支援只能是平台帳號。",
+  "tenancy.member.window_invalid": "到期時間須晚於生效時間。"
 }

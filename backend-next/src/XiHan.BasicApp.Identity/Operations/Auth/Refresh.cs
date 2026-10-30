@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -21,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// 刷新令牌：轮换刷新令牌并签发新的访问令牌。
 /// </summary>
 /// <remarks>
-/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录。
+/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>。
 /// </remarks>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="users">用户仓储。</param>
@@ -31,6 +32,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签。</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
+/// <param name="memberships">成员关系（Tenancy 实现）：会话在成员租户里时，成员关系被移除或到期即不再续签。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Refresh(
     UserAccountService accounts,
@@ -40,7 +42,8 @@ public sealed class Refresh(
     IdentityOptions options,
     TimeProvider clock,
     ITenantStore tenants,
-    IEnumerable<ISessionRoleActivator> activators) : IOperation<RefreshRequest, TokenResponse>
+    IEnumerable<ISessionRoleActivator> activators,
+    IEnumerable<ITenantMembershipResolver> memberships) : IOperation<RefreshRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -98,6 +101,12 @@ public sealed class Refresh(
 
         log.UserName = user.UserName;
         log.AccountTenantId = user.HomeTenantId;
+        // 以成员身份所在的租户（非注册地、非模仿）：成员关系移除或到期即不再续签
+        if (session.ActiveTenantId is { } memberTenant && session.ImpersonatorUserId is null && !string.Equals(user.HomeTenantId, memberTenant, StringComparison.Ordinal) && !await CanEnterAsync(memberTenant, user.Id, context.CancellationToken).ConfigureAwait(false))
+        {
+            return Error.Denied(IdentityErrors.TenantNotAccessible, IdentityMessages.TenantNotAccessible, MessageArguments.Of(("tenantId", memberTenant)));
+        }
+
         var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
         if (!securityResult.TryGetValue(out var security))
         {
@@ -120,5 +129,18 @@ public sealed class Refresh(
         var active = await activators.RefreshAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active, session.ImpersonatorUserId);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName, impersonator);
+    }
+
+    private async Task<bool> CanEnterAsync(string tenantId, Guid userId, CancellationToken cancellationToken)
+    {
+        foreach (var resolver in memberships)
+        {
+            if (await resolver.CanEnterAsync(tenantId, userId, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

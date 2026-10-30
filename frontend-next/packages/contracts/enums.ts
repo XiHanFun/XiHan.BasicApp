@@ -167,7 +167,7 @@ export type OrganizationStatus = (typeof OrganizationStatus)[number]
 export const PermissionAction = ['Grant', 'Deny'] as const
 export type PermissionAction = (typeof PermissionAction)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange', 'ConstraintViolation'] as const
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange', 'ConstraintViolation', 'TenantOwner'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -194,7 +194,7 @@ export type StorageType = (typeof StorageType)[number]
 export const TemplateChannel = ['Email', 'Sms'] as const
 export type TemplateChannel = (typeof TemplateChannel)[number]
 
-export const TenantMemberType = ['Member', 'Owner'] as const
+export const TenantMemberType = ['Member', 'Support'] as const
 export type TenantMemberType = (typeof TenantMemberType)[number]
 
 export const TenantStatus = ['Active', 'Suspended'] as const
