@@ -20,7 +20,6 @@
   "files.file.not_found": "O arquivo {id} não existe.",
   "files.storage_config.not_found": "A configuração de armazenamento {id} não existe.",
   "files.file_storage.not_found": "A cópia {id} não existe.",
-  "files.link.invalid": "O link de download é inválido ou expirou.",
   "files.storage_config.code_invalid": "O código da configuração de armazenamento não pode ser vazio nem conter espaços: {code}",
   "files.storage_config.bucket_invalid": "O nome de bucket {bucket} é inválido: de 3 a 63 minúsculas, dígitos e hífens, começando e terminando com letra ou dígito.",
   "files.storage_config.remote_required": "O armazenamento {type} precisa de endpoint, ID da chave de acesso e chave de acesso.",

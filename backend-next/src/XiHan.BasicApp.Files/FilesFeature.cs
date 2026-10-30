@@ -17,6 +17,10 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.ObjectStorage.Abstractions;
+using XiHan.Framework.ObjectStorage.Abstractions.Stores;
+using XiHan.Framework.ObjectStorage.FileSystem;
+using XiHan.Framework.ObjectStorage.S3;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
@@ -31,7 +35,8 @@ namespace XiHan.BasicApp.Files;
 /// <remarks>
 /// Tier 2：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
 /// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行。
-/// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与下载（<c>GET /api/files/{id}/content</c>、签名地址 <c>GET /api/files/content/{token}</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
+/// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与按身份读（<c>GET /api/files/{id}/content</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
+/// 对象存储用框架的命名存储实例（<see cref="StorageInstances"/>）；签名地址要宿主装上代收发的签名端点（<c>HostedBlobUrlFeature</c> 与 <c>MapXiHanBlobs()</c>），本地存储的地址由它收发。
 /// </remarks>
 public sealed class FilesFeature : IHostedFeature, IDisposable
 {
@@ -56,6 +61,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
             new CapabilityRequirement(SecurityCapabilities.Authorization, SecurityCapabilities.Version),
             new CapabilityRequirement(MultiTenancyCapabilities.Context, MultiTenancyCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
+            new CapabilityRequirement(ObjectStorageCapabilities.Presign, ObjectStorageCapabilities.Version),
         ],
         Contributes = new Contributions
         {
@@ -71,8 +77,10 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddMessageCatalog(FilesMessages.Catalog);
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton(static services => FilesOptions.FromConfiguration(services.GetRequiredService<IConfiguration>(), services.GetService<IHostEnvironment>()));
-        context.Services.AddSingleton<BlobStores>();
-        context.Services.AddSingleton<FileLinks>();
+        // 存储配置的实例由框架注册表按定义建出：本地与 S3 兼容存储两个 Provider
+        context.Services.AddBlobStoreProvider<FileSystemBlobStoreProvider>(context.Configuration);
+        context.Services.AddBlobStoreProvider<S3BlobStoreProvider>(context.Configuration);
+        context.Services.AddSingleton<StorageInstances>();
         context.Services.AddScoped<StorageConfigService>();
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileQueries>();
@@ -98,6 +106,13 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
     public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(services);
+        // 本地存储的实例先登记上：签名地址跨进程重启仍有效，宿主的签名端点按实例名取
+        var local = await services.GetRequiredService<StorageInstances>().LocalAsync(cancellationToken).ConfigureAwait(false);
+        if (local.IsFailure)
+        {
+            throw new InvalidOperationException($"The local file store cannot be created ({local.Error!.Code}).");
+        }
+
         _runner = services.GetRequiredService<ExportRunner>();
         // 上个进程没执行完的导出：凭据随进程丢了，记为中断
         await _runner.InterruptLeftoversAsync(cancellationToken).ConfigureAwait(false);

@@ -3,16 +3,16 @@
 
 using System.Globalization;
 using Microsoft.AspNetCore.Http.Features;
-using XiHan.BasicApp.Contracts;
-using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Operations.Files;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 using XiHan.Framework.Kernel.Pipeline;
+using XiHan.Framework.ObjectStorage.Abstractions;
+using XiHan.Framework.ObjectStorage.Abstractions.Blobs;
+using XiHan.Framework.ObjectStorage.Abstractions.Signing;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Host.Endpoints;
@@ -24,10 +24,10 @@ namespace XiHan.BasicApp.Host.Endpoints;
 /// 方案 5.4：只有 JSON 能进操作，上传与下载内容是普通端点，元数据管理是操作。
 /// <list type="bullet">
 /// <item><c>POST /api/files/upload</c>：multipart 表单上传一个文件（字段 <c>file</c>，可选 <c>accessLevel</c>、<c>isTemporary</c>、<c>expiresAt</c>、<c>tags</c>、<c>remark</c>），要 <c>files.files.create</c>，返回文件。</item>
-/// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用）。</item>
-/// <item><c>GET /api/files/content/{token}</c>：签名地址，不再校验身份（浏览器的图片、链接与新窗口用），令牌由 <c>files.presign</c> 签发。</item>
+/// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用），支持单个区间的 <c>Range</c> 请求（206，不可满足 416）。</item>
 /// </list>
-/// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。三者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c>、<c>files.signed-content</c> 记录。
+/// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。两者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c> 记录。
+/// 浏览器的图片、链接与新窗口用 <c>files.presign</c> 换的签名地址：对象存储签出，本地存储的由框架的签名端点（<c>MapXiHanBlobs()</c>，访问日志记 <c>xihan.objectstorage.blob.download</c>）收发。
 /// </remarks>
 internal static class FileEndpoints
 {
@@ -56,16 +56,11 @@ internal static class FileEndpoints
         endpoints.MapGet("/api/files/{id:guid}/content", ContentAsync)
             .RequireXiHanAuthentication()
             .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
+            .Produces(StatusCodes.Status206PartialContent, contentType: "application/octet-stream")
             .WithName("files.content")
             .WithSummary("Read a file's content on the caller's side, subject to its access level.")
             .WithTags("files")
             .AddEndpointFilter(new AuditedEndpointFilter("files.content", audited: false));
-        endpoints.MapGet("/api/files/content/{token}", SignedContentAsync)
-            .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
-            .WithName("files.signed-content")
-            .WithSummary("Read a file's content through a signed link issued by files.presign.")
-            .WithTags("files")
-            .AddEndpointFilter(new AuditedEndpointFilter("files.signed-content", audited: false));
         return endpoints;
     }
 
@@ -133,55 +128,71 @@ internal static class FileEndpoints
             return Fail(context, allowed.Error!);
         }
 
-        return await StreamAsync(context, files, file, download == true, http.RequestAborted).ConfigureAwait(false);
-    }
-
-    private static async Task<IResult> SignedContentAsync(HttpContext http, string token, bool? download, FileService files, FileLinks links, ITenantScopeRunner tenants)
-    {
-        var context = ContextOf(http);
-        if (!links.TryRead(token, out var side, out var fileId))
-        {
-            return Fail(context, Error.NotFound(FilesErrors.LinkInvalid, FilesMessages.LinkInvalid));
-        }
-
-        if (string.Equals(side, TenantIds.Platform, StringComparison.Ordinal))
-        {
-            return await SignedStreamAsync(context, files, side, fileId, download == true, http.RequestAborted).ConfigureAwait(false);
-        }
-
-        // 租户的文件在该租户的调用里读（库隔离的租户走它的分片连接；停用的租户由框架拒绝）
-        IResult? result = null;
-        var ran = await tenants.RunAsync(side, async inner =>
-        {
-            var scoped = inner.Services.GetRequiredService<FileService>();
-            result = await SignedStreamAsync(inner, scoped, side, fileId, download == true, http.RequestAborted).ConfigureAwait(false);
-            return inner.GetOutcome().TryGetValue(out var outcome) ? outcome : Result.Success();
-        }, http.RequestAborted).ConfigureAwait(false);
-        return ran.IsFailure ? Fail(context, ran.Error!) : result ?? Results.Empty;
-    }
-
-    private static async Task<IResult> SignedStreamAsync(InvocationContext context, FileService files, string side, Guid fileId, bool download, CancellationToken cancellationToken)
-    {
-        var found = await files.FindAsync(side, fileId, cancellationToken).ConfigureAwait(false);
-        if (!found.TryGetValue(out var file))
-        {
-            // 签名地址指向的文件已删：与令牌无效同一种回答，不透露文件是否存在过
-            return Fail(context, Error.NotFound(FilesErrors.LinkInvalid, FilesMessages.LinkInvalid));
-        }
-
-        return await StreamAsync(context, files, file, download, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<IResult> StreamAsync(InvocationContext context, FileService files, SysFile file, bool download, CancellationToken cancellationToken)
-    {
-        var opened = await files.OpenAsync(file, cancellationToken).ConfigureAwait(false);
+        var range = RangeOf(http.Request, file.Size);
+        var opened = await files.OpenAsync(file, range, http.RequestAborted).ConfigureAwait(false);
         if (!opened.TryGetValue(out var blob))
         {
+            if (opened.Error!.Code == ObjectStorageErrors.RangeNotSatisfiable)
+            {
+                // 416 自己写出并开始响应：错误仍记为调用结果（访问日志可见），不再被改写成 Problem Details
+                http.Response.StatusCode = StatusCodes.Status416RangeNotSatisfiable;
+                http.Response.Headers.ContentRange = $"bytes */{file.Size}";
+                await http.Response.StartAsync(http.RequestAborted).ConfigureAwait(false);
+            }
+
             return Fail(context, opened.Error!);
         }
 
-        // 结果写完即释放内容流；可寻址的（本地存储）支持按范围读，供音视频拖动
-        return Results.Stream(blob.Content, file.ContentType, download ? file.OriginalName : null, blob.Metadata.LastModified, enableRangeProcessing: blob.Content.CanSeek);
+        await using (blob.ConfigureAwait(false))
+        {
+            var response = http.Response;
+            response.ContentType = file.ContentType;
+            response.Headers.AcceptRanges = "bytes";
+            response.Headers.LastModified = blob.Metadata.LastModified.ToString("R", CultureInfo.InvariantCulture);
+            if (download == true)
+            {
+                response.Headers.ContentDisposition = BlobContentDisposition.Attachment(file.OriginalName);
+            }
+
+            if (blob.Range is { } served)
+            {
+                response.StatusCode = StatusCodes.Status206PartialContent;
+                response.Headers.ContentRange = $"bytes {served.Offset}-{served.Last}/{served.TotalLength}";
+                response.ContentLength = served.Length;
+            }
+            else
+            {
+                response.ContentLength = blob.Metadata.Length;
+            }
+
+            await blob.Content.CopyToAsync(response.Body, http.RequestAborted).ConfigureAwait(false);
+        }
+
+        return Results.Empty;
+    }
+
+    /// <summary>
+    /// 请求的字节范围。
+    /// </summary>
+    /// <remarks>
+    /// 只认单个 <c>bytes</c> 区间（多区间与不合法的头按整读，RFC 9110 允许忽略）；后缀区间（<c>bytes=-n</c>）按文件大小换算成起点。
+    /// </remarks>
+    private static BlobRange? RangeOf(HttpRequest request, long size)
+    {
+        var header = request.GetTypedHeaders().Range;
+        if (header is null || !string.Equals(header.Unit.Value, "bytes", StringComparison.OrdinalIgnoreCase) || header.Ranges.Count != 1)
+        {
+            return null;
+        }
+
+        var item = header.Ranges.First();
+        return (item.From, item.To) switch
+        {
+            ({ } from, { } to) => to >= from ? new BlobRange(from, to - from + 1) : null,
+            ({ } from, null) => new BlobRange(from),
+            (null, { } suffix and > 0) => new BlobRange(Math.Max(0, size - suffix)),
+            _ => null,
+        };
     }
 
     /// <summary>

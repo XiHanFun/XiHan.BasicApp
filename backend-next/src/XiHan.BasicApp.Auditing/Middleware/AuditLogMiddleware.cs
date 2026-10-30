@@ -325,12 +325,14 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     /// 取 HTTP 状态码。
     /// </summary>
     /// <remarks>
-    /// 按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则；普通端点成功时取它实际写出的状态码。
+    /// 普通端点已经开始写响应的取它实际写出的状态码（端点自己写出的失败响应也是，如范围不可满足的 416）；
+    /// 其余按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则。
     /// </remarks>
     private static int StatusCodeOf(OperationDescriptor? operation, AuditedEndpoint? endpoint, Result outcome)
-        => outcome.IsFailure
-            ? ProblemResponse.StatusCodeFor(outcome.Error!)
-            : operation is not null ? HttpRouteConvention.SuccessStatusCode(operation.Contract) : endpoint?.StatusCode ?? StatusCodes.Status200OK;
+        => endpoint?.StatusCode
+            ?? (outcome.IsFailure
+                ? ProblemResponse.StatusCodeFor(outcome.Error!)
+                : operation is not null ? HttpRouteConvention.SuccessStatusCode(operation.Contract) : StatusCodes.Status200OK);
 
     private static string? MessageOf(InvocationContext context, Result outcome)
         => outcome.IsFailure ? Clip(context.Localize(outcome.Error!), 1024) : null;

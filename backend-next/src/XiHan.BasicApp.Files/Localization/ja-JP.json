@@ -20,7 +20,6 @@
   "files.file.not_found": "ファイル {id} は存在しません。",
   "files.storage_config.not_found": "ストレージ設定 {id} は存在しません。",
   "files.file_storage.not_found": "コピー {id} は存在しません。",
-  "files.link.invalid": "ダウンロード URL が無効か期限切れです。",
   "files.storage_config.code_invalid": "ストレージ設定のコードは空や空白を含められません：{code}",
   "files.storage_config.bucket_invalid": "バケット名 {bucket} が無効です。小文字、数字、ハイフンで 3〜63 文字、先頭と末尾は英数字にしてください。",
   "files.storage_config.remote_required": "{type} ストレージにはエンドポイント、アクセスキー ID、アクセスキーが必要です。",

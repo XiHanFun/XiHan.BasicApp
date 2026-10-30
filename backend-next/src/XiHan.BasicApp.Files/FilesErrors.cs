@@ -27,11 +27,6 @@ public static class FilesErrors
     public const string FileStorageNotFound = "FILES_NOTFOUND_003";
 
     /// <summary>
-    /// 签名下载地址无效或已过期。
-    /// </summary>
-    public const string LinkInvalid = "FILES_NOTFOUND_004";
-
-    /// <summary>
     /// 存储配置编码为空或含空白。
     /// </summary>
     public const string StorageCodeInvalid = "FILES_VALIDATION_001";

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
     <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />

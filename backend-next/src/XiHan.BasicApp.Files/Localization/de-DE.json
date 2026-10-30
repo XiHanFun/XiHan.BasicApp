@@ -20,7 +20,6 @@
   "files.file.not_found": "Die Datei {id} existiert nicht.",
   "files.storage_config.not_found": "Die Speicherkonfiguration {id} existiert nicht.",
   "files.file_storage.not_found": "Die Kopie {id} existiert nicht.",
-  "files.link.invalid": "Der Download-Link ist ungültig oder abgelaufen.",
   "files.storage_config.code_invalid": "Der Code der Speicherkonfiguration darf nicht leer sein oder Leerzeichen enthalten: {code}",
   "files.storage_config.bucket_invalid": "Der Bucket-Name {bucket} ist ungültig: 3 bis 63 Kleinbuchstaben, Ziffern und Bindestriche, Anfang und Ende Buchstabe oder Ziffer.",
   "files.storage_config.remote_required": "{type}-Speicher braucht einen Endpunkt, eine Zugriffsschlüssel-ID und einen Zugriffsschlüssel.",

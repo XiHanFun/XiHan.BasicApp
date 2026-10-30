@@ -41,7 +41,8 @@ public sealed record StorageConfigDefinition(string Code, string Name, StorageTy
 /// <param name="unitOfWork">工作单元（查副本引用）。</param>
 /// <param name="secrets">密钥保护。</param>
 /// <param name="ids">ID 生成器。</param>
-public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> configs, SqlSugarUnitOfWork unitOfWork, ISecretProtector secrets, IIdGenerator<Guid> ids)
+/// <param name="instances">存储配置对应的对象存储实例（删配置时移除）。</param>
+public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> configs, SqlSugarUnitOfWork unitOfWork, ISecretProtector secrets, IIdGenerator<Guid> ids, StorageInstances instances)
 {
     /// <summary>
     /// 按 ID 取这一侧的配置。
@@ -260,7 +261,13 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
             return Error.Conflict(FilesErrors.StorageConfigInUse, FilesMessages.StorageConfigInUse, MessageArguments.Of(("count", copies)));
         }
 
-        return await configs.RemoveAsync(config, cancellationToken).ConfigureAwait(false);
+        var removed = await configs.RemoveAsync(config, cancellationToken).ConfigureAwait(false);
+        if (removed.IsSuccess)
+        {
+            await instances.RemoveAsync(config, cancellationToken).ConfigureAwait(false);
+        }
+
+        return removed;
     }
 
     private async Task<Maybe<SysStorageConfig>> DefaultOfAsync(string owner, CancellationToken cancellationToken)
@@ -333,7 +340,7 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
         config.AccessKeyId = accessKeyId;
         if (secret is not null)
         {
-            config.SecretAccessKey = secrets.Protect(BlobStores.SecretPurpose, secret);
+            config.SecretAccessKey = secrets.Protect(StorageInstances.SecretPurpose, secret);
         }
 
         return Result.Success();

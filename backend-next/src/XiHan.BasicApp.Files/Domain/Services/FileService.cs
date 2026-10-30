@@ -13,6 +13,7 @@ using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.ObjectStorage.Abstractions;
 using XiHan.Framework.ObjectStorage.Abstractions.Blobs;
+using XiHan.Framework.ObjectStorage.Abstractions.Signing;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
@@ -36,11 +37,11 @@ public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, 
 /// <remarks>
 /// 上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理。
 /// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）。
+/// 下载计数：按身份读整个内容或从头读的范围记一次，签发签名地址记一次（之后经地址的读取不经应用）。
 /// </remarks>
 /// <param name="rows">文件与副本的读写。</param>
 /// <param name="configs">存储配置。</param>
-/// <param name="stores">对象存储实例。</param>
-/// <param name="links">签名下载地址。</param>
+/// <param name="stores">存储配置对应的对象存储实例。</param>
 /// <param name="permissions">权限判定（访问级别）。</param>
 /// <param name="options">文件包配置。</param>
 /// <param name="ids">ID 生成器。</param>
@@ -51,8 +52,7 @@ public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, 
 public sealed partial class FileService(
     SideRows rows,
     StorageConfigService configs,
-    BlobStores stores,
-    FileLinks links,
+    StorageInstances stores,
     IPermissionChecker permissions,
     FilesOptions options,
     IIdGenerator<Guid> ids,
@@ -210,12 +210,18 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 签发下载地址（相对路径，调用方按接口地址拼完整地址）。
+    /// 签发主副本的下载地址，并记一次下载。
     /// </summary>
+    /// <remarks>
+    /// 地址由对象存储签出（ADR-0049）：S3 兼容存储是直连存储的完整地址，本地存储是宿主签名端点的路径（<c>/blobs/…</c>，调用方按接口地址拼完整地址）。
+    /// 地址指向对象本身、有效期内不再经过应用：签出之后归档、损坏或改访问级别都不影响它，对象删掉（删到最后一条引用）即失效。
+    /// </remarks>
     /// <param name="file">文件。</param>
     /// <param name="lifetime">有效期；为空取缺省值。</param>
+    /// <param name="download">是否以附件下载（带原始文件名）；否则按内容类型内联显示。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>地址与到期时间。</returns>
-    public Result<(string Url, DateTimeOffset ExpiresAt)> IssueLink(SysFile file, TimeSpan? lifetime)
+    public async Task<Result<(string Url, DateTimeOffset ExpiresAt)>> SignAsync(SysFile file, TimeSpan? lifetime, bool download, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
         var span = lifetime ?? options.LinkLifetime;
@@ -224,61 +230,56 @@ public sealed partial class FileService(
             return Error.Validation(FilesErrors.LinkLifetimeInvalid, FilesMessages.LinkLifetimeInvalid, MessageArguments.Of(("min", 60), ("max", (long)options.MaxLinkLifetime.TotalSeconds)));
         }
 
-        var expiresAt = clock.GetUtcNow().Add(span);
-        return (FileLinks.PathPrefix + links.Issue(file.TenantId, file.Id, expiresAt), expiresAt);
+        var located = await LocateAsync(file, cancellationToken).ConfigureAwait(false);
+        if (!located.TryGetValue(out var target))
+        {
+            return located.Error!;
+        }
+
+        var request = BlobUrlRequest.ForDownload(span, download ? file.OriginalName : null);
+        var signed = await stores.SignerOf(target.Config, target.Store).SignAsync(target.Storage.Bucket, target.Storage.Key, request, cancellationToken).ConfigureAwait(false);
+        if (!signed.TryGetValue(out var url))
+        {
+            return signed.Error!;
+        }
+
+        await CountDownloadAsync(file, cancellationToken).ConfigureAwait(false);
+        return (url.Url.OriginalString, url.ExpiresAt);
     }
 
     /// <summary>
-    /// 读文件内容（主副本），并记一次下载。
+    /// 读主副本的内容。
     /// </summary>
     /// <remarks>
-    /// 计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行。
+    /// 给了范围就只读那一段（音视频拖动、断点续传），起点不在内容里是 <see cref="ObjectStorageErrors.RangeNotSatisfiable"/>。
+    /// 读整个内容或从头读的范围记一次下载：计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行。
     /// </remarks>
     /// <param name="file">文件。</param>
+    /// <param name="range">要读的范围；为空读整个内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>内容（调用方释放）。</returns>
-    public async Task<Result<BlobContent>> OpenAsync(SysFile file, CancellationToken cancellationToken)
+    public async Task<Result<BlobContent>> OpenAsync(SysFile file, BlobRange? range, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
-        if (file.Status != FileStatus.Normal)
+        var located = await LocateAsync(file, cancellationToken).ConfigureAwait(false);
+        if (!located.TryGetValue(out var target))
         {
-            return Error.Conflict(FilesErrors.FileUnavailable, FilesMessages.FileUnavailable, MessageArguments.Of(("status", file.Status)));
+            return located.Error!;
         }
 
-        var primary = await PrimaryOfAsync(file, cancellationToken).ConfigureAwait(false);
-        if (!primary.TryGetValue(out var storage))
-        {
-            return Error.Conflict(FilesErrors.FileUnavailable, FilesMessages.FileUnavailable, MessageArguments.Of(("status", file.Status)));
-        }
-
-        var store = await StoreOfAsync(storage, cancellationToken).ConfigureAwait(false);
-        if (!store.TryGetValue(out var blobs))
-        {
-            return store.Error!;
-        }
-
-        var opened = await blobs.GetAsync(storage.Bucket, storage.Key, cancellationToken).ConfigureAwait(false);
+        var opened = range is null
+            ? await target.Store.GetAsync(target.Storage.Bucket, target.Storage.Key, cancellationToken).ConfigureAwait(false)
+            : await target.Store.GetAsync(target.Storage.Bucket, target.Storage.Key, range, cancellationToken).ConfigureAwait(false);
         if (opened.IsFailure)
         {
             return opened.Error!;
         }
 
-        var fileId = file.Id;
-        var now = clock.GetUtcNow();
-        var counted = await StoreScope.WriteAsync(scopes, async (services, ct) =>
+        if (range is null || range.Offset == 0)
         {
-            var unitOfWork = services.GetRequiredService<SqlSugarUnitOfWork>();
-            await unitOfWork.EnsureTransactionAsync(ct).ConfigureAwait(false);
-            await unitOfWork.ConnectionFor(typeof(SysFile)).Updateable<SysFile>().SetColumns(f => new SysFile { DownloadCount = f.DownloadCount + 1, LastDownloadedAt = now }).Where(f => f.Id == fileId).ExecuteCommandAsync(ct).ConfigureAwait(false);
-            return Result.Success();
-        }, cancellationToken).ConfigureAwait(false);
-        if (counted.IsFailure)
-        {
-            LogDownloadNotCounted(logger, fileId, counted.Error!.Code);
+            await CountDownloadAsync(file, cancellationToken).ConfigureAwait(false);
         }
 
-        file.DownloadCount++;
-        file.LastDownloadedAt = now;
         return opened;
     }
 
@@ -560,7 +561,53 @@ public sealed partial class FileService(
             return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", storage.StorageConfigId)));
         }
 
-        return stores.For(config);
+        return await stores.GetAsync(config, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 正常文件的主副本、它的配置与对象存储。
+    /// </summary>
+    private async Task<Result<Located>> LocateAsync(SysFile file, CancellationToken cancellationToken)
+    {
+        if (file.Status != FileStatus.Normal || !(await PrimaryOfAsync(file, cancellationToken).ConfigureAwait(false)).TryGetValue(out var storage))
+        {
+            return Error.Conflict(FilesErrors.FileUnavailable, FilesMessages.FileUnavailable, MessageArguments.Of(("status", file.Status)));
+        }
+
+        if (!(await configs.FindAnyAsync(storage.StorageConfigId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        {
+            return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", storage.StorageConfigId)));
+        }
+
+        var store = await stores.GetAsync(config, cancellationToken).ConfigureAwait(false);
+        return store.TryGetValue(out var blobs) ? new Located(storage, config, blobs) : store.Error!;
+    }
+
+    /// <summary>
+    /// 在独立的短事务里给下载次数原子加一。
+    /// </summary>
+    /// <remarks>
+    /// 计数失败只记警告，不影响下载本身。
+    /// </remarks>
+    private async Task CountDownloadAsync(SysFile file, CancellationToken cancellationToken)
+    {
+        var fileId = file.Id;
+        var now = clock.GetUtcNow();
+        var counted = await StoreScope.WriteAsync(scopes, async (services, ct) =>
+        {
+            var unitOfWork = services.GetRequiredService<SqlSugarUnitOfWork>();
+            await unitOfWork.EnsureTransactionAsync(ct).ConfigureAwait(false);
+            await unitOfWork.ConnectionFor(typeof(SysFile)).Updateable<SysFile>().SetColumns(f => new SysFile { DownloadCount = f.DownloadCount + 1, LastDownloadedAt = now }).Where(f => f.Id == fileId).ExecuteCommandAsync(ct).ConfigureAwait(false);
+            return Result.Success();
+        }, cancellationToken).ConfigureAwait(false);
+        if (counted.IsFailure)
+        {
+            LogDownloadNotCounted(logger, fileId, counted.Error!.Code);
+            return;
+        }
+
+        file.DownloadCount++;
+        file.LastDownloadedAt = now;
     }
 
     private async Task<Result> EnsureQuotaAsync(InvocationContext context, string side, long bytes)
@@ -718,7 +765,7 @@ public sealed partial class FileService(
             return target.Error!;
         }
 
-        var store = stores.For(config);
+        var store = await stores.GetAsync(config, cancellationToken).ConfigureAwait(false);
         if (!store.TryGetValue(out var blobs))
         {
             return store.Error!;
@@ -814,6 +861,8 @@ public sealed partial class FileService(
             LogObjectNotRemoved(logger, copy.Id, copy.Bucket, copy.Key, error.Code);
         }
     }
+
+    private sealed record Located(SysFileStorage Storage, SysStorageConfig Config, IBlobStore Store);
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "The download of file {FileId} was not counted ({Code}).")]
     private static partial void LogDownloadNotCounted(ILogger logger, Guid fileId, string code);

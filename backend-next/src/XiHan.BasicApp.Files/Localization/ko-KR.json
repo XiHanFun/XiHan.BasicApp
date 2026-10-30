@@ -20,7 +20,6 @@
   "files.file.not_found": "파일 {id}이(가) 없습니다.",
   "files.storage_config.not_found": "저장소 설정 {id}이(가) 없습니다.",
   "files.file_storage.not_found": "사본 {id}이(가) 없습니다.",
-  "files.link.invalid": "다운로드 주소가 잘못되었거나 만료되었습니다.",
   "files.storage_config.code_invalid": "저장소 설정 코드는 비어 있거나 공백을 포함할 수 없습니다: {code}",
   "files.storage_config.bucket_invalid": "버킷 이름 {bucket}이(가) 올바르지 않습니다. 소문자, 숫자, 하이픈으로 3~63자, 처음과 끝은 문자나 숫자여야 합니다.",
   "files.storage_config.remote_required": "{type} 저장소에는 엔드포인트, 액세스 키 ID, 액세스 키가 필요합니다.",

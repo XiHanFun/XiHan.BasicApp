@@ -124,11 +124,6 @@ public static class FilesMessages
     public const string FileStorageNotFound = "files.file_storage.not_found";
 
     /// <summary>
-    /// 签名下载地址无效或已过期。
-    /// </summary>
-    public const string LinkInvalid = "files.link.invalid";
-
-    /// <summary>
     /// 存储配置编码为空或含空白。
     /// </summary>
     public const string StorageCodeInvalid = "files.storage_config.code_invalid";

@@ -150,7 +150,7 @@ public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, 
 /// <remarks>
 /// <c>GET /api/files/{id}:presign</c>。访问级别「已登录」的同一侧已登录即可，「需要授权」的要持有 <c>files.files.read</c>，
 /// 「公开」的（头像，固定在平台侧）任何已登录主体不分侧都能换（本侧找不到再到平台侧找，只认公开级别）；
-/// 地址在有效期内不再校验身份（给图片、链接与新窗口用），文件归档或损坏后地址随之失效。
+/// 归档或损坏的文件换不到地址。地址由对象存储签出、指向对象本身，有效期内不再校验身份（给图片、链接与新窗口用），签出之后的归档不影响它；换一次记一次下载。
 /// </remarks>
 /// <param name="files">文件服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -186,7 +186,7 @@ public sealed class PresignFile(FileService files) : IOperation<PresignFileReque
             return allowed.Error!;
         }
 
-        var issued = files.IssueLink(file, request.ExpiresInSeconds is { } seconds ? TimeSpan.FromSeconds(seconds) : null);
+        var issued = await files.SignAsync(file, request.ExpiresInSeconds is { } seconds ? TimeSpan.FromSeconds(seconds) : null, request.Download == true, context.CancellationToken).ConfigureAwait(false);
         if (!issued.TryGetValue(out var link))
         {
             return issued.Error!;
