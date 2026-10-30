@@ -76,6 +76,8 @@ export const permissionDefinitions = {
   'maintenance.jobs.read': { code: 'maintenance.jobs.read', displayName: 'Read jobs', description: 'View the scheduled jobs, their schedules, state and last outcome.' },
   'maintenance.jobs.trigger': { code: 'maintenance.jobs.trigger', displayName: 'Run jobs now', description: 'Run a scheduled job now on any node.' },
   'maintenance.jobs.update': { code: 'maintenance.jobs.update', displayName: 'Pause and resume jobs', description: 'Pause and resume scheduled jobs.' },
+  'maintenance.migrations.read': { code: 'maintenance.migrations.read', displayName: 'Read upgrade records', description: 'View the upgrade script records.' },
+  'maintenance.versions.read': { code: 'maintenance.versions.read', displayName: 'Read versions', description: 'View the database version ledger.' },
   'notification.bot-configs.create': { code: 'notification.bot-configs.create', displayName: 'Create bot configurations', description: 'Create group bots on the caller\'s side.' },
   'notification.bot-configs.delete': { code: 'notification.bot-configs.delete', displayName: 'Delete bot configurations', description: 'Delete group bots on the caller\'s side other than the defaults.' },
   'notification.bot-configs.read': { code: 'notification.bot-configs.read', displayName: 'Read bot configurations', description: 'View the DingTalk, Lark and WeCom group bots of the caller\'s side; signing secrets are never shown.' },
@@ -273,6 +275,8 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'message-templates.get': 'notification.message-templates.read',
   'message-templates.list': 'notification.message-templates.read',
   'message-templates.update': 'notification.message-templates.update',
+  'migrations.get': 'maintenance.migrations.read',
+  'migrations.list': 'maintenance.migrations.read',
   'notifications.create': 'notification.notifications.create',
   'notifications.delete': 'notification.notifications.delete',
   'notifications.get': 'notification.notifications.read',
@@ -400,6 +404,8 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'users.reset-two-factor': 'identity.users.reset-two-factor',
   'users.unlock': 'identity.users.lock',
   'users.update': 'identity.users.update',
+  'versions.get': 'maintenance.versions.read',
+  'versions.list': 'maintenance.versions.read',
 }
 
 /** 操作 → 策略名（如 `authenticated`）；与权限码二选一。 */

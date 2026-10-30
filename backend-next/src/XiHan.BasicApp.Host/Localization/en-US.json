@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "Run the seeders in order (--only <name,...> to pick some, --list to show them without running).",
-  "host.commands.seeder_unknown": "Unknown seeder '{name}'. Run 'seed --list' to show the seeders."
+  "host.commands.seeder_unknown": "Unknown seeder '{name}'. Run 'seed --list' to show the seeders.",
+  "host.commands.schema_description": "Schema upgrade: schema upgrade runs the platform database scripts not yet applied according to the version ledger (a new database is built from the baseline).",
+  "host.commands.schema_action_unknown": "Unknown schema action '{action}'; only upgrade is available."
 }

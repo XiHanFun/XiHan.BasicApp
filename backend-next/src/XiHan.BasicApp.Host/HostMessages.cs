@@ -31,6 +31,19 @@ public static class HostMessages
     /// </remarks>
     public const string SeederUnknown = "host.commands.seeder_unknown";
 
+    /// <summary>
+    /// <c>schema</c> 命令的说明。
+    /// </summary>
+    public const string SchemaDescription = "host.commands.schema_description";
+
+    /// <summary>
+    /// <c>schema</c> 命令不认识的动作。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>action</c>。
+    /// </remarks>
+    public const string SchemaActionUnknown = "host.commands.schema_action_unknown";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(HostMessages)));
 
     /// <summary>

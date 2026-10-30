@@ -14,6 +14,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
   </ItemGroup>
 

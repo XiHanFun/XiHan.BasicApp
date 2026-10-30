@@ -146,6 +146,11 @@
       "description": "Create, read, update and delete message templates."
     },
     {
+      "name": "migrations",
+      "x-displayName": "Upgrade records",
+      "description": "Each upgrade script run: version, script, duration, outcome and node."
+    },
+    {
       "name": "my-activity",
       "x-displayName": "My activity",
       "description": "Your activity: sign-in, access and operation counts with a daily trend."
@@ -304,6 +309,11 @@
       "name": "users",
       "x-displayName": "Users",
       "description": "Create, read, update and delete users, lock and unlock them, and reset passwords and two-factor."
+    },
+    {
+      "name": "versions",
+      "x-displayName": "Versions",
+      "description": "Each database\u0027s version ledger: schema version, upgrade lock and last upgrade."
     }
   ],
   "paths": {
@@ -18394,6 +18404,199 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/MessageTemplateResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/migrations/{id}": {
+      "get": {
+        "operationId": "migrations.get",
+        "tags": [
+          "migrations"
+        ],
+        "summary": "Get upgrade record",
+        "description": "Get one upgrade script record by ID, including the failure reason.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.migrations.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8BB0\u5F55 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8BB0\u5F55 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MigrationResponse",
+                  "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u8BB0\u5F55 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "version": {
+                      "description": "\u811A\u672C\u6240\u5728\u7684\u7248\u672C\u76EE\u5F55\u3002",
+                      "type": "string"
+                    },
+                    "scriptName": {
+                      "description": "\u811A\u672C\u6587\u4EF6\u540D\u3002",
+                      "type": "string"
+                    },
+                    "executedAt": {
+                      "description": "\u5F00\u59CB\u6267\u884C\u7684\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "durationMs": {
+                      "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "success": {
+                      "description": "\u662F\u5426\u6210\u529F\u3002",
+                      "type": "boolean"
+                    },
+                    "nodeName": {
+                      "description": "\u6267\u884C\u7684\u8282\u70B9\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "\u5931\u8D25\u7684\u539F\u56E0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "version",
+                    "scriptName",
+                    "executedAt",
+                    "durationMs",
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/migrations:list": {
+      "post": {
+        "operationId": "migrations.list",
+        "tags": [
+          "migrations"
+        ],
+        "summary": "List upgrade records",
+        "description": "List upgrade script records page by page (successes and failures), newest first by default, filterable by version, script, node, outcome and time.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.migrations.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfMigrationResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MigrationResponse"
                       }
                     },
                     "total": {
@@ -39919,6 +40122,203 @@
           }
         }
       }
+    },
+    "/api/versions/{id}": {
+      "get": {
+        "operationId": "versions.get",
+        "tags": [
+          "versions"
+        ],
+        "summary": "Get version",
+        "description": "Get one version ledger row by ID.\n\nRequires permission maintenance.versions.read (Read versions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.versions.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u53F0\u8D26\u884C ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u53F0\u8D26\u884C ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SchemaVersionResponse",
+                  "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u53F0\u8D26\u884C ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "database": {
+                      "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\u3002",
+                      "type": "string"
+                    },
+                    "appVersion": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u8FD9\u4E2A\u5E93\u7684\u5E94\u7528\u7248\u672C\u3002",
+                      "type": "string"
+                    },
+                    "dbVersion": {
+                      "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u8FD8\u6CA1\u6267\u884C\u8FC7\u57FA\u7EBF\u4E3A null\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isUpgrading": {
+                      "description": "\u662F\u5426\u6B63\u5728\u5347\u7EA7\u3002",
+                      "type": "boolean"
+                    },
+                    "upgradeNode": {
+                      "description": "\u6301\u6709\u5347\u7EA7\u9501\u7684\u8282\u70B9\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "upgradeStartedAt": {
+                      "description": "\u8FD9\u4E00\u8F6E\u5347\u7EA7\u7684\u5F00\u59CB\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "upgradedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5B8C\u6210\u7684\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "database",
+                    "appVersion",
+                    "isUpgrading"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/versions:list": {
+      "post": {
+        "operationId": "versions.list",
+        "tags": [
+          "versions"
+        ],
+        "summary": "List versions",
+        "description": "List each database\u0027s version ledger page by page: schema version, the app version and time of the last upgrade, and whether an upgrade is running; maintained by the upgrade runner, read-only.\n\nRequires permission maintenance.versions.read (Read versions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.versions.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfSchemaVersionResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SchemaVersionResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -44541,6 +44941,61 @@
           "createdAt"
         ]
       },
+      "MigrationResponse": {
+        "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u8BB0\u5F55 ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "description": "\u811A\u672C\u6240\u5728\u7684\u7248\u672C\u76EE\u5F55\u3002",
+            "type": "string"
+          },
+          "scriptName": {
+            "description": "\u811A\u672C\u6587\u4EF6\u540D\u3002",
+            "type": "string"
+          },
+          "executedAt": {
+            "description": "\u5F00\u59CB\u6267\u884C\u7684\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "durationMs": {
+            "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09\u3002",
+            "type": "integer",
+            "format": "int64"
+          },
+          "success": {
+            "description": "\u662F\u5426\u6210\u529F\u3002",
+            "type": "boolean"
+          },
+          "nodeName": {
+            "description": "\u6267\u884C\u7684\u8282\u70B9\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "description": "\u5931\u8D25\u7684\u539F\u56E0\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "scriptName",
+          "executedAt",
+          "durationMs",
+          "success"
+        ]
+      },
       "MyApiCredentialResponse": {
         "description": "\u672C\u4EBA\u7684\u4E00\u4E2A\u5F00\u653E\u63A5\u53E3\u51ED\u8BC1\uFF08\u5BC6\u94A5\u4E0D\u56DE\u663E\uFF09\u3002",
         "type": "object",
@@ -46572,6 +47027,65 @@
           "name"
         ]
       },
+      "SchemaVersionResponse": {
+        "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u53F0\u8D26\u884C ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "database": {
+            "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\u3002",
+            "type": "string"
+          },
+          "appVersion": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u8FD9\u4E2A\u5E93\u7684\u5E94\u7528\u7248\u672C\u3002",
+            "type": "string"
+          },
+          "dbVersion": {
+            "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u8FD8\u6CA1\u6267\u884C\u8FC7\u57FA\u7EBF\u4E3A null\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isUpgrading": {
+            "description": "\u662F\u5426\u6B63\u5728\u5347\u7EA7\u3002",
+            "type": "boolean"
+          },
+          "upgradeNode": {
+            "description": "\u6301\u6709\u5347\u7EA7\u9501\u7684\u8282\u70B9\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "upgradeStartedAt": {
+            "description": "\u8FD9\u4E00\u8F6E\u5347\u7EA7\u7684\u5F00\u59CB\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "upgradedAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5B8C\u6210\u7684\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "database",
+          "appVersion",
+          "isUpgrading"
+        ]
+      },
       "SessionRoleItemResponse": {
         "description": "\u5F53\u524D\u4F1A\u8BDD\u53EF\u6FC0\u6D3B\u7684\u4E00\u4E2A\u89D2\u8272\u3002",
         "type": "object",
@@ -48222,6 +48736,16 @@
         "displayName": "Pause and resume jobs",
         "description": "Pause and resume scheduled jobs."
       },
+      "maintenance.migrations.read": {
+        "code": "maintenance.migrations.read",
+        "displayName": "Read upgrade records",
+        "description": "View the upgrade script records."
+      },
+      "maintenance.versions.read": {
+        "code": "maintenance.versions.read",
+        "displayName": "Read versions",
+        "description": "View the database version ledger."
+      },
       "notification.bot-configs.create": {
         "code": "notification.bot-configs.create",
         "displayName": "Create bot configurations",
@@ -48723,7 +49247,9 @@
       "name": "Maintenance",
       "tags": [
         "job-runs",
-        "jobs"
+        "jobs",
+        "migrations",
+        "versions"
       ]
     },
     {

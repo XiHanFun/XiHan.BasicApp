@@ -38,8 +38,14 @@ public sealed class MaintenanceJobsTests : IDisposable
         var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
         await using var running = server;
 
-        // 三个包代码登记的作业都在，显示名取登记包的文案
+        // 三个包代码登记的作业都在，显示名取登记包的文案；调度引擎启动后才把代码作业同步进作业表（之前没有触发器），等它同步完
         var (listed, page) = await SendAsync(server, HttpMethod.Post, "/api/jobs:list", new { page = new { index = 1, size = 50 } }, platform);
+        for (var attempt = 0; attempt < 150 && JobOf(page, "auditing.retention").GetProperty("triggers").GetArrayLength() == 0; attempt++)
+        {
+            await Task.Delay(100);
+            (listed, page) = await SendAsync(server, HttpMethod.Post, "/api/jobs:list", new { page = new { index = 1, size = 50 } }, platform);
+        }
+
         Assert.Equal(HttpStatusCode.OK, listed);
         var retention = JobOf(page, "auditing.retention");
         Assert.Equal("Log retention cleanup", retention.GetProperty("title").GetString());

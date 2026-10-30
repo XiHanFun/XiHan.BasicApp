@@ -82,6 +82,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Bindings:db:value", connectionString),
         new("XiHan:Bindings:db:provider", provider),
         new("XiHan:Persistence:SqlSugar:InitTables", "true"),
+        // 宿主用数据库调度：测试库是 SQLite，引擎每秒轮询会和用例的写入抢锁；拉长到 5 秒，作业相关的用例自己等同步
+        new("XiHan:Scheduling:PollIntervalSeconds", "5"),
         new("XiHan:Security:Jwt:Secret", TestTokens.Secret),
         new("XiHan:Security:Jwt:Issuer", TestTokens.Issuer),
         new("XiHan:Security:Jwt:Audience", TestTokens.Audience),

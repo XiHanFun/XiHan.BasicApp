@@ -51,6 +51,26 @@ public static class MaintenanceMessages
     public const string ListJobRunsDescription = "job_runs.list.description";
 
     /// <summary>
+    /// 操作 <c>versions.list</c> 的说明。
+    /// </summary>
+    public const string ListVersionsDescription = "versions.list.description";
+
+    /// <summary>
+    /// 操作 <c>versions.get</c> 的说明。
+    /// </summary>
+    public const string GetVersionDescription = "versions.get.description";
+
+    /// <summary>
+    /// 操作 <c>migrations.list</c> 的说明。
+    /// </summary>
+    public const string ListMigrationsDescription = "migrations.list.description";
+
+    /// <summary>
+    /// 操作 <c>migrations.get</c> 的说明。
+    /// </summary>
+    public const string GetMigrationDescription = "migrations.get.description";
+
+    /// <summary>
     /// 只能在平台一侧调用。
     /// </summary>
     public const string PlatformOnly = "maintenance.platform_only";
@@ -86,6 +106,14 @@ public static class MaintenanceMessages
     /// 参数 <c>name</c>。
     /// </remarks>
     public const string JobNotFound = "maintenance.jobs.not_found";
+
+    /// <summary>
+    /// 版本台账或执行记录不存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string SchemaRecordNotFound = "maintenance.schema.not_found";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(MaintenanceMessages)));
 

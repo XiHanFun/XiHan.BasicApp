@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "按顺序执行种子（--only <名,...> 只跑指定的，--list 只列出不执行）。",
-  "host.commands.seeder_unknown": "没有名为 '{name}' 的种子。执行 'seed --list' 查看种子列表。"
+  "host.commands.seeder_unknown": "没有名为 '{name}' 的种子。执行 'seed --list' 查看种子列表。",
+  "host.commands.schema_description": "结构升级：schema upgrade 按版本台账执行平台库还没执行的升级脚本（新库从基线建起）。",
+  "host.commands.schema_action_unknown": "schema 命令不认识的动作 '{action}'；目前只有 upgrade。"
 }

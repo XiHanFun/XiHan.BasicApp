@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "Executa os semeadores em ordem (--only <nome,...> para escolher alguns, --list para exibi-los sem executar).",
-  "host.commands.seeder_unknown": "Semeador desconhecido '{name}'. Execute 'seed --list' para exibir os semeadores."
+  "host.commands.seeder_unknown": "Semeador desconhecido '{name}'. Execute 'seed --list' para exibir os semeadores.",
+  "host.commands.schema_description": "Atualização do esquema: schema upgrade executa os scripts do banco da plataforma ainda não aplicados conforme o registro de versões (um banco novo é criado a partir da linha de base).",
+  "host.commands.schema_action_unknown": "Ação de schema desconhecida '{action}'; só existe upgrade."
 }

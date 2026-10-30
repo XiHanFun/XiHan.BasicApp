@@ -153,6 +153,8 @@ export const routes = {
   'message-templates.get': { method: 'GET', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
   'message-templates.list': { method: 'POST', template: '/api/message-templates:list', path: [], query: [], success: 200 },
   'message-templates.update': { method: 'PUT', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
+  'migrations.get': { method: 'GET', template: '/api/migrations/{id}', path: ['id'], query: [], success: 200 },
+  'migrations.list': { method: 'POST', template: '/api/migrations:list', path: [], query: [], success: 200 },
   'my-activity.summary': { method: 'GET', template: '/api/my-activity:summary', path: [], query: ['timeZone'], success: 200 },
   'my-api-credentials.create': { method: 'POST', template: '/api/my-api-credentials', path: [], query: [], success: 201 },
   'my-api-credentials.delete': { method: 'DELETE', template: '/api/my-api-credentials', path: [], query: ['ids'], success: 200 },
@@ -327,6 +329,8 @@ export const routes = {
   'users.reset-two-factor': { method: 'POST', template: '/api/users:reset-two-factor', path: [], query: [], success: 200 },
   'users.unlock': { method: 'POST', template: '/api/users:unlock', path: [], query: [], success: 200 },
   'users.update': { method: 'PUT', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
+  'versions.get': { method: 'GET', template: '/api/versions/{id}', path: ['id'], query: [], success: 200 },
+  'versions.list': { method: 'POST', template: '/api/versions:list', path: [], query: [], success: 200 },
 } as const satisfies Record<string, RouteDef>
 
 export type OperationId = keyof typeof routes
@@ -597,6 +601,12 @@ export const messageTemplates = {
   get: (request: RequestOf<'message-templates.get'>, options?: CallOptions) => invoke<RequestOf<'message-templates.get'>, ResponseOf<'message-templates.get'>>('message-templates.get', routes['message-templates.get'], request, options),
   list: (request: RequestOf<'message-templates.list'>, options?: CallOptions) => invoke<RequestOf<'message-templates.list'>, ResponseOf<'message-templates.list'>>('message-templates.list', routes['message-templates.list'], request, options),
   update: (request: RequestOf<'message-templates.update'>, options?: CallOptions) => invoke<RequestOf<'message-templates.update'>, ResponseOf<'message-templates.update'>>('message-templates.update', routes['message-templates.update'], request, options),
+}
+
+/** 资源 `migrations` 的操作。 */
+export const migrations = {
+  get: (request: RequestOf<'migrations.get'>, options?: CallOptions) => invoke<RequestOf<'migrations.get'>, ResponseOf<'migrations.get'>>('migrations.get', routes['migrations.get'], request, options),
+  list: (request: RequestOf<'migrations.list'>, options?: CallOptions) => invoke<RequestOf<'migrations.list'>, ResponseOf<'migrations.list'>>('migrations.list', routes['migrations.list'], request, options),
 }
 
 /** 资源 `my-activity` 的操作。 */
@@ -899,4 +909,10 @@ export const users = {
   resetTwoFactor: (request: RequestOf<'users.reset-two-factor'>, options?: CallOptions) => invoke<RequestOf<'users.reset-two-factor'>, ResponseOf<'users.reset-two-factor'>>('users.reset-two-factor', routes['users.reset-two-factor'], request, options),
   unlock: (request: RequestOf<'users.unlock'>, options?: CallOptions) => invoke<RequestOf<'users.unlock'>, ResponseOf<'users.unlock'>>('users.unlock', routes['users.unlock'], request, options),
   update: (request: RequestOf<'users.update'>, options?: CallOptions) => invoke<RequestOf<'users.update'>, ResponseOf<'users.update'>>('users.update', routes['users.update'], request, options),
+}
+
+/** 资源 `versions` 的操作。 */
+export const versions = {
+  get: (request: RequestOf<'versions.get'>, options?: CallOptions) => invoke<RequestOf<'versions.get'>, ResponseOf<'versions.get'>>('versions.get', routes['versions.get'], request, options),
+  list: (request: RequestOf<'versions.list'>, options?: CallOptions) => invoke<RequestOf<'versions.list'>, ResponseOf<'versions.list'>>('versions.list', routes['versions.list'], request, options),
 }

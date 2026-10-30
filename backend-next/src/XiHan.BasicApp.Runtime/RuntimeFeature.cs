@@ -7,11 +7,13 @@ using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Runtime.Schema;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Persistence.Abstractions;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 
@@ -53,6 +55,12 @@ public sealed class RuntimeFeature : IFeature
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddSingleton(SeedOptions.FromConfiguration(context.Configuration));
         context.Services.AddSingleton<SeedRunner>();
+        context.Services.AddSingleton(SchemaOptions.FromConfiguration(context.Configuration));
+        context.Services.AddSingleton<SchemaUpgrader>();
+        context.Services.AddSingleton<MaintenanceModeState>();
+        context.Services.AddHostedService(static sp => sp.GetRequiredService<MaintenanceModeState>());
+        context.Services.AddRepository<SysVersion, Guid>();
+        context.Services.AddRepository<SysMigrationHistory, Guid>();
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
         context.Services.AddScoped<DiffLogBuffer>();
         context.Services.AddScoped<SideRows>();
