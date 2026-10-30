@@ -556,7 +556,7 @@ public sealed partial class FileService(
     public async Task<Result<IBlobStore>> StoreOfAsync(SysFileStorage storage, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(storage);
-        if (!(await configs.FindAnyAsync(storage.StorageConfigId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await configs.FindForSideAsync(storage.StorageConfigId, storage.TenantId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", storage.StorageConfigId)));
         }
@@ -574,7 +574,7 @@ public sealed partial class FileService(
             return Error.Conflict(FilesErrors.FileUnavailable, FilesMessages.FileUnavailable, MessageArguments.Of(("status", file.Status)));
         }
 
-        if (!(await configs.FindAnyAsync(storage.StorageConfigId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        if (!(await configs.FindForSideAsync(storage.StorageConfigId, storage.TenantId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
         {
             return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", storage.StorageConfigId)));
         }

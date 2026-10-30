@@ -58,12 +58,22 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 按 ID 取配置，不看所属侧（副本记下的配置可能是平台的）。
+    /// 按 ID 取这一侧能用的配置：本侧的，租户没有就取平台的。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户没有自己的缺省配置时副本落在平台的配置上，照样能读写；别的租户的配置取不到。
+    /// </remarks>
     /// <param name="id">配置 ID。</param>
+    /// <param name="side">文件所在的侧。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>找到的配置。</returns>
-    public async Task<Maybe<SysStorageConfig>> FindAnyAsync(Guid id, CancellationToken cancellationToken) => await configs.FindAsync(id, cancellationToken).ConfigureAwait(false);
+    public async Task<Maybe<SysStorageConfig>> FindForSideAsync(Guid id, string side, CancellationToken cancellationToken)
+    {
+        var found = await configs.FindAsync(id, cancellationToken).ConfigureAwait(false);
+        return found.TryGetValue(out var config) && (string.Equals(config.OwnerTenantId, side, StringComparison.Ordinal) || string.Equals(config.OwnerTenantId, TenantIds.Platform, StringComparison.Ordinal))
+            ? found
+            : Maybe.None<SysStorageConfig>();
+    }
 
     /// <summary>
     /// 按编码取这一侧的配置。
