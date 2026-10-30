@@ -52,7 +52,7 @@ public sealed class RealtimeTests : IDisposable
     }
 
     /// <summary>
-    /// 客户端连上之后服务端还要核对会话、加入组：等在线列表里这些会话都显示在线再推送。
+    /// 等这些会话在在线列表里都显示在线再推送。
     /// </summary>
     private static async Task WaitOnlineAsync(BasicAppTestServer server, string token, int count)
     {
@@ -127,11 +127,10 @@ public sealed class RealtimeTests : IDisposable
         Assert.Equal("IDENTITY_DENIED_001", (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: secondToken))).Body.GetProperty("code").GetString());
         Assert.Equal(HubConnectionState.Connected, first.State);
 
-        // 已吊销的会话再连 Hub：令牌本身还没过期也会被断开
+        // 已吊销的会话再连 Hub：令牌本身还没过期，认证时的会话门禁也拒绝（协商即 401，连接建立不起来）
         await using var stale = Connect(server, secondToken);
-        var staleClosed = Closed(stale);
-        await stale.StartAsync();
-        await staleClosed.Task.WaitAsync(_wait);
+        var refused = await Assert.ThrowsAsync<HttpRequestException>(() => stale.StartAsync());
+        Assert.Equal(HttpStatusCode.Unauthorized, refused.StatusCode);
         var (_, after) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/sessions:summary", token: platform));
         Assert.Equal((1, 1), (after.GetProperty("activeSessions").GetInt32(), after.GetProperty("realtimeOnlineUsers").GetInt32()));
     }
