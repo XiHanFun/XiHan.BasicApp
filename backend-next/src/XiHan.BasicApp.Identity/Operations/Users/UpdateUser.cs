@@ -59,6 +59,9 @@ public sealed class UpdateUser(IRepository<SysUser, Guid> users) : IOperation<Up
         }
 
         user.DisplayName = displayName.Value!;
+        // 管理员改了邮箱 / 手机号即复位验证状态（4.x 同），本人要重新收码验证
+        user.EmailVerified &= string.Equals(user.Email, email.Value, StringComparison.OrdinalIgnoreCase);
+        user.PhoneVerified &= string.Equals(user.PhoneNumber, phone.Value, StringComparison.Ordinal);
         user.Email = email.Value;
         user.PhoneNumber = phone.Value;
         var updated = await users.UpdateAsync(user, context.CancellationToken).ConfigureAwait(false);

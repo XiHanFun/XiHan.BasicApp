@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "移除本人的頭像，頭像檔案隨之回收。上傳新頭像走 POST /api/profile/avatar。已登入即可。",
   "identity.avatar.invalid": "頭像須為 JPEG 或 PNG 圖片，且不超過 {max} MB。",
   "identity.user_name.unchanged": "新使用者名稱與目前的相同。",
-  "identity.user_name.too_soon": "使用者名稱 90 天內只能變更一次，請 {days} 天後再試。"
+  "identity.user_name.too_soon": "使用者名稱 90 天內只能變更一次，請 {days} 天後再試。",
+  "profile.send_verification_code.description": "寄送驗證碼到本人目前的郵箱或手機號（用來驗證它）。只要求登入。",
+  "profile.verify_contact.description": "用收到的驗證碼確認本人目前的郵箱或手機號，記為已驗證。只要求登入。",
+  "profile.send_change_contact_code.description": "換綁郵箱或手機號的第一步：驗證目前密碼，把驗證碼寄到新的。只要求登入，模仿工作階段不能用。",
+  "profile.change_contact.description": "換綁郵箱或手機號的第二步：用新的收到的驗證碼確認，換成新的並記為已驗證。只要求登入，模仿工作階段不能用。",
+  "identity.code.too_frequent": "驗證碼寄送太頻繁，請 {seconds} 秒後再試。",
+  "identity.code.target_daily_limit": "這個郵箱或手機號今天收驗證碼的次數已達上限，請明天再試。",
+  "identity.code.address_daily_limit": "目前網路今天寄送驗證碼的次數已達上限，請明天再試。",
+  "identity.code.locked": "驗證碼錯誤次數過多，已暫時鎖定，請 {minutes} 分鐘後再試。",
+  "identity.code.channel_unavailable": "沒有可用的郵件或簡訊發送設定，暫時寄不了驗證碼。",
+  "identity.code.invalid": "驗證碼無效或已過期。",
+  "identity.contact.missing": "目前帳號還沒有綁定要驗證的郵箱或手機號。",
+  "identity.contact.invalid": "新的郵箱或手機號格式不對，或與現在的相同。",
+  "identity.contact.taken": "這個郵箱或手機號已被同一租戶的別的帳號使用。",
+  "identity.code.title.verify_email": "驗證郵箱",
+  "identity.code.title.verify_phone": "驗證手機號",
+  "identity.code.title.change_email": "更換郵箱",
+  "identity.code.title.change_phone": "更換手機號"
 }

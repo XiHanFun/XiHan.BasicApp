@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "自分のアバターを外し、アバターのファイルを回収します。新しいアバターは POST /api/profile/avatar でアップロードします。ログインのみ必要です。",
   "identity.avatar.invalid": "アバターは {max} MB 以下の JPEG または PNG 画像にしてください。",
   "identity.user_name.unchanged": "新しいユーザー名が現在のものと同じです。",
-  "identity.user_name.too_soon": "ユーザー名は 90 日に 1 回しか変更できません。{days} 日後にもう一度お試しください。"
+  "identity.user_name.too_soon": "ユーザー名は 90 日に 1 回しか変更できません。{days} 日後にもう一度お試しください。",
+  "profile.send_verification_code.description": "本人の現在のメールアドレスまたは電話番号に確認コードを送ります（確認用）。サインインが必要です。",
+  "profile.verify_contact.description": "受け取った確認コードで本人の現在のメールアドレスまたは電話番号を確認し、確認済みにします。サインインが必要です。",
+  "profile.send_change_contact_code.description": "メールアドレスまたは電話番号の変更の第 1 段階：現在のパスワードを確認し、新しい宛先に確認コードを送ります。サインインが必要で、代行セッションでは使えません。",
+  "profile.change_contact.description": "メールアドレスまたは電話番号の変更の第 2 段階：新しい宛先に届いた確認コードで確定し、新しい値に替えて確認済みにします。サインインが必要で、代行セッションでは使えません。",
+  "identity.code.too_frequent": "確認コードの送信が頻繁すぎます。{seconds} 秒後にもう一度お試しください。",
+  "identity.code.target_daily_limit": "このメールアドレスまたは電話番号が今日受け取れる確認コードの上限に達しました。明日もう一度お試しください。",
+  "identity.code.address_daily_limit": "現在のネットワークが今日送信できる確認コードの上限に達しました。明日もう一度お試しください。",
+  "identity.code.locked": "確認コードの誤りが多すぎるため一時的にロックしました。{minutes} 分後にもう一度お試しください。",
+  "identity.code.channel_unavailable": "使えるメールまたは SMS の送信設定がないため、確認コードを送れません。",
+  "identity.code.invalid": "確認コードが無効か、有効期限が切れています。",
+  "identity.contact.missing": "このアカウントには確認するメールアドレスまたは電話番号が登録されていません。",
+  "identity.contact.invalid": "新しいメールアドレスまたは電話番号の形式が正しくないか、現在のものと同じです。",
+  "identity.contact.taken": "このメールアドレスまたは電話番号は同じテナントの別のアカウントで使われています。",
+  "identity.code.title.verify_email": "メールアドレスの確認",
+  "identity.code.title.verify_phone": "電話番号の確認",
+  "identity.code.title.change_email": "メールアドレスの変更",
+  "identity.code.title.change_phone": "電話番号の変更"
 }

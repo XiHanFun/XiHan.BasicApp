@@ -24479,6 +24479,12 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -24487,7 +24493,9 @@
                     "twoFactorMethods",
                     "mustChangePassword",
                     "failedAccessCount",
-                    "gender"
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -24650,6 +24658,12 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -24658,7 +24672,9 @@
                     "twoFactorMethods",
                     "mustChangePassword",
                     "failedAccessCount",
-                    "gender"
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -24773,6 +24789,65 @@
                   "required": [
                     "url"
                   ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:change-contact": {
+      "post": {
+        "operationId": "profile.change-contact",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Second step of changing your email address or phone number: confirm with the code sent to the new one, which then replaces the old one and is marked verified. Requires sign-in; not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ContactCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 10
+                  }
+                },
+                "required": [
+                  "channel",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
                 }
               }
             }
@@ -24914,7 +24989,101 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileResponse"
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount",
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
+                  ]
                 }
               }
             }
@@ -25050,6 +25219,12 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -25058,7 +25233,9 @@
                     "twoFactorMethods",
                     "mustChangePassword",
                     "failedAccessCount",
-                    "gender"
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -25195,6 +25372,12 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -25203,7 +25386,9 @@
                     "twoFactorMethods",
                     "mustChangePassword",
                     "failedAccessCount",
-                    "gender"
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -25530,6 +25715,12 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -25538,7 +25729,9 @@
                     "twoFactorMethods",
                     "mustChangePassword",
                     "failedAccessCount",
-                    "gender"
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -25663,6 +25856,144 @@
                   },
                   "required": [
                     "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:send-change-contact-code": {
+      "post": {
+        "operationId": "profile.send-change-contact-code",
+        "tags": [
+          "profile"
+        ],
+        "summary": "First step of changing your email address or phone number: checks your current password and sends a code to the new one. Requires sign-in; not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SendChangeContactCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "newValue": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "channel",
+                  "newValue",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:send-verification-code": {
+      "post": {
+        "operationId": "profile.send-verification-code",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Send a verification code to your current email address or phone number (to verify it). Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SendVerificationCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  }
+                },
+                "required": [
+                  "channel"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
                   ]
                 }
               }
@@ -25942,6 +26273,159 @@
                     "typeAnnouncement",
                     "typeTask",
                     "typeSecurity"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:verify-contact": {
+      "post": {
+        "operationId": "profile.verify-contact",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Confirm your current email address or phone number with the code you received and mark it verified. Requires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ContactCodeRequest",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 10
+                  }
+                },
+                "required": [
+                  "channel",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "realName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gender": {
+                      "$ref": "#/components/schemas/UserGender"
+                    },
+                    "birthday": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userNameChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "userNameChangeableAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "emailVerified": {
+                      "type": "boolean"
+                    },
+                    "phoneVerified": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount",
+                    "gender",
+                    "emailVerified",
+                    "phoneVerified"
                   ]
                 }
               }
@@ -35542,6 +36026,13 @@
           "RequireApproval"
         ]
       },
+      "ContactChannel": {
+        "type": "string",
+        "enum": [
+          "Email",
+          "Phone"
+        ]
+      },
       "DataScope": {
         "type": "string",
         "enum": [
@@ -39261,6 +39752,12 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "phoneVerified": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -39269,7 +39766,9 @@
           "twoFactorMethods",
           "mustChangePassword",
           "failedAccessCount",
-          "gender"
+          "gender",
+          "emailVerified",
+          "phoneVerified"
         ]
       },
       "RoleMemberResponse": {

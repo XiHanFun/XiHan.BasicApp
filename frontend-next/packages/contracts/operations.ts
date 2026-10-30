@@ -220,6 +220,7 @@ export const routes = {
   'positions.list': { method: 'POST', template: '/api/positions:list', path: [], query: [], success: 200 },
   'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'profile.begin-external-bind': { method: 'POST', template: '/api/profile:begin-external-bind', path: [], query: [], success: 200 },
+  'profile.change-contact': { method: 'POST', template: '/api/profile:change-contact', path: [], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
   'profile.change-username': { method: 'POST', template: '/api/profile:change-username', path: [], query: [], success: 200 },
   'profile.disable-two-factor': { method: 'POST', template: '/api/profile:disable-two-factor', path: [], query: [], success: 200 },
@@ -231,11 +232,14 @@ export const routes = {
   'profile.remove-avatar': { method: 'POST', template: '/api/profile:remove-avatar', path: [], query: [], success: 200 },
   'profile.revoke-other-sessions': { method: 'POST', template: '/api/profile:revoke-other-sessions', path: [], query: [], success: 200 },
   'profile.revoke-session': { method: 'POST', template: '/api/profile:revoke-session', path: [], query: [], success: 200 },
+  'profile.send-change-contact-code': { method: 'POST', template: '/api/profile:send-change-contact-code', path: [], query: [], success: 200 },
+  'profile.send-verification-code': { method: 'POST', template: '/api/profile:send-verification-code', path: [], query: [], success: 200 },
   'profile.sessions': { method: 'GET', template: '/api/profile:sessions', path: [], query: [], success: 200 },
   'profile.setup-totp': { method: 'POST', template: '/api/profile:setup-totp', path: [], query: [], success: 200 },
   'profile.unlink-external': { method: 'POST', template: '/api/profile:unlink-external', path: [], query: [], success: 200 },
   'profile.update': { method: 'PUT', template: '/api/profile', path: [], query: [], success: 200 },
   'profile.update-notification-preference': { method: 'POST', template: '/api/profile:update-notification-preference', path: [], query: [], success: 200 },
+  'profile.verify-contact': { method: 'POST', template: '/api/profile:verify-contact', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
   'roles.by-user': { method: 'GET', template: '/api/roles:by-user', path: [], query: ['userId'], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
@@ -709,6 +713,7 @@ export const positions = {
 /** 资源 `profile` 的操作。 */
 export const profile = {
   beginExternalBind: (request: RequestOf<'profile.begin-external-bind'>, options?: CallOptions) => invoke<RequestOf<'profile.begin-external-bind'>, ResponseOf<'profile.begin-external-bind'>>('profile.begin-external-bind', routes['profile.begin-external-bind'], request, options),
+  changeContact: (request: RequestOf<'profile.change-contact'>, options?: CallOptions) => invoke<RequestOf<'profile.change-contact'>, ResponseOf<'profile.change-contact'>>('profile.change-contact', routes['profile.change-contact'], request, options),
   changePassword: (request: RequestOf<'profile.change-password'>, options?: CallOptions) => invoke<RequestOf<'profile.change-password'>, ResponseOf<'profile.change-password'>>('profile.change-password', routes['profile.change-password'], request, options),
   changeUsername: (request: RequestOf<'profile.change-username'>, options?: CallOptions) => invoke<RequestOf<'profile.change-username'>, ResponseOf<'profile.change-username'>>('profile.change-username', routes['profile.change-username'], request, options),
   disableTwoFactor: (request: RequestOf<'profile.disable-two-factor'>, options?: CallOptions) => invoke<RequestOf<'profile.disable-two-factor'>, ResponseOf<'profile.disable-two-factor'>>('profile.disable-two-factor', routes['profile.disable-two-factor'], request, options),
@@ -720,11 +725,14 @@ export const profile = {
   removeAvatar: (request: RequestOf<'profile.remove-avatar'>, options?: CallOptions) => invoke<RequestOf<'profile.remove-avatar'>, ResponseOf<'profile.remove-avatar'>>('profile.remove-avatar', routes['profile.remove-avatar'], request, options),
   revokeOtherSessions: (request: RequestOf<'profile.revoke-other-sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-other-sessions'>, ResponseOf<'profile.revoke-other-sessions'>>('profile.revoke-other-sessions', routes['profile.revoke-other-sessions'], request, options),
   revokeSession: (request: RequestOf<'profile.revoke-session'>, options?: CallOptions) => invoke<RequestOf<'profile.revoke-session'>, ResponseOf<'profile.revoke-session'>>('profile.revoke-session', routes['profile.revoke-session'], request, options),
+  sendChangeContactCode: (request: RequestOf<'profile.send-change-contact-code'>, options?: CallOptions) => invoke<RequestOf<'profile.send-change-contact-code'>, ResponseOf<'profile.send-change-contact-code'>>('profile.send-change-contact-code', routes['profile.send-change-contact-code'], request, options),
+  sendVerificationCode: (request: RequestOf<'profile.send-verification-code'>, options?: CallOptions) => invoke<RequestOf<'profile.send-verification-code'>, ResponseOf<'profile.send-verification-code'>>('profile.send-verification-code', routes['profile.send-verification-code'], request, options),
   sessions: (request: RequestOf<'profile.sessions'>, options?: CallOptions) => invoke<RequestOf<'profile.sessions'>, ResponseOf<'profile.sessions'>>('profile.sessions', routes['profile.sessions'], request, options),
   setupTotp: (request: RequestOf<'profile.setup-totp'>, options?: CallOptions) => invoke<RequestOf<'profile.setup-totp'>, ResponseOf<'profile.setup-totp'>>('profile.setup-totp', routes['profile.setup-totp'], request, options),
   unlinkExternal: (request: RequestOf<'profile.unlink-external'>, options?: CallOptions) => invoke<RequestOf<'profile.unlink-external'>, ResponseOf<'profile.unlink-external'>>('profile.unlink-external', routes['profile.unlink-external'], request, options),
   update: (request: RequestOf<'profile.update'>, options?: CallOptions) => invoke<RequestOf<'profile.update'>, ResponseOf<'profile.update'>>('profile.update', routes['profile.update'], request, options),
   updateNotificationPreference: (request: RequestOf<'profile.update-notification-preference'>, options?: CallOptions) => invoke<RequestOf<'profile.update-notification-preference'>, ResponseOf<'profile.update-notification-preference'>>('profile.update-notification-preference', routes['profile.update-notification-preference'], request, options),
+  verifyContact: (request: RequestOf<'profile.verify-contact'>, options?: CallOptions) => invoke<RequestOf<'profile.verify-contact'>, ResponseOf<'profile.verify-contact'>>('profile.verify-contact', routes['profile.verify-contact'], request, options),
 }
 
 /** 资源 `roles` 的操作。 */

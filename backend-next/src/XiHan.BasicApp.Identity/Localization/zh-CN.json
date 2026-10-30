@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "去掉本人的头像，头像文件随之回收。上传新头像走 POST /api/profile/avatar。已登录即可。",
   "identity.avatar.invalid": "头像须是 JPEG 或 PNG 图片，且不超过 {max} MB。",
   "identity.user_name.unchanged": "新用户名与当前用户名相同。",
-  "identity.user_name.too_soon": "用户名 90 天内只能修改一次，请 {days} 天后再试。"
+  "identity.user_name.too_soon": "用户名 90 天内只能修改一次，请 {days} 天后再试。",
+  "profile.send_verification_code.description": "发验证码到本人当前的邮箱或手机号（用来验证它）。只要求登录。",
+  "profile.verify_contact.description": "用收到的验证码确认本人当前的邮箱或手机号，记为已验证。只要求登录。",
+  "profile.send_change_contact_code.description": "换绑邮箱或手机号的第一步：验证当前密码，把验证码发到新的。只要求登录，模仿会话不能用。",
+  "profile.change_contact.description": "换绑邮箱或手机号的第二步：用新的收到的验证码确认，换成新的并记为已验证。只要求登录，模仿会话不能用。",
+  "identity.code.too_frequent": "验证码发得太频繁，请 {seconds} 秒后再试。",
+  "identity.code.target_daily_limit": "这个邮箱或手机号今天收验证码的次数已达上限，请明天再试。",
+  "identity.code.address_daily_limit": "当前网络今天发验证码的次数已达上限，请明天再试。",
+  "identity.code.locked": "验证码错误次数过多，已临时锁定，请 {minutes} 分钟后再试。",
+  "identity.code.channel_unavailable": "没有可用的邮件或短信发送配置，暂时发不了验证码。",
+  "identity.code.invalid": "验证码无效或已过期。",
+  "identity.contact.missing": "当前账号还没有绑定要验证的邮箱或手机号。",
+  "identity.contact.invalid": "新的邮箱或手机号格式不对，或与现在的相同。",
+  "identity.contact.taken": "这个邮箱或手机号已被同一租户的别的账号使用。",
+  "identity.code.title.verify_email": "验证邮箱",
+  "identity.code.title.verify_phone": "验证手机号",
+  "identity.code.title.change_email": "更换邮箱",
+  "identity.code.title.change_phone": "更换手机号"
 }

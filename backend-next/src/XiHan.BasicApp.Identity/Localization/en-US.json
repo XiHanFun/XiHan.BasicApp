@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "Remove your avatar; the avatar file is reclaimed. Upload a new one with POST /api/profile/avatar. Requires sign-in only.",
   "identity.avatar.invalid": "The avatar must be a JPEG or PNG image of at most {max} MB.",
   "identity.user_name.unchanged": "The new username is the same as the current one.",
-  "identity.user_name.too_soon": "The username can be changed once every 90 days; try again in {days} days."
+  "identity.user_name.too_soon": "The username can be changed once every 90 days; try again in {days} days.",
+  "profile.send_verification_code.description": "Send a verification code to your current email address or phone number (to verify it). Requires sign-in.",
+  "profile.verify_contact.description": "Confirm your current email address or phone number with the code you received and mark it verified. Requires sign-in.",
+  "profile.send_change_contact_code.description": "First step of changing your email address or phone number: checks your current password and sends a code to the new one. Requires sign-in; not available while impersonating.",
+  "profile.change_contact.description": "Second step of changing your email address or phone number: confirm with the code sent to the new one, which then replaces the old one and is marked verified. Requires sign-in; not available while impersonating.",
+  "identity.code.too_frequent": "Verification codes are being requested too often; try again in {seconds} seconds.",
+  "identity.code.target_daily_limit": "This email address or phone number has received the maximum number of codes for today; try again tomorrow.",
+  "identity.code.address_daily_limit": "This network has requested the maximum number of codes for today; try again tomorrow.",
+  "identity.code.locked": "Too many wrong codes; verification is locked for {minutes} minutes.",
+  "identity.code.channel_unavailable": "No email or SMS sending configuration is available, so no code can be sent right now.",
+  "identity.code.invalid": "The verification code is invalid or has expired.",
+  "identity.contact.missing": "Your account has no email address or phone number to verify.",
+  "identity.contact.invalid": "The new email address or phone number is malformed or the same as the current one.",
+  "identity.contact.taken": "This email address or phone number is already used by another account in the same tenant.",
+  "identity.code.title.verify_email": "Verify your email",
+  "identity.code.title.verify_phone": "Verify your phone number",
+  "identity.code.title.change_email": "Change your email",
+  "identity.code.title.change_phone": "Change your phone number"
 }

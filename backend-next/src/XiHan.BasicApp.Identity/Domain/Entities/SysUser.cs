@@ -40,6 +40,22 @@ public sealed class SysUser : AppAuditedEntity
     public string? PhoneNumber { get; set; }
 
     /// <summary>
+    /// 邮箱是否已验证。
+    /// </summary>
+    /// <remarks>
+    /// 本人收码验证或换绑后为真；管理员改了邮箱即复位（4.x 同）。
+    /// </remarks>
+    public bool EmailVerified { get; set; }
+
+    /// <summary>
+    /// 手机号是否已验证。
+    /// </summary>
+    /// <remarks>
+    /// 本人收码验证或换绑后为真；管理员改了手机号即复位（4.x 同）。
+    /// </remarks>
+    public bool PhoneVerified { get; set; }
+
+    /// <summary>
     /// 注册地租户 ID。
     /// </summary>
     /// <remarks>

@@ -59,6 +59,9 @@ export type ConstraintType = (typeof ConstraintType)[number]
 export const ConstraintViolationAction = ['Deny', 'Warning', 'Log', 'RequireApproval'] as const
 export type ConstraintViolationAction = (typeof ConstraintViolationAction)[number]
 
+export const ContactChannel = ['Email', 'Phone'] as const
+export type ContactChannel = (typeof ContactChannel)[number]
+
 export const DataScope = ['SelfOnly', 'DepartmentOnly', 'DepartmentAndChildren', 'All', 'Custom'] as const
 export type DataScope = (typeof DataScope)[number]
 
@@ -230,6 +233,7 @@ export const enums = {
   ConstraintTargetType,
   ConstraintType,
   ConstraintViolationAction,
+  ContactChannel,
   DataScope,
   DelegationStatus,
   DeliveryChannel,

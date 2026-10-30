@@ -652,6 +652,97 @@ public static class IdentityMessages
     /// </remarks>
     public const string UserNameChangeTooSoon = "identity.user_name.too_soon";
 
+    /// <summary>
+    /// 操作 <c>profile.send-verification-code</c> 的说明。
+    /// </summary>
+    public const string SendVerificationCodeDescription = "profile.send_verification_code.description";
+
+    /// <summary>
+    /// 操作 <c>profile.verify-contact</c> 的说明。
+    /// </summary>
+    public const string VerifyContactDescription = "profile.verify_contact.description";
+
+    /// <summary>
+    /// 操作 <c>profile.send-change-contact-code</c> 的说明。
+    /// </summary>
+    public const string SendChangeContactCodeDescription = "profile.send_change_contact_code.description";
+
+    /// <summary>
+    /// 操作 <c>profile.change-contact</c> 的说明。
+    /// </summary>
+    public const string ChangeContactDescription = "profile.change_contact.description";
+
+    /// <summary>
+    /// 验证码发得太频繁。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>seconds</c>。
+    /// </remarks>
+    public const string CodeTooFrequent = "identity.code.too_frequent";
+
+    /// <summary>
+    /// 这个邮箱或手机号今天收码的次数已达上限。
+    /// </summary>
+    public const string CodeTargetDailyLimit = "identity.code.target_daily_limit";
+
+    /// <summary>
+    /// 当前网络今天发码的次数已达上限。
+    /// </summary>
+    public const string CodeAddressDailyLimit = "identity.code.address_daily_limit";
+
+    /// <summary>
+    /// 验证码输错次数过多，暂时锁定。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>minutes</c>。
+    /// </remarks>
+    public const string CodeLocked = "identity.code.locked";
+
+    /// <summary>
+    /// 没有可用的邮件或短信发送配置。
+    /// </summary>
+    public const string CodeChannelUnavailable = "identity.code.channel_unavailable";
+
+    /// <summary>
+    /// 验证码无效或已过期。
+    /// </summary>
+    public const string CodeInvalid = "identity.code.invalid";
+
+    /// <summary>
+    /// 当前账号没有绑定要验证的联系方式。
+    /// </summary>
+    public const string ContactMissing = "identity.contact.missing";
+
+    /// <summary>
+    /// 新的联系方式格式不对，或与现在的相同。
+    /// </summary>
+    public const string ContactInvalid = "identity.contact.invalid";
+
+    /// <summary>
+    /// 联系方式已被同一租户的别的账号使用。
+    /// </summary>
+    public const string ContactTaken = "identity.contact.taken";
+
+    /// <summary>
+    /// 验证码邮件的用途标题：验证邮箱。
+    /// </summary>
+    public const string CodeTitleVerifyEmail = "identity.code.title.verify_email";
+
+    /// <summary>
+    /// 验证码短信的用途标题：验证手机号。
+    /// </summary>
+    public const string CodeTitleVerifyPhone = "identity.code.title.verify_phone";
+
+    /// <summary>
+    /// 验证码邮件的用途标题：更换邮箱。
+    /// </summary>
+    public const string CodeTitleChangeEmail = "identity.code.title.change_email";
+
+    /// <summary>
+    /// 验证码短信的用途标题：更换手机号。
+    /// </summary>
+    public const string CodeTitleChangePhone = "identity.code.title.change_phone";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

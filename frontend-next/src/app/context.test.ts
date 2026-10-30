@@ -31,7 +31,7 @@ function userOf(patch: object = {}) {
 
 /** 本人资料（后端 ProfileResponse）：没改过用户名 */
 function profileOf(userPatch: object = {}) {
-  return { user: userOf(userPatch), twoFactorEnabled: false, twoFactorMethods: [], passwordChangedAt: null, mustChangePassword: false, failedAccessCount: 0, lockoutEndAt: null, realName: '张三', gender: 'Female', birthday: '1990-05-04T00:00:00Z', country: '中国', remark: null, userNameChangedAt: null, userNameChangeableAt: null }
+  return { user: userOf(userPatch), twoFactorEnabled: false, twoFactorMethods: [], passwordChangedAt: null, mustChangePassword: false, failedAccessCount: 0, lockoutEndAt: null, realName: '张三', gender: 'Female', birthday: '1990-05-04T00:00:00Z', country: '中国', remark: null, userNameChangedAt: null, userNameChangeableAt: null, emailVerified: true, phoneVerified: false }
 }
 
 function sessionOf() {
@@ -318,7 +318,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
       isSystemAccount: false,
       twoFactorEnabled: false,
       twoFactorMethod: 0,
-      emailVerified: false,
+      emailVerified: true,
       phoneVerified: false,
       lastUserNameChangeTime: '2026-10-01T00:00:00Z',
       canChangeUserName: false,
@@ -363,6 +363,33 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     await apis.changeUserNameApi({ userName: 'bob', password: 'pw' })
     expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:change-username', body: { userName: 'bob', password: 'pw' } })
     expect(useUserStore().username).toBe('bob')
+  })
+
+  it('邮箱 / 手机的验证与换绑：按渠道交给 profile.send-verification-code / verify-contact / send-change-contact-code / change-contact，换绑带新值与当前密码，确认后回来的用户换掉会话里的那份', async () => {
+    const calls: Call[] = []
+    localStorage.setItem('xihan.next.session', JSON.stringify(sessionOf()))
+    record(calls, url => json(200, /:send-(?:verification|change-contact)-code$/.test(url) ? { expiresInSeconds: 600 } : profileOf({ email: 'new@example.com' })))
+    const apis = useAppContext().apis
+
+    expect(await apis.sendEmailVerifyCodeApi()).toEqual({ expiresInSeconds: 600 })
+    await apis.sendPhoneVerifyCodeApi()
+    expect((await apis.verifyEmailApi('123456') as { emailVerified: boolean }).emailVerified).toBe(true)
+    await apis.verifyPhoneApi('123456')
+    await apis.sendChangeEmailCodeApi({ newEmail: 'new@example.com', password: 'pw' })
+    await apis.sendChangePhoneCodeApi({ newPhone: '13900000000', password: 'pw' })
+    await apis.confirmChangeEmailApi('654321')
+    await apis.confirmChangePhoneApi('654321')
+    expect(calls).toEqual([
+      { method: 'POST', url: '/api/profile:send-verification-code', body: { channel: 'Email' } },
+      { method: 'POST', url: '/api/profile:send-verification-code', body: { channel: 'Phone' } },
+      { method: 'POST', url: '/api/profile:verify-contact', body: { channel: 'Email', code: '123456' } },
+      { method: 'POST', url: '/api/profile:verify-contact', body: { channel: 'Phone', code: '123456' } },
+      { method: 'POST', url: '/api/profile:send-change-contact-code', body: { channel: 'Email', newValue: 'new@example.com', password: 'pw' } },
+      { method: 'POST', url: '/api/profile:send-change-contact-code', body: { channel: 'Phone', newValue: '13900000000', password: 'pw' } },
+      { method: 'POST', url: '/api/profile:change-contact', body: { channel: 'Email', code: '654321' } },
+      { method: 'POST', url: '/api/profile:change-contact', body: { channel: 'Phone', code: '654321' } },
+    ])
+    expect(useUserStore().userInfo?.email).toBe('new@example.com')
   })
 
   it('上传头像：multipart 字段 file 带令牌发给 POST /api/profile/avatar 并回报进度，返回新头像的文件主键，会话里的用户随之换掉', async () => {

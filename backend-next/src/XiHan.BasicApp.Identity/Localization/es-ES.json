@@ -103,5 +103,22 @@
   "profile.remove_avatar.description": "Quita su avatar; el archivo se recupera. Suba uno nuevo con POST /api/profile/avatar. Solo requiere iniciar sesión.",
   "identity.avatar.invalid": "El avatar debe ser una imagen JPEG o PNG de {max} MB como máximo.",
   "identity.user_name.unchanged": "El nuevo nombre de usuario es igual al actual.",
-  "identity.user_name.too_soon": "El nombre de usuario solo puede cambiarse una vez cada 90 días; inténtelo de nuevo en {days} días."
+  "identity.user_name.too_soon": "El nombre de usuario solo puede cambiarse una vez cada 90 días; inténtelo de nuevo en {days} días.",
+  "profile.send_verification_code.description": "Envía un código de verificación a tu correo o teléfono actual (para verificarlo). Requiere iniciar sesión.",
+  "profile.verify_contact.description": "Confirma tu correo o teléfono actual con el código recibido y lo marca como verificado. Requiere iniciar sesión.",
+  "profile.send_change_contact_code.description": "Primer paso para cambiar el correo o el teléfono: comprueba tu contraseña actual y envía un código al nuevo. Requiere iniciar sesión; no disponible al suplantar.",
+  "profile.change_contact.description": "Segundo paso para cambiar el correo o el teléfono: confirma con el código enviado al nuevo, que sustituye al anterior y queda verificado. Requiere iniciar sesión; no disponible al suplantar.",
+  "identity.code.too_frequent": "Se están pidiendo códigos con demasiada frecuencia; inténtalo de nuevo en {seconds} segundos.",
+  "identity.code.target_daily_limit": "Este correo o teléfono ya recibió el máximo de códigos de hoy; inténtalo mañana.",
+  "identity.code.address_daily_limit": "Esta red ya pidió el máximo de códigos de hoy; inténtalo mañana.",
+  "identity.code.locked": "Demasiados códigos incorrectos; la verificación queda bloqueada {minutes} minutos.",
+  "identity.code.channel_unavailable": "No hay ninguna configuración de envío de correo o SMS disponible, así que ahora no se puede enviar el código.",
+  "identity.code.invalid": "El código de verificación no es válido o ha caducado.",
+  "identity.contact.missing": "Tu cuenta no tiene correo ni teléfono que verificar.",
+  "identity.contact.invalid": "El nuevo correo o teléfono no tiene un formato válido o es igual al actual.",
+  "identity.contact.taken": "Este correo o teléfono ya lo usa otra cuenta del mismo inquilino.",
+  "identity.code.title.verify_email": "Verifica tu correo",
+  "identity.code.title.verify_phone": "Verifica tu teléfono",
+  "identity.code.title.change_email": "Cambia tu correo",
+  "identity.code.title.change_phone": "Cambia tu teléfono"
 }

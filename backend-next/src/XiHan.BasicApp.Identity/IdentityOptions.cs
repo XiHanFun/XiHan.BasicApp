@@ -122,6 +122,54 @@ public sealed record IdentityOptions
     public string TotpIssuer { get; init; } = "XiHan BasicApp";
 
     /// <summary>
+    /// 邮件 / 短信验证码的有效期。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeMinutes</c>，缺省 10 分钟（4.x 同）。
+    /// </remarks>
+    public TimeSpan VerificationCodeLifetime { get; init; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// 同一用途、同一目标两次发码的最短间隔。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeIntervalSeconds</c>，缺省 60 秒（4.x 同）。
+    /// </remarks>
+    public TimeSpan VerificationCodeInterval { get; init; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// 一个邮箱 / 手机号每天（UTC）最多收几次验证码。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeDailyPerTarget</c>，缺省 10（4.x 同），不分用途。
+    /// </remarks>
+    public int VerificationCodeDailyPerTarget { get; init; } = 10;
+
+    /// <summary>
+    /// 一个客户端地址每天（UTC）最多发几次验证码。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeDailyPerAddress</c>，缺省 50（4.x 同），不分用途。
+    /// </remarks>
+    public int VerificationCodeDailyPerAddress { get; init; } = 50;
+
+    /// <summary>
+    /// 一个验证码允许输错的次数。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeMaxFailures</c>，缺省 5（4.x 同）；用完即作废并锁定 <see cref="VerificationCodeLockout"/>。
+    /// </remarks>
+    public int VerificationCodeMaxFailures { get; init; } = 5;
+
+    /// <summary>
+    /// 输错用完后同一用途、同一主体不能再发码与校验的时长。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>VerificationCodeLockoutMinutes</c>，缺省 10 分钟（4.x 同）。
+    /// </remarks>
+    public TimeSpan VerificationCodeLockout { get; init; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
     /// 从配置读取身份包配置。
     /// </summary>
     /// <exception cref="ArgumentException">配置里有不合法的值时抛出（装配错误）。</exception>
@@ -198,6 +246,36 @@ public sealed record IdentityOptions
         if (ReadPositive(section, "TwoFactorTicketMaxFailures") is { } ticketFailures)
         {
             options = options with { TwoFactorTicketMaxFailures = (int)ticketFailures };
+        }
+
+        if (ReadPositive(section, "VerificationCodeMinutes") is { } codeMinutes)
+        {
+            options = options with { VerificationCodeLifetime = TimeSpan.FromMinutes(codeMinutes) };
+        }
+
+        if (ReadPositive(section, "VerificationCodeIntervalSeconds") is { } codeInterval)
+        {
+            options = options with { VerificationCodeInterval = TimeSpan.FromSeconds(codeInterval) };
+        }
+
+        if (ReadPositive(section, "VerificationCodeDailyPerTarget") is { } perTarget)
+        {
+            options = options with { VerificationCodeDailyPerTarget = (int)perTarget };
+        }
+
+        if (ReadPositive(section, "VerificationCodeDailyPerAddress") is { } perAddress)
+        {
+            options = options with { VerificationCodeDailyPerAddress = (int)perAddress };
+        }
+
+        if (ReadPositive(section, "VerificationCodeMaxFailures") is { } codeFailures)
+        {
+            options = options with { VerificationCodeMaxFailures = (int)codeFailures };
+        }
+
+        if (ReadPositive(section, "VerificationCodeLockoutMinutes") is { } codeLockout)
+        {
+            options = options with { VerificationCodeLockout = TimeSpan.FromMinutes(codeLockout) };
         }
 
         if (section["TotpIssuer"] is { } issuer)

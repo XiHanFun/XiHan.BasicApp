@@ -13,7 +13,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangePasswordParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEmailParams, ChangePasswordParams, ChangePhoneParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户；
@@ -139,6 +139,22 @@ export interface AppContextApis {
   removeAvatarApi: () => Promise<UserProfile>
   /** 改用户名（凭当前密码，90 天一次） */
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
+  /** 验证当前邮箱：发验证码到它（6 位、10 分钟；同一目标 60 秒内不能再发） */
+  sendEmailVerifyCodeApi: () => Promise<VerificationCodeResult>
+  /** 验证当前手机号：发短信验证码到它 */
+  sendPhoneVerifyCodeApi: () => Promise<VerificationCodeResult>
+  /** 用收到的验证码确认当前邮箱，记为已验证 */
+  verifyEmailApi: (code: string) => Promise<unknown>
+  /** 用收到的验证码确认当前手机号，记为已验证 */
+  verifyPhoneApi: (code: string) => Promise<unknown>
+  /** 换绑邮箱第一步：凭当前密码，把验证码发到新邮箱 */
+  sendChangeEmailCodeApi: (input: ChangeEmailParams) => Promise<VerificationCodeResult>
+  /** 换绑手机号第一步：凭当前密码，把验证码发到新手机号 */
+  sendChangePhoneCodeApi: (input: ChangePhoneParams) => Promise<VerificationCodeResult>
+  /** 换绑邮箱第二步：用新邮箱收到的码确认，换成新的并记为已验证 */
+  confirmChangeEmailApi: (code: string) => Promise<unknown>
+  /** 换绑手机号第二步：用新手机号收到的码确认 */
+  confirmChangePhoneApi: (code: string) => Promise<unknown>
   /** 双因素：开始绑定认证器（返回待确认的密钥与扫码链接） */
   setup2FAApi: () => Promise<TwoFactorSetupResult>
   /** 双因素：开启一种方式（method 为位标志 1=TOTP 2=邮箱 4=手机，code 为该方式的验证码） */
