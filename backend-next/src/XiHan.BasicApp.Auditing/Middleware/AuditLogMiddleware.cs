@@ -41,6 +41,9 @@ namespace XiHan.BasicApp.Auditing.Middleware;
 /// <param name="services">根服务（取宿主环境名）。</param>
 public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions options, AuditedOperations audited, IIdGenerator<Guid> ids, TimeProvider clock, IServiceProvider services) : IPipelineMiddleware
 {
+    // 框架的协议传输端点名（xihan.protocols.mcp、xihan.protocols.cloudevents）
+    private const string TransportEndpointPrefix = "xihan.protocols.";
+
     private readonly string? _environmentName = services.GetService<IHostEnvironment>()?.EnvironmentName;
 
     /// <inheritdoc />
@@ -80,9 +83,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         var origin = context.GetOrigin().TryGetValue(out var source) ? source : null;
         var (method, path) = TargetOf(origin);
         var agent = UserAgentInfo.Parse(origin?.UserAgent);
-        // 普通端点没有操作描述：执行时由宿主的端点过滤器登记身份与实际状态码，按同一套规则记访问与数据变更
+        // 普通端点没有操作描述：身份取框架带进上下文的端点名（ADR-0048），授权阶段就被拒的调用也认得出；执行到了的由宿主的端点过滤器补记实际状态码，
+        // 按同一套规则记访问与数据变更。协议的传输端点（MCP、CloudEvents）里面的操作各自记一条，不记传输本身
         var endpoint = operation is null && context.GetAuditedEndpoint().TryGetValue(out var registered) ? registered : null;
-        var target = operation?.Id ?? endpoint?.Id;
+        var named = operation is null && origin?.EndpointName is { Length: > 0 } name && !name.StartsWith(TransportEndpointPrefix, StringComparison.Ordinal) ? name : null;
+        var target = operation?.Id ?? endpoint?.Id ?? named;
 
         // 操作审计的细节：框架的审计中间件在本中间件返回之后才写事件
         if (context.GetAuditAction().HasValue)

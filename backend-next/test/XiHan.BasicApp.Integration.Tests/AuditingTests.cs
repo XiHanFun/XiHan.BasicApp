@@ -69,6 +69,9 @@ public sealed class AuditingTests : IDisposable
         // 没带令牌的调用：访问日志记未认证
         var (anonymous, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", """{"page":{"index":1,"size":5}}"""));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        // 普通端点在授权阶段就被拒：端点过滤器没执行，访问日志按端点名记
+        var (unread, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/files/{Guid.NewGuid()}/content"));
+        Assert.Equal(HttpStatusCode.Unauthorized, unread.StatusCode);
         await FlushAsync(server);
 
         var platformLogins = await ListAsync(server, "login-logs", platform);
@@ -88,6 +91,7 @@ public sealed class AuditingTests : IDisposable
         var platformAccess = await ListAsync(server, "access-logs", platform);
         Assert.Contains(platformAccess, a => a.GetProperty("operationId").GetString() == "tenants.create" && a.GetProperty("result").GetString() == "Success" && a.GetProperty("userName").GetString() == "superadmin");
         Assert.Contains(platformAccess, a => a.GetProperty("operationId").GetString() == "users.list" && a.GetProperty("result").GetString() == "Unauthorized" && a.GetProperty("errorCode").GetString() == "SECURITY_DENIED_001");
+        Assert.Contains(platformAccess, a => a.GetProperty("operationId").GetString() == "files.content" && a.GetProperty("result").GetString() == "Unauthorized" && a.GetProperty("statusCode").GetInt32() == 401);
         Assert.Contains(platformAccess, a => a.GetProperty("operationId").GetString() == "auth.login" && a.GetProperty("result").GetString() == "Forbidden");
         Assert.DoesNotContain(await ListAsync(server, "access-logs", tenant), a => a.GetProperty("operationId").GetString() == "tenants.create");
 
