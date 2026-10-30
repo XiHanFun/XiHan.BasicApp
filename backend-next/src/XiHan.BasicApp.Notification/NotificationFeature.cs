@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -112,6 +113,8 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddSingleton<MessageDispatcher>();
         context.Services.AddSeeder<MessageTemplateSeeder>();
         context.Services.AddPermissionCatalog("notification", NotificationPermissions.All);
+        // 缓存管理只开放登记过的命名空间
+        context.Services.AddCacheNamespace("notification", editable: true);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
         foreach (var permission in NotificationPermissions.All)
         {

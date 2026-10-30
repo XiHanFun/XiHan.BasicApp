@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -77,6 +78,8 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
         context.Services.AddPermissionCatalog("tenancy", TenancyPermissions.All);
+        // 缓存管理只开放登记过的命名空间；套餐门控的缓存，属授权数据，只许删、不许改写
+        context.Services.AddCacheNamespace("tenancy", editable: false);
         context.Services.AddPageCatalog("tenancy", TenancyPages.All);
         foreach (var permission in TenancyPermissions.All)
         {

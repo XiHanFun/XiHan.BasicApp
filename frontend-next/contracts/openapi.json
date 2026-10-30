@@ -21,6 +21,11 @@
       "description": "Create, read, update and delete bot configurations and choose the default."
     },
     {
+      "name": "caches",
+      "x-displayName": "Caches",
+      "description": "Cache keys of the application namespaces: list, inspect, rewrite and delete."
+    },
+    {
       "name": "condition-hits",
       "x-displayName": "Condition hits",
       "description": "Query condition hits: hits of access policies and permission conditions."
@@ -2962,6 +2967,497 @@
                     "items",
                     "total",
                     "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/caches": {
+      "delete": {
+        "operationId": "caches.delete",
+        "tags": [
+          "caches"
+        ],
+        "summary": "Delete caches",
+        "description": "Delete cache entries by key; every key must be within an open namespace and the cache rebuilds on demand. Platform side only.\n\nRequires permission maintenance.caches.delete (Delete caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.delete",
+        "parameters": [
+          {
+            "name": "keys",
+            "in": "query",
+            "description": "\u8981\u5220\u7684\u952E\uFF0C\u6BCF\u4E2A\u90FD\u987B\u5728\u5F00\u653E\u7684\u547D\u540D\u7A7A\u95F4\u91CC\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8981\u5220\u7684\u952E\uFF0C\u6BCF\u4E2A\u90FD\u987B\u5728\u5F00\u653E\u7684\u547D\u540D\u7A7A\u95F4\u91CC\u3002",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6279\u91CF\u5220\u9664\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CacheDeleteResult",
+                  "description": "\u6279\u91CF\u5220\u9664\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "removed": {
+                      "description": "\u5220\u6389\u7684\u952E\uFF08\u672C\u6765\u5C31\u4E0D\u5B58\u5728\u7684\u4E0D\u5728\u5185\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "description": "\u4E0D\u5728\u5F00\u653E\u547D\u540D\u7A7A\u95F4\u91CC\u7684\u952E\u4E0E\u539F\u56E0\u7801\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CacheDeleteFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "removed",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "caches.update",
+        "tags": [
+          "caches"
+        ],
+        "summary": "Update cache value",
+        "description": "Rewrite an existing text cache entry in an editable namespace, keeping its expiry; authentication-related namespaces are read-only. Platform side only.\n\nRequires permission maintenance.caches.update (Update caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "caches.update \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateCacheRequest",
+                "description": "caches.update \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "description": "\u952E\uFF0C\u987B\u5728\u53EF\u6539\u5199\u7684\u547D\u540D\u7A7A\u95F4\u91CC\u4E14\u5DF2\u5B58\u5728\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "value": {
+                    "description": "\u65B0\u503C\uFF08\u6309 UTF-8 \u5B58\uFF09\uFF0C\u8FC7\u671F\u8BBE\u7F6E\u6CBF\u7528\u539F\u9879\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1048576
+                  }
+                },
+                "required": [
+                  "key",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u7F13\u5B58\u9879\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CacheEntryResponse",
+                  "description": "\u4E00\u4E2A\u7F13\u5B58\u9879\u3002",
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "description": "\u952E\u3002",
+                      "type": "string"
+                    },
+                    "size": {
+                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "timeToLiveSeconds": {
+                      "description": "\u5269\u4F59\u5B58\u6D3B\u79D2\u6570\uFF1B\u4E0D\u8FC7\u671F\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "slidingSeconds": {
+                      "description": "\u6ED1\u52A8\u8FC7\u671F\u7684\u79D2\u6570\uFF1B\u6CA1\u6709\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "text": {
+                      "description": "\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u65F6\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "editable": {
+                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "size",
+                    "editable"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/caches:delete-by-prefix": {
+      "post": {
+        "operationId": "caches.delete-by-prefix",
+        "tags": [
+          "caches"
+        ],
+        "summary": "Delete caches by prefix",
+        "description": "Delete every cache entry under a prefix within an open namespace (no wildcards). Platform side only.\n\nRequires permission maintenance.caches.delete (Delete caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.delete",
+        "parameters": [],
+        "requestBody": {
+          "description": "caches.delete-by-prefix \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CachePrefixRequest",
+                "description": "caches.delete-by-prefix \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "prefix": {
+                    "description": "\u524D\u7F00\uFF1A\u67D0\u4E2A\u5F00\u653E\u547D\u540D\u7A7A\u95F4\u7684\u524D\u7F00\uFF0C\u6216\u66F4\u957F\u7684\u524D\u7F00\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "prefix"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6309\u524D\u7F00\u5220\u9664\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CachePrefixDeleteResult",
+                  "description": "\u6309\u524D\u7F00\u5220\u9664\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "removed": {
+                      "description": "\u5220\u6389\u7684\u952E\u6570\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "removed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/caches:inspect": {
+      "get": {
+        "operationId": "caches.inspect",
+        "tags": [
+          "caches"
+        ],
+        "summary": "Inspect cache entry",
+        "description": "Show a cache entry\u0027s size, remaining lifetime, sliding expiration and its value decoded as UTF-8 text. Platform side only.\n\nRequires permission maintenance.caches.read (Read caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.read",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "description": "\u5B8C\u6574\u7684\u952E\uFF0C\u987B\u5728\u5F00\u653E\u7684\u547D\u540D\u7A7A\u95F4\u91CC\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B8C\u6574\u7684\u952E\uFF0C\u987B\u5728\u5F00\u653E\u7684\u547D\u540D\u7A7A\u95F4\u91CC\u3002",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u7F13\u5B58\u9879\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CacheEntryResponse",
+                  "description": "\u4E00\u4E2A\u7F13\u5B58\u9879\u3002",
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "description": "\u952E\u3002",
+                      "type": "string"
+                    },
+                    "size": {
+                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "timeToLiveSeconds": {
+                      "description": "\u5269\u4F59\u5B58\u6D3B\u79D2\u6570\uFF1B\u4E0D\u8FC7\u671F\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "slidingSeconds": {
+                      "description": "\u6ED1\u52A8\u8FC7\u671F\u7684\u79D2\u6570\uFF1B\u6CA1\u6709\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "text": {
+                      "description": "\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u65F6\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "editable": {
+                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "size",
+                    "editable"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/caches:keys": {
+      "get": {
+        "operationId": "caches.keys",
+        "tags": [
+          "caches"
+        ],
+        "summary": "List cache keys",
+        "description": "List cache keys by prefix page by page (follow the continuation token); the prefix must be within an open namespace. Platform side only.\n\nRequires permission maintenance.caches.read (Read caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.read",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "description": "\u952E\u524D\u7F00\uFF1A\u67D0\u4E2A\u5F00\u653E\u547D\u540D\u7A7A\u95F4\u7684\u524D\u7F00\uFF0C\u6216\u66F4\u957F\u7684\u524D\u7F00\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u952E\u524D\u7F00\uFF1A\u67D0\u4E2A\u5F00\u653E\u547D\u540D\u7A7A\u95F4\u7684\u524D\u7F00\uFF0C\u6216\u66F4\u957F\u7684\u524D\u7F00\u3002",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "\u672C\u9875\u6700\u591A\u51E0\u4E2A\u952E\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u672C\u9875\u6700\u591A\u51E0\u4E2A\u952E\u3002",
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "continuation",
+            "in": "query",
+            "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u9875\u7F13\u5B58\u952E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CacheKeysResponse",
+                  "description": "\u4E00\u9875\u7F13\u5B58\u952E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u952E\uFF0C\u6309\u5B58\u50A8\u8FD4\u56DE\u7684\u987A\u5E8F\uFF08\u540C\u4E00\u9875\u5185\u53BB\u91CD\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "continuation": {
+                      "description": "\u4E0B\u4E00\u9875\u7684\u7EED\u9875\u6807\u8BB0\uFF1B\u6CA1\u6709\u4E0B\u4E00\u9875\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/caches:namespaces": {
+      "get": {
+        "operationId": "caches.namespaces",
+        "tags": [
+          "caches"
+        ],
+        "summary": "List cache namespaces",
+        "description": "List the cache key namespaces open to management (prefixes registered by the packages) and whether they are editable; framework keys are not exposed. Platform side only.\n\nRequires permission maintenance.caches.read (Read caches).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.caches.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u5F00\u653E\u7684\u7F13\u5B58\u952E\u547D\u540D\u7A7A\u95F4\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CacheNamespacesResponse",
+                  "description": "\u5F00\u653E\u7684\u7F13\u5B58\u952E\u547D\u540D\u7A7A\u95F4\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u547D\u540D\u7A7A\u95F4\uFF0C\u6309\u524D\u7F00\u6392\u5E8F\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CacheNamespaceResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -42026,6 +42522,47 @@
           "WeCom"
         ]
       },
+      "CacheDeleteFailure": {
+        "description": "\u5220\u9664\u5931\u8D25\u7684\u4E00\u4E2A\u952E\u3002",
+        "type": "object",
+        "properties": {
+          "key": {
+            "description": "\u952E\u3002",
+            "type": "string"
+          },
+          "code": {
+            "description": "\u539F\u56E0\u7801\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "code"
+        ]
+      },
+      "CacheNamespaceResponse": {
+        "description": "\u4E00\u4E2A\u5F00\u653E\u7684\u7F13\u5B58\u952E\u547D\u540D\u7A7A\u95F4\u3002",
+        "type": "object",
+        "properties": {
+          "package": {
+            "description": "\u767B\u8BB0\u5B83\u7684\u5305\u3002",
+            "type": "string"
+          },
+          "prefix": {
+            "description": "\u952E\u524D\u7F00\uFF0C\u5982 access:\u3002",
+            "type": "string"
+          },
+          "editable": {
+            "description": "\u80FD\u5426\u6539\u5199\u503C\uFF08\u9274\u6743\u76F8\u5173\u7684\u53EA\u8BB8\u5220\uFF09\u3002",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "package",
+          "prefix",
+          "editable"
+        ]
+      },
       "ConditionAttributeResponse": {
         "description": "\u6761\u4EF6\u5C5E\u6027\u76EE\u5F55\u91CC\u7684\u4E00\u9879\u3002",
         "type": "object",
@@ -49792,6 +50329,21 @@
         "displayName": "Update users",
         "description": "Edit user profiles of the current tenant."
       },
+      "maintenance.caches.delete": {
+        "code": "maintenance.caches.delete",
+        "displayName": "Delete caches",
+        "description": "Delete cache entries by key or by prefix within the application namespaces."
+      },
+      "maintenance.caches.read": {
+        "code": "maintenance.caches.read",
+        "displayName": "Read caches",
+        "description": "Browse the cache keys of the application namespaces, their size, expiry and text value."
+      },
+      "maintenance.caches.update": {
+        "code": "maintenance.caches.update",
+        "displayName": "Update caches",
+        "description": "Rewrite the value of a cache entry in an editable namespace, keeping its expiry."
+      },
       "maintenance.job-runs.read": {
         "code": "maintenance.job-runs.read",
         "displayName": "Read job runs",
@@ -50342,6 +50894,7 @@
     {
       "name": "Maintenance",
       "tags": [
+        "caches",
         "job-runs",
         "jobs",
         "migrations",

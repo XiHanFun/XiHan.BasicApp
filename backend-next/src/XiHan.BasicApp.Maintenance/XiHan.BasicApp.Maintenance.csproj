@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />

@@ -54,4 +54,29 @@ public static class MaintenanceErrors
     /// 作业有多个触发器，不能整体改计划。
     /// </summary>
     public const string JobTriggersMany = "MAINTENANCE_CONFLICT_002";
+
+    /// <summary>
+    /// 键或前缀不在开放的缓存命名空间里。
+    /// </summary>
+    public const string CacheNamespaceDenied = "MAINTENANCE_DENIED_002";
+
+    /// <summary>
+    /// 缓存命名空间只读，不能改写。
+    /// </summary>
+    public const string CacheReadOnly = "MAINTENANCE_DENIED_003";
+
+    /// <summary>
+    /// 缓存项不存在。
+    /// </summary>
+    public const string CacheEntryNotFound = "MAINTENANCE_NOTFOUND_003";
+
+    /// <summary>
+    /// 缓存项的值不是文本，不能改写。
+    /// </summary>
+    public const string CacheValueNotText = "MAINTENANCE_VALIDATION_003";
+
+    /// <summary>
+    /// 缓存存储不支持键管理。
+    /// </summary>
+    public const string CacheInspectorUnavailable = "MAINTENANCE_UNAVAILABLE_001";
 }

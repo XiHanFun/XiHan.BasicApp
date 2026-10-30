@@ -31,6 +31,12 @@ export const routes = {
   'bot-configs.list': { method: 'POST', template: '/api/bot-configs:list', path: [], query: [], success: 200 },
   'bot-configs.set-default': { method: 'POST', template: '/api/bot-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
   'bot-configs.update': { method: 'PUT', template: '/api/bot-configs/{id}', path: ['id'], query: [], success: 200 },
+  'caches.delete': { method: 'DELETE', template: '/api/caches', path: [], query: ['keys'], success: 200 },
+  'caches.delete-by-prefix': { method: 'POST', template: '/api/caches:delete-by-prefix', path: [], query: [], success: 200 },
+  'caches.inspect': { method: 'GET', template: '/api/caches:inspect', path: [], query: ['key'], success: 200 },
+  'caches.keys': { method: 'GET', template: '/api/caches:keys', path: [], query: ['prefix', 'limit', 'continuation'], success: 200 },
+  'caches.namespaces': { method: 'GET', template: '/api/caches:namespaces', path: [], query: [], success: 200 },
+  'caches.update': { method: 'PUT', template: '/api/caches', path: [], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
@@ -385,6 +391,16 @@ export const botConfigs = {
   list: (request: RequestOf<'bot-configs.list'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.list'>, ResponseOf<'bot-configs.list'>>('bot-configs.list', routes['bot-configs.list'], request, options),
   setDefault: (request: RequestOf<'bot-configs.set-default'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.set-default'>, ResponseOf<'bot-configs.set-default'>>('bot-configs.set-default', routes['bot-configs.set-default'], request, options),
   update: (request: RequestOf<'bot-configs.update'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.update'>, ResponseOf<'bot-configs.update'>>('bot-configs.update', routes['bot-configs.update'], request, options),
+}
+
+/** 资源 `caches` 的操作。 */
+export const caches = {
+  delete: (request: RequestOf<'caches.delete'>, options?: CallOptions) => invoke<RequestOf<'caches.delete'>, ResponseOf<'caches.delete'>>('caches.delete', routes['caches.delete'], request, options),
+  deleteByPrefix: (request: RequestOf<'caches.delete-by-prefix'>, options?: CallOptions) => invoke<RequestOf<'caches.delete-by-prefix'>, ResponseOf<'caches.delete-by-prefix'>>('caches.delete-by-prefix', routes['caches.delete-by-prefix'], request, options),
+  inspect: (request: RequestOf<'caches.inspect'>, options?: CallOptions) => invoke<RequestOf<'caches.inspect'>, ResponseOf<'caches.inspect'>>('caches.inspect', routes['caches.inspect'], request, options),
+  keys: (request: RequestOf<'caches.keys'>, options?: CallOptions) => invoke<RequestOf<'caches.keys'>, ResponseOf<'caches.keys'>>('caches.keys', routes['caches.keys'], request, options),
+  namespaces: (request: RequestOf<'caches.namespaces'>, options?: CallOptions) => invoke<RequestOf<'caches.namespaces'>, ResponseOf<'caches.namespaces'>>('caches.namespaces', routes['caches.namespaces'], request, options),
+  update: (request: RequestOf<'caches.update'>, options?: CallOptions) => invoke<RequestOf<'caches.update'>, ResponseOf<'caches.update'>>('caches.update', routes['caches.update'], request, options),
 }
 
 /** 资源 `condition-hits` 的操作。 */

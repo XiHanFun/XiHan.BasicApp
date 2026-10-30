@@ -34,6 +34,21 @@ public static class MaintenancePermissions
     public const string JobsReschedule = "maintenance.jobs.reschedule";
 
     /// <summary>
+    /// 查看缓存。
+    /// </summary>
+    public const string CachesRead = "maintenance.caches.read";
+
+    /// <summary>
+    /// 改写缓存值。
+    /// </summary>
+    public const string CachesUpdate = "maintenance.caches.update";
+
+    /// <summary>
+    /// 删除缓存。
+    /// </summary>
+    public const string CachesDelete = "maintenance.caches.delete";
+
+    /// <summary>
     /// 查看作业的运行历史。
     /// </summary>
     public const string JobRunsRead = "maintenance.job-runs.read";
@@ -57,6 +72,9 @@ public static class MaintenancePermissions
         new(JobsUpdate, "Pause and resume jobs", PermissionScope.Platform, audited: true, description: "Pause and resume scheduled jobs."),
         new(JobsTrigger, "Run jobs now", PermissionScope.Platform, audited: true, description: "Run a scheduled job now on any node."),
         new(JobsReschedule, "Reschedule jobs", PermissionScope.Platform, audited: true, description: "Change a job's schedule or restore a code job to its code definition."),
+        new(CachesRead, "Read caches", PermissionScope.Platform, description: "Browse the cache keys of the application namespaces, their size, expiry and text value."),
+        new(CachesUpdate, "Update caches", PermissionScope.Platform, audited: true, description: "Rewrite the value of a cache entry in an editable namespace, keeping its expiry."),
+        new(CachesDelete, "Delete caches", PermissionScope.Platform, audited: true, description: "Delete cache entries by key or by prefix within the application namespaces."),
         new(JobRunsRead, "Read job runs", PermissionScope.Platform, description: "View the run history of scheduled jobs."),
         new(VersionsRead, "Read versions", PermissionScope.Platform, description: "View the database version ledger."),
         new(MigrationsRead, "Read upgrade records", PermissionScope.Platform, description: "View the upgrade script records."),
