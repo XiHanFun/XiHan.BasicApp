@@ -46,6 +46,16 @@ public static class TenancyPermissions
     public const string TenantsTransferOwner = "tenancy.tenants.transfer-owner";
 
     /// <summary>
+    /// 设租户的隔离方式与独立库连接。
+    /// </summary>
+    public const string TenantsConfigureDatabase = "tenancy.tenants.configure-database";
+
+    /// <summary>
+    /// 初始化租户的独立库。
+    /// </summary>
+    public const string TenantsInitializeDatabase = "tenancy.tenants.initialize-database";
+
+    /// <summary>
     /// 查看租户成员：<c>tenant-members.list</c>。
     /// </summary>
     public const string TenantMembersRead = "tenancy.tenant-members.read";
@@ -99,6 +109,8 @@ public static class TenancyPermissions
         new(TenantsSuspend, "Suspend tenants", PermissionScope.Platform, audited: true, description: "Suspend and resume tenants; suspended tenants cannot sign in."),
         new(TenantsDelete, "Delete tenants", PermissionScope.Platform, audited: true, description: "Delete tenants without users and remove them from the directory."),
         new(TenantsInitializeAdmin, "Initialize tenant administrators", PermissionScope.Platform, audited: true, description: "Create the first administrator of a tenant with every tenant-side permission."),
+        new(TenantsConfigureDatabase, "Configure tenant databases", PermissionScope.Platform, audited: true, description: "Choose shared or dedicated database isolation and set the dedicated connection before it is initialized."),
+        new(TenantsInitializeDatabase, "Initialize tenant databases", PermissionScope.Platform, audited: true, description: "Create a tenant's dedicated database and its tables."),
         new(TenantsTransferOwner, "Transfer tenant ownership", PermissionScope.Platform, audited: true, description: "Hand a tenant's ownership to one of its users or members; the previous owner stays an administrator."),
         new(TenantMembersRead, "Read tenant members", PermissionScope.Platform, description: "View which users may enter a tenant as members."),
         new(TenantMembersCreate, "Add tenant members", PermissionScope.Platform, audited: true, description: "Let a user whose home tenant is elsewhere enter a tenant."),

@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants/{id}:initialize-admin</c>。在租户注册地建用户、设初始密码（首次登录须改密），
-/// 并以租户范围的用户授予 <c>*</c> 给到该租户侧的全部权限（Tenancy 不能引用 Access，角色化的租户管理员随 Access 的租户种子加入）。每个租户只能初始化一次。
+/// 并以租户范围的用户授予 <c>*</c> 给到该租户侧的全部权限（Tenancy 不能引用 Access，角色化的租户管理员随 Access 的租户种子加入）。每个租户只能初始化一次；独立库的租户要先初始化数据库（<c>TENANCY_CONFLICT_014</c>）。
 /// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="users">用户仓储。</param>
@@ -59,6 +59,12 @@ public sealed class InitializeAdmin(
         if (tenant.AdminUserId is not null)
         {
             return Error.Conflict(TenancyErrors.AdminInitialized, TenancyMessages.AdminInitialized, MessageArguments.Of(("tenantId", tenant.TenantId)));
+        }
+
+        // 独立库的租户要先初始化数据库（4.x 同）：用户统计等租户库实体要落进那个库
+        if (tenant.IsolationMode == TenantIsolationMode.Database && tenant.DatabaseStatus != TenantDatabaseStatus.Ready)
+        {
+            return Error.Conflict(TenancyErrors.DatabaseNotReady, TenancyMessages.DatabaseNotReady, MessageArguments.Of(("tenantId", tenant.TenantId)));
         }
 
         var userName = request.UserName.Trim();

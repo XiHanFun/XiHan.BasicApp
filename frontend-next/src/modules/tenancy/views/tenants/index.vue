@@ -1,15 +1,15 @@
 <script lang="ts" setup>
-import type { EditionOption, TenantMember, TenantMemberType, TenantQuota, TenantRow, TenantStatus, UsageCell } from './use-tenants'
+import type { EditionOption, TenantDatabaseStatus, TenantIsolationMode, TenantMember, TenantMemberType, TenantQuota, TenantRow, TenantStatus, UsageCell } from './use-tenants'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, onMounted, ref, useId } from 'vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { inheritedEdition, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, DATABASE_PROVIDER_NAMES, inheritedEdition, initializeTenantDatabase, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_DATABASE_PROVIDERS, TENANT_DATABASE_STATUSES, TENANT_ISOLATION_MODES, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 defineOptions({ name: 'TenancyTenantsView' })
 
@@ -20,7 +20,9 @@ const quotas = useTenantQuotas(reason => toast.danger(t('tenancy.tenants.quota.l
 const resource = tenantsResource(quotas)
 const audit = useQuotaAudit()
 const editions = useEditionOptions()
-const editor = useTenantEditor()
+/** 隔离方式与独立库的连接只在有 configure-database 时出现在弹窗里（平台侧权限） */
+const canConfigureDatabase = computed(() => auth.can('tenancy.tenants.configure-database'))
+const editor = useTenantEditor(() => canConfigureDatabase.value)
 const admin = useAdminInitializer()
 const detail = useTenantDetail(() => auth.can('tenancy.tenant-members.read'))
 const memberEditor = useMemberEditor()
@@ -83,6 +85,53 @@ function adminTag(row: TenantRow) {
     : renderTag(t('tenancy.tenants.admin_none'), 'neutral')
 }
 
+// ── 独立库：隔离方式、库类型与状态的文案（枚举值是契约字面量，文案键静态写出） ──
+function isolationLabel(mode: TenantIsolationMode): string {
+  return mode === 'Database' ? t('tenancy.tenants.database.isolation.database') : t('tenancy.tenants.database.isolation.field')
+}
+
+/** 共库即「共库」；独立库按状态：待初始化、已就绪、初始化失败 */
+function databaseStatusLabel(status: TenantDatabaseStatus): string {
+  switch (status) {
+    case 'Pending':
+      return t('tenancy.tenants.database.status.pending')
+    case 'Ready':
+      return t('tenancy.tenants.database.status.ready')
+    case 'Failed':
+      return t('tenancy.tenants.database.status.failed')
+    default:
+      return t('tenancy.tenants.database.status.not_required')
+  }
+}
+
+function databaseStatusTone(status: TenantDatabaseStatus) {
+  switch (status) {
+    case 'Pending':
+      return 'warning'
+    case 'Ready':
+      return 'success'
+    case 'Failed':
+      return 'danger'
+    default:
+      return 'neutral'
+  }
+}
+
+/** 库类型：没选即与平台库相同；共库不涉及库类型 */
+function providerLabel(row: Pick<TenantRow, 'databaseProvider' | 'isolationMode'>): string {
+  if (row.isolationMode !== 'Database')
+    return '-'
+  return row.databaseProvider ? (DATABASE_PROVIDER_NAMES[row.databaseProvider] ?? row.databaseProvider) : t('tenancy.tenants.database.provider_platform')
+}
+
+/** 列表的数据库列：状态标签，初始化失败时悬停看原因（详情抽屉里也写着） */
+function databaseTag(row: TenantRow) {
+  const tag = renderTag(databaseStatusLabel(row.databaseStatus), databaseStatusTone(row.databaseStatus))
+  return row.databaseStatus === 'Failed' && row.databaseError
+    ? h(XTooltip, { content: row.databaseError }, { default: () => tag })
+    : tag
+}
+
 // ── 配额：用量单元格（4.x 同：超限标红、到 80% 标黄，其余普通文本），弹窗里上限留空时沿用套餐的值 ──
 function seatCell(quota: TenantQuota | undefined): UsageCell | null {
   return quota ? seatUsage(quota, t('tenancy.tenants.quota.unlimited')) : null
@@ -121,6 +170,25 @@ const auditColumns = computed<XDataTableColumn<TenantQuota>[]>(() => [
 ])
 
 const statusOptions = computed<SelectOption[]>(() => TENANT_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const isolationOptions = computed<SelectOption[]>(() => TENANT_ISOLATION_MODES.map(mode => ({ label: isolationLabel(mode), value: mode })))
+/** 列与导出用的数据库状态文案 */
+const databaseStatusOptions = computed<SelectOption[]>(() => TENANT_DATABASE_STATUSES.map(status => ({ label: databaseStatusLabel(status), value: status })))
+
+/** 下拉的选项值不能为空：「与平台库相同」以占位值出现，收上来换回 null */
+const SAME_AS_PLATFORM = 'platform'
+const providerOptions = computed<SelectOption[]>(() => [
+  { label: t('tenancy.tenants.database.provider_platform'), value: SAME_AS_PLATFORM },
+  ...TENANT_DATABASE_PROVIDERS.map(provider => ({ label: DATABASE_PROVIDER_NAMES[provider] ?? provider, value: provider })),
+])
+
+function onProviderChange(value: unknown) {
+  editor.form.databaseProvider = typeof value === 'string' && value !== SAME_AS_PLATFORM ? value : null
+}
+
+/** 选了独立库：显出库类型与连接串，开通后的提示改为先初始化数据库 */
+const choosesDatabase = computed(() => canConfigureDatabase.value && editor.form.isolationMode === 'Database')
+/** 连接串必填：选了独立库而还没配过连接（开通，或从共库改过来）；配过的留空即沿用 */
+const connectionRequired = computed(() => choosesDatabase.value && !editor.hasConnection.value)
 const memberTypeOptions = computed<SelectOption[]>(() => TENANT_MEMBER_TYPES.map(type => ({ label: memberTypeLabel(type), value: type })))
 /** 列与导出用的套餐名 */
 const editionColumnOptions = computed<SelectOption[]>(() => editions.editions.value.map(e => ({ label: e.name, value: e.id })))
@@ -141,6 +209,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'status', title: t('tenancy.tenants.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 3 },
   { key: 'editionId', title: t('tenancy.tenants.fields.edition'), dataType: 'enum', exportable: true, options: editionColumnOptions.value, render: row => editionLabel(asRow(row).editionId), ellipsis: true, minWidth: 130, order: 4 },
   { key: 'adminUserId', title: t('tenancy.tenants.fields.admin'), dataType: 'string', render: row => adminTag(asRow(row)), width: 100, order: 5 },
+  // 共库即「共库」，独立库按状态（4.x 的配置状态）；失败原因悬停可看
+  { key: 'databaseStatus', title: t('tenancy.tenants.fields.database'), dataType: 'enum', exportable: true, options: databaseStatusOptions.value, render: row => databaseTag(asRow(row)), width: 110, order: 5.5 },
   { key: 'expiresAt', title: t('tenancy.tenants.fields.expires_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 6 },
   // 用量来自 tenants.quotas（有效上限 = 租户自己的 → 套餐的 → 不限），不进后端排序与导出
   { key: 'seatUsage', title: t('tenancy.tenants.fields.seat_usage'), dataType: 'string', render: row => renderUsage(seatCell(quotas.of(asRow(row).tenantId))), minWidth: 120, order: 6.2 },
@@ -166,8 +236,10 @@ const schema = computed<PageSchema>(() => ({
     { key: 'quota-audit', title: t('tenancy.tenants.actions.quota_audit'), scope: 'page', icon: 'lucide:gauge', permission: 'tenancy.tenants.read' },
     { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenancy.tenants.update' },
-    // 每个租户只初始化一次：已有管理员就不再出这一项
-    { key: 'initialize-admin', title: t('tenancy.tenants.actions.initialize_admin'), scope: 'row', icon: 'lucide:user-plus', visible: row => !asRow(row).adminUserId, permission: 'tenancy.tenants.initialize-admin' },
+    // 开通三步：独立库先初始化数据库（待初始化或失败后再试；确认框在页面里弹，初始化期间确认钮转圈）
+    { key: 'initialize-database', title: t('tenancy.tenants.actions.initialize_database'), scope: 'row', icon: 'lucide:database', visible: row => canInitializeDatabase(asRow(row)), permission: 'tenancy.tenants.initialize-database' },
+    // 每个租户只初始化一次：已有管理员就不再出这一项；独立库没就绪时也不出（后端拒绝 TENANCY_CONFLICT_014）
+    { key: 'initialize-admin', title: t('tenancy.tenants.actions.initialize_admin'), scope: 'row', icon: 'lucide:user-plus', visible: row => canInitializeAdmin(asRow(row)), permission: 'tenancy.tenants.initialize-admin' },
     { key: 'resume', title: t('tenancy.tenants.actions.resume'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.tenants.resume_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Suspended', permission: 'tenancy.tenants.suspend' },
     { key: 'suspend', title: t('tenancy.tenants.actions.suspend'), scope: 'row', tone: 'warning', icon: 'lucide:pause', confirm: true, confirmText: row => t('tenancy.tenants.suspend_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Active', permission: 'tenancy.tenants.suspend' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'tenancy.tenants.delete' },
@@ -192,6 +264,10 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         editor.startEdit(row)
       break
+    case 'initialize-database':
+      if (row)
+        void confirmInitializeDatabase(row, t('tenancy.tenants.database.init_confirm', { name: row.name }))
+      break
     case 'initialize-admin':
       if (row)
         admin.start(row)
@@ -214,13 +290,54 @@ function onAction(payload: SchemaActionPayload) {
 async function onSubmit() {
   const creating = !editor.isEdit.value
   const saved = await editor.submit()
-  if (!saved)
+  if (!saved) {
+    // 开通成功、配独立库失败：租户已建好（共库），弹窗转为编辑它，改正后再保存只补配库
+    if (creating && editor.isEdit.value) {
+      toast.warning(t('tenancy.tenants.database.configure_failed'))
+      reload()
+    }
     return
+  }
   toast.success(t('common.messages.save_success'))
   reload()
-  // 开通即接着初始化管理员（与 4.x 相同）；也可以稍后从行操作进
-  if (creating && auth.can('tenancy.tenants.initialize-admin'))
+  if (!creating)
+    return
+  // 开通三步（与 4.x 相同）：独立库先初始化数据库、就绪后再初始化管理员，共库直接接着初始化管理员；都可以稍后从行操作进
+  if (saved.isolationMode === 'Database') {
+    if (auth.can('tenancy.tenants.initialize-database'))
+      void confirmInitializeDatabase(saved, t('tenancy.tenants.database.init_after_create', { name: saved.name }), true)
+    return
+  }
+  if (auth.can('tenancy.tenants.initialize-admin'))
     admin.start(saved)
+}
+
+/**
+ * 初始化独立库：确认后发起，建库与建表期间确认钮转圈；初始化失败也是正常响应，按返回的状态提示，改正连接后可再试。
+ * 开通后接着来的（thenAdmin）在就绪后接着初始化管理员，等确认框收起再开。
+ */
+async function confirmInitializeDatabase(row: TenantRow, content: string, thenAdmin = false) {
+  // 在 onOk 里写入：声明处不让类型收窄成 null
+  let initialized = null as null | TenantRow
+  const confirmed = await dialog.confirm({
+    badge: 'warning',
+    title: t('tenancy.tenants.actions.initialize_database'),
+    content,
+    okText: t('tenancy.tenants.actions.initialize_database'),
+    cancelText: thenAdmin ? t('tenancy.tenants.database.init_later') : t('common.actions.cancel'),
+    onOk: async () => {
+      const outcome = await initializeTenantDatabase(row)
+      reload()
+      if (!outcome.ready) {
+        toast.danger(t('tenancy.tenants.database.init_failed'), outcome.error ? { description: outcome.error } : undefined)
+        return
+      }
+      toast.success(t('tenancy.tenants.database.init_success'))
+      initialized = outcome.tenant
+    },
+  })
+  if (confirmed && thenAdmin && initialized && canInitializeAdmin(initialized) && auth.can('tenancy.tenants.initialize-admin'))
+    admin.start(initialized)
 }
 
 async function onAdminSubmit() {
@@ -383,6 +500,28 @@ function formatNullableDate(value: null | string | undefined): string {
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.edition') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ editionLabel(detail.detail.value.tenant.editionId) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
+                  <!-- 独立库（4.x 的隔离模式、数据库类型与配置状态）：连接串从不返回；初始化失败的原因写在状态下面 -->
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.isolation_mode') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ isolationLabel(detail.detail.value.tenant.isolationMode) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.database_provider') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ providerLabel(detail.detail.value.tenant) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.database_status') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      <div class="tenant-database-status">
+                        <XhTagRoot variant="subtle" size="sm" :tone="databaseStatusTone(detail.detail.value.tenant.databaseStatus)">
+                          <XhTagLabel>{{ databaseStatusLabel(detail.detail.value.tenant.databaseStatus) }}</XhTagLabel>
+                        </XhTagRoot>
+                        <span v-if="detail.detail.value.tenant.databaseStatus === 'Failed' && detail.detail.value.tenant.databaseError" class="text-caption text-fg-danger" data-testid="tenant-database-error">
+                          {{ detail.detail.value.tenant.databaseError }}
+                        </span>
+                      </div>
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
                   <!-- 所有者即租户的 adminUserId（初始化管理员时定下）；转移改写它，新所有者获得管理员角色 -->
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.owner') }}</XhDescriptionsLabel>
@@ -429,8 +568,8 @@ function formatNullableDate(value: null | string | undefined): string {
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.created_at') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ formatDate(detail.detail.value.tenant.createdAt) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
-                  <!-- 项数保持偶数：边框按子节点奇偶画竖线，单出一项会让末行只剩半边框 -->
-                  <XhDescriptionsItem>
+                  <!-- 前面十四个单格项两两成行；说明是长文本，独占一行 -->
+                  <XhDescriptionsItem :span="2">
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.description') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ formatNullable(detail.detail.value.tenant.description) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
@@ -650,6 +789,48 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ editor.fieldError('order') }}
           </XhFieldErrorText>
         </XhFieldRoot>
+        <!-- 隔离方式与独立库的连接（4.x 同一组字段）：存好资料后另走 configure-database；独立库就绪后只读 -->
+        <template v-if="canConfigureDatabase">
+          <XhFieldRoot :invalid="!!editor.fieldError('isolationMode')" :disabled="editor.databaseLocked.value">
+            <XhFieldLabel>{{ t('tenancy.tenants.fields.isolation_mode') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="editor.form.isolationMode" name="isolationMode" :options="isolationOptions" />
+            </XhFieldControl>
+            <XhFieldDescription>
+              {{ editor.databaseLocked.value ? t('tenancy.tenants.database.locked_hint') : t('tenancy.tenants.database.isolation_hint') }}
+            </XhFieldDescription>
+            <XhFieldErrorText v-if="editor.fieldError('isolationMode')">
+              {{ editor.fieldError('isolationMode') }}
+            </XhFieldErrorText>
+          </XhFieldRoot>
+          <template v-if="choosesDatabase">
+            <XhFieldRoot :invalid="!!editor.fieldError('databaseProvider')" :disabled="editor.databaseLocked.value">
+              <XhFieldLabel>{{ t('tenancy.tenants.fields.database_provider') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect :value="editor.form.databaseProvider ?? SAME_AS_PLATFORM" name="databaseProvider" :options="providerOptions" @update:value="onProviderChange" />
+              </XhFieldControl>
+              <XhFieldErrorText v-if="editor.fieldError('databaseProvider')">
+                {{ editor.fieldError('databaseProvider') }}
+              </XhFieldErrorText>
+            </XhFieldRoot>
+            <!-- 连接串从不回显：配过的留空即沿用 -->
+            <XhFieldRoot :invalid="!!editor.fieldError('connectionString')" :required="connectionRequired" :disabled="editor.databaseLocked.value">
+              <XhFieldLabel>{{ t('tenancy.tenants.fields.connection_string') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="editor.form.connectionString"
+                  name="connectionString"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="editor.hasConnection.value ? t('tenancy.tenants.database.connection_keep_placeholder') : t('tenancy.tenants.database.connection_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText v-if="editor.fieldError('connectionString')">
+                {{ editor.fieldError('connectionString') }}
+              </XhFieldErrorText>
+            </XhFieldRoot>
+          </template>
+        </template>
         <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('description')">
           <XhFieldLabel>{{ t('tenancy.tenants.fields.description') }}</XhFieldLabel>
           <XhFieldControl>
@@ -659,7 +840,11 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ editor.fieldError('description') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <p v-if="!editor.isEdit.value && auth.can('tenancy.tenants.initialize-admin')" class="xh-span-2 text-caption text-fg-muted">
+        <!-- 开通三步：独立库先初始化数据库，再初始化管理员（4.x 同） -->
+        <p v-if="!editor.isEdit.value && choosesDatabase" class="xh-span-2 text-caption text-fg-muted">
+          {{ t('tenancy.tenants.database.admin_hint') }}
+        </p>
+        <p v-else-if="!editor.isEdit.value && auth.can('tenancy.tenants.initialize-admin')" class="xh-span-2 text-caption text-fg-muted">
           {{ t('tenancy.tenants.create_admin_hint') }}
         </p>
         <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
@@ -833,6 +1018,13 @@ function formatNullableDate(value: null | string | undefined): string {
   align-items: center;
   justify-content: space-between;
   margin-block-end: var(--xh-space-3);
+}
+
+.tenant-database-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--xh-space-1);
 }
 
 .tenant-member-toolbar {

@@ -5,6 +5,8 @@ using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Auditing.Domain.Entities;
+using XiHan.BasicApp.Contracts.MultiTenancy;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
@@ -244,21 +246,29 @@ public sealed partial class AuditLogWriter : IDisposable
     private async Task<Result> WriteGroupAsync(Type type, string tenantId, IReadOnlyList<AuditLogRecord> records)
     {
         await using var scope = _scopes.CreateAsyncScope();
+        // 独立库的租户：经 ITenantScopeRunner 进入该租户，管道解析出分片，日志落进它自己的库（停用的租户进不去，这批记失败）
+        if (await TenantShards.HasShardAsync(scope.ServiceProvider, tenantId, CancellationToken.None).ConfigureAwait(false))
+        {
+            var runner = scope.ServiceProvider.GetRequiredService<ITenantScopeRunner>();
+            return await runner.RunAsync(tenantId, async ctx =>
+            {
+                foreach (var result in await AddAsync(type, ctx.Services, records).ConfigureAwait(false))
+                {
+                    if (result.IsFailure)
+                    {
+                        return result;
+                    }
+                }
+
+                return Result.Success();
+            }, CancellationToken.None).ConfigureAwait(false);
+        }
+
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenantId), CancellationToken.None).ConfigureAwait(false);
         try
         {
-            var results = type switch
-            {
-                _ when type == typeof(SysAccessLog) => await AddAsync<SysAccessLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysExceptionLog) => await AddAsync<SysExceptionLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysLoginLog) => await AddAsync<SysLoginLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysDiffLog) => await AddAsync<SysDiffLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysPermissionChangeLog) => await AddAsync<SysPermissionChangeLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysConditionHit) => await AddAsync<SysConditionHit>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ when type == typeof(SysOpenApiLog) => await AddAsync<SysOpenApiLog>(scope.ServiceProvider, records).ConfigureAwait(false),
-                _ => throw new InvalidOperationException($"'{type.FullName}' is not an audit log entity."),
-            };
+            var results = await AddAsync(type, scope.ServiceProvider, records).ConfigureAwait(false);
             foreach (var result in results)
             {
                 if (result.IsFailure)
@@ -280,6 +290,22 @@ public sealed partial class AuditLogWriter : IDisposable
             throw;
         }
     }
+
+    /// <summary>
+    /// 按日志类型写入一批。
+    /// </summary>
+    private static async Task<IReadOnlyList<Result>> AddAsync(Type type, IServiceProvider services, IReadOnlyList<AuditLogRecord> records) =>
+        type switch
+        {
+            _ when type == typeof(SysAccessLog) => await AddAsync<SysAccessLog>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysExceptionLog) => await AddAsync<SysExceptionLog>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysLoginLog) => await AddAsync<SysLoginLog>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysDiffLog) => await AddAsync<SysDiffLog>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysPermissionChangeLog) => await AddAsync<SysPermissionChangeLog>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysConditionHit) => await AddAsync<SysConditionHit>(services, records).ConfigureAwait(false),
+            _ when type == typeof(SysOpenApiLog) => await AddAsync<SysOpenApiLog>(services, records).ConfigureAwait(false),
+            _ => throw new InvalidOperationException($"'{type.FullName}' is not an audit log entity."),
+        };
 
     private static Task<IReadOnlyList<Result>> AddAsync<TEntity>(IServiceProvider services, IReadOnlyList<AuditLogRecord> records)
         where TEntity : AuditLogRecord

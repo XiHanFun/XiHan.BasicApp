@@ -6,7 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Settings;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
@@ -194,7 +196,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 在独立作用域、带租户的工作单元里执行一批。
+    /// 在独立作用域、带租户的工作单元里执行一批（独立库的租户经管道进入它自己的库）。
     /// </summary>
     /// <remarks>
     /// 成功即提交，抛出即回滚。
@@ -202,6 +204,19 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     private async Task<int> InScopeAsync(string? tenant, Func<IServiceProvider, CancellationToken, Task<int>> work, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
+        // 独立库的租户：经 ITenantScopeRunner 进入该租户，管道解析出分片，清的是它自己的库
+        if (await TenantShards.HasShardAsync(scope.ServiceProvider, tenant, cancellationToken).ConfigureAwait(false))
+        {
+            var removed = 0;
+            var ran = await scope.ServiceProvider.GetRequiredService<ITenantScopeRunner>().RunAsync(tenant!, async ctx =>
+            {
+                removed = await work(ctx.Services, ctx.CancellationToken).ConfigureAwait(false);
+                return Result.Success();
+            }, cancellationToken).ConfigureAwait(false);
+            ran.ThrowIfFailure();
+            return removed;
+        }
+
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenant), cancellationToken).ConfigureAwait(false);
         try

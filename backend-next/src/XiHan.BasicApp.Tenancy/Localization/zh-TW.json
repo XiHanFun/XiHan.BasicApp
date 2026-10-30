@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "使用者 '{userId}' 是租戶 '{tenantId}' 的所有者，請先轉移所有權再移出。",
   "tenancy.owner.ineligible": "使用者 '{userId}' 不能成為租戶 '{tenantId}' 的所有者：須是該租戶註冊地的使用者或生效中的普通成員，且啟用、未鎖定。",
   "tenancy.member.type_mismatch": "使用者 '{userId}' 不能以 '{memberType}' 加入：平台帳號只能以維運支援加入，維運支援只能是平台帳號。",
-  "tenancy.member.window_invalid": "到期時間須晚於生效時間。"
+  "tenancy.member.window_invalid": "到期時間須晚於生效時間。",
+  "tenants.configure_database.title": "設定租戶資料庫",
+  "tenants.configure_database.description": "設定租戶的隔離方式（共用或獨立資料庫）與獨立資料庫的連線字串和類型；就緒之後不能再改。連線字串加密存放，不出現在任何回應裡。只在平台側。",
+  "tenants.initialize_database.title": "初始化租戶資料庫",
+  "tenants.initialize_database.description": "為獨立資料庫的租戶建庫、建表（只建租戶資料的表）並登記結構版本；失敗時記下原因，可改連線後再試。只在平台側。",
+  "permissions.tenancy.tenants.configure_database.name": "設定租戶資料庫",
+  "permissions.tenancy.tenants.initialize_database.name": "初始化租戶資料庫",
+  "tenancy.database.initialized": "租戶 '{tenantId}' 的獨立資料庫已就緒，不能再改或再初始化。",
+  "tenancy.database.not_ready": "租戶 '{tenantId}' 的獨立資料庫還沒就緒，請先初始化資料庫。",
+  "tenancy.database.connection_required": "獨立資料庫要填連線字串。",
+  "tenancy.database.not_isolated": "租戶 '{tenantId}' 是共用資料庫，沒有獨立資料庫可初始化。"
 }

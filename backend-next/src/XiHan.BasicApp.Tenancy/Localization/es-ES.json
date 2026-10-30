@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "El usuario '{userId}' es propietario del inquilino '{tenantId}'. Transfiere la propiedad antes de quitarlo.",
   "tenancy.owner.ineligible": "El usuario '{userId}' no puede ser propietario del inquilino '{tenantId}': debe pertenecer a este inquilino o ser un miembro normal vigente, habilitado y sin bloquear.",
   "tenancy.member.type_mismatch": "El usuario '{userId}' no puede unirse como '{memberType}': las cuentas de plataforma solo se unen como soporte y los miembros de soporte deben ser cuentas de plataforma.",
-  "tenancy.member.window_invalid": "La fecha de vencimiento debe ser posterior a la de inicio."
+  "tenancy.member.window_invalid": "La fecha de vencimiento debe ser posterior a la de inicio.",
+  "tenants.configure_database.title": "Configurar la base de datos del inquilino",
+  "tenants.configure_database.description": "Define el aislamiento del inquilino (base compartida o propia) y la cadena de conexión y el proveedor de la base propia; no se puede cambiar una vez lista. La cadena se guarda cifrada y nunca se devuelve. Solo en la plataforma.",
+  "tenants.initialize_database.title": "Inicializar la base de datos del inquilino",
+  "tenants.initialize_database.description": "Crea la base propia de un inquilino, sus tablas (solo datos del inquilino) y su versión de esquema; los fallos quedan registrados y se puede reintentar tras corregir la conexión. Solo en la plataforma.",
+  "permissions.tenancy.tenants.configure_database.name": "Configurar bases de datos de inquilinos",
+  "permissions.tenancy.tenants.initialize_database.name": "Inicializar bases de datos de inquilinos",
+  "tenancy.database.initialized": "La base propia del inquilino '{tenantId}' ya está lista y no se puede cambiar ni volver a inicializar.",
+  "tenancy.database.not_ready": "La base propia del inquilino '{tenantId}' aún no está lista. Inicializa primero la base de datos.",
+  "tenancy.database.connection_required": "Una base de datos propia necesita una cadena de conexión.",
+  "tenancy.database.not_isolated": "El inquilino '{tenantId}' usa la base compartida; no hay base propia que inicializar."
 }

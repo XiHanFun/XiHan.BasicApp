@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Runtime.Schema;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.MultiTenancy.Database.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -54,7 +56,20 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     public async Task<Result> SyncDirectoryAsync(SysTenant tenant, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tenant);
-        var info = new TenantInfo { Id = tenant.TenantId, DisplayName = tenant.Name, IsEnabled = tenant.Status == TenantStatus.Active };
+        // 独立库的连接串原样（密文）写进目录，由 Runtime 的分片解析器解密；每次同步都带上，免得改名、启停时冲掉
+        var properties = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (tenant.IsolationMode == TenantIsolationMode.Database && !string.IsNullOrEmpty(tenant.ConnectionString))
+        {
+            properties[TenantShardKeys.ConnectionString] = tenant.ConnectionString;
+            if (!string.IsNullOrEmpty(tenant.DatabaseProvider))
+            {
+                properties[TenantShardKeys.DatabaseProvider] = tenant.DatabaseProvider;
+            }
+
+            properties[TenantSchemas.ReadyProperty] = tenant.DatabaseStatus == TenantDatabaseStatus.Ready ? "true" : "false";
+        }
+
+        var info = new TenantInfo { Id = tenant.TenantId, DisplayName = tenant.Name, IsEnabled = tenant.Status == TenantStatus.Active, Properties = properties };
         foreach (var outcome in await directory.UpsertAsync([info], cancellationToken).ConfigureAwait(false))
         {
             if (outcome.Outcome.IsFailure)

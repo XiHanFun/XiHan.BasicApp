@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "ユーザー '{userId}' はテナント '{tenantId}' の所有者です。外す前に所有権を移転してください。",
   "tenancy.owner.ineligible": "ユーザー '{userId}' はテナント '{tenantId}' の所有者になれません。このテナントに所属するか有効期間内の一般メンバーで、有効かつロックされていない必要があります。",
   "tenancy.member.type_mismatch": "ユーザー '{userId}' は '{memberType}' として参加できません。プラットフォームアカウントは運用サポートとしてのみ参加でき、運用サポートはプラットフォームアカウントに限られます。",
-  "tenancy.member.window_invalid": "有効期限は開始日時より後にしてください。"
+  "tenancy.member.window_invalid": "有効期限は開始日時より後にしてください。",
+  "tenants.configure_database.title": "テナントデータベースの設定",
+  "tenants.configure_database.description": "テナントの分離方式（共有または専用データベース）と専用データベースの接続文字列・種類を設定します。準備完了後は変更できません。接続文字列は暗号化して保存され、応答には含まれません。プラットフォーム側のみ。",
+  "tenants.initialize_database.title": "テナントデータベースの初期化",
+  "tenants.initialize_database.description": "テナントの専用データベース、そのテーブル（テナントデータのみ）とスキーマバージョンを作成します。失敗は記録され、接続を直して再試行できます。プラットフォーム側のみ。",
+  "permissions.tenancy.tenants.configure_database.name": "テナントデータベースの設定",
+  "permissions.tenancy.tenants.initialize_database.name": "テナントデータベースの初期化",
+  "tenancy.database.initialized": "テナント '{tenantId}' の専用データベースは準備済みのため、変更や再初期化はできません。",
+  "tenancy.database.not_ready": "テナント '{tenantId}' の専用データベースはまだ準備できていません。先にデータベースを初期化してください。",
+  "tenancy.database.connection_required": "専用データベースには接続文字列が必要です。",
+  "tenancy.database.not_isolated": "テナント '{tenantId}' は共有データベースを使っており、初期化する専用データベースはありません。"
 }

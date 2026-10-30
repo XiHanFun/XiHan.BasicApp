@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "User '{userId}' owns tenant '{tenantId}'. Transfer the ownership before removing them.",
   "tenancy.owner.ineligible": "User '{userId}' cannot own tenant '{tenantId}': they must belong to this tenant or be an active regular member, enabled and not locked.",
   "tenancy.member.type_mismatch": "User '{userId}' cannot join as '{memberType}': platform accounts join only as support, and support members must be platform accounts.",
-  "tenancy.member.window_invalid": "The expiry time must be later than the effective time."
+  "tenancy.member.window_invalid": "The expiry time must be later than the effective time.",
+  "tenants.configure_database.title": "Configure tenant database",
+  "tenants.configure_database.description": "Set the tenant's isolation (shared or dedicated database) and the dedicated connection string and provider; it cannot change once the dedicated database is ready. The connection string is stored encrypted and never returned. Platform side only.",
+  "tenants.initialize_database.title": "Initialize tenant database",
+  "tenants.initialize_database.description": "Create the dedicated database of a tenant, its tables (tenant data only) and its schema version; failures are recorded and can be retried after fixing the connection. Platform side only.",
+  "permissions.tenancy.tenants.configure_database.name": "Configure tenant databases",
+  "permissions.tenancy.tenants.initialize_database.name": "Initialize tenant databases",
+  "tenancy.database.initialized": "The dedicated database of tenant '{tenantId}' is ready and cannot be changed or initialized again.",
+  "tenancy.database.not_ready": "The dedicated database of tenant '{tenantId}' is not ready yet. Initialize the database first.",
+  "tenancy.database.connection_required": "A dedicated database needs a connection string.",
+  "tenancy.database.not_isolated": "Tenant '{tenantId}' uses the shared database; there is no dedicated database to initialize."
 }

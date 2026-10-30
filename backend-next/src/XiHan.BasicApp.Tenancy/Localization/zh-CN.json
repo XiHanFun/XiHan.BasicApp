@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "用户 '{userId}' 是租户 '{tenantId}' 的所有者，请先转移所有权再移出。",
   "tenancy.owner.ineligible": "用户 '{userId}' 不能成为租户 '{tenantId}' 的所有者：须是该租户注册地的用户或生效中的普通成员，且启用、未锁定。",
   "tenancy.member.type_mismatch": "用户 '{userId}' 不能以 '{memberType}' 加入：平台账号只能以运维支持加入，运维支持只能是平台账号。",
-  "tenancy.member.window_invalid": "到期时间须晚于生效时间。"
+  "tenancy.member.window_invalid": "到期时间须晚于生效时间。",
+  "tenants.configure_database.title": "配置租户数据库",
+  "tenants.configure_database.description": "设租户的隔离方式（共库或独立库）与独立库的连接串和库类型；独立库就绪之后不能再改。连接串加密存放，不出现在任何响应里。只在平台侧。",
+  "tenants.initialize_database.title": "初始化租户数据库",
+  "tenants.initialize_database.description": "为独立库的租户建库、建表（只建租户数据的表）并登记结构版本；失败时记下原因，可改连接后再试。只在平台侧。",
+  "permissions.tenancy.tenants.configure_database.name": "配置租户数据库",
+  "permissions.tenancy.tenants.initialize_database.name": "初始化租户数据库",
+  "tenancy.database.initialized": "租户 '{tenantId}' 的独立库已就绪，不能再改或再初始化。",
+  "tenancy.database.not_ready": "租户 '{tenantId}' 的独立库还没就绪，请先初始化数据库。",
+  "tenancy.database.connection_required": "独立库要填连接串。",
+  "tenancy.database.not_isolated": "租户 '{tenantId}' 是共库，没有独立库可初始化。"
 }

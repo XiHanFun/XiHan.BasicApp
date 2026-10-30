@@ -94,5 +94,15 @@
   "tenancy.owner.removal": "L'utilisateur '{userId}' est propriétaire du locataire '{tenantId}'. Transférez la propriété avant de le retirer.",
   "tenancy.owner.ineligible": "L'utilisateur '{userId}' ne peut pas devenir propriétaire du locataire '{tenantId}' : il doit appartenir à ce locataire ou être un membre ordinaire en vigueur, activé et non verrouillé.",
   "tenancy.member.type_mismatch": "L'utilisateur '{userId}' ne peut pas rejoindre en tant que '{memberType}' : les comptes plateforme ne rejoignent qu'en support, et les membres support doivent être des comptes plateforme.",
-  "tenancy.member.window_invalid": "L'échéance doit être postérieure à la date d'effet."
+  "tenancy.member.window_invalid": "L'échéance doit être postérieure à la date d'effet.",
+  "tenants.configure_database.title": "Configurer la base du locataire",
+  "tenants.configure_database.description": "Définit l'isolation du locataire (base partagée ou dédiée) ainsi que la chaîne de connexion et le fournisseur de la base dédiée ; non modifiable une fois prête. La chaîne est stockée chiffrée et jamais renvoyée. Côté plateforme uniquement.",
+  "tenants.initialize_database.title": "Initialiser la base du locataire",
+  "tenants.initialize_database.description": "Crée la base dédiée d'un locataire, ses tables (données du locataire uniquement) et sa version de schéma ; les échecs sont consignés et peuvent être retentés après correction de la connexion. Côté plateforme uniquement.",
+  "permissions.tenancy.tenants.configure_database.name": "Configurer les bases des locataires",
+  "permissions.tenancy.tenants.initialize_database.name": "Initialiser les bases des locataires",
+  "tenancy.database.initialized": "La base dédiée du locataire '{tenantId}' est prête et ne peut plus être modifiée ni réinitialisée.",
+  "tenancy.database.not_ready": "La base dédiée du locataire '{tenantId}' n'est pas encore prête. Initialisez d'abord la base.",
+  "tenancy.database.connection_required": "Une base dédiée nécessite une chaîne de connexion.",
+  "tenancy.database.not_isolated": "Le locataire '{tenantId}' utilise la base partagée ; il n'y a pas de base dédiée à initialiser."
 }

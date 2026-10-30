@@ -48,4 +48,22 @@ public static class RuntimeErrors
     /// 维护模式：别的节点正在升级共享的库。
     /// </summary>
     public const string MaintenanceMode = "RUNTIME_UNAVAILABLE_003";
+
+    /// <summary>
+    /// 租户连接串解不开。
+    /// </summary>
+    /// <remarks>
+    /// 密钥换了或密文被改过；不降级为共库。
+    /// </remarks>
+    public const string ShardSecretUnreadable = "RUNTIME_UNAVAILABLE_004";
+
+    /// <summary>
+    /// 租户没有自己的库（没有配置分片连接）。
+    /// </summary>
+    public const string TenantShardMissing = "RUNTIME_VALIDATION_005";
+
+    /// <summary>
+    /// 初始化或读取租户独立库失败。
+    /// </summary>
+    public const string TenantDatabaseFailed = "RUNTIME_UNAVAILABLE_005";
 }
