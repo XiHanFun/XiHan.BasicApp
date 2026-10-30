@@ -7,6 +7,7 @@ using XiHan.BasicApp.Maintenance.Operations.Caches;
 using XiHan.BasicApp.Maintenance.Operations.JobRuns;
 using XiHan.BasicApp.Maintenance.Operations.Jobs;
 using XiHan.BasicApp.Maintenance.Operations.Migrations;
+using XiHan.BasicApp.Maintenance.Operations.Server;
 using XiHan.BasicApp.Maintenance.Operations.Versions;
 
 namespace XiHan.BasicApp.Maintenance;
@@ -42,6 +43,8 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(CacheDeleteResult))]
 [JsonSerializable(typeof(CachePrefixRequest))]
 [JsonSerializable(typeof(CachePrefixDeleteResult))]
+[JsonSerializable(typeof(ServerInfoRequest))]
+[JsonSerializable(typeof(ServerInfoResponse))]
 [JsonSerializable(typeof(PageResult<JobRunResponse>))]
 [JsonSerializable(typeof(JobRunResponse))]
 [JsonSerializable(typeof(VersionIdRequest))]

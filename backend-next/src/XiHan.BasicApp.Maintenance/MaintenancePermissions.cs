@@ -49,6 +49,11 @@ public static class MaintenancePermissions
     public const string CachesDelete = "maintenance.caches.delete";
 
     /// <summary>
+    /// 查看服务监控。
+    /// </summary>
+    public const string ServerRead = "maintenance.server.read";
+
+    /// <summary>
     /// 查看作业的运行历史。
     /// </summary>
     public const string JobRunsRead = "maintenance.job-runs.read";
@@ -75,6 +80,7 @@ public static class MaintenancePermissions
         new(CachesRead, "Read caches", PermissionScope.Platform, description: "Browse the cache keys of the application namespaces, their size, expiry and text value."),
         new(CachesUpdate, "Update caches", PermissionScope.Platform, audited: true, description: "Rewrite the value of a cache entry in an editable namespace, keeping its expiry."),
         new(CachesDelete, "Delete caches", PermissionScope.Platform, audited: true, description: "Delete cache entries by key or by prefix within the application namespaces."),
+        new(ServerRead, "Read server monitor", PermissionScope.Platform, description: "View the host runtime, processor, memory, disks, network, GPUs and board, and the health checks of the providers."),
         new(JobRunsRead, "Read job runs", PermissionScope.Platform, description: "View the run history of scheduled jobs."),
         new(VersionsRead, "Read versions", PermissionScope.Platform, description: "View the database version ledger."),
         new(MigrationsRead, "Read upgrade records", PermissionScope.Platform, description: "View the upgrade script records."),

@@ -11,6 +11,9 @@ export type AccessPolicyStatus = (typeof AccessPolicyStatus)[number]
 export const AccessResult = ['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'] as const
 export type AccessResult = (typeof AccessResult)[number]
 
+export const Architecture = ['X86', 'X64', 'Arm', 'Arm64', 'Wasm', 'S390x', 'LoongArch64', 'Armv6', 'Ppc64le', 'RiscV64'] as const
+export type Architecture = (typeof Architecture)[number]
+
 export const BotProvider = ['DingTalk', 'Lark', 'WeCom'] as const
 export type BotProvider = (typeof BotProvider)[number]
 
@@ -74,6 +77,9 @@ export type DeliveryChannel = (typeof DeliveryChannel)[number]
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
+export const DriveType = ['Unknown', 'NoRootDirectory', 'Removable', 'Fixed', 'Network', 'CDRom', 'Ram'] as const
+export type DriveType = (typeof DriveType)[number]
+
 export const ExportFormat = ['Csv', 'Xlsx'] as const
 export type ExportFormat = (typeof ExportFormat)[number]
 
@@ -122,6 +128,9 @@ export type JobSource = (typeof JobSource)[number]
 export const JobTrigger = ['Schedule', 'Manual', 'Recovery'] as const
 export type JobTrigger = (typeof JobTrigger)[number]
 
+export const LifecycleState = ['Declared', 'Resolved', 'Configured', 'Started', 'Ready', 'Degraded', 'Draining', 'Stopped', 'Failed'] as const
+export type LifecycleState = (typeof LifecycleState)[number]
+
 export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset', 'RoleActivation'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
@@ -130,6 +139,9 @@ export type MenuKind = (typeof MenuKind)[number]
 
 export const MessageSendStatus = ['Pending', 'Sending', 'Success', 'Failed', 'Cancelled'] as const
 export type MessageSendStatus = (typeof MessageSendStatus)[number]
+
+export const NetworkInterfaceType = ['Unknown', 'Ethernet', 'TokenRing', 'Fddi', 'BasicIsdn', 'PrimaryIsdn', 'Ppp', 'Loopback', 'Ethernet3Megabit', 'Slip', 'Atm', 'GenericModem', 'FastEthernetT', 'Isdn', 'FastEthernetFx', 'Wireless80211', 'AsymmetricDsl', 'RateAdaptDsl', 'SymmetricDsl', 'VeryHighSpeedDsl', 'IPOverAtm', 'GigabitEthernet', 'Tunnel', 'MultiRateSymmetricDsl', 'HighPerformanceSerialBus', 'Wman', 'Wwanpp', 'Wwanpp2'] as const
+export type NetworkInterfaceType = (typeof NetworkInterfaceType)[number]
 
 export const NotificationContentFormat = ['Text', 'Markdown', 'Html'] as const
 export type NotificationContentFormat = (typeof NotificationContentFormat)[number]
@@ -160,6 +172,9 @@ export type OAuthAppType = (typeof OAuthAppType)[number]
 
 export const OAuthClientType = ['Confidential', 'Public'] as const
 export type OAuthClientType = (typeof OAuthClientType)[number]
+
+export const OperationalStatus = ['Up', 'Down', 'Testing', 'Unknown', 'Dormant', 'NotPresent', 'LowerLayerDown'] as const
+export type OperationalStatus = (typeof OperationalStatus)[number]
 
 export const OrganizationStatus = ['Active', 'Disabled'] as const
 export type OrganizationStatus = (typeof OrganizationStatus)[number]
@@ -238,6 +253,7 @@ export const enums = {
   AccessPolicyAction,
   AccessPolicyStatus,
   AccessResult,
+  Architecture,
   BotProvider,
   ConditionDiagnostic,
   ConditionGroupConclusion,
@@ -259,6 +275,7 @@ export const enums = {
   DelegationStatus,
   DeliveryChannel,
   DiffKind,
+  DriveType,
   ExportFormat,
   ExportScope,
   ExportTaskStatus,
@@ -275,9 +292,11 @@ export const enums = {
   JobScheduleKind,
   JobSource,
   JobTrigger,
+  LifecycleState,
   LoginEvent,
   MenuKind,
   MessageSendStatus,
+  NetworkInterfaceType,
   NotificationContentFormat,
   NotificationPriority,
   NotificationRecipientFilter,
@@ -288,6 +307,7 @@ export const enums = {
   NumberingScope,
   OAuthAppType,
   OAuthClientType,
+  OperationalStatus,
   OrganizationStatus,
   PermissionAction,
   PermissionChangeType,
