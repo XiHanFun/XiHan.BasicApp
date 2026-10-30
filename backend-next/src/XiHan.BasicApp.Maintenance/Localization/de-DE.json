@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "Upgrade-Einträge",
   "openapi.tags.migrations.description": "Jede Ausführung eines Upgrade-Skripts: Version, Skript, Dauer, Ergebnis und Knoten.",
   "permissions.maintenance.versions.read.name": "Versionen lesen",
-  "permissions.maintenance.migrations.read.name": "Upgrade-Einträge lesen"
+  "permissions.maintenance.migrations.read.name": "Upgrade-Einträge lesen",
+  "jobs.reschedule.title": "Jobzeitplan ändern",
+  "jobs.reschedule.description": "Ersetzt den Zeitplan eines Jobs (Cron-Ausdruck oder Zeitplantext); die übrige Registrierung und der Pausenzustand bleiben. Ein so geänderter Code-Job wird als überschrieben markiert und behält die Änderung über Neustarts, solange seine Code-Definition gleich bleibt. Der Job darf nur einen Auslöser haben. Nur auf Plattformseite.",
+  "jobs.restore.title": "Code-Definitionen wiederherstellen",
+  "jobs.restore.description": "Setzt Jobs auf die im Code registrierten Definitionen zurück (zur Laufzeit geänderte Zeitpläne werden verworfen), der Pausenzustand bleibt; Jobs ohne Code-Definition schlagen einzeln fehl. Nur auf Plattformseite.",
+  "jobs.types.title": "Jobtypen auflisten",
+  "jobs.types.description": "Listet die registrierten Jobtypen (ordinal sortiert) zum Filtern der Jobliste nach Typ. Nur auf Plattformseite.",
+  "permissions.maintenance.jobs.reschedule.name": "Jobzeitpläne ändern",
+  "maintenance.jobs.type_unknown": "Der Typ '{type}' des Jobs '{id}' ist nicht registriert; der Zeitplan kann nicht geändert werden.",
+  "maintenance.jobs.triggers_many": "Der Job '{id}' hat {count} Auslöser; sein Zeitplan kann nicht als Ganzes ersetzt werden."
 }

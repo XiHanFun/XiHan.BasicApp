@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "升級記錄",
   "openapi.tags.migrations.description": "升級腳本每次執行的版本、腳本、耗時、結果與節點。",
   "permissions.maintenance.versions.read.name": "檢視版本",
-  "permissions.maintenance.migrations.read.name": "檢視升級記錄"
+  "permissions.maintenance.migrations.read.name": "檢視升級記錄",
+  "jobs.reschedule.title": "修改作業排程",
+  "jobs.reschedule.description": "更換作業的排程（Cron 運算式或排程寫法），其餘登記不變、暫停狀態保留；程式碼登記的作業改過即標為「已改排程」，重啟後程式碼定義沒變就保留這次的修改。作業只能有一個觸發器。只在平台側。",
+  "jobs.restore.title": "恢復程式碼定義",
+  "jobs.restore.description": "批次把作業改回程式碼裡登記的定義（捨棄執行時改過的排程），暫停狀態保留；沒有程式碼定義的作業逐項報錯。只在平台側。",
+  "jobs.types.title": "列出作業類型",
+  "jobs.types.description": "列出已登記的作業類型（按序數排序），作業清單按類型篩選時使用。只在平台側。",
+  "permissions.maintenance.jobs.reschedule.name": "修改作業排程",
+  "maintenance.jobs.type_unknown": "作業 '{id}' 的類型 '{type}' 沒有登記，不能改排程。",
+  "maintenance.jobs.triggers_many": "作業 '{id}' 有 {count} 個觸發器，不能整體改排程。"
 }

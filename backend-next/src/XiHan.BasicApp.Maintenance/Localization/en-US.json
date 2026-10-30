@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "Upgrade records",
   "openapi.tags.migrations.description": "Each upgrade script run: version, script, duration, outcome and node.",
   "permissions.maintenance.versions.read.name": "Read versions",
-  "permissions.maintenance.migrations.read.name": "Read upgrade records"
+  "permissions.maintenance.migrations.read.name": "Read upgrade records",
+  "jobs.reschedule.title": "Reschedule job",
+  "jobs.reschedule.description": "Replace a job's schedule (a cron expression or schedule text) and keep the rest of its registration and its paused state. A code job changed this way is marked overridden and keeps the change across restarts while its code definition is unchanged. The job must have a single trigger. Platform side only.",
+  "jobs.restore.title": "Restore code definitions",
+  "jobs.restore.description": "Restore jobs to the definitions registered in code (discarding runtime schedule changes) and keep their paused state; jobs without a code definition fail item by item. Platform side only.",
+  "jobs.types.title": "List job types",
+  "jobs.types.description": "List the registered job types (ordinal order), used to filter the job list by type. Platform side only.",
+  "permissions.maintenance.jobs.reschedule.name": "Reschedule jobs",
+  "maintenance.jobs.type_unknown": "The type '{type}' of job '{id}' is not registered, so its schedule cannot be changed.",
+  "maintenance.jobs.triggers_many": "Job '{id}' has {count} triggers; its schedule cannot be replaced as a whole."
 }

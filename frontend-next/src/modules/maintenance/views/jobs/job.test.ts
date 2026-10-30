@@ -1,8 +1,13 @@
 import type { JobResponse, JobRunRow } from './job'
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
+import { QueryOperator } from '~/types/contracts'
 import {
+  activeTriggerCount,
   assertBatch,
+  batchFailureMessage,
+  canReschedule,
+  canRestore,
   deriveRunStatus,
   enabledLabel,
   formatDuration,
@@ -13,6 +18,11 @@ import {
   kindLabel,
   kindOptions,
   listJobRuns,
+  loadJobTypeOptions,
+  previewSchedule,
+  rescheduleJob,
+  restoreJobs,
+  runFailedOptions,
   runStateLabel,
   runStateTone,
   runStatusFilters,
@@ -20,10 +30,16 @@ import {
   runStatusOptions,
   runStatusTone,
   runTriggerLabel,
+  scheduleFormOf,
+  schedulePresets,
+  sourceLabel,
+  sourceOptions,
+  sourceTone,
   statusOptions,
   toJobRow,
   toJobRunsRequest,
   toJobsRequest,
+  toRescheduleRequest,
   triggerJob,
   triggerStateTone,
 } from './job'
@@ -196,21 +212,164 @@ describe('任务调度：资源', () => {
   })
 })
 
+describe('任务调度：登记来源与作业类型筛选', () => {
+  it('登记来源三种（已改计划即代码登记后在运行时改过计划），语气中性 / 蓝 / 黄；搜索按 source eq', () => {
+    expect(sourceOptions(t)).toEqual([
+      { label: 'maintenance.jobs.sources.code', value: 'Code' },
+      { label: 'maintenance.jobs.sources.runtime', value: 'Runtime' },
+      { label: 'maintenance.jobs.sources.overridden', value: 'Overridden' },
+    ])
+    expect(sourceLabel(t, 'Overridden')).toBe('maintenance.jobs.sources.overridden')
+    expect((['Code', 'Runtime', 'Overridden'] as const).map(sourceTone)).toEqual(['neutral', 'info', 'warning'])
+    expect(toJobsRequest({ page: 1, pageSize: 20, filters: { source: 'Overridden' } }).filters).toEqual([{ field: 'source', operator: 'eq', value: 'Overridden' }])
+  })
+
+  it('作业类型的候选取自 GET jobs:types，登记键即显示文本', async () => {
+    const calls = stub({ items: ['auditing.retention', 'files.expire-uploads'] })
+    expect(await loadJobTypeOptions()).toEqual([
+      { label: 'auditing.retention', value: 'auditing.retention' },
+      { label: 'files.expire-uploads', value: 'files.expire-uploads' },
+    ])
+    expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/jobs:types', body: undefined })
+  })
+
+  it('作业类型多选合成 jobType in（逗号分隔），单选一个也走 in；多选的原始值不再按 eq 重复下发', () => {
+    const request = toJobsRequest({
+      page: 1,
+      pageSize: 20,
+      filters: { jobType: ['auditing.retention', 'files.expire-uploads'] },
+      conditionFilters: [{ field: 'jobType', operator: QueryOperator.In, values: ['auditing.retention', 'files.expire-uploads'] }],
+    })
+    expect(request.filters).toEqual([{ field: 'jobType', operator: 'in', value: 'auditing.retention,files.expire-uploads' }])
+    expect(toJobsRequest({ page: 1, pageSize: 20, filters: {}, conditionFilters: [{ field: 'jobType', operator: QueryOperator.In, values: ['auditing.retention'] }] }).filters)
+      .toEqual([{ field: 'jobType', operator: 'in', value: 'auditing.retention' }])
+  })
+})
+
+describe('任务调度：修改计划', () => {
+  const INTERVAL = { name: 'default', schedule: 'every 00:05:00', kind: 'Interval' as const, cron: null, intervalSeconds: 300, timeZone: null, state: 'Waiting' as const, nextFireAt: null, previousFireAt: null, fireCount: 0, error: null }
+
+  it('只能改唯一一个计划触发器的计划；恢复代码计划只对已改计划的作业', () => {
+    // 立即执行排进的临时触发器（manual-）不算
+    expect(activeTriggerCount(job())).toBe(1)
+    expect(canReschedule(job())).toBe(true)
+    expect(canReschedule(job({ triggers: [INTERVAL, { ...INTERVAL, name: 'nightly' }] }))).toBe(false)
+    expect(canReschedule(job({ triggers: [INTERVAL] }))).toBe(true)
+    expect(canReschedule(job({ triggers: [] }))).toBe(true)
+    expect(canRestore(job({ source: 'Overridden' }))).toBe(true)
+    expect(canRestore(job({ source: 'Code' }))).toBe(false)
+    expect(canRestore(job({ source: 'Runtime' }))).toBe(false)
+  })
+
+  it('弹窗初值：Cron 触发器拆成表达式与时区，其余取计划写法，没有触发器为空', () => {
+    const cron = { ...INTERVAL, schedule: 'cron 0 0 3 * * ? tz=Asia/Shanghai', kind: 'Cron' as const, cron: '0 0 3 * * ?', intervalSeconds: null, timeZone: 'Asia/Shanghai' }
+    expect(scheduleFormOf(job({ triggers: [cron] }))).toEqual({ expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' })
+    expect(scheduleFormOf(job({ triggers: [{ ...cron, timeZone: null }] }))).toEqual({ expression: '0 0 3 * * ?', timeZone: '' })
+    expect(scheduleFormOf(job({ triggers: [INTERVAL] }))).toEqual({ expression: 'every 00:05:00', timeZone: '' })
+    expect(scheduleFormOf(job({ triggers: [] }))).toEqual({ expression: '', timeZone: '' })
+  })
+
+  it('请求：作业名进路由值，计划去空白，时区留空即 null（后端按 UTC）', () => {
+    expect(toRescheduleRequest('auditing.retention', { expression: ' 0 0 3 * * ? ', timeZone: ' Asia/Shanghai ' })).toEqual({ id: 'auditing.retention', expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' })
+    expect(toRescheduleRequest('auditing.retention', { expression: 'every 00:05:00', timeZone: '  ' })).toEqual({ id: 'auditing.retention', expression: 'every 00:05:00', timeZone: null })
+  })
+
+  it('保存：POST jobs/{id}:reschedule，请求体只有计划与时区，返回改后的作业（已改计划）', async () => {
+    const changed = job({ source: 'Overridden', triggers: [{ ...INTERVAL, schedule: 'cron 0 0 3 * * ? tz=Asia/Shanghai', kind: 'Cron', cron: '0 0 3 * * ?', intervalSeconds: null, timeZone: 'Asia/Shanghai' }] })
+    const calls = stub(changed)
+    const row = await rescheduleJob('auditing.retention', { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' })
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/jobs/auditing.retention:reschedule', body: { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' } })
+    expect(row).toMatchObject({ name: 'auditing.retention', source: 'Overridden', kind: 'Cron', group: 'auditing' })
+  })
+
+  it('保存失败（计划写错）原样抛出后端的问题详情，由弹窗落到计划框下', async () => {
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 't',
+      fetch: (async () => new Response(JSON.stringify({ status: 400, code: 'MAINTENANCE_VALIDATION_002', detail: '计划写错了' }), { status: 400, headers: { 'Content-Type': 'application/problem+json' } })) as unknown as typeof fetch,
+    })
+    await expect(rescheduleJob('auditing.retention', { expression: 'nope', timeZone: '' })).rejects.toMatchObject({ code: 'MAINTENANCE_VALIDATION_002', detail: '计划写错了' })
+  })
+
+  it('预览：GET jobs:validate-schedule 带计划、时区与个数 5；时区留空不进查询串', async () => {
+    const calls = stub(
+      { schedule: 'cron 0 0 3 * * ? tz=Asia/Shanghai', kind: 'Cron', nextRuns: ['2026-10-30T19:00:00Z'] },
+      { schedule: 'every 00:05:00', kind: 'Interval', nextRuns: [] },
+    )
+    expect(await previewSchedule({ expression: ' 0 0 3 * * ? ', timeZone: 'Asia/Shanghai' })).toEqual({ schedule: 'cron 0 0 3 * * ? tz=Asia/Shanghai', kind: 'Cron', nextRuns: ['2026-10-30T19:00:00Z'] })
+    await previewSchedule({ expression: 'every 00:05:00', timeZone: ' ' })
+    const first = new URL(calls[0]!.url, 'http://host')
+    expect(calls[0]!.method).toBe('GET')
+    expect(first.pathname).toBe('/api/jobs:validate-schedule')
+    expect(Object.fromEntries(first.searchParams)).toEqual({ expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai', count: '5' })
+    expect(Object.fromEntries(new URL(calls[1]!.url, 'http://host').searchParams)).toEqual({ expression: 'every 00:05:00', count: '5' })
+  })
+
+  it('常用预设沿用 4.x 的六个（周按 Unix 约定，1 是周一）', () => {
+    expect(schedulePresets(t).map(preset => preset.value)).toEqual(['0 * * * * ?', '0 0/5 * * * ?', '0 0 * * * ?', '0 0 0 * * ?', '0 0 0 ? * 1', '0 0 0 1 * ?'])
+  })
+})
+
+describe('任务调度：恢复代码计划', () => {
+  it('按作业名批量 POST jobs:restore；全部成功不抛错', async () => {
+    const calls = stub({ succeeded: ['auditing.retention'], failed: [] })
+    await restoreJobs(t, ['auditing.retention'])
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/jobs:restore', body: { ids: ['auditing.retention'] } })
+  })
+
+  it('没有代码定义（SCHEDULING_NOTFOUND_005）与作业不存在翻成文案抛出；未知码原样', async () => {
+    stub({ succeeded: [], failed: [{ id: 'runtime.job', code: 'SCHEDULING_NOTFOUND_005' }, { id: 'gone.job', code: 'MAINTENANCE_NOTFOUND_001' }] })
+    await expect(restoreJobs(t, ['runtime.job', 'gone.job'])).rejects.toThrow('maintenance.jobs.no_code_definition; maintenance.jobs.job_not_found')
+    expect(batchFailureMessage(t, 'SCHEDULING_NOTFOUND_005')).toBe('maintenance.jobs.no_code_definition')
+    expect(batchFailureMessage(t, 'X_9')).toBe('X_9')
+  })
+})
+
 describe('任务调度：执行日志', () => {
+  const NO_FILTERS = { state: null, failed: null, triggerName: '', node: '', keyword: '' } as const
+
   it('按作业过滤，状态单选，关键字（替 4.x 的批次号）去空白，留空不下发', () => {
-    expect(toJobRunsRequest({ job: 'auditing.retention', page: 3, pageSize: 10, state: 'Failed', keyword: ' node-a ' })).toEqual({
+    expect(toJobRunsRequest({ ...NO_FILTERS, job: 'auditing.retention', page: 3, pageSize: 10, state: 'Failed', keyword: ' node-a ' })).toEqual({
       page: { index: 3, size: 10 },
       filters: [{ field: 'job', operator: 'eq', value: 'auditing.retention' }, { field: 'state', operator: 'eq', value: 'Failed' }],
       sorts: [],
       keyword: 'node-a',
     })
-    expect(toJobRunsRequest({ job: 'a.b', page: 1, pageSize: 10, state: null, keyword: ' ' })).toMatchObject({ filters: [{ field: 'job', operator: 'eq', value: 'a.b' }], keyword: null })
+    expect(toJobRunsRequest({ ...NO_FILTERS, job: 'a.b', page: 1, pageSize: 10, keyword: ' ' })).toMatchObject({ filters: [{ field: 'job', operator: 'eq', value: 'a.b' }], keyword: null })
   })
 
-  it('分页：POST job-runs:list，总数换成数字', async () => {
-    const calls = stub({ items: [RUN], total: '41', page: { index: 1, size: 10 } })
-    const result = await listJobRuns({ job: 'auditing.retention', page: 1, pageSize: 10, state: null, keyword: '' })
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/job-runs:list' })
+  it('是否出错按 failed eq true / false 下发，触发器名与节点去空白后精确匹配，留空不下发', () => {
+    expect(toJobRunsRequest({ ...NO_FILTERS, job: 'a.b', page: 1, pageSize: 10, failed: true, triggerName: ' manual-2 ', node: ' node-a ' }).filters).toEqual([
+      { field: 'job', operator: 'eq', value: 'a.b' },
+      { field: 'failed', operator: 'eq', value: 'true' },
+      { field: 'triggerName', operator: 'eq', value: 'manual-2' },
+      { field: 'node', operator: 'eq', value: 'node-a' },
+    ])
+    expect(toJobRunsRequest({ ...NO_FILTERS, job: 'a.b', page: 1, pageSize: 10, failed: false, triggerName: '  ', node: '' }).filters).toEqual([
+      { field: 'job', operator: 'eq', value: 'a.b' },
+      { field: 'failed', operator: 'eq', value: 'false' },
+    ])
+    expect(runFailedOptions(t).map(option => option.value)).toEqual(['true', 'false'])
+  })
+
+  it('分页：POST job-runs:list 带上全部筛选，总数取后端给的真实总数并换成数字', async () => {
+    const calls = stub({ items: [RUN], total: '41', page: { index: 2, size: 10 } })
+    const result = await listJobRuns({ job: 'auditing.retention', page: 2, pageSize: 10, state: 'Succeeded', failed: false, triggerName: 'default', node: 'node-a', keyword: '' })
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/job-runs:list',
+      body: {
+        page: { index: 2, size: 10 },
+        filters: [
+          { field: 'job', operator: 'eq', value: 'auditing.retention' },
+          { field: 'state', operator: 'eq', value: 'Succeeded' },
+          { field: 'failed', operator: 'eq', value: 'false' },
+          { field: 'triggerName', operator: 'eq', value: 'default' },
+          { field: 'node', operator: 'eq', value: 'node-a' },
+        ],
+        keyword: null,
+      },
+    })
     expect(result).toEqual({ items: [RUN], total: 41 })
   })
 

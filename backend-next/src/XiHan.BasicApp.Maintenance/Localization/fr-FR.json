@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "Enregistrements de mise à niveau",
   "openapi.tags.migrations.description": "Chaque exécution d'un script de mise à niveau : version, script, durée, résultat et nœud.",
   "permissions.maintenance.versions.read.name": "Consulter les versions",
-  "permissions.maintenance.migrations.read.name": "Consulter les mises à niveau"
+  "permissions.maintenance.migrations.read.name": "Consulter les mises à niveau",
+  "jobs.reschedule.title": "Modifier la planification de la tâche",
+  "jobs.reschedule.description": "Remplace la planification d'une tâche (expression cron ou texte de planification) en gardant le reste de son enregistrement et son état de pause. Une tâche de code ainsi modifiée est marquée comme surchargée et garde la modification après redémarrage tant que sa définition dans le code ne change pas. La tâche ne doit avoir qu'un déclencheur. Côté plateforme uniquement.",
+  "jobs.restore.title": "Restaurer les définitions du code",
+  "jobs.restore.description": "Ramène les tâches aux définitions enregistrées dans le code (les planifications modifiées à l'exécution sont abandonnées) en gardant leur état de pause ; les tâches sans définition dans le code échouent une à une. Côté plateforme uniquement.",
+  "jobs.types.title": "Lister les types de tâche",
+  "jobs.types.description": "Liste les types de tâche enregistrés (ordre ordinal), pour filtrer la liste des tâches par type. Côté plateforme uniquement.",
+  "permissions.maintenance.jobs.reschedule.name": "Modifier les planifications des tâches",
+  "maintenance.jobs.type_unknown": "Le type '{type}' de la tâche '{id}' n'est pas enregistré ; sa planification ne peut pas être modifiée.",
+  "maintenance.jobs.triggers_many": "La tâche '{id}' a {count} déclencheurs ; sa planification ne peut pas être remplacée d'un bloc."
 }

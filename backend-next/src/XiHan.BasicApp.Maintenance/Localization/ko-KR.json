@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "업그레이드 기록",
   "openapi.tags.migrations.description": "업그레이드 스크립트 실행마다 버전, 스크립트, 소요 시간, 결과, 노드.",
   "permissions.maintenance.versions.read.name": "버전 조회",
-  "permissions.maintenance.migrations.read.name": "업그레이드 기록 조회"
+  "permissions.maintenance.migrations.read.name": "업그레이드 기록 조회",
+  "jobs.reschedule.title": "작업 일정 변경",
+  "jobs.reschedule.description": "작업의 일정(Cron 식 또는 일정 표기)을 바꾸고 나머지 등록 내용과 일시 중지 상태는 유지합니다. 이렇게 바꾼 코드 등록 작업은 재정의됨으로 표시되며, 코드 정의가 바뀌지 않는 한 재시작 후에도 변경이 유지됩니다. 트리거가 하나인 작업만 가능합니다. 플랫폼 측 전용.",
+  "jobs.restore.title": "코드 정의로 복원",
+  "jobs.restore.description": "작업을 코드에 등록된 정의로 되돌리고(실행 중 바꾼 일정은 버림) 일시 중지 상태는 유지합니다. 코드 정의가 없는 작업은 항목별로 실패합니다. 플랫폼 측 전용.",
+  "jobs.types.title": "작업 유형 목록",
+  "jobs.types.description": "등록된 작업 유형(서수 순)을 나열하며, 작업 목록을 유형으로 거를 때 씁니다. 플랫폼 측 전용.",
+  "permissions.maintenance.jobs.reschedule.name": "작업 일정 변경",
+  "maintenance.jobs.type_unknown": "작업 '{id}'의 유형 '{type}'이(가) 등록되지 않아 일정을 바꿀 수 없습니다.",
+  "maintenance.jobs.triggers_many": "작업 '{id}'에 트리거가 {count}개 있어 일정을 한꺼번에 바꿀 수 없습니다."
 }

@@ -9,7 +9,11 @@ import { actionConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XDat
 import { dialog, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { formatDate } from '~/utils'
+import JobRescheduleDialog from './components/JobRescheduleDialog.vue'
 import {
+  activeTriggerCount,
+  canReschedule,
+  canRestore,
   enabledLabel,
   errorText,
   formatDuration,
@@ -19,6 +23,9 @@ import {
   kindLabel,
   kindOptions,
   listJobRuns,
+  loadJobTypeOptions,
+  restoreJobs,
+  runFailedOptions,
   runStateLabel,
   runStateOptions,
   runStateTone,
@@ -27,6 +34,8 @@ import {
   runStatusTone,
   runTriggerLabel,
   sourceLabel,
+  sourceOptions,
+  sourceTone,
   statusOptions,
   triggerJob,
   triggerStateLabel,
@@ -71,6 +80,29 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'title', title: t('maintenance.jobs.task_name'), dataType: 'string', sortable: true, minWidth: 180, order: 1 },
   { key: 'name', title: t('maintenance.jobs.task_code'), dataType: 'string', sortable: true, minWidth: 160, order: 2 },
   { key: 'group', title: t('maintenance.jobs.task_group'), dataType: 'string', minWidth: 120, order: 3 },
+  // 作业类型仅搜索：候选取自 jobs.types（登记键即显示文本），可多选
+  {
+    key: 'jobType',
+    title: t('maintenance.jobs.job_type'),
+    dataType: 'enum',
+    visible: false,
+    searchable: true,
+    searchMultiple: true,
+    optionsLoader: loadJobTypeOptions,
+    searchPlaceholder: t('maintenance.jobs.job_type_placeholder'),
+    order: 4,
+  },
+  {
+    key: 'source',
+    title: t('maintenance.jobs.source'),
+    dataType: 'enum',
+    searchable: true,
+    options: sourceOptions(t),
+    searchPlaceholder: t('maintenance.jobs.source_placeholder'),
+    width: 110,
+    order: 5,
+    render: row => renderTag(sourceLabel(t, asRow(row).source), sourceTone(asRow(row).source)),
+  },
   {
     key: 'kind',
     title: t('maintenance.jobs.trigger_type'),
@@ -79,7 +111,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: kindOptions(t),
     searchPlaceholder: t('maintenance.jobs.trigger_type_placeholder'),
     minWidth: 120,
-    order: 4,
+    order: 6,
     render: row => h('span', { class: 'job-cell-muted' }, kindLabel(t, asRow(row).kind)),
   },
   {
@@ -90,7 +122,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: runStatusOptions(t),
     searchPlaceholder: t('maintenance.jobs.run_status_placeholder'),
     width: 120,
-    order: 5,
+    order: 7,
     render: row => renderTag(runStatusLabel(t, asRow(row).runState), runStatusTone(asRow(row).runState)),
   },
   {
@@ -101,7 +133,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: statusOptions(t),
     searchPlaceholder: t('maintenance.jobs.status_placeholder'),
     width: 100,
-    order: 6,
+    order: 8,
     render: row => renderTag(enabledLabel(t, asRow(row).paused), asRow(row).paused ? 'danger' : 'success'),
   },
   {
@@ -109,13 +141,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('maintenance.jobs.concurrent'),
     dataType: 'boolean',
     width: 86,
-    order: 7,
+    order: 9,
     render: row => renderTag(asRow(row).allowConcurrent ? t('maintenance.jobs.allow') : t('maintenance.jobs.forbid'), asRow(row).allowConcurrent ? 'warning' : 'info'),
   },
-  { key: 'executedCount', title: t('maintenance.jobs.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
-  { key: 'nextRunAt', title: t('maintenance.jobs.next_run'), dataType: 'datetime', sortable: true, minWidth: 170, order: 9 },
-  { key: 'lastRunAt', title: t('maintenance.jobs.last_run'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-  { key: 'updatedAt', title: t('maintenance.jobs.updated_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+  { key: 'executedCount', title: t('maintenance.jobs.executed_count'), dataType: 'number', minWidth: 100, order: 10 },
+  { key: 'nextRunAt', title: t('maintenance.jobs.next_run'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+  { key: 'lastRunAt', title: t('maintenance.jobs.last_run'), dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
+  { key: 'updatedAt', title: t('maintenance.jobs.updated_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -125,9 +157,12 @@ const schema = computed<PageSchema>(() => ({
   rowKey: 'name',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
+  // 修改计划排在 4.x「编辑」的位置；恢复代码计划只对已改计划的作业出现
   actions: [
     { key: 'view', title: t('maintenance.jobs.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'logs', title: t('maintenance.jobs.logs'), scope: 'row', icon: 'lucide:history', permission: 'maintenance.job-runs.read' },
+    { key: 'reschedule', title: t('maintenance.jobs.reschedule'), scope: 'row', icon: 'lucide:calendar-clock', disabled: row => !canReschedule(asRow(row)), permission: 'maintenance.jobs.reschedule' },
+    { key: 'restore', title: t('maintenance.jobs.restore'), scope: 'row', icon: 'lucide:rotate-ccw', visible: row => canRestore(asRow(row)), permission: 'maintenance.jobs.reschedule' },
     { key: 'trigger', title: t('maintenance.jobs.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.trigger' },
     { key: 'toggle', title: t('maintenance.jobs.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.update' },
   ],
@@ -145,6 +180,16 @@ function onAction(payload: SchemaActionPayload) {
     case 'logs':
       if (row) {
         handleLogs(row)
+      }
+      break
+    case 'reschedule':
+      if (row) {
+        handleReschedule(row)
+      }
+      break
+    case 'restore':
+      if (row) {
+        handleRestore(row)
       }
       break
     case 'trigger':
@@ -187,8 +232,12 @@ const logJob = ref<JobRow | null>(null)
 const logItems = ref<JobRunRow[]>([])
 const logPagination = ref({ itemCount: 0, page: 1, pageSize: 10 })
 const logStateFilter = ref<JobRunState | null>(null)
+const logFailedFilter = ref<boolean | null>(null)
+const logTriggerNameFilter = ref('')
+const logNodeFilter = ref('')
 const logKeywordFilter = ref('')
 const logStateOptions = computed(() => runStateOptions(t))
+const logFailedOptions = computed(() => runFailedOptions(t))
 
 const jobRunColumns = computed<XDataTableColumn<JobRunRow>[]>(() => [
   { ellipsis: true, key: 'triggerName', render: row => row.triggerName || '-', title: t('maintenance.jobs.trigger_name'), width: 150 },
@@ -211,6 +260,9 @@ function jobRunRowProps(row: JobRunRow) {
 function handleLogs(row: JobRow) {
   logJob.value = row
   logStateFilter.value = null
+  logFailedFilter.value = null
+  logTriggerNameFilter.value = ''
+  logNodeFilter.value = ''
   logKeywordFilter.value = ''
   logVisible.value = true
   void loadJobRuns(1)
@@ -218,6 +270,12 @@ function handleLogs(row: JobRow) {
 
 function changeLogState(value: unknown) {
   logStateFilter.value = (value as JobRunState | null) ?? null
+  void loadJobRuns(1)
+}
+
+/** 「是否出错」下拉的值是 'true' / 'false' 字符串，清空为 null */
+function changeLogFailed(value: unknown) {
+  logFailedFilter.value = value === 'true' ? true : value === 'false' ? false : null
   void loadJobRuns(1)
 }
 
@@ -235,9 +293,13 @@ async function loadJobRuns(page?: number) {
       page: logPagination.value.page,
       pageSize: logPagination.value.pageSize,
       state: logStateFilter.value,
+      failed: logFailedFilter.value,
+      triggerName: logTriggerNameFilter.value,
+      node: logNodeFilter.value,
       keyword: logKeywordFilter.value,
     })
     logItems.value = result.items
+    // 分页器按后端给的真实总数翻页
     logPagination.value.itemCount = result.total
   }
   catch (error) {
@@ -305,6 +367,45 @@ function handleToggleStatus(row: JobRow) {
       }
       catch (error) {
         toast.danger(errorText(error) || t('maintenance.jobs.toggle_failed'))
+      }
+    },
+  })
+}
+
+// ── 行操作：修改计划 / 恢复代码计划 ─────────────────────────────
+const rescheduleVisible = ref(false)
+const rescheduleTarget = ref<JobRow | null>(null)
+
+function handleReschedule(row: JobRow) {
+  // 行内动作已按触发器个数禁用；详情抽屉的入口同样走这里
+  if (!canReschedule(row)) {
+    toast.warning(t('maintenance.jobs.triggers_many_hint', { count: activeTriggerCount(row) }))
+    return
+  }
+  rescheduleTarget.value = row
+  rescheduleVisible.value = true
+}
+
+function onRescheduled() {
+  reloadJob()
+}
+
+function handleRestore(row: JobRow) {
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('maintenance.jobs.restore'),
+    content: t('maintenance.jobs.restore_confirm', { name: row.title }),
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        // 丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；没有代码定义的逐项报错
+        await restoreJobs(t, [row.name])
+        toast.success(t('maintenance.jobs.restored'))
+        reloadJob()
+      }
+      catch (error) {
+        toast.danger(errorText(error) || t('maintenance.jobs.restore_failed'))
       }
     },
   })
@@ -437,7 +538,11 @@ function handleToggleStatus(row: JobRow) {
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('maintenance.jobs.source') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
-                    {{ sourceLabel(t, detailData.source) }}
+                    <XhTagRoot variant="subtle" :tone="sourceTone(detailData.source)" size="sm">
+                      <XhTagLabel>
+                        {{ sourceLabel(t, detailData.source) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <XhDescriptionsItem>
@@ -508,6 +613,10 @@ function handleToggleStatus(row: JobRow) {
               <div class="xh-task-log-section">
                 {{ t('maintenance.jobs.triggers_title') }}
               </div>
+              <!-- 修改计划只换唯一触发器的计划：多个触发器时说明为什么改不了 -->
+              <p v-if="!canReschedule(detailData) && hasPermission('maintenance.jobs.reschedule')" class="xh-job-hint">
+                {{ t('maintenance.jobs.triggers_many_hint', { count: activeTriggerCount(detailData) }) }}
+              </p>
               <div v-if="detailData.triggers.length > 0" class="xh-job-triggers">
                 <XhDescriptionsRoot v-for="trigger in detailData.triggers" :key="trigger.name" :columns="2" variant="outline" size="sm">
                   <XhDescriptionsItem>
@@ -652,6 +761,24 @@ function handleToggleStatus(row: JobRow) {
             {{ t('maintenance.jobs.logs') }}
           </XhButton>
           <XhButton
+            v-if="hasPermission('maintenance.jobs.reschedule')"
+            variant="subtle"
+            :disabled="!canReschedule(detailData)"
+            @click="handleReschedule(detailData); detailVisible = false"
+          >
+            <span><Icon icon="lucide:calendar-clock" /></span>
+            {{ t('maintenance.jobs.reschedule') }}
+          </XhButton>
+          <XhButton
+            v-if="hasPermission('maintenance.jobs.reschedule') && canRestore(detailData)"
+            variant="subtle"
+            tone="warning"
+            @click="handleRestore(detailData); detailVisible = false"
+          >
+            <span><Icon icon="lucide:rotate-ccw" /></span>
+            {{ t('maintenance.jobs.restore') }}
+          </XhButton>
+          <XhButton
             v-if="hasPermission('maintenance.jobs.trigger')"
             variant="subtle"
             tone="brand"
@@ -686,14 +813,47 @@ function handleToggleStatus(row: JobRow) {
             clearable
             :options="logStateOptions"
             :placeholder="t('maintenance.jobs.log_status_filter_placeholder')"
+            :aria-label="t('maintenance.jobs.log_status_filter_placeholder')"
             size="sm"
             style="width: 140px"
             @update:value="changeLogState"
+          />
+          <XSelect
+            :value="logFailedFilter === null ? null : String(logFailedFilter)"
+            clearable
+            :options="logFailedOptions"
+            :placeholder="t('maintenance.jobs.log_failed_placeholder')"
+            :aria-label="t('maintenance.jobs.log_failed_placeholder')"
+            size="sm"
+            style="width: 120px"
+            @update:value="changeLogFailed"
+          />
+          <!-- 触发器名与节点按值精确匹配；关键字是三者的模糊匹配 -->
+          <XInput
+            v-model:value="logTriggerNameFilter"
+            clearable
+            :placeholder="t('maintenance.jobs.log_trigger_name_placeholder')"
+            :aria-label="t('maintenance.jobs.log_trigger_name_placeholder')"
+            size="sm"
+            style="width: 140px"
+            @clear="loadJobRuns(1)"
+            @enter="loadJobRuns(1)"
+          />
+          <XInput
+            v-model:value="logNodeFilter"
+            clearable
+            :placeholder="t('maintenance.jobs.log_node_placeholder')"
+            :aria-label="t('maintenance.jobs.log_node_placeholder')"
+            size="sm"
+            style="width: 140px"
+            @clear="loadJobRuns(1)"
+            @enter="loadJobRuns(1)"
           />
           <XInput
             v-model:value="logKeywordFilter"
             clearable
             :placeholder="t('maintenance.jobs.log_keyword_placeholder')"
+            :aria-label="t('maintenance.jobs.log_keyword_placeholder')"
             size="sm"
             style="width: 180px"
             @clear="loadJobRuns(1)"
@@ -818,6 +978,13 @@ function handleToggleStatus(row: JobRow) {
         </div>
       </XhDialogContent>
     </XhDialogRoot>
+
+    <!-- 修改计划：计划与时区、预设与接下来几次执行的预览 -->
+    <JobRescheduleDialog
+      v-model:show="rescheduleVisible"
+      :job="rescheduleTarget"
+      @saved="onRescheduled"
+    />
   </SchemaPage>
 </template>
 
@@ -849,9 +1016,17 @@ function handleToggleStatus(row: JobRow) {
   color: var(--xh-fg-muted);
 }
 
+.xh-job-hint {
+  margin: 0 0 var(--xh-space-2);
+  font-size: var(--xh-font-size-xs);
+  color: var(--xh-fg-muted);
+}
+
+/* 筛选项多，窄抽屉里换行而不是挤出横向滚动 */
 .xh-task-log-toolbar {
   display: flex;
   flex-shrink: 0;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--xh-space-2);
   margin-bottom: var(--xh-space-3);

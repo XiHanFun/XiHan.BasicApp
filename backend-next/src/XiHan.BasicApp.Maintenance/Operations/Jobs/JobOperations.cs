@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/jobs:list</c>。代码登记与运行时登记的作业都在（框架调度的全部作业），按作业名排序。
-/// 关键字匹配作业名、显示名与说明；筛选支持 <c>paused</c>、<c>running</c>（<c>eq</c>）、<c>source</c>、<c>kind</c>（<c>eq</c> / <c>in</c>，<c>kind</c> 看任一触发器）；
+/// 关键字匹配作业名、显示名与说明；筛选支持 <c>paused</c>、<c>running</c>（<c>eq</c>）、<c>source</c>、<c>kind</c>、<c>jobType</c>（<c>eq</c> / <c>in</c>，<c>kind</c> 看任一触发器，<c>jobType</c> 的候选见 <c>jobs.types</c>）；
 /// 排序支持 <c>name</c>、<c>title</c>、<c>nextRunAt</c>、<c>lastRunAt</c>、<c>updatedAt</c>。作业不多，在内存里筛选与分页。只在平台一侧。
 /// </remarks>
 /// <param name="scheduler">框架调度。</param>
@@ -59,6 +59,7 @@ public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, 
                 ("running", "eq") when bool.TryParse(value, out var running) => j => j.RunningCount > 0 == running,
                 ("source", "eq" or "in") when JobViews.EnumsOf<JobSource>(value) is { } sources => j => sources.Contains(j.Source),
                 ("kind", "eq" or "in") when JobViews.EnumsOf<JobScheduleKind>(value) is { } kinds => j => j.Triggers.Any(t => kinds.Contains(t.Kind)),
+                ("jobType", "eq" or "in") when value.Length > 0 => j => value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Contains(j.JobType, StringComparer.Ordinal),
                 _ => null,
             };
             if (predicate is null)
@@ -257,20 +258,7 @@ public sealed class ValidateSchedule(TimeProvider clock) : IOperation<ValidateSc
             return ValueTask.FromResult(Result.Failure<ScheduleCheckResponse>(denied));
         }
 
-        JobSchedule? schedule;
-        try
-        {
-            if (!JobSchedule.TryParse(JobViews.TextOf(request.Expression, request.TimeZone), out schedule))
-            {
-                schedule = null;
-            }
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            schedule = null;
-        }
-
-        if (schedule is null)
+        if (!JobViews.TryParse(request.Expression, request.TimeZone, out var schedule))
         {
             return ValueTask.FromResult(Result.Failure<ScheduleCheckResponse>(Error.Validation(MaintenanceErrors.ScheduleInvalid, MaintenanceMessages.ScheduleInvalid, MessageArguments.Of(("expression", request.Expression)))));
         }

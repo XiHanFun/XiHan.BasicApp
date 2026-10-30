@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "Registros de atualização",
   "openapi.tags.migrations.description": "Cada execução de um script de atualização: versão, script, duração, resultado e nó.",
   "permissions.maintenance.versions.read.name": "Ver versões",
-  "permissions.maintenance.migrations.read.name": "Ver registros de atualização"
+  "permissions.maintenance.migrations.read.name": "Ver registros de atualização",
+  "jobs.reschedule.title": "Alterar o agendamento do job",
+  "jobs.reschedule.description": "Substitui o agendamento de um job (expressão cron ou texto de agendamento) e mantém o restante do registro e o estado de pausa. Um job de código alterado assim fica marcado como sobrescrito e mantém a mudança após reinícios enquanto a definição no código não mudar. O job deve ter um único gatilho. Somente na plataforma.",
+  "jobs.restore.title": "Restaurar definições do código",
+  "jobs.restore.description": "Volta os jobs às definições registradas no código (descartando agendamentos alterados em execução) e mantém o estado de pausa; jobs sem definição no código falham um a um. Somente na plataforma.",
+  "jobs.types.title": "Listar tipos de job",
+  "jobs.types.description": "Lista os tipos de job registrados (ordem ordinal), usados para filtrar a lista de jobs por tipo. Somente na plataforma.",
+  "permissions.maintenance.jobs.reschedule.name": "Alterar agendamentos de jobs",
+  "maintenance.jobs.type_unknown": "O tipo '{type}' do job '{id}' não está registrado; o agendamento não pode ser alterado.",
+  "maintenance.jobs.triggers_many": "O job '{id}' tem {count} gatilhos; o agendamento não pode ser substituído de uma vez."
 }

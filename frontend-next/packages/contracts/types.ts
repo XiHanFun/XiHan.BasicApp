@@ -2377,6 +2377,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/jobs/{id}:reschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reschedule job
+         * @description Replace a job's schedule (a cron expression or schedule text) and keep the rest of its registration and its paused state. A code job changed this way is marked overridden and keeps the change across restarts while its code definition is unchanged. The job must have a single trigger. Platform side only.
+         *
+         *     Requires permission maintenance.jobs.reschedule (Reschedule jobs).
+         */
+        post: operations["jobs.reschedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs/{id}:trigger": {
         parameters: {
             query?: never;
@@ -2443,6 +2465,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/jobs:restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore code definitions
+         * @description Restore jobs to the definitions registered in code (discarding runtime schedule changes) and keep their paused state; jobs without a code definition fail item by item. Platform side only.
+         *
+         *     Requires permission maintenance.jobs.reschedule (Reschedule jobs).
+         */
+        post: operations["jobs.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs:resume": {
         parameters: {
             query?: never;
@@ -2459,6 +2503,28 @@ export interface paths {
          *     Requires permission maintenance.jobs.update (Pause and resume jobs).
          */
         post: operations["jobs.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs:types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List job types
+         * @description List the registered job types (ordinal order), used to filter the job list by type. Platform side only.
+         *
+         *     Requires permission maintenance.jobs.read (Read jobs).
+         */
+        get: operations["jobs.types"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -18033,6 +18099,86 @@ export interface operations {
             };
         };
     };
+    "jobs.reschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 作业名。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description jobs.reschedule 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名。 */
+                    id: string;
+                    /** @description 新计划：Cron 表达式（5 到 7 段），或计划的文本写法（cron …、every …、once …）。 */
+                    expression: string;
+                    /** @description Cron 表达式的时区（如 Asia/Shanghai）；不填按 UTC。 */
+                    timeZone?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一个作业。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 作业名。 */
+                        name: string;
+                        /** @description 显示名（登记作业的包按区域给出，没给即作业名）。 */
+                        title: string;
+                        /** @description 说明；没有为 null。 */
+                        description?: string | null;
+                        /** @description 作业类型的登记键。 */
+                        jobType: string;
+                        /** @description 来源：代码登记或运行时登记。 */
+                        source: components["schemas"]["JobSource"];
+                        /** @description 是否暂停。 */
+                        paused: boolean;
+                        /**
+                         * Format: int32
+                         * @description 正在运行的次数。
+                         */
+                        runningCount: number;
+                        /** @description 是否允许并发运行。 */
+                        allowConcurrent: boolean;
+                        /** @description 是否每个节点都运行。 */
+                        runOnEveryInstance: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 下次运行时间；暂停或没有计划时为 null。
+                         */
+                        nextRunAt?: string | null;
+                        /** @description 触发器。 */
+                        triggers: components["schemas"]["JobTriggerResponse"][];
+                        /** @description 上一次运行的结果；没运行过为 null。 */
+                        last?: components["schemas"]["JobOutcomeResponse"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 登记最后更新的时间。
+                         */
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "jobs.trigger": {
         parameters: {
             query?: never;
@@ -18161,6 +18307,48 @@ export interface operations {
             };
         };
     };
+    "jobs.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按名称指定一批作业的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 按作业名的批量结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 成功的作业名。 */
+                        succeeded: string[];
+                        /** @description 失败的作业与原因。 */
+                        failed: components["schemas"]["JobBatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "jobs.resume": {
         parameters: {
             query?: never;
@@ -18189,6 +18377,38 @@ export interface operations {
                         succeeded: string[];
                         /** @description 失败的作业与原因。 */
                         failed: components["schemas"]["JobBatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已登记的作业类型。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 作业类型的登记键，按序数排序。 */
+                        items: string[];
                     };
                 };
             };

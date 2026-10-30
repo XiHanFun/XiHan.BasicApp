@@ -29,6 +29,11 @@ public static class MaintenancePermissions
     public const string JobsTrigger = "maintenance.jobs.trigger";
 
     /// <summary>
+    /// 改作业计划与恢复代码定义。
+    /// </summary>
+    public const string JobsReschedule = "maintenance.jobs.reschedule";
+
+    /// <summary>
     /// 查看作业的运行历史。
     /// </summary>
     public const string JobRunsRead = "maintenance.job-runs.read";
@@ -51,6 +56,7 @@ public static class MaintenancePermissions
         new(JobsRead, "Read jobs", PermissionScope.Platform, description: "View the scheduled jobs, their schedules, state and last outcome."),
         new(JobsUpdate, "Pause and resume jobs", PermissionScope.Platform, audited: true, description: "Pause and resume scheduled jobs."),
         new(JobsTrigger, "Run jobs now", PermissionScope.Platform, audited: true, description: "Run a scheduled job now on any node."),
+        new(JobsReschedule, "Reschedule jobs", PermissionScope.Platform, audited: true, description: "Change a job's schedule or restore a code job to its code definition."),
         new(JobRunsRead, "Read job runs", PermissionScope.Platform, description: "View the run history of scheduled jobs."),
         new(VersionsRead, "Read versions", PermissionScope.Platform, description: "View the database version ledger."),
         new(MigrationsRead, "Read upgrade records", PermissionScope.Platform, description: "View the upgrade script records."),

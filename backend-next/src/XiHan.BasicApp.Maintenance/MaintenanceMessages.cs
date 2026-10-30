@@ -46,6 +46,21 @@ public static class MaintenanceMessages
     public const string ValidateScheduleDescription = "jobs.validate_schedule.description";
 
     /// <summary>
+    /// 操作 <c>jobs.reschedule</c> 的说明。
+    /// </summary>
+    public const string RescheduleJobDescription = "jobs.reschedule.description";
+
+    /// <summary>
+    /// 操作 <c>jobs.restore</c> 的说明。
+    /// </summary>
+    public const string RestoreJobsDescription = "jobs.restore.description";
+
+    /// <summary>
+    /// 操作 <c>jobs.types</c> 的说明。
+    /// </summary>
+    public const string ListJobTypesDescription = "jobs.types.description";
+
+    /// <summary>
     /// 操作 <c>job-runs.list</c> 的说明。
     /// </summary>
     public const string ListJobRunsDescription = "job_runs.list.description";
@@ -98,6 +113,22 @@ public static class MaintenanceMessages
     /// 参数 <c>expression</c>。
     /// </remarks>
     public const string ScheduleInvalid = "maintenance.jobs.schedule_invalid";
+
+    /// <summary>
+    /// 作业类型没登记。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>type</c>。
+    /// </remarks>
+    public const string JobTypeUnknown = "maintenance.jobs.type_unknown";
+
+    /// <summary>
+    /// 作业有多个触发器。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>count</c>。
+    /// </remarks>
+    public const string JobTriggersMany = "maintenance.jobs.triggers_many";
 
     /// <summary>
     /// 作业不存在。

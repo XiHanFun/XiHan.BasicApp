@@ -42,5 +42,14 @@
   "openapi.tags.migrations.name": "アップグレード記録",
   "openapi.tags.migrations.description": "アップグレードスクリプトの各実行のバージョン、スクリプト、所要時間、結果、ノード。",
   "permissions.maintenance.versions.read.name": "バージョンの閲覧",
-  "permissions.maintenance.migrations.read.name": "アップグレード記録の閲覧"
+  "permissions.maintenance.migrations.read.name": "アップグレード記録の閲覧",
+  "jobs.reschedule.title": "ジョブのスケジュール変更",
+  "jobs.reschedule.description": "ジョブのスケジュール（Cron 式またはスケジュール表記）を置き換えます。ほかの登録内容と一時停止状態はそのままです。こうして変更したコード登録のジョブは上書き済みとしてマークされ、コード定義が変わらない限り再起動後も変更が保たれます。トリガーが 1 つのジョブに限ります。プラットフォーム側のみ。",
+  "jobs.restore.title": "コード定義に戻す",
+  "jobs.restore.description": "ジョブをコードで登録した定義に戻します（実行時に変えたスケジュールは破棄）。一時停止状態は保たれます。コード定義のないジョブは項目ごとに失敗します。プラットフォーム側のみ。",
+  "jobs.types.title": "ジョブ種類の一覧",
+  "jobs.types.description": "登録済みのジョブ種類（序数順）を一覧し、ジョブ一覧の種類での絞り込みに使います。プラットフォーム側のみ。",
+  "permissions.maintenance.jobs.reschedule.name": "ジョブのスケジュール変更",
+  "maintenance.jobs.type_unknown": "ジョブ '{id}' の種類 '{type}' は登録されていないため、スケジュールを変更できません。",
+  "maintenance.jobs.triggers_many": "ジョブ '{id}' にはトリガーが {count} 個あるため、スケジュールをまとめて置き換えられません。"
 }

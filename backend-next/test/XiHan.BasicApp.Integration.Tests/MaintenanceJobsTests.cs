@@ -18,6 +18,8 @@ public sealed class MaintenanceJobsTests : IDisposable
 {
     private static readonly string[] _pauseTargets = ["auditing.retention", "nope.job"];
     private static readonly string[] _retention = ["auditing.retention"];
+    private static readonly string[] _restoreTargets = ["auditing.retention", "nope.job"];
+    private static readonly string[] _oauthCleanup = ["openplatform.oauth-cleanup"];
 
     private readonly SqliteDatabase _database = new();
 
@@ -89,6 +91,47 @@ public sealed class MaintenanceJobsTests : IDisposable
         Assert.Equal(5, every.GetProperty("nextRuns").GetArrayLength());
         Assert.Equal("MAINTENANCE_VALIDATION_002", (await SendAsync(server, HttpMethod.Get, "/api/jobs:validate-schedule?expression=61%20*%20*%20*%20*", null, platform)).Body.GetProperty("code").GetString());
         Assert.Equal("MAINTENANCE_VALIDATION_002", (await SendAsync(server, HttpMethod.Get, "/api/jobs:validate-schedule?expression=0%203%20*%20*%20*&timeZone=Nowhere/Zone", null, platform)).Body.GetProperty("code").GetString());
+
+        // 改计划：代码作业改过即 Overridden、只换计划；写错计划与不存在的作业各自报错；恢复代码定义后回到 Code
+        var (rescheduled, changed) = await SendAsync(server, HttpMethod.Post, "/api/jobs/auditing.retention:reschedule", new { expression = "every 02:00:00" }, platform);
+        Assert.Equal(HttpStatusCode.OK, rescheduled);
+        Assert.Equal("Overridden", changed.GetProperty("source").GetString());
+        Assert.Equal("Interval", changed.GetProperty("triggers")[0].GetProperty("kind").GetString());
+        Assert.Equal("MAINTENANCE_VALIDATION_002", (await SendAsync(server, HttpMethod.Post, "/api/jobs/auditing.retention:reschedule", new { expression = "61 * * * *" }, platform)).Body.GetProperty("code").GetString());
+        Assert.Equal("MAINTENANCE_NOTFOUND_001", (await SendAsync(server, HttpMethod.Post, "/api/jobs/nope.job:reschedule", new { expression = "every 01:00:00" }, platform)).Body.GetProperty("code").GetString());
+        var (_, overridden) = await SendAsync(server, HttpMethod.Post, "/api/jobs:list", new { filters = new[] { new { field = "source", @operator = "eq", value = "Overridden" } } }, platform);
+        Assert.Equal(["auditing.retention"], overridden.GetProperty("items").EnumerateArray().Select(static j => j.GetProperty("name").GetString()).ToList());
+        var (restored, restoredBody) = await SendAsync(server, HttpMethod.Post, "/api/jobs:restore", new { ids = _restoreTargets }, platform);
+        Assert.Equal(HttpStatusCode.OK, restored);
+        Assert.Equal(["auditing.retention"], restoredBody.GetProperty("succeeded").EnumerateArray().Select(static e => e.GetString()).ToList());
+        Assert.Equal("MAINTENANCE_NOTFOUND_001", restoredBody.GetProperty("failed")[0].GetProperty("code").GetString());
+        var (_, back) = await SendAsync(server, HttpMethod.Get, "/api/jobs/auditing.retention", null, platform);
+        Assert.Equal(("Code", "Cron"), (back.GetProperty("source").GetString(), back.GetProperty("triggers")[0].GetProperty("kind").GetString()));
+
+        // 刚立即执行过的作业照样能改计划（立即执行的临时触发器不算），再恢复
+        var (afterTrigger, afterTriggerBody) = await SendAsync(server, HttpMethod.Post, "/api/jobs/openplatform.oauth-cleanup:reschedule", new { expression = "every 03:00:00" }, platform);
+        Assert.True(afterTrigger == HttpStatusCode.OK, afterTriggerBody.ToString());
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, "/api/jobs:restore", new { ids = _oauthCleanup }, platform)).Status);
+
+        // 作业类型：已登记的类型键
+        var (typed, types) = await SendAsync(server, HttpMethod.Get, "/api/jobs:types", null, platform);
+        Assert.Equal(HttpStatusCode.OK, typed);
+        Assert.Contains(back.GetProperty("jobType").GetString(), types.GetProperty("items").EnumerateArray().Select(static k => k.GetString()));
+        var (_, ofType) = await SendAsync(server, HttpMethod.Post, "/api/jobs:list", new { filters = new[] { new { field = "jobType", @operator = "eq", value = back.GetProperty("jobType").GetString() } } }, platform);
+        Assert.Contains("auditing.retention", ofType.GetProperty("items").EnumerateArray().Select(static j => j.GetProperty("name").GetString()));
+        Assert.All(ofType.GetProperty("items").EnumerateArray(), j => Assert.Equal(back.GetProperty("jobType").GetString(), j.GetProperty("jobType").GetString()));
+
+        // 运行历史：总数来自框架；按节点、触发器名与有无错误筛选交给框架
+        var (runsListed, runs) = await SendAsync(server, HttpMethod.Post, "/api/job-runs:list", new { page = new { index = 1, size = 1 } }, platform);
+        Assert.Equal(HttpStatusCode.OK, runsListed);
+        var runTotal = runs.GetProperty("total").GetInt64();
+        Assert.True(runs.GetProperty("items").GetArrayLength() <= 1);
+        var (noErrors, noErrorsBody) = await SendAsync(server, HttpMethod.Post, "/api/job-runs:list", new { filters = new[] { new { field = "failed", @operator = "eq", value = "false" }, new { field = "node", @operator = "eq", value = "no-such-node" } } }, platform);
+        Assert.Equal(HttpStatusCode.OK, noErrors);
+        Assert.Equal(0, noErrorsBody.GetProperty("total").GetInt64());
+        var (byTrigger, byTriggerBody) = await SendAsync(server, HttpMethod.Post, "/api/job-runs:list", new { filters = new[] { new { field = "triggerName", @operator = "eq", value = "no-such-trigger" } } }, platform);
+        Assert.Equal(HttpStatusCode.OK, byTrigger);
+        Assert.True(byTriggerBody.GetProperty("total").GetInt64() <= runTotal);
 
         // 没有权限
         Assert.Equal(HttpStatusCode.Unauthorized, (await SendAsync(server, HttpMethod.Post, "/api/jobs:list", new { }, null)).Status);
