@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 一种双因素方式。
 /// </summary>
 /// <remarks>
-/// JSON 上是字符串枚举。邮箱与短信要等 Notification 能发码，目前只有认证器可以开启。
+/// JSON 上是字符串枚举。邮箱与短信要本人已验证的联系方式，码经 Notification 发出。
 /// </remarks>
 public enum TwoFactorMethod
 {

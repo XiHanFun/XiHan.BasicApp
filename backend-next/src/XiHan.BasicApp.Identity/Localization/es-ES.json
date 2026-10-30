@@ -44,8 +44,8 @@
   "auth.login_config.description": "Ajustes de la página de inicio de sesión: métodos disponibles, proveedores externos y si se exige captcha.",
   "profile.get.description": "Tu perfil y el resumen de seguridad de la cuenta (dos factores, último cambio de contraseña). Para cualquier usuario con sesión iniciada.",
   "profile.setup_totp.description": "Empezar a vincular un autenticador: generar una clave nueva (confirmar con un código antes de 10 minutos). No disponible durante una suplantación.",
-  "profile.enable_two_factor.description": "Activar un método de dos factores: confirmar el autenticador con un código de la clave recién generada. No disponible durante una suplantación.",
-  "profile.disable_two_factor.description": "Desactivar un método de dos factores: confirmar con un código actual del autenticador. No disponible durante una suplantación.",
+  "profile.enable_two_factor.description": "Activar un método de dos factores: confirmar el autenticador con un código de la clave recién generada, o el correo y el SMS con el código enviado por profile.send-two-factor-code. No disponible durante una suplantación.",
+  "profile.disable_two_factor.description": "Desactivar un método de dos factores: confirmar con un código actual del autenticador, o el correo y el SMS con el código enviado por profile.send-two-factor-code. No disponible durante una suplantación.",
   "users.reset_two_factor.description": "Restablecer en lote la autenticación de dos factores de usuarios (borra todos los métodos y claves); no se puede aplicar a uno mismo. Requiere identity.users.reset-two-factor.",
   "identity.auth.captcha_invalid": "El captcha es incorrecto o ha caducado. Inténtalo de nuevo.",
   "identity.auth.login_throttled": "Demasiados intentos de inicio de sesión. Inténtalo de nuevo en {retryAfter} segundos.",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "Inicia sesión con el código recibido por correo o teléfono; las cuentas con dos factores siguen necesitando el segundo paso. Anónimo.",
   "identity.login.method_disabled": "Este método de inicio de sesión no está habilitado.",
   "identity.login.methods_invalid": "Los métodos de inicio de sesión del parámetro del sistema {key} no son válidos; solo se admiten password, email y phone.",
-  "identity.login.target_invalid": "El correo o el teléfono no tiene un formato válido."
+  "identity.login.target_invalid": "El correo o el teléfono no tiene un formato válido.",
+  "auth.send_two_factor_code.description": "Segundo paso de la autenticación de dos factores: enviar un código al correo o teléfono verificado de la cuenta con el ticket de auth.login; el autenticador no necesita código. Anónimo.",
+  "profile.send_two_factor_code.description": "Enviar el código para activar o desactivar los dos factores por correo o SMS a tu correo o teléfono verificado. No disponible durante una suplantación.",
+  "identity.contact.unverified": "Verifica primero tu correo o teléfono actual para usarlo como segundo factor.",
+  "identity.two_factor.same_as_login": "El único segundo paso disponible es {method}, el mismo canal con el que acabas de iniciar sesión. Inicia sesión con la contraseña.",
+  "identity.code.title.two_factor_email": "Verificación en dos pasos por correo",
+  "identity.code.title.two_factor_phone": "Verificación en dos pasos por teléfono"
 }

@@ -96,6 +96,7 @@ public sealed class SendLoginCode(UserAccountService accounts, ContactCodes cont
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:login-by-code</c>。过登录节流，码对且发码之后联系方式没变才认账号，再看状态与锁定期；
 /// 码错计入节流与登录守卫的认证失败，码本身输错 5 次作废并锁定。登录日志记为登录、附注 <c>code:email</c> / <c>code:phone</c>。
 /// 与 4.x 不同：账号开了双因素照样要第二步（返回挑战，与密码登录、第三方登录同一条路；4.x 验证码登录跳过双因素）。
+/// 第二步不能用这次收码的那种（邮箱收码登录的不能再用邮箱）；可用的只剩它时 <see cref="IdentityErrors.TwoFactorSameAsLogin"/>，须改用密码登录。
 /// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
@@ -200,15 +201,19 @@ public sealed class LoginByCode(
         var sessionTenant = string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal) ? null : tenant;
         if (security.TwoFactorEnabled)
         {
-            var methods = TwoFactorSettings.UsableAt(security);
+            // 第二步换一种：邮箱收码登录的不能再用邮箱做第二步，短信同理
+            var usable = TwoFactorSettings.UsableAt(user, security);
+            var methods = usable.Where(m => m != TwoFactorSettings.MethodOf(request.Channel)).ToList();
             if (methods.Count == 0)
             {
-                return Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable);
+                return usable.Count == 0
+                    ? Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable)
+                    : Error.Denied(IdentityErrors.TwoFactorSameAsLogin, IdentityMessages.TwoFactorSameAsLogin, MessageArguments.Of(("method", TwoFactorSettings.MethodOf(request.Channel).ToString())));
             }
 
-            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, context.CancellationToken).ConfigureAwait(false);
+            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, methods, context.CancellationToken).ConfigureAwait(false);
             log.Event = LoginEvent.TwoFactorChallenge;
-            return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, methods.Count == 1 ? methods[0] : null, CodeSent: false, expiresAt));
+            return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
         var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);

@@ -44,8 +44,8 @@
   "auth.login_config.description": "サインイン画面の設定：利用できるサインイン方法、外部サインインと画像認証の要否。",
   "profile.get.description": "自分のプロフィールとアカウントのセキュリティ概要（二要素認証、最後のパスワード変更）。サインインしていれば利用できます。",
   "profile.setup_totp.description": "認証アプリの登録を開始：新しいキーを生成します（10 分以内に認証アプリのコードで確認）。代理ログイン中は利用できません。",
-  "profile.enable_two_factor.description": "二要素認証の方法を有効化：生成したキーから得たコードで認証アプリを確認します。代理ログイン中は利用できません。",
-  "profile.disable_two_factor.description": "二要素認証の方法を無効化：現在の認証アプリのコードで確認します。代理ログイン中は利用できません。",
+  "profile.enable_two_factor.description": "二要素認証の方法を有効化：認証アプリは生成したキーから得たコードで、メールと SMS は profile.send-two-factor-code が送ったコードで確認します。代理ログイン中は利用できません。",
+  "profile.disable_two_factor.description": "二要素認証の方法を無効化：認証アプリは現在のコードで、メールと SMS は profile.send-two-factor-code が送ったコードで確認します。代理ログイン中は利用できません。",
   "users.reset_two_factor.description": "ユーザーの二要素認証を一括リセット（すべての方法と認証アプリのキーを消去）。自分はリセットできません。identity.users.reset-two-factor 権限が必要です。",
   "identity.auth.captcha_invalid": "認証コードが正しくないか期限切れです。もう一度お試しください。",
   "identity.auth.login_throttled": "サインインの試行が多すぎます。{retryAfter} 秒後にもう一度お試しください。",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "メールまたは電話に届いたコードでサインインします。二要素を有効にしたアカウントは第 2 段階が必要です。匿名。",
   "identity.login.method_disabled": "このサインイン方式は有効になっていません。",
   "identity.login.methods_invalid": "システムパラメーター {key} のサインイン方式が正しくありません。password、email、phone のみ指定できます。",
-  "identity.login.target_invalid": "メールアドレスまたは電話番号の形式が正しくありません。"
+  "identity.login.target_invalid": "メールアドレスまたは電話番号の形式が正しくありません。",
+  "auth.send_two_factor_code.description": "二段階認証の 2 段階目のコード送信：auth.login が発行したチケットで、アカウントの確認済みメールアドレスまたは電話番号にコードを送ります。認証アプリには送りません。匿名。",
+  "profile.send_two_factor_code.description": "メールまたは SMS の二要素認証を有効化・無効化するためのコードを、本人の確認済みメールアドレスまたは電話番号に送ります。代理ログイン中は利用できません。",
+  "identity.contact.unverified": "二要素認証に使う前に、現在のメールアドレスまたは電話番号を確認してください。",
+  "identity.two_factor.same_as_login": "2 段階目に使えるのは今回のログインと同じ {method} だけです。パスワードでログインしてください。",
+  "identity.code.title.two_factor_email": "メールによる二段階認証",
+  "identity.code.title.two_factor_phone": "電話による二段階認証"
 }

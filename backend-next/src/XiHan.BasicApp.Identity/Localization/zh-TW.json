@@ -44,8 +44,8 @@
   "auth.login_config.description": "登入頁設定：可用的登入方式、第三方登入與是否要求圖形驗證碼。",
   "profile.get.description": "本人的資料與帳號安全概況（雙重驗證、最近變更密碼時間）。已登入即可。",
   "profile.setup_totp.description": "開始綁定驗證器：產生新金鑰（10 分鐘內以驗證器的驗證碼確認）。模擬工作階段不能使用。",
-  "profile.enable_two_factor.description": "啟用一種雙重驗證方式：驗證器以剛產生的金鑰算出的驗證碼確認。模擬工作階段不能使用。",
-  "profile.disable_two_factor.description": "停用一種雙重驗證方式：驗證器以目前的驗證碼確認。模擬工作階段不能使用。",
+  "profile.enable_two_factor.description": "啟用一種雙重驗證方式：驗證器以剛產生的金鑰算出的驗證碼確認，郵箱與簡訊以 profile.send-two-factor-code 寄出的驗證碼確認。模擬工作階段不能使用。",
+  "profile.disable_two_factor.description": "停用一種雙重驗證方式：驗證器以目前的驗證碼確認，郵箱與簡訊以 profile.send-two-factor-code 寄出的驗證碼確認。模擬工作階段不能使用。",
   "users.reset_two_factor.description": "批次重設使用者的雙重驗證（清除全部方式與驗證器金鑰）；不能重設自己。需要 identity.users.reset-two-factor 權限。",
   "identity.auth.captcha_invalid": "驗證碼錯誤或已過期，請重試。",
   "identity.auth.login_throttled": "登入嘗試過於頻繁，請在 {retryAfter} 秒後再試。",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "用郵箱或手機收到的驗證碼登入：帳號開了雙因素照樣要第二步。匿名。",
   "identity.login.method_disabled": "沒有開放這種登入方式。",
   "identity.login.methods_invalid": "系統參數 {key} 裡的登入方式寫得不對，只能是 password、email、phone。",
-  "identity.login.target_invalid": "郵箱或手機號格式不對。"
+  "identity.login.target_invalid": "郵箱或手機號格式不對。",
+  "auth.send_two_factor_code.description": "兩步驗證第二步的寄碼：憑 auth.login 發的票據把驗證碼寄到帳號已驗證的郵箱或手機號；驗證器不寄碼。匿名。",
+  "profile.send_two_factor_code.description": "寄送開關郵箱或簡訊雙重驗證用的驗證碼到本人已驗證的郵箱或手機號。模擬工作階段不能使用。",
+  "identity.contact.unverified": "要先驗證目前的郵箱或手機號，才能用它做雙重驗證。",
+  "identity.two_factor.same_as_login": "第二步只能用 {method}，與這次登入收碼的方式相同，請改用密碼登入。",
+  "identity.code.title.two_factor_email": "郵箱兩步驗證",
+  "identity.code.title.two_factor_phone": "手機兩步驗證"
 }

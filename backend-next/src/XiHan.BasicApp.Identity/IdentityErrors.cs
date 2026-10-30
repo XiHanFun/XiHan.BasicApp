@@ -100,8 +100,11 @@ public static class IdentityErrors
     public const string CaptchaInvalid = "IDENTITY_VALIDATION_007";
 
     /// <summary>
-    /// 双因素方式不可用（目前只有认证器能开启与验证）。
+    /// 双因素方式在这里不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>。没开、联系方式没验证、票据不许用，或认证器不发码。
+    /// </remarks>
     public const string TwoFactorMethodUnavailable = "IDENTITY_VALIDATION_008";
 
     /// <summary>
@@ -364,6 +367,7 @@ public static class IdentityErrors
     /// 参数 <c>channel</c>。
     /// </remarks>
     public const string ContactTaken = "IDENTITY_CONFLICT_010";
+
     /// <summary>
     /// 没有开放这种登录方式。
     /// </summary>
@@ -387,4 +391,20 @@ public static class IdentityErrors
     /// 参数 <c>channel</c>。
     /// </remarks>
     public const string LoginTargetInvalid = "IDENTITY_VALIDATION_022";
+
+    /// <summary>
+    /// 要用作双因素的邮箱或手机号还没验证。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>channel</c>。
+    /// </remarks>
+    public const string ContactUnverified = "IDENTITY_VALIDATION_023";
+
+    /// <summary>
+    /// 第二步只剩这次登录收码的那种方式。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>（<c>Email</c> 或 <c>Phone</c>）；改用密码登录。
+    /// </remarks>
+    public const string TwoFactorSameAsLogin = "IDENTITY_DENIED_017";
 }

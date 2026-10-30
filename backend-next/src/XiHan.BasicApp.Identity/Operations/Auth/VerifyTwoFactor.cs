@@ -20,7 +20,8 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。成功即开会话、签令牌对，票据作废。
 /// 票据不存在、过期或已作废一律 <see cref="IdentityErrors.TwoFactorTicketInvalid"/>（须重新登录）；
-/// 码错计入票据的输错次数（用完即作废）、账号的失败计数（可触发锁定）与登录节流。认证器的码按时间步防重放。
+/// 码错计入票据的输错次数（用完即作废）、账号的失败计数（可触发锁定）与登录节流。认证器的码按时间步防重放；
+/// 邮箱与短信的码先调 <c>auth.send-two-factor-code</c> 发出，一次有效，发码之后联系方式变了即作废。方式须是票据能用的。
 /// 账号状态、锁定期与租户在第二步重新核对：签发票据之后被锁定或停用的账号同样进不来。
 /// </remarks>
 /// <param name="users">用户仓储。</param>
@@ -29,6 +30,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="throttle">登录节流。</param>
 /// <param name="tickets">两步验证票据。</param>
 /// <param name="logins">登录完成（开会话、签令牌）。</param>
+/// <param name="codes">邮件与短信验证码。</param>
 /// <param name="protector">密钥解密。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
@@ -42,6 +44,7 @@ public sealed class VerifyTwoFactor(
     LoginThrottle throttle,
     TwoFactorTickets tickets,
     LoginSessions logins,
+    VerificationCodes codes,
     ISecretProtector protector,
     IdentityOptions options,
     TimeProvider clock,
@@ -116,13 +119,24 @@ public sealed class VerifyTwoFactor(
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.LockedOut, MessageArguments.Of(("seconds", (int)Math.Ceiling((lockoutEnd - now).TotalSeconds))));
         }
 
-        if (!TwoFactorSettings.UsableAt(security).Contains(request.Method))
+        if (!ticket.Allows(request.Method) || !TwoFactorSettings.UsableAt(user, security).Contains(request.Method))
         {
             return Error.Validation(IdentityErrors.TwoFactorMethodUnavailable, IdentityMessages.TwoFactorMethodUnavailable, MessageArguments.Of(("method", request.Method.ToString())));
         }
 
-        var step = protector.TryUnprotect(SecretPurpose, security.TwoFactorSecret!, out var secret) ? Totp.Verify(secret, request.Code, now, security.TwoFactorLastStep) : null;
-        if (step is null)
+        long? step = null;
+        bool passed;
+        if (TwoFactorSettings.ChannelOf(request.Method) is { } channel)
+        {
+            passed = await TwoFactorCodes.ConsumeAsync(codes, user, channel, request.Code, context.CancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            step = protector.TryUnprotect(SecretPurpose, security.TwoFactorSecret!, out var secret) ? Totp.Verify(secret, request.Code, now, security.TwoFactorLastStep) : null;
+            passed = step is not null;
+        }
+
+        if (!passed)
         {
             // 三处计数各自独立：票据用完即作废、账号到上限即锁定、地址与账号按窗口节流
             var revoked = await tickets.RecordFailureAsync(request.Ticket, ticket, context.CancellationToken).ConfigureAwait(false);
@@ -140,7 +154,11 @@ public sealed class VerifyTwoFactor(
                 : Error.Denied(IdentityErrors.TwoFactorCodeInvalid, IdentityMessages.TwoFactorCodeInvalid);
         }
 
-        security.TwoFactorLastStep = step;
+        if (step is not null)
+        {
+            security.TwoFactorLastStep = step;
+        }
+
         await tickets.RevokeAsync(request.Ticket, context.CancellationToken).ConfigureAwait(false);
         return await logins.StartAsync(user, security, ticket.TenantId, tenantName, log, context).ConfigureAwait(false);
     }

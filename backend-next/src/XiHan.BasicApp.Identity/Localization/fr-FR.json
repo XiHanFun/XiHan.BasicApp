@@ -44,8 +44,8 @@
   "auth.login_config.description": "Paramètres de la page de connexion : modes de connexion disponibles, fournisseurs tiers et captcha requis ou non.",
   "profile.get.description": "Votre profil et la synthèse de sécurité du compte (double authentification, dernier changement de mot de passe). Pour tout utilisateur connecté.",
   "profile.setup_totp.description": "Lier une application d'authentification : générer une nouvelle clé (à confirmer avec un code sous 10 minutes). Indisponible pendant une usurpation d'identité.",
-  "profile.enable_two_factor.description": "Activer une méthode de double authentification : confirmer l'application avec un code issu de la nouvelle clé. Indisponible pendant une usurpation d'identité.",
-  "profile.disable_two_factor.description": "Désactiver une méthode de double authentification : confirmer avec un code actuel de l'application. Indisponible pendant une usurpation d'identité.",
+  "profile.enable_two_factor.description": "Activer une méthode de double authentification : confirmer l'application avec un code issu de la nouvelle clé, ou l'e-mail et le SMS avec le code envoyé par profile.send-two-factor-code. Indisponible pendant une usurpation d'identité.",
+  "profile.disable_two_factor.description": "Désactiver une méthode de double authentification : confirmer avec un code actuel de l'application, ou l'e-mail et le SMS avec le code envoyé par profile.send-two-factor-code. Indisponible pendant une usurpation d'identité.",
   "users.reset_two_factor.description": "Réinitialiser en masse la double authentification d'utilisateurs (efface toutes les méthodes et clés) ; impossible sur son propre compte. Requiert identity.users.reset-two-factor.",
   "identity.auth.captcha_invalid": "Le captcha est incorrect ou a expiré. Veuillez réessayer.",
   "identity.auth.login_throttled": "Trop de tentatives de connexion. Réessayez dans {retryAfter} secondes.",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "Connexion avec le code reçu par e-mail ou téléphone ; les comptes à deux facteurs doivent toujours passer la seconde étape. Anonyme.",
   "identity.login.method_disabled": "Cette méthode de connexion n’est pas activée.",
   "identity.login.methods_invalid": "Les méthodes de connexion du paramètre système {key} sont invalides ; seuls password, email et phone sont permis.",
-  "identity.login.target_invalid": "L’adresse e-mail ou le numéro de téléphone est mal formé."
+  "identity.login.target_invalid": "L’adresse e-mail ou le numéro de téléphone est mal formé.",
+  "auth.send_two_factor_code.description": "Seconde étape de la double authentification : envoyer un code à l'adresse e-mail ou au numéro vérifié du compte avec le ticket d'auth.login ; l'application d'authentification n'en a pas besoin. Anonyme.",
+  "profile.send_two_factor_code.description": "Envoyer le code d'activation ou de désactivation de la double authentification par e-mail ou SMS à votre adresse ou numéro vérifié. Indisponible pendant une usurpation d'identité.",
+  "identity.contact.unverified": "Vérifiez d'abord votre adresse e-mail ou votre numéro actuel pour l'utiliser en double authentification.",
+  "identity.two_factor.same_as_login": "La seule seconde étape possible est {method}, le même canal que pour cette connexion. Connectez-vous plutôt avec votre mot de passe.",
+  "identity.code.title.two_factor_email": "Validation en deux étapes par e-mail",
+  "identity.code.title.two_factor_phone": "Validation en deux étapes par téléphone"
 }
