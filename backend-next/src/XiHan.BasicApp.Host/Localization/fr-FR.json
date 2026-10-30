@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "Exécute les semeurs dans l'ordre (--only <nom,...> pour en choisir certains, --list pour les afficher sans exécuter).",
-  "host.commands.seeder_unknown": "Semeur inconnu '{name}'. Exécutez 'seed --list' pour afficher les semeurs."
+  "host.commands.seeder_unknown": "Semeur inconnu '{name}'. Exécutez 'seed --list' pour afficher les semeurs.",
+  "host.commands.schema_description": "Mise à niveau du schéma : schema upgrade exécute les scripts de la base de plateforme pas encore appliqués selon le registre des versions (une base neuve part de la ligne de base).",
+  "host.commands.schema_action_unknown": "Action schema inconnue '{action}' ; seule upgrade est disponible."
 }

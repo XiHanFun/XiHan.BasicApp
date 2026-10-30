@@ -16,6 +16,7 @@ using XiHan.BasicApp.OpenPlatform;
 using XiHan.BasicApp.OpenPlatform.Infrastructure;
 using XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 using XiHan.BasicApp.Runtime;
+using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Realtime;
@@ -110,10 +111,12 @@ public static class BasicAppHost
     /// <remarks>
     /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、签名地址的收发端点（<c>/blobs</c>）、普通端点。
     /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（指定框架的 <c>XiHan</c> 认证方案，不设为缺省），操作照旧由内核认证。
+    /// 维护模式排在最前：别的节点升级共享的库期间，除健康检查外一律 503。
     /// </remarks>
     public static void Map(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
+        app.UseMiddleware<MaintenanceModeMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();
         // 开放接口的请求体原文要在框架绑定载荷之前留下（验签要原文，加密的要先解密）

@@ -34,7 +34,7 @@ public static class CommandLineMode
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddMessageCatalog(HostMessages.Catalog);
-        return services.AddXiHanCommandLine().AddXiHanCommand<SeedCommand>();
+        return services.AddXiHanCommandLine().AddXiHanCommand<SeedCommand>().AddXiHanCommand<SchemaCommand>();
     }
 
     /// <summary>

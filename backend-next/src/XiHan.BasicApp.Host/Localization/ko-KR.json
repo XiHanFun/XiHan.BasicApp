@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "시더를 순서대로 실행합니다(--only <이름,...>으로 일부만 실행, --list로 실행 없이 목록만 표시).",
-  "host.commands.seeder_unknown": "시더 '{name}'이(가) 없습니다. 'seed --list'로 목록을 확인하세요."
+  "host.commands.seeder_unknown": "시더 '{name}'이(가) 없습니다. 'seed --list'로 목록을 확인하세요.",
+  "host.commands.schema_description": "스키마 업그레이드: schema upgrade는 버전 대장에 따라 플랫폼 DB에서 아직 실행하지 않은 스크립트를 실행합니다(새 DB는 기준선에서 만듭니다).",
+  "host.commands.schema_action_unknown": "알 수 없는 schema 동작 '{action}'. upgrade만 사용할 수 있습니다."
 }

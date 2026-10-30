@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Maintenance.Operations.JobRuns;
 using XiHan.BasicApp.Maintenance.Operations.Jobs;
+using XiHan.BasicApp.Maintenance.Operations.Migrations;
+using XiHan.BasicApp.Maintenance.Operations.Versions;
 
 namespace XiHan.BasicApp.Maintenance;
 
@@ -27,4 +29,10 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(ScheduleCheckResponse))]
 [JsonSerializable(typeof(PageResult<JobRunResponse>))]
 [JsonSerializable(typeof(JobRunResponse))]
+[JsonSerializable(typeof(VersionIdRequest))]
+[JsonSerializable(typeof(MigrationIdRequest))]
+[JsonSerializable(typeof(PageResult<SchemaVersionResponse>))]
+[JsonSerializable(typeof(SchemaVersionResponse))]
+[JsonSerializable(typeof(PageResult<MigrationResponse>))]
+[JsonSerializable(typeof(MigrationResponse))]
 public sealed partial class MaintenanceJsonContext : JsonSerializerContext;

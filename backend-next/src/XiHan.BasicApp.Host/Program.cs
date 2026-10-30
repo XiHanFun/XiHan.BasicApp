@@ -21,5 +21,10 @@ if (CommandLineMode.IsCommand(args))
 }
 
 var app = BasicAppHost.Create(args);
+if (!await SchemaStartup.UpgradeAsync(app))
+{
+    return 1;
+}
+
 app.Run();
 return 0;

@@ -3,6 +3,7 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Host.Commands;
+using XiHan.BasicApp.Runtime.Schema;
 
 namespace XiHan.BasicApp.Host;
 
@@ -15,4 +16,5 @@ namespace XiHan.BasicApp.Host;
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(HostInfo))]
 [JsonSerializable(typeof(SeedReport))]
+[JsonSerializable(typeof(SchemaUpgradeReport))]
 internal sealed partial class HostJsonContext : JsonSerializerContext;

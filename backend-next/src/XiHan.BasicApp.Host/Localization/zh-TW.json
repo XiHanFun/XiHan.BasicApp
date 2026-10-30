@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "依序執行種子（--only <名稱,...> 只執行指定的，--list 只列出不執行）。",
-  "host.commands.seeder_unknown": "沒有名為 '{name}' 的種子。執行 'seed --list' 檢視種子清單。"
+  "host.commands.seeder_unknown": "沒有名為 '{name}' 的種子。執行 'seed --list' 檢視種子清單。",
+  "host.commands.schema_description": "結構升級：schema upgrade 依版本台帳執行平台庫還沒執行的升級腳本（新庫從基線建起）。",
+  "host.commands.schema_action_unknown": "schema 命令不認識的動作 '{action}'；目前只有 upgrade。"
 }

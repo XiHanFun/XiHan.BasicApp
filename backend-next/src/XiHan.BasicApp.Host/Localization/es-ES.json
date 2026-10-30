@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "Ejecuta los sembradores en orden (--only <nombre,...> para elegir algunos, --list para mostrarlos sin ejecutar).",
-  "host.commands.seeder_unknown": "Sembrador desconocido '{name}'. Ejecute 'seed --list' para ver los sembradores."
+  "host.commands.seeder_unknown": "Sembrador desconocido '{name}'. Ejecute 'seed --list' para ver los sembradores.",
+  "host.commands.schema_description": "Actualización del esquema: schema upgrade ejecuta los scripts de la base de datos de la plataforma aún no aplicados según el registro de versiones (una base nueva se crea desde la línea base).",
+  "host.commands.schema_action_unknown": "Acción de schema desconocida '{action}'; solo existe upgrade."
 }

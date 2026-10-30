@@ -56,6 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Schema\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IpDatabases\ip2region_v4.xdb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -1,4 +1,6 @@
 {
   "host.commands.seed_description": "Führt die Seeder der Reihe nach aus (--only <Name,...> wählt einzelne aus, --list zeigt sie nur an).",
-  "host.commands.seeder_unknown": "Unbekannter Seeder '{name}'. Führen Sie 'seed --list' aus, um die Seeder anzuzeigen."
+  "host.commands.seeder_unknown": "Unbekannter Seeder '{name}'. Führen Sie 'seed --list' aus, um die Seeder anzuzeigen.",
+  "host.commands.schema_description": "Schema-Upgrade: schema upgrade führt laut Versionsbuch die noch nicht angewendeten Skripte der Plattformdatenbank aus (eine neue Datenbank entsteht aus der Baseline).",
+  "host.commands.schema_action_unknown": "Unbekannte schema-Aktion '{action}'; verfügbar ist nur upgrade."
 }

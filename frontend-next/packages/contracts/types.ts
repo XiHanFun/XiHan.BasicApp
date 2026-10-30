@@ -2809,6 +2809,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/migrations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get upgrade record
+         * @description Get one upgrade script record by ID, including the failure reason.
+         *
+         *     Requires permission maintenance.migrations.read (Read upgrade records).
+         */
+        get: operations["migrations.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/migrations:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List upgrade records
+         * @description List upgrade script records page by page (successes and failures), newest first by default, filterable by version, script, node, outcome and time.
+         *
+         *     Requires permission maintenance.migrations.read (Read upgrade records).
+         */
+        post: operations["migrations.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/my-activity:summary": {
         parameters: {
             query?: never;
@@ -6125,6 +6169,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get version
+         * @description Get one version ledger row by ID.
+         *
+         *     Requires permission maintenance.versions.read (Read versions).
+         */
+        get: operations["versions.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versions:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List versions
+         * @description List each database's version ledger page by page: schema version, the app version and time of the last upgrade, and whether an upgrade is running; maintained by the upgrade runner, read-only.
+         *
+         *     Requires permission maintenance.versions.read (Read versions).
+         */
+        post: operations["versions.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8263,6 +8351,34 @@ export interface components {
              */
             modifiedAt?: string | null;
         };
+        /** @description 一个升级脚本的执行记录。 */
+        MigrationResponse: {
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
+            id: string;
+            /** @description 脚本所在的版本目录。 */
+            version: string;
+            /** @description 脚本文件名。 */
+            scriptName: string;
+            /**
+             * Format: date-time
+             * @description 开始执行的时间。
+             */
+            executedAt: string;
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
+            durationMs: number;
+            /** @description 是否成功。 */
+            success: boolean;
+            /** @description 执行的节点。 */
+            nodeName?: string | null;
+            /** @description 失败的原因。 */
+            errorMessage?: string | null;
+        };
         /** @description 本人的一个开放接口凭证（密钥不回显）。 */
         MyApiCredentialResponse: {
             /**
@@ -9211,6 +9327,34 @@ export interface components {
             code: string;
             /** @description 显示名。 */
             name: string;
+        };
+        /** @description 一个库的版本台账。 */
+        SchemaVersionResponse: {
+            /**
+             * Format: uuid
+             * @description 台账行 ID。
+             */
+            id: string;
+            /** @description 哪个库：平台库为 platform。 */
+            database: string;
+            /** @description 最近一次升级这个库的应用版本。 */
+            appVersion: string;
+            /** @description 库的结构版本；还没执行过基线为 null。 */
+            dbVersion?: string | null;
+            /** @description 是否正在升级。 */
+            isUpgrading: boolean;
+            /** @description 持有升级锁的节点。 */
+            upgradeNode?: string | null;
+            /**
+             * Format: date-time
+             * @description 这一轮升级的开始时间。
+             */
+            upgradeStartedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 最近一次升级完成的时间。
+             */
+            upgradedAt?: string | null;
         };
         /** @description 当前会话可激活的一个角色。 */
         SessionRoleItemResponse: {
@@ -19291,6 +19435,107 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["MessageTemplateResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "migrations.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 记录 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一个升级脚本的执行记录。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 记录 ID。
+                         */
+                        id: string;
+                        /** @description 脚本所在的版本目录。 */
+                        version: string;
+                        /** @description 脚本文件名。 */
+                        scriptName: string;
+                        /**
+                         * Format: date-time
+                         * @description 开始执行的时间。
+                         */
+                        executedAt: string;
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
+                        durationMs: number;
+                        /** @description 是否成功。 */
+                        success: boolean;
+                        /** @description 执行的节点。 */
+                        nodeName?: string | null;
+                        /** @description 失败的原因。 */
+                        errorMessage?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "migrations.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MigrationResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
@@ -30170,6 +30415,107 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "versions.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 台账行 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一个库的版本台账。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 台账行 ID。
+                         */
+                        id: string;
+                        /** @description 哪个库：平台库为 platform。 */
+                        database: string;
+                        /** @description 最近一次升级这个库的应用版本。 */
+                        appVersion: string;
+                        /** @description 库的结构版本；还没执行过基线为 null。 */
+                        dbVersion?: string | null;
+                        /** @description 是否正在升级。 */
+                        isUpgrading: boolean;
+                        /** @description 持有升级锁的节点。 */
+                        upgradeNode?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 这一轮升级的开始时间。
+                         */
+                        upgradeStartedAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次升级完成的时间。
+                         */
+                        upgradedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "versions.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SchemaVersionResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

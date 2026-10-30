@@ -36,4 +36,12 @@ public static class MaintenanceErrors
     /// 参数 <c>name</c>。
     /// </remarks>
     public const string JobNotFound = "MAINTENANCE_NOTFOUND_001";
+
+    /// <summary>
+    /// 版本台账或执行记录不存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string SchemaRecordNotFound = "MAINTENANCE_NOTFOUND_002";
 }
