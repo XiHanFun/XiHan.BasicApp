@@ -20,7 +20,6 @@
   "files.file.not_found": "File {id} does not exist.",
   "files.storage_config.not_found": "Storage configuration {id} does not exist.",
   "files.file_storage.not_found": "File copy {id} does not exist.",
-  "files.link.invalid": "The download link is invalid or has expired.",
   "files.storage_config.code_invalid": "The storage configuration code must not be empty or contain spaces: {code}",
   "files.storage_config.bucket_invalid": "The bucket name {bucket} is invalid: use 3 to 63 lowercase letters, digits and hyphens, starting and ending with a letter or digit.",
   "files.storage_config.remote_required": "{type} storage needs an endpoint, an access key ID and an access key.",

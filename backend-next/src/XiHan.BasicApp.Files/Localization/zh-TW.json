@@ -20,7 +20,6 @@
   "files.file.not_found": "檔案 {id} 不存在。",
   "files.storage_config.not_found": "儲存設定 {id} 不存在。",
   "files.file_storage.not_found": "副本 {id} 不存在。",
-  "files.link.invalid": "下載位址無效或已過期。",
   "files.storage_config.code_invalid": "儲存設定編碼不能為空或含空白：{code}",
   "files.storage_config.bucket_invalid": "儲存桶名稱 {bucket} 不合規則：只能用小寫字母、數字與連字號，3 到 63 個字元，首尾為字母或數字。",
   "files.storage_config.remote_required": "{type} 儲存要填服務位址、存取金鑰 ID 與存取金鑰。",

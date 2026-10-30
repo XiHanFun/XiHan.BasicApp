@@ -20,7 +20,6 @@
   "files.file.not_found": "Le fichier {id} n’existe pas.",
   "files.storage_config.not_found": "La configuration de stockage {id} n’existe pas.",
   "files.file_storage.not_found": "La copie {id} n’existe pas.",
-  "files.link.invalid": "Le lien de téléchargement est invalide ou expiré.",
   "files.storage_config.code_invalid": "Le code de la configuration de stockage ne doit pas être vide ni contenir d’espace : {code}",
   "files.storage_config.bucket_invalid": "Le nom de compartiment {bucket} est invalide : 3 à 63 minuscules, chiffres et tirets, commençant et finissant par une lettre ou un chiffre.",
   "files.storage_config.remote_required": "Le stockage {type} demande un point de terminaison, un identifiant de clé et une clé d’accès.",

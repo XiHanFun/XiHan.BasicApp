@@ -85,6 +85,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Security:Jwt:Secret", TestTokens.Secret),
         new("XiHan:Security:Jwt:Issuer", TestTokens.Issuer),
         new("XiHan:Security:Jwt:Audience", TestTokens.Audience),
+        new("XiHan:ObjectStorage:SignedUrls:Secret", "integration-tests-signed-url-secret-0123456789"),
         new("XiHan:Security:RoleClaim", "role"),
         new("XiHan:MultiTenancy:TenantClaim", "tenant"),
         new("XiHan:Protocols:Http:RoutePrefix", ApiPrefix),

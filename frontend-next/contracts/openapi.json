@@ -10087,49 +10087,6 @@
         }
       }
     },
-    "/api/files/content/{token}": {
-      "get": {
-        "operationId": "files.signed-content",
-        "tags": [
-          "files"
-        ],
-        "summary": "Read a file\u0027s content through a signed link issued by files.presign.",
-        "security": [],
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/files/upload": {
       "post": {
         "operationId": "files.upload",
@@ -10448,6 +10405,17 @@
               }
             }
           },
+          "206": {
+            "description": "Success",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Error",
             "content": {
@@ -10492,6 +10460,17 @@
               "format": "int32",
               "minimum": 60,
               "maximum": 604800
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
             }
           }
         ],

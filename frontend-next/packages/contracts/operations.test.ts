@@ -17,7 +17,7 @@ describe('generated contracts', () => {
     expect(Object.keys(routes).sort()).toEqual(ids.sort())
     // 普通端点（文件上传、下载）有端点名但不是操作
     expect(Object.keys(routes)).not.toContain('files.upload')
-    expect(Object.keys(routes)).not.toContain('files.signed-content')
+    expect(Object.keys(routes)).not.toContain('files.content')
   })
 
   it('derives users.create as POST /api/users and users.list as POST /api/users:list', () => {

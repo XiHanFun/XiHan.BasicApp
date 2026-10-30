@@ -1178,23 +1178,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/files/content/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read a file's content through a signed link issued by files.presign. */
-        get: operations["files.signed-content"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/files/upload": {
         parameters: {
             query?: never;
@@ -10179,37 +10162,6 @@ export interface operations {
             };
         };
     };
-    "files.signed-content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/octet-stream": string;
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
     "files.upload": {
         parameters: {
             query?: never;
@@ -10369,6 +10321,15 @@ export interface operations {
                     "application/octet-stream": string;
                 };
             };
+            /** @description Success */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
             /** @description Error */
             default: {
                 headers: {
@@ -10384,6 +10345,7 @@ export interface operations {
         parameters: {
             query?: {
                 expiresInSeconds?: number | null;
+                download?: boolean | null;
             };
             header?: never;
             path: {

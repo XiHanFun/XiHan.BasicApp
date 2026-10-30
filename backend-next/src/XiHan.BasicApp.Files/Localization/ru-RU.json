@@ -20,7 +20,6 @@
   "files.file.not_found": "Файл {id} не существует.",
   "files.storage_config.not_found": "Конфигурация хранилища {id} не существует.",
   "files.file_storage.not_found": "Копия {id} не существует.",
-  "files.link.invalid": "Ссылка на скачивание недействительна или истекла.",
   "files.storage_config.code_invalid": "Код конфигурации хранилища не может быть пустым или содержать пробелы: {code}",
   "files.storage_config.bucket_invalid": "Недопустимое имя бакета {bucket}: 3–63 строчные буквы, цифры и дефисы, начинается и заканчивается буквой или цифрой.",
   "files.storage_config.remote_required": "Для хранилища {type} нужны адрес, идентификатор ключа доступа и ключ доступа.",

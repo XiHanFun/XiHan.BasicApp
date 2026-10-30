@@ -36,11 +36,12 @@ export function uploadFile(file: File, options: UploadFileOptions = {}): Promise
 
 /**
  * 换取签名下载地址（完整地址，给图片、链接与新窗口用；有效期内不再校验身份）。
+ * 地址由对象存储签出、带签名参数，原样使用：本地存储是后端宿主的 `/blobs/…`，S3 兼容存储直连存储。
  * `download` 为真时以附件下载（带原始文件名），否则按内容类型内联显示。
  */
 export async function fileLink(id: string, download = false): Promise<string> {
-  const { url } = await filesOps.presign({ id })
-  return endpointUrl(download ? `${url}?download=true` : url)
+  const { url } = await filesOps.presign(download ? { id, download } : { id })
+  return endpointUrl(url)
 }
 
 /** 读文件内容（预览用）：经签名地址取，不带令牌。 */

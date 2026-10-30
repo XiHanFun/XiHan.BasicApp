@@ -23,6 +23,7 @@ using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Hosting.AspNetCore;
+using XiHan.Framework.Hosting.AspNetCore.Blobs;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 using XiHan.Framework.Messaging.Abstractions.Outbox;
 using XiHan.Framework.MultiTenancy.Database;
@@ -72,6 +73,8 @@ public static class BasicAppHost
             .UseFeature<DatabaseMultiTenancyFeature>()
             .UseFeature<DatabaseSecurityFeature>()
             .UseFeature<DatabaseAuditingFeature>()
+            // 本地存储的签名地址由宿主代收发（Files 的存储配置用框架的命名存储实例，S3 兼容存储自己签名）
+            .UseFeature<HostedBlobUrlFeature>()
             // 发件箱必装：领域事件与业务写入同事务派发
             .UseFeature<OutboxFeature>()
             .UseFeature<RuntimeFeature>()
@@ -101,8 +104,8 @@ public static class BasicAppHost
     /// 映射全部端点。
     /// </summary>
     /// <remarks>
-    /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、普通端点。
-    /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（它的 JWT 方案不设为缺省），操作照旧由内核认证。
+    /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、签名地址的收发端点（<c>/blobs</c>）、普通端点。
+    /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（指定框架的 <c>XiHan</c> 认证方案，不设为缺省），操作照旧由内核认证。
     /// </remarks>
     public static void Map(WebApplication app)
     {
@@ -126,6 +129,7 @@ public static class BasicAppHost
         app.MapXiHanMcp();
         app.MapXiHanGrpc();
         app.MapXiHanProto();
+        app.MapXiHanBlobs();
         app.MapBasicAppEndpoints();
     }
 

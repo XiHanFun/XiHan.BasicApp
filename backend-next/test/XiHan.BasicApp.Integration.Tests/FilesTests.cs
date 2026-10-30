@@ -66,7 +66,7 @@ public sealed class FilesTests : IDisposable
         return (response.StatusCode, body);
     }
 
-    private static async Task<(HttpStatusCode Status, string Body, HttpResponseMessage Response)> GetRawAsync(BasicAppTestServer server, string path, string? token = null)
+    private static async Task<(HttpStatusCode Status, string Body, HttpResponseMessage Response)> GetRawAsync(BasicAppTestServer server, string path, string? token = null, RangeHeaderValue? range = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (token is not null)
@@ -74,13 +74,14 @@ public sealed class FilesTests : IDisposable
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
+        request.Headers.Range = range;
         var response = await server.Client.SendAsync(request);
         return (response.StatusCode, await response.Content.ReadAsStringAsync(), response);
     }
 
-    private static async Task<string> PresignAsync(BasicAppTestServer server, string token, string fileId)
+    private static async Task<string> PresignAsync(BasicAppTestServer server, string token, string fileId, bool download = false)
     {
-        var (status, body) = await SendAsync(server, HttpMethod.Get, $"/api/files/{fileId}:presign", null, token);
+        var (status, body) = await SendAsync(server, HttpMethod.Get, $"/api/files/{fileId}:presign{(download ? "?download=true" : string.Empty)}", null, token);
         Assert.Equal(HttpStatusCode.OK, status);
         return body.GetProperty("url").GetString()!;
     }
@@ -124,16 +125,27 @@ public sealed class FilesTests : IDisposable
         Assert.Equal("FILES_NOTFOUND_001", (await SendAsync(server, HttpMethod.Get, $"/api/files/{firstId}", null, tenant)).Body.GetProperty("code").GetString());
         Assert.Equal(HttpStatusCode.NotFound, (await GetRawAsync(server, $"/api/files/{firstId}/content", tenant)).Status);
 
-        // 签名地址不再校验身份；download=true 以附件下载；按身份读要登录
+        // 签名地址由框架的签名端点收发、不再校验身份，支持范围读；换地址时 download=true 以附件下载；改过的地址验签失败；按身份读要登录
         var link = await PresignAsync(server, platform, firstId);
+        Assert.StartsWith("/blobs/files/platform/", link, StringComparison.Ordinal);
         var (signed, signedBody, _) = await GetRawAsync(server, link);
         Assert.Equal((HttpStatusCode.OK, "hello"), (signed, signedBody));
-        var (_, _, attachment) = await GetRawAsync(server, link + "?download=true");
+        var (partial, partialBody, partialResponse) = await GetRawAsync(server, link, range: new RangeHeaderValue(1, 3));
+        Assert.Equal((HttpStatusCode.PartialContent, "ell", "bytes 1-3/5"), (partial, partialBody, partialResponse.Content.Headers.ContentRange?.ToString()));
+        var (_, _, attachment) = await GetRawAsync(server, await PresignAsync(server, platform, firstId, download: true));
         Assert.Equal("hello.txt", attachment.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
-        Assert.Equal(HttpStatusCode.NotFound, (await GetRawAsync(server, "/api/files/content/not-a-token")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await GetRawAsync(server, link.Replace("x-method=GET", "x-method=GET&x-filename=evil.exe", StringComparison.Ordinal))).Status);
         Assert.Equal((HttpStatusCode.OK, "hello"), ((await GetRawAsync(server, $"/api/files/{firstId}/content", platform)).Status, (await GetRawAsync(server, $"/api/files/{firstId}/content", platform)).Body));
         Assert.Equal(HttpStatusCode.Unauthorized, (await GetRawAsync(server, $"/api/files/{firstId}/content")).Status);
-        Assert.Equal(4, (await SendAsync(server, HttpMethod.Get, $"/api/files/{firstId}", null, platform)).Body.GetProperty("downloadCount").GetInt32());
+        // 按身份读的范围：从头读的记一次下载，中间开始的不记；起点超出内容 416
+        var (head, headBody, headResponse) = await GetRawAsync(server, $"/api/files/{firstId}/content", platform, new RangeHeaderValue(0, 1));
+        Assert.Equal((HttpStatusCode.PartialContent, "he", "bytes 0-1/5"), (head, headBody, headResponse.Content.Headers.ContentRange?.ToString()));
+        var (tail, tailBody, _) = await GetRawAsync(server, $"/api/files/{firstId}/content", platform, new RangeHeaderValue(null, 2));
+        Assert.Equal((HttpStatusCode.PartialContent, "lo"), (tail, tailBody));
+        var (beyond, _, beyondResponse) = await GetRawAsync(server, $"/api/files/{firstId}/content", platform, new RangeHeaderValue(10, null));
+        Assert.Equal((HttpStatusCode.RequestedRangeNotSatisfiable, "bytes */5"), (beyond, beyondResponse.Content.Headers.ContentRange?.ToString()));
+        // 两次换地址 + 两次整读 + 一次从头读的范围
+        Assert.Equal(5, (await SendAsync(server, HttpMethod.Get, $"/api/files/{firstId}", null, platform)).Body.GetProperty("downloadCount").GetInt32());
 
         // 访问级别：没有 files.files.read 的平台用户换不到「需要授权」的地址，改成「已登录」即可
         await SendAsync(server, HttpMethod.Post, "/api/users", JsonSerializer.Serialize(new { userName = "viewer", displayName = "viewer", password = "Pass@123456" }), platform);
@@ -165,11 +177,13 @@ public sealed class FilesTests : IDisposable
         Assert.Equal(("local-default", true), (tenantCopy.GetProperty("storageConfigCode").GetString(), tenantCopy.GetProperty("key").GetString()!.StartsWith("contoso/", StringComparison.Ordinal)));
         Assert.Equal((HttpStatusCode.OK, "hello"), ((await GetRawAsync(server, await PresignAsync(server, tenant, tenantFile))).Status, (await GetRawAsync(server, await PresignAsync(server, tenant, tenantFile))).Body));
 
-        // 归档后读不到，恢复即可
+        // 归档后按身份读不到、换不到地址，已签出的地址指向对象本身、有效期内照常可用；恢复即可
         Assert.Empty((await SendAsync(server, HttpMethod.Post, "/api/files:set-status", JsonSerializer.Serialize(new { ids = new[] { firstId }, status = "Archived" }), platform)).Body.GetProperty("failed").EnumerateArray());
-        var (archived, archivedBody, _) = await GetRawAsync(server, link);
+        var (archived, archivedBody, _) = await GetRawAsync(server, $"/api/files/{firstId}/content", platform);
         Assert.Equal(HttpStatusCode.Conflict, archived);
         Assert.Contains("FILES_CONFLICT_005", archivedBody, StringComparison.Ordinal);
+        Assert.Equal("FILES_CONFLICT_005", (await SendAsync(server, HttpMethod.Get, $"/api/files/{firstId}:presign", null, platform)).Body.GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await GetRawAsync(server, link)).Status);
         Assert.Equal("FILES_VALIDATION_009", (await SendAsync(server, HttpMethod.Post, "/api/files:set-status", JsonSerializer.Serialize(new { ids = new[] { firstId }, status = "Corrupted" }), platform)).Body.GetProperty("code").GetString());
         await SendAsync(server, HttpMethod.Post, "/api/files:set-status", JsonSerializer.Serialize(new { ids = new[] { firstId }, status = "Normal" }), platform);
 
@@ -197,8 +211,13 @@ public sealed class FilesTests : IDisposable
         var access = await ListAsync(server, "access-logs", platform);
         Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.upload" && a.GetProperty("statusCode").GetInt32() == 200 && a.GetProperty("path").GetString() == "/api/files/upload");
         Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.upload" && a.GetProperty("errorCode").GetString() == "FILES_VALIDATION_005");
-        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.signed-content" && a.GetProperty("statusCode").GetInt32() == 409);
+        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.content" && a.GetProperty("statusCode").GetInt32() == 409);
+        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.content" && a.GetProperty("statusCode").GetInt32() == 206);
+        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.content" && a.GetProperty("statusCode").GetInt32() == 416);
         Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "files.content" && a.GetProperty("result").GetString() == "Success");
+        // 签名端点（框架的普通端点）按端点名记：成功与验签失败都在
+        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "xihan.objectstorage.blob.download" && a.GetProperty("result").GetString() == "Success");
+        Assert.Contains(access, a => a.GetProperty("operationId").GetString() == "xihan.objectstorage.blob.download" && a.GetProperty("statusCode").GetInt32() == 403);
         Assert.Contains(await ListAsync(server, "operation-logs", platform), o => o.GetProperty("operationId").GetString() == "files.upload" && o.GetProperty("succeeded").GetBoolean());
         Assert.Contains(await ListAsync(server, "access-logs", tenant), a => a.GetProperty("operationId").GetString() == "files.upload");
     }

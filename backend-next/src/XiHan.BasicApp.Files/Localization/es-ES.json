@@ -20,7 +20,6 @@
   "files.file.not_found": "El archivo {id} no existe.",
   "files.storage_config.not_found": "La configuración de almacenamiento {id} no existe.",
   "files.file_storage.not_found": "La copia {id} no existe.",
-  "files.link.invalid": "El enlace de descarga no es válido o ha caducado.",
   "files.storage_config.code_invalid": "El código de la configuración de almacenamiento no puede estar vacío ni contener espacios: {code}",
   "files.storage_config.bucket_invalid": "El nombre de depósito {bucket} no es válido: de 3 a 63 minúsculas, dígitos y guiones, empezando y terminando por letra o dígito.",
   "files.storage_config.remote_required": "El almacenamiento {type} necesita punto de conexión, ID de clave de acceso y clave de acceso.",

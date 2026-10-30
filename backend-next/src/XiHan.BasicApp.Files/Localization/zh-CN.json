@@ -20,7 +20,6 @@
   "files.file.not_found": "文件 {id} 不存在。",
   "files.storage_config.not_found": "存储配置 {id} 不存在。",
   "files.file_storage.not_found": "副本 {id} 不存在。",
-  "files.link.invalid": "下载地址无效或已过期。",
   "files.storage_config.code_invalid": "存储配置编码不能为空或含空白：{code}",
   "files.storage_config.bucket_invalid": "桶名 {bucket} 不合规则：只能用小写字母、数字与连字符，3 到 63 个字符，首尾是字母或数字。",
   "files.storage_config.remote_required": "{type} 存储要填服务地址、访问密钥 ID 与访问密钥。",

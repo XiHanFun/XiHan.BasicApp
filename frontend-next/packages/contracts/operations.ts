@@ -98,7 +98,7 @@ export const routes = {
   'files.fast-upload': { method: 'POST', template: '/api/files:fast-upload', path: [], query: [], success: 200 },
   'files.get': { method: 'GET', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
   'files.list': { method: 'POST', template: '/api/files:list', path: [], query: [], success: 200 },
-  'files.presign': { method: 'GET', template: '/api/files/{id}:presign', path: ['id'], query: ['expiresInSeconds'], success: 200 },
+  'files.presign': { method: 'GET', template: '/api/files/{id}:presign', path: ['id'], query: ['expiresInSeconds', 'download'], success: 200 },
   'files.set-primary-storage': { method: 'POST', template: '/api/files/{id}:set-primary-storage', path: ['id'], query: [], success: 200 },
   'files.set-status': { method: 'POST', template: '/api/files:set-status', path: [], query: [], success: 200 },
   'files.set-storage-status': { method: 'POST', template: '/api/files/{id}:set-storage-status', path: ['id'], query: [], success: 200 },
