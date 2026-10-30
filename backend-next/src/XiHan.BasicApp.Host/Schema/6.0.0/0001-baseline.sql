@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS "job_entity" (
     "active_run_id" character varying(128) DEFAULT NULL::character varying NULL,
     "source" integer DEFAULT 0 NOT NULL,
     "updated_at" timestamp with time zone NOT NULL,
+    "code_fingerprint" character varying(64) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "job_entity_pkey" PRIMARY KEY (id)
 );
