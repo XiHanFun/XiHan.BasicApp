@@ -774,6 +774,39 @@ public static class IdentityMessages
     /// </summary>
     public const string LoginTargetInvalid = "identity.login.target_invalid";
 
+    /// <summary>
+    /// 操作 <c>auth.send-two-factor-code</c> 的说明。
+    /// </summary>
+    public const string SendTwoFactorCodeDescription = "auth.send_two_factor_code.description";
+
+    /// <summary>
+    /// 操作 <c>profile.send-two-factor-code</c> 的说明。
+    /// </summary>
+    public const string SendTwoFactorSetupCodeDescription = "profile.send_two_factor_code.description";
+
+    /// <summary>
+    /// 要用作双因素的联系方式还没验证。
+    /// </summary>
+    public const string ContactUnverified = "identity.contact.unverified";
+
+    /// <summary>
+    /// 第二步只剩这次登录收码的那种方式。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>method</c>。
+    /// </remarks>
+    public const string TwoFactorSameAsLogin = "identity.two_factor.same_as_login";
+
+    /// <summary>
+    /// 验证码邮件的用途标题：邮箱两步验证。
+    /// </summary>
+    public const string CodeTitleTwoFactorEmail = "identity.code.title.two_factor_email";
+
+    /// <summary>
+    /// 验证码短信的用途标题：手机两步验证。
+    /// </summary>
+    public const string CodeTitleTwoFactorPhone = "identity.code.title.two_factor_phone";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

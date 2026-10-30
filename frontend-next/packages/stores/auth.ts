@@ -187,10 +187,13 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading.value = true
     try {
       if (params.twoFactorTicket) {
-        // 邮箱 / 短信方式要服务端先发码，随 Notification 接入；认证器方式直接输码，不走这里
-        if (!params.twoFactorCode)
-          throw new Error('邮箱与短信验证码尚未接入 6.0 后端')
-        const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method: contractMethodOf(params.twoFactorMethod), code: params.twoFactorCode }, { anonymous: true })
+        const method = contractMethodOf(params.twoFactorMethod)
+        // 没带码：登录页选好邮箱 / 短信方式或点重发，凭票据请服务端发码（认证器不发码，登录页不走这里）
+        if (!params.twoFactorCode) {
+          await authApi.sendTwoFactorCode({ ticket: params.twoFactorTicket, method }, { anonymous: true })
+          return { requiresTwoFactor: true, twoFactorMethod: params.twoFactorMethod, codeSent: true, twoFactorTicket: params.twoFactorTicket, token: null }
+        }
+        const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method, code: params.twoFactorCode }, { anonymous: true })
         await afterLogin(token, redirect)
         return null
       }

@@ -239,6 +239,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:send-two-factor-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Second step of two-factor sign-in: send a code to the account's verified email address or phone number using the ticket from auth.login; authenticators need no code. Anonymous. */
+        post: operations["auth.send-two-factor-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:session-roles": {
         parameters: {
             query?: never;
@@ -3082,7 +3099,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating. */
+        /** Turn off a two-factor method: confirm with a current authenticator code, or for email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating. */
         post: operations["profile.disable-two-factor"];
         delete?: never;
         options?: never;
@@ -3099,7 +3116,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating. */
+        /** Turn on a two-factor method: confirm the authenticator with a code from the newly generated key, or email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating. */
         post: operations["profile.enable-two-factor"];
         delete?: never;
         options?: never;
@@ -3220,6 +3237,23 @@ export interface paths {
         put?: never;
         /** First step of changing your email address or phone number: checks your current password and sends a code to the new one. Requires sign-in; not available while impersonating. */
         post: operations["profile.send-change-contact-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:send-two-factor-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the code for turning email or SMS two-factor on or off to your verified email address or phone number. Not available while impersonating. */
+        post: operations["profile.send-two-factor-code"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6609,6 +6643,45 @@ export interface operations {
                     channel: components["schemas"]["ContactChannel"];
                     target: string;
                     tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.send-two-factor-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ticket: string;
+                    method: components["schemas"]["TwoFactorMethod"];
                 };
             };
         };
@@ -17189,6 +17262,44 @@ export interface operations {
                     channel: components["schemas"]["ContactChannel"];
                     newValue: string;
                     password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int32 */
+                        expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.send-two-factor-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    method: components["schemas"]["TwoFactorMethod"];
                 };
             };
         };

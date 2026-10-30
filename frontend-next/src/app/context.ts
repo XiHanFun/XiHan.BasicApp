@@ -372,7 +372,8 @@ export function registerApplicationContext(router: Router): void {
     },
     enable2FAApi: (method, code) => profileOps.enableTwoFactor({ method: twoFactorMethodOf(method), code }),
     disable2FAApi: (method, code) => profileOps.disableTwoFactor({ method: twoFactorMethodOf(method), code }),
-    send2FASetupCodeApi: () => notAvailable('send2FASetupCodeApi'),
+    // 邮箱 / 短信双因素的开关凭发到本人已验证联系方式的码（profile.send-two-factor-code），认证器不发码
+    send2FASetupCodeApi: method => profileOps.sendTwoFactorCode({ method: twoFactorMethodOf(method) }),
     deactivateAccountApi: () => notAvailable('deactivateAccountApi'),
     deleteAccountApi: () => notAvailable('deleteAccountApi'),
     // 第三方账号绑定（Identity 的 profile.external-logins / begin-external-bind / link-external / unlink-external，只要求已登录，模仿会话发起、确认与解绑被拒）：

@@ -23,7 +23,7 @@ public sealed class OperationContractTests
     /// <remarks>
     /// 这类操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。签名开放接口（<c>open.*</c>）的调用方不成为主体，验签在 Authenticate 阶段做，也登记在这里。
     /// </remarks>
-    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh", "auth.verify-two-factor", "auth.captcha", "auth.login-config", "auth.external-login", "auth.send-login-code", "auth.login-by-code", "open.ping", "open.echo" };
+    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh", "auth.verify-two-factor", "auth.captcha", "auth.login-config", "auth.external-login", "auth.send-login-code", "auth.login-by-code", "auth.send-two-factor-code", "open.ping", "open.echo" };
 
     internal static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
         => Packages.Assemblies

@@ -454,6 +454,7 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'profile.revoke-other-sessions': 'authenticated',
   'profile.revoke-session': 'authenticated',
   'profile.send-change-contact-code': 'authenticated',
+  'profile.send-two-factor-code': 'authenticated',
   'profile.send-verification-code': 'authenticated',
   'profile.sessions': 'authenticated',
   'profile.setup-totp': 'authenticated',

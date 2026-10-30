@@ -44,8 +44,8 @@
   "auth.login_config.description": "Sign-in page settings: available sign-in methods, third-party providers and whether a captcha is required.",
   "profile.get.description": "Your profile and account security summary (two-factor, last password change). Any signed-in user.",
   "profile.setup_totp.description": "Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating.",
-  "profile.enable_two_factor.description": "Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating.",
-  "profile.disable_two_factor.description": "Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating.",
+  "profile.enable_two_factor.description": "Turn on a two-factor method: confirm the authenticator with a code from the newly generated key, or email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating.",
+  "profile.disable_two_factor.description": "Turn off a two-factor method: confirm with a current authenticator code, or for email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating.",
   "users.reset_two_factor.description": "Reset two-factor for users in bulk (clears all methods and authenticator keys); you cannot reset yourself. Requires identity.users.reset-two-factor.",
   "identity.auth.captcha_invalid": "The captcha is wrong or has expired. Please try again.",
   "identity.auth.login_throttled": "Too many sign-in attempts. Please try again in {retryAfter} seconds.",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "Sign in with the code received by email or phone; accounts with two-factor still need the second step. Anonymous.",
   "identity.login.method_disabled": "This sign-in method is not enabled.",
   "identity.login.methods_invalid": "The sign-in methods in system parameter {key} are invalid; only password, email and phone are allowed.",
-  "identity.login.target_invalid": "The email address or phone number is malformed."
+  "identity.login.target_invalid": "The email address or phone number is malformed.",
+  "auth.send_two_factor_code.description": "Second step of two-factor sign-in: send a code to the account's verified email address or phone number using the ticket from auth.login; authenticators need no code. Anonymous.",
+  "profile.send_two_factor_code.description": "Send the code for turning email or SMS two-factor on or off to your verified email address or phone number. Not available while impersonating.",
+  "identity.contact.unverified": "Verify your current email address or phone number before using it for two-factor.",
+  "identity.two_factor.same_as_login": "The only second step left is {method}, the same channel you just signed in with. Sign in with your password instead.",
+  "identity.code.title.two_factor_email": "Email two-step verification",
+  "identity.code.title.two_factor_phone": "Phone two-step verification"
 }

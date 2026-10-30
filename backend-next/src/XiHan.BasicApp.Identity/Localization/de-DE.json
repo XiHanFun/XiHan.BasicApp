@@ -44,8 +44,8 @@
   "auth.login_config.description": "Einstellungen der Anmeldeseite: verfügbare Anmeldearten, Drittanbieter und ob ein Captcha nötig ist.",
   "profile.get.description": "Eigenes Profil und Übersicht zur Kontosicherheit (Zwei-Faktor, letzte Passwortänderung). Für jeden angemeldeten Benutzer.",
   "profile.setup_totp.description": "Authenticator verknüpfen: neuen Schlüssel erzeugen (innerhalb von 10 Minuten mit einem Authenticator-Code bestätigen). Nicht während einer Identitätsübernahme.",
-  "profile.enable_two_factor.description": "Eine Zwei-Faktor-Methode einschalten: den Authenticator mit einem Code aus dem neuen Schlüssel bestätigen. Nicht während einer Identitätsübernahme.",
-  "profile.disable_two_factor.description": "Eine Zwei-Faktor-Methode ausschalten: mit einem aktuellen Authenticator-Code bestätigen. Nicht während einer Identitätsübernahme.",
+  "profile.enable_two_factor.description": "Eine Zwei-Faktor-Methode einschalten: den Authenticator mit einem Code aus dem neuen Schlüssel bestätigen, E-Mail und SMS mit dem von profile.send-two-factor-code gesendeten Code. Nicht während einer Identitätsübernahme.",
+  "profile.disable_two_factor.description": "Eine Zwei-Faktor-Methode ausschalten: mit einem aktuellen Authenticator-Code bestätigen, E-Mail und SMS mit dem von profile.send-two-factor-code gesendeten Code. Nicht während einer Identitätsübernahme.",
   "users.reset_two_factor.description": "Zwei-Faktor-Einstellungen von Benutzern gesammelt zurücksetzen (alle Methoden und Authenticator-Schlüssel löschen); das eigene Konto ist ausgenommen. Erfordert identity.users.reset-two-factor.",
   "identity.auth.captcha_invalid": "Das Captcha ist falsch oder abgelaufen. Bitte erneut versuchen.",
   "identity.auth.login_throttled": "Zu viele Anmeldeversuche. Bitte in {retryAfter} Sekunden erneut versuchen.",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "Anmeldung mit dem per E-Mail oder Telefon erhaltenen Code; Konten mit Zwei-Faktor brauchen weiterhin den zweiten Schritt. Anonym.",
   "identity.login.method_disabled": "Diese Anmeldemethode ist nicht aktiviert.",
   "identity.login.methods_invalid": "Die Anmeldemethoden im Systemparameter {key} sind ungültig; erlaubt sind nur password, email und phone.",
-  "identity.login.target_invalid": "Die E-Mail-Adresse oder Telefonnummer ist ungültig."
+  "identity.login.target_invalid": "Die E-Mail-Adresse oder Telefonnummer ist ungültig.",
+  "auth.send_two_factor_code.description": "Zweiter Schritt der Zwei-Faktor-Anmeldung: mit dem Ticket aus auth.login einen Code an die bestätigte E-Mail-Adresse oder Telefonnummer des Kontos senden; für den Authenticator wird kein Code gesendet. Anonym.",
+  "profile.send_two_factor_code.description": "Den Code zum Ein- oder Ausschalten der Zwei-Faktor-Methode per E-Mail oder SMS an die eigene bestätigte E-Mail-Adresse oder Telefonnummer senden. Nicht während einer Identitätsübernahme.",
+  "identity.contact.unverified": "Bestätigen Sie zuerst Ihre aktuelle E-Mail-Adresse oder Telefonnummer, bevor Sie sie für die Zwei-Faktor-Anmeldung verwenden.",
+  "identity.two_factor.same_as_login": "Als zweiter Schritt bleibt nur {method}, derselbe Weg wie bei dieser Anmeldung. Melden Sie sich stattdessen mit dem Passwort an.",
+  "identity.code.title.two_factor_email": "Zwei-Faktor-Anmeldung per E-Mail",
+  "identity.code.title.two_factor_phone": "Zwei-Faktor-Anmeldung per SMS"
 }

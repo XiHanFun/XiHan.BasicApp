@@ -133,15 +133,15 @@ public sealed class ExternalLogin(
         var sessionTenant = string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal) ? null : tenant;
         if (security.TwoFactorEnabled)
         {
-            var methods = TwoFactorSettings.UsableAt(security);
+            var methods = TwoFactorSettings.UsableAt(user, security);
             if (methods.Count == 0)
             {
                 return Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable);
             }
 
-            var (twoFactorTicket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, context.CancellationToken).ConfigureAwait(false);
+            var (twoFactorTicket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, methods, context.CancellationToken).ConfigureAwait(false);
             log.Event = LoginEvent.TwoFactorChallenge;
-            return new LoginResponse(null, new TwoFactorChallengeResponse(twoFactorTicket, methods, methods.Count == 1 ? methods[0] : null, CodeSent: false, expiresAt));
+            return new LoginResponse(null, new TwoFactorChallengeResponse(twoFactorTicket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
         var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);

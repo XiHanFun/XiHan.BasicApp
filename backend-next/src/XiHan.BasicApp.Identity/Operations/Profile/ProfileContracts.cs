@@ -98,7 +98,16 @@ public sealed record TotpSetupResponse(string SharedKey, string AuthenticatorUri
 /// <c>profile.enable-two-factor</c> 与 <c>profile.disable-two-factor</c> 的请求。
 /// </remarks>
 /// <param name="Method">方式。</param>
-/// <param name="Code">验证码：开启认证器时是新绑定的认证器算出的码，关闭时是当前认证器的码。</param>
+/// <param name="Code">验证码：开启认证器时是新绑定的认证器算出的码，关闭时是当前认证器的码；邮箱与短信是 <c>profile.send-two-factor-code</c> 发出的码。</param>
 public sealed record TwoFactorChangeRequest(
     TwoFactorMethod Method,
     [Required, StringLength(16, MinimumLength = 1)] string Code);
+
+/// <summary>
+/// 只带双因素方式的请求。
+/// </summary>
+/// <remarks>
+/// <c>profile.send-two-factor-code</c> 的请求。
+/// </remarks>
+/// <param name="Method">方式（邮箱或短信）。</param>
+public sealed record TwoFactorMethodRequest(TwoFactorMethod Method);

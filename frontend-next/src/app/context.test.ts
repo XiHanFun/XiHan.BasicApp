@@ -392,6 +392,23 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(useUserStore().userInfo?.email).toBe('new@example.com')
   })
 
+  it('邮箱 / 短信双因素的开关码：按位标志换成方式交给 profile.send-two-factor-code，开关带同一方式与码', async () => {
+    const calls: Call[] = []
+    record(calls, url => json(200, url.endsWith(':send-two-factor-code') ? { expiresInSeconds: 600 } : profileOf()))
+    const apis = useAppContext().apis
+
+    expect(await apis.send2FASetupCodeApi(2)).toEqual({ expiresInSeconds: 600 })
+    await apis.send2FASetupCodeApi(4)
+    await apis.enable2FAApi(2, '123456')
+    await apis.disable2FAApi(4, '654321')
+    expect(calls).toEqual([
+      { method: 'POST', url: '/api/profile:send-two-factor-code', body: { method: 'Email' } },
+      { method: 'POST', url: '/api/profile:send-two-factor-code', body: { method: 'Phone' } },
+      { method: 'POST', url: '/api/profile:enable-two-factor', body: { method: 'Email', code: '123456' } },
+      { method: 'POST', url: '/api/profile:disable-two-factor', body: { method: 'Phone', code: '654321' } },
+    ])
+  })
+
   it('验证码登录发码：按渠道交给 auth.send-login-code（匿名），租户去空白、留空传 null', async () => {
     const calls: Call[] = []
     record(calls, () => json(200, { expiresInSeconds: 600 }))

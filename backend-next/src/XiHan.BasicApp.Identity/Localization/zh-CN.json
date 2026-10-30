@@ -44,8 +44,8 @@
   "auth.login_config.description": "登录页配置：可用的登录方式、第三方登录与是否要求图形验证码。",
   "profile.get.description": "本人的资料与账号安全概况（双因素、最近改密时间）。已登录即可。",
   "profile.setup_totp.description": "开始绑定认证器：生成新密钥（10 分钟内用认证器的码确认）。模仿会话不能用。",
-  "profile.enable_two_factor.description": "开启一种双因素方式：认证器用刚生成的密钥算出的码确认。模仿会话不能用。",
-  "profile.disable_two_factor.description": "关闭一种双因素方式：认证器用当前的码确认。模仿会话不能用。",
+  "profile.enable_two_factor.description": "开启一种双因素方式：认证器用刚生成的密钥算出的码确认，邮箱与短信用 profile.send-two-factor-code 发出的码确认。模仿会话不能用。",
+  "profile.disable_two_factor.description": "关闭一种双因素方式：认证器用当前的码确认，邮箱与短信用 profile.send-two-factor-code 发出的码确认。模仿会话不能用。",
   "users.reset_two_factor.description": "批量重置用户的双因素（清掉全部方式与认证器密钥）；不能重置自己。需要 identity.users.reset-two-factor 权限。",
   "identity.auth.captcha_invalid": "验证码错误或已过期，请重试。",
   "identity.auth.login_throttled": "登录尝试过于频繁，请在 {retryAfter} 秒后再试。",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "用邮箱或手机收到的验证码登录：账号开了双因素照样要第二步。匿名。",
   "identity.login.method_disabled": "没有开放这种登录方式。",
   "identity.login.methods_invalid": "系统参数 {key} 里的登录方式写得不对，只能是 password、email、phone。",
-  "identity.login.target_invalid": "邮箱或手机号格式不对。"
+  "identity.login.target_invalid": "邮箱或手机号格式不对。",
+  "auth.send_two_factor_code.description": "两步验证第二步的发码：凭 auth.login 发的票据把验证码发到账号已验证的邮箱或手机号；认证器不发码。匿名。",
+  "profile.send_two_factor_code.description": "发开关邮箱或短信双因素用的验证码到本人已验证的邮箱或手机号。模仿会话不能用。",
+  "identity.contact.unverified": "要先验证当前的邮箱或手机号，才能用它做双因素。",
+  "identity.two_factor.same_as_login": "第二步只能用 {method}，与这次登录收码的方式相同，请改用密码登录。",
+  "identity.code.title.two_factor_email": "邮箱两步验证",
+  "identity.code.title.two_factor_phone": "手机两步验证"
 }

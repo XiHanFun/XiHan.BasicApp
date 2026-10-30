@@ -87,6 +87,31 @@ describe('auth store', () => {
     expect(replace).toHaveBeenCalledWith('/')
   })
 
+  it('a ticket without a code asks the server to send the email or SMS code, then the code finishes the login', async () => {
+    const calls: { url: string, body: unknown, auth: string | null }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        calls.push({ url: String(url), body: JSON.parse(String(init!.body)), auth: new Headers(init!.headers).get('Authorization') })
+        return String(url).endsWith(':send-two-factor-code') ? json(200, { expiresInSeconds: 600 }) : json(200, session('a-1', 'r-1'))
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: '/' } } } as unknown as Router) })
+    const store = useAuthStore()
+
+    // 登录页选好邮箱方式（或点重发）：只发码，回来的挑战标明方式与已发送，票据照旧
+    expect(await store.login({ username: 'alice', password: 'Alice@12345', twoFactorTicket: 't-1', twoFactorMethod: 'email' }))
+      .toEqual({ requiresTwoFactor: true, twoFactorMethod: 'email', codeSent: true, twoFactorTicket: 't-1', token: null })
+    expect(calls[0]).toEqual({ url: '/api/auth:send-two-factor-code', body: { ticket: 't-1', method: 'Email' }, auth: null })
+    expect(store.isAuthenticated).toBe(false)
+
+    expect(await store.login({ username: 'alice', password: 'Alice@12345', twoFactorTicket: 't-1', twoFactorMethod: 'phone', twoFactorCode: '246801' })).toBeNull()
+    expect(calls[1]).toEqual({ url: '/api/auth:verify-two-factor', body: { ticket: 't-1', method: 'Phone', code: '246801' }, auth: null })
+    expect(store.accessToken).toBe('a-1')
+  })
+
   it('code login sends channel, trimmed target and tenant anonymously; a token lands like a password login, a two-factor challenge is kept for the login page', async () => {
     const bodies: { url: string, body: unknown, auth: string | null }[] = []
     let twoFactor = false

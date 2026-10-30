@@ -128,15 +128,15 @@ public sealed class Login(
         if (security.TwoFactorEnabled)
         {
             // 失败计数与锁定等第二步通过才清零：只知道密码的人不能靠反复登录把计数清掉
-            var methods = TwoFactorSettings.UsableAt(security);
+            var methods = TwoFactorSettings.UsableAt(user, security);
             if (methods.Count == 0)
             {
                 return Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable);
             }
 
-            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, context.CancellationToken).ConfigureAwait(false);
+            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, methods, context.CancellationToken).ConfigureAwait(false);
             log.Event = LoginEvent.TwoFactorChallenge;
-            return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, methods.Count == 1 ? methods[0] : null, CodeSent: false, expiresAt));
+            return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
         var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);

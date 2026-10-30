@@ -44,8 +44,8 @@
   "auth.login_config.description": "Configuração da página de login: métodos disponíveis, provedores externos e se o captcha é exigido.",
   "profile.get.description": "Seu perfil e o resumo de segurança da conta (dois fatores, última troca de senha). Para qualquer usuário conectado.",
   "profile.setup_totp.description": "Começar a vincular um autenticador: gerar uma nova chave (confirmar com um código em até 10 minutos). Indisponível durante a personificação.",
-  "profile.enable_two_factor.description": "Ativar um método de dois fatores: confirmar o autenticador com um código da chave recém-gerada. Indisponível durante a personificação.",
-  "profile.disable_two_factor.description": "Desativar um método de dois fatores: confirmar com um código atual do autenticador. Indisponível durante a personificação.",
+  "profile.enable_two_factor.description": "Ativar um método de dois fatores: confirmar o autenticador com um código da chave recém-gerada, ou o e-mail e o SMS com o código enviado por profile.send-two-factor-code. Indisponível durante a personificação.",
+  "profile.disable_two_factor.description": "Desativar um método de dois fatores: confirmar com um código atual do autenticador, ou o e-mail e o SMS com o código enviado por profile.send-two-factor-code. Indisponível durante a personificação.",
   "users.reset_two_factor.description": "Redefinir em lote a autenticação de dois fatores de usuários (apaga todos os métodos e chaves); não é possível redefinir a si mesmo. Requer identity.users.reset-two-factor.",
   "identity.auth.captcha_invalid": "O captcha está incorreto ou expirou. Tente novamente.",
   "identity.auth.login_throttled": "Muitas tentativas de login. Tente novamente em {retryAfter} segundos.",
@@ -125,5 +125,11 @@
   "auth.login_by_code.description": "Entra com o código recebido por e-mail ou telefone; contas com dois fatores ainda precisam da segunda etapa. Anônimo.",
   "identity.login.method_disabled": "Este método de login não está habilitado.",
   "identity.login.methods_invalid": "Os métodos de login do parâmetro do sistema {key} são inválidos; só são permitidos password, email e phone.",
-  "identity.login.target_invalid": "O e-mail ou telefone tem formato inválido."
+  "identity.login.target_invalid": "O e-mail ou telefone tem formato inválido.",
+  "auth.send_two_factor_code.description": "Segunda etapa da autenticação de dois fatores: envie um código ao e-mail ou telefone verificado da conta com o ticket de auth.login; o autenticador não precisa de código. Anônimo.",
+  "profile.send_two_factor_code.description": "Enviar o código para ativar ou desativar os dois fatores por e-mail ou SMS ao seu e-mail ou telefone verificado. Indisponível durante a personificação.",
+  "identity.contact.unverified": "Verifique primeiro seu e-mail ou telefone atual para usá-lo como segundo fator.",
+  "identity.two_factor.same_as_login": "A única segunda etapa disponível é {method}, o mesmo canal usado neste login. Entre com a senha.",
+  "identity.code.title.two_factor_email": "Verificação em duas etapas por e-mail",
+  "identity.code.title.two_factor_phone": "Verificação em duas etapas por telefone"
 }

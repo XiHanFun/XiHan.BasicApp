@@ -1242,6 +1242,75 @@
         }
       }
     },
+    "/api/auth:send-two-factor-code": {
+      "post": {
+        "operationId": "auth.send-two-factor-code",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Second step of two-factor sign-in: send a code to the account\u0027s verified email address or phone number using the ticket from auth.login; authenticators need no code. Anonymous.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SendTwoFactorCodeRequest",
+                "type": "object",
+                "properties": {
+                  "ticket": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "method": {
+                    "$ref": "#/components/schemas/TwoFactorMethod"
+                  }
+                },
+                "required": [
+                  "ticket",
+                  "method"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:session-roles": {
       "get": {
         "operationId": "auth.session-roles",
@@ -25278,7 +25347,7 @@
         "tags": [
           "profile"
         ],
-        "summary": "Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating.",
+        "summary": "Turn off a two-factor method: confirm with a current authenticator code, or for email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating.",
         "x-xihan-stability": "Preview",
         "x-xihan-policy": "authenticated",
         "parameters": [],
@@ -25431,7 +25500,7 @@
         "tags": [
           "profile"
         ],
-        "summary": "Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating.",
+        "summary": "Turn on a two-factor method: confirm the authenticator with a code from the newly generated key, or email and SMS with the code sent by profile.send-two-factor-code. Not available while impersonating.",
         "x-xihan-stability": "Preview",
         "x-xihan-policy": "authenticated",
         "parameters": [],
@@ -26081,6 +26150,69 @@
                   "channel",
                   "newValue",
                   "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:send-two-factor-code": {
+      "post": {
+        "operationId": "profile.send-two-factor-code",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Send the code for turning email or SMS two-factor on or off to your verified email address or phone number. Not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TwoFactorMethodRequest",
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "$ref": "#/components/schemas/TwoFactorMethod"
+                  }
+                },
+                "required": [
+                  "method"
                 ]
               }
             }
