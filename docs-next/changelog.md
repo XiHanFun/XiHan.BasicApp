@@ -4,6 +4,18 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 文档站发现的代码问题（2026-11-01）
+
+写这套文档时对照代码发现的出入，按 5.x 与方案补齐：
+
+- 索引与唯一约束：软删除实体的唯一约束改为只约束未删除的行（部分唯一索引），外键查找与列表筛选补上普通索引，6.0.0 基线随之重生成。见[数据模型](./backend/data-model)。
+- 宿主补上转发头（`BasicApp:ForwardedHeaders`，缺省只信本机回环）与跨域（`BasicApp:Cors`，不配即不启用）。见[配置](./configuration)。
+- 前端维护提示认 `RUNTIME_UNAVAILABLE_003` 与 `KERNEL_UNAVAILABLE_001`，并真正弹出提示。
+- 时间按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`），个人统计与工作台按它切天。见[国际化与时区](./frontend/i18n#时区)。
+- 租户到期生效：到期时间一过登录即被拒（`IDENTITY_DENIED_019`），作业 `tenancy.tenants.expire` 把租户标为到期；续期后恢复。见[多租户](./backend/multi-tenancy)。
+- 文件库与通知管理的列表按创建人套数据范围。见[数据权限](./backend/data-permission)。
+- 自助注册（缺省关，`BasicApp:Auth:SelfRegistrationEnabled`）与找回密码（发验证码）。见[认证](./backend/authentication)。
+
 ### N2 收尾（2026-10-31 起，进行中）
 
 按 5.x 功能清单逐条核对后补齐的差距：
