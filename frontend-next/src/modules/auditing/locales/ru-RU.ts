@@ -102,6 +102,8 @@ export default {
       analysis_group_result: 'Результат',
     },
     operation_logs: {
+      description: 'Описание',
+      location: 'Местоположение',
       title: 'Журнал операций',
       detail_title: 'Сведения о записи журнала операций',
       keyword_placeholder: 'Поиск по операциям, ресурсам или кодам ошибок',

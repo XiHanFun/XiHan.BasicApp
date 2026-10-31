@@ -102,6 +102,8 @@ export default {
       analysis_group_result: 'Resultado',
     },
     operation_logs: {
+      description: 'Descrição',
+      location: 'Localização',
       title: 'Registros de operações',
       detail_title: 'Detalhes do registro de operação',
       keyword_placeholder: 'Pesquisar operações, recursos ou códigos de erro',

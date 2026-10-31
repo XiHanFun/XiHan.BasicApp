@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Diagnostics;
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,6 +22,7 @@ using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Protocols.Http.Routing;
 using XiHan.Framework.Security.Abstractions;
+using XiHan.Framework.Security.Abstractions.Network;
 
 namespace XiHan.BasicApp.Auditing.Middleware;
 
@@ -29,7 +31,7 @@ namespace XiHan.BasicApp.Auditing.Middleware;
 /// </summary>
 /// <remarks>
 /// 排在框架 <c>AuditMiddleware</c> 里面：
-/// 调用开始前对标了审计的操作显式声明审计动作（操作日志）；调用结束后补上耗时、登录名与会话等细节（框架随即把操作审计落库），
+/// 调用开始前对标了审计的操作显式声明审计动作（操作日志）；调用结束后补上耗时、登录名与会话，以及客户端地址、浏览器与系统、归属地等细节（框架随即把操作审计落库，4.x 的操作日志同样在写入时记），
 /// 再按最终结果写访问日志、异常日志、调用里登记的登录日志与权限变更日志（只在成功时记），以及仓储写入的数据变更（只在成功时记）。
 /// 客户端地址、User-Agent、协议与请求目标取调用来源（ADR-0043）。日志只进有界队列，不影响调用结果。
 /// </remarks>
@@ -95,6 +97,12 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             context.AddAuditDetail("durationMs", durationMs);
             context.AddAuditDetail("userName", caller.UserName);
             context.AddAuditDetail("sessionId", caller.SessionId?.ToString("D"));
+            context.AddAuditDetail("clientIp", Clip(origin?.RemoteAddress, 64));
+            context.AddAuditDetail("userAgent", Clip(origin?.UserAgent, 512));
+            context.AddAuditDetail("browser", agent.Browser);
+            context.AddAuditDetail("os", agent.Os);
+            context.AddAuditDetail("device", agent.Device);
+            context.AddAuditDetail("location", LocationOf(origin?.RemoteAddress, context));
         }
 
         if (target is not null && options.AccessLogEnabled && !options.AccessLogExclusions.Contains(target))
@@ -254,6 +262,17 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         record.TraceId = context.TraceId;
         queue.Enqueue(record);
     }
+
+    /// <summary>
+    /// 客户端地址的归属地。
+    /// </summary>
+    /// <remarks>
+    /// 经 <see cref="IIpRegionResolver"/>，宿主没装、内网地址与查不到都为空。
+    /// </remarks>
+    private static string? LocationOf(string? address, InvocationContext context)
+        => context.Services.GetService<IIpRegionResolver>() is { } regions && IPAddress.TryParse(address, out var ip) && regions.Resolve(ip).TryGetValue(out var region) && region.Location.Length > 0
+            ? Clip(region.Location, 128)
+            : null;
 
     /// <summary>
     /// 取调用结果。

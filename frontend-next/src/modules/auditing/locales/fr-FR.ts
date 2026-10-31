@@ -102,6 +102,8 @@ export default {
       analysis_group_result: 'Résultat',
     },
     operation_logs: {
+      description: 'Description',
+      location: 'Localisation',
       title: 'Journaux d’opérations',
       detail_title: 'Détails du journal d’opération',
       keyword_placeholder: 'Rechercher des opérations, ressources ou codes d’erreur',

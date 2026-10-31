@@ -128,7 +128,9 @@ public sealed class AuditingTests : IDisposable
         Assert.Equal(chrome, session.ClientInfo);
 
         // 数据变更：新建与修改各一条，修改带前后值与变化的列；失败的修改（值不合数据类型）不记
-        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.limit","name":"Limit","dataType":"Number","value":"10"}""", platform));
+        var createConfig = BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.limit","name":"Limit","dataType":"Number","value":"10"}""", platform);
+        createConfig.Headers.UserAgent.ParseAdd(chrome);
+        var (created, createdBody) = await server.SendAsync(createConfig);
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var configId = createdBody.GetProperty("id").GetString()!;
         var (updated, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{configId}", """{"name":"Limit","dataType":"Number","value":"20"}""", platform));
@@ -149,6 +151,15 @@ public sealed class AuditingTests : IDisposable
         var failed = Assert.Single(access, a => a.GetProperty("operationId").GetString() == "configs.update" && a.GetProperty("result").GetString() == "Failed");
         Assert.Equal(400, failed.GetProperty("statusCode").GetInt32());
         Assert.Equal($"/api/configs/{configId}", failed.GetProperty("path").GetString());
+
+        // 操作日志：客户端信息在写入时记下（浏览器与系统取 User-Agent，测试服务器没有远端地址、也就没有归属地），描述是操作的本地化标题、按调用方语言
+        var (operations, operationsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/operation-logs:list", """{"page":{"index":1,"size":200}}""", platform, "zh-CN"));
+        Assert.Equal(HttpStatusCode.OK, operations.StatusCode);
+        var configCreate = Assert.Single(operationsBody.GetProperty("items").EnumerateArray(), static o => o.GetProperty("operationId").GetString() == "configs.create");
+        Assert.Equal(("新建参数", "Chrome", "Windows", "Desktop"), (configCreate.GetProperty("description").GetString(), configCreate.GetProperty("browser").GetString(), configCreate.GetProperty("os").GetString(), configCreate.GetProperty("device").GetString()));
+        Assert.Equal(JsonValueKind.Null, configCreate.GetProperty("location").ValueKind);
+        var (_, configDetail) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/operation-logs/{configCreate.GetProperty("id").GetString()}", token: platform, acceptLanguage: "en-US"));
+        Assert.Equal(("Create configuration entry", chrome), (configDetail.GetProperty("description").GetString(), configDetail.GetProperty("userAgent").GetString()));
 
         var diffs = await ListAsync(server, "diff-logs", platform, """{"filters":[{"field":"entityType","operator":"contains","value":"SysConfig"}],"sorts":[{"field":"occurredAt"}]}""");
         Assert.Equal(["Insert", "Update"], diffs.Select(static d => d.GetProperty("kind").GetString()).ToList());

@@ -102,6 +102,8 @@ export default {
       analysis_group_result: '結果',
     },
     operation_logs: {
+      description: '操作の説明',
+      location: '所在地',
       title: '操作ログ',
       detail_title: '操作ログの詳細',
       keyword_placeholder: '操作、リソース、エラーコードを検索',
