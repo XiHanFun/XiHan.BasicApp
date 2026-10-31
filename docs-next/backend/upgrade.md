@@ -59,7 +59,7 @@ Maintenance 包提供只读的管理面（平台侧）：
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `versions.list` / `get` | `maintenance.versions.read` | 每个库一行：应用版本、结构版本、是否升级中、升级节点（目前只列平台库，独立库租户的版本不显示，N2 收尾项） |
+| `versions.list` / `get` | `maintenance.versions.read` | 每个库一行（平台库为 `platform`，另加各独立库租户，按库名取）：应用版本、结构版本、是否升级中、升级节点；读不到的库带错误说明 |
 | `migrations.list` / `get` | `maintenance.migrations.read` | 脚本执行台账：版本、脚本、节点、成败、耗时 |
 
 ## 下一步

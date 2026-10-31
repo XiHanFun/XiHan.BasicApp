@@ -34,12 +34,12 @@
 | `IconPicker`（`~/iconify`） | 图标选择器 |
 | `XChartInView` | 进入视口才渲染的图表壳（工作台） |
 | `XJsonBlock` | JSON 查看 |
+| `XMdEditor` / `XContentEditorField` | Markdown 编辑器（md-editor-v3，异步懒加载）与带摘要、字数的正文编辑字段（通知公告正文） |
 | `XPopconfirm`、`XTooltip`、`XDropdown`、`XIconButton` | 交互小件 |
 | `LockScreen`、`DynamicIsland`、`AppWatermark`、`LocaleSwitcher`、`TimezoneSwitcher` | 壳层用 |
 
 ## 尚未搬入
 
-- Markdown 编辑器（5.x 的通知公告正文编辑）；
 - 流程设计器与打印设计器的接线（`packages/designers`、`packages/printing`），随 N3 的 Workflow、Printing。
 
 ## 写法约定
