@@ -1,8 +1,9 @@
 import type { Router } from 'vue-router'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { configureRequest } from '~/request'
 import { useAppContext, useAuthStore, useUserStore } from '~/stores'
+import { setDisplayTimeZone } from '~/utils'
 import { registerApplicationContext } from './context'
 
 function json(status: number, body: object): Response {
@@ -275,12 +276,10 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:update-notification-preference', body: preference })
   })
 
-  it('活跃度：my-activity.summary 带浏览器的 IANA 时区；次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time，没有的最近时间不给，趋势换字段名', async () => {
+  it('活跃度：my-activity.summary 带应用时区（显示时间用的那个，不看浏览器）；次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time，没有的最近时间不给，趋势换字段名', async () => {
     const calls: Call[] = []
-    const resolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions
-    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockImplementation(function (this: Intl.DateTimeFormat) {
-      return { ...resolvedOptions.call(this), timeZone: 'Asia/Shanghai' }
-    })
+    setDisplayTimeZone('Asia/Tokyo')
+    onTestFinished(() => setDisplayTimeZone(''))
     record(calls, () => json(200, {
       today: { logins: 1, accesses: 20, operations: 3, onlineSeconds: 1800 },
       thisWeek: { logins: 4, accesses: 120, operations: 9, onlineSeconds: 7200 },
@@ -298,7 +297,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
       lastOperationTime: '2026-10-30T02:30:00Z',
       trend: [{ date: '2026-10-29', accessCount: 40, operationCount: 5, onlineMinutes: 90 }, { date: '2026-10-30', accessCount: 20, operationCount: 0, onlineMinutes: 30 }],
     })
-    expect(calls).toEqual([{ method: 'GET', url: '/api/my-activity:summary?timeZone=Asia%2FShanghai', body: null }])
+    expect(calls).toEqual([{ method: 'GET', url: '/api/my-activity:summary?timeZone=Asia%2FTokyo', body: null }])
   })
 
   it('个人资料：profile.get 投影成 4.x 的资料——显示名进 nickName、头像是文件主键、性别换成数字、上次改名换成 *Time，下次可改时间没到即不能改，没有的字段不给', async () => {

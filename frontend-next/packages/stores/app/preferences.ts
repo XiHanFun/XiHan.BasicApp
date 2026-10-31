@@ -47,7 +47,7 @@ import {
   WIDGETS_SYNC_KEY,
 } from '~/constants'
 import { setLocale as applyLocale, i18n, isLocale } from '~/locales'
-import { LocalStorage, resolveBrowserLocale, resolveInitialLocale } from '~/utils'
+import { isTimeZone, LocalStorage, resolveBrowserLocale, resolveInitialLocale, setDisplayTimeZone } from '~/utils'
 import { bindPersist, save } from '../helpers'
 
 const WIDGET_PLACEMENTS: readonly WidgetPlacement[] = ['auto', 'header', 'floating', 'hidden']
@@ -81,8 +81,10 @@ export function createPreferencesSlice() {
   const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
-  // 用户时区（IANA，如 Asia/Shanghai）：默认北京时间 Asia/Shanghai（空串表示跟随浏览器）；随请求头 X-Timezone 上行，后端按此换算返回时间
-  const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? 'Asia/Shanghai')
+  // 应用时区（IANA，如 Asia/Shanghai），默认北京时间，空串表示跟随浏览器：后端一律返回 UTC，界面上的时间按它显示（formatDate），
+  // 个人统计与工作台按它切「今天」；存下的值运行时认不出（旧版本或手改的存储）时回到默认
+  const storedTimezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
+  const appTimezone = ref<string>(storedTimezone === '' || (storedTimezone && isTimeZone(storedTimezone)) ? storedTimezone : 'Asia/Shanghai')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
@@ -143,6 +145,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGETS_SYNC_KEY, widgetsSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
+  watch(appTimezone, setDisplayTimeZone, { immediate: true })
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 30)
   bindPersist(WIDGET_SEARCH_PLACEMENT_KEY, widgetSearchPlacement, 'auto')

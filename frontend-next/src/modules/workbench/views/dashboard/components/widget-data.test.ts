@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { configureRequest } from '~/request'
+import { getDisplayTimeZone, setDisplayTimeZone } from '~/utils'
 import { byteScale, localDay } from './charts/chart-helpers'
 import { lineOf, useWidgetData, viewerOffset } from './widget-data'
 
@@ -71,8 +72,18 @@ describe('useWidgetData', () => {
 
 describe('辅助换算', () => {
   it('时区偏移是相对 UTC 的分钟数（东为正）', () => {
-    const date = new Date()
-    expect(viewerOffset(date)).toBe(-date.getTimezoneOffset())
+    // 按应用时区（显示时区）算，不看浏览器所在的时区；夏令时按那一刻算
+    const original = getDisplayTimeZone()
+    try {
+      setDisplayTimeZone('Asia/Shanghai')
+      expect(viewerOffset(new Date())).toBe(480)
+      setDisplayTimeZone('America/New_York')
+      expect(viewerOffset(new Date('2026-07-01T12:00:00Z'))).toBe(-240)
+      expect(viewerOffset(new Date('2026-12-01T12:00:00Z'))).toBe(-300)
+    }
+    finally {
+      setDisplayTimeZone(original)
+    }
   })
 
   it('字节按最大的一块挑单位', () => {

@@ -118,7 +118,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 时间显示相差若干小时
 
-6.0 的接口一律 UTC（带 `Z`），没有服务端时区换算，换算是客户端的事。管理端目前用 `~/utils` 的 `formatDate`（dayjs）按浏览器时区显示；方案里「按用户偏好时区显示」还没有实现。自己对接时不要把带 `Z` 的时间当本地时间解析。
+6.0 的接口一律 UTC（带 `Z`），没有服务端时区换算，换算是客户端的事。管理端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
 
 ### 修改后端 DTO 后前端类型未更新
 
