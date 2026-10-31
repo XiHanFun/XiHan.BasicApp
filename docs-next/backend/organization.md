@@ -53,7 +53,7 @@ Organization 包（Tier 1，依赖 Identity 与 Tenancy）管部门、岗位与�
 
 ## 前端
 
-`src/modules/organization`：部门页是 SchemaPage 树表（成员抽屉、移动），岗位页是普通列表。成员列表目前只显示岗位与工号两列，职级、入职时间在编辑表单里（N2 收尾项）。
+`src/modules/organization`：部门页是 SchemaPage 树表（成员抽屉、移动），岗位页是普通列表。成员列表显示岗位、工号、职级与入职日期（按本地日期显示）。
 
 ## 下一步
 

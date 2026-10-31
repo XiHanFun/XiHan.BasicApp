@@ -87,7 +87,7 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 
 ## 页面
 
-`src/modules/notification`：通知公告、发送记录（邮件 / 短信）、消息模板、邮件配置、短信配置、机器人配置、Telegram 机器人、我的消息（收件箱）。通知正文目前用普通文本框，5.x 的 Markdown 编辑器尚未搬入（N2 收尾项）。
+`src/modules/notification`：通知公告、发送记录（邮件 / 短信）、消息模板、邮件配置、短信配置、机器人配置、Telegram 机器人、我的消息（收件箱）。通知正文的格式为 Markdown 时用 Markdown 编辑器（`XMdEditor`，异步懒加载），其余格式用文本框。
 
 ## 下一步
 
