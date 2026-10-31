@@ -199,6 +199,7 @@ public sealed class FieldSecurityTests : IDisposable
         var (_, entities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/field-security:entities", token: admin));
         var positions = Assert.Single(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "organization.positions");
         Assert.Equal(["code", "name", "status", "order", "description", "createdAt"], positions.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
+        Assert.Equal(35, entities.GetProperty("items").GetArrayLength());
 
         // 说明隐藏、名称部分脱敏且只读：详情与列表都打码
         await RuleAsync(server, admin, $$"""{"targetKind":"Role","targetId":"{{roleId}}","entity":"organization.positions","field":"description","strategy":"Hidden","isEditable":true}""");
