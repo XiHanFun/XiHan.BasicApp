@@ -200,6 +200,8 @@ const memberColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
   { title: t('organization.departments.members.user_name'), key: 'userName', width: 110, ellipsis: true },
   { title: t('organization.departments.members.position'), key: 'positionName', width: 110, ellipsis: true, render: row => row.positionName ?? '—' },
   { title: t('organization.departments.members.employee_number'), key: 'employeeNumber', width: 100, ellipsis: true, render: row => row.employeeNumber ?? '—' },
+  { title: t('organization.departments.members.job_grade'), key: 'jobGrade', width: 90, ellipsis: true, render: row => row.jobGrade ?? '—' },
+  { title: t('organization.departments.members.hired_at'), key: 'hiredAt', width: 110, render: row => row.hiredAt ? formatDate(row.hiredAt, 'YYYY-MM-DD') : '—' },
   {
     title: t('organization.departments.members.primary'),
     key: 'isPrimary',
