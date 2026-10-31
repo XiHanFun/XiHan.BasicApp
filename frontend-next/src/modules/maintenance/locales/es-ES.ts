@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: 'No legible',
+      read_error: 'Error de lectura',
       title: 'Gestión de versiones',
       engine_managed_hint: 'El estado de versión lo escribe el ejecutor de actualizaciones; esta página es de solo lectura. Cada script ejecutado aparece en Registros de actualización.',
       keyword: 'Palabra clave',

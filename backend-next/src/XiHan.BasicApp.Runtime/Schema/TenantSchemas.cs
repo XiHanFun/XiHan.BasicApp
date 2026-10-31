@@ -9,6 +9,7 @@ using SqlSugar;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
+using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
@@ -155,6 +156,57 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
         catch (Exception exception) when (exception is DbException or SqlSugarException)
         {
             return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Upgrading the database of tenant '{tenantId}' failed: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 已就绪（建好库）的租户独立库。
+    /// </summary>
+    /// <remarks>
+    /// 租户目录里标了 <see cref="ReadyProperty"/> 的；没有租户目录即没有。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>租户 ID。</returns>
+    public async Task<IReadOnlyList<string>> ReadyTenantsAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = scopes.CreateAsyncScope();
+        if (scope.ServiceProvider.GetService<ITenantStore>() is not { } store)
+        {
+            return [];
+        }
+
+        return [.. (await store.ListAsync(cancellationToken).ConfigureAwait(false))
+            .Where(static t => t.Properties.TryGetValue(ReadyProperty, out var ready) && string.Equals(ready, "true", StringComparison.Ordinal))
+            .Select(static t => t.Id)];
+    }
+
+    /// <summary>
+    /// 读租户独立库的版本台账。
+    /// </summary>
+    /// <remarks>
+    /// 没有台账行为无值；连不上或读失败即 <see cref="RuntimeErrors.TenantDatabaseFailed"/>。
+    /// </remarks>
+    /// <param name="tenantId">租户 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>台账行。</returns>
+    public async Task<Result<Maybe<SysVersion>>> ReadVersionAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        await using var scope = scopes.CreateAsyncScope();
+        var bound = await BindAsync(scope.ServiceProvider, tenantId, cancellationToken).ConfigureAwait(false);
+        if (!bound.TryGetValue(out var shard))
+        {
+            return bound.Error!;
+        }
+
+        try
+        {
+            var row = await shard.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false);
+            return row is null ? Maybe.None<SysVersion>() : Maybe.Some(row);
+        }
+        catch (Exception exception) when (exception is DbException or SqlSugarException)
+        {
+            return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"Reading the schema version of tenant '{tenantId}' failed: {exception.Message}");
         }
     }
 

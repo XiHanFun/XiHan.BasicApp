@@ -49,7 +49,9 @@ public sealed class MaintenanceSchemaRecordsTests : IDisposable
         Assert.Equal("platform", version.GetProperty("database").GetString());
         Assert.Equal("6.0.0", version.GetProperty("dbVersion").GetString());
         Assert.False(version.GetProperty("isUpgrading").GetBoolean());
-        Assert.Equal("6.0.0-preview.1", (await SendAsync(server, HttpMethod.Get, $"/api/versions/{SysVersion.RowId}", null, platform)).Body.GetProperty("appVersion").GetString());
+        // 按库名取：平台库是 platform，不认识的库名找不到
+        Assert.Equal("6.0.0-preview.1", (await SendAsync(server, HttpMethod.Get, "/api/versions/platform", null, platform)).Body.GetProperty("appVersion").GetString());
+        Assert.Equal("MAINTENANCE_NOTFOUND_002", (await SendAsync(server, HttpMethod.Get, "/api/versions/nowhere", null, platform)).Body.GetProperty("code").GetString());
 
         // 缺省按执行时间倒序；按结果筛选；按 ID 取到失败原因
         var (_, records) = await SendAsync(server, HttpMethod.Post, "/api/migrations:list", new { }, platform);

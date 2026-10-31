@@ -16,30 +16,43 @@ namespace XiHan.BasicApp.Maintenance.Queries;
 /// 版本台账与升级执行记录的查询。
 /// </summary>
 /// <remarks>
-/// 读平台库（台账与执行记录都在默认连接上）；租户库的台账随库隔离落地后接进来。
+/// 执行记录读平台库（默认连接）；版本台账另读已就绪的租户独立库（台账在各自的库里，经 <see cref="TenantSchemas"/> 绑定分片）。
 /// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
-public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork)
+/// <param name="tenantSchemas">租户独立库的结构。</param>
+public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas tenantSchemas)
 {
     /// <summary>
     /// 分页列出版本台账。
     /// </summary>
+    /// <remarks>
+    /// 平台库加每个已就绪的独立库一行（库不多，合起来在内存里筛选、排序与分页）；读不到台账的库那一行带原因。
+    /// </remarks>
     public async Task<Result<PageResult<SchemaVersionResponse>>> ListVersionsAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = unitOfWork.ConnectionFor(typeof(SysVersion)).Queryable<SysVersion>();
+        var ct = context.CancellationToken;
+        var rows = new List<SchemaVersionResponse>();
+        rows.AddRange((await unitOfWork.ConnectionFor(typeof(SysVersion)).Queryable<SysVersion>().ToListAsync(ct).ConfigureAwait(false)).Select(static r => SchemaVersionResponse.From(r)));
+        foreach (var tenantId in await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false))
+        {
+            rows.Add(await TenantVersionAsync(tenantId, ct).ConfigureAwait(false));
+        }
+
+        IEnumerable<SchemaVersionResponse> query = rows;
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-            query = query.Where(v => v.AppVersion.Contains(keyword) || (v.DbVersion != null && v.DbVersion.Contains(keyword)) || (v.UpgradeNode != null && v.UpgradeNode.Contains(keyword)));
+            query = query.Where(v => Has(v.Database, keyword) || Has(v.AppVersion, keyword) || Has(v.DbVersion, keyword) || Has(v.UpgradeNode, keyword));
         }
 
         foreach (var filter in request.Filters)
         {
             var value = filter.Value ?? string.Empty;
-            ISugarQueryable<SysVersion>? filtered = (filter.Field, filter.Operator) switch
+            IEnumerable<SchemaVersionResponse>? filtered = (filter.Field, filter.Operator) switch
             {
+                ("database", "eq") => query.Where(v => v.Database == value),
                 ("isUpgrading", "eq") when bool.TryParse(value, out var upgrading) => query.Where(v => v.IsUpgrading == upgrading),
                 ("dbVersion", "eq") => query.Where(v => v.DbVersion == value),
                 ("appVersion", "eq") => query.Where(v => v.AppVersion == value),
@@ -53,27 +66,37 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork)
             query = filtered;
         }
 
-        foreach (var sort in request.Sorts)
+        // 缺省平台库在前、其余按库名；给了排序即按给的
+        var ordered = query.OrderBy(static v => v.Database == SchemaVersionResponse.Platform ? 0 : 1).ThenBy(static v => v.Database, StringComparer.Ordinal);
+        if (request.Sorts.Count > 0)
         {
-            var direction = sort.Descending ? OrderByType.Desc : OrderByType.Asc;
-            ISugarQueryable<SysVersion>? sorted = sort.Field switch
+            IOrderedEnumerable<SchemaVersionResponse>? sorted = null;
+            foreach (var sort in request.Sorts)
             {
-                "appVersion" => query.OrderBy(v => v.AppVersion, direction),
-                "dbVersion" => query.OrderBy(v => v.DbVersion, direction),
-                "upgradedAt" => query.OrderBy(v => v.UpgradedAt, direction),
-                _ => null,
-            };
-            if (sorted is null)
-            {
-                return SortUnsupported(sort);
+                Func<SchemaVersionResponse, object?>? key = sort.Field switch
+                {
+                    "database" => static v => v.Database,
+                    "appVersion" => static v => v.AppVersion,
+                    "dbVersion" => static v => v.DbVersion,
+                    "upgradedAt" => static v => v.UpgradedAt,
+                    _ => null,
+                };
+                if (key is null)
+                {
+                    return SortUnsupported(sort);
+                }
+
+                sorted = sorted is null
+                    ? sort.Descending ? query.OrderByDescending(key) : query.OrderBy(key)
+                    : sort.Descending ? sorted.ThenByDescending(key) : sorted.ThenBy(key);
             }
 
-            query = sorted;
+            ordered = sorted!;
         }
 
-        var total = new RefAsync<int>();
-        var rows = await query.ToPageListAsync(request.Page.Index, request.Page.Size, total, context.CancellationToken).ConfigureAwait(false);
-        return new PageResult<SchemaVersionResponse>([.. rows.Select(SchemaVersionResponse.From)], total.Value, request.Page);
+        var all = ordered.ToList();
+        var page = all.Skip((request.Page.Index - 1) * request.Page.Size).Take(request.Page.Size).ToList();
+        return new PageResult<SchemaVersionResponse>(page, all.Count, request.Page);
     }
 
     /// <summary>
@@ -145,14 +168,47 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 取一条版本台账。
+    /// 取一个库的版本台账。
     /// </summary>
-    public async Task<Result<SchemaVersionResponse>> GetVersionAsync(Guid id, InvocationContext context)
+    /// <remarks>
+    /// 库名是 <c>platform</c> 或已就绪独立库的租户 ID，别的即找不到；独立库读不到时那一行带原因。
+    /// </remarks>
+    public async Task<Result<SchemaVersionResponse>> GetVersionAsync(string database, InvocationContext context)
     {
+        ArgumentNullException.ThrowIfNull(database);
         ArgumentNullException.ThrowIfNull(context);
-        var row = await unitOfWork.ConnectionFor(typeof(SysVersion)).Queryable<SysVersion>().FirstAsync(v => v.Id == id, context.CancellationToken).ConfigureAwait(false);
-        return row is null ? NotFound(id) : SchemaVersionResponse.From(row);
+        var ct = context.CancellationToken;
+        if (string.Equals(database, SchemaVersionResponse.Platform, StringComparison.Ordinal))
+        {
+            var row = await unitOfWork.ConnectionFor(typeof(SysVersion)).Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, ct).ConfigureAwait(false);
+            return row is null ? NotFound(database) : SchemaVersionResponse.From(row);
+        }
+
+        return (await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false)).Contains(database, StringComparer.Ordinal)
+            ? await TenantVersionAsync(database, ct).ConfigureAwait(false)
+            : NotFound(database);
     }
+
+    /// <summary>
+    /// 读一个独立库的台账，读不到即带上原因。
+    /// </summary>
+    private async Task<SchemaVersionResponse> TenantVersionAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        var read = await tenantSchemas.ReadVersionAsync(tenantId, cancellationToken).ConfigureAwait(false);
+        if (!read.TryGetValue(out var found))
+        {
+            return SchemaVersionResponse.Unreadable(tenantId, read.Error!.Message);
+        }
+
+        return found.TryGetValue(out var row)
+            ? SchemaVersionResponse.From(row, tenantId)
+            : SchemaVersionResponse.Unreadable(tenantId, $"The database of tenant '{tenantId}' has no schema version ledger.");
+    }
+
+    private static bool Has(string? value, string keyword) => value is not null && value.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
+    private static Error NotFound(string database)
+        => Error.NotFound(MaintenanceErrors.SchemaRecordNotFound, MaintenanceMessages.SchemaRecordNotFound, MessageArguments.Of(("id", database)));
 
     /// <summary>
     /// 取一条执行记录。

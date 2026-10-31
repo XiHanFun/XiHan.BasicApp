@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: 'Illisible',
+      read_error: 'Erreur de lecture',
       title: 'Gestion des versions',
       engine_managed_hint: 'L’état des versions est écrit par l’exécuteur de mises à niveau ; cette page est en lecture seule. Chaque script exécuté figure dans Historique des mises à niveau.',
       keyword: 'Mot-clé',

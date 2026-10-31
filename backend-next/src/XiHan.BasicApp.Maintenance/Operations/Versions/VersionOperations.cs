@@ -13,8 +13,9 @@ namespace XiHan.BasicApp.Maintenance.Operations.Versions;
 /// 分页列出版本台账。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/versions:list</c>。每个库一行（目前只有平台库），由升级执行器维护，只读。关键字匹配应用版本、结构版本与升级节点；
-/// 筛选支持 <c>isUpgrading</c>、<c>dbVersion</c>、<c>appVersion</c>（<c>eq</c>），排序支持 <c>appVersion</c>、<c>dbVersion</c>、<c>upgradedAt</c>。只在平台一侧。
+/// <c>POST /api/versions:list</c>。每个库一行：平台库与已就绪的租户独立库（台账在各自的库里，读不到的那行带原因），由升级执行器维护，只读。
+/// 关键字匹配库名、应用版本、结构版本与升级节点；筛选支持 <c>database</c>、<c>isUpgrading</c>、<c>dbVersion</c>、<c>appVersion</c>（<c>eq</c>），
+/// 排序支持 <c>database</c>、<c>appVersion</c>、<c>dbVersion</c>、<c>upgradedAt</c>（缺省平台库在前、其余按库名）。只在平台一侧。
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]
@@ -35,10 +36,10 @@ public sealed class ListVersions(SchemaQueries queries) : IOperation<PageRequest
 }
 
 /// <summary>
-/// 取一条版本台账。
+/// 取一个库的版本台账。
 /// </summary>
 /// <remarks>
-/// <c>GET /api/versions/{id}</c>。只在平台一侧。
+/// <c>GET /api/versions/{id}</c>，<c>id</c> 是库名（<c>platform</c> 或独立库的租户 ID）。只在平台一侧。
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]

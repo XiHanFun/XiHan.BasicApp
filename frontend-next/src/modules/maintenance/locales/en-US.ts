@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: 'Unreadable',
+      read_error: 'Read error',
       title: 'Version Management',
       engine_managed_hint: 'Version state is written by the upgrade runner; this page is read-only. Each executed script is listed under Upgrade Records.',
       keyword: 'Keyword',
