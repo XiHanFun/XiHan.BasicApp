@@ -55,6 +55,31 @@ public static class DataScopeQuery
         return query.Where(Expression.Lambda<Func<TEntity, bool>>(body, entity));
     }
 
+    /// <summary>
+    /// 按创建人把数据范围判定套到查询上。
+    /// </summary>
+    /// <remarks>
+    /// 给没有归属人主键列、只有审计列 <c>CreatedBy</c>（创建人的用户 ID，<c>D</c> 格式）的实体用，如文件与通知；
+    /// 受限时生成 <c>created_by IN (...)</c>，没有创建人的行（系统写入）一并看不到。
+    /// </remarks>
+    /// <param name="query">查询。</param>
+    /// <param name="decision">数据范围判定。</param>
+    /// <param name="creator">行的创建人列。</param>
+    public static ISugarQueryable<TEntity> ApplyDataScopeByCreator<TEntity>(this ISugarQueryable<TEntity> query, DataScopeDecision decision, Expression<Func<TEntity, string?>> creator)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(decision);
+        ArgumentNullException.ThrowIfNull(creator);
+        if (decision.Unrestricted)
+        {
+            return query;
+        }
+
+        var visible = decision.UserIds.Select(static id => id.ToString("D")).ToList();
+        var contains = typeof(Enumerable).GetMethods().First(static m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2).MakeGenericMethod(typeof(string));
+        return query.Where(Expression.Lambda<Func<TEntity, bool>>(Expression.Call(contains, Expression.Constant(visible), creator.Body), creator.Parameters[0]));
+    }
+
     private static MethodCallExpression In(List<Guid> values, Expression member)
     {
         var contains = typeof(Enumerable).GetMethods().First(static m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2).MakeGenericMethod(typeof(Guid));

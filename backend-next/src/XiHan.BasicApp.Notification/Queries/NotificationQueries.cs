@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Operations.Notifications;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Notification.Queries;
@@ -32,7 +33,7 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     /// </summary>
     /// <remarks>
     /// 关键字匹配标题与正文；筛选接受类型、优先级、目标的 <c>eq / in</c>，是否已发布的 <c>eq</c>，创建与发布时间的 <c>ge / le</c>；
-    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。
+    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。数据范围（方案 5.9）按创建人套用：受限的主体只看得到自己与可见部门里的用户建的通知（收件箱不受影响）。
     /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
@@ -41,7 +42,8 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = rows.Query<SysNotification>(SideRows.SideOf(context));
+        var query = rows.Query<SysNotification>(SideRows.SideOf(context))
+            .ApplyDataScopeByCreator(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false), static n => n.CreatedBy);
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();

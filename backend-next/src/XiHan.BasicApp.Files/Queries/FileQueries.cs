@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Operations.Files;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Files.Queries;
@@ -16,6 +17,7 @@ namespace XiHan.BasicApp.Files.Queries;
 /// </summary>
 /// <remarks>
 /// 关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；按大类、状态、访问级别多选，按临时、来源、扩展名、内容类型筛选，上传时间与到期时间可按区间；缺省按上传时间倒序（4.x 同）。
+/// 数据范围（方案 5.9）按上传人套用：受限的主体只看得到自己与可见部门里的用户上传的文件；下载与预签名仍按访问级别。
 /// </remarks>
 /// <param name="rows">文件读写。</param>
 public sealed class FileQueries(SideRows rows)
@@ -43,7 +45,8 @@ public sealed class FileQueries(SideRows rows)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = rows.Query<SysFile>(SideRows.SideOf(context));
+        var query = rows.Query<SysFile>(SideRows.SideOf(context))
+            .ApplyDataScopeByCreator(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false), static f => f.CreatedBy);
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
