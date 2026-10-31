@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 
 namespace XiHan.BasicApp.Identity;
 
@@ -51,7 +52,8 @@ public sealed record IdentityOptions
     /// 不得与最近多少个历史密码相同。
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>PasswordHistoryDepth</c>，缺省 3；0 不检查。
+    /// 配置键 <c>PasswordHistoryDepth</c>，缺省 3；0 不检查。历史按一次查询取出比对，最多
+    /// <see cref="EntityQuery.DefaultMaxTake"/>（1000），配得更大在读配置时就失败。
     /// </remarks>
     public int PasswordHistoryDepth { get; init; } = 3;
 
@@ -213,7 +215,9 @@ public sealed record IdentityOptions
 
         if (ReadNonNegative(section, "PasswordHistoryDepth") is { } depth)
         {
-            options = options with { PasswordHistoryDepth = (int)depth };
+            options = depth <= EntityQuery.DefaultMaxTake
+                ? options with { PasswordHistoryDepth = (int)depth }
+                : throw new ArgumentException($"'{ConfigurationSection}:PasswordHistoryDepth' must be at most {EntityQuery.DefaultMaxTake}, but was '{depth}'.");
         }
 
         if (ReadPositive(section, "SessionCacheSeconds") is { } cacheSeconds)

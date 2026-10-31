@@ -153,7 +153,7 @@
 | `AccessTokenMinutes` | `120` | 访问令牌有效期 |
 | `RefreshTokenDays` | `7` | 刷新令牌（会话）有效期 |
 | `MaxFailedAccessAttempts` / `LockoutMinutes` | `5` / `15` | 连续失败锁定 |
-| `PasswordMinLength` / `PasswordHistoryDepth` | `8` / `3` | 密码长度与不可复用的历史深度 |
+| `PasswordMinLength` / `PasswordHistoryDepth` | `8` / `3` | 密码长度与不可复用的历史深度；历史深度 0 不检查，最多 1000（框架一次查询的取出上限），配得更大启动即失败 |
 | `SessionCacheSeconds` | `30` | 会话门禁的缓存秒数 |
 | `CaptchaEnabled` / `CaptchaSeconds` | `true` / `300` | 图形验证码 |
 | `LoginThrottleWindowSeconds` | `60` | 登录节流窗口 |

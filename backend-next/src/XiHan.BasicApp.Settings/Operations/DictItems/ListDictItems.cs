@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// 字典的全部项。
 /// </summary>
 /// <remarks>
-/// <c>GET /api/dict-items?dictId=</c>（深度优先、带层级，最多 5000 项；字典不可见 <c>SETTINGS_NOTFOUND_002</c>）。
+/// <c>GET /api/dict-items?dictId=</c>（深度优先、带层级的全部项；字典不可见 <c>SETTINGS_NOTFOUND_002</c>）。
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
 /// </remarks>
 /// <param name="service">字典域服务。</param>

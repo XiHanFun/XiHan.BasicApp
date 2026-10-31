@@ -22,11 +22,6 @@ namespace XiHan.BasicApp.Settings.Domain.Services;
 public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items)
 {
     /// <summary>
-    /// 一个字典最多列出的项数。
-    /// </summary>
-    public const int MaxItems = 5000;
-
-    /// <summary>
     /// 编码是否已被占用。
     /// </summary>
     /// <remarks>
@@ -63,10 +58,28 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 字典的全部项（未排序，最多 <see cref="MaxItems"/> 项）。
+    /// 字典的全部项（按主键排序）。
     /// </summary>
+    /// <remarks>
+    /// 编码唯一、无环与缺省项唯一都要看全部项，不能截断：一次查询最多取 <see cref="EntityQuery.DefaultMaxTake"/> 条，
+    /// 按主键排序逐页取到不足一页为止。
+    /// </remarks>
     public async Task<IReadOnlyList<SysDictItem>> ItemsOfAsync(Guid dictId, CancellationToken cancellationToken)
-        => await items.ListAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.DictId == dictId)).Page(0, MaxItems), cancellationToken).ConfigureAwait(false);
+    {
+        var specification = new Specification<SysDictItem>(i => i.DictId == dictId);
+        var all = new List<SysDictItem>();
+        while (true)
+        {
+            var page = await items.ListAsync(
+                EntityQuery.All<SysDictItem>().Where(specification).OrderBy(static i => i.Id).Page(all.Count, EntityQuery.DefaultMaxTake),
+                cancellationToken).ConfigureAwait(false);
+            all.AddRange(page);
+            if (page.Count < EntityQuery.DefaultMaxTake)
+            {
+                return all;
+            }
+        }
+    }
 
     /// <summary>
     /// 深度优先展平字典项。

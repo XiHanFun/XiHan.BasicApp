@@ -62,12 +62,14 @@ CREATE TABLE IF NOT EXISTS "job_run_entity" (
 
 CREATE TABLE IF NOT EXISTS "outbox_message" (
     "id" uuid NOT NULL,
-    "topic" character varying(512) NOT NULL,
+    "topic" character varying(128) NOT NULL,
     "payload" bytea NOT NULL,
     "created_at" timestamp with time zone NOT NULL,
+    "next_attempt_at" timestamp with time zone NULL,
     "dispatched_at" timestamp with time zone NULL,
+    "dead_lettered_at" timestamp with time zone NULL,
     "attempts" integer DEFAULT 0 NOT NULL,
-    "last_error" character varying(512) DEFAULT NULL::character varying NULL,
+    "last_error" text NULL,
     CONSTRAINT "outbox_message_pkey" PRIMARY KEY (id)
 );
 

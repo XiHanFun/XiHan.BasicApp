@@ -3,7 +3,11 @@
 
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using SqlSugar;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Settings.Domain.Entities;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -119,5 +123,45 @@ public sealed class SettingsDictsTests : IDisposable
         var (platformList, platformListBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts:list", """{"page":{"index":1,"size":50}}""", platform));
         Assert.Equal(HttpStatusCode.OK, platformList.StatusCode);
         Assert.Equal(["customer_level"], platformListBody.GetProperty("items").EnumerateArray().Select(static d => d.GetProperty("code").GetString()).ToList());
+    }
+
+    [Fact]
+    public async Task DictItems_MoreThanOneQueryPage_AreAllListedAndChecked()
+    {
+        var (server, _, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts", """{"code":"big","name":"Big"}""", tenant));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var dictId = Guid.Parse(createdBody.GetProperty("id").GetString()!);
+        var owner = createdBody.GetProperty("ownerTenantId").GetString()!;
+
+        // 框架一次查询最多取 EntityQuery.DefaultMaxTake（1000）条：灌进多出一页的项，列表与编码查重都要看到全部
+        const int count = EntityQuery.DefaultMaxTake + 5;
+        await using (var scope = server.Services.CreateAsyncScope())
+        {
+            var client = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
+            var rows = Enumerable.Range(0, count).Select(i => new SysDictItem
+            {
+                Id = Guid.NewGuid(),
+                OwnerTenantId = owner,
+                DictId = dictId,
+                Code = $"item{i:D4}",
+                Name = $"Item {i}",
+                Order = i,
+                ConcurrencyStamp = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTimeOffset.UtcNow,
+            }).ToList();
+            await client.Insertable(rows).ExecuteCommandAsync(TestContext.Current.CancellationToken);
+        }
+
+        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items?dictId={dictId}", token: tenant));
+        Assert.Equal(HttpStatusCode.OK, items.StatusCode);
+        Assert.Equal(count, itemsBody.GetProperty("items").GetArrayLength());
+
+        // 第二页里的编码照样查得出重复
+        var last = $"item{count - 1:D4}";
+        var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dict-items", $$"""{"dictId":"{{dictId}}","code":"{{last}}","name":"Again"}""", tenant));
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        Assert.Equal("SETTINGS_CONFLICT_003", duplicateBody.GetProperty("code").GetString());
     }
 }
