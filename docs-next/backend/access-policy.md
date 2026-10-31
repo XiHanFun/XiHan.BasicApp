@@ -24,7 +24,7 @@
 条件的时段、日期按 `BasicApp:Access:ConditionTimeZone`（缺省 `Asia/Shanghai`）判定。`policies.attributes` 与 `permission-conditions.attributes` 返回属性目录供界面选择。
 
 ::: warning IP 类条件与反向代理
-宿主目前没有启用转发头处理，放在反向代理后时 `environment.ip` 与归属地看到的是代理地址，见[部署](../deployment)。
+放在反向代理后时，要把代理的地址或网段写进 `BasicApp:ForwardedHeaders`，`environment.ip` 与归属地才是客户端的，见[部署](../deployment)。
 :::
 
 ## 访问策略
