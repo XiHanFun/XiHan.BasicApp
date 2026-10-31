@@ -202,7 +202,7 @@ export default {
       code_hint: '小写字母开头，可含数字与连字符；保存为 {prefix}名称',
       title_placeholder: '显示在导航里的标题',
       title_override_hint: '留空即用页面登记的标题',
-      icon_placeholder: '如：lucide:folder',
+      icon_placeholder: '点击选择图标',
       permission_placeholder: '可留空；填写时须是权限目录里的权限码',
       directory_top_level_hint: '目录只能在顶层',
       registered_parent_hint: '子页面固定在登记的父页面下',

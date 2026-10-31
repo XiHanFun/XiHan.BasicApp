@@ -256,6 +256,13 @@ export default {
       style_label: '테이블 스타일',
       title: '테이블 설정',
     },
+    icon_picker: {
+      clear: '지우기',
+      empty: '아이콘을 찾을 수 없어요',
+      modal_title: '아이콘 선택',
+      search_placeholder: '아이콘 이름 검색...',
+      select_placeholder: '아이콘 선택',
+    },
     search_date_range: {
       end: '종료 시간',
       last30: '최근 30일',

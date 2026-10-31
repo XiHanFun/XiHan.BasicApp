@@ -256,6 +256,13 @@ export default {
       style_label: 'テーブルのスタイル',
       title: 'テーブル設定',
     },
+    icon_picker: {
+      clear: 'クリア',
+      empty: 'アイコンが見つかりません',
+      modal_title: 'アイコンを選択',
+      search_placeholder: 'アイコン名を検索...',
+      select_placeholder: 'アイコンを選択',
+    },
     search_date_range: {
       end: '終了日時',
       last30: '過去 30 日間',

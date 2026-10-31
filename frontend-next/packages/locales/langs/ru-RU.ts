@@ -256,6 +256,13 @@ export default {
       style_label: 'Стиль',
       title: 'Настройки таблицы',
     },
+    icon_picker: {
+      clear: 'Очистить',
+      empty: 'Значки не найдены',
+      modal_title: 'Выбор значка',
+      search_placeholder: 'Поиск по названию значка...',
+      select_placeholder: 'Выберите значок',
+    },
     search_date_range: {
       end: 'Конец',
       last30: 'Последние 30 дней',

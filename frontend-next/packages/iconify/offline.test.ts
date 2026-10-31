@@ -2,8 +2,9 @@
  * packages/iconify/offline.ts 单元测试。
  *
  * 职责边界：离线图标集的元数据契约、按 prefix 懒加载与未知 prefix 的回退、
- * 预载清单的范围（四个图标集全部预载；IconPicker 与更多图标集随后续批次）、以及单个图标包加载失败时的降级。
+ * 预载清单的范围（哪些必须预载、哪些留给 IconPicker 按需加载）、以及单个图标包加载失败时的降级。
  * addCollection 由替身接管，不真正写入 iconify 的全局注册表。
+ * 只测 ./offline —— 包入口 index.ts 会连带引入 IconPicker.vue，本轮不涉及组件。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -25,14 +26,14 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.doUnmock('@iconify-json/mdi')
+  vi.doUnmock('@iconify-json/ep')
   vi.doUnmock('@iconify-json/mdi')
   vi.resetModules()
 })
 
 describe('图标集元数据契约', () => {
-  it('收录四个图标集（lucide / tabler / mdi / simple-icons）', () => {
-    expect(ICON_SET_META).toHaveLength(4)
+  it('收录七个图标集', () => {
+    expect(ICON_SET_META).toHaveLength(7)
   })
 
   it('每个图标集的 prefix 与 npm 包短名一致，装载器据此建索引', () => {
@@ -59,15 +60,15 @@ describe('图标集元数据契约', () => {
 
 describe('loadIconNames 查找与回退', () => {
   it('已登记的 prefix 返回该集合的全部图标名并注册集合', async () => {
-    const names = await loadIconNames('mdi')
+    const names = await loadIconNames('ep')
 
     expect(names.length).toBeGreaterThan(0)
     expect(names.every(name => typeof name === 'string' && name.length > 0)).toBe(true)
-    expect(registeredPrefixes()).toEqual(['mdi'])
+    expect(registeredPrefixes()).toEqual(['ep'])
   })
 
   it('返回的图标名按字典序排列，供选择器直接渲染', async () => {
-    const names = await loadIconNames('mdi')
+    const names = await loadIconNames('ep')
 
     expect(names).toEqual([...names].sort())
   })
@@ -83,44 +84,44 @@ describe('loadIconNames 查找与回退', () => {
   })
 
   it('prefix 大小写敏感，大写形式不会被容错匹配', async () => {
-    await expect(loadIconNames('MDI')).resolves.toEqual([])
+    await expect(loadIconNames('EP')).resolves.toEqual([])
     expect(addCollection).not.toHaveBeenCalled()
   })
 
   it('同一 prefix 重复调用每次都重新注册，注册是幂等操作', async () => {
-    await loadIconNames('mdi')
-    await loadIconNames('mdi')
+    await loadIconNames('ep')
+    await loadIconNames('ep')
 
-    expect(registeredPrefixes()).toEqual(['mdi', 'mdi'])
+    expect(registeredPrefixes()).toEqual(['ep', 'ep'])
   })
 
   it('图标包加载失败时返回空数组，不注册也不把异常抛给调用方', async () => {
     vi.resetModules()
-    vi.doMock('@iconify-json/mdi', () => {
+    vi.doMock('@iconify-json/ep', () => {
       throw new Error('chunk 加载失败')
     })
     const mod: OfflineModule = await import('./offline')
 
-    await expect(mod.loadIconNames('mdi')).resolves.toEqual([])
+    await expect(mod.loadIconNames('ep')).resolves.toEqual([])
     expect(addCollection).not.toHaveBeenCalled()
   })
 
   it('图标包内容缺失 icons 字段时返回空数组而不是抛错', async () => {
     vi.resetModules()
-    vi.doMock('@iconify-json/mdi', () => ({ icons: { prefix: 'mdi' } }))
+    vi.doMock('@iconify-json/ep', () => ({ icons: { prefix: 'ep' } }))
     const mod: OfflineModule = await import('./offline')
 
-    await expect(mod.loadIconNames('mdi')).resolves.toEqual([])
+    await expect(mod.loadIconNames('ep')).resolves.toEqual([])
   })
 
   it('图标名未按序给出时由本函数补齐排序', async () => {
     vi.resetModules()
-    vi.doMock('@iconify-json/mdi', () => ({
-      icons: { prefix: 'mdi', icons: { zebra: {}, apple: {}, mango: {} } },
+    vi.doMock('@iconify-json/ep', () => ({
+      icons: { prefix: 'ep', icons: { zebra: {}, apple: {}, mango: {} } },
     }))
     const mod: OfflineModule = await import('./offline')
 
-    await expect(mod.loadIconNames('mdi')).resolves.toEqual(['apple', 'mango', 'zebra'])
+    await expect(mod.loadIconNames('ep')).resolves.toEqual(['apple', 'mango', 'zebra'])
   })
 })
 
@@ -137,11 +138,13 @@ describe('setupIconifyOffline 预载范围', () => {
     expect(registeredPrefixes()).toContain('simple-icons')
   })
 
-  it('登记的四个图标集全部预载，没有留给按需加载的', async () => {
+  it('carbon / ep / heroicons 不预载，留给 IconPicker 按需加载', async () => {
     await setupIconifyOffline()
 
     const prefixes = registeredPrefixes()
-    expect(prefixes.sort()).toEqual(ICON_SET_META.map(meta => meta.prefix).sort())
+    expect(prefixes).not.toContain('carbon')
+    expect(prefixes).not.toContain('ep')
+    expect(prefixes).not.toContain('heroicons')
   })
 
   it('预载的图标集都在元数据清单内，不存在未登记的隐式依赖', async () => {

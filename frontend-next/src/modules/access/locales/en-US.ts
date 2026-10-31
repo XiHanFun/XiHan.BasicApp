@@ -202,7 +202,7 @@ export default {
       code_hint: 'Starts with a lowercase letter; digits and hyphens allowed. Saved as {prefix}name',
       title_placeholder: 'Title shown in the navigation',
       title_override_hint: 'Leave empty to use the registered title',
-      icon_placeholder: 'e.g. lucide:folder',
+      icon_placeholder: 'Click to select an icon',
       permission_placeholder: 'Optional; must be a code from the permission catalog',
       directory_top_level_hint: 'Directories can only sit at the top level',
       registered_parent_hint: 'Child pages stay under their registered parent page',
