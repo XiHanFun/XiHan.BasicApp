@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "Workbench-Widgets auflisten",
+  "workbench.widgets.description": "Listet die von den Paketen registrierten Workbench-Widgets auf, die der Aufrufer sehen darf (Schlüssel und Datenart).",
+  "workbench.widget_data.title": "Widget-Daten abrufen",
+  "workbench.widget_data.description": "Ruft die Daten eines Workbench-Widgets per Schlüssel für die aktuelle Seite ab: Kennzahl, Reihe, Zusammensetzung oder Einträge; die Widget-Berechtigung wird zuerst geprüft.",
+  "workbench.widget.not_found": "Das Widget {key} existiert nicht.",
+  "workbench.widget.denied": "Sie haben keine Berechtigung, das Widget {key} anzuzeigen.",
+  "openapi.tags.workbench.name": "Workbench",
+  "openapi.tags.workbench.description": "Workbench-Widgets: Statistiken, Diagramme und Ankündigungen der einzelnen Pakete.",
+  "openapi.groups.workbench.name": "Workbench",
+  "openapi.groups.workbench.description": "Workbench-Widgets und ihre Daten."
+}

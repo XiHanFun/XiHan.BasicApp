@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
@@ -86,6 +87,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<ChannelConfigService>();
         context.Services.AddScoped<MessageRecordService>();
         context.Services.AddScoped<MessagingQueries>();
+        context.Services.AddScoped<IWorkbenchWidgetProvider, NotificationWidgets>();
         context.Services.AddScoped<BotConfigService>();
         context.Services.AddScoped<TelegramBotService>();
         context.Services.AddScoped<BotBroadcaster>();

@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "列出工作台小组件",
+  "workbench.widgets.description": "汇总各包登记的工作台小组件，按调用方的权限列出看得到的（键与取数形态）。",
+  "workbench.widget_data.title": "获取小组件数据",
+  "workbench.widget_data.description": "按键取一个工作台小组件的数据（当前一侧）：指标、序列、构成或条目；先核对小组件要求的权限。",
+  "workbench.widget.not_found": "没有小组件 {key}。",
+  "workbench.widget.denied": "没有查看小组件 {key} 的权限。",
+  "openapi.tags.workbench.name": "工作台",
+  "openapi.tags.workbench.description": "工作台小组件：各包登记的统计、图表与公告。",
+  "openapi.groups.workbench.name": "工作台",
+  "openapi.groups.workbench.description": "工作台的小组件与数据。"
+}

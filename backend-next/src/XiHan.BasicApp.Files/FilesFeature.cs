@@ -8,6 +8,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Files;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Files.Domain.Services;
 using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Files.Jobs;
@@ -90,6 +91,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<FileUploadService>();
         context.Services.AddJob<FileUploadExpiryJob>(FileUploadExpiryJob.Name, FileUploadExpiryJob.Schedule);
         context.Services.AddScoped<FileQueries>();
+        context.Services.AddScoped<IWorkbenchWidgetProvider, FilesWidgets>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
         context.Services.AddScoped<IAvatarFiles, AvatarFiles>();
         context.Services.AddScoped<StorageConfigQueries>();

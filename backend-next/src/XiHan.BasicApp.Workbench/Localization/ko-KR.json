@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "워크벤치 위젯 목록",
+  "workbench.widgets.description": "각 패키지가 등록한 워크벤치 위젯 중 호출자가 볼 수 있는 것을 나열합니다(키와 데이터 형태).",
+  "workbench.widget_data.title": "위젯 데이터 조회",
+  "workbench.widget_data.description": "키로 워크벤치 위젯 하나의 데이터를 현재 측에서 조회합니다(지표, 시리즈, 구성, 항목). 먼저 위젯 권한을 확인합니다.",
+  "workbench.widget.not_found": "위젯 {key}이(가) 없습니다.",
+  "workbench.widget.denied": "위젯 {key}을(를) 볼 권한이 없습니다.",
+  "openapi.tags.workbench.name": "워크벤치",
+  "openapi.tags.workbench.description": "워크벤치 위젯: 각 패키지가 등록한 통계, 차트, 공지.",
+  "openapi.groups.workbench.name": "워크벤치",
+  "openapi.groups.workbench.description": "워크벤치 위젯과 데이터."
+}

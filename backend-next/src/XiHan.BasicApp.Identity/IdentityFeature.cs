@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
+using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Infrastructure.External;
@@ -89,6 +90,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<UserAccountService>();
         context.Services.AddScoped<UserQueries>();
         context.Services.AddScoped<SessionQueries>();
+        context.Services.AddScoped<IWorkbenchWidgetProvider, IdentityWidgets>();
         // 绕过内核管道的实时 Hub 用同一份会话判定
         context.Services.AddSingleton<ISessionStatus, SessionStatus>();
         // 通知找人：一侧的全部账号与指定用户（指定用户也是其他来源的最后一道筛）

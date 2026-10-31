@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workbench;
+using XiHan.BasicApp.Maintenance.Infrastructure;
 using XiHan.BasicApp.Maintenance.Queries;
 using XiHan.BasicApp.Runtime;
 using XiHan.Framework.Kernel;
@@ -56,6 +58,7 @@ public sealed class MaintenanceFeature : IFeature
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddMessageCatalog(MaintenanceMessages.Catalog);
         context.Services.AddScoped<SchemaQueries>();
+        context.Services.AddScoped<IWorkbenchWidgetProvider, MaintenanceWidgets>();
         context.Services.AddPermissionCatalog("maintenance", MaintenancePermissions.All);
         context.Services.AddPageCatalog("maintenance", MaintenancePages.All);
         foreach (var permission in MaintenancePermissions.All)

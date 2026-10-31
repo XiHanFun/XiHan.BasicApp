@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "Lister les widgets du tableau de bord",
+  "workbench.widgets.description": "Liste les widgets du tableau de bord enregistrés par chaque paquet que l’appelant peut voir (clé et type de données).",
+  "workbench.widget_data.title": "Obtenir les données d’un widget",
+  "workbench.widget_data.description": "Obtient les données d’un widget du tableau de bord par clé pour le côté courant : indicateur, série, répartition ou éléments ; la permission du widget est vérifiée d’abord.",
+  "workbench.widget.not_found": "Le widget {key} n’existe pas.",
+  "workbench.widget.denied": "Vous n’avez pas la permission de voir le widget {key}.",
+  "openapi.tags.workbench.name": "Tableau de bord",
+  "openapi.tags.workbench.description": "Widgets du tableau de bord : statistiques, graphiques et annonces enregistrés par chaque paquet.",
+  "openapi.groups.workbench.name": "Tableau de bord",
+  "openapi.groups.workbench.description": "Widgets du tableau de bord et leurs données."
+}

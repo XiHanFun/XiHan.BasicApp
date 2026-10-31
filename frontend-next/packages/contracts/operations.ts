@@ -344,6 +344,8 @@ export const routes = {
   'users.update': { method: 'PUT', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
   'versions.get': { method: 'GET', template: '/api/versions/{id}', path: ['id'], query: [], success: 200 },
   'versions.list': { method: 'POST', template: '/api/versions:list', path: [], query: [], success: 200 },
+  'workbench.widget-data': { method: 'GET', template: '/api/workbench:widget-data', path: [], query: ['key', 'days', 'offset'], success: 200 },
+  'workbench.widgets': { method: 'GET', template: '/api/workbench:widgets', path: [], query: [], success: 200 },
 } as const satisfies Record<string, RouteDef>
 
 export type OperationId = keyof typeof routes
@@ -949,4 +951,10 @@ export const users = {
 export const versions = {
   get: (request: RequestOf<'versions.get'>, options?: CallOptions) => invoke<RequestOf<'versions.get'>, ResponseOf<'versions.get'>>('versions.get', routes['versions.get'], request, options),
   list: (request: RequestOf<'versions.list'>, options?: CallOptions) => invoke<RequestOf<'versions.list'>, ResponseOf<'versions.list'>>('versions.list', routes['versions.list'], request, options),
+}
+
+/** 资源 `workbench` 的操作。 */
+export const workbench = {
+  widgetData: (request: RequestOf<'workbench.widget-data'>, options?: CallOptions) => invoke<RequestOf<'workbench.widget-data'>, ResponseOf<'workbench.widget-data'>>('workbench.widget-data', routes['workbench.widget-data'], request, options),
+  widgets: (request: RequestOf<'workbench.widgets'>, options?: CallOptions) => invoke<RequestOf<'workbench.widgets'>, ResponseOf<'workbench.widgets'>>('workbench.widgets', routes['workbench.widgets'], request, options),
 }

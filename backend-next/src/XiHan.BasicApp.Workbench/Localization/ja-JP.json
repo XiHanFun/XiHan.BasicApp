@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "ワークベンチのウィジェット一覧",
+  "workbench.widgets.description": "各パッケージが登録したワークベンチのウィジェットのうち、呼び出し元が見られるものを一覧します（キーと取得形態）。",
+  "workbench.widget_data.title": "ウィジェットのデータを取得",
+  "workbench.widget_data.description": "キーでワークベンチのウィジェット 1 つのデータを現在の側で取得します（指標、系列、構成、項目）。先にウィジェットの権限を確認します。",
+  "workbench.widget.not_found": "ウィジェット {key} は存在しません。",
+  "workbench.widget.denied": "ウィジェット {key} を表示する権限がありません。",
+  "openapi.tags.workbench.name": "ワークベンチ",
+  "openapi.tags.workbench.description": "ワークベンチのウィジェット：各パッケージが登録した統計、グラフ、お知らせ。",
+  "openapi.groups.workbench.name": "ワークベンチ",
+  "openapi.groups.workbench.description": "ワークベンチのウィジェットとデータ。"
+}
