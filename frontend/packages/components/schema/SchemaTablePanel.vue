@@ -1,4 +1,4 @@
-<!-- 表格渲染面板：通过组件库列契约分别控制数据列与序号列对齐，勾选/展开列保持原行为。 -->
+<!-- 表格渲染面板：勾选列固定居中，数据列与序号列独立对齐，统一使用组件库列契约。 -->
 <script setup lang="ts" generic="TRow extends object">
 import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor } from '@xihan-ui/headless'
 import type { VNodeChild } from 'vue'
@@ -268,6 +268,8 @@ const tableColumns = computed<TableColumnDef[]>(() => {
   return [
     ...prefixColumns.value.map<TableColumnDef>(c => ({
       id: c.id,
+      // 功能列统一居中，让全选框和行勾选框一致，不接受数据列或序号偏好的覆盖。
+      ...(c.id === SELECT_COL ? { align: 'center' as const } : {}),
       // 序号不是业务字段，不跟随整表数据列对齐；复用列契约保持头部和单元格一致。
       ...(c.id === INDEX_COL && props.indexAlign !== 'left' ? { align: COLUMN_ALIGN[props.indexAlign] } : {}),
       width: c.width,
