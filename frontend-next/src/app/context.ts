@@ -220,10 +220,10 @@ function toShellNotificationPreference(preference: ResponseOf<'profile.notificat
 type MyActivity = ResponseOf<'my-activity.summary'>
 
 function toShellActivityPeriod(counts: MyActivity['today']): UserActivityPeriod {
-  return { loginCount: counts.logins, accessCount: counts.accesses, operationCount: counts.operations }
+  return { loginCount: counts.logins, accessCount: counts.accesses, operationCount: counts.operations, onlineTime: counts.onlineSeconds }
 }
 
-/** `my-activity.summary` → 4.x 个人中心「统计」的活跃度：次数与时间换成 4.x 的 *Count / *Time 字段名，没有的最近时间不给；6.0 不记在线时长，没有 4.x 的在线字段 */
+/** `my-activity.summary` → 4.x 个人中心「统计」的活跃度：次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time 字段名，没有的最近时间不给 */
 function toShellActivity(activity: MyActivity): UserActivity {
   return {
     today: toShellActivityPeriod(activity.today),
@@ -232,7 +232,7 @@ function toShellActivity(activity: MyActivity): UserActivity {
     ...(activity.lastLoginAt ? { lastLoginTime: activity.lastLoginAt } : {}),
     ...(activity.lastAccessAt ? { lastAccessTime: activity.lastAccessAt } : {}),
     ...(activity.lastOperationAt ? { lastOperationTime: activity.lastOperationAt } : {}),
-    trend: activity.trend.map(day => ({ date: day.date, accessCount: day.accesses, operationCount: day.operations })),
+    trend: activity.trend.map(day => ({ date: day.date, accessCount: day.accesses, operationCount: day.operations, onlineMinutes: day.onlineMinutes })),
   }
 }
 

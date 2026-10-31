@@ -6824,6 +6824,11 @@ export interface components {
              * @description 操作（记审计的写操作）。
              */
             operations: number;
+            /**
+             * Format: int64
+             * @description 在线时长（秒，按会话算）。
+             */
+            onlineSeconds: number;
         };
         /** @description 有活动的一天。 */
         ActivityDayResponse: {
@@ -6842,6 +6847,11 @@ export interface components {
              * @description 访问次数。
              */
             accesses: number;
+            /**
+             * Format: int32
+             * @description 在线分钟数。
+             */
+            onlineMinutes: number;
         };
         /** @enum {string} */
         Architecture: "X86" | "X64" | "Arm" | "Arm64" | "Wasm" | "S390x" | "LoongArch64" | "Armv6" | "Ppc64le" | "RiscV64";

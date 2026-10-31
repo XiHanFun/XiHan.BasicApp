@@ -153,18 +153,22 @@ export interface ExternalLoginItem {
   lastLoginTime?: string
 }
 
-/** 一段时间里的次数（个人中心「统计」；后端 `my-activity.summary` 的 logins / accesses / operations，沿用 4.x 的 *Count 命名）；6.0 不记在线时长，没有 4.x 的 onlineTime */
+/** 一段时间里的次数与在线时长（个人中心「统计」；后端 `my-activity.summary` 的 logins / accesses / operations / onlineSeconds，沿用 4.x 的 *Count 与 onlineTime 命名） */
 export interface UserActivityPeriod {
   loginCount: number
   accessCount: number
   operationCount: number
+  /** 在线时长（秒） */
+  onlineTime: number
 }
 
-/** 有活动的一天（日期是 yyyy-MM-dd，按请求的时区分天）；6.0 没有 4.x 的 onlineMinutes */
+/** 有活动的一天（日期是 yyyy-MM-dd，按请求的时区分天） */
 export interface UserActivityTrendPoint {
   date: string
   accessCount: number
   operationCount: number
+  /** 在线时长（分钟） */
+  onlineMinutes: number
 }
 
 /** 本人的活跃度：今天、本周（周一起）、本月的次数，最近一次的时间（近一年内，没有即不给），近 371 天里有活动的日子（稀疏、日期正序） */

@@ -128,6 +128,9 @@ public sealed class MySessionsTests : IDisposable
         Assert.True(activityBody.GetProperty("today").GetProperty("accesses").GetInt32() > 0);
         Assert.Contains(activityBody.GetProperty("trend").EnumerateArray(), static d => d.GetProperty("accesses").GetInt32() > 0);
         Assert.Equal(JsonValueKind.String, activityBody.GetProperty("lastLoginAt").ValueKind);
+        // 在线时长按会话算（模仿会话不算本人的），各时段与趋势都带上
+        Assert.True(activityBody.GetProperty("thisMonth").GetProperty("onlineSeconds").GetInt64() >= activityBody.GetProperty("today").GetProperty("onlineSeconds").GetInt64());
+        Assert.All(activityBody.GetProperty("trend").EnumerateArray(), static d => Assert.True(d.GetProperty("onlineMinutes").GetInt32() >= 0));
         var (_, demoActivity) = await GetAsync(server, "/api/my-activity:summary", demo);
         Assert.Equal(1, demoActivity.GetProperty("thisMonth").GetProperty("logins").GetInt32());
         var (badZone, badZoneBody) = await GetAsync(server, "/api/my-activity:summary?timeZone=Mars/Olympus", current);

@@ -43090,12 +43090,18 @@
             "description": "\u64CD\u4F5C\uFF08\u8BB0\u5BA1\u8BA1\u7684\u5199\u64CD\u4F5C\uFF09\u3002",
             "type": "integer",
             "format": "int32"
+          },
+          "onlineSeconds": {
+            "description": "\u5728\u7EBF\u65F6\u957F\uFF08\u79D2\uFF0C\u6309\u4F1A\u8BDD\u7B97\uFF09\u3002",
+            "type": "integer",
+            "format": "int64"
           }
         },
         "required": [
           "logins",
           "accesses",
-          "operations"
+          "operations",
+          "onlineSeconds"
         ]
       },
       "ActivityDayResponse": {
@@ -43116,12 +43122,18 @@
             "description": "\u8BBF\u95EE\u6B21\u6570\u3002",
             "type": "integer",
             "format": "int32"
+          },
+          "onlineMinutes": {
+            "description": "\u5728\u7EBF\u5206\u949F\u6570\u3002",
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [
           "date",
           "operations",
-          "accesses"
+          "accesses",
+          "onlineMinutes"
         ]
       },
       "Architecture": {

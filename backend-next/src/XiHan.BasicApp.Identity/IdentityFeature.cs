@@ -93,6 +93,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<IWorkbenchWidgetProvider, IdentityWidgets>();
         // 绕过内核管道的实时 Hub 用同一份会话判定
         context.Services.AddSingleton<ISessionStatus, SessionStatus>();
+        context.Services.AddScoped<ISessionHistory, SessionHistory>();
         // 通知找人：一侧的全部账号与指定用户（指定用户也是其他来源的最后一道筛）
         context.Services.AddScoped<IRecipientSource, AllUsersRecipientSource>();
         context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
