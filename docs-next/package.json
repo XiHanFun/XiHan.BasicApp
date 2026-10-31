@@ -1,0 +1,34 @@
+{
+  "name": "xihan-basicapp-docs-next",
+  "version": "6.0.0-preview.1",
+  "type": "module",
+  "description": "XiHan.BasicApp 6.0 document site. Capability-package admin application built on XiHan.Framework 5 and XiHan.UI.",
+  "author": {
+    "name": "XiHanFun"
+  },
+  "license": "MIT",
+  "homepage": "https://basicapp.docs.xihanfun.com",
+  "repository": {
+    "url": "https://github.com/XiHanFun/XiHan.BasicApp"
+  },
+  "bugs": {
+    "url": "https://github.com/XiHanFun/XiHan.BasicApp/issues"
+  },
+  "scripts": {
+    "bootstrap": "pnpm install",
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "serve": "vitepress serve",
+    "preview": "vitepress preview",
+    "clean": "rimraf .vitepress/dist",
+    "clean:modules": "rimraf node_modules",
+    "upgrade": "pnpm upgrade",
+    "reinstall": "pnpm run clean:modules && pnpm install",
+    "rebuild": "pnpm run clean && pnpm run build"
+  },
+  "dependencies": {
+    "@xihanfun/vitepress-theme": "^1.2.1",
+    "vue": "^3.5.43",
+    "vitepress": "2.0.0-alpha.20"
+  }
+}
