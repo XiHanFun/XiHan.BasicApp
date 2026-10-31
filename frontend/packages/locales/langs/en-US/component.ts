@@ -623,6 +623,11 @@ export default {
     error_reason_column: 'Error Reason',
   },
   schema_table_settings: {
+    show_index: 'Show index column',
+    column_align: 'Align',
+    align_default: 'Default',
+    align_default_hint: 'Default follows table alignment',
+    index_align_label: 'Index alignment',
     density_small: 'Compact',
     density_medium: 'Normal',
     density_large: 'Spacious',

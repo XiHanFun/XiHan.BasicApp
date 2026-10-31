@@ -622,6 +622,11 @@ export default {
     error_reason_column: '오류 원인',
   },
   schema_table_settings: {
+    show_index: '번호 열 표시',
+    column_align: '정렬',
+    align_default: '기본',
+    align_default_hint: '기본값은 표 정렬을 따릅니다',
+    index_align_label: '번호 열 정렬',
     density_small: '좁게',
     density_medium: '기본',
     density_large: '넓게',

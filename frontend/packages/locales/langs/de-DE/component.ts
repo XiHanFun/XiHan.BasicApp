@@ -623,6 +623,11 @@ export default {
     error_reason_column: 'Fehlerursache',
   },
   schema_table_settings: {
+    show_index: 'Nummernspalte anzeigen',
+    column_align: 'Ausrichtung',
+    align_default: 'Standard',
+    align_default_hint: 'Standard folgt der Tabellenausrichtung',
+    index_align_label: 'Nummernausrichtung',
     density_small: 'Kompakt',
     density_medium: 'Normal',
     density_large: 'Geräumig',

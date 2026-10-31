@@ -1,3 +1,4 @@
+<!-- Schema 页面组合：将页面偏好分别传递给设置面板与表格渲染，数据列和序号列保持独立。 -->
 <script setup lang="ts">
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
@@ -708,6 +709,7 @@ const skeletonColumns = computed(() => {
               :density="settings.density.value"
               :table-style="settings.style.value"
               :align="settings.align.value"
+              :index-align="settings.indexAlign.value"
               :selectable="settings.selectable.value"
               :show-index="settings.showIndex.value"
               @move="settings.move"
@@ -717,6 +719,8 @@ const skeletonColumns = computed(() => {
               @set-width="onColumnWidthInput"
               @set-style="settings.setStyle"
               @set-align="settings.setAlign"
+              @set-index-align="settings.setIndexAlign"
+              @set-column-align="settings.setColumnAlign"
               @set-selectable="settings.setSelectable"
               @set-show-index="settings.setShowIndex"
               @cycle-sort="onCycleSort"
@@ -777,6 +781,8 @@ const skeletonColumns = computed(() => {
             :bordered="settings.style.value.bordered"
             :ruled="settings.style.value.ruled"
             :align="settings.align.value"
+            :index-align="settings.indexAlign.value"
+            :column-align="settings.alignMap.value"
             :show-index="settings.showIndex.value"
             :loading="loading"
             :page="page"

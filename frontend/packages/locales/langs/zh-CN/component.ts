@@ -622,6 +622,11 @@ export default {
     error_reason_column: '错误原因',
   },
   schema_table_settings: {
+    show_index: '显示序号列',
+    column_align: '对齐',
+    align_default: '默认',
+    align_default_hint: '默认跟随表格对齐',
+    index_align_label: '序号列对齐',
     density_small: '紧凑',
     density_medium: '默认',
     density_large: '宽松',

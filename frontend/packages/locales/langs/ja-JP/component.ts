@@ -622,6 +622,11 @@ export default {
     error_reason_column: 'エラー理由',
   },
   schema_table_settings: {
+    show_index: '連番列を表示',
+    column_align: '配置',
+    align_default: '既定',
+    align_default_hint: '既定は表全体の配置に従います',
+    index_align_label: '連番列の配置',
     density_small: 'コンパクト',
     density_medium: '標準',
     density_large: 'ゆったり',

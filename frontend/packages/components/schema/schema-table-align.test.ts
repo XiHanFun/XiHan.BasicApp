@@ -1,6 +1,6 @@
 /**
  * 列表页表格的对齐落到组件库的列契约上：表格设置选居中、居右时数据列一起换，
- * 靠左是库的缺省，不写出来；勾选、序号这些前缀列不跟着换。
+ * 靠左是库的缺省，不写出来；勾选列始终居中，展开列不跟着换，序号列通过独立设置控制。
  */
 import type { TableColumnDef } from '@xihan-ui/headless'
 import type { SchemaColumn } from './types'
@@ -24,7 +24,9 @@ function columnDefs(props: Record<string, unknown> = {}): TableColumnDef[] {
     props: { columns, data, selectable: true, showIndex: true, ...props },
     global: { plugins: [i18n] },
   })
-  return wrapper.findComponent(XhTableRoot).props('columns') ?? []
+  const defs = wrapper.findComponent(XhTableRoot).props('columns') ?? []
+  wrapper.unmount()
+  return defs
 }
 
 describe('schemaTablePanel 的对齐', () => {
@@ -38,8 +40,58 @@ describe('schemaTablePanel 的对齐', () => {
     const defs = columnDefs({ align })
     expect(defs.find(def => def.id === 'name')).toMatchObject({ align: expected })
     expect(defs.find(def => def.id === 'path')).toMatchObject({ align: expected })
-    const prefix = defs.filter(def => def.id !== 'name' && def.id !== 'path')
-    expect(prefix.length).toBeGreaterThan(0)
-    expect(prefix.every(def => !('align' in def))).toBe(true)
+    expect(defs.find(def => def.id === '__select__')?.align).toBe('center')
+    expect(defs.find(def => def.id === '__index__')).not.toHaveProperty('align')
+  })
+})
+
+describe('序号列独立对齐', () => {
+  it.each([['left', undefined], ['center', 'center'], ['right', 'end']] as const)('序号 %s 不改变数据列与勾选/展开列', (indexAlign, expected) => {
+    const defs = columnDefs({ align: 'right', indexAlign, renderExpand: () => '展开内容' })
+    const index = defs.find(def => def.id === '__index__')
+    expect(index?.align).toBe(expected)
+    expect(defs.find(def => def.id === 'name')?.align).toBe('end')
+    expect(defs.find(def => def.id === '__select__')?.align).toBe('center')
+    expect(defs.find(def => def.id === '__expand__')).not.toHaveProperty('align')
+  })
+
+  it('隐藏序号时不创建该列，树表也使用同一独立对齐契约', () => {
+    expect(columnDefs({ showIndex: false, indexAlign: 'right' }).some(def => def.id === '__index__')).toBe(false)
+    expect(columnDefs({ tree: true, indexAlign: 'center' }).find(def => def.id === '__index__')).toMatchObject({ align: 'center', width: 90 })
+  })
+})
+
+describe('逐列对齐优先级', () => {
+  it('显式单列对齐优先于表格，未覆盖的列跟随表格，序号独立', () => {
+    const defs = columnDefs({ align: 'center', indexAlign: 'right', columnAlign: { name: 'left' } })
+    expect(defs.find(def => def.id === 'name')).not.toHaveProperty('align')
+    expect(defs.find(def => def.id === 'path')?.align).toBe('center')
+    expect(defs.find(def => def.id === '__index__')?.align).toBe('end')
+    expect(defs.find(def => def.id === '__select__')?.align).toBe('center')
+  })
+
+  it('不同数据列可独立对齐，清除覆盖恢复整表方向', () => {
+    const defs = columnDefs({ align: 'left', columnAlign: { name: 'center', path: 'right' } })
+    expect(defs.find(def => def.id === 'name')?.align).toBe('center')
+    expect(defs.find(def => def.id === 'path')?.align).toBe('end')
+    const inherited = columnDefs({ align: 'right', columnAlign: {} })
+    expect(inherited.find(def => def.id === 'name')?.align).toBe('end')
+  })
+})
+
+describe('勾选列固定居中', () => {
+  it.each(['left', 'center', 'right'] as const)('表格 %s 和任意序号设置均不能覆盖勾选列', (align) => {
+    const defs = columnDefs({ align, indexAlign: 'right', columnAlign: { __select__: 'left', name: 'right' } })
+    expect(defs.find(def => def.id === '__select__')).toMatchObject({ align: 'center', width: 48 })
+  })
+
+  it('真实表头和行单元格均接收到居中对齐，关闭多选时不创建勾选列', async () => {
+    const wrapper = mount(SchemaTablePanel, { props: { columns, data, selectable: true }, global: { plugins: [i18n] } })
+    const cells = wrapper.findAll('[data-value="__select__"]').filter(node => ['columnheader', 'gridcell'].includes(node.attributes('role') ?? ''))
+    expect(cells).toHaveLength(2)
+    expect(cells.every(node => node.attributes('data-align') === 'center')).toBe(true)
+    await wrapper.setProps({ selectable: false })
+    expect(wrapper.findComponent(XhTableRoot).props('columns')?.some(def => def.id === '__select__')).toBe(false)
+    wrapper.unmount()
   })
 })

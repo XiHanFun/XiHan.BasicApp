@@ -1,3 +1,4 @@
+/** 表格偏好：按页面维护数据列及序号列的独立对齐，复用既有保存和跨端同步。 */
 import type { Size } from '@xihan-ui/core'
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
@@ -15,6 +16,8 @@ export interface ColumnSetting {
   title: string
   /** 是否可见 */
   visible: boolean
+  /** 单列对齐；未设置时跟随表格对齐。 */
+  align?: TableAlign
   /** 固定方向 */
   fixed?: 'left' | 'right'
   /** 列宽覆盖（px）；为空表示自动（沿用 schema 的 width/minWidth） */
@@ -40,6 +43,19 @@ export interface TableStyle {
 
 /** 表格对齐：数据列都按这一档排，缺省靠起始边，与组件库一致 */
 export type TableAlign = 'left' | 'center' | 'right'
+
+/** 序号列缺省居左，与新增设置前的显示行为一致。 */
+const DEFAULT_INDEX_ALIGN: TableAlign = 'left'
+
+/** 单列只保留三种合法方向；空值或旧配置表示跟随整表。 */
+function readColumnAlign(value: unknown): TableAlign | undefined {
+  return value === 'left' || value === 'center' || value === 'right' ? value : undefined
+}
+
+/** 旧配置和非法值保留原序号列的起始边对齐。 */
+function readIndexAlign(value: unknown): TableAlign {
+  return value === 'center' || value === 'right' ? value : DEFAULT_INDEX_ALIGN
+}
 
 /** 表格风格默认值：不打斑马纹、显示竖线 */
 const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, ruled: true }
@@ -73,13 +89,15 @@ export interface TableDefaultSort {
  */
 interface PersistedTableSettings {
   /** 按顺序的列设置（含每列默认排序方向 sort） */
-  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number, sort?: 'asc' | 'desc' }>
+  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number, sort?: 'asc' | 'desc', align?: TableAlign }>
   /** 密度；旧版存的是 small / medium / large，由 readDensity 换算 */
   density?: string
   /** 表格风格；旧版存的是 singleLine，由 readStyle 换算 */
   style?: Partial<TableStyle> & { singleLine?: boolean }
   /** 表格对齐 */
   align?: TableAlign
+  /** 序号列独立对齐；缺省居左，兼容未保存该字段的旧配置。 */
+  indexAlign?: TableAlign
   /** 是否允许多选 */
   selectable?: boolean
   /** 是否显示序号列 */
@@ -128,6 +146,7 @@ export function useTableSettings(
   const density = ref<TableDensity>('md')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const align = ref<TableAlign>('left')
+  const indexAlign = ref<TableAlign>(DEFAULT_INDEX_ALIGN)
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
 
@@ -150,6 +169,7 @@ export function useTableSettings(
           fixed: p.fixed,
           width: p.width ?? def.width,
           sortable: def.sortable,
+          align: readColumnAlign(p.align),
           // 列内 sort 优先；旧版独立默认排序按字段名迁移；仅可排序列保留
           sort: def.sortable ? (p.sort ?? legacySortMap.get(p.key)) : undefined,
         })
@@ -166,8 +186,9 @@ export function useTableSettings(
     density.value = readDensity(persisted.density)
     style.value = readStyle(persisted.style)
     align.value = persisted.align ?? 'left'
+    indexAlign.value = readIndexAlign(persisted.indexAlign)
     selectable.value = persisted.selectable ?? defaultSelectable
-    showIndex.value = persisted.showIndex ?? true
+    showIndex.value = persisted.showIndex !== false
   }
 
   /** 从 localStorage 恢复 */
@@ -183,10 +204,11 @@ export function useTableSettings(
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {
     const data: PersistedTableSettings = {
-      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width, sort: c.sort })),
+      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width, sort: c.sort, align: c.align })),
       density: density.value,
       style: { ...style.value },
       align: align.value,
+      indexAlign: indexAlign.value,
       selectable: selectable.value,
       showIndex: showIndex.value,
     }
@@ -214,6 +236,11 @@ export function useTableSettings(
     }
     return map
   })
+  /** 对齐覆盖只包含显式配置的列；表格默认值变化时，其余列自动跟随。 */
+  const alignMap = computed(() => Object.fromEntries(columns.value
+    .filter(c => c.align !== undefined)
+    .map(c => [c.key, c.align])) as Record<string, TableAlign>)
+
   /** 默认多字段排序：由各列内置 sort 派生，优先级 = 列在列表中的顺序（拖拽列即可调优先级） */
   const defaultSorts = computed<TableDefaultSort[]>(() =>
     columns.value.filter(c => c.sort).map(c => ({ field: c.key, order: c.sort! })))
@@ -239,12 +266,33 @@ export function useTableSettings(
     }
   }
 
+  /**
+   * 修改单列对齐草稿；沿用显式保存与现有同步，不新增共享状态或异步写入。
+   * @param key 列的稳定字段键。
+   * @param value 对齐覆盖；undefined 清除覆盖并跟随表格。
+   * @returns {void} 不影响其他列及隐藏/排序/固定设置。
+   */
+  function setColumnAlign(key: string, value?: TableAlign): void {
+    const target = columns.value.find(c => c.key === key)
+    if (target)
+      target.align = readColumnAlign(value)
+  }
+
   function setStyle(key: keyof TableStyle, value: boolean) {
     style.value = { ...style.value, [key]: value }
   }
 
   function setAlign(value: TableAlign) {
     align.value = value
+  }
+
+  /**
+   * 只修改本页草稿，持久化和并发同步继续由显式保存及现有同步服务负责。
+   * @param value 序号列的对齐方向。
+   * @returns {void} 无返回值；不改变数据列、勾选列或序号显示开关。
+   */
+  function setIndexAlign(value: TableAlign): void {
+    indexAlign.value = readIndexAlign(value)
   }
 
   function setSelectable(value: boolean) {
@@ -286,6 +334,7 @@ export function useTableSettings(
     density.value = 'md'
     style.value = { ...DEFAULT_STYLE }
     align.value = 'left'
+    indexAlign.value = DEFAULT_INDEX_ALIGN
     selectable.value = defaultSelectable
     showIndex.value = true
   }
@@ -310,6 +359,7 @@ export function useTableSettings(
     density,
     style,
     align,
+    indexAlign,
     selectable,
     showIndex,
     defaultSorts,
@@ -317,11 +367,14 @@ export function useTableSettings(
     columnOrder,
     fixedMap,
     widthMap,
+    alignMap,
     toggleVisible,
     setFixed,
     setWidth,
+    setColumnAlign,
     setStyle,
     setAlign,
+    setIndexAlign,
     setSelectable,
     setShowIndex,
     cycleSort,
