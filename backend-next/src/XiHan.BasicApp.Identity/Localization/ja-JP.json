@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "代行ログイン",
   "permissions.identity.sessions.read.name": "オンラインユーザーの参照",
   "permissions.identity.sessions.revoke.name": "強制ログアウト",
-  "identity.user.tenant_owner": "このアカウントはテナントの所有者です。先に所有権を移転してください。"
+  "identity.user.tenant_owner": "このアカウントはテナントの所有者です。先に所有権を移転してください。",
+  "users.disable.title": "ユーザーを無効化",
+  "users.disable.description": "ユーザーを一括で無効化し、セッションを取り消します。無効化されたユーザーはサインインできません。自分自身は無効化できず、テナントの所有者は先に所有権を移譲する必要があります。",
+  "users.enable.title": "ユーザーを有効化",
+  "users.enable.description": "無効化されたユーザーを一括で有効化します。すでに有効なユーザーは成功扱い、ロック中のユーザーは先にロック解除が必要です。",
+  "permissions.identity.users.disable.name": "ユーザーの有効化・無効化",
+  "identity.auth.account_disabled": "このアカウントは無効化されています。管理者に連絡してください。"
 }

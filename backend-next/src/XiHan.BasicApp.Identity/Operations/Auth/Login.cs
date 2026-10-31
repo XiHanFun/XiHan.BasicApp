@@ -98,6 +98,11 @@ public sealed class Login(
 
         log.UserId = user.Id;
         log.UserName = user.UserName;
+        if (user.Status == UserStatus.Disabled)
+        {
+            return Error.Denied(IdentityErrors.AccountDisabled, IdentityMessages.AccountDisabled);
+        }
+
         if (user.Status != UserStatus.Active)
         {
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user.Status.ToString())));

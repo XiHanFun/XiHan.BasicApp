@@ -39,6 +39,11 @@ public static class IdentityPermissions
     public const string UsersLock = "identity.users.lock";
 
     /// <summary>
+    /// 启用与停用用户：<c>users.enable</c>、<c>users.disable</c>。
+    /// </summary>
+    public const string UsersDisable = "identity.users.disable";
+
+    /// <summary>
     /// 重置用户密码：<c>users.reset-password</c>。
     /// </summary>
     public const string UsersResetPassword = "identity.users.reset-password";
@@ -76,6 +81,7 @@ public static class IdentityPermissions
         new(UsersUpdate, "Update users", PermissionScope.Both, audited: true, description: "Edit user profiles of the current tenant."),
         new(UsersDelete, "Delete users", PermissionScope.Both, audited: true, description: "Delete users of the current tenant."),
         new(UsersLock, "Lock users", PermissionScope.Both, audited: true, description: "Lock and unlock users of the current tenant."),
+        new(UsersDisable, "Disable users", PermissionScope.Both, audited: true, description: "Enable and disable users of the current tenant; disabling revokes their sessions and blocks sign-in."),
         new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
         new(UsersResetTwoFactor, "Reset two-factor", PermissionScope.Both, audited: true, description: "Clear a user's two-factor methods and authenticator key so they can sign in with the password and enroll again."),
         new(ImpersonationStart, "Impersonate users", PermissionScope.Both, audited: true, description: "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."),

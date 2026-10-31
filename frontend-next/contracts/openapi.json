@@ -41391,6 +41391,172 @@
         }
       }
     },
+    "/api/users:disable": {
+      "post": {
+        "operationId": "users.disable",
+        "tags": [
+          "users"
+        ],
+        "summary": "Disable users",
+        "description": "Disables users in bulk and revokes their sessions; disabled users cannot sign in. You cannot disable yourself, and a tenant owner must transfer ownership first.\n\nRequires permission identity.users.disable (Enable and disable users).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.disable",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u7528\u6237\u6279\u91CF\u64CD\u4F5C\u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserIdsRequest",
+                "description": "\u7528\u6237\u6279\u91CF\u64CD\u4F5C\u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u76EE\u6807\u7528\u6237 ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users:enable": {
+      "post": {
+        "operationId": "users.enable",
+        "tags": [
+          "users"
+        ],
+        "summary": "Enable users",
+        "description": "Enables disabled users in bulk; users who are already active count as succeeded, locked users must be unlocked first.\n\nRequires permission identity.users.disable (Enable and disable users).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.disable",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u7528\u6237\u6279\u91CF\u64CD\u4F5C\u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserIdsRequest",
+                "description": "\u7528\u6237\u6279\u91CF\u64CD\u4F5C\u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u76EE\u6807\u7528\u6237 ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users:list": {
       "post": {
         "operationId": "users.list",
@@ -51371,6 +51537,11 @@
         "code": "identity.users.delete",
         "displayName": "Delete users",
         "description": "Delete users of the current tenant."
+      },
+      "identity.users.disable": {
+        "code": "identity.users.disable",
+        "displayName": "Enable and disable users",
+        "description": "Enable and disable users of the current tenant; disabling revokes their sessions and blocks sign-in."
       },
       "identity.users.lock": {
         "code": "identity.users.lock",

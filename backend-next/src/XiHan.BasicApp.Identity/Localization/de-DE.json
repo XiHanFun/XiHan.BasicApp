@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "Benutzer imitieren",
   "permissions.identity.sessions.read.name": "Online-Benutzer lesen",
   "permissions.identity.sessions.revoke.name": "Abmeldung erzwingen",
-  "identity.user.tenant_owner": "Dieses Konto ist Eigentümer eines Mandanten. Übertragen Sie zuerst das Eigentum."
+  "identity.user.tenant_owner": "Dieses Konto ist Eigentümer eines Mandanten. Übertragen Sie zuerst das Eigentum.",
+  "users.disable.title": "Benutzer deaktivieren",
+  "users.disable.description": "Deaktiviert Benutzer im Stapel und widerruft ihre Sitzungen; deaktivierte Benutzer können sich nicht anmelden. Sie können sich nicht selbst deaktivieren, ein Mandantenbesitzer muss zuerst den Besitz übertragen.",
+  "users.enable.title": "Benutzer aktivieren",
+  "users.enable.description": "Aktiviert deaktivierte Benutzer im Stapel; bereits aktive Benutzer gelten als erfolgreich, gesperrte müssen zuerst entsperrt werden.",
+  "permissions.identity.users.disable.name": "Benutzer aktivieren und deaktivieren",
+  "identity.auth.account_disabled": "Dieses Konto wurde deaktiviert. Bitte wenden Sie sich an Ihren Administrator."
 }

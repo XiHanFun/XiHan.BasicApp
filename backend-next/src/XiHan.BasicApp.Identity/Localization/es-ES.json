@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "Suplantar usuarios",
   "permissions.identity.sessions.read.name": "Ver usuarios en línea",
   "permissions.identity.sessions.revoke.name": "Forzar cierre de sesión",
-  "identity.user.tenant_owner": "Esta cuenta es propietaria de un inquilino. Transfiere primero la propiedad."
+  "identity.user.tenant_owner": "Esta cuenta es propietaria de un inquilino. Transfiere primero la propiedad.",
+  "users.disable.title": "Desactivar usuarios",
+  "users.disable.description": "Desactiva usuarios en lote y revoca sus sesiones; los usuarios desactivados no pueden iniciar sesión. No puede desactivarse a sí mismo y el propietario de un inquilino debe transferir antes la propiedad.",
+  "users.enable.title": "Activar usuarios",
+  "users.enable.description": "Activa en lote usuarios desactivados; los que ya están activos cuentan como correctos y los bloqueados deben desbloquearse primero.",
+  "permissions.identity.users.disable.name": "Activar y desactivar usuarios",
+  "identity.auth.account_disabled": "Esta cuenta está desactivada. Póngase en contacto con su administrador."
 }

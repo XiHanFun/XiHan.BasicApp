@@ -68,6 +68,11 @@ public sealed class SendTwoFactorCode(
             return allowed.Error!;
         }
 
+        if (user.Status == UserStatus.Disabled)
+        {
+            return Error.Denied(IdentityErrors.AccountDisabled, IdentityMessages.AccountDisabled);
+        }
+
         if (user.Status != UserStatus.Active)
         {
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user.Status.ToString())));

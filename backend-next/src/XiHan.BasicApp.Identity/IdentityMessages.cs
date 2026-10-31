@@ -55,6 +55,16 @@ public static class IdentityMessages
     public const string UnlockUsersDescription = "users.unlock.description";
 
     /// <summary>
+    /// 操作 <c>users.disable</c> 的说明。
+    /// </summary>
+    public const string DisableUsersDescription = "users.disable.description";
+
+    /// <summary>
+    /// 操作 <c>users.enable</c> 的说明。
+    /// </summary>
+    public const string EnableUsersDescription = "users.enable.description";
+
+    /// <summary>
     /// 操作 <c>users.reset-password</c> 的说明。
     /// </summary>
     public const string ResetPasswordDescription = "users.reset_password.description";
@@ -203,6 +213,11 @@ public static class IdentityMessages
     /// 参数 <c>status</c>。
     /// </remarks>
     public const string AccountUnavailable = "identity.auth.account_unavailable";
+
+    /// <summary>
+    /// 账号已停用。
+    /// </summary>
+    public const string AccountDisabled = "identity.auth.account_disabled";
 
     /// <summary>
     /// 登录失败次数过多，暂时锁定。

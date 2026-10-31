@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "模仿登入",
   "permissions.identity.sessions.read.name": "讀取線上使用者",
   "permissions.identity.sessions.revoke.name": "強制登出",
-  "identity.user.tenant_owner": "這個帳號是某個租戶的所有者，請先轉移所有權。"
+  "identity.user.tenant_owner": "這個帳號是某個租戶的所有者，請先轉移所有權。",
+  "users.disable.title": "停用使用者",
+  "users.disable.description": "批次停用使用者並撤銷其工作階段，停用後無法登入；不能停用自己，租戶的擁有者要先轉移擁有權。",
+  "users.enable.title": "啟用使用者",
+  "users.enable.description": "批次啟用已停用的使用者；原本就正常的算成功，鎖定中的要先解鎖。",
+  "permissions.identity.users.disable.name": "啟停使用者",
+  "identity.auth.account_disabled": "帳號已停用，請聯絡管理員。"
 }

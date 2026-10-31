@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { generateTempPassword, setUserLocked, usePasswordReset, usersResource, useUserEditor } from './use-users'
+import { QueryOperator } from '~/types/contracts'
+import { forceSignOut, generateTempPassword, setUserDisabled, setUserLocked, usePasswordReset, usersResource, useUserEditor } from './use-users'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -27,14 +28,30 @@ function record(respond: (call: Call) => Response): Call[] {
 }
 
 describe('usersResource', () => {
-  it('把 SchemaPage 的查询换成 users.list 的分页请求（关键字、邮箱模糊、状态精确），结果换回 SchemaPage 的分页结构', async () => {
+  it('把 SchemaPage 的查询换成 users.list 的分页请求（关键字、邮箱与手机号模糊、角色精确、状态多选、创建时间区间），结果换回 SchemaPage 的分页结构', async () => {
     const calls = record(() => json(200, { items: [user('u-1', 'alice')], total: 21, page: { index: 2, size: 20 } }))
-    const result = await usersResource().page!({ page: 2, pageSize: 20, filters: { keyword: ' ali ', email: 'example.com', status: 'Locked' }, sorts: [{ field: 'createdAt', order: 'desc' }] })
+    const result = await usersResource().page!({
+      page: 2,
+      pageSize: 20,
+      filters: { keyword: ' ali ', email: 'example.com', phoneNumber: '138', roleId: 'r-1', status: ['Locked', 'Disabled'] },
+      conditionFilters: [
+        { field: 'status', operator: QueryOperator.In, values: ['Locked', 'Disabled'] },
+        { field: 'createdAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00Z', '2026-10-31T23:59:59Z'] },
+      ],
+      sorts: [{ field: 'createdAt', order: 'desc' }],
+    })
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list' })
     expect(calls[0]!.body).toEqual({
       page: { index: 2, size: 20 },
       keyword: 'ali',
-      filters: [{ field: 'email', operator: 'contains', value: 'example.com' }, { field: 'status', operator: 'eq', value: 'Locked' }],
+      filters: [
+        { field: 'status', operator: 'in', value: 'Locked,Disabled' },
+        { field: 'createdAt', operator: 'ge', value: '2026-10-01T00:00:00Z' },
+        { field: 'createdAt', operator: 'le', value: '2026-10-31T23:59:59Z' },
+        { field: 'email', operator: 'contains', value: 'example.com' },
+        { field: 'phoneNumber', operator: 'contains', value: '138' },
+        { field: 'roleId', operator: 'eq', value: 'r-1' },
+      ],
       sorts: [{ field: 'createdAt', descending: true }],
     })
     expect(result.items.map(u => u.userName)).toEqual(['alice'])
@@ -44,7 +61,7 @@ describe('usersResource', () => {
   it('提交到导出中心：业务类型是 users.list，查询快照与列表发出的分页请求同一份', async () => {
     const calls = record(() => json(200, { items: [], total: 0, page: { index: 3, size: 50 } }))
     const resource = usersResource()
-    const params = { page: 3, pageSize: 50, filters: { keyword: 'bob', email: '@acme', status: 'Active' }, sorts: [{ field: 'userName', order: 'asc' as const }] }
+    const params = { page: 3, pageSize: 50, filters: { keyword: 'bob', email: '@acme' }, sorts: [{ field: 'userName', order: 'asc' as const }] }
     await resource.page!(params)
     expect(resource.export?.businessType).toBe('users.list')
     expect(resource.export?.buildQuery?.(params)).toEqual(calls[0]!.body)
@@ -71,6 +88,40 @@ describe('setUserLocked', () => {
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:lock', body: { ids: ['u-1'] } })
     await expect(setUserLocked('u-1', false)).rejects.toThrow('IDENTITY_NOTFOUND_001')
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/users:unlock', body: { ids: ['u-1'] } })
+  })
+})
+
+describe('setUserDisabled 与批量启停', () => {
+  it('停用走 users.disable、启用走 users.enable；SchemaPage 的批量启停按行调同一对操作', async () => {
+    const calls = record(() => json(200, { succeeded: ['u-1'], failed: [] }))
+    await setUserDisabled('u-1', true)
+    await usersResource().updateStatus!('u-2', true)
+    expect(calls.map(c => [c.url, c.body])).toEqual([
+      ['/api/users:disable', { ids: ['u-1'] }],
+      ['/api/users:enable', { ids: ['u-2'] }],
+    ])
+  })
+
+  it('锁定中的用户启用被拒：带着错误码抛出', async () => {
+    record(() => json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_CONFLICT_012' }] }))
+    await expect(setUserDisabled('u-1', false)).rejects.toThrow('IDENTITY_CONFLICT_012')
+  })
+})
+
+describe('forceSignOut', () => {
+  it('列出此人的有效会话，一次交给 sessions.revoke，返回下线数', async () => {
+    const calls = record(call => call.url.endsWith(':list')
+      ? json(200, { items: [{ id: 's-1' }, { id: 's-2' }], total: 2, page: { index: 1, size: 100 } })
+      : json(200, { succeeded: ['s-1', 's-2'], failed: [] }))
+    await expect(forceSignOut('u-1', '维护')).resolves.toBe(2)
+    expect(calls[0]).toMatchObject({ url: '/api/sessions:list', body: { filters: [{ field: 'userId', operator: 'eq', value: 'u-1' }] } })
+    expect(calls[1]).toMatchObject({ url: '/api/sessions:revoke', body: { ids: ['s-1', 's-2'], reason: '维护' } })
+  })
+
+  it('没有会话不调吊销，返回 0', async () => {
+    const calls = record(() => json(200, { items: [], total: 0, page: { index: 1, size: 100 } }))
+    await expect(forceSignOut('u-1', '维护')).resolves.toBe(0)
+    expect(calls).toHaveLength(1)
   })
 })
 

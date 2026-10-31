@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "Impersonate users",
   "permissions.identity.sessions.read.name": "Read online users",
   "permissions.identity.sessions.revoke.name": "Force sign-out",
-  "identity.user.tenant_owner": "This account owns a tenant. Transfer the ownership first."
+  "identity.user.tenant_owner": "This account owns a tenant. Transfer the ownership first.",
+  "users.disable.title": "Disable users",
+  "users.disable.description": "Disables users in bulk and revokes their sessions; disabled users cannot sign in. You cannot disable yourself, and a tenant owner must transfer ownership first.",
+  "users.enable.title": "Enable users",
+  "users.enable.description": "Enables disabled users in bulk; users who are already active count as succeeded, locked users must be unlocked first.",
+  "permissions.identity.users.disable.name": "Enable and disable users",
+  "identity.auth.account_disabled": "This account has been disabled. Please contact your administrator."
 }

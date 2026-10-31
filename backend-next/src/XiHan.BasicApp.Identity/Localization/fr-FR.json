@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "Usurper l’identité d’utilisateurs",
   "permissions.identity.sessions.read.name": "Consulter les utilisateurs en ligne",
   "permissions.identity.sessions.revoke.name": "Forcer la déconnexion",
-  "identity.user.tenant_owner": "Ce compte est propriétaire d'un locataire. Transférez d'abord la propriété."
+  "identity.user.tenant_owner": "Ce compte est propriétaire d'un locataire. Transférez d'abord la propriété.",
+  "users.disable.title": "Désactiver des utilisateurs",
+  "users.disable.description": "Désactive des utilisateurs par lot et révoque leurs sessions ; un utilisateur désactivé ne peut plus se connecter. Vous ne pouvez pas vous désactiver vous-même et le propriétaire d’un locataire doit d’abord transférer la propriété.",
+  "users.enable.title": "Activer des utilisateurs",
+  "users.enable.description": "Active par lot des utilisateurs désactivés ; ceux déjà actifs comptent comme réussis, ceux verrouillés doivent d’abord être déverrouillés.",
+  "permissions.identity.users.disable.name": "Activer et désactiver des utilisateurs",
+  "identity.auth.account_disabled": "Ce compte a été désactivé. Contactez votre administrateur."
 }

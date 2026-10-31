@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "模仿登录",
   "permissions.identity.sessions.read.name": "读取在线用户",
   "permissions.identity.sessions.revoke.name": "强制下线",
-  "identity.user.tenant_owner": "这个账号是某个租户的所有者，请先转移所有权。"
+  "identity.user.tenant_owner": "这个账号是某个租户的所有者，请先转移所有权。",
+  "users.disable.title": "停用用户",
+  "users.disable.description": "批量停用用户并吊销其会话，停用后不能登录；不能停用自己，租户的所有者要先转移所有权。",
+  "users.enable.title": "启用用户",
+  "users.enable.description": "批量启用停用的用户；本来就正常的算成功，锁定中的要先解锁。",
+  "permissions.identity.users.disable.name": "启停用户",
+  "identity.auth.account_disabled": "账号已停用，请联系管理员。"
 }
