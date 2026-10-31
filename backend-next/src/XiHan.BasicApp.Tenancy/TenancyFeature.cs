@@ -78,6 +78,8 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
         context.Services.AddPermissionCatalog("tenancy", TenancyPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        TenancyFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间；套餐门控的缓存，属授权数据，只许删、不许改写
         context.Services.AddCacheNamespace("tenancy", editable: false);
         context.Services.AddPageCatalog("tenancy", TenancyPages.All);
