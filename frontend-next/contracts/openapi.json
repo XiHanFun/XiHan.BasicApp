@@ -42236,12 +42236,13 @@
           {
             "name": "id",
             "in": "path",
-            "description": "\u53F0\u8D26\u884C ID\u3002",
+            "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID\u3002",
             "required": true,
             "schema": {
-              "description": "\u53F0\u8D26\u884C ID\u3002",
+              "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID\u3002",
               "type": "string",
-              "format": "uuid"
+              "minLength": 1,
+              "maxLength": 64
             }
           }
         ],
@@ -42301,6 +42302,13 @@
                         "null"
                       ],
                       "format": "date-time"
+                    },
+                    "error": {
+                      "description": "\u8BFB\u4E0D\u5230\u8FD9\u4E2A\u5E93\u7684\u53F0\u8D26\u65F6\u7684\u539F\u56E0\uFF08\u5176\u4F59\u5217\u4E3A\u7A7A\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -50127,6 +50135,13 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "error": {
+            "description": "\u8BFB\u4E0D\u5230\u8FD9\u4E2A\u5E93\u7684\u53F0\u8D26\u65F6\u7684\u539F\u56E0\uFF08\u5176\u4F59\u5217\u4E3A\u7A7A\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

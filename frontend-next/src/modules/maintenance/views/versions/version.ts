@@ -4,14 +4,14 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { toPageRequest, toSchemaPageResult, versions as versionsApi } from '~/contracts'
 
-/** 版本台账的一行：一个库一行（平台库为 platform，库隔离之后租户库各一行） */
+/** 版本台账的一行：一个库一行（平台库为 platform，已就绪的独立库按租户 ID 各一行；读不到台账的带 error） */
 export type VersionRow = ResponseOf<'versions.list'>['items'][number]
 
 /** 平台库在台账里的库名 */
 export const PLATFORM_DATABASE = 'platform'
 
 /**
- * 列表的后端筛选：关键字匹配应用版本、数据库版本与升级节点；应用版本、数据库版本与是否升级中精确匹配。
+ * 列表的后端筛选：关键字匹配库名、应用版本、数据库版本与升级节点；应用版本、数据库版本与是否升级中精确匹配。
  * 台账由升级执行器写入（升级中即持有升级锁），页面只读。
  */
 export const VERSION_QUERY: PageQueryMapping = {
@@ -47,7 +47,7 @@ export function versionResource(): SchemaResource<VersionRow> {
   }
 }
 
-/** 详情：按台账行 ID 取最新一份 */
-export function getVersion(id: string): Promise<VersionRow> {
-  return versionsApi.get({ id })
+/** 详情：按库名（platform 或租户 ID）取最新一份；每个库的台账行 ID 相同，列表的行键也用库名 */
+export function getVersion(database: string): Promise<VersionRow> {
+  return versionsApi.get({ id: database })
 }

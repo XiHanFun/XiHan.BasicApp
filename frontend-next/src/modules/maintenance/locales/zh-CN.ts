@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: '读取失败',
+      read_error: '读取失败的原因',
       title: '版本管理',
       engine_managed_hint: '版本状态由升级执行器自动写入，本页只读；每次执行的脚本见「升级记录」',
       keyword: '关键词',

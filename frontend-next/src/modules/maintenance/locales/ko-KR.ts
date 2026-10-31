@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: '읽기 실패',
+      read_error: '읽기 오류',
       title: '버전 관리',
       engine_managed_hint: '버전 상태는 업그레이드 실행기가 자동으로 기록하며 이 페이지는 읽기 전용이에요. 실행된 스크립트는 「업그레이드 기록」에서 확인하세요',
       keyword: '키워드',

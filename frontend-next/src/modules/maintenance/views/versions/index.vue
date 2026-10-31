@@ -35,7 +35,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('maintenance.versions.upgrade_status_placeholder'),
     width: 100,
     order: 4,
-    render: row => renderTag(upgradingLabel(t, asRow(row).isUpgrading), upgradingTone(asRow(row).isUpgrading)),
+    render: row => asRow(row).error
+      ? renderTag(t('maintenance.versions.read_failed'), 'danger')
+      : renderTag(upgradingLabel(t, asRow(row).isUpgrading), upgradingTone(asRow(row).isUpgrading)),
   },
   { key: 'upgradeNode', title: t('maintenance.versions.upgrade_node'), dataType: 'string', minWidth: 140, order: 5 },
   { key: 'upgradeStartedAt', title: t('maintenance.versions.upgrade_start_time'), dataType: 'datetime', minWidth: 170, order: 6 },
@@ -46,7 +48,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 const schema = computed<PageSchema>(() => ({
   pageCode: 'maintenance.versions',
   pageName: t('maintenance.versions.title'),
-  rowKey: 'id',
+  rowKey: 'database',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
@@ -71,7 +73,7 @@ async function handleDetail(row: VersionRow) {
   detailLoading.value = true
   detailData.value = null
   try {
-    detailData.value = await getVersion(row.id)
+    detailData.value = await getVersion(row.database)
   }
   catch (error) {
     toast.danger(errorText(error) || t('maintenance.versions.load_detail_failed'))
@@ -154,6 +156,12 @@ async function handleDetail(row: VersionRow) {
                 <XhDescriptionsLabel>{{ t('maintenance.versions.upgraded_time') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
                   {{ formatDate(detailData.upgradedAt) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="detailData.error" :span="2">
+                <XhDescriptionsLabel>{{ t('maintenance.versions.read_error') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue class="text-fg-danger">
+                  {{ detailData.error }}
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
             </XhDescriptionsRoot>

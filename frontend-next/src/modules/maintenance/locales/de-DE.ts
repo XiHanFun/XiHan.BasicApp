@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: 'Nicht lesbar',
+      read_error: 'Lesefehler',
       title: 'Versionen & Upgrades',
       engine_managed_hint: 'Der Versionsstatus wird vom Upgrade-Ausführer geschrieben; diese Seite ist schreibgeschützt. Jedes ausgeführte Skript steht im Upgrade-Verlauf.',
       keyword: 'Stichwort',

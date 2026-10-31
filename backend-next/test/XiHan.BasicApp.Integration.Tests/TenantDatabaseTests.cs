@@ -102,6 +102,12 @@ public sealed class TenantDatabaseTests : IDisposable
         Assert.Contains("sys_department", Tables(_tenantDatabase.ConnectionString, "sys_department"));
         Assert.Empty(Tables(_tenantDatabase.ConnectionString, "sys_user_session"));
         Assert.Equal(1, Count(_tenantDatabase.ConnectionString, "SELECT COUNT(*) FROM sys_version WHERE db_version IS NOT NULL"));
+        // 版本管理列出独立库：按租户 ID 一行，台账取自它自己的库（SQLite 的平台库不跑升级执行器、没有台账行）
+        var (_, versionsBody) = await SendAsync(server, HttpMethod.Post, "/api/versions:list", "{}", superadmin);
+        Assert.Equal(["iso"], versionsBody.GetProperty("items").EnumerateArray().Select(static v => v.GetProperty("database").GetString()).ToList());
+        var (isoVersion, isoVersionBody) = await SendAsync(server, HttpMethod.Get, "/api/versions/iso", null, superadmin);
+        Assert.Equal(HttpStatusCode.OK, isoVersion);
+        Assert.Equal((JsonValueKind.String, JsonValueKind.Null), (isoVersionBody.GetProperty("dbVersion").ValueKind, isoVersionBody.GetProperty("error").ValueKind));
         var (reconfigure, reconfigureBody) = await SendAsync(server, HttpMethod.Post, $"/api/tenants/{isoId}:configure-database", """{"isolationMode":"Field"}""", superadmin);
         Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_013"), (reconfigure, reconfigureBody.GetProperty("code").GetString()));
         var (again, againBody) = await SendAsync(server, HttpMethod.Post, $"/api/tenants/{isoId}:initialize-database", "{}", superadmin);

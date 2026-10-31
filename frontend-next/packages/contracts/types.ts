@@ -9956,6 +9956,8 @@ export interface components {
              * @description 最近一次升级完成的时间。
              */
             upgradedAt?: string | null;
+            /** @description 读不到这个库的台账时的原因（其余列为空）。 */
+            error?: string | null;
         };
         /** @description 当前会话可激活的一个角色。 */
         SessionRoleItemResponse: {
@@ -32145,7 +32147,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description 台账行 ID。 */
+                /** @description 哪个库：平台库为 platform，独立库为租户 ID。 */
                 id: string;
             };
             cookie?: never;
@@ -32184,6 +32186,8 @@ export interface operations {
                          * @description 最近一次升级完成的时间。
                          */
                         upgradedAt?: string | null;
+                        /** @description 读不到这个库的台账时的原因（其余列为空）。 */
+                        error?: string | null;
                     };
                 };
             };

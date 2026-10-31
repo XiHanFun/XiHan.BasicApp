@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Contracts;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
@@ -238,27 +237,16 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
     /// <returns>执行了的租户脚本（<c>租户/版本/tenant/文件名</c>）。</returns>
     private async Task<Result<IReadOnlyList<string>>> UpgradeTenantsAsync(string node, CancellationToken cancellationToken)
     {
-        await using var scope = scopes.CreateAsyncScope();
-        if (scope.ServiceProvider.GetService<ITenantStore>() is not { } store)
-        {
-            return Array.Empty<string>();
-        }
-
         var applied = new List<string>();
-        foreach (var tenant in await store.ListAsync(cancellationToken).ConfigureAwait(false))
+        foreach (var tenantId in await tenantSchemas.ReadyTenantsAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (!tenant.Properties.TryGetValue(TenantSchemas.ReadyProperty, out var ready) || !string.Equals(ready, "true", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var upgraded = await tenantSchemas.UpgradeAsync(tenant.Id, node, cancellationToken).ConfigureAwait(false);
+            var upgraded = await tenantSchemas.UpgradeAsync(tenantId, node, cancellationToken).ConfigureAwait(false);
             if (!upgraded.TryGetValue(out var report))
             {
                 return upgraded.Error!;
             }
 
-            applied.AddRange(report.Applied.Select(s => tenant.Id + "/" + s));
+            applied.AddRange(report.Applied.Select(s => tenantId + "/" + s));
         }
 
         return applied;

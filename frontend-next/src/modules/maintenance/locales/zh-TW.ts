@@ -239,6 +239,9 @@ export default {
     },
     // 版本管理
     versions: {
+      // 独立库的台账读不到时
+      read_failed: '讀取失敗',
+      read_error: '讀取失敗的原因',
       title: '系統版本管理',
       engine_managed_hint: '版本狀態由升級執行器自動寫入，本頁唯讀；每次執行的指令碼請見「升級記錄」',
       keyword: '關鍵字',
