@@ -202,7 +202,7 @@ export default {
       code_hint: 'Commence par une minuscule ; chiffres et tirets autorisés. Enregistré sous {prefix}nom',
       title_placeholder: 'Titre affiché dans la navigation',
       title_override_hint: 'Laissez vide pour utiliser le titre enregistré',
-      icon_placeholder: 'ex. lucide:folder',
+      icon_placeholder: 'Cliquez pour choisir une icône',
       permission_placeholder: 'Facultatif ; doit être un code du catalogue des permissions',
       directory_top_level_hint: 'Les répertoires ne peuvent être qu\'au niveau supérieur',
       registered_parent_hint: 'Les sous-pages restent sous leur page parente enregistrée',

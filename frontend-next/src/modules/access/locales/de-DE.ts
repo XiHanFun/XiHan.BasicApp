@@ -202,7 +202,7 @@ export default {
       code_hint: 'Beginnt mit Kleinbuchstaben; Ziffern und Bindestriche erlaubt. Gespeichert als {prefix}Name',
       title_placeholder: 'Titel in der Navigation',
       title_override_hint: 'Leer lassen, um den registrierten Titel zu verwenden',
-      icon_placeholder: 'z. B. lucide:folder',
+      icon_placeholder: 'Klicken, um ein Symbol auszuwählen',
       permission_placeholder: 'Optional; muss ein Code aus dem Berechtigungskatalog sein',
       directory_top_level_hint: 'Verzeichnisse liegen nur auf oberster Ebene',
       registered_parent_hint: 'Unterseiten bleiben unter ihrer registrierten Elternseite',

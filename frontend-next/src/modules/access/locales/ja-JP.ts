@@ -202,7 +202,7 @@ export default {
       code_hint: '英小文字で始まり、数字とハイフンを使用可。{prefix}名前 として保存されます',
       title_placeholder: 'ナビゲーションに表示するタイトル',
       title_override_hint: '空欄ならページ登録のタイトルを使います',
-      icon_placeholder: '例: lucide:folder',
+      icon_placeholder: 'クリックしてアイコンを選択',
       permission_placeholder: '省略可。入力する場合は権限カタログのコード',
       directory_top_level_hint: 'ディレクトリはトップレベルにのみ置けます',
       registered_parent_hint: '子ページは登録された親ページの下に固定されます',

@@ -256,6 +256,13 @@ export default {
       style_label: '表格风格',
       title: '表格设置',
     },
+    icon_picker: {
+      clear: '清除',
+      empty: '未找到图标',
+      modal_title: '选择图标',
+      search_placeholder: '搜索图标名称...',
+      select_placeholder: '选择图标',
+    },
     search_date_range: {
       end: '结束时间',
       last30: '近 30 天',

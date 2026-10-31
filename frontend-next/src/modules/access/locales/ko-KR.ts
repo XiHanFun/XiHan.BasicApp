@@ -202,7 +202,7 @@ export default {
       code_hint: '영문 소문자로 시작하고 숫자와 하이픈을 쓸 수 있어요. {prefix}이름 으로 저장돼요',
       title_placeholder: '내비게이션에 표시할 제목',
       title_override_hint: '비워 두면 페이지 등록의 제목을 써요',
-      icon_placeholder: '예: lucide:folder',
+      icon_placeholder: '클릭해서 아이콘 선택',
       permission_placeholder: '선택 사항. 입력하면 권한 카탈로그의 코드여야 해요',
       directory_top_level_hint: '디렉터리는 최상위에만 둘 수 있어요',
       registered_parent_hint: '하위 페이지는 등록된 상위 페이지 아래에 고정돼요',

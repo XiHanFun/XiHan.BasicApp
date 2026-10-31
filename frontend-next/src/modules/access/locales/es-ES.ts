@@ -202,7 +202,7 @@ export default {
       code_hint: 'Empieza por minúscula; admite dígitos y guiones. Se guarda como {prefix}nombre',
       title_placeholder: 'Título que se muestra en la navegación',
       title_override_hint: 'Déjelo vacío para usar el título registrado',
-      icon_placeholder: 'p. ej. lucide:folder',
+      icon_placeholder: 'Haga clic para elegir un icono',
       permission_placeholder: 'Opcional; debe ser un código del catálogo de permisos',
       directory_top_level_hint: 'Los directorios solo pueden estar en el nivel superior',
       registered_parent_hint: 'Las subpáginas permanecen bajo su página padre registrada',

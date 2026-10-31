@@ -6,7 +6,7 @@ import type { SelectOption, TreeSelectOption } from '~/types'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { actionConfirmText, deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { CUSTOM_CODE_PREFIX, MENU_KINDS, menusResource, OPERATOR_KINDS, resetMenu, useMenuEditor, useMenuTree } from './use-menus'
@@ -438,8 +438,8 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('icon')">
           <XhFieldLabel>{{ t('access.menus.fields.icon') }}</XhFieldLabel>
-          <XhFieldControl>
-            <XInput v-model:value="editor.form.icon" name="icon" clearable autocomplete="off" :placeholder="t('access.menus.icon_placeholder')" />
+          <XhFieldControl :as-child="false">
+            <IconPicker v-model="editor.form.icon" :placeholder="t('access.menus.icon_placeholder')" />
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('icon')">
             {{ editor.fieldError('icon') }}

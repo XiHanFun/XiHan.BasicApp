@@ -256,6 +256,13 @@ export default {
       style_label: 'Style',
       title: 'Table Settings',
     },
+    icon_picker: {
+      clear: 'Clear',
+      empty: 'No icons found',
+      modal_title: 'Select Icon',
+      search_placeholder: 'Search icon name...',
+      select_placeholder: 'Select icon',
+    },
     search_date_range: {
       end: 'End',
       last30: 'Last 30 days',

@@ -34,7 +34,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, h, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NotificationContent, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XInput, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
+import { IconPicker, NotificationContent, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XInput, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
 import { NotificationContentFormat as CONTENT_FORMATS, DeliveryChannel as DELIVERY_CHANNELS, notifications as notificationsApi, NotificationPriority as PRIORITIES, NotificationTargetType as TARGET_TYPES, NotificationType as TYPES } from '~/contracts'
 import { useAuthStore } from '~/stores'
@@ -515,8 +515,8 @@ async function exportUnread() {
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('notification.notifications.form_icon') }}</XhFieldLabel>
-          <XhFieldControl>
-            <XInput v-model:value="form.icon" name="icon" clearable :max-length="100" :placeholder="t('notification.notifications.form_icon_placeholder')" />
+          <XhFieldControl :as-child="false">
+            <IconPicker v-model="form.icon" :placeholder="t('notification.notifications.form_icon_placeholder')" />
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot>

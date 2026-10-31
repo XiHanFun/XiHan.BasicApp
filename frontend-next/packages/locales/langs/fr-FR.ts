@@ -256,6 +256,13 @@ export default {
       style_label: 'Style',
       title: 'Paramètres du tableau',
     },
+    icon_picker: {
+      clear: 'Effacer',
+      empty: 'Aucune icône trouvée',
+      modal_title: 'Choisir une icône',
+      search_placeholder: 'Rechercher un nom d’icône...',
+      select_placeholder: 'Choisir une icône',
+    },
     search_date_range: {
       end: 'Fin',
       last30: '30 derniers jours',

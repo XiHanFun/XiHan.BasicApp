@@ -1,6 +1,6 @@
 /**
  * Iconify 离线图标初始化
- * 预加载运行期常用图标集（lucide / tabler / mdi / simple-icons）；图标选择器与更多图标集随后续批次。
+ * 预加载运行期常用图标集（lucide / tabler / mdi），其余图标集由 IconPicker 按需加载。
  */
 import { addCollection } from '@iconify/vue/offline'
 
@@ -8,6 +8,9 @@ type IconifyJSON = Parameters<typeof addCollection>[0]
 
 /** 图标集元数据，供 IconPicker 使用 */
 export const ICON_SET_META = [
+  { prefix: 'carbon', name: 'Carbon', package: 'carbon' },
+  { prefix: 'ep', name: 'Element Plus', package: 'ep' },
+  { prefix: 'heroicons', name: 'Heroicons', package: 'heroicons' },
   { prefix: 'lucide', name: 'Lucide', package: 'lucide' },
   { prefix: 'mdi', name: 'Material Design Icons', package: 'mdi' },
   { prefix: 'simple-icons', name: 'Simple Icons', package: 'simple-icons' },
@@ -17,6 +20,9 @@ export const ICON_SET_META = [
 type IconPackageName = typeof ICON_SET_META[number]['package']
 
 const PACKAGE_LOADERS: Record<IconPackageName, () => Promise<IconifyJSON>> = {
+  'carbon': () => import('@iconify-json/carbon').then(m => m.icons as IconifyJSON),
+  'ep': () => import('@iconify-json/ep').then(m => m.icons as IconifyJSON),
+  'heroicons': () => import('@iconify-json/heroicons').then(m => m.icons as IconifyJSON),
   'lucide': () => import('@iconify-json/lucide').then(m => m.icons as IconifyJSON),
   'mdi': () => import('@iconify-json/mdi').then(m => m.icons as IconifyJSON),
   'simple-icons': () => import('@iconify-json/simple-icons').then(m => m.icons as IconifyJSON),

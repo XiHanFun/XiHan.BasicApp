@@ -202,7 +202,7 @@ export default {
       code_hint: '小寫字母開頭，可含數字與連字號；儲存為 {prefix}名稱',
       title_placeholder: '顯示在導覽中的標題',
       title_override_hint: '留空即使用頁面登記的標題',
-      icon_placeholder: '例如：lucide:folder',
+      icon_placeholder: '點擊選擇圖示',
       permission_placeholder: '可留空；填寫時須是權限目錄中的權限碼',
       directory_top_level_hint: '目錄只能在頂層',
       registered_parent_hint: '子頁面固定在登記的父頁面下',

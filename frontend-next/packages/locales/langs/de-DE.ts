@@ -256,6 +256,13 @@ export default {
       style_label: 'Stil',
       title: 'Tabelleneinstellungen',
     },
+    icon_picker: {
+      clear: 'Entfernen',
+      empty: 'Keine Symbole gefunden',
+      modal_title: 'Symbol auswählen',
+      search_placeholder: 'Symbolname suchen...',
+      select_placeholder: 'Symbol auswählen',
+    },
     search_date_range: {
       end: 'Ende',
       last30: 'Letzte 30 Tage',

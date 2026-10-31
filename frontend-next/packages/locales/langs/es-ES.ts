@@ -256,6 +256,13 @@ export default {
       style_label: 'Estilo',
       title: 'Configuración de la tabla',
     },
+    icon_picker: {
+      clear: 'Quitar',
+      empty: 'No se encontraron iconos',
+      modal_title: 'Seleccionar icono',
+      search_placeholder: 'Buscar nombre de icono...',
+      select_placeholder: 'Seleccionar icono',
+    },
     search_date_range: {
       end: 'Fin',
       last30: 'Últimos 30 días',
