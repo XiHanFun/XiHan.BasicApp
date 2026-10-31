@@ -12,9 +12,24 @@ export const TEMPLATE_QUERY: PageQueryMapping = {
   filters: { isEnabled: 'eq' },
 }
 
-/** 主题与 HTML 正文只对邮件有意义：短信模板不带主题、正文按纯文本渲染 */
+/** HTML 正文只对邮件有意义：其余渠道的正文按纯文本渲染 */
 export function isEmailChannel(channel: TemplateChannel): boolean {
   return channel === 'Email'
+}
+
+/** 主题是邮件主题与站内通知的标题（4.x 同）：短信与机器人不带主题 */
+export function hasSubject(channel: TemplateChannel): boolean {
+  return channel === 'Email' || channel === 'InApp'
+}
+
+/** 这行模板是否属于调用方这一侧：只有本侧的能改、启停与删除（租户看得到平台的，4.x 同） */
+export function isOwnTemplate(row: Pick<TemplateRow, 'isPlatform'>, platformCaller: boolean): boolean {
+  return row.isPlatform === platformCaller
+}
+
+/** 租户可以覆盖平台的模板：建一份同编码、同渠道的，发送时先用租户的 */
+export function canOverrideTemplate(row: Pick<TemplateRow, 'isPlatform'>, platformCaller: boolean): boolean {
+  return !platformCaller && row.isPlatform
 }
 
 /** 编辑弹窗的表单（编码与渠道建好不改） */
@@ -52,6 +67,11 @@ export function toTemplateForm(row: TemplateRow): TemplateForm {
   }
 }
 
+/** 覆盖平台模板的表单：照平台那份预填，存成本侧的新模板（编码与渠道不改） */
+export function toOverrideForm(row: TemplateRow): TemplateForm {
+  return { ...toTemplateForm(row), id: null, isEnabled: true }
+}
+
 /** 表单的第一处问题（4.x 的提交前校验，编码另按后端文法核对）；都好为空 */
 export type TemplateProblem = 'code' | 'content' | 'name'
 
@@ -77,14 +97,13 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 新建与修改共用的内容；正文原样（Scriban 的空白有意义），短信不带主题、不按 HTML 渲染 */
+/** 新建与修改共用的内容；正文原样（Scriban 的空白有意义），短信与机器人不带主题，只有邮件按 HTML 渲染 */
 function draft(form: TemplateForm) {
-  const email = isEmailChannel(form.channel)
   return {
     name: form.name.trim(),
     content: form.content,
-    subject: email ? blankToNull(form.subject) : null,
-    isHtml: email && form.isHtml,
+    subject: hasSubject(form.channel) ? blankToNull(form.subject) : null,
+    isHtml: isEmailChannel(form.channel) && form.isHtml,
     description: blankToNull(form.description),
     isEnabled: form.isEnabled,
     order: form.order ?? 0,

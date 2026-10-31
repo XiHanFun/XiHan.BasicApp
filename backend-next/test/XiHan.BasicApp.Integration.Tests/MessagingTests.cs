@@ -101,10 +101,16 @@ public sealed class MessagingTests : IDisposable
         });
         await using var running = server;
 
-        // 模板：平台种子 8 个；语法错误与同渠道同编码拒绝
-        Assert.Equal(8, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
+        // 模板：平台种子 9 个（4.x 的 8 个加通知的机器人消息）；语法错误与同渠道同编码拒绝
+        Assert.Equal(9, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
         Assert.Equal("NOTIFICATION_VALIDATION_007", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "broken", channel = "Email", name = "Broken", content = "{{ if }}" }, platform));
         Assert.Equal("NOTIFICATION_CONFLICT_003", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "notification-email", channel = "Email", name = "Again", content = "x" }, platform));
+
+        // 渠道四种（4.x 同）：主题只留给邮件与站内通知（通知标题），HTML 只对邮件
+        var (_, inApp) = await SendAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "welcome-note", channel = "InApp", name = "Welcome", subject = "Hi {{name}}", content = "Welcome", isHtml = true }, platform);
+        Assert.Equal(("InApp", "Hi {{name}}", false, true), (inApp.GetProperty("channel").GetString(), inApp.GetProperty("subject").GetString(), inApp.GetProperty("isHtml").GetBoolean(), inApp.GetProperty("isPlatform").GetBoolean()));
+        var (_, bot) = await SendAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "welcome-note", channel = "Bot", name = "Welcome", subject = "ignored", content = "Welcome", isHtml = true }, platform);
+        Assert.Equal((JsonValueKind.Null, false), (bot.GetProperty("subject").ValueKind, bot.GetProperty("isHtml").GetBoolean()));
 
         // 没有配置时发布带邮件渠道的通知不可用，通知仍是草稿
         var ann = await CreatedAsync(server, "/api/users", new { userName = "ann", displayName = "Ann", password = "Pass@123456", email = "ann@example.com", phoneNumber = "13800000000" }, platform);
@@ -178,9 +184,18 @@ public sealed class MessagingTests : IDisposable
         Assert.Empty((await SendAsync(server, HttpMethod.Delete, $"/api/emails?ids={waiting}", null, platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal(3, (await RecordsAsync(server, platform, "emails")).Count);
 
-        // 租户一侧：同编码模板覆盖平台的，没有自己的配置即用平台缺省；记录只看本侧
-        Assert.Equal(0, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", tenant)).Body.GetProperty("total").GetInt32());
-        await CreatedAsync(server, "/api/message-templates", new { code = "notification-email", channel = "Email", name = "Ours", subject = "[{{brand}}] {{title}}", content = "Hi: {{content}}" }, tenant);
+        // 租户一侧：平台的模板看得到、改不了（4.x 同），同编码模板覆盖平台的，没有自己的配置即用平台缺省；记录只看本侧
+        var shared = (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", """{"page":{"index":1,"size":50}}""", tenant)).Body;
+        Assert.Equal(11, shared.GetProperty("total").GetInt32());
+        Assert.All(shared.GetProperty("items").EnumerateArray(), static t => Assert.True(t.GetProperty("isPlatform").GetBoolean()));
+        var platformEmail = shared.GetProperty("items").EnumerateArray().Single(static t => t.GetProperty("code").GetString() == "notification-email").GetProperty("id").GetString()!;
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Get, $"/api/message-templates/{platformEmail}", null, tenant)).Status);
+        Assert.Equal("NOTIFICATION_DENIED_002", await CodeAsync(server, HttpMethod.Put, $"/api/message-templates/{platformEmail}", new { name = "Mine", content = "x" }, tenant));
+        Assert.Equal("NOTIFICATION_DENIED_002", (await SendAsync(server, HttpMethod.Delete, $"/api/message-templates?ids={platformEmail}", null, tenant)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
+        var ours = await CreatedAsync(server, "/api/message-templates", new { code = "notification-email", channel = "Email", name = "Ours", subject = "[{{brand}}] {{title}}", content = "Hi: {{content}}" }, tenant);
+        var both = (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", """{"page":{"index":1,"size":50}}""", tenant)).Body.GetProperty("items").EnumerateArray().Where(static t => t.GetProperty("code").GetString() == "notification-email").ToDictionary(static t => t.GetProperty("id").GetString()!, static t => t.GetProperty("isPlatform").GetBoolean());
+        Assert.Equal(new Dictionary<string, bool> { [platformEmail] = true, [ours] = false }, both);
+        Assert.Equal(11, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
         var dana = await CreatedAsync(server, "/api/users", new { userName = "dana", displayName = "Dana", password = "Pass@123456", email = "dana@example.com" }, tenant);
         await PublishAsync(server, tenant, new { title = "Team", content = "<hello>", targetType = "User", targetIds = new[] { dana }, deliveryChannels = _withEmail });
         var tenantEmails = await SettledAsync(server, tenant, "emails", 1);

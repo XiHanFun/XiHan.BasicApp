@@ -183,6 +183,14 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// </remarks>
     public const string SmsTemplate = "notification-sms";
 
+    /// <summary>
+    /// 机器人渠道的通知模板编码。
+    /// </summary>
+    /// <remarks>
+    /// 变量 <c>title / content / link / brand</c>，空的正文与链接为空值。
+    /// </remarks>
+    public const string BotTemplate = "notification-bot";
+
     private readonly IRecipientSource[] _sources = sources.ToArray();
     private readonly IRealtimePush? _push = pushes.FirstOrDefault();
     private readonly IUserDirectory? _directory = directory.FirstOrDefault();
@@ -339,7 +347,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             }
         }
 
-        if (channels.HasFlag(MessageChannels.Bot) && !await bots.CanBroadcastAsync(context).ConfigureAwait(false))
+        if (channels.HasFlag(MessageChannels.Bot) && !await bots.CanBroadcastAsync(context, BotTemplate).ConfigureAwait(false))
         {
             return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", "Bot")));
         }
@@ -502,28 +510,22 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 机器人消息的纯文本。
+    /// 机器人消息的模板参数。
     /// </summary>
     /// <remarks>
-    /// 标题、正文与链接各一段（4.x 发标题与正文）。
+    /// 标题、正文与链接（4.x 发标题与正文）；空白的正文与链接给空值，模板里按有无分段。
     /// </remarks>
     /// <param name="notification">通知。</param>
-    /// <returns>正文。</returns>
-    public static string BotTextOf(SysNotification notification)
+    /// <returns>参数。</returns>
+    public static IReadOnlyList<KeyValuePair<string, string?>> BotParametersOf(SysNotification notification)
     {
         ArgumentNullException.ThrowIfNull(notification);
-        var parts = new List<string> { notification.Title };
-        if (!string.IsNullOrWhiteSpace(notification.Content))
-        {
-            parts.Add(notification.Content.Trim());
-        }
-
-        if (!string.IsNullOrWhiteSpace(notification.Link))
-        {
-            parts.Add(notification.Link.Trim());
-        }
-
-        return string.Join("\n\n", parts);
+        return
+        [
+            new("title", notification.Title),
+            new("content", string.IsNullOrWhiteSpace(notification.Content) ? null : notification.Content.Trim()),
+            new("link", string.IsNullOrWhiteSpace(notification.Link) ? null : notification.Link.Trim()),
+        ];
     }
 
     /// <summary>
@@ -536,7 +538,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     {
         if (channels.HasFlag(MessageChannels.Bot))
         {
-            var broadcast = await bots.EnqueueAsync(context, BotTextOf(notification), "notification", notification.Id.ToString("D")).ConfigureAwait(false);
+            var broadcast = await bots.EnqueueAsync(context, BotTemplate, BotParametersOf(notification), "notification", notification.Id.ToString("D")).ConfigureAwait(false);
             if (broadcast.IsFailure)
             {
                 return broadcast.Error!;

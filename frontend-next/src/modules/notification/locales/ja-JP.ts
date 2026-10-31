@@ -154,6 +154,8 @@ export default {
         cancelled: 'キャンセル済み',
       },
       channels: {
+        in_app: 'サイト内通知',
+        bot: 'ボット',
         email: 'メール',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: '有効',
       disabled: '無効',
       failures: {
+        template_other_side: 'プラットフォームのテンプレートはプラットフォームでのみ管理できます',
         template_not_found: 'テンプレートが存在しません',
         config_not_found: '設定が存在しません',
         bot_not_found: 'ボットが存在しません',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: '削除に失敗しました',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: '所属',
+      owner_platform: 'プラットフォーム',
+      owner_tenant: '自テナント',
+      action_override: 'このテンプレートを上書き',
+      override_title: 'プラットフォームのテンプレートを上書き',
+      form_notice_title: '通知タイトル',
       title: 'メッセージテンプレート',
       add_title: 'テンプレートの新規作成',
       edit_title: 'テンプレートの編集',

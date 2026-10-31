@@ -154,6 +154,8 @@ export default {
         cancelled: 'Cancelado',
       },
       channels: {
+        in_app: 'En la aplicación',
+        bot: 'Bot',
         email: 'Correo',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: 'Habilitado',
       disabled: 'Deshabilitado',
       failures: {
+        template_other_side: 'Las plantillas de la plataforma se mantienen en la plataforma',
         template_not_found: 'La plantilla no existe',
         config_not_found: 'La configuración no existe',
         bot_not_found: 'El bot no existe',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: 'Error al eliminar',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: 'Propietario',
+      owner_platform: 'Plataforma',
+      owner_tenant: 'Este inquilino',
+      action_override: 'Sobrescribir',
+      override_title: 'Sobrescribir plantilla de la plataforma',
+      form_notice_title: 'Título de la notificación',
       title: 'Plantillas de mensajes',
       add_title: 'Nueva plantilla',
       edit_title: 'Editar plantilla',

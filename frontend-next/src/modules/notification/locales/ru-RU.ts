@@ -154,6 +154,8 @@ export default {
         cancelled: 'Отменено',
       },
       channels: {
+        in_app: 'В приложении',
+        bot: 'Бот',
         email: 'Эл. почта',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: 'Включено',
       disabled: 'Отключено',
       failures: {
+        template_other_side: 'Шаблоны платформы поддерживаются на платформе',
         template_not_found: 'Шаблон не существует',
         config_not_found: 'Конфигурация не существует',
         bot_not_found: 'Бот не существует',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: 'Не удалось удалить',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: 'Владелец',
+      owner_platform: 'Платформа',
+      owner_tenant: 'Этот арендатор',
+      action_override: 'Переопределить',
+      override_title: 'Переопределить шаблон платформы',
+      form_notice_title: 'Заголовок уведомления',
       title: 'Шаблоны сообщений',
       add_title: 'Новый шаблон',
       edit_title: 'Изменить шаблон',

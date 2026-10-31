@@ -206,7 +206,7 @@ export type StorageConfigStatus = (typeof StorageConfigStatus)[number]
 export const StorageType = ['Local', 'S3', 'Oss', 'Cos', 'MinIO'] as const
 export type StorageType = (typeof StorageType)[number]
 
-export const TemplateChannel = ['Email', 'Sms'] as const
+export const TemplateChannel = ['InApp', 'Email', 'Sms', 'Bot'] as const
 export type TemplateChannel = (typeof TemplateChannel)[number]
 
 export const TenantDatabaseStatus = ['NotRequired', 'Pending', 'Ready', 'Failed'] as const

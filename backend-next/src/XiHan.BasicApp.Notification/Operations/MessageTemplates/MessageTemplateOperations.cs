@@ -48,7 +48,7 @@ public sealed class GetMessageTemplate(MessageTemplateService service) : IOperat
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await service.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await service.FindVisibleAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         return found.TryGetValue(out var template) ? MessageTemplateResponse.From(template) : found.Error!;
     }
 }
@@ -98,7 +98,7 @@ public sealed class UpdateMessageTemplate(MessageTemplateService service) : IOpe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var found = await service.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = await service.FindOwnedAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var template))
         {
             return found.Error!;

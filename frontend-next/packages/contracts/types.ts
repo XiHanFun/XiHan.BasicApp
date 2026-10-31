@@ -3008,7 +3008,7 @@ export interface paths {
         put?: never;
         /**
          * List message templates
-         * @description Page through the message templates of the caller's side.
+         * @description Page through the message templates of the caller's side and of the platform (read-only to tenants, who override them with the same code).
          *
          *     Requires permission notification.message-templates.read (Read message templates).
          */
@@ -8808,6 +8808,8 @@ export interface components {
              * @description 模板 ID。
              */
             id: string;
+            /** @description 是否为平台的模板（租户只读，可覆盖）。 */
+            isPlatform: boolean;
             /** @description 编码。 */
             code: string;
             /** @description 渠道。 */
@@ -10235,7 +10237,7 @@ export interface components {
          * @description 消息模板的渠道。
          * @enum {string}
          */
-        TemplateChannel: "Email" | "Sms";
+        TemplateChannel: "InApp" | "Email" | "Sms" | "Bot";
         /**
          * @description 租户独立库的状态。
          * @enum {string}
@@ -20341,6 +20343,8 @@ export interface operations {
                          * @description 模板 ID。
                          */
                         id: string;
+                        /** @description 是否为平台的模板（租户只读，可覆盖）。 */
+                        isPlatform: boolean;
                         /** @description 编码。 */
                         code: string;
                         /** @description 渠道。 */
@@ -20447,6 +20451,8 @@ export interface operations {
                          * @description 模板 ID。
                          */
                         id: string;
+                        /** @description 是否为平台的模板（租户只读，可覆盖）。 */
+                        isPlatform: boolean;
                         /** @description 编码。 */
                         code: string;
                         /** @description 渠道。 */
@@ -20548,6 +20554,8 @@ export interface operations {
                          * @description 模板 ID。
                          */
                         id: string;
+                        /** @description 是否为平台的模板（租户只读，可覆盖）。 */
+                        isPlatform: boolean;
                         /** @description 编码。 */
                         code: string;
                         /** @description 渠道。 */

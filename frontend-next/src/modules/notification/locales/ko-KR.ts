@@ -154,6 +154,8 @@ export default {
         cancelled: '취소됨',
       },
       channels: {
+        in_app: '사이트 내 알림',
+        bot: '봇',
         email: '이메일',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: '사용',
       disabled: '사용 안 함',
       failures: {
+        template_other_side: '플랫폼 템플릿은 플랫폼에서만 관리할 수 있어요',
         template_not_found: '템플릿이 존재하지 않습니다',
         config_not_found: '설정이 존재하지 않습니다',
         bot_not_found: '봇이 존재하지 않습니다',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: '삭제에 실패했습니다',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: '소속',
+      owner_platform: '플랫폼',
+      owner_tenant: '자신의 테넌트',
+      action_override: '이 템플릿 재정의',
+      override_title: '플랫폼 템플릿 재정의',
+      form_notice_title: '알림 제목',
       title: '메시지 템플릿',
       add_title: '템플릿 추가',
       edit_title: '템플릿 편집',

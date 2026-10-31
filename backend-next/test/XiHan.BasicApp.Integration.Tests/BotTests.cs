@@ -126,6 +126,28 @@ public sealed class BotTests : IDisposable
         Assert.Equal([("-100123", TelegramToken), ("-100456", TelegramToken)], sent.Skip(2).Select(static s => (s.Endpoint.ChatId!, s.Endpoint.Secret!)).ToList());
         Assert.All(sent, static s => Assert.Equal("Release\n\nv6 is out\n\n/notification/inbox", s.Text));
 
+        // 正文按机器人渠道的模板 notification-bot 渲染：没有正文与链接就只有标题；平台改了模板即按新的发
+        var botTemplate = (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", """{"filters":[{"field":"channel","operator":"eq","value":"Bot"}]}""", platform)).Body.GetProperty("items")[0];
+        Assert.Equal("notification-bot", botTemplate.GetProperty("code").GetString());
+        var botTemplateId = botTemplate.GetProperty("id").GetString()!;
+        var ping = await CreatedAsync(server, "/api/notifications", new { title = "Ping", deliveryChannels = _withBot }, platform);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{ping.GetProperty("id").GetString()}:publish", "{}", platform)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/message-templates/{botTemplateId}", new { name = "Notice", content = "Notice: {{title}}" }, platform)).Status);
+        var pong = await CreatedAsync(server, "/api/notifications", new { title = "Pong", content = "ignored", deliveryChannels = _withBot }, platform);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{pong.GetProperty("id").GetString()}:publish", "{}", platform)).Status);
+        for (var attempt = 0; attempt < 100 && _sent.Count < 12; attempt++)
+        {
+            await Task.Delay(100);
+        }
+
+        Assert.Equal(4, _sent.Count(static s => s.Text == "Ping"));
+        Assert.Equal(4, _sent.Count(static s => s.Text == "Notice: Pong"));
+
+        // 模板停用了，机器人渠道即不可用（与邮件、短信同，不悄悄改发纯文本）
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/message-templates/{botTemplateId}", new { name = "Notice", content = "{{title}}", isEnabled = false }, platform)).Status);
+        var muted = await CreatedAsync(server, "/api/notifications", new { title = "Muted", deliveryChannels = _withBot }, platform);
+        Assert.Equal("NOTIFICATION_UNAVAILABLE_003", (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{muted.GetProperty("id").GetString()}:publish", "{}", platform)).Body.GetProperty("code").GetString());
+
         // 租户没有自己的机器人：机器人渠道不可用，不借平台的（也不发平台的 Telegram）
         var tenantDraft = await CreatedAsync(server, "/api/notifications", new { title = "Team", deliveryChannels = _withBot }, tenant);
         Assert.Equal("NOTIFICATION_UNAVAILABLE_003", (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{tenantDraft.GetProperty("id").GetString()}:publish", "{}", tenant)).Body.GetProperty("code").GetString());

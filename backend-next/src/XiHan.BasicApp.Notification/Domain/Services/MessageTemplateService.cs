@@ -33,26 +33,57 @@ public sealed record TemplateDraft(string Name, string? Subject, string Content,
 /// 消息模板的规则。
 /// </summary>
 /// <remarks>
-/// 编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查；取模板时当前一侧启用的优先，没有取平台启用的。
+/// 编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查，主题只留给邮件与站内通知、HTML 只对邮件；
+/// 租户读得到平台的模板、只改自己的（4.x 同），建同编码的即覆盖；取模板时当前一侧启用的优先，没有取平台启用的。
 /// </remarks>
 /// <param name="templates">模板仓储。</param>
 /// <param name="ids">标识生成器。</param>
 public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid> templates, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 取当前一侧的模板。
+    /// 取这一侧看得到的模板。
     /// </summary>
+    /// <remarks>
+    /// 自己的与平台的。
+    /// </remarks>
     /// <param name="owner">侧。</param>
     /// <param name="id">模板 ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>模板；不存在即 <c>NOTIFICATION_NOTFOUND_003</c>。</returns>
-    public async Task<Result<SysMessageTemplate>> FindAsync(string owner, Guid id, CancellationToken cancellationToken)
+    public async Task<Result<SysMessageTemplate>> FindVisibleAsync(string owner, Guid id, CancellationToken cancellationToken)
     {
         var found = await templates.FindAsync(id, cancellationToken).ConfigureAwait(false);
-        return found.TryGetValue(out var template) && string.Equals(template.OwnerTenantId, owner, StringComparison.Ordinal)
+        return found.TryGetValue(out var template) && (IsPlatform(template.OwnerTenantId) || string.Equals(template.OwnerTenantId, owner, StringComparison.Ordinal))
             ? template
             : Error.NotFound(NotificationErrors.TemplateNotFound, NotificationMessages.TemplateNotFound, MessageArguments.Of(("id", id)));
     }
+
+    /// <summary>
+    /// 取这一侧能改的模板。
+    /// </summary>
+    /// <param name="owner">侧。</param>
+    /// <param name="id">模板 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>模板；看不到即 <c>NOTIFICATION_NOTFOUND_003</c>，租户碰平台的即 <c>NOTIFICATION_DENIED_002</c>。</returns>
+    public async Task<Result<SysMessageTemplate>> FindOwnedAsync(string owner, Guid id, CancellationToken cancellationToken)
+    {
+        var found = await FindVisibleAsync(owner, id, cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var template))
+        {
+            return found;
+        }
+
+        return string.Equals(template.OwnerTenantId, owner, StringComparison.Ordinal)
+            ? template
+            : Error.Denied(NotificationErrors.TemplateOtherSide, NotificationMessages.TemplateOtherSide, MessageArguments.Of(("id", id)));
+    }
+
+    /// <summary>
+    /// 是否为平台的模板。
+    /// </summary>
+    /// <param name="owner">属主。</param>
+    /// <returns>是否平台。</returns>
+    public static bool IsPlatform(string owner) => string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal);
 
     /// <summary>
     /// 发送时取模板：当前一侧启用的同编码模板，没有取平台启用的。
@@ -147,10 +178,10 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
         var failed = new List<BatchFailure>();
         foreach (var id in templateIds.Distinct())
         {
-            var found = await FindAsync(owner, id, cancellationToken).ConfigureAwait(false);
+            var found = await FindOwnedAsync(owner, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var template))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.TemplateNotFound));
+                failed.Add(new BatchFailure(id, found.Error!.Code));
                 continue;
             }
 
@@ -182,10 +213,12 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
 
     private static void Apply(SysMessageTemplate template, TemplateDraft draft)
     {
+        // 主题是邮件主题与站内通知的标题，短信与机器人不用；HTML 只对邮件（4.x 同）
+        var titled = template.Channel is TemplateChannel.Email or TemplateChannel.InApp;
         template.Name = draft.Name.Trim();
-        template.Subject = string.IsNullOrWhiteSpace(draft.Subject) ? null : draft.Subject;
+        template.Subject = !titled || string.IsNullOrWhiteSpace(draft.Subject) ? null : draft.Subject;
         template.Content = draft.Content;
-        template.IsHtml = draft.IsHtml;
+        template.IsHtml = template.Channel == TemplateChannel.Email && draft.IsHtml;
         template.Description = string.IsNullOrWhiteSpace(draft.Description) ? null : draft.Description.Trim();
         template.IsEnabled = draft.IsEnabled;
         template.Order = draft.Order;

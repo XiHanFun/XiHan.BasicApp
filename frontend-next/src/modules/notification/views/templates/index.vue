@@ -26,13 +26,17 @@ import { useI18n } from 'vue-i18n'
 import { renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { TemplateChannel as CHANNELS, messageTemplates as templatesApi } from '~/contracts'
+import { useAuthStore } from '~/stores'
 import { enabledLabel, enabledOptions, errorText, templateChannelLabel } from '../../labels'
-import { emptyTemplateForm, findTemplateProblem, isEmailChannel, templateProblemMessage, templateResource, toCreateBody, toTemplateForm, toUpdateBody } from './template'
+import { canOverrideTemplate, emptyTemplateForm, findTemplateProblem, hasSubject, isEmailChannel, isOwnTemplate, templateProblemMessage, templateResource, toCreateBody, toOverrideForm, toTemplateForm, toUpdateBody } from './template'
 
 defineOptions({ name: 'NotificationTemplatesView' })
 
 const { t } = useI18n()
 const resource = templateResource(t)
+const auth = useAuthStore()
+/** 平台一侧：平台的模板是自己的；租户一侧看得到平台的、只能覆盖（4.x 同） */
+const isPlatformCaller = () => auth.tenantId === null
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()
@@ -50,6 +54,12 @@ function yesNo(value: boolean): string {
   return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
+function ownerLabel(row: TemplateRow): string {
+  return row.isPlatform ? t('notification.templates.owner_platform') : t('notification.templates.owner_tenant')
+}
+
+const isOwn = (row: object) => isOwnTemplate(asRow(row), isPlatformCaller())
+
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：编码、排序） ──
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('notification.templates.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.templates.search_keyword_placeholder'), order: 0 },
@@ -57,6 +67,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'channel', title: t('notification.templates.col_channel'), dataType: 'enum', searchable: true, searchMultiple: true, options: channelOptions.value, searchPlaceholder: t('notification.templates.search_channel_placeholder'), width: 100, order: 11, render: row => templateChannelLabel(t, asRow(row).channel) },
   { key: 'name', title: t('notification.templates.col_name'), dataType: 'string', minWidth: 140, order: 12 },
   { key: 'subject', title: t('notification.templates.col_subject'), dataType: 'string', minWidth: 200, order: 13 },
+  { key: 'isPlatform', title: t('notification.templates.col_owner'), dataType: 'enum', width: 90, order: 14, render: row => renderTag(ownerLabel(asRow(row)), asRow(row).isPlatform ? 'info' : 'neutral') },
   { key: 'isHtml', title: t('notification.templates.col_is_html'), dataType: 'enum', width: 80, order: 15, render: row => yesNo(asRow(row).isHtml) },
   { key: 'description', title: t('notification.templates.col_description'), dataType: 'string', minWidth: 220, order: 16 },
   { key: 'isEnabled', title: t('notification.templates.col_status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.templates.search_status_placeholder'), width: 90, order: 17, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
@@ -74,9 +85,10 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('notification.templates.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.message-templates.create' },
     { key: 'view', title: t('notification.templates.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('notification.templates.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'notification.message-templates.update' },
-    { key: 'toggle', title: t('notification.templates.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).name), permission: 'notification.message-templates.update' },
-    { key: 'delete', title: t('notification.templates.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: t('notification.templates.confirm_delete'), permission: 'notification.message-templates.delete' },
+    { key: 'edit', title: t('notification.templates.action_edit'), scope: 'row', icon: 'lucide:pen', visible: isOwn, permission: 'notification.message-templates.update' },
+    { key: 'override', title: t('notification.templates.action_override'), scope: 'row', icon: 'lucide:copy-plus', visible: row => canOverrideTemplate(asRow(row), isPlatformCaller()), permission: 'notification.message-templates.create' },
+    { key: 'toggle', title: t('notification.templates.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).name), visible: isOwn, permission: 'notification.message-templates.update' },
+    { key: 'delete', title: t('notification.templates.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: t('notification.templates.confirm_delete'), visible: isOwn, permission: 'notification.message-templates.delete' },
   ],
 }))
 
@@ -93,6 +105,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'edit':
       if (row)
         void openEdit(row)
+      break
+    case 'override':
+      if (row)
+        void openOverride(row)
       break
     case 'toggle':
       if (row)
@@ -124,18 +140,42 @@ const modalVisible = ref(false)
 const submitting = ref(false)
 const submitError = ref<null | string>(null)
 const form = reactive<TemplateForm>(emptyTemplateForm())
-const modalTitle = computed(() => (form.id ? t('notification.templates.edit_title') : t('notification.templates.add_title')))
+/** 覆盖平台模板：照平台那份新建，编码与渠道不改 */
+const overriding = ref(false)
+const modalTitle = computed(() => {
+  if (form.id)
+    return t('notification.templates.edit_title')
+  return overriding.value ? t('notification.templates.override_title') : t('notification.templates.add_title')
+})
 const emailChannel = computed(() => isEmailChannel(form.channel))
+const subjectChannel = computed(() => hasSubject(form.channel))
+/** 站内通知的主题即通知标题 */
+const subjectLabel = computed(() => form.channel === 'InApp' ? t('notification.templates.form_notice_title') : t('notification.templates.form_subject'))
+const codeLocked = computed(() => Boolean(form.id) || overriding.value)
 
 function openCreate() {
   Object.assign(form, emptyTemplateForm())
+  overriding.value = false
   submitError.value = null
   modalVisible.value = true
+}
+
+async function openOverride(row: TemplateRow) {
+  try {
+    Object.assign(form, toOverrideForm(await templatesApi.get({ id: row.id })))
+    overriding.value = true
+    submitError.value = null
+    modalVisible.value = true
+  }
+  catch (error) {
+    toast.danger(errorText(error) || t('notification.templates.msg_load_failed'))
+  }
 }
 
 async function openEdit(row: TemplateRow) {
   try {
     Object.assign(form, toTemplateForm(await templatesApi.get({ id: row.id })))
+    overriding.value = false
     submitError.value = null
     modalVisible.value = true
   }
@@ -208,13 +248,13 @@ async function removeRow(row: TemplateRow) {
         <XhFieldRoot :required="!form.id">
           <XhFieldLabel>{{ t('notification.templates.form_code') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="form.code" name="code" clearable :max-length="64" :disabled="Boolean(form.id)" :placeholder="t('notification.templates.form_code_placeholder')" />
+            <XInput v-model:value="form.code" name="code" clearable :max-length="64" :disabled="codeLocked" :placeholder="t('notification.templates.form_code_placeholder')" />
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot required>
           <XhFieldLabel>{{ t('notification.templates.form_channel') }}</XhFieldLabel>
           <XhFieldControl>
-            <XSelect :value="form.channel" name="channel" :disabled="Boolean(form.id)" :options="channelOptions" @update:value="changeChannel" />
+            <XSelect :value="form.channel" name="channel" :disabled="codeLocked" :options="channelOptions" @update:value="changeChannel" />
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot required>
@@ -229,10 +269,10 @@ async function removeRow(row: TemplateRow) {
             <XNumberInput v-model:value="form.order" name="order" :min="0" :max="100000" />
           </XhFieldControl>
         </XhFieldRoot>
-        <XhFieldRoot v-if="emailChannel" class="xh-span-2">
-          <XhFieldLabel>{{ t('notification.templates.form_subject') }}</XhFieldLabel>
+        <XhFieldRoot v-if="subjectChannel" class="xh-span-2">
+          <XhFieldLabel>{{ subjectLabel }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="form.subject" name="subject" clearable :max-length="256" :placeholder="t('notification.templates.form_subject_placeholder')" />
+            <XInput v-model:value="form.subject" name="subject" clearable :max-length="256" :placeholder="emailChannel ? t('notification.templates.form_subject_placeholder') : undefined" />
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" required>
@@ -296,6 +336,10 @@ async function removeRow(row: TemplateRow) {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('notification.templates.detail_status') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ enabledLabel(t, currentDetail.isEnabled) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('notification.templates.col_owner') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ ownerLabel(currentDetail) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
           </XhDescriptionsRoot>
           <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
