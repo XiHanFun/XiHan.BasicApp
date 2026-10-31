@@ -32,7 +32,7 @@ frontend-next/
 
 一份 `openapi.json`、一个生成器：后端在仓库根执行 `dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"` 导出（`dotnet run` 以工程目录为工作目录，`--out` 给绝对路径），`pnpm gen:contracts` 生成 `packages/contracts/*`，生成物入库；CI 先比对导出文件、再比对生成物（`pnpm contracts:check`），任一漂移即失败。改契约的顺序：后端操作 → 导出 → 生成 → 改页面 → 同一提交。
 
-运行时只依赖 `code` 与 `errors`：`SECURITY_DENIED_001`（访问令牌过期）走刷新钩子——用刷新令牌换一次并重放，刷新也失败即回登录页；`IDENTITY_DENIED_001`（会话被吊销：注销、改密、锁定、重置密码）直接回登录页；`IDENTITY_DENIED_002` 走锁屏钩子，`KERNEL_UNAVAILABLE_001` 走维护钩子；字段级 `errors` 交给表单按字段显示。登录与刷新以 `anonymous: true` 调用，不带旧令牌。
+运行时只依赖 `code` 与 `errors`：`SECURITY_DENIED_001`（未认证）与 `SECURITY_DENIED_003`（访问令牌过期或签名不符）走刷新钩子——用刷新令牌换一次并重放，刷新也失败即回登录页；`IDENTITY_DENIED_001`（会话被吊销：注销、改密、锁定、重置密码）直接回登录页；`IDENTITY_DENIED_002` 走锁屏钩子，`RUNTIME_UNAVAILABLE_003`（别的节点在升级共享库）与 `KERNEL_UNAVAILABLE_001`（内核未就绪）走维护钩子；字段级 `errors` 交给表单按字段显示。登录与刷新以 `anonymous: true` 调用，不带旧令牌。
 
 ## 会话、权限与菜单
 

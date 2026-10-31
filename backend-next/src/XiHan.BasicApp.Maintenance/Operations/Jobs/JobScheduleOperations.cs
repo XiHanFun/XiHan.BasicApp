@@ -159,7 +159,7 @@ public sealed class RestoreJobs(IJobScheduler scheduler) : IOperation<JobIdsRequ
 /// 列出已登记的作业类型。
 /// </summary>
 /// <remarks>
-/// <c>GET /api/jobs:types</c>（平台侧）。作业列表按类型筛选时的候选；6.0 不在运行时新建作业，这里只读。
+/// <c>GET /api/jobs:types</c>（平台侧）。作业列表按类型筛选与新建运行时作业（<c>jobs.create</c>）时的候选，只读。
 /// </remarks>
 /// <param name="types">作业类型登记。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
