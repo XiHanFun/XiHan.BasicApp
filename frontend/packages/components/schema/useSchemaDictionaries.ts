@@ -1,3 +1,4 @@
+/** 统一字典解析，保留服务端样式及停用信息，布尔筛选仍使用1/0。 */
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type { ListFieldSchema, SchemaSelectOption } from './types'
 import { computed, shallowReactive, toValue } from 'vue'
@@ -67,7 +68,7 @@ export function useSchemaDictionaries(
       }
     }
     if (field.dictCode) {
-      const resolved = getDictOptions(field.dictCode).map(option => ({ label: option.label, value: option.value }))
+      const resolved = getDictOptions(field.dictCode).map(option => ({ label: option.label, value: field.dataType === 'boolean' ? (option.value === 'true' ? 1 : option.value === 'false' ? 0 : option.value) : option.value, ...(option.tagStyle ? { tagStyle: option.tagStyle } : {}), ...(option.description ? { description: option.description } : {}) }))
       if (resolved.length) {
         return resolved
       }

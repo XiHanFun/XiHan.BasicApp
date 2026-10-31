@@ -1,16 +1,19 @@
+<!-- 离线图标选择器：按需注册已有图标、处理禁用状态，供菜单与字典样式共用。 -->
+<!-- 共用离线图标选择器：菜单与字典复用；受控值、禁用状态与嵌套弹窗保持一致。 -->
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
 import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsNextTrigger, XhTabsPrevTrigger, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
-import { ICON_SET_META, loadIconNames } from './offline'
+import { ensureIconLoaded, ICON_SET_META, loadIconNames } from './offline'
 
 defineOptions({ name: 'IconPicker' })
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   placeholder: '',
+  disabled: false,
 })
 
 const emit = defineEmits<{
@@ -23,6 +26,7 @@ const fieldControl = useFieldControl()
 interface Props {
   modelValue?: string | null
   placeholder?: string
+  disabled?: boolean
 }
 
 const { t } = useI18n()
@@ -51,6 +55,23 @@ const currentIconId = computed(() => {
     return ''
   }
   return v.includes(':') ? v : `lucide:${v}`
+})
+
+const currentIconReady = ref(false)
+// 编辑已有值时也装载其图标集；旧选择返回后不能覆盖新选择，卸载时由watch清理。
+watch(currentIconId, async (icon, _previous, onCleanup) => {
+  let active = true
+  onCleanup(() => {
+    active = false
+  })
+  currentIconReady.value = false
+  const ready = await ensureIconLoaded(icon)
+  if (active)
+    currentIconReady.value = ready
+}, { immediate: true })
+watch(() => props.disabled, (disabled) => {
+  if (disabled)
+    visible.value = false
 })
 
 async function loadIcons() {
@@ -82,7 +103,10 @@ watch(visible, (v) => {
   }
 })
 
+/** @param name 所选图标名称。 @returns 更新受控值并关闭；禁用期间不提交选择。 */
 function handleSelect(name: string) {
+  if (props.disabled)
+    return
   const id = `${activePrefix.value}:${name}`
   emit('update:modelValue', id)
   visible.value = false
@@ -94,12 +118,18 @@ function handleTabChange(prefix: string | null) {
   }
 }
 
+/** 打开选择弹窗；保存中或外部禁用时不响应。 */
 function openPicker() {
+  if (props.disabled)
+    return
   visible.value = true
   searchKeyword.value = ''
 }
 
+/** 清除自定义选择，由宿主决定默认显示。 */
 function handleClear() {
+  if (props.disabled)
+    return
   emit('update:modelValue', '')
   visible.value = false
 }
@@ -107,8 +137,8 @@ function handleClear() {
 
 <template>
   <div class="icon-picker">
-    <XhButton v-bind="fieldControl" variant="outline" size="sm" full-width class="icon-picker-trigger" @click="openPicker">
-      <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
+    <XhButton v-bind="fieldControl" variant="outline" size="sm" full-width class="icon-picker-trigger" :disabled="disabled" :aria-label="placeholderText" :title="currentIconId || undefined" @click="openPicker">
+      <Icon v-if="currentIconId && currentIconReady" :key="currentIconId" :icon="currentIconId" width="20" />
       <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
     </XhButton>
 

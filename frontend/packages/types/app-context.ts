@@ -1,3 +1,4 @@
+/** 应用注入契约：字典选项携带可选显示样式，不改变编码及鉴权。 */
 import type {
   CaptchaChallenge,
   EmailLoginParams,
@@ -17,6 +18,7 @@ import type {
   UserInfo,
   VerificationCodeResult,
 } from './auth'
+import type { DictTagStyle } from './dictionary'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
 import type {
   ApiCredentialItem,
@@ -175,7 +177,7 @@ export interface AppContextApis {
   /** 时区目录（顶栏 / 个人中心 / 编号规则共用；后端已筛掉服务端无法解析的时区） */
   /** 系统字典选项（业务表单下拉；只按登录态门控，值为字典项编码，树形字典按深度优先展平） */
   dictApi: {
-    options: (dictCode: string) => Promise<Array<{ value: string, label: string, parentValue?: null | string, isDefault: boolean, disabled: boolean }>>
+    options: (dictCode: string) => Promise<Array<{ value: string, label: string, description?: string | null, parentValue?: null | string, isDefault: boolean, disabled: boolean, tagStyle?: DictTagStyle | null }>>
   }
   timeZoneApi: {
     options: () => Promise<Array<{ id: string, displayName: string, baseUtcOffsetMinutes: number, supportsDaylightSavingTime: boolean }>>

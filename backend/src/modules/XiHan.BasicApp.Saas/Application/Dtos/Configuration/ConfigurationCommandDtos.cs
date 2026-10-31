@@ -4,6 +4,7 @@
 #pragma warning disable CS1591
 
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
@@ -101,6 +102,8 @@ public sealed class DictItemCreateDto
     public string? ItemValue { get; set; }
     public string? ItemDescription { get; set; }
     public string? Metadata { get; set; }
+    /// <summary>标签样式；省略时不另改样式，空对象恢复组件默认。</summary>
+    public DictTagStyle? TagStyle { get; set; }
     public bool IsDefault { get; set; }
     public EnableStatus Status { get; set; } = EnableStatus.Enabled;
     public int Sort { get; set; }
@@ -112,11 +115,15 @@ public sealed class DictItemCreateDto
 /// </summary>
 public sealed class DictItemUpdateDto : BasicAppUDto
 {
+    /// <summary>编辑时版本，以字符串避免JavaScript大整数损失；新编辑页始终传入。</summary>
+    public string? ExpectedVersion { get; set; }
     public long? ParentId { get; set; }
     public string ItemName { get; set; } = string.Empty;
     public string? ItemValue { get; set; }
     public string? ItemDescription { get; set; }
     public string? Metadata { get; set; }
+    /// <summary>标签样式；省略时不另改样式，空对象恢复组件默认。</summary>
+    public DictTagStyle? TagStyle { get; set; }
     public bool IsDefault { get; set; }
     public int Sort { get; set; }
     public string? Remark { get; set; }

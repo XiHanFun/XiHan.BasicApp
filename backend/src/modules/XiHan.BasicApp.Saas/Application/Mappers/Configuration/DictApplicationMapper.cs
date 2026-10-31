@@ -73,7 +73,8 @@ public static class DictApplicationMapper
             input.IsDefault,
             input.Status,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.TagStyle);
     }
 
     /// <summary>
@@ -92,7 +93,9 @@ public static class DictApplicationMapper
             input.Metadata,
             input.IsDefault,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.TagStyle,
+            input.ExpectedVersion);
     }
 
     /// <summary>
@@ -171,6 +174,7 @@ public static class DictApplicationMapper
 
         return new DictItemListItemDto
         {
+            EditVersion = dictItem.RowVersion.ToString(System.Globalization.CultureInfo.InvariantCulture),
             BasicId = dictItem.BasicId,
             DictId = dictItem.DictId,
             ParentId = dictItem.ParentId,
@@ -178,6 +182,7 @@ public static class DictApplicationMapper
             ItemName = dictItem.ItemName,
             ItemValue = dictItem.ItemValue,
             ItemDescription = dictItem.ItemDescription,
+            TagStyle = DictTagStyles.Read(dictItem.Metadata),
             IsDefault = dictItem.IsDefault,
             Status = dictItem.Status,
             Sort = dictItem.Sort,
@@ -198,6 +203,7 @@ public static class DictApplicationMapper
         var item = ToItemListItemDto(dictItem);
         return new DictItemDetailDto
         {
+            EditVersion = item.EditVersion,
             BasicId = item.BasicId,
             DictId = item.DictId,
             ParentId = item.ParentId,
@@ -205,6 +211,7 @@ public static class DictApplicationMapper
             ItemName = item.ItemName,
             ItemValue = item.ItemValue,
             ItemDescription = item.ItemDescription,
+            TagStyle = item.TagStyle,
             IsDefault = item.IsDefault,
             Status = item.Status,
             Sort = item.Sort,
@@ -237,6 +244,7 @@ public static class DictApplicationMapper
             ItemName = dictItem.ItemName,
             ItemValue = dictItem.ItemValue,
             ItemDescription = dictItem.ItemDescription,
+            TagStyle = DictTagStyles.Read(dictItem.Metadata),
             IsDefault = dictItem.IsDefault,
             Status = dictItem.Status,
             Sort = dictItem.Sort

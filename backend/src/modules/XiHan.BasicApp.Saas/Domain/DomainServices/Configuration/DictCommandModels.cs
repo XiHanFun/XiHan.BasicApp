@@ -48,7 +48,8 @@ public sealed record DictItemCreateCommand(
     bool IsDefault,
     EnableStatus Status,
     int Sort,
-    string? Remark);
+    string? Remark,
+    DictTagStyle? TagStyle = null);
 
 /// <summary>
 /// 字典项更新命令
@@ -62,7 +63,9 @@ public sealed record DictItemUpdateCommand(
     string? Metadata,
     bool IsDefault,
     int Sort,
-    string? Remark);
+    string? Remark,
+    DictTagStyle? TagStyle = null,
+    string? ExpectedVersion = null);
 
 /// <summary>
 /// 字典项状态变更命令

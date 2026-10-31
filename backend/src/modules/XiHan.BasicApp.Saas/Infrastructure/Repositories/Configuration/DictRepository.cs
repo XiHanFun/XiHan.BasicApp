@@ -10,9 +10,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// <summary>
 /// 字典仓储实现
 /// </summary>
-public sealed class DictRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysDict>(clientResolver), IDictRepository
+public sealed class DictRepository : SaasRepository<SysDict>, IDictRepository
 {
+    private readonly ISqlSugarClientResolver _resolver;
+    /// <summary>复用所属平台数据源。</summary><param name="resolver">解析器。</param>
+    public DictRepository(ISqlSugarClientResolver resolver) : base(resolver) => _resolver = resolver;
+
+    /// <inheritdoc />
+    public async Task TouchItemsVersionAsync(SysDict dict, CancellationToken cancellationToken = default)
+    {
+        // 与原字典项共享应用层UOW；版本与显示修改同时提交，避免缓存通配删除不生效或旧请求回填。
+        var affected = await _resolver.GetClientForEntity<SysDict>().Updateable<SysDict>()
+            .SetColumns(row => new SysDict { RowVersion = row.RowVersion + 1 })
+            .Where(row => row.BasicId == dict.BasicId && row.TenantId == dict.TenantId && !row.IsDeleted)
+            .ExecuteCommandAsync(cancellationToken);
+        if (affected != 1) throw new InvalidOperationException("字典已变化，显示配置没有提交，请刷新后重试。");
+    }
     /// <summary>
     /// 根据字典编码获取
     /// </summary>

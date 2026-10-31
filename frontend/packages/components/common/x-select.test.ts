@@ -6,6 +6,7 @@
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import { h } from 'vue'
 import { i18n } from '~/locales'
 import XSelect from './XSelect.vue'
 
@@ -91,6 +92,22 @@ describe('xSelect 在途与空态', () => {
 })
 
 describe('xSelect 取值与三态', () => {
+  it('选项预览插槽不改变原值类型或选中值名称', async () => {
+    const wrapper = mount(XSelect, {
+      props: { options, value: 1 },
+      slots: { option: ({ option }) => h('strong', { 'data-option-preview': option.value }, option.label) },
+      global: { plugins: [i18n] },
+      attachTo: document.body,
+    })
+    await open(wrapper)
+    expect(document.querySelector('[data-option-preview="2"]')?.textContent).toBe('停用')
+    expect(wrapper.find('[data-part="value-text"]').text()).toBe('启用')
+    document.querySelectorAll<HTMLElement>('[data-scope="select"][data-part="item"]')[1]!.click()
+    await flushPromises()
+    expect(wrapper.emitted('update:value')?.at(-1)).toEqual([2])
+    wrapper.unmount()
+  })
+
   it('选中后按原类型收上来：数字选项不会变成字符串', async () => {
     const wrapper = mountSelect({ value: null })
     await open(wrapper)

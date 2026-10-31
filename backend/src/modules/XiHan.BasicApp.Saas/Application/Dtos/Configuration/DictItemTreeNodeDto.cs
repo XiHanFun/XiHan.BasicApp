@@ -4,6 +4,11 @@
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
+using XiHan.BasicApp.Saas.Domain.DomainServices;
+
+using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
@@ -11,6 +16,10 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 /// </summary>
 public sealed class DictItemTreeNodeDto : BasicAppDto
 {
+    /// <summary>字典项的标签显示样式，不包含其他扩展元数据。</summary>
+    [FieldSecuritySource(nameof(SysDictItem.Metadata))]
+    public DictTagStyle? TagStyle { get; set; }
+
     /// <summary>
     /// 字典主键
     /// </summary>

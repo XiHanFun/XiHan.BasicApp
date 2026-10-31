@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
@@ -29,15 +30,17 @@ public sealed class DictAppService
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     private readonly IFieldSecurityService _fieldSecurity;
+    private readonly IDictItemRepository _dictItems;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DictAppService(IDictDomainService dictDomainService, ISaasCacheInvalidator cacheInvalidator, IFieldSecurityService fieldSecurity)
+    public DictAppService(IDictDomainService dictDomainService, ISaasCacheInvalidator cacheInvalidator, IFieldSecurityService fieldSecurity, IDictItemRepository dictItems)
     {
         _dictDomainService = dictDomainService;
         _cacheInvalidator = cacheInvalidator;
         _fieldSecurity = fieldSecurity;
+        _dictItems = dictItems;
     }
 
     /// <summary>
@@ -68,6 +71,8 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 样式最终存储于Metadata，先投影到真实字段，再执行原字段安全，避免派生属性绕过只读规则。
+        input.Metadata = DictTagStyles.Merge(input.Metadata, input.TagStyle);
         // 字段安全：只读字段不能填写
         await _fieldSecurity.EnsureCreatableAsync(typeof(SysDictItem), input, cancellationToken);
 
@@ -128,12 +133,25 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await EnsureTagStyleWritableAsync(input, cancellationToken);
         // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
         await _fieldSecurity.EnsureUpdatableAsync(typeof(SysDictItem), input.BasicId, input, cancellationToken);
 
         var result = await _dictDomainService.UpdateDictItemAsync(DictApplicationMapper.ToItemUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
+    }
+
+    // TagStyle是Metadata的派生写入。只读元数据可原样回交，但不能通过新属性改变颜色。
+    private async Task EnsureTagStyleWritableAsync(DictItemUpdateDto input, CancellationToken token)
+    {
+        if (input.TagStyle is null) return;
+        var rules = await _fieldSecurity.ResolveAsync(typeof(SysDictItem), token);
+        if (!rules.TryGetValue(nameof(SysDictItem.Metadata), out var rule) || rule.IsEditable) return;
+        var stored = await _dictItems.GetByIdAsync(input.BasicId, token)
+            ?? throw new InvalidOperationException("字典项不存在或当前范围不可读取。");
+        if (DictTagStyles.Merge(stored.Metadata, input.TagStyle) != stored.Metadata)
+            throw new InvalidOperationException("当前账号无权修改字典项元数据中的标签样式。");
     }
 
     /// <summary>

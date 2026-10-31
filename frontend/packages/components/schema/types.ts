@@ -1,13 +1,19 @@
+/** SchemaPage声明契约：字段、字典和展示配置由同一处派生。 */
 import type { Tone } from '@xihan-ui/core'
 import type { VNodeChild } from 'vue'
+import type { DictTagStyle } from '../common/dict-tag'
 import type { ApiId, PageResult, QueryFilter } from '~/types/contracts'
 
 /**
  * 下拉/标签选项（与 business 常量、组件库 collection 结构兼容）
  */
 export interface SchemaSelectOption<TValue extends string | number = string | number> {
+  /** 字典项的说明，仅用作文本提示。 */
+  description?: string
   label: string
   value: TValue
+  /** 字典项展示样式；不改变选项值或业务规则。 */
+  tagStyle?: DictTagStyle | null
 }
 
 /**

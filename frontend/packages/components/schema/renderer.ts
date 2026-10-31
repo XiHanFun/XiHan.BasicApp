@@ -1,9 +1,11 @@
+/** 标准单元格渲染：字典字段使用配置样式，自定义 render 保持最高优先级。 */
 import type { VNodeChild } from 'vue'
 import type { ListFieldSchema } from './types'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
+import { renderDictTag } from '../common/dict-tag'
 import SchemaFileRefCell from './SchemaFileRefCell.vue'
 import { resolveStatusTagTone } from './status-tag'
 
@@ -87,6 +89,15 @@ export function renderFieldCell<TRow extends object>(
   }
 
   const raw = readField(row, field.key)
+
+  // 字典字段以服务端样式为准。布尔筛选的1/0仅是UI值，不能由布尔值推断业务配色。
+  if (field.dictCode) {
+    if (raw == null || raw === '')
+      return '-'
+    const value = typeof raw === 'boolean' && field.dataType === 'boolean' ? Number(raw) : raw
+    const option = field.options?.find(item => String(item.value) === String(value))
+    return renderDictTag(option?.label ?? String(raw), option?.tagStyle, option?.description)
+  }
 
   // 标签型：用字典 options 映射 label，并按语气着色
   if ((field.dataType === 'tag' || field.dataType === 'enum') && field.options) {
