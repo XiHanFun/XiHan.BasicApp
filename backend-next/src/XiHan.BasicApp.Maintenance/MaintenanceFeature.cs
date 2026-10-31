@@ -60,6 +60,8 @@ public sealed class MaintenanceFeature : IFeature
         context.Services.AddScoped<SchemaQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, MaintenanceWidgets>();
         context.Services.AddPermissionCatalog("maintenance", MaintenancePermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        MaintenanceFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("maintenance", MaintenancePages.All);
         foreach (var permission in MaintenancePermissions.All)
         {
