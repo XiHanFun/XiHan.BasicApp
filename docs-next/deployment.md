@@ -82,7 +82,7 @@ pnpm build          # 产物在 dist/
 
 构建期变量见[配置参考](./configuration#前端-env)：`VITE_API_BASE_URL` 留空即同源；`VITE_ROUTER_HISTORY=history` 时静态托管要把未知路径回退到 `index.html`。
 
-后端没有配置 CORS，前端应与后端同源部署：由同一个站点托管 `dist/` 并把后端路径反向代理过去。
+推荐与后端同源部署：由同一个站点托管 `dist/` 并把后端路径反向代理过去，不必开跨域。前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出前端的来源（见[配置参考](./configuration#basicapp-cors)）。
 
 ```nginx
 server {
@@ -128,8 +128,8 @@ server {
 
 `client_max_body_size` 与 `BasicApp:Files:MaxUploadBytes`（缺省 100 MB）保持一致；大文件走分片上传，分片经签名地址直传存储。
 
-::: warning 真实客户端 IP
-宿主目前没有启用转发头处理（`UseForwardedHeaders`）。放在反向代理后面时，访问日志、登录地点、会话 IP 与访问策略的 IP / 地区条件看到的都是代理地址。在这项补上之前，访问策略里不要依赖 IP 条件做放行判断。
+::: tip 真实客户端 IP
+宿主还原 `X-Forwarded-For` / `-Proto` / `-Host`，但只信本机回环。反向代理不在本机时，把它的地址或网段写进 `BasicApp:ForwardedHeaders:KnownProxies` / `KnownNetworks`（见[配置参考](./configuration#basicapp-forwardedheaders)），否则访问日志、登录地点、会话 IP 与访问策略的 IP / 地区条件看到的都是代理地址。
 :::
 
 ## gRPC

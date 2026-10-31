@@ -103,6 +103,30 @@
 | --- | --- | --- |
 | `Enabled` | 没写时 Development 为真、其余为假 | 是否映射 `/openapi.json`、`/openapi/<组>.json` 与 `/scalar` |
 
+## `BasicApp:ForwardedHeaders`
+
+反向代理的转发头：宿主在管道最前面还原 `X-Forwarded-For` / `-Proto` / `-Host`，访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址。只信本机回环与下面列出的代理，配置写错启动即报错。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `KnownProxies` | 空 | 受信代理的单个地址 |
+| `KnownNetworks` | 空 | 受信代理的网段（CIDR，主机位为 0，如 `10.0.0.0/8`） |
+| `ForwardLimit` | `1` | 从右往左认几层转发 |
+
+## `BasicApp:Cors`
+
+前端与后端不同源部署时打开。不写来源即不启用跨域，只能同源访问；配置写错启动即报错。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AllowedOrigins` | 空 | 允许的来源（协议 + 主机 + 端口，不带路径） |
+| `AllowAnyOrigin` | `false` | 放开全部来源；不能与 `AllowedOrigins` 或 `AllowCredentials` 同时写 |
+| `AllowAnyMethod` / `AllowedMethods` | `true` / 空 | 允许的方法 |
+| `AllowAnyHeader` / `AllowedHeaders` | `true` / 空 | 允许的请求头 |
+| `AllowCredentials` | `true` | 是否允许携带凭据 |
+| `ExposedHeaders` | 空 | 暴露给前端脚本的响应头 |
+| `PreflightMaxAgeSeconds` | `0` | 预检结果的缓存秒数，0 为不设置 |
+
 ## `BasicApp:Schema`
 
 | 键 | 缺省 | 说明 |

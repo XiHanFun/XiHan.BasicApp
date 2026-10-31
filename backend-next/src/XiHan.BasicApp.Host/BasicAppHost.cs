@@ -67,6 +67,16 @@ public static class BasicAppHost
 
         // 可选模块的开关在调用方改完配置之后读（测试可以关掉模块）
         var modules = HostModules.FromConfiguration(builder.Configuration);
+
+        // 反向代理的转发头与跨域：配置写错启动即报错；跨域没配来源即不启用（只能同源访问）
+        var forwarded = ForwardedHeadersSettings.FromConfiguration(builder.Configuration);
+        builder.Services.Configure<ForwardedHeadersOptions>(forwarded.Apply);
+        var cors = CorsSettings.FromConfiguration(builder.Configuration);
+        if (cors.Enabled)
+        {
+            builder.Services.AddCors(options => options.AddDefaultPolicy(cors.Apply));
+        }
+
         builder.AddXiHan(xihan =>
         {
             xihan
@@ -114,11 +124,18 @@ public static class BasicAppHost
     /// <remarks>
     /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、签名地址的收发端点（<c>/blobs</c>）、普通端点。
     /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（指定框架的 <c>XiHan</c> 认证方案，不设为缺省），操作照旧由内核认证。
-    /// 维护模式排在最前：别的节点升级共享的库期间，除健康检查外一律 503。
+    /// 转发头排在最前，之后的中间件、内核管道与普通端点拿到的都是还原后的客户端地址与协议；跨域（配了来源才启用）紧随其后，维护期间的 503 也带上跨域头。
+    /// 维护模式随后：别的节点升级共享的库期间，除健康检查外一律 503。
     /// </remarks>
     public static void Map(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
+        app.UseForwardedHeaders();
+        if (CorsSettings.FromConfiguration(app.Configuration).Enabled)
+        {
+            app.UseCors();
+        }
+
         app.UseMiddleware<MaintenanceModeMiddleware>();
         app.UseAuthentication();
         app.UseAuthorization();

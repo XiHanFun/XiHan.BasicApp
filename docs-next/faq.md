@@ -45,7 +45,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 前端提示跨域错误
 
-开发态前端经 Vite 代理访问后端，与后端同源，不应出现跨域。出现了说明 `VITE_API_BASE_URL` 被设成了别的源；留空即可。部署时也要同源（后端没有配置 CORS），见[部署](./deployment)。
+开发态前端经 Vite 代理访问后端，与后端同源，不应出现跨域。出现了说明 `VITE_API_BASE_URL` 被设成了别的源；留空即可。部署时推荐同源；前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出它，见[部署](./deployment)。
 
 ### 是否需要 Redis？
 
