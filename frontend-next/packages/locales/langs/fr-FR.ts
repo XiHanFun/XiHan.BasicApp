@@ -748,6 +748,7 @@ export default {
     server_error_desc: 'Désolé, le serveur a rencontré une erreur. Veuillez réessayer plus tard',
     back_home: 'Retour à l\'accueil',
     back_prev: 'Retour',
+    maintenance: 'Le système est en cours de mise à niveau. Réessayez dans quelques instants.',
   },
   header: {
     context: {

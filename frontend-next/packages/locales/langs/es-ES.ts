@@ -748,6 +748,7 @@ export default {
     server_error_desc: 'Lo sentimos, el servidor ha encontrado un error. Inténtalo de nuevo más tarde',
     back_home: 'Volver al inicio',
     back_prev: 'Volver',
+    maintenance: 'El sistema se está actualizando. Inténtelo de nuevo en unos momentos.',
   },
   header: {
     context: {

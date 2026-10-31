@@ -33,7 +33,7 @@ export interface RequestHooks {
   onSessionInvalid?: (error: ApiError) => void
   /** 会话锁定（IDENTITY_DENIED_002）：拉起锁屏 */
   onLocked?: (error: ApiError) => void
-  /** 维护中（KERNEL_UNAVAILABLE_001） */
+  /** 暂时不可用：别的节点在升级共享库（RUNTIME_UNAVAILABLE_003），或内核还没就绪 / 正在停机（KERNEL_UNAVAILABLE_001） */
   onMaintenance?: (error: ApiError) => void
 }
 
@@ -52,7 +52,10 @@ export const ErrorCodes = {
   tokenRejected: 'SECURITY_DENIED_003',
   sessionInvalid: 'IDENTITY_DENIED_001',
   locked: 'IDENTITY_DENIED_002',
-  maintenance: 'KERNEL_UNAVAILABLE_001',
+  /** 维护模式：别的节点正在升级共享的库，除健康检查外一律 503 */
+  maintenance: 'RUNTIME_UNAVAILABLE_003',
+  /** 内核还没就绪或正在停机（滚动重启的间隙），同样稍后重试 */
+  notServing: 'KERNEL_UNAVAILABLE_001',
 } as const
 
 let config: RequestConfig = {}
@@ -148,7 +151,7 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
       config.hooks?.onSessionInvalid?.(error)
     if (error.code === ErrorCodes.locked)
       config.hooks?.onLocked?.(error)
-    if (error.code === ErrorCodes.maintenance)
+    if (error.code === ErrorCodes.maintenance || error.code === ErrorCodes.notServing)
       config.hooks?.onMaintenance?.(error)
     throw error
   }

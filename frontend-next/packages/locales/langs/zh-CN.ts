@@ -748,6 +748,7 @@ export default {
     server_error_desc: '抱歉，服务器发生了错误，请稍后重试',
     back_home: '返回首页',
     back_prev: '返回上一页',
+    maintenance: '系统正在升级维护，请稍后重试',
   },
   header: {
     context: {

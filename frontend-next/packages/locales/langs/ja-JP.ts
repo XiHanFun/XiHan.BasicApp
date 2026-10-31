@@ -748,6 +748,7 @@ export default {
     server_error_desc: '申し訳ありません。サーバーでエラーが発生しました。しばらくしてからお試しください',
     back_home: 'ホームに戻る',
     back_prev: '前のページに戻る',
+    maintenance: 'システムを更新中です。しばらくしてから再試行してください。',
   },
   header: {
     context: {
