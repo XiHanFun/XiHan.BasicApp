@@ -5,15 +5,18 @@ import type { JobRunState } from '~/contracts'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { actionConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XDataTable, XInput, XSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XDataTable, XInput, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { formatDate } from '~/utils'
+import JobCreateDialog from './components/JobCreateDialog.vue'
 import JobRescheduleDialog from './components/JobRescheduleDialog.vue'
 import {
   activeTriggerCount,
+  canDelete,
   canReschedule,
   canRestore,
+  deleteJob,
   enabledLabel,
   errorText,
   formatDuration,
@@ -49,6 +52,8 @@ const { hasPermission } = usePermission()
 const resource = jobResource(t)
 
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
+/** 新建作业弹窗（页面操作） */
+const createVisible = ref(false)
 
 function reloadJob() {
   void schemaPageRef.value?.reload()
@@ -159,12 +164,15 @@ const schema = computed<PageSchema>(() => ({
   resource: resource as unknown as PageSchema['resource'],
   // 修改计划排在 4.x「编辑」的位置；恢复代码计划只对已改计划的作业出现
   actions: [
+    // 新建运行时作业（照 4.x 的新建任务）；只有运行时登记的作业能删
+    { key: 'create', title: t('maintenance.jobs.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'maintenance.jobs.create' },
     { key: 'view', title: t('maintenance.jobs.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'logs', title: t('maintenance.jobs.logs'), scope: 'row', icon: 'lucide:history', permission: 'maintenance.job-runs.read' },
     { key: 'reschedule', title: t('maintenance.jobs.reschedule'), scope: 'row', icon: 'lucide:calendar-clock', disabled: row => !canReschedule(asRow(row)), permission: 'maintenance.jobs.reschedule' },
     { key: 'restore', title: t('maintenance.jobs.restore'), scope: 'row', icon: 'lucide:rotate-ccw', visible: row => canRestore(asRow(row)), permission: 'maintenance.jobs.reschedule' },
     { key: 'trigger', title: t('maintenance.jobs.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.trigger' },
     { key: 'toggle', title: t('maintenance.jobs.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).title), visible: row => canDelete(asRow(row)), disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.delete' },
   ],
 }))
 
@@ -172,6 +180,14 @@ const schema = computed<PageSchema>(() => ({
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row ? asRow(payload.row) : undefined
   switch (payload.key) {
+    case 'create':
+      createVisible.value = true
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
     case 'view':
       if (row) {
         void handleDetail(row)
@@ -370,6 +386,18 @@ function handleToggleStatus(row: JobRow) {
       }
     },
   })
+}
+
+// ── 行操作：删除运行时作业 ───────────────────────────────────
+async function handleDelete(row: JobRow) {
+  try {
+    await deleteJob(t, row.name)
+    toast.success(t('maintenance.jobs.deleted'))
+    reloadJob()
+  }
+  catch (error) {
+    toast.danger(errorText(error) || t('maintenance.jobs.delete_failed'))
+  }
 }
 
 // ── 行操作：修改计划 / 恢复代码计划 ─────────────────────────────
@@ -978,6 +1006,9 @@ function handleRestore(row: JobRow) {
         </div>
       </XhDialogContent>
     </XhDialogRoot>
+
+    <!-- 新建作业：类型、计划（Cron 构建器或间隔）、参数与并发 -->
+    <JobCreateDialog v-model:show="createVisible" @saved="reloadJob" />
 
     <!-- 修改计划：计划与时区、预设与接下来几次执行的预览 -->
     <JobRescheduleDialog

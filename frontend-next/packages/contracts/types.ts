@@ -2471,6 +2471,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create job
+         * @description Registers a runtime job of a registered job type: name, schedule (cron or interval), time zone, parameters (a JSON object), concurrency and description.
+         *
+         *     Requires permission maintenance.jobs.create (Create jobs).
+         */
+        post: operations["jobs.create"];
+        /**
+         * Delete jobs
+         * @description Deletes runtime jobs in bulk together with their triggers and pending runs; code jobs cannot be deleted.
+         *
+         *     Requires permission maintenance.jobs.delete (Delete jobs).
+         */
+        delete: operations["jobs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs/{id}": {
         parameters: {
             query?: never;
@@ -18731,6 +18759,128 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description jobs.create 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 作业名（如 reports.daily，首段即分组）。 */
+                    name: string;
+                    /** @description 作业类型的登记键（jobs.types 列出的）。 */
+                    jobType: string;
+                    /** @description 计划：Cron 表达式（5 到 7 段），或计划的文本写法（cron …、every …、once …）。 */
+                    expression: string;
+                    /** @description Cron 表达式的时区（如 Asia/Shanghai）；不填按 UTC。 */
+                    timeZone?: string | null;
+                    /** @description 作业参数（JSON 对象的文本）；不填即没有参数。 */
+                    data?: string | null;
+                    /** @description 是否允许上一次没跑完时再跑。 */
+                    allowConcurrent?: boolean;
+                    /** @description 说明。 */
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一个作业。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 作业名。 */
+                        name: string;
+                        /** @description 显示名（登记作业的包按区域给出，没给即作业名）。 */
+                        title: string;
+                        /** @description 说明；没有为 null。 */
+                        description?: string | null;
+                        /** @description 作业类型的登记键。 */
+                        jobType: string;
+                        /** @description 来源：代码登记或运行时登记。 */
+                        source: components["schemas"]["JobSource"];
+                        /** @description 是否暂停。 */
+                        paused: boolean;
+                        /**
+                         * Format: int32
+                         * @description 正在运行的次数。
+                         */
+                        runningCount: number;
+                        /** @description 是否允许并发运行。 */
+                        allowConcurrent: boolean;
+                        /** @description 是否每个节点都运行。 */
+                        runOnEveryInstance: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 下次运行时间；暂停或没有计划时为 null。
+                         */
+                        nextRunAt?: string | null;
+                        /** @description 触发器。 */
+                        triggers: components["schemas"]["JobTriggerResponse"][];
+                        /** @description 上一次运行的结果；没运行过为 null。 */
+                        last?: components["schemas"]["JobOutcomeResponse"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 登记最后更新的时间。
+                         */
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "jobs.delete": {
+        parameters: {
+            query: {
+                /** @description 作业名。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 按作业名的批量结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 成功的作业名。 */
+                        succeeded: string[];
+                        /** @description 失败的作业与原因。 */
+                        failed: components["schemas"]["JobBatchFailure"][];
                     };
                 };
             };

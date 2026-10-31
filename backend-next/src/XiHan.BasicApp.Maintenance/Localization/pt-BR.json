@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "Ver monitor do servidor",
   "maintenance.server.monitor_unavailable": "As informações do host (IHostMonitor) não estão instaladas; não é possível ler o servidor.",
   "openapi.tags.server.name": "Monitor do servidor",
-  "openapi.tags.server.description": "Informações de execução e verificações de integridade do host."
+  "openapi.tags.server.description": "Informações de execução e verificações de integridade do host.",
+  "jobs.create.title": "Criar tarefa",
+  "jobs.create.description": "Registra em tempo de execução uma tarefa de um tipo registrado: nome, agendamento (cron ou intervalo), fuso horário, parâmetros (objeto JSON), concorrência e descrição.",
+  "jobs.delete.title": "Excluir tarefas",
+  "jobs.delete.description": "Exclui em lote tarefas registradas em tempo de execução junto com gatilhos e execuções pendentes; tarefas registradas em código não podem ser excluídas.",
+  "permissions.maintenance.jobs.create.name": "Criar tarefas",
+  "permissions.maintenance.jobs.delete.name": "Excluir tarefas",
+  "maintenance.jobs.exists": "A tarefa {id} já existe.",
+  "maintenance.jobs.name_invalid": "O nome de tarefa {name} é inválido: use minúsculas, dígitos, pontos, hífens e sublinhados.",
+  "maintenance.jobs.data_invalid": "Os parâmetros da tarefa devem ser um objeto JSON."
 }

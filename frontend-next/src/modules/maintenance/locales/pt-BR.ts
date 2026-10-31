@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'Tarefas registradas em código não podem ser excluídas',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'Criar tarefa',
+      create_title: 'Criar tarefa',
+      created: 'Tarefa criada',
+      create_failed: 'Falha ao criar a tarefa',
+      deleted: 'Tarefa excluída',
+      delete_failed: 'Falha ao excluir a tarefa',
+      kind_cron: 'Expressão cron',
+      kind_interval: 'Intervalo fixo',
+      interval_placeholder: 'Executar a cada N segundos',
+      seconds: 's',
+      name_placeholder: 'ex.: reports.daily',
+      name_hint: 'Minúsculas, dígitos, pontos, hífens e sublinhados; o primeiro segmento é o grupo',
+      data: 'Parâmetros',
+      data_hint: 'Um objeto JSON que a tarefa lê por chave ao executar; vazio se não houver',
+      description_placeholder: 'O que esta tarefa faz',
       title: 'Agendamento de tarefas',
       // 筛选与列
       keyword: 'Palavra-chave',

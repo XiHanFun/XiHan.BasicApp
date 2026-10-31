@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'コードで登録したジョブは削除できません',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'ジョブを作成',
+      create_title: 'ジョブを作成',
+      created: 'ジョブを作成しました',
+      create_failed: 'ジョブの作成に失敗しました',
+      deleted: 'ジョブを削除しました',
+      delete_failed: 'ジョブの削除に失敗しました',
+      kind_cron: 'Cron 式',
+      kind_interval: '固定間隔',
+      interval_placeholder: '何秒ごとに実行するか',
+      seconds: '秒',
+      name_placeholder: '例: reports.daily',
+      name_hint: '小文字、数字、ドット、ハイフン、アンダースコア。最初の区切りがグループです',
+      data: 'パラメーター',
+      data_hint: '実行時にジョブがキーで参照する JSON オブジェクト。不要なら空のまま',
+      description_placeholder: 'このジョブの内容',
       title: 'タスクスケジュール',
       // 筛选与列
       keyword: 'キーワード',

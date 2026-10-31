@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "Consulter le moniteur serveur",
   "maintenance.server.monitor_unavailable": "Les informations d'hôte (IHostMonitor) ne sont pas installées ; le serveur ne peut pas être lu.",
   "openapi.tags.server.name": "Moniteur serveur",
-  "openapi.tags.server.description": "Informations d'exécution et contrôles de santé de l'hôte."
+  "openapi.tags.server.description": "Informations d'exécution et contrôles de santé de l'hôte.",
+  "jobs.create.title": "Créer une tâche",
+  "jobs.create.description": "Enregistre à l’exécution une tâche d’un type enregistré : nom, planification (cron ou intervalle), fuseau horaire, paramètres (objet JSON), concurrence et description.",
+  "jobs.delete.title": "Supprimer des tâches",
+  "jobs.delete.description": "Supprime par lot les tâches enregistrées à l’exécution avec leurs déclencheurs et exécutions en attente ; les tâches enregistrées dans le code ne peuvent pas être supprimées.",
+  "permissions.maintenance.jobs.create.name": "Créer des tâches",
+  "permissions.maintenance.jobs.delete.name": "Supprimer des tâches",
+  "maintenance.jobs.exists": "La tâche {id} existe déjà.",
+  "maintenance.jobs.name_invalid": "Le nom de tâche {name} n’est pas valide : utilisez des minuscules, chiffres, points, tirets et traits de soulignement.",
+  "maintenance.jobs.data_invalid": "Les paramètres de la tâche doivent être un objet JSON."
 }

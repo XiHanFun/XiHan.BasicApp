@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'Les tâches enregistrées dans le code ne peuvent pas être supprimées',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'Créer une tâche',
+      create_title: 'Créer une tâche',
+      created: 'Tâche créée',
+      create_failed: 'Échec de la création de la tâche',
+      deleted: 'Tâche supprimée',
+      delete_failed: 'Échec de la suppression de la tâche',
+      kind_cron: 'Expression cron',
+      kind_interval: 'Intervalle fixe',
+      interval_placeholder: 'Exécuter toutes les N secondes',
+      seconds: 's',
+      name_placeholder: 'ex. reports.daily',
+      name_hint: 'Minuscules, chiffres, points, tirets et traits de soulignement ; le premier segment est le groupe',
+      data: 'Paramètres',
+      data_hint: 'Un objet JSON que la tâche lit par clé à l’exécution ; vide s’il n’y en a pas',
+      description_placeholder: 'Ce que fait cette tâche',
       title: 'Planification des tâches',
       // 筛选与列
       keyword: 'Mot-clé',

@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "Просмотр монитора сервера",
   "maintenance.server.monitor_unavailable": "Сведения о хосте (IHostMonitor) не установлены; сервер прочитать нельзя.",
   "openapi.tags.server.name": "Монитор сервера",
-  "openapi.tags.server.description": "Сведения о работе хоста и проверки работоспособности."
+  "openapi.tags.server.description": "Сведения о работе хоста и проверки работоспособности.",
+  "jobs.create.title": "Создать задание",
+  "jobs.create.description": "Регистрирует во время выполнения задание зарегистрированного типа: имя, расписание (cron или интервал), часовой пояс, параметры (объект JSON), параллельность и описание.",
+  "jobs.delete.title": "Удалить задания",
+  "jobs.delete.description": "Пакетно удаляет задания, зарегистрированные во время выполнения, вместе с триггерами и ожидающими запусками; задания из кода удалить нельзя.",
+  "permissions.maintenance.jobs.create.name": "Создание заданий",
+  "permissions.maintenance.jobs.delete.name": "Удаление заданий",
+  "maintenance.jobs.exists": "Задание {id} уже существует.",
+  "maintenance.jobs.name_invalid": "Недопустимое имя задания {name}: используйте строчные буквы, цифры, точки, дефисы и подчёркивания.",
+  "maintenance.jobs.data_invalid": "Параметры задания должны быть объектом JSON."
 }

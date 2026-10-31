@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "Servermonitor anzeigen",
   "maintenance.server.monitor_unavailable": "Hostinformationen (IHostMonitor) sind nicht installiert; der Server kann nicht gelesen werden.",
   "openapi.tags.server.name": "Servermonitor",
-  "openapi.tags.server.description": "Laufzeitinformationen und Integritätsprüfungen des Hosts."
+  "openapi.tags.server.description": "Laufzeitinformationen und Integritätsprüfungen des Hosts.",
+  "jobs.create.title": "Job anlegen",
+  "jobs.create.description": "Registriert zur Laufzeit einen Job eines registrierten Jobtyps: Name, Zeitplan (Cron oder Intervall), Zeitzone, Parameter (JSON-Objekt), Parallelität und Beschreibung.",
+  "jobs.delete.title": "Jobs löschen",
+  "jobs.delete.description": "Löscht zur Laufzeit registrierte Jobs samt Triggern und wartenden Läufen; im Code registrierte Jobs können nicht gelöscht werden.",
+  "permissions.maintenance.jobs.create.name": "Jobs anlegen",
+  "permissions.maintenance.jobs.delete.name": "Jobs löschen",
+  "maintenance.jobs.exists": "Der Job {id} existiert bereits.",
+  "maintenance.jobs.name_invalid": "Der Jobname {name} ist ungültig: Kleinbuchstaben, Ziffern, Punkte, Bindestriche und Unterstriche verwenden.",
+  "maintenance.jobs.data_invalid": "Jobparameter müssen ein JSON-Objekt sein."
 }

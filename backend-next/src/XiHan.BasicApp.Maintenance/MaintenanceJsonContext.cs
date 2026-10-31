@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(ValidateScheduleRequest))]
 [JsonSerializable(typeof(ScheduleCheckResponse))]
 [JsonSerializable(typeof(RescheduleJobRequest))]
+[JsonSerializable(typeof(CreateJobRequest))]
 [JsonSerializable(typeof(JobTypesRequest))]
 [JsonSerializable(typeof(JobTypesResponse))]
 [JsonSerializable(typeof(CacheNamespacesRequest))]

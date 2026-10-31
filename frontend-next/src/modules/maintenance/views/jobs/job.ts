@@ -237,6 +237,8 @@ export function batchFailureMessage(t: Translate, code: string): string {
     case 'MAINTENANCE_NOTFOUND_001': return t('maintenance.jobs.job_not_found')
     // 恢复代码计划：作业没有代码定义（运行时登记的作业没有可恢复的定义）
     case 'SCHEDULING_NOTFOUND_005': return t('maintenance.jobs.no_code_definition')
+    // 删除：代码登记的作业（含改过计划的）不能删
+    case 'MAINTENANCE_CONFLICT_004': return t('maintenance.jobs.code_job_undeletable')
     default: return code
   }
 }
@@ -346,6 +348,62 @@ export async function previewSchedule(form: ScheduleForm): Promise<SchedulePrevi
 /** 恢复代码计划（按作业名批量）：丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；逐项失败翻成文案抛出 */
 export async function restoreJobs(t: Translate, names: readonly string[]): Promise<void> {
   assertBatch(t, await jobsApi.restore({ ids: [...names] }))
+}
+
+/** 间隔秒数写成计划的文本写法：`every [d.]hh:mm:ss`（后端按 TimeSpan 的 c 格式解析） */
+export function intervalExpression(seconds: number): string {
+  const total = Math.max(1, Math.floor(seconds))
+  const days = Math.floor(total / 86400)
+  const pad = (value: number) => String(value).padStart(2, '0')
+  const clock = `${pad(Math.floor(total / 3600) % 24)}:${pad(Math.floor(total / 60) % 60)}:${pad(total % 60)}`
+  return `every ${days > 0 ? `${days}.` : ''}${clock}`
+}
+
+/** 计划文本里的间隔秒数：不是 `every …` 的写法为空 */
+export function intervalSecondsOf(expression: string): number | null {
+  const match = /^every\s+(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?(?:\s|$)/.exec(expression.trim())
+  if (!match)
+    return null
+  const [, days, hours, minutes, seconds] = match
+  return Number(days ?? 0) * 86400 + Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds)
+}
+
+/** 新建作业的表单：作业名、类型、计划与时区、参数（JSON 对象的文本）、并发与说明 */
+export interface JobCreateForm extends ScheduleForm {
+  name: string
+  jobType: string
+  data: string
+  allowConcurrent: boolean
+  description: string
+}
+
+/** jobs.create 的请求：空的参数与说明不填 */
+export function toCreateRequest(form: JobCreateForm): RequestOf<'jobs.create'> {
+  const data = form.data.trim()
+  const description = form.description.trim()
+  return {
+    name: form.name.trim(),
+    jobType: form.jobType,
+    ...scheduleParts(form),
+    data: data || null,
+    allowConcurrent: form.allowConcurrent,
+    description: description || null,
+  }
+}
+
+/** 新建运行时作业 */
+export async function createJob(form: JobCreateForm): Promise<JobResponse> {
+  return jobsApi.create(toCreateRequest(form))
+}
+
+/** 删除一个运行时作业（DELETE jobs?ids=）；代码登记的与不存在的翻成文案抛出 */
+export async function deleteJob(t: Translate, name: string): Promise<void> {
+  assertBatch(t, await jobsApi.delete({ ids: [name] }))
+}
+
+/** 能否删除：只有运行时登记的作业 */
+export function canDelete(job: Pick<JobResponse, 'source'>): boolean {
+  return job.source === 'Runtime'
 }
 
 /** 修改计划的常用预设（沿用 4.x Cron 构建器的六个；周按 Unix 约定，1 是周一） */
