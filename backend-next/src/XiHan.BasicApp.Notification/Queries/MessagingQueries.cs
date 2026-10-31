@@ -3,6 +3,7 @@
 
 using System.Linq.Expressions;
 using SqlSugar;
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
@@ -15,7 +16,7 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Queries;
 
 /// <summary>
-/// 模板、邮件与短信配置、发送记录的列表（都只看当前一侧）。
+/// 模板、邮件与短信配置、发送记录的列表（都只看当前一侧，模板另带平台的）。
 /// </summary>
 /// <remarks>
 /// 筛选与排序逐个登记，未登记的报 <c>NOTIFICATION_VALIDATION_005</c>。
@@ -27,7 +28,7 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
     /// 分页列出消息模板。
     /// </summary>
     /// <remarks>
-    /// 关键字匹配编码与名称；筛选渠道 <c>eq / in</c>、是否启用 <c>eq</c>；缺省按排序、编码。
+    /// 自己的与平台的（4.x 同，租户覆盖的两份都列出）；关键字匹配编码与名称；筛选渠道 <c>eq / in</c>、是否启用 <c>eq</c>；缺省按排序、编码。
     /// </remarks>
     /// <param name="request">分页请求。</param>
     /// <param name="context">调用上下文。</param>
@@ -37,7 +38,8 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var owner = SideRows.SideOf(context);
-        var query = Owned<SysMessageTemplate>().Where(t => t.OwnerTenantId == owner);
+        var platform = TenantIds.Platform;
+        var query = Owned<SysMessageTemplate>().Where(t => t.OwnerTenantId == owner || t.OwnerTenantId == platform);
         if (Keyword(request) is { } keyword)
         {
             query = query.Where(t => t.Code.Contains(keyword) || t.Name.Contains(keyword));

@@ -11,10 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Seeds;
 
 /// <summary>
-/// 平台 8 个全局消息模板的种子。
+/// 平台 9 个全局消息模板的种子。
 /// </summary>
 /// <remarks>
-/// 4.x 同。包括登录验证码、验证码、重置密码、注册欢迎四封邮件，登录验证码、验证码两条短信，系统通知的邮件与短信。
+/// 4.x 的 8 个：登录验证码、验证码、重置密码、注册欢迎四封邮件，登录验证码、验证码两条短信，系统通知的邮件与短信；
+/// 另有系统通知的机器人消息（4.x 的通知广播直接发标题与正文，6.0 照样的文本做成模板，租户可以覆盖）。
 /// 同一渠道、同一编码不存在才写入，之后由运营维护；租户可以建同编码的模板覆盖平台的。
 /// </remarks>
 /// <param name="templates">模板服务。</param>
@@ -102,6 +103,7 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
       <div style='margin:0;font-size:14px;line-height:1.7;color:#4b5563;white-space:pre-wrap;word-break:break-word;'>{{content}}</div>
 """), true, "变量：title=通知标题, content=通知内容, link=链接, brand=品牌名", 50);
         yield return (NotificationService.SmsTemplate, TemplateChannel.Sms, "系统通知短信", null, "【{{brand}}】您有新的通知：{{title}}，详情请登录查看。", false, "变量：title=通知标题, brand=品牌名；云厂商发送须在短信配置的模板映射里登记 notification-sms 对应的服务商模板", 55);
+        yield return (NotificationService.BotTemplate, TemplateChannel.Bot, "系统通知机器人消息", null, "{{title}}{{ if content }}\n\n{{content}}{{ end }}{{ if link }}\n\n{{link}}{{ end }}", false, "变量：title=通知标题, content=通知内容（没有为空）, link=链接（没有为空）, brand=品牌名", 60);
     }
 
     /// <summary>

@@ -19022,6 +19022,10 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "isPlatform": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u7684\u6A21\u677F\uFF08\u79DF\u6237\u53EA\u8BFB\uFF0C\u53EF\u8986\u76D6\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "code": {
                       "description": "\u7F16\u7801\u3002",
                       "type": "string"
@@ -19088,6 +19092,7 @@
                   },
                   "required": [
                     "id",
+                    "isPlatform",
                     "code",
                     "channel",
                     "name",
@@ -19152,6 +19157,10 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "isPlatform": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u7684\u6A21\u677F\uFF08\u79DF\u6237\u53EA\u8BFB\uFF0C\u53EF\u8986\u76D6\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "code": {
                       "description": "\u7F16\u7801\u3002",
                       "type": "string"
@@ -19218,6 +19227,7 @@
                   },
                   "required": [
                     "id",
+                    "isPlatform",
                     "code",
                     "channel",
                     "name",
@@ -19356,6 +19366,10 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "isPlatform": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u7684\u6A21\u677F\uFF08\u79DF\u6237\u53EA\u8BFB\uFF0C\u53EF\u8986\u76D6\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "code": {
                       "description": "\u7F16\u7801\u3002",
                       "type": "string"
@@ -19422,6 +19436,7 @@
                   },
                   "required": [
                     "id",
+                    "isPlatform",
                     "code",
                     "channel",
                     "name",
@@ -19455,7 +19470,7 @@
           "message-templates"
         ],
         "summary": "List message templates",
-        "description": "Page through the message templates of the caller\u0027s side.\n\nRequires permission notification.message-templates.read (Read message templates).",
+        "description": "Page through the message templates of the caller\u0027s side and of the platform (read-only to tenants, who override them with the same code).\n\nRequires permission notification.message-templates.read (Read message templates).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "notification.message-templates.read",
         "parameters": [],
@@ -47442,6 +47457,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "isPlatform": {
+            "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u7684\u6A21\u677F\uFF08\u79DF\u6237\u53EA\u8BFB\uFF0C\u53EF\u8986\u76D6\uFF09\u3002",
+            "type": "boolean"
+          },
           "code": {
             "description": "\u7F16\u7801\u3002",
             "type": "string"
@@ -47508,6 +47527,7 @@
         },
         "required": [
           "id",
+          "isPlatform",
           "code",
           "channel",
           "name",
@@ -50621,8 +50641,10 @@
         "description": "\u6D88\u606F\u6A21\u677F\u7684\u6E20\u9053\u3002",
         "type": "string",
         "enum": [
+          "InApp",
           "Email",
-          "Sms"
+          "Sms",
+          "Bot"
         ]
       },
       "TenantDatabaseStatus": {

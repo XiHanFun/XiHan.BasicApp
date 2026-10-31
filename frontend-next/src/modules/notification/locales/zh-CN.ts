@@ -166,6 +166,8 @@ export default {
         cancelled: '已取消',
       },
       channels: {
+        in_app: '站内信',
+        bot: '机器人',
         email: '邮件',
         sms: '短信',
       },
@@ -181,6 +183,7 @@ export default {
       enabled: '启用',
       disabled: '停用',
       failures: {
+        template_other_side: '平台的模板只能在平台维护',
         template_not_found: '模板不存在',
         config_not_found: '配置不存在',
         bot_not_found: '机器人不存在',
@@ -254,6 +257,13 @@ export default {
       msg_delete_failed: '删除失败',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: '所属',
+      owner_platform: '平台',
+      owner_tenant: '本租户',
+      action_override: '覆盖此模板',
+      override_title: '覆盖平台模板',
+      form_notice_title: '通知标题',
       title: '消息模板',
       add_title: '新增模板',
       edit_title: '编辑模板',

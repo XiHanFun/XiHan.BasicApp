@@ -154,6 +154,8 @@ export default {
         cancelled: 'Abgebrochen',
       },
       channels: {
+        in_app: 'In-App',
+        bot: 'Bot',
         email: 'E-Mail',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: 'Aktiviert',
       disabled: 'Deaktiviert',
       failures: {
+        template_other_side: 'Plattformvorlagen werden auf der Plattform gepflegt',
         template_not_found: 'Vorlage existiert nicht',
         config_not_found: 'Konfiguration existiert nicht',
         bot_not_found: 'Bot existiert nicht',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: 'Löschen fehlgeschlagen',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: 'Zugehörigkeit',
+      owner_platform: 'Plattform',
+      owner_tenant: 'Dieser Mandant',
+      action_override: 'Überschreiben',
+      override_title: 'Plattformvorlage überschreiben',
+      form_notice_title: 'Benachrichtigungstitel',
       title: 'Nachrichtenvorlagen',
       add_title: 'Neue Vorlage',
       edit_title: 'Vorlage bearbeiten',

@@ -420,6 +420,14 @@ public static class NotificationMessages
     public const string TemplateNotFound = "notification.template.not_found";
 
     /// <summary>
+    /// 平台的模板只能在平台维护。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string TemplateOtherSide = "notification.template.other_side";
+
+    /// <summary>
     /// 邮件配置不存在。
     /// </summary>
     /// <remarks>

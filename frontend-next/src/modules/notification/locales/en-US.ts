@@ -154,6 +154,8 @@ export default {
         cancelled: 'Cancelled',
       },
       channels: {
+        in_app: 'In-app',
+        bot: 'Bot',
         email: 'Email',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: 'Enabled',
       disabled: 'Disabled',
       failures: {
+        template_other_side: 'Platform templates are maintained on the platform',
         template_not_found: 'Template does not exist',
         config_not_found: 'Configuration does not exist',
         bot_not_found: 'Bot does not exist',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: 'Delete failed',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: 'Owner',
+      owner_platform: 'Platform',
+      owner_tenant: 'This tenant',
+      action_override: 'Override',
+      override_title: 'Override platform template',
+      form_notice_title: 'Notification title',
       title: 'Message Templates',
       add_title: 'New Template',
       edit_title: 'Edit Template',

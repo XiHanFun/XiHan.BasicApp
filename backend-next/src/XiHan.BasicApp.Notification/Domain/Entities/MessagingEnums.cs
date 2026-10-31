@@ -70,8 +70,19 @@ public enum DeliveryChannel
 /// <summary>
 /// 消息模板的渠道。
 /// </summary>
+/// <remarks>
+/// 4.x 同四种，与 <see cref="MessageChannels"/> 同值。
+/// </remarks>
 public enum TemplateChannel
 {
+    /// <summary>
+    /// 站内通知（主题即通知标题，正文是纯文本）。
+    /// </summary>
+    /// <remarks>
+    /// 内置的发送都不用它（4.x 同）。
+    /// </remarks>
+    InApp = 1,
+
     /// <summary>
     /// 邮件（有主题，正文可以是 HTML）。
     /// </summary>
@@ -84,6 +95,14 @@ public enum TemplateChannel
     /// 云厂商发送要在短信配置里把模板编码映射到服务商的模板 ID。
     /// </remarks>
     Sms = 4,
+
+    /// <summary>
+    /// 机器人（纯文本，不用主题）。
+    /// </summary>
+    /// <remarks>
+    /// 通知发到机器人时按 <c>notification-bot</c> 渲染。
+    /// </remarks>
+    Bot = 8,
 }
 
 /// <summary>

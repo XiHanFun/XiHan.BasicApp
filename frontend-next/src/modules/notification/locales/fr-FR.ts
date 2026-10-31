@@ -154,6 +154,8 @@ export default {
         cancelled: 'Annulé',
       },
       channels: {
+        in_app: 'Dans l’application',
+        bot: 'Bot',
         email: 'E-mail',
         sms: 'SMS',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: 'Activé',
       disabled: 'Désactivé',
       failures: {
+        template_other_side: 'Les modèles de la plateforme se gèrent sur la plateforme',
         template_not_found: 'Le modèle n’existe pas',
         config_not_found: 'La configuration n’existe pas',
         bot_not_found: 'Le bot n’existe pas',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: 'Échec de la suppression',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: 'Propriétaire',
+      owner_platform: 'Plateforme',
+      owner_tenant: 'Ce locataire',
+      action_override: 'Surcharger',
+      override_title: 'Remplacer le modèle de la plateforme',
+      form_notice_title: 'Titre de la notification',
       title: 'Modèles de messages',
       add_title: 'Nouveau modèle',
       edit_title: 'Modifier le modèle',

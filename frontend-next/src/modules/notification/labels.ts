@@ -93,7 +93,12 @@ export function sendStatusTone(status: MessageSendStatus): Tone {
 }
 
 export function templateChannelLabel(t: Translate, channel: TemplateChannel): string {
-  return channel === 'Sms' ? t('notification.messaging.channels.sms') : t('notification.messaging.channels.email')
+  switch (channel) {
+    case 'InApp': return t('notification.messaging.channels.in_app')
+    case 'Sms': return t('notification.messaging.channels.sms')
+    case 'Bot': return t('notification.messaging.channels.bot')
+    default: return t('notification.messaging.channels.email')
+  }
 }
 
 export function smsProviderLabel(t: Translate, provider: SmsProvider): string {
@@ -127,6 +132,7 @@ export const MESSAGING_CODE_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/
 export function messagingFailureMessage(t: Translate, code: string): string {
   switch (code) {
     case 'NOTIFICATION_NOTFOUND_003': return t('notification.messaging.failures.template_not_found')
+    case 'NOTIFICATION_DENIED_002': return t('notification.messaging.failures.template_other_side')
     case 'NOTIFICATION_NOTFOUND_004':
     case 'NOTIFICATION_NOTFOUND_005':
     case 'NOTIFICATION_NOTFOUND_008': return t('notification.messaging.failures.config_not_found')

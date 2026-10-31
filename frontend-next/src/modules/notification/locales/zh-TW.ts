@@ -154,6 +154,8 @@ export default {
         cancelled: '已取消',
       },
       channels: {
+        in_app: '站內信',
+        bot: '機器人',
         email: '郵件',
         sms: '簡訊',
       },
@@ -169,6 +171,7 @@ export default {
       enabled: '啟用',
       disabled: '停用',
       failures: {
+        template_other_side: '平台的範本只能在平台維護',
         template_not_found: '範本不存在',
         config_not_found: '設定不存在',
         bot_not_found: '機器人不存在',
@@ -242,6 +245,13 @@ export default {
       msg_delete_failed: '刪除失敗',
     },
     templates: {
+      // 平台模板只读与覆盖、站内通知的标题
+      col_owner: '所屬',
+      owner_platform: '平台',
+      owner_tenant: '本租戶',
+      action_override: '覆蓋此範本',
+      override_title: '覆寫平台範本',
+      form_notice_title: '通知標題',
       title: '訊息範本',
       add_title: '新增範本',
       edit_title: '編輯範本',

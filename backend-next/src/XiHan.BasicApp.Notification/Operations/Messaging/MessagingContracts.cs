@@ -22,6 +22,7 @@ public static class MessagingCodes
 /// 一个消息模板。
 /// </summary>
 /// <param name="Id">模板 ID。</param>
+/// <param name="IsPlatform">是否为平台的模板（租户只读，可覆盖）。</param>
 /// <param name="Code">编码。</param>
 /// <param name="Channel">渠道。</param>
 /// <param name="Name">名称。</param>
@@ -34,7 +35,7 @@ public static class MessagingCodes
 /// <param name="Remark">备注。</param>
 /// <param name="CreatedAt">创建时间。</param>
 /// <param name="ModifiedAt">修改时间。</param>
-public sealed record MessageTemplateResponse(Guid Id, string Code, TemplateChannel Channel, string Name, string? Subject, string Content, bool IsHtml, string? Description, bool IsEnabled, int Order, string? Remark, DateTimeOffset CreatedAt, DateTimeOffset? ModifiedAt)
+public sealed record MessageTemplateResponse(Guid Id, bool IsPlatform, string Code, TemplateChannel Channel, string Name, string? Subject, string Content, bool IsHtml, string? Description, bool IsEnabled, int Order, string? Remark, DateTimeOffset CreatedAt, DateTimeOffset? ModifiedAt)
 {
     /// <summary>
     /// 从实体投影。
@@ -44,7 +45,7 @@ public sealed record MessageTemplateResponse(Guid Id, string Code, TemplateChann
     public static MessageTemplateResponse From(SysMessageTemplate t)
     {
         ArgumentNullException.ThrowIfNull(t);
-        return new(t.Id, t.Code, t.Channel, t.Name, t.Subject, t.Content, t.IsHtml, t.Description, t.IsEnabled, t.Order, t.Remark, t.CreatedAt, t.ModifiedAt);
+        return new(t.Id, MessageTemplateService.IsPlatform(t.OwnerTenantId), t.Code, t.Channel, t.Name, t.Subject, t.Content, t.IsHtml, t.Description, t.IsEnabled, t.Order, t.Remark, t.CreatedAt, t.ModifiedAt);
     }
 }
 

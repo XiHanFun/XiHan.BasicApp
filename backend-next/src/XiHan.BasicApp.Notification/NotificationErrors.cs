@@ -262,6 +262,14 @@ public static class NotificationErrors
     public const string PublishDenied = "NOTIFICATION_DENIED_001";
 
     /// <summary>
+    /// 平台的模板只能在平台维护。
+    /// </summary>
+    /// <remarks>
+    /// 租户要不同的内容就建同编码的模板覆盖。参数 <c>id</c>。
+    /// </remarks>
+    public const string TemplateOtherSide = "NOTIFICATION_DENIED_002";
+
+    /// <summary>
     /// 没有装解析这类目标的包。
     /// </summary>
     /// <remarks>
