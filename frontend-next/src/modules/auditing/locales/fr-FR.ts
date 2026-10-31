@@ -170,6 +170,7 @@ export default {
         insert: 'Insertion',
         update: 'Mise à jour',
         delete: 'Suppression',
+        restore: 'Restauration',
       },
       entity_type: 'Type d’entité',
       table_name: 'Table',

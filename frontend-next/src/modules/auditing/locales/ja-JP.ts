@@ -170,6 +170,7 @@ export default {
         insert: '追加',
         update: '更新',
         delete: '削除',
+        restore: '復元',
       },
       entity_type: 'エンティティ種別',
       table_name: 'テーブル',

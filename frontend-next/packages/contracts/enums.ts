@@ -74,7 +74,7 @@ export type DelegationStatus = (typeof DelegationStatus)[number]
 export const DeliveryChannel = ['InApp', 'Email', 'Sms', 'Bot'] as const
 export type DeliveryChannel = (typeof DeliveryChannel)[number]
 
-export const DiffKind = ['Insert', 'Update', 'Delete'] as const
+export const DiffKind = ['Insert', 'Update', 'Delete', 'Restore'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
 export const DriveType = ['Unknown', 'NoRootDirectory', 'Removable', 'Fixed', 'Network', 'CDRom', 'Ram'] as const

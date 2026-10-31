@@ -170,6 +170,7 @@ export default {
         insert: '추가',
         update: '수정',
         delete: '삭제',
+        restore: '복원',
       },
       entity_type: '엔터티 유형',
       table_name: '테이블',

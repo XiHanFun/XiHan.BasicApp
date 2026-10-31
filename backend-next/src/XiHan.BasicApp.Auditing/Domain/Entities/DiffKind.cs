@@ -22,4 +22,12 @@ public enum DiffKind
     /// 物理删除。
     /// </summary>
     Delete = 2,
+
+    /// <summary>
+    /// 恢复（软删除的数据 IsDeleted 由真变假）。
+    /// </summary>
+    /// <remarks>
+    /// 4.x 同，从修改里区分出来。
+    /// </remarks>
+    Restore = 3,
 }

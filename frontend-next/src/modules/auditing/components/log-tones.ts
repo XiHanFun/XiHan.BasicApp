@@ -30,12 +30,13 @@ export function loginEventTone(event: unknown): Tone {
   }
 }
 
-/** 数据变更：新增绿、修改蓝、删除红 */
+/** 数据变更：新增绿、修改蓝、删除红、恢复黄 */
 export function diffKindTone(kind: unknown): Tone {
   switch (kind as DiffKind) {
     case 'Insert': return 'success'
     case 'Update': return 'info'
     case 'Delete': return 'danger'
+    case 'Restore': return 'warning'
     default: return 'neutral'
   }
 }

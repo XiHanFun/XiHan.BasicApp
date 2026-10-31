@@ -170,6 +170,7 @@ export default {
         insert: '新增',
         update: '修改',
         delete: '刪除',
+        restore: '還原',
       },
       entity_type: '實體類型',
       table_name: '資料表',
