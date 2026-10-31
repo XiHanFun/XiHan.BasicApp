@@ -21,6 +21,16 @@ const presets = computed<Array<{ value: NonNullable<DictTagStyle['tone']> | 'aut
   { value: 'danger', label: t('setting.dict.tag_style.danger') },
   { value: 'neutral', label: t('setting.dict.tag_style.neutral') },
 ])
+/**
+ * 预设菜单使用独立的只读样式，不能继承正在编辑项的颜色覆盖或图标隐藏设置。
+ * @param value 选项的配色标识。
+ * @returns 仅含已登记语义色的预设样式；默认项跟随中性色。
+ */
+function presetStyle(value: string): DictTagStyle {
+  const preset = presets.value.find(option => option.value === value)
+  return { tone: preset?.value === 'auto' ? null : preset?.value }
+}
+
 const tone = computed({
   get: () => model.value.tone ?? 'auto',
   set: (value) => {
@@ -52,7 +62,11 @@ function setColor(key: 'backgroundColor' | 'textColor', value: unknown): void {
     <div class="grid gap-3 sm:grid-cols-2">
       <label class="grid min-w-0 gap-1 text-sm">
         {{ t('setting.dict.tag_style.preset') }}
-        <XSelect v-model:value="tone" :options="presets" :disabled="disabled" :aria-label="t('setting.dict.tag_style.preset')" />
+        <XSelect v-model:value="tone" :options="presets" :disabled="disabled" :aria-label="t('setting.dict.tag_style.preset')">
+          <template #option="{ option }">
+            <VNodeRender :content="renderDictTag(option.label, presetStyle(option.value))" />
+          </template>
+        </XSelect>
       </label>
       <div class="flex min-w-0 flex-wrap items-center gap-3">
         <span class="text-sm">{{ t('setting.dict.tag_style.preview') }}</span><VNodeRender :content="renderDictTag(label || t('setting.dict.tag_style.sample'), model)" />

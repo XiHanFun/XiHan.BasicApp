@@ -1,12 +1,14 @@
 /** 字典样式编辑的受控契约：隐藏保留选择、清除恢复配色、重新打开与提交锁定。 */
 import type { DictTagStyle } from '~/types/dictionary'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { XhSwitch } from '@xihan-ui/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import setting from '@/locales/langs/zh-CN/setting'
 import DictTagStyleEditor from './DictTagStyleEditor.vue'
+
+vi.mock('~/iconify/offline', () => ({ ensureIconLoaded: async () => true }))
 
 vi.mock('~/iconify', () => ({
   Icon: { props: ['icon'], template: '<svg :data-icon="icon" />' },
@@ -21,11 +23,52 @@ function createEditor(initial: DictTagStyle) {
     components: { DictTagStyleEditor },
     setup: () => ({ value, disabled }),
     template: '<DictTagStyleEditor v-model="value" label="已完成" :disabled="disabled" />',
-  }), { global: { plugins: [createI18n({ legacy: false, locale: 'zh-CN', missingWarn: false, fallbackWarn: false, messages: { 'zh-CN': { setting } } })] } })
+  }), { attachTo: document.body, global: { plugins: [createI18n({ legacy: false, locale: 'zh-CN', missingWarn: false, fallbackWarn: false, messages: { 'zh-CN': { setting } } })] } })
   return { wrapper, value, disabled }
 }
 
 describe('字典图标编辑', () => {
+  it('七个配色选项展示独立颜色和默认图标，不继承当前项的自定义或隐藏设置', async () => {
+    const { wrapper, value } = createEditor({ tone: 'info', backgroundColor: '#ABCDEF', textColor: '#123456', showIcon: false, icon: 'ep:check' })
+    try {
+      await wrapper.get('[data-scope="select"][data-part="trigger"]').trigger('click')
+      await flushPromises()
+      const items = [...document.querySelectorAll<HTMLElement>('[data-scope="select"][data-part="item"]')]
+      expect(items).toHaveLength(7)
+      expect(items.map(item => item.querySelector('svg')?.getAttribute('data-icon'))).toEqual([
+        'lucide:circle',
+        'lucide:check',
+        'lucide:info',
+        'lucide:hourglass',
+        'lucide:triangle-alert',
+        'lucide:x',
+        'lucide:circle',
+      ])
+      expect(items.map(item => item.querySelector('[data-scope="tag"]')?.getAttribute('data-tone'))).toEqual([
+        'neutral',
+        'success',
+        'info',
+        'brand',
+        'warning',
+        'danger',
+        'neutral',
+      ])
+      for (const item of items) {
+        const style = item.querySelector<HTMLElement>('[data-scope="tag"]')!.style
+        expect(style.getPropertyValue('--xh-tag-bg')).not.toBe('#ABCDEF')
+        expect(style.getPropertyValue('--xh-tag-fg')).not.toBe('#123456')
+      }
+      expect(items[1]!.querySelector<HTMLElement>('[data-scope="tag"]')!.style.getPropertyValue('--xh-tag-bg')).toContain('--xh-fg-success')
+      expect(items[2]!.querySelector<HTMLElement>('[data-scope="tag"]')!.style.getPropertyValue('--xh-tag-bg')).toContain('--xh-fg-info')
+      items[5]!.click()
+      await flushPromises()
+      expect(value.value).toEqual({ tone: 'danger', backgroundColor: '#ABCDEF', textColor: '#123456', showIcon: false, icon: 'ep:check' })
+    }
+    finally {
+      wrapper.unmount()
+    }
+  })
+
   it('关闭、重新开启和换配色不丢失自定义选择；清除只重置图标', async () => {
     const { wrapper, value } = createEditor({ tone: 'success', icon: 'ep:check', textColor: '#112233' })
     const toggle = wrapper.findComponent(XhSwitch)

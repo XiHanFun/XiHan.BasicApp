@@ -1,3 +1,4 @@
+<!-- 下拉选择：保留值类型与可访问名称；可选的option插槽只定制选项显示，不改变取值契约。 -->
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/core'
 import {
@@ -27,10 +28,11 @@ import { useControlAttrs } from './control-attrs'
 /**
  * 下拉选择。
  *
- * 存在的理由是两件组件库不管、而全站每个下拉都要做的事：
+ * 应用层负责值类型、清除钮与业务选项展示：
  * 1. 值类型。组件库的选中值一律是 `string[]`（单选也是长度 1 的数组），而业务里的选项值
  *    大量是数字（枚举）。这里按 String(value) 建映射，收上来再还原成原类型。
  * 2. 清除钮。它是一个要自己摆的部件，不是 prop。
+ * 3. 可选option插槽用于颜色等业务预览；文字仍放在框架ItemText中，collection保留原名称和身份。
  *
  * 其余能力（collection 铺开条目、placeholder、多选标签折叠、加载与空态的收放）都由组件库给。
  * 只能从已知清单里挑；要打字筛选或远程检索的用 XCombobox。
@@ -158,7 +160,11 @@ function onValueChange(next: string[]): void {
         <!-- 列表不随在途收放：它是触发器 aria-controls 指向的 listbox，后台刷新时也保留上一帧 -->
         <XhSelectList>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
-            <XhSelectItemText>{{ node.label }}</XhSelectItemText>
+            <XhSelectItemText>
+              <slot name="option" :option="node">
+                {{ node.label }}
+              </slot>
+            </XhSelectItemText>
             <XhSelectItemIndicator />
           </XhSelectItem>
         </XhSelectList>
