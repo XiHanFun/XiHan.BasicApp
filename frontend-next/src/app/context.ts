@@ -50,7 +50,7 @@ const PAGE_MAX_SIZE = 500
 
 /**
  * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空。
- * 对应的壳层件（通知、锁屏、搜索 / 表格 / 看板的服务端同步）缺省关着（见 stores/app/preferences.ts 的缺省值），
+ * 对应的壳层件（如通知、锁屏）缺省关着（见 stores/app/preferences.ts 的缺省值），
  * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件。
  */
 function notAvailable(name: string): never {
