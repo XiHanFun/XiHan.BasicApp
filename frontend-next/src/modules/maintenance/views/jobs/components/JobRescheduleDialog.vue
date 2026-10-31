@@ -3,14 +3,15 @@ import type { JobRow, ScheduleForm, SchedulePreview } from '../job'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XCombobox, XEditModal, XInput } from '~/components'
+import { XCombobox, XEditModal } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
 import { errorText, kindLabel, previewSchedule, rescheduleJob, SCHEDULE_PREVIEW_COUNT, scheduleFormOf, schedulePresets } from '../job'
+import JobScheduleEditor from './JobScheduleEditor.vue'
 
 /**
- * 修改计划：换作业唯一触发器的计划（Cron 表达式或计划写法），其余登记与暂停状态不变。
+ * 修改计划：换作业唯一触发器的计划（照 4.x 分 Cron 与间隔，Cron 用 4.x 的构建器），其余登记与暂停状态不变。
  * 计划与时区改动后停顿片刻即经 jobs.validate-schedule 校验并预览接下来的执行时间（4.x Cron 构建器的预览位置）；
  * 保存走 jobs.reschedule，代码登记的作业改过即标为「已改计划」。
  */
@@ -215,14 +216,8 @@ async function submit() {
     <XhFormRoot :id="formId" class="xh-edit-form-grid" data-testid="job-reschedule-form" @submit="submit">
       <XhFieldRoot class="xh-span-2" :invalid="!!expressionError" required>
         <XhFieldLabel>{{ t('maintenance.jobs.schedule') }}</XhFieldLabel>
-        <XhFieldControl>
-          <XInput
-            v-model:value="form.expression"
-            name="expression"
-            clearable
-            autocomplete="off"
-            :placeholder="t('maintenance.jobs.expression_placeholder')"
-          />
+        <XhFieldControl :as-child="false">
+          <JobScheduleEditor v-model:expression="form.expression" :invalid="!!expressionError" />
         </XhFieldControl>
         <XhFieldErrorText v-if="expressionError">
           {{ expressionError }}

@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: '代码登记的作业不能删除',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: '新建作业',
+      create_title: '新建作业',
+      created: '作业已新建',
+      create_failed: '新建作业失败',
+      deleted: '作业已删除',
+      delete_failed: '删除作业失败',
+      kind_cron: 'Cron 表达式',
+      kind_interval: '固定间隔',
+      interval_placeholder: '每隔多少秒执行一次',
+      seconds: '秒',
+      name_placeholder: '如 reports.daily',
+      name_hint: '小写字母、数字、点、连字符与下划线，首段即任务分组',
+      data: '任务参数',
+      data_hint: 'JSON 对象，作业运行时按键取用；不填即没有参数',
+      description_placeholder: '这个作业做什么',
       title: '任务调度',
       // 筛选与列
       keyword: '关键词',

@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'Im Code registrierte Jobs können nicht gelöscht werden',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'Job anlegen',
+      create_title: 'Job anlegen',
+      created: 'Job angelegt',
+      create_failed: 'Job konnte nicht angelegt werden',
+      deleted: 'Job gelöscht',
+      delete_failed: 'Job konnte nicht gelöscht werden',
+      kind_cron: 'Cron-Ausdruck',
+      kind_interval: 'Festes Intervall',
+      interval_placeholder: 'Alle N Sekunden ausführen',
+      seconds: 'Sek.',
+      name_placeholder: 'z. B. reports.daily',
+      name_hint: 'Kleinbuchstaben, Ziffern, Punkte, Bindestriche und Unterstriche; das erste Segment ist die Gruppe',
+      data: 'Parameter',
+      data_hint: 'Ein JSON-Objekt, das der Job zur Laufzeit per Schlüssel liest; leer lassen für keine',
+      description_placeholder: 'Was dieser Job tut',
       title: 'Aufgabenplaner',
       // 筛选与列
       keyword: 'Stichwort',

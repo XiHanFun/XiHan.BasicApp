@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'Code jobs cannot be deleted',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'Create job',
+      create_title: 'Create job',
+      created: 'Job created',
+      create_failed: 'Failed to create the job',
+      deleted: 'Job deleted',
+      delete_failed: 'Failed to delete the job',
+      kind_cron: 'Cron expression',
+      kind_interval: 'Fixed interval',
+      interval_placeholder: 'Run every N seconds',
+      seconds: 'sec',
+      name_placeholder: 'e.g. reports.daily',
+      name_hint: 'Lowercase letters, digits, dots, hyphens and underscores; the first segment is the group',
+      data: 'Parameters',
+      data_hint: 'A JSON object the job reads by key at run time; leave empty for none',
+      description_placeholder: 'What this job does',
       title: 'Job Scheduling',
       // 筛选与列
       keyword: 'Keyword',

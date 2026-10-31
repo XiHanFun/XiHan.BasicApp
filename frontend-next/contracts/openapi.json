@@ -15814,6 +15814,265 @@
         }
       }
     },
+    "/api/jobs": {
+      "delete": {
+        "operationId": "jobs.delete",
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Delete jobs",
+        "description": "Deletes runtime jobs in bulk together with their triggers and pending runs; code jobs cannot be deleted.\n\nRequires permission maintenance.jobs.delete (Delete jobs).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.jobs.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u4F5C\u4E1A\u540D\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u4F5C\u4E1A\u540D\u3002",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6309\u4F5C\u4E1A\u540D\u7684\u6279\u91CF\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "JobBatchResult",
+                  "description": "\u6309\u4F5C\u4E1A\u540D\u7684\u6279\u91CF\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "description": "\u6210\u529F\u7684\u4F5C\u4E1A\u540D\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "description": "\u5931\u8D25\u7684\u4F5C\u4E1A\u4E0E\u539F\u56E0\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JobBatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "jobs.create",
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Create job",
+        "description": "Registers a runtime job of a registered job type: name, schedule (cron or interval), time zone, parameters (a JSON object), concurrency and description.\n\nRequires permission maintenance.jobs.create (Create jobs).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.jobs.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "jobs.create \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateJobRequest",
+                "description": "jobs.create \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "\u4F5C\u4E1A\u540D\uFF08\u5982 reports.daily\uFF0C\u9996\u6BB5\u5373\u5206\u7EC4\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "jobType": {
+                    "description": "\u4F5C\u4E1A\u7C7B\u578B\u7684\u767B\u8BB0\u952E\uFF08jobs.types \u5217\u51FA\u7684\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "expression": {
+                    "description": "\u8BA1\u5212\uFF1ACron \u8868\u8FBE\u5F0F\uFF085 \u5230 7 \u6BB5\uFF09\uFF0C\u6216\u8BA1\u5212\u7684\u6587\u672C\u5199\u6CD5\uFF08cron \u2026\u3001every \u2026\u3001once \u2026\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "timeZone": {
+                    "description": "Cron \u8868\u8FBE\u5F0F\u7684\u65F6\u533A\uFF08\u5982 Asia/Shanghai\uFF09\uFF1B\u4E0D\u586B\u6309 UTC\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "data": {
+                    "description": "\u4F5C\u4E1A\u53C2\u6570\uFF08JSON \u5BF9\u8C61\u7684\u6587\u672C\uFF09\uFF1B\u4E0D\u586B\u5373\u6CA1\u6709\u53C2\u6570\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "allowConcurrent": {
+                    "description": "\u662F\u5426\u5141\u8BB8\u4E0A\u4E00\u6B21\u6CA1\u8DD1\u5B8C\u65F6\u518D\u8DD1\u3002",
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "description": "\u8BF4\u660E\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "name",
+                  "jobType",
+                  "expression"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u4E00\u4E2A\u4F5C\u4E1A\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "JobResponse",
+                  "description": "\u4E00\u4E2A\u4F5C\u4E1A\u3002",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "\u4F5C\u4E1A\u540D\u3002",
+                      "type": "string"
+                    },
+                    "title": {
+                      "description": "\u663E\u793A\u540D\uFF08\u767B\u8BB0\u4F5C\u4E1A\u7684\u5305\u6309\u533A\u57DF\u7ED9\u51FA\uFF0C\u6CA1\u7ED9\u5373\u4F5C\u4E1A\u540D\uFF09\u3002",
+                      "type": "string"
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\uFF1B\u6CA1\u6709\u4E3A null\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "jobType": {
+                      "description": "\u4F5C\u4E1A\u7C7B\u578B\u7684\u767B\u8BB0\u952E\u3002",
+                      "type": "string"
+                    },
+                    "source": {
+                      "description": "\u6765\u6E90\uFF1A\u4EE3\u7801\u767B\u8BB0\u6216\u8FD0\u884C\u65F6\u767B\u8BB0\u3002",
+                      "$ref": "#/components/schemas/JobSource"
+                    },
+                    "paused": {
+                      "description": "\u662F\u5426\u6682\u505C\u3002",
+                      "type": "boolean"
+                    },
+                    "runningCount": {
+                      "description": "\u6B63\u5728\u8FD0\u884C\u7684\u6B21\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "allowConcurrent": {
+                      "description": "\u662F\u5426\u5141\u8BB8\u5E76\u53D1\u8FD0\u884C\u3002",
+                      "type": "boolean"
+                    },
+                    "runOnEveryInstance": {
+                      "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
+                      "type": "boolean"
+                    },
+                    "nextRunAt": {
+                      "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "triggers": {
+                      "description": "\u89E6\u53D1\u5668\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JobTriggerResponse"
+                      }
+                    },
+                    "last": {
+                      "description": "\u4E0A\u4E00\u6B21\u8FD0\u884C\u7684\u7ED3\u679C\uFF1B\u6CA1\u8FD0\u884C\u8FC7\u4E3A null\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/JobOutcomeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "description": "\u767B\u8BB0\u6700\u540E\u66F4\u65B0\u7684\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "title",
+                    "jobType",
+                    "source",
+                    "paused",
+                    "runningCount",
+                    "allowConcurrent",
+                    "runOnEveryInstance",
+                    "triggers",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/jobs/{id}": {
       "get": {
         "operationId": "jobs.get",
@@ -51587,6 +51846,16 @@
         "code": "maintenance.job-runs.read",
         "displayName": "Read job runs",
         "description": "View the run history of scheduled jobs."
+      },
+      "maintenance.jobs.create": {
+        "code": "maintenance.jobs.create",
+        "displayName": "Create jobs",
+        "description": "Register a runtime job of a registered job type with a schedule and parameters."
+      },
+      "maintenance.jobs.delete": {
+        "code": "maintenance.jobs.delete",
+        "displayName": "Delete jobs",
+        "description": "Delete runtime jobs; code jobs cannot be deleted."
       },
       "maintenance.jobs.read": {
         "code": "maintenance.jobs.read",

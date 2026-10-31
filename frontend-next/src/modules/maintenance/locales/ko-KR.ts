@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: '코드로 등록한 작업은 삭제할 수 없어요',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: '작업 만들기',
+      create_title: '작업 만들기',
+      created: '작업을 만들었어요',
+      create_failed: '작업을 만들지 못했어요',
+      deleted: '작업을 삭제했어요',
+      delete_failed: '작업을 삭제하지 못했어요',
+      kind_cron: 'Cron 표현식',
+      kind_interval: '고정 간격',
+      interval_placeholder: '몇 초마다 실행할지',
+      seconds: '초',
+      name_placeholder: '예: reports.daily',
+      name_hint: '소문자, 숫자, 점, 하이픈, 밑줄. 첫 구간이 그룹이에요',
+      data: '매개변수',
+      data_hint: '실행 시 작업이 키로 읽는 JSON 객체. 없으면 비워 두세요',
+      description_placeholder: '이 작업이 하는 일',
       title: '작업 스케줄',
       // 筛选与列
       keyword: '키워드',

@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "查看服务监控",
   "maintenance.server.monitor_unavailable": "没有装运行信息（IHostMonitor），读不到服务器信息。",
   "openapi.tags.server.name": "服务监控",
-  "openapi.tags.server.description": "服务器的运行信息与健康项。"
+  "openapi.tags.server.description": "服务器的运行信息与健康项。",
+  "jobs.create.title": "新建作业",
+  "jobs.create.description": "按已登记的作业类型运行时登记一个作业：作业名、计划（Cron 或间隔）、时区、参数（JSON 对象）、是否允许并发与说明。",
+  "jobs.delete.title": "删除作业",
+  "jobs.delete.description": "批量删除运行时登记的作业（连同触发器与等待中的运行）；代码登记的作业不能删除。",
+  "permissions.maintenance.jobs.create.name": "新建作业",
+  "permissions.maintenance.jobs.delete.name": "删除作业",
+  "maintenance.jobs.exists": "作业 {id} 已存在。",
+  "maintenance.jobs.name_invalid": "作业名 {name} 不合规：用小写字母、数字、点、连字符与下划线。",
+  "maintenance.jobs.data_invalid": "作业参数须是 JSON 对象。"
 }

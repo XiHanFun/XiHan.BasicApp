@@ -84,4 +84,33 @@ public static class MaintenanceErrors
     /// 没有装运行信息（IHostMonitor）。
     /// </summary>
     public const string HostMonitorUnavailable = "MAINTENANCE_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 同名作业已存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string JobExists = "MAINTENANCE_CONFLICT_003";
+
+    /// <summary>
+    /// 代码登记的作业不能删除。
+    /// </summary>
+    /// <remarks>
+    /// 运行时改过计划的也算代码登记，可用 <c>jobs.restore</c> 改回代码定义。
+    /// </remarks>
+    public const string JobFromCode = "MAINTENANCE_CONFLICT_004";
+
+    /// <summary>
+    /// 作业名不合规。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
+    public const string JobNameInvalid = "MAINTENANCE_VALIDATION_004";
+
+    /// <summary>
+    /// 作业参数不是 JSON 对象。
+    /// </summary>
+    public const string JobDataInvalid = "MAINTENANCE_VALIDATION_005";
 }

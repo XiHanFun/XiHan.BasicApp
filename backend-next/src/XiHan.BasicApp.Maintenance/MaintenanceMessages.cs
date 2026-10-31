@@ -96,6 +96,37 @@ public static class MaintenanceMessages
     public const string GetServerInfoDescription = "server.get.description";
 
     /// <summary>
+    /// 操作 <c>jobs.create</c> 的说明。
+    /// </summary>
+    public const string CreateJobDescription = "jobs.create.description";
+
+    /// <summary>
+    /// 操作 <c>jobs.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteJobsDescription = "jobs.delete.description";
+
+    /// <summary>
+    /// 同名作业已存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string JobExists = "maintenance.jobs.exists";
+
+    /// <summary>
+    /// 作业名不合规。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
+    public const string JobNameInvalid = "maintenance.jobs.name_invalid";
+
+    /// <summary>
+    /// 作业参数不是 JSON 对象。
+    /// </summary>
+    public const string JobDataInvalid = "maintenance.jobs.data_invalid";
+
+    /// <summary>
     /// 操作 <c>job-runs.list</c> 的说明。
     /// </summary>
     public const string ListJobRunsDescription = "job_runs.list.description";

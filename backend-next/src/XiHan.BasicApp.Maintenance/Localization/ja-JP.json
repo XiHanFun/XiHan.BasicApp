@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "サーバー監視の閲覧",
   "maintenance.server.monitor_unavailable": "ホスト情報（IHostMonitor）がインストールされていないため、サーバーを読み取れません。",
   "openapi.tags.server.name": "サーバー監視",
-  "openapi.tags.server.description": "ホストの実行情報とヘルスチェック。"
+  "openapi.tags.server.description": "ホストの実行情報とヘルスチェック。",
+  "jobs.create.title": "ジョブを作成",
+  "jobs.create.description": "登録済みのジョブ種別で実行時にジョブを登録します：名前、スケジュール（Cron または間隔）、タイムゾーン、パラメーター（JSON オブジェクト）、同時実行の可否と説明。",
+  "jobs.delete.title": "ジョブを削除",
+  "jobs.delete.description": "実行時に登録したジョブをトリガーと待機中の実行ごと一括削除します。コードで登録したジョブは削除できません。",
+  "permissions.maintenance.jobs.create.name": "ジョブの作成",
+  "permissions.maintenance.jobs.delete.name": "ジョブの削除",
+  "maintenance.jobs.exists": "ジョブ {id} はすでに存在します。",
+  "maintenance.jobs.name_invalid": "ジョブ名 {name} が不正です：小文字、数字、ドット、ハイフン、アンダースコアを使ってください。",
+  "maintenance.jobs.data_invalid": "ジョブのパラメーターは JSON オブジェクトである必要があります。"
 }

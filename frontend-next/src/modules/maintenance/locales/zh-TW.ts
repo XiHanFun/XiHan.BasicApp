@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: '程式碼登記的作業不能刪除',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: '新增作業',
+      create_title: '新增作業',
+      created: '作業已新增',
+      create_failed: '新增作業失敗',
+      deleted: '作業已刪除',
+      delete_failed: '刪除作業失敗',
+      kind_cron: 'Cron 表達式',
+      kind_interval: '固定間隔',
+      interval_placeholder: '每隔幾秒執行一次',
+      seconds: '秒',
+      name_placeholder: '例如 reports.daily',
+      name_hint: '小寫字母、數字、點、連字號與底線，第一段即任務分組',
+      data: '任務參數',
+      data_hint: 'JSON 物件，作業執行時依鍵取用；不填即沒有參數',
+      description_placeholder: '這個作業做什麼',
       title: '排程任務',
       // 筛选与列
       keyword: '關鍵字',

@@ -134,6 +134,8 @@ export const routes = {
   'inbox.mark-read': { method: 'POST', template: '/api/inbox:mark-read', path: [], query: [], success: 200 },
   'inbox.popups': { method: 'GET', template: '/api/inbox:popups', path: [], query: [], success: 200 },
   'job-runs.list': { method: 'POST', template: '/api/job-runs:list', path: [], query: [], success: 200 },
+  'jobs.create': { method: 'POST', template: '/api/jobs', path: [], query: [], success: 201 },
+  'jobs.delete': { method: 'DELETE', template: '/api/jobs', path: [], query: ['ids'], success: 200 },
   'jobs.get': { method: 'GET', template: '/api/jobs/{id}', path: ['id'], query: [], success: 200 },
   'jobs.list': { method: 'POST', template: '/api/jobs:list', path: [], query: [], success: 200 },
   'jobs.pause': { method: 'POST', template: '/api/jobs:pause', path: [], query: [], success: 200 },
@@ -583,6 +585,8 @@ export const jobRuns = {
 
 /** 资源 `jobs` 的操作。 */
 export const jobs = {
+  create: (request: RequestOf<'jobs.create'>, options?: CallOptions) => invoke<RequestOf<'jobs.create'>, ResponseOf<'jobs.create'>>('jobs.create', routes['jobs.create'], request, options),
+  delete: (request: RequestOf<'jobs.delete'>, options?: CallOptions) => invoke<RequestOf<'jobs.delete'>, ResponseOf<'jobs.delete'>>('jobs.delete', routes['jobs.delete'], request, options),
   get: (request: RequestOf<'jobs.get'>, options?: CallOptions) => invoke<RequestOf<'jobs.get'>, ResponseOf<'jobs.get'>>('jobs.get', routes['jobs.get'], request, options),
   list: (request: RequestOf<'jobs.list'>, options?: CallOptions) => invoke<RequestOf<'jobs.list'>, ResponseOf<'jobs.list'>>('jobs.list', routes['jobs.list'], request, options),
   pause: (request: RequestOf<'jobs.pause'>, options?: CallOptions) => invoke<RequestOf<'jobs.pause'>, ResponseOf<'jobs.pause'>>('jobs.pause', routes['jobs.pause'], request, options),

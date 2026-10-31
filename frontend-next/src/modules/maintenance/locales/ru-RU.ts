@@ -2,6 +2,23 @@
 export default {
   maintenance: {
     jobs: {
+      code_job_undeletable: 'Задания из кода нельзя удалить',
+      // 新建与删除运行时作业、计划编辑的触发方式
+      create: 'Создать задание',
+      create_title: 'Создать задание',
+      created: 'Задание создано',
+      create_failed: 'Не удалось создать задание',
+      deleted: 'Задание удалено',
+      delete_failed: 'Не удалось удалить задание',
+      kind_cron: 'Выражение cron',
+      kind_interval: 'Фиксированный интервал',
+      interval_placeholder: 'Запускать каждые N секунд',
+      seconds: 'с',
+      name_placeholder: 'например, reports.daily',
+      name_hint: 'Строчные буквы, цифры, точки, дефисы и подчёркивания; первый сегмент — группа',
+      data: 'Параметры',
+      data_hint: 'Объект JSON, который задание читает по ключу при запуске; оставьте пустым, если не нужен',
+      description_placeholder: 'Что делает это задание',
       title: 'Планировщик задач',
       // 筛选与列
       keyword: 'Ключевое слово',

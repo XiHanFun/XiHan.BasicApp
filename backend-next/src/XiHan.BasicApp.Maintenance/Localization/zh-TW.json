@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "檢視服務監控",
   "maintenance.server.monitor_unavailable": "沒有安裝執行資訊（IHostMonitor），讀不到伺服器資訊。",
   "openapi.tags.server.name": "服務監控",
-  "openapi.tags.server.description": "伺服器的執行資訊與健康項。"
+  "openapi.tags.server.description": "伺服器的執行資訊與健康項。",
+  "jobs.create.title": "新增作業",
+  "jobs.create.description": "依已登記的作業類型在執行期登記一個作業：作業名、排程（Cron 或間隔）、時區、參數（JSON 物件）、是否允許並行與說明。",
+  "jobs.delete.title": "刪除作業",
+  "jobs.delete.description": "批次刪除執行期登記的作業（連同觸發器與等待中的執行）；程式碼登記的作業不能刪除。",
+  "permissions.maintenance.jobs.create.name": "新增作業",
+  "permissions.maintenance.jobs.delete.name": "刪除作業",
+  "maintenance.jobs.exists": "作業 {id} 已存在。",
+  "maintenance.jobs.name_invalid": "作業名 {name} 不合規：請用小寫字母、數字、點、連字號與底線。",
+  "maintenance.jobs.data_invalid": "作業參數須為 JSON 物件。"
 }

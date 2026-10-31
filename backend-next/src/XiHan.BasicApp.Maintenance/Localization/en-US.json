@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "Read server monitor",
   "maintenance.server.monitor_unavailable": "Host information (IHostMonitor) is not installed, so the server cannot be read.",
   "openapi.tags.server.name": "Server monitor",
-  "openapi.tags.server.description": "Host runtime information and health checks."
+  "openapi.tags.server.description": "Host runtime information and health checks.",
+  "jobs.create.title": "Create job",
+  "jobs.create.description": "Registers a runtime job of a registered job type: name, schedule (cron or interval), time zone, parameters (a JSON object), concurrency and description.",
+  "jobs.delete.title": "Delete jobs",
+  "jobs.delete.description": "Deletes runtime jobs in bulk together with their triggers and pending runs; code jobs cannot be deleted.",
+  "permissions.maintenance.jobs.create.name": "Create jobs",
+  "permissions.maintenance.jobs.delete.name": "Delete jobs",
+  "maintenance.jobs.exists": "Job {id} already exists.",
+  "maintenance.jobs.name_invalid": "Job name {name} is invalid: use lowercase letters, digits, dots, hyphens and underscores.",
+  "maintenance.jobs.data_invalid": "Job parameters must be a JSON object."
 }

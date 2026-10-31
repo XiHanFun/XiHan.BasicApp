@@ -6,12 +6,16 @@ import {
   activeTriggerCount,
   assertBatch,
   batchFailureMessage,
+  canDelete,
   canReschedule,
   canRestore,
+  deleteJob,
   deriveRunStatus,
   enabledLabel,
   formatDuration,
   getJob,
+  intervalExpression,
+  intervalSecondsOf,
   isRunning,
   jobGroup,
   jobResource,
@@ -36,6 +40,7 @@ import {
   sourceOptions,
   sourceTone,
   statusOptions,
+  toCreateRequest,
   toJobRow,
   toJobRunsRequest,
   toJobsRequest,
@@ -307,6 +312,36 @@ describe('任务调度：修改计划', () => {
 
   it('常用预设沿用 4.x 的六个（周按 Unix 约定，1 是周一）', () => {
     expect(schedulePresets(t).map(preset => preset.value)).toEqual(['0 * * * * ?', '0 0/5 * * * ?', '0 0 * * * ?', '0 0 0 * * ?', '0 0 0 ? * 1', '0 0 0 1 * ?'])
+  })
+})
+
+describe('任务调度：新建与删除运行时作业', () => {
+  it('间隔秒数与 every 写法互转：满一天带天数，不是 every 的写法为空', () => {
+    expect(intervalExpression(90)).toBe('every 00:01:30')
+    expect(intervalExpression(90061)).toBe('every 1.01:01:01')
+    expect(intervalSecondsOf('every 1.01:01:01')).toBe(90061)
+    expect(intervalSecondsOf('every 00:00:30 x3')).toBe(30)
+    expect(intervalSecondsOf('0 0 3 * * ?')).toBeNull()
+  })
+
+  it('新建的请求：去空白，空的参数、说明与时区不填', () => {
+    expect(toCreateRequest({ name: ' reports.daily ', jobType: 'demo', expression: ' 0 0 3 * * ? ', timeZone: '', data: ' ', allowConcurrent: true, description: '' })).toEqual({
+      name: 'reports.daily',
+      jobType: 'demo',
+      expression: '0 0 3 * * ?',
+      timeZone: null,
+      data: null,
+      allowConcurrent: true,
+      description: null,
+    })
+  })
+
+  it('只有运行时登记的能删；删除走 DELETE jobs?ids=，代码登记的翻成文案抛出', async () => {
+    expect(canDelete({ source: 'Runtime' })).toBe(true)
+    expect(canDelete({ source: 'Overridden' })).toBe(false)
+    const calls = stub({ succeeded: [], failed: [{ id: 'auditing.retention', code: 'MAINTENANCE_CONFLICT_004' }] })
+    await expect(deleteJob(t, 'auditing.retention')).rejects.toThrow('maintenance.jobs.code_job_undeletable')
+    expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/jobs?ids=auditing.retention' })
   })
 })
 

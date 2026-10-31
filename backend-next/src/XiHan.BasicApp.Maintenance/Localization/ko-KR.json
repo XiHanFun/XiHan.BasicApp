@@ -79,5 +79,14 @@
   "permissions.maintenance.server.read.name": "서버 모니터 보기",
   "maintenance.server.monitor_unavailable": "호스트 정보(IHostMonitor)가 설치되지 않아 서버를 읽을 수 없습니다.",
   "openapi.tags.server.name": "서버 모니터",
-  "openapi.tags.server.description": "호스트 실행 정보와 상태 검사."
+  "openapi.tags.server.description": "호스트 실행 정보와 상태 검사.",
+  "jobs.create.title": "작업 만들기",
+  "jobs.create.description": "등록된 작업 유형으로 런타임에 작업을 등록합니다: 이름, 일정(Cron 또는 간격), 시간대, 매개변수(JSON 객체), 동시 실행 여부와 설명.",
+  "jobs.delete.title": "작업 삭제",
+  "jobs.delete.description": "런타임에 등록한 작업을 트리거와 대기 중인 실행과 함께 일괄 삭제합니다. 코드로 등록한 작업은 삭제할 수 없습니다.",
+  "permissions.maintenance.jobs.create.name": "작업 만들기",
+  "permissions.maintenance.jobs.delete.name": "작업 삭제",
+  "maintenance.jobs.exists": "작업 {id}이(가) 이미 있습니다.",
+  "maintenance.jobs.name_invalid": "작업 이름 {name}이(가) 올바르지 않습니다: 소문자, 숫자, 점, 하이픈, 밑줄을 사용하세요.",
+  "maintenance.jobs.data_invalid": "작업 매개변수는 JSON 객체여야 합니다."
 }

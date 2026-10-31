@@ -34,6 +34,16 @@ public static class MaintenancePermissions
     public const string JobsReschedule = "maintenance.jobs.reschedule";
 
     /// <summary>
+    /// 新建运行时作业：<c>jobs.create</c>。
+    /// </summary>
+    public const string JobsCreate = "maintenance.jobs.create";
+
+    /// <summary>
+    /// 删除运行时作业：<c>jobs.delete</c>。
+    /// </summary>
+    public const string JobsDelete = "maintenance.jobs.delete";
+
+    /// <summary>
     /// 查看缓存。
     /// </summary>
     public const string CachesRead = "maintenance.caches.read";
@@ -77,6 +87,8 @@ public static class MaintenancePermissions
         new(JobsUpdate, "Pause and resume jobs", PermissionScope.Platform, audited: true, description: "Pause and resume scheduled jobs."),
         new(JobsTrigger, "Run jobs now", PermissionScope.Platform, audited: true, description: "Run a scheduled job now on any node."),
         new(JobsReschedule, "Reschedule jobs", PermissionScope.Platform, audited: true, description: "Change a job's schedule or restore a code job to its code definition."),
+        new(JobsCreate, "Create jobs", PermissionScope.Platform, audited: true, description: "Register a runtime job of a registered job type with a schedule and parameters."),
+        new(JobsDelete, "Delete jobs", PermissionScope.Platform, audited: true, description: "Delete runtime jobs; code jobs cannot be deleted."),
         new(CachesRead, "Read caches", PermissionScope.Platform, description: "Browse the cache keys of the application namespaces, their size, expiry and text value."),
         new(CachesUpdate, "Update caches", PermissionScope.Platform, audited: true, description: "Rewrite the value of a cache entry in an editable namespace, keeping its expiry."),
         new(CachesDelete, "Delete caches", PermissionScope.Platform, audited: true, description: "Delete cache entries by key or by prefix within the application namespaces."),
