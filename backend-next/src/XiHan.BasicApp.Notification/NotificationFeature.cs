@@ -115,6 +115,8 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddSingleton<MessageDispatcher>();
         context.Services.AddSeeder<MessageTemplateSeeder>();
         context.Services.AddPermissionCatalog("notification", NotificationPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        NotificationFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间
         context.Services.AddCacheNamespace("notification", editable: true);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
