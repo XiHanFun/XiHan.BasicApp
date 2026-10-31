@@ -38,7 +38,7 @@
 - 使用 XiHan.UI 语义令牌确定颜色、间距、圆角、阴影、层级和动效。
 - 不新增裸色值或任意 px；确有技术必要时先说明原因，并通过当前 px/token 门禁。
 - 离散 Action Control 按下 150ms 缩放到 0.97，释放 200ms 回到 1（组件库缺省只换面，本应用在 `packages/design/xihan-ui.css` 写回 0.97；时长与曲线随库）；reduced motion 下关闭非必要位移和缩放。
-- 自写的可聚焦元素用与组件库同一副聚焦环：1px 内圈加 3px 光环（`--xh-ring-width` + `--xh-ring-halo-width`，颜色 `--xh-ring-halo`）。
+- 自写的可聚焦元素用与组件库同一副聚焦环：1px 内圈加 3px 光环（`--xh-ring-width` + `--xh-ring-halo-width`，颜色 `--xh-ring-halo`）。环画在控件盒外，裁切容器（`overflow` 非 visible）里贴边的控件要留位：容器加 `.ring-room`，嵌套的裁切层用 `.ring-room-bleed`（`packages/design/ui.css`）。
 - 禁止 glass 材质和兼容别名；锚定浮层走 frosted 配方（缺省实体底 + 描边 + 柔和投影，不叠背景模糊），透景只作主题档，并提供 reduced transparency 下的不透明表现。
 - 管理端优先信息密度、扫描效率和清晰层级，避免营销式 Hero、过大标题、夸张渐变与装饰性留白。
 - 暗色、窄视口、RTL、键盘、粗指针、forced colors 和打印样式按组件影响范围验证。

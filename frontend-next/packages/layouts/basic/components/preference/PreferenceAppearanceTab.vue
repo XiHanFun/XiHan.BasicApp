@@ -664,6 +664,15 @@ const loaderItems = computed(() =>
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.22);
 }
 
+/* 键盘聚焦给与组件库同一副环（内圈 + 光环）。自定义卡片上的取色器是透明铺满的一层，
+   它自己的环既看不见、又被卡片的 overflow 裁掉，环改画在卡片上 */
+.theme-color-card:focus-visible,
+.custom-color-card:has(:focus-visible) {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
+}
+
 /* 色块充满整个卡片 */
 .theme-color-dot {
   width: 100%;
