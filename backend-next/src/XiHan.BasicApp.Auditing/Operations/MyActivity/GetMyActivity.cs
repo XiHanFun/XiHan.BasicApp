@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Auditing.Domain.Entities;
+using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity;
@@ -26,7 +27,8 @@ public sealed record MyActivityRequest([StringLength(64)] string? TimeZone = nul
 /// <param name="Logins">登录（成功的）。</param>
 /// <param name="Accesses">访问（接口调用）。</param>
 /// <param name="Operations">操作（记审计的写操作）。</param>
-public sealed record ActivityCountsResponse(int Logins, int Accesses, int Operations);
+/// <param name="OnlineSeconds">在线时长（秒，按会话算）。</param>
+public sealed record ActivityCountsResponse(int Logins, int Accesses, int Operations, long OnlineSeconds);
 
 /// <summary>
 /// 有活动的一天。
@@ -34,7 +36,8 @@ public sealed record ActivityCountsResponse(int Logins, int Accesses, int Operat
 /// <param name="Date">日期（按请求的时区）。</param>
 /// <param name="Operations">操作次数。</param>
 /// <param name="Accesses">访问次数。</param>
-public sealed record ActivityDayResponse(DateOnly Date, int Operations, int Accesses);
+/// <param name="OnlineMinutes">在线分钟数。</param>
+public sealed record ActivityDayResponse(DateOnly Date, int Operations, int Accesses, int OnlineMinutes);
 
 /// <summary>
 /// 本人的活跃度。
@@ -60,13 +63,14 @@ public sealed record MyActivityResponse(
 /// </summary>
 /// <remarks>
 /// <c>GET /api/my-activity:summary</c>（4.x <c>Profile/Activity</c>）。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
-/// 都直接按原始日志算（4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可。
-/// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）；没有在线时长（6.0 不记）。
+/// 次数直接按原始日志算，在线时长按会话算（<see cref="OnlineTime"/>，4.x 同口径；4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可。
+/// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）。
 /// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 /// <param name="clock">时钟。</param>
+/// <param name="sessions">会话时段（Identity 提供，没装即没有在线时长）。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider clock) : IOperation<MyActivityRequest, MyActivityResponse>
+public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider clock, IEnumerable<ISessionHistory> sessions) : IOperation<MyActivityRequest, MyActivityResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -98,8 +102,8 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
             return Error.Validation(AuditingErrors.TimeZoneInvalid, AuditingMessages.TimeZoneInvalid, MessageArguments.Of(("timeZone", request.TimeZone)));
         }
 
-        var today = DayOf(clock.GetUtcNow(), zone);
-        var since = StartOf(today.AddDays(-(TrendDays - 1)), zone);
+        var today = OnlineTime.DayOf(clock.GetUtcNow(), zone);
+        var since = OnlineTime.StartOf(today.AddDays(-(TrendDays - 1)), zone);
         var sinceUtc = since.UtcDateTime;
         var until = clock.GetUtcNow().UtcDateTime.AddDays(1);
         var ct = context.CancellationToken;
@@ -111,12 +115,12 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
                 .Select(e => new SysLoginLog { OccurredAt = e.OccurredAt })
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(static e => Instant(e.OccurredAt)).ToList();
-        var accesses = (await unitOfWork.ConnectionFor(typeof(SysAccessLog)).Queryable<SysAccessLog>()
+        var accessRows = await unitOfWork.ConnectionFor(typeof(SysAccessLog)).Queryable<SysAccessLog>()
                 .Where(e => e.UserId == userId && e.OccurredAt >= sinceUtc)
                 .SplitTable(sinceUtc, until)
-                .Select(e => new SysAccessLog { OccurredAt = e.OccurredAt })
-                .ToListAsync(ct).ConfigureAwait(false))
-            .Select(static e => Instant(e.OccurredAt)).ToList();
+                .Select(e => new SysAccessLog { OccurredAt = e.OccurredAt, SessionId = e.SessionId })
+                .ToListAsync(ct).ConfigureAwait(false);
+        var accesses = accessRows.Select(static e => Instant(e.OccurredAt)).ToList();
         var subject = userId.ToString("D");
         var operations = (await unitOfWork.ConnectionFor(typeof(AuditRecord)).Queryable<AuditRecord>()
                 .Where(r => r.PrincipalId == subject && r.Timestamp >= since)
@@ -124,16 +128,24 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(static r => r.Timestamp).ToList();
 
-        var loginDays = logins.Select(t => DayOf(t, zone)).ToList();
-        var accessDays = accesses.Select(t => DayOf(t, zone)).ToList();
-        var operationDays = operations.Select(t => DayOf(t, zone)).ToList();
-        ActivityCountsResponse CountFrom(DateOnly first)
-            => new(loginDays.Count(d => d >= first), accessDays.Count(d => d >= first), operationDays.Count(d => d >= first));
+        // 在线时长：会话的起止与本人在每个会话里最后一次访问，切成逐日秒数（4.x 同口径）
+        var spans = sessions.FirstOrDefault() is { } history ? await history.ListAsync(userId, since, ct).ConfigureAwait(false) : [];
+        var lastAccess = accessRows.Where(static e => e.SessionId.HasValue)
+            .GroupBy(static e => e.SessionId!.Value)
+            .ToDictionary(static g => g.Key, static g => g.Max(static e => Instant(e.OccurredAt)));
+        var onlineByDay = OnlineTime.ByDay(spans, lastAccess, since, clock.GetUtcNow(), zone);
 
+        var loginDays = logins.Select(t => OnlineTime.DayOf(t, zone)).ToList();
+        var accessDays = accesses.Select(t => OnlineTime.DayOf(t, zone)).ToList();
+        var operationDays = operations.Select(t => OnlineTime.DayOf(t, zone)).ToList();
+        ActivityCountsResponse CountFrom(DateOnly first)
+            => new(loginDays.Count(d => d >= first), accessDays.Count(d => d >= first), operationDays.Count(d => d >= first), onlineByDay.Where(p => p.Key >= first).Sum(static p => p.Value));
+
+        // 趋势里在线不满一分钟的天不单列（4.x 按分钟取整）
         var accessByDay = accessDays.GroupBy(static d => d).ToDictionary(static g => g.Key, static g => g.Count());
         var operationByDay = operationDays.GroupBy(static d => d).ToDictionary(static g => g.Key, static g => g.Count());
-        var trend = accessByDay.Keys.Union(operationByDay.Keys).Order()
-            .Select(d => new ActivityDayResponse(d, operationByDay.GetValueOrDefault(d), accessByDay.GetValueOrDefault(d)))
+        var trend = accessByDay.Keys.Union(operationByDay.Keys).Union(onlineByDay.Where(static p => p.Value >= 60).Select(static p => p.Key)).Order()
+            .Select(d => new ActivityDayResponse(d, operationByDay.GetValueOrDefault(d), accessByDay.GetValueOrDefault(d), (int)(onlineByDay.GetValueOrDefault(d) / 60)))
             .ToList();
         return new MyActivityResponse(
             CountFrom(today),
@@ -146,12 +158,4 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
     }
 
     private static DateTimeOffset Instant(DateTime utc) => new(DateTime.SpecifyKind(utc, DateTimeKind.Utc));
-
-    private static DateOnly DayOf(DateTimeOffset instant, TimeZoneInfo zone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, zone).DateTime);
-
-    private static DateTimeOffset StartOf(DateOnly day, TimeZoneInfo zone)
-    {
-        var local = day.ToDateTime(TimeOnly.MinValue);
-        return new DateTimeOffset(local, zone.GetUtcOffset(local)).ToUniversalTime();
-    }
 }

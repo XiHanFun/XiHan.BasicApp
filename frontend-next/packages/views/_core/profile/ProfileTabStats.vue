@@ -39,13 +39,29 @@ async function loadActivity() {
 
 onMounted(loadActivity)
 
-/** 本月指标卡（6.0 不记在线时长，没有 4.x 的「本月在线」） */
+/** 在线时长（秒）→ 友好显示 */
+function formatOnline(seconds: number): string {
+  if (!seconds || seconds <= 0) {
+    return t('component.profile.stats.duration_zero')
+  }
+  const h = Math.floor(seconds / 3600)
+  const m = Math.round((seconds % 3600) / 60)
+  if (h > 0) {
+    return m > 0
+      ? t('component.profile.stats.duration_hours_minutes', { hours: h, minutes: m })
+      : t('component.profile.stats.duration_hours', { hours: h })
+  }
+  return t('component.profile.stats.duration_minutes', { minutes: m })
+}
+
+/** 本月四大指标卡 */
 const statCards = computed(() => {
   const m = activity.value?.thisMonth
   return [
     { key: 'login', label: t('component.profile.stats.card_login'), icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'brand' },
     { key: 'access', label: t('component.profile.stats.card_access'), icon: 'lucide:eye', value: m?.accessCount ?? 0, tone: 'sky' },
     { key: 'operation', label: t('component.profile.stats.card_operation'), icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'brand' },
+    { key: 'online', label: t('component.profile.stats.card_online'), icon: 'lucide:clock', value: formatOnline(m?.onlineTime ?? 0), tone: 'amber', isText: true },
   ]
 })
 
@@ -253,6 +269,9 @@ const recentTimes = computed(() => {
               </div>
               <div class="pf-period__row">
                 <span>{{ t('component.profile.stats.stat_operation') }}</span><b>{{ item.period?.operationCount ?? 0 }}</b>
+              </div>
+              <div class="pf-period__row">
+                <span>{{ t('component.profile.stats.stat_online') }}</span><b>{{ formatOnline(item.period?.onlineTime ?? 0) }}</b>
               </div>
             </div>
             <div class="pf-period">
