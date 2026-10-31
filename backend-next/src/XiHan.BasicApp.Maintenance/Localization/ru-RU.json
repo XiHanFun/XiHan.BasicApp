@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "Запись кэша '{key}' не существует или истекла.",
   "maintenance.caches.not_text": "Значение записи кэша '{key}' не является текстом и не может быть перезаписано.",
   "maintenance.caches.inspector_unavailable": "Текущее хранилище кэша не поддерживает управление ключами.",
+  "maintenance.caches.continuation_invalid": "Недопустимый маркер продолжения; повторите вывод с первой страницы.",
   "openapi.tags.caches.name": "Кэш",
   "openapi.tags.caches.description": "Ключи кэша в пространствах приложения: список, просмотр, перезапись и удаление.",
   "server.get.title": "Получить сведения о сервере",

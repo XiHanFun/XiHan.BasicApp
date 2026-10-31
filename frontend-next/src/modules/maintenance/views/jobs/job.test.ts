@@ -5,7 +5,9 @@ import { QueryOperator } from '~/types/contracts'
 import {
   activeTriggerCount,
   assertBatch,
+  backoffOptions,
   batchFailureMessage,
+  blankRetry,
   canDelete,
   canReschedule,
   canRestore,
@@ -26,6 +28,9 @@ import {
   previewSchedule,
   rescheduleJob,
   restoreJobs,
+  retryFormOf,
+  retryIncomplete,
+  retryText,
   runFailedOptions,
   runStateLabel,
   runStateTone,
@@ -40,6 +45,7 @@ import {
   sourceOptions,
   sourceTone,
   statusOptions,
+  timeoutText,
   toCreateRequest,
   toJobRow,
   toJobRunsRequest,
@@ -85,19 +91,21 @@ function job(patch: Partial<JobResponse> = {}): JobResponse {
       { name: 'default', schedule: 'cron 0 3 * * *', kind: 'Cron', cron: '0 3 * * *', intervalSeconds: null, timeZone: null, state: 'Waiting', nextFireAt: '2026-10-31T03:00:00Z', previousFireAt: '2026-10-30T03:00:00Z', fireCount: 12, error: null },
       { name: 'manual-1', schedule: 'manual', kind: 'Manual', cron: null, intervalSeconds: null, timeZone: null, state: 'Complete', nextFireAt: null, previousFireAt: '2026-10-29T08:00:00Z', fireCount: 2, error: null },
     ],
-    last: { runId: 'r1', trigger: 'Schedule', startedAt: '2026-10-30T03:00:00Z', completedAt: '2026-10-30T03:00:01.5Z', durationMs: 1500, succeeded: true, errorCode: null, errorMessage: null },
+    last: { runId: 'r1', trigger: 'Schedule', attempt: 1, startedAt: '2026-10-30T03:00:00Z', completedAt: '2026-10-30T03:00:01.5Z', durationMs: 1500, succeeded: true, errorCode: null, errorMessage: null },
     updatedAt: '2026-10-01T00:00:00Z',
     ...patch,
   }
 }
 
-const FAILED = { runId: 'r2', trigger: 'Manual' as const, startedAt: '2026-10-30T04:00:00Z', completedAt: '2026-10-30T04:00:00.2Z', durationMs: 200, succeeded: false, errorCode: 'X_1', errorMessage: 'boom' }
+const FAILED = { runId: 'r2', trigger: 'Manual' as const, attempt: 1, startedAt: '2026-10-30T04:00:00Z', completedAt: '2026-10-30T04:00:00.2Z', durationMs: 200, succeeded: false, errorCode: 'X_1', errorMessage: 'boom' }
 
 const RUN: JobRunRow = {
   id: 'r1',
   job: 'auditing.retention',
   triggerName: 'default',
   trigger: 'Schedule',
+  attempt: 1,
+  retryOf: null,
   scheduledAt: '2026-10-30T03:00:00Z',
   startedAt: '2026-10-30T03:00:00Z',
   completedAt: '2026-10-30T03:00:01.5Z',
@@ -275,15 +283,16 @@ describe('任务调度：修改计划', () => {
   })
 
   it('请求：作业名进路由值，计划去空白，时区留空即 null（后端按 UTC）', () => {
-    expect(toRescheduleRequest('auditing.retention', { expression: ' 0 0 3 * * ? ', timeZone: ' Asia/Shanghai ' })).toEqual({ id: 'auditing.retention', expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' })
-    expect(toRescheduleRequest('auditing.retention', { expression: 'every 00:05:00', timeZone: '  ' })).toEqual({ id: 'auditing.retention', expression: 'every 00:05:00', timeZone: null })
+    expect(toRescheduleRequest('auditing.retention', { expression: ' 0 0 3 * * ? ', timeZone: ' Asia/Shanghai ', ...blankRetry() })).toEqual({ id: 'auditing.retention', expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai', timeoutSeconds: null, maxRetries: null })
+    expect(toRescheduleRequest('auditing.retention', { expression: 'every 00:05:00', timeZone: '  ', ...blankRetry() })).toEqual({ id: 'auditing.retention', expression: 'every 00:05:00', timeZone: null, timeoutSeconds: null, maxRetries: null })
   })
 
-  it('保存：POST jobs/{id}:reschedule，请求体只有计划与时区，返回改后的作业（已改计划）', async () => {
+  it('保存：POST jobs/{id}:reschedule，请求体是计划、时区、重试与时限，返回改后的作业（已改计划）', async () => {
     const changed = job({ source: 'Overridden', triggers: [{ ...INTERVAL, schedule: 'cron 0 0 3 * * ? tz=Asia/Shanghai', kind: 'Cron', cron: '0 0 3 * * ?', intervalSeconds: null, timeZone: 'Asia/Shanghai' }] })
     const calls = stub(changed)
-    const row = await rescheduleJob('auditing.retention', { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' })
-    expect(calls[0]).toEqual({ method: 'POST', url: '/api/jobs/auditing.retention:reschedule', body: { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai' } })
+    const retry = { timeoutSeconds: 120, maxRetries: 3, retryDelaySeconds: 30, retryBackoff: 'Exponential' as const, retryMaxDelaySeconds: 600 }
+    const row = await rescheduleJob('auditing.retention', { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai', ...retry })
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/jobs/auditing.retention:reschedule', body: { expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai', ...retry } })
     expect(row).toMatchObject({ name: 'auditing.retention', source: 'Overridden', kind: 'Cron', group: 'auditing' })
   })
 
@@ -293,7 +302,7 @@ describe('任务调度：修改计划', () => {
       getToken: () => 't',
       fetch: (async () => new Response(JSON.stringify({ status: 400, code: 'MAINTENANCE_VALIDATION_002', detail: '计划写错了' }), { status: 400, headers: { 'Content-Type': 'application/problem+json' } })) as unknown as typeof fetch,
     })
-    await expect(rescheduleJob('auditing.retention', { expression: 'nope', timeZone: '' })).rejects.toMatchObject({ code: 'MAINTENANCE_VALIDATION_002', detail: '计划写错了' })
+    await expect(rescheduleJob('auditing.retention', { expression: 'nope', timeZone: '', ...blankRetry() })).rejects.toMatchObject({ code: 'MAINTENANCE_VALIDATION_002', detail: '计划写错了' })
   })
 
   it('预览：GET jobs:validate-schedule 带计划、时区与个数 5；时区留空不进查询串', async () => {
@@ -324,16 +333,51 @@ describe('任务调度：新建与删除运行时作业', () => {
     expect(intervalSecondsOf('0 0 3 * * ?')).toBeNull()
   })
 
-  it('新建的请求：去空白，空的参数、说明与时区不填', () => {
-    expect(toCreateRequest({ name: ' reports.daily ', jobType: 'demo', expression: ' 0 0 3 * * ? ', timeZone: '', data: ' ', allowConcurrent: true, description: '' })).toEqual({
+  it('新建的请求：去空白，空的参数、说明与时区不填，不重试时只发时限与空的次数', () => {
+    expect(toCreateRequest({ name: ' reports.daily ', jobType: 'demo', expression: ' 0 0 3 * * ? ', timeZone: '', data: ' ', allowConcurrent: true, description: '', ...blankRetry() })).toEqual({
       name: 'reports.daily',
       jobType: 'demo',
       expression: '0 0 3 * * ?',
       timeZone: null,
       data: null,
       allowConcurrent: true,
+      timeoutSeconds: null,
+      maxRetries: null,
       description: null,
     })
+  })
+
+  it('重试与时限：固定间隔不发等待上限；设了次数没填间隔不能保存；改的初值取作业现在的设置', () => {
+    const fixed = { ...blankRetry(), timeoutSeconds: 90, maxRetries: 2, retryDelaySeconds: 15, retryMaxDelaySeconds: 600 }
+    expect(toCreateRequest({ name: 'a.b', jobType: 'demo', expression: 'every 00:05:00', timeZone: '', data: '', allowConcurrent: false, description: '', ...fixed })).toMatchObject({
+      timeoutSeconds: 90,
+      maxRetries: 2,
+      retryDelaySeconds: 15,
+      retryBackoff: 'Fixed',
+      retryMaxDelaySeconds: null,
+    })
+    expect(retryIncomplete({ ...fixed, retryDelaySeconds: null })).toBe(true)
+    expect(retryIncomplete({ ...fixed, maxRetries: null, retryDelaySeconds: null })).toBe(false)
+    expect(retryIncomplete(fixed)).toBe(false)
+
+    expect(retryFormOf(job())).toEqual(blankRetry())
+    expect(retryFormOf(job({ timeoutSeconds: 300, retry: { maxRetries: 5, delaySeconds: 10, backoff: 'Exponential', maxDelaySeconds: 3600 } }))).toEqual({
+      timeoutSeconds: 300,
+      maxRetries: 5,
+      retryDelaySeconds: 10,
+      retryBackoff: 'Exponential',
+      retryMaxDelaySeconds: 3600,
+    })
+    expect(backoffOptions(t).map(option => option.value)).toEqual(['Fixed', 'Exponential'])
+  })
+
+  it('详情里的重试策略与时限：不重试、不限，或次数加可读的等待', () => {
+    expect(retryText(t, job())).toBe('maintenance.jobs.no_retry')
+    expect(timeoutText(t, job())).toBe('maintenance.jobs.no_timeout')
+    expect(timeoutText(t, job({ timeoutSeconds: 90 }))).toBe('maintenance.caches.units.minute:{"n":1} maintenance.caches.units.second:{"n":30}')
+    expect(retryText(t, job({ retry: { maxRetries: 3, delaySeconds: 60, backoff: 'Fixed', maxDelaySeconds: null } }))).toMatch(/^maintenance\.jobs\.retry_fixed_value:\{"count":3,"delay":"maintenance\.caches\.units\.minute/)
+    expect(retryText(t, job({ retry: { maxRetries: 3, delaySeconds: 60, backoff: 'Exponential', maxDelaySeconds: null } }))).toMatch(/^maintenance.jobs.retry_exponential_value:/)
+    expect(retryText(t, job({ retry: { maxRetries: 3, delaySeconds: 60, backoff: 'Exponential', maxDelaySeconds: 3600 } }))).toMatch(/^maintenance.jobs.retry_exponential_capped_value:.*"max":"maintenance.caches.units.hour/)
   })
 
   it('只有运行时登记的能删；删除走 DELETE jobs?ids=，代码登记的翻成文案抛出', async () => {
@@ -416,6 +460,7 @@ describe('任务调度：执行日志', () => {
     expect(runStateLabel(t, 'Lost')).toBe('maintenance.jobs.run_lost')
     expect(['Succeeded', 'Failed', 'Lost', 'Running', 'Canceled'].map(s => runStateTone(s as never))).toEqual(['success', 'danger', 'danger', 'warning', 'neutral'])
     expect(runTriggerLabel(t, 'Recovery')).toBe('maintenance.jobs.trigger_modes.recovery')
+    expect(runTriggerLabel(t, 'Retry')).toBe('maintenance.jobs.trigger_modes.retry')
     expect(triggerStateTone('Error')).toBe('danger')
     expect(triggerStateTone('Blocked')).toBe('warning')
   })

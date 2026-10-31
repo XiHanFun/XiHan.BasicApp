@@ -1,13 +1,15 @@
 import type { Translate } from '../jobs/job'
-import type { RequestOf, ResponseOf } from '~/contracts'
+import type { CacheLayer, RequestOf, ResponseOf } from '~/contracts'
 import { ref } from 'vue'
 import { caches as cachesApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 /** 一个开放管理的缓存键命名空间（各包登记的前缀，如 access:） */
 export type CacheNamespace = ResponseOf<'caches.namespaces'>['items'][number]
-/** 一个缓存项：大小、剩余存活、滑动过期与按 UTF-8 解出的文本 */
+/** 一个缓存项：所在的层、大小或值类型、剩余存活、滑动过期与文本（字节按 UTF-8 解出，对象按 JSON 写出） */
 export type CacheEntry = ResponseOf<'caches.inspect'>
+/** 列出的一个键与它所在的层 */
+export type CacheKeyItem = ResponseOf<'caches.keys'>['items'][number]
 /** 批量删除里没删成的一个键与原因码 */
 export type CacheDeleteFailure = ResponseOf<'caches.delete'>['failed'][number]
 
@@ -83,12 +85,20 @@ export function mergeKeys(existing: readonly string[], incoming: readonly string
   return [...new Set([...existing, ...incoming])].sort(compareOrdinal)
 }
 
+/** 并入下一页里对象缓存的键（进程内缓存的对象条目，树上据此标出来） */
+export function mergeObjectKeys(existing: ReadonlySet<string>, incoming: readonly CacheKeyItem[]): Set<string> {
+  return new Set([...existing, ...incoming.filter(item => item.layer === 'Objects').map(item => item.key)])
+}
+
 /**
  * 键列表的状态：按前缀取第一页、再按续页标记往下翻，跨页去重。
+ * 后端把对象缓存与字节存储两层合起来列，对象缓存的键另记一份。
  * 换前缀或重查时作废在途的上一笔，晚到的旧响应不覆盖新结果，也不报错。
  */
 export function useCacheKeys() {
   const keys = ref<string[]>([])
+  /** 在对象缓存里的键 */
+  const objectKeys = ref<Set<string>>(new Set())
   /** 下一页的续页标记；没有下一页为 null */
   const continuation = ref<null | string>(null)
   /** 当前列表对应的前缀；还没查过为 null */
@@ -107,7 +117,8 @@ export function useCacheKeys() {
       if (current !== generation)
         return false
       prefix.value = at
-      keys.value = mergeKeys(append ? keys.value : [], page.items)
+      keys.value = mergeKeys(append ? keys.value : [], page.items.map(item => item.key))
+      objectKeys.value = mergeObjectKeys(append ? objectKeys.value : new Set(), page.items)
       continuation.value = page.continuation ?? null
       return true
     }
@@ -140,9 +151,10 @@ export function useCacheKeys() {
   function discard(gone: readonly string[]): void {
     const set = new Set(gone)
     keys.value = keys.value.filter(key => !set.has(key))
+    objectKeys.value = new Set([...objectKeys.value].filter(key => !set.has(key)))
   }
 
-  return { keys, continuation, prefix, loading, appending, load, loadMore, discard }
+  return { keys, objectKeys, continuation, prefix, loading, appending, load, loadMore, discard }
 }
 
 // ── 键树（4.x 原样：按 : 分组） ─────────────────────────────────
@@ -262,17 +274,26 @@ export function slidingText(t: Translate, entry: Pick<CacheEntry, 'slidingSecond
   return value === null ? t('maintenance.caches.no_sliding') : formatSeconds(t, value)
 }
 
-/** 能否改写：有改写权限，且后端判定可改（命名空间可改写、值是文本） */
+/** 所在层的文案 */
+export function layerLabel(t: Translate, layer: CacheLayer): string {
+  return layer === 'Objects' ? t('maintenance.caches.layers.objects') : t('maintenance.caches.layers.store')
+}
+
+/** 能否改写：有改写权限，且后端判定可改（字节存储里、命名空间可改写、值是文本） */
 export function canEditEntry(entry: Pick<CacheEntry, 'editable' | 'text'> | null, canUpdate: boolean): boolean {
   return canUpdate && !!entry && entry.editable && entry.text !== null && entry.text !== undefined
 }
 
 /**
- * 不能改写的原因：值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only，4.x 同样禁止改写）。
+ * 不能改写的原因：对象缓存的值按 JSON 只读显示（object）、写不出 JSON 不能预览（unrenderable）；
+ * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only，4.x 同样禁止改写）。
  * 能改写时为 null。
  */
-export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'text'>): 'binary' | 'read-only' | null {
-  if (entry.text === null || entry.text === undefined)
+export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 'text'>): 'binary' | 'object' | 'read-only' | 'unrenderable' | null {
+  const hasText = entry.text !== null && entry.text !== undefined
+  if (entry.layer === 'Objects')
+    return hasText ? 'object' : 'unrenderable'
+  if (!hasText)
     return 'binary'
   return entry.editable ? null : 'read-only'
 }

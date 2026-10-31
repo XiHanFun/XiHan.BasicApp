@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS "job_entity" (
     "source" integer DEFAULT 0 NOT NULL,
     "updated_at" timestamp with time zone NOT NULL,
     "code_fingerprint" character varying(64) DEFAULT NULL::character varying NULL,
+    "retry_max_retries" integer NULL,
+    "retry_delay_milliseconds" bigint NULL,
+    "retry_backoff" integer NULL,
+    "retry_max_delay_milliseconds" bigint NULL,
+    "timeout_milliseconds" bigint NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "job_entity_pkey" PRIMARY KEY (id)
 );
@@ -49,6 +54,8 @@ CREATE TABLE IF NOT EXISTS "job_run_entity" (
     "node_id" character varying(256) NOT NULL,
     "cancel_requested" boolean DEFAULT false NOT NULL,
     "data" text NOT NULL,
+    "attempt" integer NULL,
+    "retry_of" character varying(128) DEFAULT NULL::character varying NULL,
     "sequence" bigint DEFAULT '0'::bigint NOT NULL,
     CONSTRAINT "job_run_entity_pkey" PRIMARY KEY (id)
 );
@@ -1478,6 +1485,8 @@ CREATE TABLE IF NOT EXISTS "trigger_entity" (
     "local" boolean DEFAULT false NOT NULL,
     "transient" boolean DEFAULT false NOT NULL,
     "run_as" integer DEFAULT 0 NOT NULL,
+    "attempt" integer NULL,
+    "retry_of" character varying(128) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "trigger_entity_pkey" PRIMARY KEY (id)
 );

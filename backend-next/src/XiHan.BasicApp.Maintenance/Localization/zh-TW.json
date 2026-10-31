@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "快取項 '{key}' 不存在或已過期。",
   "maintenance.caches.not_text": "快取項 '{key}' 的值不是文字，不能改寫。",
   "maintenance.caches.inspector_unavailable": "目前的快取儲存不支援鍵管理。",
+  "maintenance.caches.continuation_invalid": "續頁標記不正確，請從第一頁重新列出。",
   "openapi.tags.caches.name": "快取管理",
   "openapi.tags.caches.description": "應用命名空間裡的快取鍵：列出、檢視、改寫與刪除。",
   "server.get.title": "取得伺服器資訊",

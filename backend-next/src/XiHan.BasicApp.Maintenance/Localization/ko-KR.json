@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "캐시 항목 '{key}'이(가) 없거나 만료되었습니다.",
   "maintenance.caches.not_text": "캐시 항목 '{key}'의 값은 텍스트가 아니어서 다시 쓸 수 없습니다.",
   "maintenance.caches.inspector_unavailable": "현재 캐시 저장소는 키 관리를 지원하지 않습니다.",
+  "maintenance.caches.continuation_invalid": "이어보기 토큰이 올바르지 않습니다. 첫 페이지부터 다시 조회하세요.",
   "openapi.tags.caches.name": "캐시 관리",
   "openapi.tags.caches.description": "애플리케이션 네임스페이스의 캐시 키: 나열, 보기, 다시 쓰기, 삭제.",
   "server.get.title": "서버 정보 가져오기",

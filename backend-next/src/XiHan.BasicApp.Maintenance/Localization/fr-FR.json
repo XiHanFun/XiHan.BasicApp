@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "L'entrée de cache '{key}' n'existe pas ou a expiré.",
   "maintenance.caches.not_text": "La valeur de l'entrée de cache '{key}' n'est pas du texte et ne peut pas être réécrite.",
   "maintenance.caches.inspector_unavailable": "Le stockage de cache actuel ne gère pas les clés.",
+  "maintenance.caches.continuation_invalid": "Le jeton de continuation n’est pas valide ; relancez la liste depuis la première page.",
   "openapi.tags.caches.name": "Caches",
   "openapi.tags.caches.description": "Clés de cache des espaces de l'application : lister, consulter, réécrire et supprimer.",
   "server.get.title": "Obtenir les informations du serveur",

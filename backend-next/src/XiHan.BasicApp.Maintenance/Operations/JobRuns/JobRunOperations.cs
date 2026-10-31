@@ -17,7 +17,9 @@ namespace XiHan.BasicApp.Maintenance.Operations.JobRuns;
 /// <param name="Id">运行 ID。</param>
 /// <param name="Job">作业名。</param>
 /// <param name="TriggerName">触发器名；立即执行的是一次性触发器名。</param>
-/// <param name="Trigger">怎么触发的：计划、手动或恢复。</param>
+/// <param name="Trigger">怎么触发的：计划、手动、恢复或重试。</param>
+/// <param name="Attempt">第几次尝试（从 1 起，重试的运行大于 1）。</param>
+/// <param name="RetryOf">重试的运行所重试的首次运行 ID；首次运行为 <see langword="null"/>。</param>
 /// <param name="ScheduledAt">计划的触发时间。</param>
 /// <param name="StartedAt">开始时间。</param>
 /// <param name="CompletedAt">结束时间；还在运行为 <see langword="null"/>。</param>
@@ -32,6 +34,8 @@ public sealed record JobRunResponse(
     string Job,
     string? TriggerName,
     JobTrigger Trigger,
+    int Attempt,
+    string? RetryOf,
     DateTimeOffset ScheduledAt,
     DateTimeOffset StartedAt,
     DateTimeOffset? CompletedAt,
@@ -53,6 +57,8 @@ public sealed record JobRunResponse(
             run.Job.Value,
             run.TriggerName,
             run.Trigger,
+            run.Attempt,
+            run.RetryOf,
             run.ScheduledAt,
             run.StartedAt,
             run.CompletedAt,

@@ -6944,6 +6944,18 @@ export interface components {
             /** @description 原因码。 */
             code: string;
         };
+        /** @description 列出的一个缓存键。 */
+        CacheKeyItem: {
+            /** @description 键。 */
+            key: string;
+            /** @description 所在的层。 */
+            layer: components["schemas"]["CacheLayer"];
+        };
+        /**
+         * @description 缓存条目所在的层。
+         * @enum {string}
+         */
+        CacheLayer: "Store" | "Objects";
         /** @description 一个开放的缓存键命名空间。 */
         CacheNamespaceResponse: {
             /** @description 登记它的包。 */
@@ -8394,8 +8406,13 @@ export interface components {
         JobOutcomeResponse: {
             /** @description 运行 ID。 */
             runId: string;
-            /** @description 怎么触发的：计划、手动或恢复。 */
+            /** @description 怎么触发的：计划、手动、恢复或重试。 */
             trigger: components["schemas"]["JobTrigger"];
+            /**
+             * Format: int32
+             * @description 第几次尝试（从 1 起，重试的运行大于 1）。
+             */
+            attempt: number;
             /**
              * Format: date-time
              * @description 开始时间。
@@ -8441,6 +8458,13 @@ export interface components {
             allowConcurrent: boolean;
             /** @description 是否每个节点都运行。 */
             runOnEveryInstance: boolean;
+            /** @description 失败后的重试策略；不重试为 null。 */
+            retry?: components["schemas"]["JobRetryResponse"] | null;
+            /**
+             * Format: int64
+             * @description 单次执行的时限（秒）；不限为 null。
+             */
+            timeoutSeconds?: number | null;
             /**
              * Format: date-time
              * @description 下次运行时间；暂停或没有计划时为 null。
@@ -8456,6 +8480,28 @@ export interface components {
              */
             updatedAt: string;
         };
+        /** @enum {string} */
+        JobRetryBackoff: "Fixed" | "Exponential";
+        /** @description 作业失败后的重试策略。 */
+        JobRetryResponse: {
+            /**
+             * Format: int32
+             * @description 最多重试几次。
+             */
+            maxRetries: number;
+            /**
+             * Format: int64
+             * @description 第一次重试前等几秒。
+             */
+            delaySeconds: number;
+            /** @description 等待方式：每次相同或指数退避（每次翻倍）。 */
+            backoff: components["schemas"]["JobRetryBackoff"];
+            /**
+             * Format: int64
+             * @description 指数退避的等待上限（秒）；没有为 null。
+             */
+            maxDelaySeconds?: number | null;
+        };
         /** @description 作业的一次运行。 */
         JobRunResponse: {
             /** @description 运行 ID。 */
@@ -8464,8 +8510,15 @@ export interface components {
             job: string;
             /** @description 触发器名；立即执行的是一次性触发器名。 */
             triggerName?: string | null;
-            /** @description 怎么触发的：计划、手动或恢复。 */
+            /** @description 怎么触发的：计划、手动、恢复或重试。 */
             trigger: components["schemas"]["JobTrigger"];
+            /**
+             * Format: int32
+             * @description 第几次尝试（从 1 起，重试的运行大于 1）。
+             */
+            attempt: number;
+            /** @description 重试的运行所重试的首次运行 ID；首次运行为 null。 */
+            retryOf?: string | null;
             /**
              * Format: date-time
              * @description 计划的触发时间。
@@ -8504,7 +8557,7 @@ export interface components {
         /** @enum {string} */
         JobSource: "Code" | "Runtime" | "Overridden";
         /** @enum {string} */
-        JobTrigger: "Schedule" | "Manual" | "Recovery";
+        JobTrigger: "Schedule" | "Manual" | "Recovery" | "Retry";
         /** @description 作业的一个触发器。 */
         JobTriggerResponse: {
             /** @description 触发器名。 */
@@ -12085,11 +12138,15 @@ export interface operations {
                     "application/json": {
                         /** @description 键。 */
                         key: string;
+                        /** @description 所在的层。 */
+                        layer: components["schemas"]["CacheLayer"];
+                        /** @description 对象缓存里值的类型全名；字节存储的为空。 */
+                        typeName?: string | null;
                         /**
                          * Format: int64
-                         * @description 载荷字节数。
+                         * @description 载荷字节数；对象缓存的为空。
                          */
-                        size: number;
+                        size?: number | null;
                         /**
                          * Format: int64
                          * @description 剩余存活秒数；不过期为空。
@@ -12100,9 +12157,9 @@ export interface operations {
                          * @description 滑动过期的秒数；没有为空。
                          */
                         slidingSeconds?: number | null;
-                        /** @description 载荷按 UTF-8 解出的文本；不是合法 UTF-8 时为空。 */
+                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空。 */
                         text?: string | null;
-                        /** @description 能否改写（命名空间允许且载荷是文本）。 */
+                        /** @description 能否改写（字节存储里、命名空间允许且载荷是文本）。 */
                         editable: boolean;
                     };
                 };
@@ -12219,11 +12276,15 @@ export interface operations {
                     "application/json": {
                         /** @description 键。 */
                         key: string;
+                        /** @description 所在的层。 */
+                        layer: components["schemas"]["CacheLayer"];
+                        /** @description 对象缓存里值的类型全名；字节存储的为空。 */
+                        typeName?: string | null;
                         /**
                          * Format: int64
-                         * @description 载荷字节数。
+                         * @description 载荷字节数；对象缓存的为空。
                          */
-                        size: number;
+                        size?: number | null;
                         /**
                          * Format: int64
                          * @description 剩余存活秒数；不过期为空。
@@ -12234,9 +12295,9 @@ export interface operations {
                          * @description 滑动过期的秒数；没有为空。
                          */
                         slidingSeconds?: number | null;
-                        /** @description 载荷按 UTF-8 解出的文本；不是合法 UTF-8 时为空。 */
+                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空。 */
                         text?: string | null;
-                        /** @description 能否改写（命名空间允许且载荷是文本）。 */
+                        /** @description 能否改写（字节存储里、命名空间允许且载荷是文本）。 */
                         editable: boolean;
                     };
                 };
@@ -12259,7 +12320,7 @@ export interface operations {
                 prefix: string;
                 /** @description 本页最多几个键。 */
                 limit?: number;
-                /** @description 上一页给的续页标记；第一页为空。 */
+                /** @description 上一页给的续页标记（原样传回）；第一页为空。 */
                 continuation?: string | null;
             };
             header?: never;
@@ -12275,8 +12336,8 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @description 键，按存储返回的顺序（同一页内去重）。 */
-                        items: string[];
+                        /** @description 键：先对象缓存、后字节存储，各按存储返回的顺序（同一页内去重）。 */
+                        items: components["schemas"]["CacheKeyItem"][];
                         /** @description 下一页的续页标记；没有下一页为空。 */
                         continuation?: string | null;
                     };
@@ -18822,6 +18883,28 @@ export interface operations {
                     data?: string | null;
                     /** @description 是否允许上一次没跑完时再跑。 */
                     allowConcurrent?: boolean;
+                    /**
+                     * Format: int64
+                     * @description 单次执行的时限（秒）；不填不限。超过即取消并记失败（SCHEDULING_TIMEOUT_001）。
+                     */
+                    timeoutSeconds?: number | null;
+                    /**
+                     * Format: int32
+                     * @description 失败后最多重试几次；不填不重试。
+                     */
+                    maxRetries?: number | null;
+                    /**
+                     * Format: int64
+                     * @description 第一次重试前等几秒（设了重试次数才用）。
+                     */
+                    retryDelaySeconds?: number;
+                    /** @description 重试的等待方式：每次相同或指数退避。 */
+                    retryBackoff?: components["schemas"]["JobRetryBackoff"];
+                    /**
+                     * Format: int64
+                     * @description 指数退避的等待上限（秒）；不填只受 30 天约束。
+                     */
+                    retryMaxDelaySeconds?: number | null;
                     /** @description 说明。 */
                     description?: string | null;
                 };
@@ -18856,6 +18939,13 @@ export interface operations {
                         allowConcurrent: boolean;
                         /** @description 是否每个节点都运行。 */
                         runOnEveryInstance: boolean;
+                        /** @description 失败后的重试策略；不重试为 null。 */
+                        retry?: components["schemas"]["JobRetryResponse"] | null;
+                        /**
+                         * Format: int64
+                         * @description 单次执行的时限（秒）；不限为 null。
+                         */
+                        timeoutSeconds?: number | null;
                         /**
                          * Format: date-time
                          * @description 下次运行时间；暂停或没有计划时为 null。
@@ -18961,6 +19051,13 @@ export interface operations {
                         allowConcurrent: boolean;
                         /** @description 是否每个节点都运行。 */
                         runOnEveryInstance: boolean;
+                        /** @description 失败后的重试策略；不重试为 null。 */
+                        retry?: components["schemas"]["JobRetryResponse"] | null;
+                        /**
+                         * Format: int64
+                         * @description 单次执行的时限（秒）；不限为 null。
+                         */
+                        timeoutSeconds?: number | null;
                         /**
                          * Format: date-time
                          * @description 下次运行时间；暂停或没有计划时为 null。
@@ -19009,6 +19106,28 @@ export interface operations {
                     expression: string;
                     /** @description Cron 表达式的时区（如 Asia/Shanghai）；不填按 UTC。 */
                     timeZone?: string | null;
+                    /**
+                     * Format: int64
+                     * @description 单次执行的时限（秒）；不填不限。
+                     */
+                    timeoutSeconds?: number | null;
+                    /**
+                     * Format: int32
+                     * @description 失败后最多重试几次；不填不重试。
+                     */
+                    maxRetries?: number | null;
+                    /**
+                     * Format: int64
+                     * @description 第一次重试前等几秒（设了重试次数才用）。
+                     */
+                    retryDelaySeconds?: number;
+                    /** @description 重试的等待方式：每次相同或指数退避。 */
+                    retryBackoff?: components["schemas"]["JobRetryBackoff"];
+                    /**
+                     * Format: int64
+                     * @description 指数退避的等待上限（秒）；不填只受 30 天约束。
+                     */
+                    retryMaxDelaySeconds?: number | null;
                 };
             };
         };
@@ -19041,6 +19160,13 @@ export interface operations {
                         allowConcurrent: boolean;
                         /** @description 是否每个节点都运行。 */
                         runOnEveryInstance: boolean;
+                        /** @description 失败后的重试策略；不重试为 null。 */
+                        retry?: components["schemas"]["JobRetryResponse"] | null;
+                        /**
+                         * Format: int64
+                         * @description 单次执行的时限（秒）；不限为 null。
+                         */
+                        timeoutSeconds?: number | null;
                         /**
                          * Format: date-time
                          * @description 下次运行时间；暂停或没有计划时为 null。

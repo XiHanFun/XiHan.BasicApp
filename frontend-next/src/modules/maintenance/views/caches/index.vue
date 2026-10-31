@@ -19,6 +19,7 @@ import {
   goneKeys,
   isJson,
   keyPrefix,
+  layerLabel,
   leafKeys,
   loadNamespaces,
   namespaceOptions,
@@ -73,7 +74,7 @@ const saving = ref(false)
 
 // ── 键列表（左侧） ──
 const keyList = useCacheKeys()
-const { keys: cacheKeys, continuation, loading: loadingKeys, appending } = keyList
+const { keys: cacheKeys, objectKeys, continuation, loading: loadingKeys, appending } = keyList
 const selectedKeys = ref<string[]>([])
 const expandedKeys = ref<string[]>([])
 
@@ -87,7 +88,14 @@ const selectedCount = computed(() => selectedKeys.value.length)
 function renderTreeLabel(option: Record<string, unknown>) {
   const node = option as unknown as CacheTreeOption
   if (!node.children?.length) {
-    return h('span', { class: 'cache-tree-leaf', title: node.value }, String(node.label ?? ''))
+    const leaf = h('span', { class: 'cache-tree-leaf', title: node.value }, String(node.label ?? ''))
+    if (!objectKeys.value.has(node.value))
+      return leaf
+    // 进程内对象缓存的条目（不在字节存储里）标出来；键长时省略号收起，标签始终露出
+    return h('span', { class: 'cache-tree-leaf-row' }, [
+      leaf,
+      h(XhTagRoot, { class: 'cache-tree-leaf-tag', variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, () => t('maintenance.caches.object_tag'))),
+    ])
   }
   return h('span', { class: 'cache-tree-group' }, [
     h('span', null, String(node.label ?? '')),
@@ -496,7 +504,7 @@ onMounted(async () => {
           <div v-if="detailKey" class="cache-detail-header">
             <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
             <div class="cache-detail-actions">
-              <XhTagRoot v-if="entry" variant="subtle" size="sm">
+              <XhTagRoot v-if="entry && entry.size !== null && entry.size !== undefined" variant="subtle" size="sm">
                 <XhTagLabel>
                   {{ formatSize(entry.size) }}
                 </XhTagLabel>
@@ -570,18 +578,31 @@ onMounted(async () => {
                       <XhDescriptionsLabel>{{ t('maintenance.caches.sliding') }}</XhDescriptionsLabel>
                       <XhDescriptionsValue>{{ slidingText(t, entry) }}</XhDescriptionsValue>
                     </XhDescriptionsItem>
+                    <XhDescriptionsItem>
+                      <XhDescriptionsLabel>{{ t('maintenance.caches.layer') }}</XhDescriptionsLabel>
+                      <XhDescriptionsValue>{{ layerLabel(t, entry.layer) }}</XhDescriptionsValue>
+                    </XhDescriptionsItem>
+                    <XhDescriptionsItem v-if="entry.typeName">
+                      <XhDescriptionsLabel>{{ t('maintenance.caches.type_name') }}</XhDescriptionsLabel>
+                      <XhDescriptionsValue>
+                        <code class="cache-type-name" :title="entry.typeName">{{ entry.typeName }}</code>
+                      </XhDescriptionsValue>
+                    </XhDescriptionsItem>
                   </XhDescriptionsRoot>
                   <p v-if="reason === 'read-only'" class="cache-hint">
                     {{ t('maintenance.caches.read_only_hint') }}
                   </p>
+                  <p v-else-if="reason === 'object' || reason === 'unrenderable'" class="cache-hint">
+                    {{ t('maintenance.caches.object_hint') }}
+                  </p>
                   <!-- 二进制值：不能预览也不能改写，仍可删除 -->
-                  <div v-if="reason === 'binary'" class="cache-empty">
+                  <div v-if="reason === 'binary' || reason === 'unrenderable'" class="cache-empty">
                     <XhEmptyStateRoot>
                       <XhEmptyStateIndicator>
                         <Icon icon="lucide:binary" width="28" height="28" />
                       </XhEmptyStateIndicator>
                       <XhEmptyStateTitle>{{ t('maintenance.caches.binary_title') }}</XhEmptyStateTitle>
-                      <XhEmptyStateDescription>{{ t('maintenance.caches.binary_hint') }}</XhEmptyStateDescription>
+                      <XhEmptyStateDescription>{{ reason === 'binary' ? t('maintenance.caches.binary_hint') : t('maintenance.caches.unrenderable_hint') }}</XhEmptyStateDescription>
                     </XhEmptyStateRoot>
                   </div>
                   <!-- 编辑态：文本域 + 保存/取消 -->
@@ -727,6 +748,24 @@ onMounted(async () => {
   font-size: var(--xh-font-size-xs);
 }
 
+/* 对象缓存的叶子：铺满节点宽度，键过长省略、标签不收缩 */
+:deep(.cache-tree-leaf-row) {
+  display: flex;
+  gap: var(--xh-space-1);
+  align-items: center;
+  min-width: 0;
+}
+
+:deep(.cache-tree-leaf-row .cache-tree-leaf) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:deep(.cache-tree-leaf-tag) {
+  flex-shrink: 0;
+}
+
 :deep(.cache-tree-group) {
   display: inline-flex;
   gap: var(--xh-space-1);
@@ -817,6 +856,12 @@ onMounted(async () => {
 .cache-meta {
   flex-shrink: 0;
   margin-bottom: var(--xh-space-2);
+}
+
+.cache-type-name {
+  font-family: var(--xh-font-family-mono);
+  font-size: var(--xh-font-size-xs);
+  word-break: break-all;
 }
 
 .cache-hint {

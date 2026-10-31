@@ -1,8 +1,9 @@
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource, SchemaSelectOption } from '~/components'
-import type { JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'
+import type { JobRetryBackoff, JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'
 import { jobRuns as jobRunsApi, jobs as jobsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError } from '~/request'
+import { formatSeconds } from '../caches/cache'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
 
@@ -185,11 +186,12 @@ export function runStateOptions(t: Translate): { label: string, value: JobRunSta
   return (['Running', 'Succeeded', 'Failed', 'Canceled', 'Lost'] as const).map(state => ({ label: runStateLabel(t, state), value: state }))
 }
 
-/** 一次运行怎么触发的：按计划、手动（立即执行）或节点失联后的恢复 */
+/** 一次运行怎么触发的：按计划、手动（立即执行）、节点失联后的恢复或失败后的重试 */
 export function runTriggerLabel(t: Translate, trigger: JobTrigger): string {
   switch (trigger) {
     case 'Manual': return t('maintenance.jobs.trigger_modes.manual')
     case 'Recovery': return t('maintenance.jobs.trigger_modes.recovery')
+    case 'Retry': return t('maintenance.jobs.trigger_modes.retry')
     default: return t('maintenance.jobs.trigger_modes.schedule')
   }
 }
@@ -327,13 +329,16 @@ function scheduleParts(form: ScheduleForm): { expression: string, timeZone: null
   return { expression: form.expression.trim(), timeZone: timeZone || null }
 }
 
-/** jobs.reschedule 的请求：作业名进路由值 `{id}`，请求体只有计划与时区 */
-export function toRescheduleRequest(name: string, form: ScheduleForm): RequestOf<'jobs.reschedule'> {
-  return { id: name, ...scheduleParts(form) }
+/** 修改计划弹窗的表单：计划与时区，加上重试与时限（后端按请求整体替换） */
+export type RescheduleForm = ScheduleForm & RetryForm
+
+/** jobs.reschedule 的请求：作业名进路由值 `{id}`，请求体是计划、时区、重试与时限 */
+export function toRescheduleRequest(name: string, form: RescheduleForm): RequestOf<'jobs.reschedule'> {
+  return { id: name, ...scheduleParts(form), ...retryParts(form) }
 }
 
-/** 修改计划：其余登记与暂停状态不变，返回改后的作业 */
-export async function rescheduleJob(name: string, form: ScheduleForm): Promise<JobRow> {
+/** 修改计划、重试与时限：其余登记与暂停状态不变，返回改后的作业 */
+export async function rescheduleJob(name: string, form: RescheduleForm): Promise<JobRow> {
   return toJobRow(await jobsApi.reschedule(toRescheduleRequest(name, form)))
 }
 
@@ -368,8 +373,92 @@ export function intervalSecondsOf(expression: string): number | null {
   return Number(days ?? 0) * 86400 + Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds)
 }
 
-/** 新建作业的表单：作业名、类型、计划与时区、参数（JSON 对象的文本）、并发与说明 */
-export interface JobCreateForm extends ScheduleForm {
+// ── 重试与执行时限（4.x 的最大重试次数与超时时间，6.0 另有重试间隔与退避） ─────────
+
+/** 重试次数上限（与框架一致） */
+export const MAX_RETRIES = 100
+
+/** 重试等待与执行时限的秒数上限：30 天（与后端一致） */
+export const MAX_RETRY_SECONDS = 2_592_000
+
+/** 新设重试时的缺省间隔（与后端请求的缺省一致） */
+export const DEFAULT_RETRY_DELAY_SECONDS = 60
+
+/** 重试与执行时限的表单：时限与重试次数留空即不限时、不重试；间隔、退避与等待上限只在重试时用 */
+export interface RetryForm {
+  timeoutSeconds: null | number
+  maxRetries: null | number
+  retryDelaySeconds: null | number
+  retryBackoff: JobRetryBackoff
+  retryMaxDelaySeconds: null | number
+}
+
+/** 新建时的初值：不限时、不重试 */
+export function blankRetry(): RetryForm {
+  return { timeoutSeconds: null, maxRetries: null, retryDelaySeconds: DEFAULT_RETRY_DELAY_SECONDS, retryBackoff: 'Fixed', retryMaxDelaySeconds: null }
+}
+
+/** 修改弹窗的初值：作业现在的重试与时限（int64 统一按 Number 读）；不重试时间隔取缺省，便于勾上重试 */
+export function retryFormOf(job: Pick<JobResponse, 'retry' | 'timeoutSeconds'>): RetryForm {
+  const retry = job.retry
+  const seconds = (value: null | number | undefined) => (value === null || value === undefined ? null : Number(value))
+  return {
+    timeoutSeconds: seconds(job.timeoutSeconds),
+    maxRetries: retry ? retry.maxRetries : null,
+    retryDelaySeconds: retry ? Number(retry.delaySeconds) : DEFAULT_RETRY_DELAY_SECONDS,
+    retryBackoff: retry?.backoff ?? 'Fixed',
+    retryMaxDelaySeconds: seconds(retry?.maxDelaySeconds),
+  }
+}
+
+/** 设了重试次数却没填间隔：保存按钮据此禁用 */
+export function retryIncomplete(form: RetryForm): boolean {
+  return form.maxRetries !== null && form.retryDelaySeconds === null
+}
+
+/** 请求里的重试与时限：不重试时只发时限与空的次数；等待上限只对指数退避有意义，固定间隔不发 */
+function retryParts(form: RetryForm): Pick<RequestOf<'jobs.create'>, 'maxRetries' | 'retryBackoff' | 'retryDelaySeconds' | 'retryMaxDelaySeconds' | 'timeoutSeconds'> {
+  if (form.maxRetries === null || form.retryDelaySeconds === null)
+    return { timeoutSeconds: form.timeoutSeconds, maxRetries: null }
+  return {
+    timeoutSeconds: form.timeoutSeconds,
+    maxRetries: form.maxRetries,
+    retryDelaySeconds: form.retryDelaySeconds,
+    retryBackoff: form.retryBackoff,
+    retryMaxDelaySeconds: form.retryBackoff === 'Exponential' ? form.retryMaxDelaySeconds : null,
+  }
+}
+
+/** 等待方式的文案 */
+export function backoffLabel(t: Translate, backoff: JobRetryBackoff): string {
+  return backoff === 'Exponential' ? t('maintenance.jobs.retry_backoffs.exponential') : t('maintenance.jobs.retry_backoffs.fixed')
+}
+
+/** 等待方式的选项 */
+export function backoffOptions(t: Translate): { label: string, value: JobRetryBackoff }[] {
+  return (['Fixed', 'Exponential'] as const).map(value => ({ label: backoffLabel(t, value), value }))
+}
+
+/** 详情里的重试策略：不重试；最多几次、每次等多久；或最多几次、从多久起翻倍（有上限时带上） */
+export function retryText(t: Translate, job: Pick<JobResponse, 'retry'>): string {
+  const retry = job.retry
+  if (!retry)
+    return t('maintenance.jobs.no_retry')
+  const delay = formatSeconds(t, Number(retry.delaySeconds))
+  if (retry.backoff !== 'Exponential')
+    return t('maintenance.jobs.retry_fixed_value', { count: retry.maxRetries, delay })
+  if (retry.maxDelaySeconds === null || retry.maxDelaySeconds === undefined)
+    return t('maintenance.jobs.retry_exponential_value', { count: retry.maxRetries, delay })
+  return t('maintenance.jobs.retry_exponential_capped_value', { count: retry.maxRetries, delay, max: formatSeconds(t, Number(retry.maxDelaySeconds)) })
+}
+
+/** 详情里的执行时限：不限或可读时长 */
+export function timeoutText(t: Translate, job: Pick<JobResponse, 'timeoutSeconds'>): string {
+  return job.timeoutSeconds === null || job.timeoutSeconds === undefined ? t('maintenance.jobs.no_timeout') : formatSeconds(t, Number(job.timeoutSeconds))
+}
+
+/** 新建作业的表单：作业名、类型、计划与时区、参数（JSON 对象的文本）、并发、重试与时限及说明 */
+export interface JobCreateForm extends ScheduleForm, RetryForm {
   name: string
   jobType: string
   data: string
@@ -387,6 +476,7 @@ export function toCreateRequest(form: JobCreateForm): RequestOf<'jobs.create'> {
     ...scheduleParts(form),
     data: data || null,
     allowConcurrent: form.allowConcurrent,
+    ...retryParts(form),
     description: description || null,
   }
 }

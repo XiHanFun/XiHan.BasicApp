@@ -3122,9 +3122,23 @@
                       "description": "\u952E\u3002",
                       "type": "string"
                     },
+                    "layer": {
+                      "description": "\u6240\u5728\u7684\u5C42\u3002",
+                      "$ref": "#/components/schemas/CacheLayer"
+                    },
+                    "typeName": {
+                      "description": "\u5BF9\u8C61\u7F13\u5B58\u91CC\u503C\u7684\u7C7B\u578B\u5168\u540D\uFF1B\u5B57\u8282\u5B58\u50A8\u7684\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "size": {
-                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\u3002",
-                      "type": "integer",
+                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\uFF1B\u5BF9\u8C61\u7F13\u5B58\u7684\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
                       "format": "int64"
                     },
                     "timeToLiveSeconds": {
@@ -3144,20 +3158,20 @@
                       "format": "int64"
                     },
                     "text": {
-                      "description": "\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u65F6\u4E3A\u7A7A\u3002",
+                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u6216\u5199\u4E0D\u51FA JSON \u65F6\u4E3A\u7A7A\u3002",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     "editable": {
-                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
+                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u5B57\u8282\u5B58\u50A8\u91CC\u3001\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
                       "type": "boolean"
                     }
                   },
                   "required": [
                     "key",
-                    "size",
+                    "layer",
                     "editable"
                   ]
                 }
@@ -3286,9 +3300,23 @@
                       "description": "\u952E\u3002",
                       "type": "string"
                     },
+                    "layer": {
+                      "description": "\u6240\u5728\u7684\u5C42\u3002",
+                      "$ref": "#/components/schemas/CacheLayer"
+                    },
+                    "typeName": {
+                      "description": "\u5BF9\u8C61\u7F13\u5B58\u91CC\u503C\u7684\u7C7B\u578B\u5168\u540D\uFF1B\u5B57\u8282\u5B58\u50A8\u7684\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "size": {
-                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\u3002",
-                      "type": "integer",
+                      "description": "\u8F7D\u8377\u5B57\u8282\u6570\uFF1B\u5BF9\u8C61\u7F13\u5B58\u7684\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
                       "format": "int64"
                     },
                     "timeToLiveSeconds": {
@@ -3308,20 +3336,20 @@
                       "format": "int64"
                     },
                     "text": {
-                      "description": "\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u65F6\u4E3A\u7A7A\u3002",
+                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u6216\u5199\u4E0D\u51FA JSON \u65F6\u4E3A\u7A7A\u3002",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     "editable": {
-                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
+                      "description": "\u80FD\u5426\u6539\u5199\uFF08\u5B57\u8282\u5B58\u50A8\u91CC\u3001\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09\u3002",
                       "type": "boolean"
                     }
                   },
                   "required": [
                     "key",
-                    "size",
+                    "layer",
                     "editable"
                   ]
                 }
@@ -3380,10 +3408,10 @@
           {
             "name": "continuation",
             "in": "query",
-            "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
+            "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF08\u539F\u6837\u4F20\u56DE\uFF09\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
             "required": false,
             "schema": {
-              "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
+              "description": "\u4E0A\u4E00\u9875\u7ED9\u7684\u7EED\u9875\u6807\u8BB0\uFF08\u539F\u6837\u4F20\u56DE\uFF09\uFF1B\u7B2C\u4E00\u9875\u4E3A\u7A7A\u3002",
               "type": [
                 "string",
                 "null"
@@ -3403,10 +3431,10 @@
                   "type": "object",
                   "properties": {
                     "items": {
-                      "description": "\u952E\uFF0C\u6309\u5B58\u50A8\u8FD4\u56DE\u7684\u987A\u5E8F\uFF08\u540C\u4E00\u9875\u5185\u53BB\u91CD\uFF09\u3002",
+                      "description": "\u952E\uFF1A\u5148\u5BF9\u8C61\u7F13\u5B58\u3001\u540E\u5B57\u8282\u5B58\u50A8\uFF0C\u5404\u6309\u5B58\u50A8\u8FD4\u56DE\u7684\u987A\u5E8F\uFF08\u540C\u4E00\u9875\u5185\u53BB\u91CD\uFF09\u3002",
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/CacheKeyItem"
                       }
                     },
                     "continuation": {
@@ -15944,6 +15972,47 @@
                     "description": "\u662F\u5426\u5141\u8BB8\u4E0A\u4E00\u6B21\u6CA1\u8DD1\u5B8C\u65F6\u518D\u8DD1\u3002",
                     "type": "boolean"
                   },
+                  "timeoutSeconds": {
+                    "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u586B\u4E0D\u9650\u3002\u8D85\u8FC7\u5373\u53D6\u6D88\u5E76\u8BB0\u5931\u8D25\uFF08SCHEDULING_TIMEOUT_001\uFF09\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
+                  },
+                  "maxRetries": {
+                    "description": "\u5931\u8D25\u540E\u6700\u591A\u91CD\u8BD5\u51E0\u6B21\uFF1B\u4E0D\u586B\u4E0D\u91CD\u8BD5\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "retryDelaySeconds": {
+                    "description": "\u7B2C\u4E00\u6B21\u91CD\u8BD5\u524D\u7B49\u51E0\u79D2\uFF08\u8BBE\u4E86\u91CD\u8BD5\u6B21\u6570\u624D\u7528\uFF09\u3002",
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
+                  },
+                  "retryBackoff": {
+                    "description": "\u91CD\u8BD5\u7684\u7B49\u5F85\u65B9\u5F0F\uFF1A\u6BCF\u6B21\u76F8\u540C\u6216\u6307\u6570\u9000\u907F\u3002",
+                    "$ref": "#/components/schemas/JobRetryBackoff"
+                  },
+                  "retryMaxDelaySeconds": {
+                    "description": "\u6307\u6570\u9000\u907F\u7684\u7B49\u5F85\u4E0A\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u586B\u53EA\u53D7 30 \u5929\u7EA6\u675F\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
+                  },
                   "description": {
                     "description": "\u8BF4\u660E\u3002",
                     "type": [
@@ -16011,6 +16080,25 @@
                     "runOnEveryInstance": {
                       "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
                       "type": "boolean"
+                    },
+                    "retry": {
+                      "description": "\u5931\u8D25\u540E\u7684\u91CD\u8BD5\u7B56\u7565\uFF1B\u4E0D\u91CD\u8BD5\u4E3A null\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/JobRetryResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u9650\u4E3A null\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
                     },
                     "nextRunAt": {
                       "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
@@ -16147,6 +16235,25 @@
                       "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
                       "type": "boolean"
                     },
+                    "retry": {
+                      "description": "\u5931\u8D25\u540E\u7684\u91CD\u8BD5\u7B56\u7565\uFF1B\u4E0D\u91CD\u8BD5\u4E3A null\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/JobRetryResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u9650\u4E3A null\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
                     "nextRunAt": {
                       "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
                       "type": [
@@ -16261,6 +16368,47 @@
                       "null"
                     ],
                     "maxLength": 64
+                  },
+                  "timeoutSeconds": {
+                    "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u586B\u4E0D\u9650\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
+                  },
+                  "maxRetries": {
+                    "description": "\u5931\u8D25\u540E\u6700\u591A\u91CD\u8BD5\u51E0\u6B21\uFF1B\u4E0D\u586B\u4E0D\u91CD\u8BD5\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "retryDelaySeconds": {
+                    "description": "\u7B2C\u4E00\u6B21\u91CD\u8BD5\u524D\u7B49\u51E0\u79D2\uFF08\u8BBE\u4E86\u91CD\u8BD5\u6B21\u6570\u624D\u7528\uFF09\u3002",
+                    "type": "integer",
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
+                  },
+                  "retryBackoff": {
+                    "description": "\u91CD\u8BD5\u7684\u7B49\u5F85\u65B9\u5F0F\uFF1A\u6BCF\u6B21\u76F8\u540C\u6216\u6307\u6570\u9000\u907F\u3002",
+                    "$ref": "#/components/schemas/JobRetryBackoff"
+                  },
+                  "retryMaxDelaySeconds": {
+                    "description": "\u6307\u6570\u9000\u907F\u7684\u7B49\u5F85\u4E0A\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u586B\u53EA\u53D7 30 \u5929\u7EA6\u675F\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64",
+                    "minimum": 1,
+                    "maximum": 2592000
                   }
                 },
                 "required": [
@@ -16320,6 +16468,25 @@
                     "runOnEveryInstance": {
                       "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
                       "type": "boolean"
+                    },
+                    "retry": {
+                      "description": "\u5931\u8D25\u540E\u7684\u91CD\u8BD5\u7B56\u7565\uFF1B\u4E0D\u91CD\u8BD5\u4E3A null\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/JobRetryResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u9650\u4E3A null\u3002",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
                     },
                     "nextRunAt": {
                       "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
@@ -43394,6 +43561,32 @@
           "code"
         ]
       },
+      "CacheKeyItem": {
+        "description": "\u5217\u51FA\u7684\u4E00\u4E2A\u7F13\u5B58\u952E\u3002",
+        "type": "object",
+        "properties": {
+          "key": {
+            "description": "\u952E\u3002",
+            "type": "string"
+          },
+          "layer": {
+            "description": "\u6240\u5728\u7684\u5C42\u3002",
+            "$ref": "#/components/schemas/CacheLayer"
+          }
+        },
+        "required": [
+          "key",
+          "layer"
+        ]
+      },
+      "CacheLayer": {
+        "description": "\u7F13\u5B58\u6761\u76EE\u6240\u5728\u7684\u5C42\u3002",
+        "type": "string",
+        "enum": [
+          "Store",
+          "Objects"
+        ]
+      },
       "CacheNamespaceResponse": {
         "description": "\u4E00\u4E2A\u5F00\u653E\u7684\u7F13\u5B58\u952E\u547D\u540D\u7A7A\u95F4\u3002",
         "type": "object",
@@ -46559,8 +46752,13 @@
             "type": "string"
           },
           "trigger": {
-            "description": "\u600E\u4E48\u89E6\u53D1\u7684\uFF1A\u8BA1\u5212\u3001\u624B\u52A8\u6216\u6062\u590D\u3002",
+            "description": "\u600E\u4E48\u89E6\u53D1\u7684\uFF1A\u8BA1\u5212\u3001\u624B\u52A8\u3001\u6062\u590D\u6216\u91CD\u8BD5\u3002",
             "$ref": "#/components/schemas/JobTrigger"
+          },
+          "attempt": {
+            "description": "\u7B2C\u51E0\u6B21\u5C1D\u8BD5\uFF08\u4ECE 1 \u8D77\uFF0C\u91CD\u8BD5\u7684\u8FD0\u884C\u5927\u4E8E 1\uFF09\u3002",
+            "type": "integer",
+            "format": "int32"
           },
           "startedAt": {
             "description": "\u5F00\u59CB\u65F6\u95F4\u3002",
@@ -46599,6 +46797,7 @@
         "required": [
           "runId",
           "trigger",
+          "attempt",
           "startedAt",
           "completedAt",
           "durationMs",
@@ -46649,6 +46848,25 @@
             "description": "\u662F\u5426\u6BCF\u4E2A\u8282\u70B9\u90FD\u8FD0\u884C\u3002",
             "type": "boolean"
           },
+          "retry": {
+            "description": "\u5931\u8D25\u540E\u7684\u91CD\u8BD5\u7B56\u7565\uFF1B\u4E0D\u91CD\u8BD5\u4E3A null\u3002",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobRetryResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeoutSeconds": {
+            "description": "\u5355\u6B21\u6267\u884C\u7684\u65F6\u9650\uFF08\u79D2\uFF09\uFF1B\u4E0D\u9650\u4E3A null\u3002",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
           "nextRunAt": {
             "description": "\u4E0B\u6B21\u8FD0\u884C\u65F6\u95F4\uFF1B\u6682\u505C\u6216\u6CA1\u6709\u8BA1\u5212\u65F6\u4E3A null\u3002",
             "type": [
@@ -46694,6 +46912,46 @@
           "updatedAt"
         ]
       },
+      "JobRetryBackoff": {
+        "type": "string",
+        "enum": [
+          "Fixed",
+          "Exponential"
+        ]
+      },
+      "JobRetryResponse": {
+        "description": "\u4F5C\u4E1A\u5931\u8D25\u540E\u7684\u91CD\u8BD5\u7B56\u7565\u3002",
+        "type": "object",
+        "properties": {
+          "maxRetries": {
+            "description": "\u6700\u591A\u91CD\u8BD5\u51E0\u6B21\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "delaySeconds": {
+            "description": "\u7B2C\u4E00\u6B21\u91CD\u8BD5\u524D\u7B49\u51E0\u79D2\u3002",
+            "type": "integer",
+            "format": "int64"
+          },
+          "backoff": {
+            "description": "\u7B49\u5F85\u65B9\u5F0F\uFF1A\u6BCF\u6B21\u76F8\u540C\u6216\u6307\u6570\u9000\u907F\uFF08\u6BCF\u6B21\u7FFB\u500D\uFF09\u3002",
+            "$ref": "#/components/schemas/JobRetryBackoff"
+          },
+          "maxDelaySeconds": {
+            "description": "\u6307\u6570\u9000\u907F\u7684\u7B49\u5F85\u4E0A\u9650\uFF08\u79D2\uFF09\uFF1B\u6CA1\u6709\u4E3A null\u3002",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        },
+        "required": [
+          "maxRetries",
+          "delaySeconds",
+          "backoff"
+        ]
+      },
       "JobRunResponse": {
         "description": "\u4F5C\u4E1A\u7684\u4E00\u6B21\u8FD0\u884C\u3002",
         "type": "object",
@@ -46714,8 +46972,20 @@
             ]
           },
           "trigger": {
-            "description": "\u600E\u4E48\u89E6\u53D1\u7684\uFF1A\u8BA1\u5212\u3001\u624B\u52A8\u6216\u6062\u590D\u3002",
+            "description": "\u600E\u4E48\u89E6\u53D1\u7684\uFF1A\u8BA1\u5212\u3001\u624B\u52A8\u3001\u6062\u590D\u6216\u91CD\u8BD5\u3002",
             "$ref": "#/components/schemas/JobTrigger"
+          },
+          "attempt": {
+            "description": "\u7B2C\u51E0\u6B21\u5C1D\u8BD5\uFF08\u4ECE 1 \u8D77\uFF0C\u91CD\u8BD5\u7684\u8FD0\u884C\u5927\u4E8E 1\uFF09\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "retryOf": {
+            "description": "\u91CD\u8BD5\u7684\u8FD0\u884C\u6240\u91CD\u8BD5\u7684\u9996\u6B21\u8FD0\u884C ID\uFF1B\u9996\u6B21\u8FD0\u884C\u4E3A null\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "scheduledAt": {
             "description": "\u8BA1\u5212\u7684\u89E6\u53D1\u65F6\u95F4\u3002",
@@ -46774,6 +47044,7 @@
           "id",
           "job",
           "trigger",
+          "attempt",
           "scheduledAt",
           "startedAt",
           "state",
@@ -46813,7 +47084,8 @@
         "enum": [
           "Schedule",
           "Manual",
-          "Recovery"
+          "Recovery",
+          "Retry"
         ]
       },
       "JobTriggerResponse": {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JobRow, ScheduleForm, SchedulePreview } from '../job'
+import type { JobRow, RescheduleForm, RetryForm, ScheduleForm, SchedulePreview } from '../job'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -7,11 +7,12 @@ import { XCombobox, XEditModal } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
-import { errorText, kindLabel, previewSchedule, rescheduleJob, SCHEDULE_PREVIEW_COUNT, scheduleFormOf, schedulePresets } from '../job'
+import { blankRetry, errorText, kindLabel, previewSchedule, rescheduleJob, retryFormOf, retryIncomplete, SCHEDULE_PREVIEW_COUNT, scheduleFormOf, schedulePresets } from '../job'
+import JobRetryFields from './JobRetryFields.vue'
 import JobScheduleEditor from './JobScheduleEditor.vue'
 
 /**
- * 修改计划：换作业唯一触发器的计划（照 4.x 分 Cron 与间隔，Cron 用 4.x 的构建器），其余登记与暂停状态不变。
+ * 修改计划：换作业唯一触发器的计划（照 4.x 分 Cron 与间隔，Cron 用 4.x 的构建器），连同重试与执行时限（按表单整体替换），其余登记与暂停状态不变。
  * 计划与时区改动后停顿片刻即经 jobs.validate-schedule 校验并预览接下来的执行时间（4.x Cron 构建器的预览位置）；
  * 保存走 jobs.reschedule，代码登记的作业改过即标为「已改计划」。
  */
@@ -35,6 +36,7 @@ const formId = useId()
 const timeZones = useTimezoneOptions()
 
 const form = reactive<ScheduleForm>({ expression: '', timeZone: '' })
+const retry = ref<RetryForm>(blankRetry())
 const saving = ref(false)
 const fieldErrors = ref<Record<string, string[]>>({})
 
@@ -114,6 +116,7 @@ watch(
       return
     }
     Object.assign(form, scheduleFormOf(props.job))
+    retry.value = retryFormOf(props.job)
     fieldErrors.value = {}
     preview.value = null
     previewError.value = null
@@ -156,10 +159,14 @@ async function submit() {
     fieldErrors.value = { expression: [t('maintenance.jobs.expression_required')] }
     return
   }
+  if (retryIncomplete(retry.value)) {
+    return
+  }
   saving.value = true
   fieldErrors.value = {}
   try {
-    const saved = await rescheduleJob(job.name, form)
+    const request: RescheduleForm = { ...form, ...retry.value }
+    const saved = await rescheduleJob(job.name, request)
     toast.success(t('maintenance.jobs.rescheduled'))
     emit('saved', saved)
     close()
@@ -187,7 +194,7 @@ async function submit() {
     :show="show"
     :title="title"
     :loading="saving"
-    :save-disabled="!form.expression.trim()"
+    :save-disabled="!form.expression.trim() || retryIncomplete(retry)"
     :form-id="formId"
     :width="640"
     @update:show="(value: boolean) => emit('update:show', value)"
@@ -259,6 +266,8 @@ async function submit() {
         </XhFieldErrorText>
         <XhFieldDescription>{{ t('maintenance.jobs.time_zone_hint') }}</XhFieldDescription>
       </XhFieldRoot>
+
+      <JobRetryFields v-model="retry" :errors="fieldErrors" />
     </XhFormRoot>
 
     <!-- 预览：后端按计划与时区算出的接下来几次执行（显示为本地时间） -->

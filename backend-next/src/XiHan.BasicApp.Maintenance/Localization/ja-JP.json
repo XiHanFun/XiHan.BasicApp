@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "キャッシュ項目 '{key}' は存在しないか期限切れです。",
   "maintenance.caches.not_text": "キャッシュ項目 '{key}' の値はテキストではないため書き換えられません。",
   "maintenance.caches.inspector_unavailable": "現在のキャッシュストアはキー管理に対応していません。",
+  "maintenance.caches.continuation_invalid": "続きのトークンが正しくありません。最初のページから一覧し直してください。",
   "openapi.tags.caches.name": "キャッシュ管理",
   "openapi.tags.caches.description": "アプリの名前空間にあるキャッシュキー：一覧、表示、書き換え、削除。",
   "server.get.title": "サーバー情報の取得",

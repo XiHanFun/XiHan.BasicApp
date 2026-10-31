@@ -234,6 +234,11 @@ public static class MaintenanceMessages
     public const string CacheInspectorUnavailable = "maintenance.caches.inspector_unavailable";
 
     /// <summary>
+    /// 列缓存键的续页标记认不出。
+    /// </summary>
+    public const string CacheContinuationInvalid = "maintenance.caches.continuation_invalid";
+
+    /// <summary>
     /// 没有装运行信息。
     /// </summary>
     public const string HostMonitorUnavailable = "maintenance.server.monitor_unavailable";

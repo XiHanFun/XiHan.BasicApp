@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import type { JobCreateForm, JobResponse } from '../job'
+import type { JobCreateForm, JobResponse, RetryForm } from '../job'
 import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XCombobox, XEditModal, XInput, XSelect } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
-import { createJob, errorText, loadJobTypeOptions } from '../job'
+import { blankRetry, createJob, errorText, loadJobTypeOptions, retryIncomplete } from '../job'
+import JobRetryFields from './JobRetryFields.vue'
 import JobScheduleEditor from './JobScheduleEditor.vue'
 
 /**
  * 新建作业（照 4.x 的新建任务，替代 4.x 的 DynamicJobWorker）：按已登记的作业类型运行时登记，
- * 填作业名、类型、计划（Cron 构建器或间隔秒数）与时区、参数（JSON 对象）、是否允许并发与说明。
+ * 填作业名、类型、计划（Cron 构建器或间隔秒数）与时区、参数（JSON 对象）、重试与执行时限、是否允许并发与说明。
  * 保存走 jobs.create；作业名重复、类型不认识、参数不是 JSON 对象等按字段落位，其余弹提示。
  */
 defineOptions({ name: 'JobCreateDialog' })
@@ -32,11 +33,12 @@ const { t } = useI18n()
 const formId = useId()
 const timeZones = useTimezoneOptions()
 
-function blank(): JobCreateForm {
+function blank(): Omit<JobCreateForm, keyof RetryForm> {
   return { name: '', jobType: '', expression: '', timeZone: '', data: '', allowConcurrent: false, description: '' }
 }
 
-const form = reactive<JobCreateForm>(blank())
+const form = reactive(blank())
+const retry = ref<RetryForm>(blankRetry())
 const saving = ref(false)
 const fieldErrors = ref<Record<string, string[]>>({})
 const typeOptions = ref<{ label: string, value: string }[]>([])
@@ -44,12 +46,13 @@ const concurrentLabelId = useId()
 
 const timeZoneOptions = computed(() => timeZones.withCurrent(form.timeZone).map(zone => ({ label: zone.label, value: zone.value })))
 const errorOf = (field: string) => fieldErrors.value[field]?.[0]
-const canSave = computed(() => !!form.name.trim() && !!form.jobType && !!form.expression.trim())
+const canSave = computed(() => !!form.name.trim() && !!form.jobType && !!form.expression.trim() && !retryIncomplete(retry.value))
 
 watch(() => props.show, async (show) => {
   if (!show)
     return
   Object.assign(form, blank())
+  retry.value = blankRetry()
   fieldErrors.value = {}
   void timeZones.ensureLoaded()
   try {
@@ -79,7 +82,7 @@ async function submit() {
   saving.value = true
   fieldErrors.value = {}
   try {
-    const saved = await createJob(form)
+    const saved = await createJob({ ...form, ...retry.value })
     toast.success(t('maintenance.jobs.created'))
     emit('saved', saved)
     emit('update:show', false)
@@ -167,6 +170,8 @@ async function submit() {
         </XhFieldErrorText>
         <XhFieldDescription>{{ t('maintenance.jobs.data_hint') }}</XhFieldDescription>
       </XhFieldRoot>
+
+      <JobRetryFields v-model="retry" :errors="fieldErrors" />
 
       <XhFieldRoot>
         <XhFieldLabel :id="concurrentLabelId">

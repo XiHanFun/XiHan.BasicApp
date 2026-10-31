@@ -20,6 +20,11 @@ namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 /// <param name="TimeZone">Cron 表达式的时区（如 <c>Asia/Shanghai</c>）；不填按 UTC。</param>
 /// <param name="Data">作业参数（JSON 对象的文本）；不填即没有参数。</param>
 /// <param name="AllowConcurrent">是否允许上一次没跑完时再跑。</param>
+/// <param name="TimeoutSeconds">单次执行的时限（秒）；不填不限。超过即取消并记失败（<c>SCHEDULING_TIMEOUT_001</c>）。</param>
+/// <param name="MaxRetries">失败后最多重试几次；不填不重试。</param>
+/// <param name="RetryDelaySeconds">第一次重试前等几秒（设了重试次数才用）。</param>
+/// <param name="RetryBackoff">重试的等待方式：每次相同或指数退避。</param>
+/// <param name="RetryMaxDelaySeconds">指数退避的等待上限（秒）；不填只受 30 天约束。</param>
 /// <param name="Description">说明。</param>
 public sealed record CreateJobRequest(
     [Required, StringLength(JobName.MaxLength, MinimumLength = 1)] string Name,
@@ -28,6 +33,11 @@ public sealed record CreateJobRequest(
     [StringLength(64)] string? TimeZone = null,
     [StringLength(65_536)] string? Data = null,
     bool AllowConcurrent = false,
+    [Range(1, JobViews.MaxSeconds)] long? TimeoutSeconds = null,
+    [Range(1, JobRetryPolicy.MaxRetriesLimit)] int? MaxRetries = null,
+    [Range(1, JobViews.MaxSeconds)] long RetryDelaySeconds = 60,
+    JobRetryBackoff RetryBackoff = JobRetryBackoff.Fixed,
+    [Range(1, JobViews.MaxSeconds)] long? RetryMaxDelaySeconds = null,
     [StringLength(500)] string? Description = null);
 
 /// <summary>
@@ -108,6 +118,8 @@ public sealed class CreateJob(IJobScheduler scheduler, JobTypeRegistry types) : 
             Triggers = [new JobTriggerDefinition(JobTriggerDefinition.DefaultName, schedule)],
             Data = data,
             AllowConcurrent = request.AllowConcurrent,
+            Retry = JobViews.RetryOf(request.MaxRetries, request.RetryDelaySeconds, request.RetryBackoff, request.RetryMaxDelaySeconds),
+            Timeout = JobViews.TimeoutOf(request.TimeoutSeconds),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
         };
         var scheduled = (await scheduler.ScheduleAsync([definition], context.CancellationToken).ConfigureAwait(false))[0];

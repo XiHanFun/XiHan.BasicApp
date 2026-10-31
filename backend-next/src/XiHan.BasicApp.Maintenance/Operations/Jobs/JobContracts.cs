@@ -33,6 +33,8 @@ public sealed record JobIdsRequest([Required, MinLength(1), MaxLength(100)] IRea
 /// <param name="RunningCount">正在运行的次数。</param>
 /// <param name="AllowConcurrent">是否允许并发运行。</param>
 /// <param name="RunOnEveryInstance">是否每个节点都运行。</param>
+/// <param name="Retry">失败后的重试策略；不重试为 <see langword="null"/>。</param>
+/// <param name="TimeoutSeconds">单次执行的时限（秒）；不限为 <see langword="null"/>。</param>
 /// <param name="NextRunAt">下次运行时间；暂停或没有计划时为 <see langword="null"/>。</param>
 /// <param name="Triggers">触发器。</param>
 /// <param name="Last">上一次运行的结果；没运行过为 <see langword="null"/>。</param>
@@ -47,10 +49,24 @@ public sealed record JobResponse(
     int RunningCount,
     bool AllowConcurrent,
     bool RunOnEveryInstance,
+    JobRetryResponse? Retry,
+    long? TimeoutSeconds,
     DateTimeOffset? NextRunAt,
     IReadOnlyList<JobTriggerResponse> Triggers,
     JobOutcomeResponse? Last,
     DateTimeOffset UpdatedAt);
+
+/// <summary>
+/// 作业失败后的重试策略。
+/// </summary>
+/// <remarks>
+/// 只有失败的运行重试（返回失败、抛出异常或超过执行时限），被取消与失联的不重试；每次重试是一次新运行。
+/// </remarks>
+/// <param name="MaxRetries">最多重试几次。</param>
+/// <param name="DelaySeconds">第一次重试前等几秒。</param>
+/// <param name="Backoff">等待方式：每次相同或指数退避（每次翻倍）。</param>
+/// <param name="MaxDelaySeconds">指数退避的等待上限（秒）；没有为 <see langword="null"/>。</param>
+public sealed record JobRetryResponse(int MaxRetries, long DelaySeconds, JobRetryBackoff Backoff, long? MaxDelaySeconds);
 
 /// <summary>
 /// 作业的一个触发器。
@@ -83,7 +99,8 @@ public sealed record JobTriggerResponse(
 /// 作业一次运行的结果。
 /// </summary>
 /// <param name="RunId">运行 ID。</param>
-/// <param name="Trigger">怎么触发的：计划、手动或恢复。</param>
+/// <param name="Trigger">怎么触发的：计划、手动、恢复或重试。</param>
+/// <param name="Attempt">第几次尝试（从 1 起，重试的运行大于 1）。</param>
 /// <param name="StartedAt">开始时间。</param>
 /// <param name="CompletedAt">结束时间。</param>
 /// <param name="DurationMs">耗时（毫秒）。</param>
@@ -93,6 +110,7 @@ public sealed record JobTriggerResponse(
 public sealed record JobOutcomeResponse(
     string RunId,
     JobTrigger Trigger,
+    int Attempt,
     DateTimeOffset StartedAt,
     DateTimeOffset CompletedAt,
     long DurationMs,
