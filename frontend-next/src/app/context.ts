@@ -5,6 +5,7 @@ import type { NotificationContentFormat, NotificationPriority, NotificationStatu
 import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
+import { getDisplayTimeZone } from '~/utils'
 
 /** 壳层导出菜单的范围编号（4.x：0 当前页、1 搜索结果、2 全部）对应的契约名称 */
 const EXPORT_SCOPES: Record<number, 'All' | 'CurrentPage' | 'SearchResult'> = { 0: 'CurrentPage', 1: 'SearchResult', 2: 'All' }
@@ -402,8 +403,8 @@ export function registerApplicationContext(router: Router): void {
       typeTask: input.typeTask,
       typeSecurity: input.typeSecurity,
     })),
-    // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按浏览器的 IANA 时区分天（4.x 按 UTC），本周从周一算
-    getActivityApi: async () => toShellActivity(await myActivityOps.summary({ timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone })),
+    // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按应用时区分天（与界面上的时间一致；4.x 按 UTC），本周从周一算
+    getActivityApi: async () => toShellActivity(await myActivityOps.summary({ timeZone: getDisplayTimeZone() })),
     // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
     lockSessionApi: input => authOps.lock({ password: input.password }),
     unlockSessionApi: input => authOps.unlock({ password: input.password }),

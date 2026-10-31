@@ -7,16 +7,21 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  browserTimeZone,
   copyToClipboard,
   debounce,
   deepClone,
   formatDate,
+  formatDateTime,
   formatFileSize,
+  getDisplayTimeZone,
   getOptionLabel,
   getStatusType,
   isEmpty,
+  isTimeZone,
   parseQuery,
   randomString,
+  setDisplayTimeZone,
   throttle,
 } from './common'
 
@@ -73,13 +78,72 @@ describe('formatDate', () => {
     expect(formatDate('2026-08-27 13:04:05', 'YYYY/MM/DD')).toBe('2026/08/27')
   })
 
+  it('按显示时区显示后端的 UTC 时刻，换时区后同一个值跟着变', () => {
+    const original = getDisplayTimeZone()
+    try {
+      setDisplayTimeZone('Asia/Shanghai')
+      expect(formatDate('2026-11-01T00:30:00Z')).toBe('2026-11-01 08:30:00')
+      setDisplayTimeZone('UTC')
+      expect(formatDate('2026-11-01T00:30:00Z')).toBe('2026-11-01 00:30:00')
+    }
+    finally {
+      setDisplayTimeZone(original)
+    }
+  })
+
   it('传入 Date 实例与等价时间戳的格式化结果一致', () => {
     const date = new Date(2026, 7, 27, 13, 4, 5)
     expect(formatDate(date)).toBe(formatDate(date.getTime()))
   })
 
-  it('不可解析的字符串输出 Invalid Date 而非抛错', () => {
-    expect(formatDate('不是日期')).toBe('Invalid Date')
+  it('不可解析的字符串按占位符返回而非抛错', () => {
+    expect(formatDate('不是日期')).toBe('-')
+  })
+})
+
+describe('formatDateTime', () => {
+  it('按指定时区换算带 Z 或偏移的时刻，与浏览器所在的时区无关', () => {
+    expect(formatDateTime('2026-11-01T00:30:00Z', 'Asia/Shanghai')).toBe('2026-11-01 08:30:00')
+    // 纽约 11 月 1 日 06:00Z 才退出夏令时，此刻仍是 -04:00
+    expect(formatDateTime('2026-11-01T00:30:00Z', 'America/New_York')).toBe('2026-10-31 20:30:00')
+    expect(formatDateTime('2026-11-01T08:30:00+08:00', 'UTC', 'HH:mm')).toBe('00:30')
+    expect(formatDateTime(Date.UTC(2026, 10, 1, 0, 30), 'Asia/Tokyo')).toBe('2026-11-01 09:30:00')
+  })
+
+  it('只有日历日的串不换算：零点不会被挪到前一天', () => {
+    expect(formatDateTime('2026-11-01', 'America/Los_Angeles', 'YYYY-MM-DD')).toBe('2026-11-01')
+    expect(formatDateTime('2026-11-01', 'Pacific/Kiritimati', 'YYYY-MM-DD')).toBe('2026-11-01')
+  })
+
+  it('没有值与解析不出的值按占位符返回', () => {
+    expect(formatDateTime(null, 'UTC')).toBe('-')
+    expect(formatDateTime('', 'UTC')).toBe('-')
+    expect(formatDateTime(Number.NaN, 'UTC')).toBe('-')
+    expect(formatDateTime('garbage', 'UTC')).toBe('-')
+  })
+})
+
+describe('显示时区', () => {
+  it('认得 IANA 时区名，认不出的拒绝写入', () => {
+    expect(isTimeZone('Asia/Shanghai')).toBe(true)
+    expect(isTimeZone('UTC')).toBe(true)
+    expect(isTimeZone('Mars/Olympus')).toBe(false)
+    expect(isTimeZone('')).toBe(false)
+    const original = getDisplayTimeZone()
+    expect(() => setDisplayTimeZone('Mars/Olympus')).toThrow(RangeError)
+    expect(getDisplayTimeZone()).toBe(original)
+  })
+
+  it('空串表示跟随浏览器所在的时区', () => {
+    const original = getDisplayTimeZone()
+    try {
+      setDisplayTimeZone('Asia/Tokyo')
+      setDisplayTimeZone('')
+      expect(getDisplayTimeZone()).toBe(browserTimeZone())
+    }
+    finally {
+      setDisplayTimeZone(original)
+    }
   })
 })
 

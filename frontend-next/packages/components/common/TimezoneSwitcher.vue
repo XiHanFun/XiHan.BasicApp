@@ -14,7 +14,7 @@ import XCombobox from './XCombobox.vue'
  *   输入框文字、本地筛选、空态与加载态都交给 XCombobox。
  * - variant=dropdown：触发器 + 菜单（顶栏），触发器经默认插槽传入。
  * 选项取自 useTimezoneOptions 的共享目录（顶栏 / 个人中心 / 编号规则同一份），不在此另行硬编码。
- * - apply=true：即时切换并同步应用时区（appStore.appTimezone，随请求头 X-Timezone 上行）并提示；否则受控，仅 emit（如个人中心的资料字段）。
+ * - apply=true：即时切换应用时区（appStore.appTimezone：界面上的时间随之按该时区显示）并提示；否则受控，仅 emit（如编号规则的时区字段）。
  */
 defineOptions({ name: 'TimezoneSwitcher' })
 
@@ -71,7 +71,7 @@ const selectStyle = computed(() =>
 
 function choose(timezone: string) {
   if (props.apply) {
-    // 落库并跨端同步；请求拦截器据此发送 X-Timezone，后端按该时区换算返回时间
+    // 落库并跨端同步；后端只返回 UTC，formatDate 按应用时区显示，切换后已渲染的时间随之重算
     appStore.setAppTimezone(timezone)
     toast.success(t('header.timezone.switch_success', { timezone }))
   }

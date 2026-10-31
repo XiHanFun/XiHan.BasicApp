@@ -86,7 +86,7 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 
 ## 时间与 ID
 
-主键是 UUID 字符串，前端不需要数字字符串换算。时间是带 `Z` 的 UTC ISO 8601 字符串，管理端目前用 `~/utils` 的 `formatDate` 按浏览器时区显示，按用户偏好时区显示尚未实现。
+主键是 UUID 字符串，前端不需要数字字符串换算。时间是带 `Z` 的 UTC ISO 8601 字符串，管理端用 `~/utils` 的 `formatDate` 按应用时区显示（[国际化与时区](./i18n#时区)）。
 
 ## 下一步
 

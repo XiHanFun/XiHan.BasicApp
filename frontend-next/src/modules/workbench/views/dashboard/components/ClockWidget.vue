@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores'
+import { formatDateTime } from '~/utils'
 import WidgetCard from './WidgetCard.vue'
 
 defineOptions({ name: 'ClockWidget' })
@@ -20,13 +21,13 @@ onUnmounted(() => {
 })
 
 // 时间与日期都跟随应用语言：原先时间写死 zh-CN、日期用浏览器默认，
-// 两者不一致，且日语界面下会显示中文格式
-const time = computed(() => now.value.toLocaleTimeString(appStore.locale, { hour12: false }))
+// 两者不一致，且日语界面下会显示中文格式；时刻与问候按应用时区，与界面上其他时间一致
+const time = computed(() => now.value.toLocaleTimeString(appStore.locale, { hour12: false, timeZone: appStore.appTimezone }))
 const date = computed(() =>
-  now.value.toLocaleDateString(appStore.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }),
+  now.value.toLocaleDateString(appStore.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', timeZone: appStore.appTimezone }),
 )
 const greeting = computed(() => {
-  const h = now.value.getHours()
+  const h = Number(formatDateTime(now.value, appStore.appTimezone, 'H'))
   if (h < 11)
     return t('workbench.widgets.greeting_morning')
   if (h < 13)
