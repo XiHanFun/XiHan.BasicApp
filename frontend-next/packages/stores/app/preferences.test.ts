@@ -97,14 +97,14 @@ describe('默认值', () => {
     expect(store.appTimezone).toBe('Asia/Shanghai')
   })
 
-  it('偏好、收藏与搜索 / 表格设置的后端同步缺省开（已接 user-settings），看板仍缺省关', () => {
+  it('五个后端同步开关默认全部开启', () => {
     const store = freshStore()
 
     expect(store.preferenceSyncEnabled).toBe(true)
     expect(store.favoritesSyncEnabled).toBe(true)
     expect(store.searchSyncEnabled).toBe(true)
     expect(store.tableSyncEnabled).toBe(true)
-    expect(store.widgetsSyncEnabled).toBe(false)
+    expect(store.widgetsSyncEnabled).toBe(true)
   })
 
   it('动态标题、行悬停速览、更新检查默认开启，检查间隔 30', () => {

@@ -3,8 +3,11 @@ import type { BoardItem } from './components'
 import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
+import { useUserSettingSync } from '~/components/schema'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useAppStore } from '~/stores'
 import { DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './components'
 
 defineOptions({ name: 'WorkbenchDashboardPage' })
@@ -25,7 +28,11 @@ function spanLabel(span: number): string {
 
 const { t } = useI18n()
 const { hasPermission } = usePermission()
-// 看板布局存在本机（键沿用 4.x）；跨端同步要等 6.0 的用户设置后端，接上前不显示同步徽标
+const appStore = useAppStore()
+// 看板布局随用户设置同步（本地即时 + 后端跨端同步，复用 SchemaPage 同一套机制）
+// 同步开关在「偏好设置 → 同步 → 仪表盘看板」，本页只读 appStore.widgetsSyncEnabled 显示状态徽标
+// 场景键保持 'workbench:widgets'（历史键），避免更名导致用户已保存布局丢失
+const sync = useUserSettingSync('workbench:widgets')
 
 // 小组件是否对当前用户可见：未声明权限码则人人可见，声明则按权限码门控
 function canShow(key: string): boolean {
@@ -54,7 +61,7 @@ function onPanelEsc(event: KeyboardEvent) {
     panelOpen.value = false
 }
 window.addEventListener('keydown', onPanelEsc)
-// 编辑期间是否有改动：只有点「完成」且确有改动时才落地一次
+// 编辑期间是否有改动：只有点「完成」且确有改动时才落地 + 同步一次（编辑过程不写后端、不刷同步提示）
 const dirty = ref(false)
 
 // 工具栏可上下自由拖动（避免挡住小组件操作）：竖向偏移量，按本地记忆，跨刷新保留
@@ -99,6 +106,7 @@ function readLocalBoard(): BoardItem[] | null {
     return null
   }
 }
+/** 本地始终留一份：关闭同步时即以此为准，后端迟迟不回时先按它摆 */
 function writeLocalBoard(items: BoardItem[]) {
   try {
     localStorage.setItem(LOCAL_BOARD_KEY, JSON.stringify({ items }))
@@ -109,8 +117,22 @@ function writeLocalBoard(items: BoardItem[]) {
 }
 function persist() {
   writeLocalBoard(board.value)
+  // sync.save 内部按「仪表盘看板同步」开关决定是否上行后端
+  sync.save('board', { items: board.value })
 }
+// 跨端同步：开着同步以后端那份为准，等它回来再渲染（本地那份可能是别的设备改动之前的旧布局，另一台设备上
+// 清空、这台刷新会先摆出旧的小组件再消失）；其它设备推来时实时应用，二者都写回本地；编辑中途不覆盖改动
+const remote = sync.bindSection<{ items: BoardItem[] }>('board', {
+  accept: (value): value is { items: BoardItem[] } => Array.isArray((value as { items?: unknown } | undefined)?.items),
+  apply: (value) => {
+    board.value = sanitize(value.items)
+  },
+  writeLocal: () => writeLocalBoard(board.value),
+  isDirty: () => dirty.value,
+})
+const ready = remote.ready
 onUnmounted(() => {
+  remote.dispose()
   window.removeEventListener('keydown', onPanelEsc)
   window.removeEventListener('pointermove', onToolbarDragMove)
 })
@@ -152,7 +174,7 @@ function resetBoard() {
   board.value = sanitize(DEFAULT_BOARD)
   dirty.value = true
 }
-// 编辑期间所有改动只在内存预览；点「完成」才落地 localStorage 一次（无改动则跳过）
+// 编辑期间所有改动只在内存预览；点「完成」才落地 localStorage + 同步后端一次（无改动则跳过）
 function finishCustomize() {
   customizing.value = false
   panelOpen.value = false
@@ -247,6 +269,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
             </span>
             <div class="flex items-center gap-2">
               <span class="text-sm font-semibold text-foreground">{{ t('workbench.dashboard.title') }}</span>
+              <SyncStatusBadge :synced="appStore.widgetsSyncEnabled" />
             </div>
             <div class="mx-0.5 h-5 w-px bg-border/70" />
             <template v-if="customizing">
@@ -286,7 +309,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       </div>
     </div>
 
-    <div v-if="!board.length" class="py-20">
+    <div v-if="ready && !board.length" class="py-20">
       <XhEmptyStateRoot>
         <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="28" />
@@ -302,7 +325,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     </div>
 
     <XhSortableRoot
-      v-else
+      v-else-if="ready"
       ref="gridHostRef"
       :ids="ids"
       orientation="both"
