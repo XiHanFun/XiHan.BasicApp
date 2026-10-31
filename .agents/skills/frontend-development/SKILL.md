@@ -18,8 +18,8 @@ description: 实现、重构、审查或测试 XiHan.BasicApp Vue 管理端时�
 
 ## 统一视觉
 
-- 普通 control 4px、surface 8px、overlay 12px；pill 仅用于明确胶囊身份。
-- 离散按钮按下 120ms 缩放至 0.97，释放 200ms；禁止 glass，只允许 frosted 柔和模糊。
+- 圆角按形状角色取：偏好设置的圆角接到组件库的圆角种子 `--xh-radius-seed`，控件、承载面与浮层同一档，内嵌件（菜单与下拉的行、方框、已选标签）取一半，对话框与抽屉朝页面的两角、通知卡片取 1.25 倍；自写样式只写 `--xh-shape-*`，不写 `--xh-radius-*` 档位；pill 仅用于明确的胶囊语义，正方盒取 circle。
+- 离散按钮按下 150ms 缩放至 0.97、释放 200ms（时长与曲线随组件库，减弱动效下不缩放）；自写的可聚焦元素用与组件库同一副聚焦环（1px 内圈加 3px 光环 `--xh-ring-halo`）；锚定浮层走 frosted（实体底 + 描边 + 柔和投影），禁止 glass 材质。
 - 颜色、间距、圆角、阴影和动效使用 XiHan.UI 语义令牌，不扩大 px/token allowlist 掩盖问题。
 - 管理端保持紧凑、清晰和任务导向，并验证暗色、窄屏、键盘焦点与 reduced motion。
 
