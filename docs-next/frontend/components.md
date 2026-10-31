@@ -1,8 +1,10 @@
 # 常用组件
 
-组件统一来自 **XiHan.UI**（`@xihan-ui/vue` 等）。它是解剖式组件库：模板里的 `Xh*` 标签（如 `XhButton`、`XhDialogRoot`）由 Vite 插件自动映射到具名导出，不必逐个 import，摇树不受影响。组件 API、部件与令牌见 [XiHan.UI 文档](https://ui.docs.xihanfun.com)。
+本页列出管理端常用的组件及其用途，适用于前端开发者。
 
-`packages/components` 是从 5.x 搬入的**薄封装**：在 XiHan.UI 之上统一表单控件的尺寸、状态与文案，并提供列表引擎。不得引入 Naive UI 或复制第三方组件运行时；组件库的缺陷回 XiHan.UI 修。
+组件统一来自 XiHan.UI（`@xihan-ui/vue` 等）。它是解剖式组件库：模板里的 `Xh*` 标签（如 `XhButton`、`XhDialogRoot`）由 Vite 插件自动映射到具名导出，不必逐个 import，摇树不受影响。组件 API、部件与令牌见 [XiHan.UI 文档](https://ui.docs.xihanfun.com)。
+
+`packages/components` 是从 5.x 搬入的薄封装：在 XiHan.UI 之上统一表单控件的尺寸、状态与文案，并提供列表引擎。不得引入 Naive UI 或复制第三方组件运行时；组件库的缺陷回 XiHan.UI 修。
 
 ## 列表与页面
 
@@ -11,7 +13,7 @@
 | `SchemaPage` | Schema 驱动的列表页引擎，见 [Schema 驱动页面](./schema-page) |
 | `XDataTable` | 表格（SchemaPage 内部也用它）；缺省 md 尺寸 + 列分隔线，弹窗里的表格与列表页同款 |
 | `XPageShell` | 非列表页的页面外壳 |
-| `XEditModal` | 新增 / 编辑弹窗：表单字段**都要有可见标签**，后端返回的字段级 `errors` 挂回对应字段 |
+| `XEditModal` | 新增 / 编辑弹窗：表单字段都要有可见标签，后端返回的字段级 `errors` 挂回对应字段 |
 | `renderTag` | 状态列等的标签渲染 |
 
 ## 表单控件
@@ -26,7 +28,7 @@
 | `XTree` | 树（部门、菜单） |
 | `XUserAvatar` | 用户头像（签名地址） |
 
-## 其他
+## 其他组件
 
 | 组件 | 用途 |
 | --- | --- |
@@ -44,7 +46,7 @@
 
 ## 写法约定
 
-- 应用自有组件**显式 import**（`import { XEditModal } from '~/components'`），只有 XiHan.UI 的 `Xh*` 由插件自动解析；
+- 应用自有组件显式 import（`import { XEditModal } from '~/components'`），只有 XiHan.UI 的 `Xh*` 由插件自动解析；
 - 弹窗、抽屉、浮层的透明效果只用 frosted；
 - 颜色、间距、圆角只用令牌，不写裸 px。
 

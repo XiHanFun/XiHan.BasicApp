@@ -1,5 +1,7 @@
 # 开发环境
 
+本页列出在本机开发 6.0 所需的工具、仓库布局、数据库准备与常用命令，适用于参与后端或前端开发的开发者。
+
 ## 前置条件
 
 | 工具 | 版本 | 用途 |
@@ -10,11 +12,11 @@
 | Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
 | PostgreSQL | 14+（CI 用 17） | 平台库；独立库租户另建库 |
 
-6.0 开发态**只要求 PostgreSQL**。Redis、RabbitMQ、对象存储都不是必需：宿主装的是框架 Full Profile，缓存、消息、对象存储走框架的内存或文件系统缺省实现（文件缺省落本地目录 `App_Data/files`）。
+6.0 开发态只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：宿主装的是框架 Full Profile，缓存、消息、对象存储走框架的内存或文件系统缺省实现（文件缺省落本地目录 `App_Data/files`）。
 
 ## 两个仓库并排检出
 
-`backend-next` 以 ProjectReference 引用框架源码，缺省路径是**与 BasicApp 同级**的 `XiHan.Framework/next/src`：
+`backend-next` 以 ProjectReference 引用框架源码，缺省路径是与 BasicApp 同级的 `XiHan.Framework/next/src`：
 
 ```text
 <工作目录>/
@@ -38,7 +40,7 @@ git -C XiHan.Framework checkout 26bdff62
 
 架构测试 `FrameworkPinTests` 会核对框架检出的 HEAD 是否以锁定提交开头；检出不在锁定上时这条测试失败，其余测试照常。框架不在同级目录时，用 `-p:XiHanFrameworkSrc=<检出>/next/src/` 显式指路。
 
-::: tip 为什么不用 NuGet 包
+::: tip NuGet 包引用
 框架 5.0 还没有发布到 nuget.org。`-p:UseXiHanFrameworkSource=false` 可以切到 `5.0.0-preview.*` 包引用（本地源 `next/artifacts/packages`），但日常开发与 CI 都走源码引用。
 :::
 
@@ -50,7 +52,7 @@ git -C XiHan.Framework checkout 26bdff62
 createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
 ```
 
-连接串写在 `XiHan:Bindings:db:value`，库类型写在同一节的 `provider`（缺省 `postgresql`）。本机账号不同就在 `appsettings.Development.json` 之外用环境变量或用户机密覆盖，**不要提交真实密码**：
+连接串写在 `XiHan:Bindings:db:value`，库类型写在同一节的 `provider`（缺省 `postgresql`）。本机账号不同就在 `appsettings.Development.json` 之外用环境变量或用户机密覆盖，不要提交真实密码：
 
 ```bash
 # 环境变量覆盖（节名以双下划线分隔）

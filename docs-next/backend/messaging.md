@@ -1,5 +1,7 @@
 # 消息通知
 
+本页说明站内通知、消息模板、邮件与短信、群机器人与 Telegram 机器人，适用于后端开发者与运营配置人员。
+
 Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮件 / 短信 / 机器人渠道与 Telegram 机器人。推送到浏览器经 Realtime 包的 `IRealtimePush`，见[实时推送](./realtime)。
 
 ## 站内通知
@@ -35,7 +37,7 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 
 ## 消息模板
 
-`SysMessageTemplate`（`IOwnedByTenant`）：编码、渠道、主题、正文、HTML、变量说明。模板引擎是 **Scriban**（框架不再包装模板引擎），变量写作 `{{name}}`。
+`SysMessageTemplate`（`IOwnedByTenant`）：编码、渠道、主题、正文、HTML、变量说明。模板引擎是 Scriban（框架不再包装模板引擎），变量写作 `{{name}}`。
 
 | 渠道 | 主题 | HTML |
 | --- | --- | --- |
@@ -44,8 +46,8 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 | `Sms` | — | — |
 | `Bot` | — | — |
 
-- **租户优先、平台兜底**：发送时先找租户的同编码模板，再找平台的；模板停用或不存在即该渠道不可用。
-- 租户的模板列表同时列出平台模板（`isPlatform`），平台模板对租户只读（改删给 `NOTIFICATION_DENIED_002`），**新建同编码即覆盖**。
+- 租户优先、平台回退：发送时先找租户的同编码模板，再找平台的；模板停用或不存在即该渠道不可用。
+- 租户的模板列表同时列出平台模板（`isPlatform`），平台模板对租户只读（改删给 `NOTIFICATION_DENIED_002`），新建同编码即覆盖。
 - 平台种子（`notification.templates`）9 个：登录验证码、验证码（绑定 / 换绑 / 两步验证）、重置密码、注册欢迎、系统通知的邮件与短信版，以及机器人通知 `notification-bot`（变量 `title / content / link / brand`）。`brand` 取 `BasicApp:Notification:Brand`。
 
 操作 `message-templates.*`，权限 `notification.message-templates.*`。
@@ -57,9 +59,9 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 | 邮件 | `SysEmailConfig` | SMTP（MailKit），多通道、缺省通道 |
 | 短信 | `SysSmsConfig` | 阿里云（Dysmsapi）、腾讯云（SMS 2021-01-11），直接签名调用、不引 SDK |
 
-- 租户没有可用通道时**回落平台的配置**；机器人不回落。
+- 租户没有可用通道时回落平台的配置；机器人不回落。
 - 密钥经 `ISecretProtector` 加密存放，不回显。
-- 发送记录 `SysEmail` / `SysSms` 本身就是发件箱：`emails.*` / `sms.*` 查询、取消、重发、删除（权限 `notification.emails.*` / `notification.sms.*`）。
+- 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.*` / `sms.*` 查询、取消、重发、删除（权限 `notification.emails.*` / `notification.sms.*`）。
 - 发送循环按 `BasicApp:Notification` 的 `DispatchInterval`、`RetryDelay`、`MaxAttempts`、`StuckAfter` 工作。
 
 身份相关的发码（验证码登录、换绑、双因素）经 `Contracts` 的 `IMessageSender` 按模板入队。

@@ -1,20 +1,25 @@
 # 统一认证
 
-认证的分工（方案 D10）：框架只**校验**令牌（`Security.Jwt`，HS256）与判定策略；**签发、刷新、会话、双因素、第三方登录、模仿、锁屏**都是 Identity 包的操作与中间件。
+本页说明 6.0 的账号模型、令牌与会话、登录方式、锁屏与模仿登录，适用于后端开发者与接口对接方。
+
+认证的分工（方案 D10）：框架只校验令牌（`Security.Jwt`，HS256）与判定策略；签发、刷新、会话、双因素、第三方登录、模仿、锁屏都是 Identity 包的操作与中间件。
 
 ## 账号模型
 
-- 账号是平台库实体 `SysUser`，不实现 `IMultiTenant`；`HomeTenantId` 是**注册地租户**（平台账号为 `platform`）。同一个登录名可以在不同租户各有一个账号。
-- 登录时填的 `tenant` 就是注册地租户 ID；平台账号不填。
-- 账号状态：`Active`、`Locked`（连续失败或管理员锁定，到期自动解）、`Disabled`（管理员停用，所有登录方式都给 `IDENTITY_DENIED_018`）。
-- 一个账号还可以是其他租户的成员（`SysTenantMember`，含运维支持成员），登录后经切换租户进入。
+账号是平台库实体 `SysUser`，不实现 `IMultiTenant`，以 `HomeTenantId` 记录注册地租户（平台账号为 `platform`）。同一个登录名可以在不同租户各有一个账号，登录时填写的 `tenant` 即注册地租户 ID，平台账号不填。账号还可以是其他租户的成员（`SysTenantMember`，含运维支持成员），登录后经切换租户进入。
+
+| 状态 | 含义 |
+| --- | --- |
+| `Active` | 正常 |
+| `Locked` | 连续登录失败或管理员锁定，到期自动解除 |
+| `Disabled` | 管理员停用，所有登录方式返回 `IDENTITY_DENIED_018` |
 
 ## 令牌与会话
 
 | 项 | 说明 |
 | --- | --- |
 | 访问令牌 | HS256 JWT，缺省 120 分钟（`BasicApp:Auth:AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
-| 刷新令牌 | 不透明字符串，库里只存散列，缺省 7 天；**每次刷新轮换**，旧的立即失效 |
+| 刷新令牌 | 不透明字符串，库里只存散列，缺省 7 天；每次刷新轮换，旧的立即失效 |
 | 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型与登录地点（IP 归属地） |
 | 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段核对会话仍有效（缓存 `SessionCacheSeconds` 秒），吊销 / 过期 / 用户非正常即 `IDENTITY_DENIED_001` |
 
@@ -28,15 +33,15 @@
 
 依次过三关：
 
-1. **登录节流**（`LoginThrottle`）：固定窗口只数失败，同一账号同一地址缺省每分钟 5 次、同一地址跨账号 30 次，超限 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`；
-2. **图形验证码**（`BasicApp:Auth:CaptchaEnabled`，缺省开）：4 位数字 SVG，共享缓存里只存散列，5 分钟内用一次即作废；
-3. **账号与密码**：PBKDF2；连续失败达到 `MaxFailedAccessAttempts`（5）锁定 `LockoutMinutes`（15）分钟。
+1. 登录节流（`LoginThrottle`）：固定窗口只数失败，同一账号同一地址缺省每分钟 5 次、同一地址跨账号 30 次，超限 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`；
+2. 图形验证码（`BasicApp:Auth:CaptchaEnabled`，缺省开）：4 位数字 SVG，共享缓存里只存散列，5 分钟内用一次即作废；
+3. 账号与密码：PBKDF2；连续失败达到 `MaxFailedAccessAttempts`（5）锁定 `LockoutMinutes`（15）分钟。
 
-之后过租户状态与**登录守卫**（访问策略的登录时机、登录失败自动封禁），再开会话。管理员重置过密码的账号返回 `mustChangePassword: true`。
+之后过租户状态与登录守卫（访问策略的登录时机、登录失败自动封禁），再开会话。管理员重置过密码的账号返回 `mustChangePassword: true`。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
-按邮箱或已验证的手机号找账号；账号不存在、不唯一或停用也照样回答「已发送」，不给探测账号的机会。发送限频：同一目标间隔 60 秒、每天每目标 10 次、每地址 50 次；码 10 分钟有效、输错 5 次作废。
+按邮箱或已验证的手机号找账号；账号不存在、不唯一或停用时同样回答「已发送」，不给探测账号的机会。发送限频：同一目标间隔 60 秒、每天每目标 10 次、每地址 50 次；码 10 分钟有效、输错 5 次作废。
 
 ### 第三方登录
 
@@ -48,12 +53,12 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 前端回调页 → POST /api/auth:external-login（票据 + 注册地）→ 令牌
 ```
 
-- **只认已绑定的账号，不自动建号**：没绑定即 `IDENTITY_DENIED_015`。先用账号密码登录，到个人中心「第三方绑定」里由本人发起绑定意图（`profile.begin-external-bind`）再确认（`profile.link-external`）。
+- 只认已绑定的账号，不自动建号：没绑定即 `IDENTITY_DENIED_015`。先用账号密码登录，到个人中心「第三方绑定」里由本人发起绑定意图（`profile.begin-external-bind`）再确认（`profile.link-external`）。
 - 第三方登录同样过租户、账号状态、锁定期与双因素。
 
 ### 双因素
 
-开了双因素的账号在第一步只拿到挑战：
+启用双因素的账号在第一步只得到挑战：
 
 ```json
 { "token": null, "twoFactor": { "ticket": "…", "methods": ["Totp", "Email"], "method": "Totp", "codeSent": false, "expiresAt": "…" } }

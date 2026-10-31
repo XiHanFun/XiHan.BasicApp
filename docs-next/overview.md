@@ -1,8 +1,10 @@
 # 系统概述
 
+本页从部署形态、分层、请求路径与技术栈四个方面概述 6.0 的整体结构，适用于需要建立全局认识的开发者与架构评审者。
+
 ## 定位
 
-6.0 是一个**单体部署、按能力包模块化**的中后台：一个宿主进程（`XiHan.BasicApp.Host`）装配全部能力包，对外提供 HTTP API、内部 gRPC、MCP 与 SignalR Hub；前端是独立部署的单页应用。多租户、权限与审计是贯穿所有包的维度，不是某个模块的附属功能。
+6.0 是一个单体部署、按能力包模块化的中后台：一个宿主进程（`XiHan.BasicApp.Host`）装配全部能力包，对外提供 HTTP API、内部 gRPC、MCP 与 SignalR Hub；前端是独立部署的单页应用。多租户、权限与审计是贯穿所有包的维度，不是某个模块的附属功能。
 
 ## 架构风格
 
@@ -28,7 +30,7 @@ Host              XiHan.BasicApp.Host
 
 层级由 `XiHan.BasicApp.Architecture.Tests` 的 `TierDependencyTests` 守护。
 
-## 一个请求怎么走
+## 请求路径
 
 ```text
 浏览器 ──HTTP──> Kestrel ──> 维护模式 / 认证 / 开放接口原文缓冲 ──> UseXiHan()
@@ -43,7 +45,7 @@ Host              XiHan.BasicApp.Host
 
 各阶段里 BasicApp 贡献了哪些中间件（会话门禁、访问策略、权限条件、操作人、审计日志），见[请求生命周期](./backend/request-lifecycle)。
 
-## 能力全景
+## 能力包一览
 
 | 包 | Tier | 主要内容 | 状态 |
 | --- | --- | --- | --- |
@@ -90,11 +92,9 @@ Host              XiHan.BasicApp.Host
 | 时间 | dayjs（utc + timezone，按用户时区显示） |
 | 工具链 | oxlint + eslint（antfu）、Vitest + jsdom；Node 24+、pnpm 11+，无锁文件 |
 
-## 文档怎么读
+## 阅读建议
 
-- 先读[快速开始](./getting-started)把系统跑起来，再读[目录结构](./project-structure)建立代码地图。
-- 后端从[架构总览](./backend/introduction)与[开发流程](./backend/development)开始；前端从[框架简介](./frontend/introduction)开始。
-- 侧栏里标注「规划中」的页面描述的是方案设计，不是已有功能。
+建议先按[快速开始](./getting-started)在本机运行 6.0，再阅读[目录结构](./project-structure)。后端开发从[架构总览](./backend/introduction)与[开发流程](./backend/development)开始，前端开发从[框架简介](./frontend/introduction)开始。侧栏中标注「规划中」的页面描述的是方案设计，不是已有功能。
 
 ## 下一步
 

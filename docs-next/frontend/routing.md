@@ -1,6 +1,8 @@
 # 菜单与路由
 
-后端菜单驱动动态路由，路由包与 5.x 相同：`packages/router` 的 `guard.ts`、`dynamic.ts`、`routes/core.ts` 原样沿用，只是菜单与权限的数据来源换成 `auth.permissions`，组件按页面登记**精确解析**。
+本页说明管理端的路由组成、菜单来源、组件解析与路由守卫，适用于前端开发者。
+
+后端菜单驱动动态路由，路由包与 5.x 相同：`packages/router` 的 `guard.ts`、`dynamic.ts`、`routes/core.ts` 原样沿用，只是菜单与权限的数据来源换成 `auth.permissions`，组件按页面登记精确解析。
 
 ## 三类路由
 
@@ -12,7 +14,7 @@
 
 地址缺省走 hash（`VITE_ROUTER_HISTORY=history` 切 HTML5 历史，静态托管要回退到 `index.html`）。
 
-## 菜单从哪来
+## 菜单来源
 
 1. 后端各包在 `<包>Pages.cs` 登记页面（页面码、路由、文案键、图标、排序、所需权限码）；
 2. 种子 `access.menus` 对齐成菜单，运营可在菜单管理里改展示、加目录与外链；
@@ -20,13 +22,13 @@
 
 ## 组件解析
 
-页面节点的 `component` 是 `<包>/<路径>/index`，前端按 `src/modules/*/views/**/index.vue` **精确**匹配：
+页面节点的 `component` 是 `<包>/<路径>/index`，前端按 `src/modules/*/views//index.vue` 精确匹配：
 
 ```text
 component: settings/configs/index  →  src/modules/settings/views/configs/index.vue
 ```
 
-- 配了却找不到：控制台报错并落 404 兜底（侧栏照样有条目，必须让配错的人看得到）；
+- 登记了组件路径但找不到文件：控制台报错并显示 404 页（侧栏仍显示该条目，报错用于定位配置错误）；
 - 视图键全局唯一，撞键由 `pnpm modules:check` 报错；
 - `_core/*` 由 `packages/views` 的显式表解析；
 - 每个页面包一层「名字 = 路由名」的壳组件，供 KeepAlive 命中。

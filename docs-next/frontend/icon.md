@@ -1,10 +1,12 @@
 # 字体图标
 
+本页说明管理端的图标写法、离线图标集与图标选择器，适用于前端开发者。
+
 图标统一用 [Iconify](https://iconify.design) 的 `集合:名称` 写法，经 `@iconify/vue` 渲染；后端页面登记里的图标也是这种字符串（如 `lucide:users`、`lucide:shield`）。
 
 ## 离线图标集
 
-`packages/iconify` 在启动时**离线预加载**运行期常用的图标集，不依赖 Iconify 在线 API：
+`packages/iconify` 在启动时离线预加载运行期常用的图标集，不依赖 Iconify 在线 API：
 
 | 图标集 | 用途 |
 | --- | --- |
@@ -15,7 +17,7 @@
 
 预加载是为了避免离线模式下图标空白：离线 Icon 对已挂载的组件不会因为后加载而重渲染。
 
-另有 Carbon、Element Plus、Heroicons 三个图标集**按需加载**，只在图标选择器里用到时才拉取。
+另有 Carbon、Element Plus、Heroicons 三个图标集按需加载，只在图标选择器里用到时才拉取。
 
 ## 使用
 

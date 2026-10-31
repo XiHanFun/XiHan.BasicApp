@@ -1,18 +1,20 @@
 # AI 能力（规划中 · N4）
 
+本页记录 AI 模块在总体方案中的设计，并说明当前已可用的操作即工具能力，供规划与评估参考。
+
 ::: warning 尚未实现
 6.0 还没有 AI 包：没有 AI 提供商、提示词、知识库与助手的页面和操作，也没有接入任何模型。本页记录总体方案里的设计，落地时以代码为准。5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
 
-本页说的是 BasicApp **自带的 AI 功能**。用 AI 工具**开发** BasicApp 见 [For Agents](../ai/agents)。
+本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
 
-## 已经可用的：操作即工具
+## 当前可用：操作作为工具
 
 虽然 AI 包还没有，6.0 的操作契约已经为 AI 准备好了：
 
 - 每个操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）；
 - 目前发布的是 12 个只读目录类操作：用户、部门、岗位、部门成员、权限目录、字典与字典项；
-- 工具说明就是操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
+- 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
 - 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
 
 ## AI 包的设计（N4）
@@ -28,7 +30,7 @@
 
 5.x 的 Agent 工厂不迁移。N4 的退出条件：配置提供商、知识库问答、助手调用 `Expose.Ai` 工具。
 
-## 注意
+## 约束
 
 - 长操作 ID 作为工具名时会被框架截断加哈希，资源名控制在 30 字符以内；
 - 新增 `Expose.Mcp` / `Expose.Ai` 的操作必须只读，并登记在 `OperationExposureTests`。

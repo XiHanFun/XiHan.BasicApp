@@ -1,10 +1,10 @@
 # MCP Server
 
-6.0 和 5.x 的最大不同：**BasicApp 自己就是一个 MCP 服务端**。宿主映射了 `/mcp`，声明了 `Expose.Mcp` 的操作自动成为 MCP 工具——同一份操作契约，同样的认证、租户、权限与审计。
+本页说明 6.0 自带的 MCP 端点与开发时可用的 MCP 服务端，适用于把 BasicApp 接入 AI 客户端或用 AI 工具开发 BasicApp 的开发者。
 
-另外，写前端代码时仍可以接入 XiHan.UI 的 MCP 服务端查组件 API。
+与 5.x 不同，6.0 的宿主本身提供 MCP 服务：宿主映射 `/mcp`，声明了 `Expose.Mcp` 的操作自动成为 MCP 工具，与 HTTP 接口共用同一份操作契约，认证、租户、权限与审计规则相同。编写前端代码时，还可以接入 XiHan.UI 的 MCP 服务端查询组件 API。
 
-## 一、BasicApp 的 `/mcp`
+## BasicApp 的 MCP 端点
 
 ### 协议
 
@@ -37,7 +37,7 @@
 - 只读工具带 `readOnlyHint`；
 - 失败的调用返回 `isError: true`，文本是本地化的错误说明，错误码在结果里。
 
-管理类写操作**不**发布到 MCP。新增 MCP 工具：操作必须只读（`get` / `list` 或声明 `ReadOnly = true`），在 `Expose` 里加 `Expose.Mcp | Expose.Ai`，并登记到架构测试 `OperationExposureTests`。
+管理类写操作不发布到 MCP。新增 MCP 工具：操作必须只读（`get` / `list` 或声明 `ReadOnly = true`），在 `Expose` 里加 `Expose.Mcp | Expose.Ai`，并登记到架构测试 `OperationExposureTests`。
 
 ### 接入客户端
 
@@ -65,12 +65,12 @@ curl -X POST http://localhost:9710/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-## 二、开发时用的 MCP
+## 开发用的 MCP 服务端
 
 | 服务端 | 用途 | 6.0 现状 |
 | --- | --- | --- |
 | `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 可用，见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend-next/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
-| `xihan-framework` | 查框架包、模块与配置键 | 5.x 的 `XiHan.Framework.Cli` 面向框架 4.x；框架 5 的 CLI 目前只有打包、迁移等命令，**没有 MCP**。写后端时直接读框架仓库 `next/` 的源码、`spec/` 与各包 README |
+| `xihan-framework` | 查框架包、模块与配置键 | 5.x 的 `XiHan.Framework.Cli` 面向框架 4.x；框架 5 的 CLI 目前只有打包、迁移等命令，没有 MCP。写后端时直接读框架仓库 `next/` 的源码、`spec/` 与各包 README |
 
 ## 相关
 

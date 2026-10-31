@@ -1,12 +1,12 @@
 ---
 layout: home
 title: 曦寒基础应用 6.0
-titleTemplate: 基于 XiHan.Framework 5 的能力包式中后台
+titleTemplate: XiHan.BasicApp 6.0 文档
 
 hero:
   name: 曦寒基础应用 6.0
-  text: 一份操作契约，同时是 HTTP、gRPC 与 MCP
-  tagline: 基于 XiHan.Framework 5 与 XiHan.UI · 能力包 + Host（已落地 14 个，规划 19 个） · 多租户 · RBAC + Deny + 数据范围 + 字段安全 + ABAC · 前端契约由 OpenAPI 生成
+  text: 基于 XiHan.Framework 5 的能力包式中后台应用
+  tagline: 6.0 预览版文档。后端基于 XiHan.Framework 5，前端基于 XiHan.UI；一份操作契约同时发布为 HTTP、gRPC 与 MCP，内置多租户与多层授权。
   image:
     src: /images/logo.png
     alt: 曦寒基础应用
@@ -25,46 +25,40 @@ hero:
 
 features:
   - title: 能力包 + 操作契约
-    icon: 🧩
-    details: 每个业务能力是一个 IFeature，每个公开方法是一个 [Operation]；路由、OpenAPI、gRPC 方法与 MCP 工具都从同一份操作登记推导，没有 Controller。
+    details: 每个业务能力是一个 IFeature，每个公开方法是一个 [Operation]；路由、OpenAPI、gRPC 方法与 MCP 工具都从同一份操作登记推导，不使用 Controller。
     link: /backend/introduction
     linkText: "了解架构"
 
-  - title: 库决定协议的多租户
-    icon: 🏢
+  - title: 多租户
     details: 平台库实体不实现 IMultiTenant，租户库实体由框架仓储严格过滤并可随租户分库；租户 ID 是字符串，切换租户换令牌、整页重建。
     link: /backend/multi-tenancy
     linkText: "了解多租户"
 
-  - title: 层层收窄的授权
-    icon: 🔐
+  - title: 多层授权
     details: 授予来自框架 Security.Database，Deny、角色继承、限时委托、套餐门控与 ABAC 条件逐层收窄；数据范围与字段安全在查询与投影处显式套用。
     link: /backend/permission
     linkText: "了解权限模型"
 
-  - title: 契约由后端生成
-    icon: 📜
-    details: 后端导出一份 openapi.json，前端生成类型、操作客户端、权限码与枚举；CI 重新生成并要求 diff 为空，契约漂移进不了主干。
+  - title: 前端契约由后端生成
+    details: 后端导出一份 openapi.json，前端生成类型、操作客户端、权限码与枚举；CI 重新生成后比对，不一致即失败。
     link: /frontend/request
     linkText: "了解契约层"
 
   - title: RFC 9457 错误与无信封响应
-    icon: ⚡
     details: 成功响应就是 DTO，失败是 application/problem+json；客户端只按 code 分支，字段级 errors 直接挂回表单。
     link: /api-guide
     linkText: "查看接口对接指南"
 
-  - title: 结构有门禁
-    icon: 🧱
-    details: 包间层级、Expose 显式、权限码文法、匿名白名单、十种语言键集、XML 文档与框架锁定提交都由架构测试守护，不靠文档约定。
+  - title: 结构约束由测试保证
+    details: 包间层级、Expose 显式、权限码文法、匿名白名单、十种语言键集、XML 文档与框架锁定提交都由架构测试检查。
     link: /backend/development
     linkText: "了解开发流程"
 ---
 
 <div class="bap-status">
 <span class="bap-eyebrow">预览阶段</span>
-<h2 class="bap-title">6.0 现在做到哪一步</h2>
-<p class="bap-desc">6.0 在长期分支 <code>next</code> 上从零重写，代码在 <code>backend-next/</code> 与 <code>frontend-next/</code>，尚未发布。<br />下表按总体方案的分期如实列出，规划中的模块在文档里都单独标注。</p>
+<h2 class="bap-title">开发进度</h2>
+<p class="bap-desc">6.0 在长期分支 <code>next</code> 上从零重写，代码在 <code>backend-next/</code> 与 <code>frontend-next/</code>，尚未发布。<br />下表按总体方案的分期列出各阶段状态；规划中的模块在文档中单独标注。</p>
 <div class="bap-grid">
 <div class="bap-card bap-card--done"><b>N0 骨架与验证</b><span>已完成</span><p>Host、Contracts、Runtime、架构测试与前端契约生成；HTTP / gRPC / MCP 三协议冒烟。</p></div>
 <div class="bap-card bap-card--done"><b>N1 身份与租户基座</b><span>已完成</span><p>Identity、Tenancy、Organization、Access 与前端壳层、登录、核心管理页。</p></div>
@@ -74,7 +68,7 @@ features:
 <div class="bap-card bap-card--todo"><b>N5 / N6 对齐与切换</b><span>未开始</span><p>对齐矩阵核销、文档切到 6.0、目录 <code>git mv</code> 与发布 6.0.0。</p></div>
 </div>
 <div class="bap-actions">
-<a class="bap-btn" href="/getting-started">在本地跑起来 →</a>
+<a class="bap-btn" href="/getting-started">快速开始</a>
 <a class="bap-link" href="/changelog">看进度记录</a>
 </div>
 <p class="bap-cred">初始账号 <code>superadmin</code> · 密码 <code>SuperAdmin@123</code>（由 <code>seed</code> 写入，首次登录后请修改）</p>

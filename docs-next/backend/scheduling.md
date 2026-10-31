@@ -1,13 +1,15 @@
 # 定时任务
 
-6.0 不再有自建的 `SysTask` 调度表：作业的定义、触发器、运行记录、节点与租约全部由框架 `Scheduling.Database`（五张框架表）管理，多实例按框架的数据库调度协调。Maintenance 包只提供**管理面**。
+本页说明作业的登记方式、内建作业、计划写法与管理操作，适用于后端开发者与运维人员。
+
+6.0 不再有自建的 `SysTask` 调度表：作业的定义、触发器、运行记录、节点与租约全部由框架 `Scheduling.Database`（五张框架表）管理，多实例按框架的数据库调度协调。Maintenance 包只提供管理面。
 
 ## 两种作业
 
-| 来源 | 怎么登记 | 能否删除 |
+| 来源 | 登记方式 | 能否删除 |
 | --- | --- | --- |
 | 代码登记 | 包的 `Configure` 里 `context.Services.AddJob<TJob>(name, schedule)` | 不能；可暂停、改计划、恢复代码定义 |
-| 运行时登记 | `jobs.create` 经 `IJobScheduler.ScheduleAsync` 按已登记的作业**类型**新建 | 能（`jobs.delete`，运行中不可删） |
+| 运行时登记 | `jobs.create` 经 `IJobScheduler.ScheduleAsync` 按已登记的作业类型新建 | 能（`jobs.delete`，运行中不可删） |
 
 运行时新建只能选已登记的作业类型（`jobs.types`），参数须是 JSON 对象；作业名有文法，重名给 `MAINTENANCE_CONFLICT_003`。
 
@@ -23,8 +25,8 @@
 
 ## 计划写法
 
-- **Cron**：5 到 7 段（Quartz 写法的超集），如 `0 3 * * *`、`0 0/15 * * * ?`；
-- **固定间隔**：`every [d.]hh:mm:ss`，如 `every 00:05:00`。
+- Cron：5 到 7 段（Quartz 写法的超集），如 `0 3 * * *`、`0 0/15 * * * ?`；
+- 固定间隔：`every [d.]hh:mm:ss`，如 `every 00:05:00`。
 
 `jobs.validate-schedule` 只校验不改作业，前端的 Cron 构建器与预览用它。
 
@@ -40,12 +42,12 @@
 | `jobs.restore` | `maintenance.jobs.reschedule` | 丢弃运行时改过的计划，按代码定义重新登记，暂停状态保留 |
 | `job-runs.list` | `maintenance.job-runs.read` | 运行历史，框架给出总数与筛选 |
 
-## 还没有的
+## 尚未支持
 
-- **重试策略与单次执行超时**：框架 `JobDefinition` 目前没有这两项（5.x 有 `maxRetryCount`、`timeoutSeconds`），已提给框架，升级锁定提交后再接。
-- **租户级作业**：作业只在平台一侧管理；需要逐租户处理的作业在作业内部经 `TenantShardScope` 逐个绑定租户。
+- 重试策略与单次执行超时：框架 `JobDefinition` 目前没有这两项（5.x 有 `maxRetryCount`、`timeoutSeconds`），已提给框架，升级锁定提交后再接。
+- 租户级作业：作业只在平台一侧管理；需要逐租户处理的作业在作业内部经 `TenantShardScope` 逐个绑定租户。
 
-## 写一个作业
+## 编写作业
 
 ```csharp
 public sealed class MyCleanupJob(/* 依赖 */) : IJob

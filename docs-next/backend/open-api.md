@@ -1,11 +1,11 @@
 # 开放平台
 
-OpenPlatform 包（Tier 2）对外提供两种接入方式：
+本页说明 OpenPlatform 包（Tier 2）提供的两种对外接入方式，适用于后端开发者与第三方对接方。
 
 | 方式 | 适合 | 凭据 |
 | --- | --- | --- |
-| **签名开放接口** | 服务端到服务端，调用 `open.*` 操作 | 个人中心申请的 AppKey / 密钥，HMAC 签名，可加密请求与响应 |
-| **OAuth 2.0 / OIDC 服务端** | 第三方应用以用户身份登录、取用户信息 | OAuth 应用的客户端 ID / 密钥，授权码 + PKCE |
+| 签名开放接口 | 服务端到服务端，调用 `open.*` 操作 | 个人中心申请的 AppKey / 密钥，HMAC 签名，可加密请求与响应 |
+| OAuth 2.0 / OIDC 服务端 | 第三方应用以用户身份登录、取用户信息 | OAuth 应用的客户端 ID / 密钥，授权码 + PKCE |
 
 本页的「开放接口」与接口文档的 `/openapi.json`（OpenAPI 规范文档）不是一回事。
 
@@ -25,9 +25,9 @@ OpenPlatform 包（Tier 2）对外提供两种接入方式：
 
 ### 验签中间件
 
-`RequestSigningMiddleware` 在 Authenticate 阶段、只对 `open.*` 操作生效，依次校验：请求头 → 时间窗（`BasicApp:OpenPlatform:TimestampToleranceSeconds`，300 秒）→ 凭证 → IP 白名单 → 算法 → 请求体（超限 `MaxRequestBodyBytes`、解密）→ 内容签名 → 请求签名，**最后**才占用随机串防重放（伪造的请求不能把正常请求的随机串占掉）。签名用恒定时间比较；失败按类别给 400 / 403 / 409。
+`RequestSigningMiddleware` 在 Authenticate 阶段、只对 `open.*` 操作生效，依次校验：请求头 → 时间窗（`BasicApp:OpenPlatform:TimestampToleranceSeconds`，300 秒）→ 凭证 → IP 白名单 → 算法 → 请求体（超限 `MaxRequestBodyBytes`、解密）→ 内容签名 → 请求签名，最后才占用随机串防重放（伪造的请求不能把正常请求的随机串占掉）。签名用恒定时间比较；失败按类别给 400 / 403 / 409。
 
-请求头、规范串与加密方式沿用 5.x，接入方不用改，详见[接口对接指南](../api-guide)。与 5.x 的不同：
+请求头、规范串与加密方式沿用 5.x，接入方无需修改，详见[接口对接指南](../api-guide)。与 5.x 的不同：
 
 - 明文请求不必带 `X-Encrypt-Algorithm: NONE`；
 - 算法以凭证的设置为准，请求头只能与之一致；
@@ -86,7 +86,7 @@ OpenPlatform 包（Tier 2）对外提供两种接入方式：
 
 作业 `openplatform.oauth-cleanup` 每天 03:30（UTC）物理删除过期一天的授权码与过期七天的令牌。
 
-## 第三方登录（反方向）
+## 第三方登录
 
 用 GitHub、企业微信这类外部身份登录 BasicApp，是 Identity 的能力，见[统一认证](./authentication)。
 

@@ -1,17 +1,19 @@
 # 框架简介
 
-`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5（`next` 线）。Node 24+、pnpm 11+，**没有锁文件**。
+本页介绍 6.0 管理端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
 
-## 和 5.x 管理端的关系
+`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5（`next` 线）。Node 24+、pnpm 11+，没有锁文件。
 
-壳层**原样从 5.x 搬入**，页面背后的数据换成 6.0：
+## 与 5.x 管理端的关系
+
+壳层原样从 5.x 搬入，页面背后的数据换成 6.0：
 
 | 部分 | 6.0 |
 | --- | --- |
 | 壳层（布局、主题、偏好中心、全局搜索、标签栏、收藏、分屏、通知中心、灵动岛、锁屏） | 从 5.x 搬入 `packages/layouts`、`packages/design`、`packages/components` 等，行为一致 |
 | 路由与守卫 | `packages/router` 与 5.x 相同，菜单数据换成 `auth.permissions` |
 | 列表页 | `SchemaPage` 从 5.x 原样搬入，资源适配器对接 6.0 的 `PageRequest` |
-| API 层 | **5.x 的 `src/api` 整体消失**：由后端 `openapi.json` 生成 `packages/contracts`，运行时只有一个通用客户端 `packages/request` |
+| API 层 | 5.x 的 `src/api` 整体消失：由后端 `openapi.json` 生成 `packages/contracts`，运行时只有一个通用客户端 `packages/request` |
 | 页面组织 | 5.x 的 `src/views` 平铺；6.0 页面全部进 `src/modules/<包>/views`，与后端能力包一一对应 |
 | 按钮权限 | 不再有按钮码：按钮直接用对应操作的权限码 |
 
@@ -31,7 +33,7 @@ frontend-next/
 │  └─ views/_core/       认证、控制中心、个人中心、OAuth 同意页、403 / 404 / 500
 └─ src/  (@)             应用侧
    ├─ main.ts  App.vue  app/context.ts  router/  styles/
-   └─ modules/<包>/      views/**、locales/<区域>.ts × 10、setup.ts
+   └─ modules/<包>/      views/、locales/<区域>.ts × 10、setup.ts
 ```
 
 | 别名 | 指向 |

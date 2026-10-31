@@ -1,24 +1,25 @@
 # 多租户 SaaS
 
-多租户在 6.0 里是三件事的组合：**框架**解析租户上下文并严格过滤租户库实体；**Tenancy 包**管租户的业务（开通、套餐、成员、配额、所有权）；**Runtime** 把租户连接与分片接到 SqlSugar 上。
+本页说明 6.0 多租户的标识、租户目录、开通流程、成员、套餐与配额，适用于后端开发者与平台运维人员。
+
+多租户在 6.0 里是三件事的组合：框架解析租户上下文并严格过滤租户库实体；Tenancy 包管租户的业务（开通、套餐、成员、配额、所有权）；Runtime 把租户连接与分片接到 SqlSugar 上。
 
 ## 标识与上下文
 
 | 项 | 6.0 |
 | --- | --- |
 | 租户 ID | 字符串，文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`（即 5.x 的租户编码），创建后不可改；`platform` 是保留 ID |
-| 平台 | 不是一个租户：平台主体的令牌**没有** `tenant` 声明；平台数据不实现 `IMultiTenant` |
-| 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`；**不支持**查询串与 `X-Tenant-Id` 头 |
+| 平台 | 不是一个租户：平台主体的令牌没有 `tenant` 声明；平台数据不实现 `IMultiTenant` |
+| 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`；不支持查询串与 `X-Tenant-Id` 头 |
 | 隔离方式 | `Field`（缺省，共库、按 `tenant_id` 过滤）与 `Database`（独立库）；5.x 的 Schema 隔离已删除 |
 
 框架仓储对实现 `IMultiTenant` 的实体做严格相等过滤，没有租户上下文时看不到任何行；`XiHan:MultiTenancy:RequireTenant` 为 `false`，平台主体可以调用平台侧操作。
 
 ## 租户目录与业务实体
 
-- 租户目录用框架 `MultiTenancy.Database` 的 `TenantRecord`（ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性），单例目录带有界缓存。
-- `SysTenant` 是 Tenancy 的业务实体（套餐、到期、配额、管理员 / 所有者、隔离方式与独立库状态）。开通、启停、改名、改连接时在**同一工作单元**里同步写 `TenantRecord`。
-- 停用（`tenants.suspend`）后目录标记为禁用：带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录也被拒。
-- 到期时间（`expiresAt`）目前只记录并在「我的订阅」里展示，**到期不会自动停用**：方案里的租户到期处理作业尚未实现，需要时手动停用。
+租户目录使用框架 `MultiTenancy.Database` 的 `TenantRecord`，记录 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，目录为单例并带有界缓存。`SysTenant` 是 Tenancy 的业务实体，记录套餐、到期时间、配额、管理员（所有者）、隔离方式与独立库状态。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入。
+
+租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。到期时间（`expiresAt`）目前只记录并在「我的订阅」中展示，到期不会自动停用；方案中的租户到期处理作业尚未实现，需要时由平台手动停用。
 
 ## 开通三步
 
@@ -47,9 +48,9 @@ tenants.initialize-admin              建租户管理员（首次登录必须改
 
 | 成员类型 | 说明 |
 | --- | --- |
-| 注册地用户 | `SysUser.HomeTenantId` 就是该租户，天然可进入 |
+| 注册地用户 | `SysUser.HomeTenantId` 为该租户，可直接进入 |
 | 普通成员 | 别处注册的账号加入该租户，带生效 / 到期 |
-| 运维支持（`Support`） | **只能是平台账号**，平台运维进入租户排障用 |
+| 运维支持（`Support`） | 只能是平台账号，平台运维进入租户排障用 |
 
 `tenant-members.list / create / delete`（`tenancy.tenant-members.*`，平台侧）。登录后用 `auth.switch-tenant` 在注册地、生效中的成员租户与平台之间切换：会话续用、令牌重签、前端整页重建。
 

@@ -1,12 +1,12 @@
 # For Agents
 
-在 6.0（`next` 分支）上做开发时，怎样让 Claude Code、Codex、Cursor、GitHub Copilot 这类 AI 编程工具写出符合项目约定的代码。
+本页说明在 6.0（`next` 分支）上使用 Claude Code、Codex、Cursor、GitHub Copilot 等 AI 编程工具时，如何让生成的代码符合项目约定，适用于借助 AI 工具开发 BasicApp 的开发者。
 
-::: tip 和「AI 模块」不是一回事
-本页讲的是**用 AI 工具开发 BasicApp**。BasicApp 自带的 AI 功能（提供商、知识库、助手）属于 N4，规划中，见后端手册的 [AI 能力](../backend/ai)。
+::: tip 与 AI 模块的区别
+本页讨论的是用 AI 工具开发 BasicApp。BasicApp 自带的 AI 功能（提供商、知识库、助手）属于 N4，规划中，见后端手册的 [AI 能力](../backend/ai)。
 :::
 
-## 复制这段提示词
+## 提示词
 
 ```text
 这是 XiHan.BasicApp 6.0（next 分支）：后端 .NET 10 + XiHan.Framework 5（backend-next/），前端 Vue 3 + XiHan.UI（frontend-next/）。
@@ -42,9 +42,9 @@
 `.agents/skills/` 里的 `backend-development`、`frontend-development`、`fullstack-contracts` 等技能描述的是 5.x 的 Dynamic API、`*.types.ts` 与手写 facade 写法。在 `backend-next/`、`frontend-next/` 上工作时，以本站、`nextdocs/` 方案与代码为准，技能里与 6.0 冲突的说法不要照做。
 :::
 
-## 6.0 的门禁就是规范
+## 由门禁检查的约定
 
-很多约定由测试与脚本强制，AI 写完代码跑一遍即可发现违规：
+以下约定由测试与脚本强制执行，生成代码后运行一次即可发现违规：
 
 | 门禁 | 守什么 |
 | --- | --- |

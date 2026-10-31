@@ -1,13 +1,15 @@
 # 配置参考
 
+本页列出 6.0 宿主与管理端的配置项、缺省值与含义，适用于开发、部署与运维时查阅。
+
 ## 文件与优先级
 
 宿主是标准 ASP.NET Core 应用，配置按 .NET 的缺省顺序叠加：`appsettings.json` → `appsettings.{环境}.json` → 用户机密（Development）→ 环境变量 → 命令行。环境变量用双下划线分节，如 `XiHan__Security__Jwt__Secret`。
 
 配置分两组：
 
-- **框架节 `XiHan:*`**：由 XiHan.Framework 5 的各个 Feature 读取（内核、绑定、持久化、安全、租户、本地化、审计、协议）。
-- **应用节 `BasicApp:*`**：由各能力包的 Options 读取，直接绑定，不进入清单的配置贡献。
+- 框架节 `XiHan:*`：由 XiHan.Framework 5 的各个 Feature 读取（内核、绑定、持久化、安全、租户、本地化、审计、协议）。
+- 应用节 `BasicApp:*`：由各能力包的 Options 读取，直接绑定，不进入清单的配置贡献。
 
 ::: danger 不提交密钥
 `appsettings.json` 里的 JWT 密钥、签名地址密钥、数据库连接串都留空；`appsettings.Development.json` 里的值只用于本机开发，部署前必须由环境变量或密钥存储替换。下文示例一律用占位符。
@@ -22,7 +24,7 @@
 
 ## `XiHan:Bindings:db`
 
-平台库连接，**启动硬要求**：缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到内存实现。
+平台库连接，启动硬要求：缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到内存实现。
 
 ```json
 {
@@ -44,7 +46,7 @@
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `InitTables` | `false`（Development 为 `true`） | 启动时按实体建缺表、加缺列；**只用于开发**，正式环境由 `Schema/` 脚本管理 |
+| `InitTables` | `false`（Development 为 `true`） | 启动时按实体建缺表、加缺列；只用于开发，正式环境由 `Schema/` 脚本管理 |
 
 ## `XiHan:Security`
 

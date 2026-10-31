@@ -1,10 +1,10 @@
 # 架构总览
 
-`backend-next` 是一个 .NET 10 解决方案：14 个能力包工程 + 宿主 + 两个测试工程，全部建立在 XiHan.Framework 5 之上。本页讲清三件事：能力包是什么、包之间怎么分层、一个包怎样被宿主装配起来。
+本页说明能力包的组成、包之间的分层与宿主的装配方式，适用于开始阅读或修改后端代码的开发者。`backend-next` 是一个 .NET 10 解决方案，包含 14 个能力包工程、宿主与两个测试工程，全部建立在 XiHan.Framework 5 之上。
 
 ## 能力包
 
-每个业务能力是一个实现 `IFeature` 的类，手写**清单**（`Manifest`）并在 `Configure` 里显式登记自己的一切：
+每个业务能力是一个实现 `IFeature` 的类，手写清单（`Manifest`）并在 `Configure` 里显式登记自己的一切：
 
 ```csharp
 public sealed class SettingsFeature : IFeature
@@ -44,7 +44,7 @@ public sealed class SettingsFeature : IFeature
 }
 ```
 
-没有约定扫描、没有 `IScopedDependency`、没有拦截器：一个包贡献了什么，读它的 `Feature` 类就知道。
+6.0 不使用约定扫描、`IScopedDependency` 或拦截器，一个包提供的全部内容都登记在它的 `Feature` 类中。
 
 ## 分层
 
@@ -95,21 +95,21 @@ builder.AddXiHan(xihan =>
 });
 ```
 
-`UseFullProfile()` 带来 HTTP / gRPC / MCP 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。宿主当前**没有**装 Redis、RabbitMQ、`Localization.Database` 等 Provider，缓存与消息是进程内实现（见[部署](../deployment#多实例的限制)）。
+`UseFullProfile()` 带来 HTTP / gRPC / MCP 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。宿主当前没有装 Redis、RabbitMQ、`Localization.Database` 等 Provider，缓存与消息是进程内实现（见[部署](../deployment#多实例的限制)）。
 
 随后映射端点：
 
 | 调用 | 端点 |
 | --- | --- |
 | `MapXiHanHealth()` | `/health/startup`、`/health/ready`、`/health/live` |
-| `MapXiHanOperations()` | `/api/**`（全部 `Expose.Http` 的操作） |
+| `MapXiHanOperations()` | `/api/`（全部 `Expose.Http` 的操作） |
 | `MapXiHanOpenApi()` + Scalar | `/openapi.json`、`/openapi/<组>.json`、`/scalar`（`BasicApp:ApiDocs:Enabled`） |
 | `MapXiHanMcp()` | `/mcp` |
 | `MapXiHanGrpc()` / `MapXiHanProto()` | gRPC 服务与 `/operations.proto` |
 | `MapXiHanBlobs()` | `/blobs`：本地存储的签名地址 |
 | `MapBasicAppEndpoints()` | 文件上传与内容、头像、`/hubs/notification`、Telegram Webhook、OAuth 2.0 / OIDC 服务端、第三方登录回调 |
 
-## 一份契约，三种协议
+## 协议暴露
 
 同一个操作按 `Expose` 决定发布到哪里：
 

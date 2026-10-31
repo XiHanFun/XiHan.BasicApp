@@ -1,6 +1,8 @@
 # 实时通信
 
-前端经 `@microsoft/signalr` 连接后端 Realtime 包的通知 Hub。在线聊天（`/hubs/chat`）随后端 Chat 包在 **N3** 落地，目前没有。
+本页说明管理端的 SignalR 连接、重连与推送处理，适用于前端开发者。
+
+前端经 `@microsoft/signalr` 连接后端 Realtime 包的通知 Hub。在线聊天（`/hubs/chat`）随后端 Chat 包在 N3 落地，目前没有。
 
 ## 连接
 
@@ -29,9 +31,9 @@
 | `TaskProgress` | 导出等后台任务进度，显示在灵动岛（`applyServerTaskProgress`） |
 | `UserSettingChanged` | 偏好、收藏、列设置、看板布局在其他设备上改了：按场景实时应用；载荷带 `sourceClientId`，本端据此过滤自己的回显 |
 
-推送**不保证送达**：断线期间错过的通知以收件箱为准（重连或打开通知中心时重新拉取）。
+推送不保证送达：断线期间错过的通知以收件箱为准（重连或打开通知中心时重新拉取）。
 
-## 写一个订阅
+## 订阅推送
 
 ```ts
 import { useSignalR } from '~/composables'

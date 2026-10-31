@@ -1,6 +1,6 @@
 # 接口对接指南
 
-6.0 的接口全部来自后端登记的**操作**（`[Operation("<资源>.<动词>")]`）：一份操作同时是 HTTP 端点、可选的 gRPC 方法与 MCP 工具。本页面向调用方，讲 HTTP 怎么调；写操作见[后端开发流程](./backend/development)。
+本页说明如何通过 HTTP 调用 6.0 的接口，适用于管理端以外的对接方与集成开发者。6.0 的接口全部来自后端登记的操作（`[Operation("<资源>.<动词>")]`），一个操作同时是 HTTP 端点，并可按需发布为 gRPC 方法与 MCP 工具。编写操作见[后端开发流程](./backend/development)。
 
 ::: warning 与 5.x 不兼容
 6.0 没有 `ApiResponse` 信封、没有 `/Controller/Action` 风格路由、没有 `X-Timezone` 头。5.x 的对接代码需要按本页改造，不提供兼容层。
@@ -10,7 +10,7 @@
 
 | 地址 | 内容 |
 | --- | --- |
-| `/api/**` | 全部操作，前缀由 `XiHan:Protocols:Http:RoutePrefix` 决定 |
+| `/api/` | 全部操作，前缀由 `XiHan:Protocols:Http:RoutePrefix` 决定 |
 | `/openapi.json` | OpenAPI 3.1 全量文档，带 `x-tagGroups`（Development 缺省打开，见 `BasicApp:ApiDocs:Enabled`） |
 | `/openapi/<组名>.json` | 按包分组的文档：身份与账号、授权、租户与套餐、组织、系统设置、文件与存储、通知与消息、审计日志、运维、开放平台 |
 | `/scalar` | 交互式文档，下拉切换全量与各组 |
@@ -25,7 +25,7 @@
 
 | 操作 | HTTP | 说明 |
 | --- | --- | --- |
-| `users.create` | `POST /api/users` | 成功 **201** |
+| `users.create` | `POST /api/users` | 成功 201 |
 | `users.get` | `GET /api/users/{id}` | 请求带 `id` 即实例级 |
 | `users.update` | `PUT /api/users/{id}` | |
 | `users.delete` | `DELETE /api/users?ids=…&ids=…` | 批量，ID 在查询串 |
@@ -39,7 +39,7 @@
 
 ## 响应
 
-### 成功：没有信封
+### 成功响应
 
 正文就是响应 DTO（`application/json`）。`create` 返回 201，其余 200。
 
@@ -48,7 +48,7 @@
 - 枚举序列化为字符串（如 `"Active"`）。
 - 属性名 camelCase。
 
-### 失败：RFC 9457 Problem Details
+### 失败响应（RFC 9457）
 
 ```http
 HTTP/1.1 409 Conflict
@@ -91,7 +91,7 @@ Content-Language: zh-CN
 }
 ```
 
-**客户端只依赖 `code` 与 `errors`**：`detail` 已按 `Accept-Language` 本地化，可以直接展示，但不要拿它做分支。
+客户端只依赖 `code` 与 `errors`：`detail` 已按 `Accept-Language` 本地化，可以直接展示，但不要拿它做分支。
 
 ## 请求头
 
@@ -102,7 +102,7 @@ Content-Language: zh-CN
 | `traceparent` | W3C Trace Context，建议每个请求生成；失败响应的 `traceId` 与它对应 |
 | `xihan-deadline` | 可选，RFC 3339 UTC 截止时间 |
 
-租户**不能**由客户端自报：没有 `X-Tenant-Id` 头，也不认查询串，租户来自令牌的 `tenant` 声明。
+租户不能由客户端自报：没有 `X-Tenant-Id` 头，也不认查询串，租户来自令牌的 `tenant` 声明。
 
 ## 获取令牌
 
@@ -129,11 +129,11 @@ curl -X POST http://localhost:9710/api/auth:login \
   -d '{"userName":"superadmin","password":"<密码>","captchaId":"<标识>","captchaCode":"<码>"}'
 ```
 
-- 平台账号不填 `tenant`；租户账号填**注册地租户 ID**。
+- 平台账号不填 `tenant`；租户账号填注册地租户 ID。
 - 开了双因素的账号返回 `{"token": null, "twoFactor": {"ticket": "…", "methods": [...], …}}`，再用 `auth.verify-two-factor` 凭票据与码换令牌。
 - 成功返回 `token`：`accessToken`（HS256 JWT，缺省 120 分钟）、`refreshToken`（不透明，缺省 7 天）、`sessionId`、`tenantId`、`mustChangePassword` 与用户资料。
 
-### 第 2 步：带令牌调接口
+### 第 2 步：携带令牌调用
 
 ```bash
 curl -X POST http://localhost:9710/api/roles:list \
@@ -156,11 +156,11 @@ curl -X POST http://localhost:9710/api/roles:list \
 
 ### 第 4 步：切换租户
 
-`auth.switch-tenant` 续用同一个会话（`sid` 不变）、轮换刷新令牌、按新租户重算角色，返回新的令牌对。客户端换令牌后**整页重载**，不要在旧页面状态上继续操作。只能切到注册地租户、生效中的成员租户（含运维支持）或平台；模仿态的会话不能切换。
+`auth.switch-tenant` 续用同一个会话（`sid` 不变）、轮换刷新令牌、按新租户重算角色，返回新的令牌对。客户端换令牌后整页重载，不要在旧页面状态上继续操作。只能切到注册地租户、生效中的成员租户（含运维支持）或平台；模仿态的会话不能切换。
 
 ## 分页、筛选与批量
 
-### 分页统一走 `:list`
+### 分页查询
 
 ```json
 {
@@ -224,7 +224,7 @@ curl -X POST http://localhost:9710/api/roles:list \
 | `X-Encrypt-Algorithm` / `X-Encrypt-Iv` | 否 | 请求体加密 `AES-CBC`，明文不必带 |
 | `X-Encrypt-Response` | 否 | 要求加密响应 |
 
-### 签名怎么算
+### 签名算法
 
 ```text
 规范串 = 方法大写 \n 路径 \n 规范查询串 \n 内容签名 \n X-Timestamp 原文 \n X-Nonce

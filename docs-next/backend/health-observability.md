@@ -1,5 +1,7 @@
 # 健康与可观测性
 
+本页说明健康检查、维护模式、服务监控、链路关联与弹性限制，适用于运维人员与后端开发者。
+
 ## 健康检查
 
 宿主 `MapXiHanHealth()` 映射三个端点，直接对应框架的应用状态机：
@@ -30,7 +32,7 @@ Maintenance 的 `server.get`（`maintenance.server.read`，平台侧）：取自
 | 关联 | 失败响应的 Problem Details 带 `traceId`；成功响应不另带 trace 头，以客户端自己生成的 `traceparent` 为准 |
 | 业务日志 | 八类审计日志与按 trace-id 的链路时间线，见[日志审计](./logging) |
 | 结构化日志 | ASP.NET Core `ILogger`，`appsettings.json` 的 `Logging` 节；Development 把 `XiHan` 调到 `Debug` |
-| OpenTelemetry | Full Profile 带 `Observability.OpenTelemetry`，**没有配置导出端点时不导出** |
+| OpenTelemetry | Full Profile 带 `Observability.OpenTelemetry`，没有配置导出端点时不导出 |
 
 命令模式下日志只写 stderr，stdout 只承载命令输出，方便脚本处理。
 

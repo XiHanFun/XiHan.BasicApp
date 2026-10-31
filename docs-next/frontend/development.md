@@ -1,8 +1,8 @@
 # 开发流程
 
-以「给 Settings 模块加一个页面」为线索。先读[框架简介](./introduction)。
+本页以在 Settings 模块中新增页面为例，说明管理端新增页面的完整步骤，适用于前端开发者。阅读前建议先了解[框架简介](./introduction)。
 
-## 一、后端先定契约
+## 一、确定后端契约
 
 前端不手写接口：操作、DTO、权限码与页面登记都在后端（见[后端开发流程](../backend/development)）。后端改完导出契约：
 
@@ -12,9 +12,9 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --
 cd frontend-next && pnpm gen:contracts
 ```
 
-`contracts/openapi.json` 与 `packages/contracts/*` 都是生成物、都入库，和后端改动、页面改动**同一个提交**。
+`contracts/openapi.json` 与 `packages/contracts/*` 都是生成物、都入库，和后端改动、页面改动同一个提交。
 
-## 二、建页面
+## 二、创建页面
 
 页面路径由后端页面登记决定：路由 `/settings/configs` → 组件路径 `settings/configs/index` → 文件 `src/modules/settings/views/configs/index.vue`。
 
@@ -53,7 +53,7 @@ const schema = computed<PageSchema>(() => ({
 </template>
 ```
 
-- 列表页一律用 [SchemaPage](./schema-page)；新增 / 编辑用 `XEditModal`，**每个字段都有可见标签**。
+- 列表页一律用 [SchemaPage](./schema-page)；新增 / 编辑用 `XEditModal`，每个字段都有可见标签。
 - 资源适配器（`use-<页面>.ts`）用生成的操作客户端：`import { configs } from '~/contracts'`，经 `toPageRequest` / `toSchemaPageResult` 对接分页。
 - 按钮的 `permission` 直接填操作的权限码；门禁会核对它存在于生成的 `permissions.ts`。
 - 大页面拆成 `index.vue` + `use-*.ts` 组合式函数。
@@ -91,7 +91,7 @@ pnpm build
 
 ## 六、XiHan.UI 本地联调
 
-目标是 XiHan.UI 的 `next` 线。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 指向同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），**overrides 不提交**。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
+目标是 XiHan.UI 的 `next` 线。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 指向同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
 
 ## 下一步
 

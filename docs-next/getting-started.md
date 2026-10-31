@@ -1,6 +1,6 @@
 # 快速开始
 
-本页把 6.0 在本机跑起来：后端连本地 PostgreSQL，前端开发服务器代理到后端，用初始超级管理员登录。
+本页说明如何在本机运行 6.0：后端连接本地 PostgreSQL，前端开发服务器代理到后端，并以初始超级管理员登录。适用于首次运行 6.0 的开发者。
 
 ## 环境要求
 
@@ -43,7 +43,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ## 四、写入种子
 
-种子**不会**随启动自动执行，另开一个终端运行 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
+种子不会随启动自动执行，另开一个终端运行 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
 
 ```bash
 dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed
@@ -54,7 +54,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 | 种子 | 写入 |
 | --- | --- |
 | `identity.platform` | 平台账号 `superadmin` |
-| `access.platform` | 平台内置角色 `admin` 与超管的全局授予 |
+| `access.platform` | 平台内置角色 `admin` 与超级管理员的全局授予 |
 | `access.menus` | 从各包页面登记对齐菜单 |
 | `tenancy.editions` | 套餐 Free（缺省）/ Basic / Professional / Enterprise |
 | `files.storage-configs` | 平台本地存储配置 |
@@ -92,7 +92,7 @@ pnpm dev
 - 在租户管理里把自己加为 `demo` 的运维支持成员，再从控制中心切换过去（`auth.switch-tenant` 只能进注册地租户、生效中的成员租户或平台）；
 - 用模仿登录以租户用户的身份进入（`impersonation.start`）。
 
-## 七、调通第一个接口
+## 七、调用第一个接口
 
 图形验证码缺省开启（`BasicApp:Auth:CaptchaEnabled`）。用命令行调试时，可以在本机配置里临时关掉，或先取验证码：
 
@@ -136,10 +136,10 @@ curl -X POST http://localhost:9710/api/users:list \
 
 ## 常见问题
 
-- **启动即退出，日志里有 `RUNTIME_VALIDATION_001`**：没有数据库连接串，检查 `XiHan:Bindings:db:value`。
-- **构建报找不到 `XiHan.Framework.*` 工程**：框架没有检出在同级目录，或用 `-p:XiHanFrameworkSrc=…` 指路。
-- **登录提示账号或密码错误**：还没执行 `seed`。
-- **前端页面空白、控制台 404**：后端没起来，或 `VITE_DEV_PROXY_TARGET` 与后端地址不一致。
+- 启动即退出，日志里有 `RUNTIME_VALIDATION_001`：没有数据库连接串，检查 `XiHan:Bindings:db:value`。
+- 构建报找不到 `XiHan.Framework.*` 工程：框架没有检出在同级目录，或用 `-p:XiHanFrameworkSrc=…` 指路。
+- 登录提示账号或密码错误：还没执行 `seed`。
+- 前端页面空白、控制台 404：后端没起来，或 `VITE_DEV_PROXY_TARGET` 与后端地址不一致。
 
 更多见[常见问题](./faq)。
 

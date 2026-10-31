@@ -1,6 +1,8 @@
 # 日志审计
 
-Auditing 包（Tier 2）负责日志的**写入队列**与**查询面**。八类日志里，七类是 Auditing 自己的按月分表，操作日志则是框架的操作审计。所有日志页都是只读的，权限码只有 `read`，平台与租户两侧都有。
+本页说明八类日志的来源与内容、链路追踪、写入方式与保留清理，适用于后端开发者与运维、审计人员。
+
+Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志里，七类是 Auditing 自己的按月分表，操作日志则是框架的操作审计。所有日志页都是只读的，权限码只有 `read`，平台与租户两侧都有。
 
 ## 八类日志
 
@@ -19,15 +21,15 @@ Auditing 包（Tier 2）负责日志的**写入队列**与**查询面**。八类
 
 ### 隔离
 
-日志是租户库实体，严格按上下文隔离：平台主体看平台一侧（平台主体、匿名调用、找不到租户的登录都记在 `platform`），租户主体看本租户。**要看某个租户的日志，先切换到该租户。**
+日志是租户库实体，严格按上下文隔离：平台主体看平台一侧（平台主体、匿名调用、找不到租户的登录都记在 `platform`），租户主体看本租户。要看某个租户的日志，先切换到该租户。
 
 ### 各类的内容
 
-- **操作日志**：操作 ID、本地化的描述（取操作的 `.title`，按调用方语言）、结果与错误码、耗时、登录名与会话，以及客户端 IP、浏览器、系统、设备、归属地（经 `IIpRegionResolver` 离线库）。
-- **登录日志**：事件 `Login`、`Refresh`、`Logout`、`SwitchTenant`、`ImpersonationStart` / `Stop`、`ChangePassword`、`TwoFactorChallenge` / `Enable` / `Disable` / `Reset`、`RoleActivation`；验证码错误、节流拒绝与第二步码错都作为失败的登录带错误码记下。
-- **数据变更日志**：类型 `Insert`、`Update`、`Delete`、`Restore`（软删除标记由真变假）；修改按主键配对前后值，敏感列打码；只动了时间戳一类列的修改不记；会话、个人偏好与账号安全不记；作业与种子的写入不记；属性可用 `[DiffLogIgnored]` 排除。
-- **权限变更日志**：`RoleGrant` / `RoleRevoke` / `RoleDeny`、`RoleAssign` / `RoleUnassign` / `RoleAssignmentWindow`、`RoleDataScope`、`RoleDelete`、`RoleInheritance`、`UserGrant` / `UserDeny` / `UserRevoke`、`UserDataScope`、`Delegation`、`FieldSecurity`、`ConditionChange`、`ConstraintViolation`、`EditionPermissions`、`TenantEdition`、`TenantOwner`。
-- **条件命中**：来源（访问策略 / 权限条件）、时机（认证前、认证后、登录、授权）、动作与是否拦截、请求属性快照。
+- 操作日志：操作 ID、本地化的描述（取操作的 `.title`，按调用方语言）、结果与错误码、耗时、登录名与会话，以及客户端 IP、浏览器、系统、设备、归属地（经 `IIpRegionResolver` 离线库）。
+- 登录日志：事件 `Login`、`Refresh`、`Logout`、`SwitchTenant`、`ImpersonationStart` / `Stop`、`ChangePassword`、`TwoFactorChallenge` / `Enable` / `Disable` / `Reset`、`RoleActivation`；验证码错误、节流拒绝与第二步码错都作为失败的登录带错误码记下。
+- 数据变更日志：类型 `Insert`、`Update`、`Delete`、`Restore`（软删除标记由真变假）；修改按主键配对前后值，敏感列打码；只动了时间戳一类列的修改不记；会话、个人偏好与账号安全不记；作业与种子的写入不记；属性可用 `[DiffLogIgnored]` 排除。
+- 权限变更日志：`RoleGrant` / `RoleRevoke` / `RoleDeny`、`RoleAssign` / `RoleUnassign` / `RoleAssignmentWindow`、`RoleDataScope`、`RoleDelete`、`RoleInheritance`、`UserGrant` / `UserDeny` / `UserRevoke`、`UserDataScope`、`Delegation`、`FieldSecurity`、`ConditionChange`、`ConstraintViolation`、`EditionPermissions`、`TenantEdition`、`TenantOwner`。
+- 条件命中：来源（访问策略 / 权限条件）、时机（认证前、认证后、登录、授权）、动作与是否拦截、请求属性快照。
 
 ## 链路追踪
 

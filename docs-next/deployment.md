@@ -1,5 +1,7 @@
 # 部署
 
+本页说明 6.0 后端与前端的发布、首次初始化、反向代理配置与部署限制，适用于搭建评估或预发环境。
+
 ::: warning 预览版
 6.0 尚未发布，下面是 `next` 分支当前的部署形态，适合评估与预发环境。生产系统请继续使用 5.x。
 :::
@@ -27,14 +29,14 @@ dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basi
 
 ### 生产配置清单
 
-用环境变量或密钥存储提供，**不要写进镜像或仓库**：
+用环境变量或密钥存储提供，不要写进镜像或仓库：
 
 | 键 | 说明 |
 | --- | --- |
 | `XiHan__Bindings__db__value` | 平台库连接串（必需） |
 | `XiHan__Security__Jwt__Secret` | HS256 密钥，至少 32 字节（必需） |
 | `XiHan__ObjectStorage__SignedUrls__Secret` | 本地存储签名地址密钥（用本地存储时必需） |
-| `BasicApp__Seed__SuperAdminPassword` | 超管初始密码，替换缺省的 `SuperAdmin@123` |
+| `BasicApp__Seed__SuperAdminPassword` | 超级管理员初始密码，替换缺省的 `SuperAdmin@123` |
 | `BasicApp__DataProtection__KeysDirectory` | 数据保护密钥目录，持久化存储；多实例共享 |
 | `BasicApp__Files__LocalRootPath` | 本地存储根目录，挂持久卷 |
 | `BasicApp__OpenPlatform__Issuer` | 对外的 OIDC 签发者（反向代理后必须显式配置） |
@@ -47,7 +49,7 @@ dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basi
 1. 建空库（6.0 不接受 5.x 的库，见[表结构升级](./backend/upgrade)）。
 2. 启动宿主：表结构升级器执行 `Schema/6.0.0/` 基线并写版本台账；失败即中断启动。也可以先单独执行 `XiHan.BasicApp.Host schema upgrade`。
 3. 执行一次种子：`XiHan.BasicApp.Host seed`（命令模式不监听端口，可在宿主运行时执行；可重复执行）。
-4. 用 `superadmin` 登录，**立即修改密码**，再建租户与租户管理员。
+4. 用 `superadmin` 登录，立即修改密码，再建租户与租户管理员。
 
 ```bash
 # 发布目录中执行
@@ -64,7 +66,7 @@ dotnet XiHan.BasicApp.Host.dll
 | `/health/ready` | 就绪探针：含各 Feature 与 Provider 健康项 |
 | `/health/live` | 存活探针 |
 
-宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp:6.0.0-preview.1`、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、优雅停机 30 秒与资源请求。
+宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp:6.0.0-preview.1`、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。
 
 ### 维护模式
 
@@ -80,7 +82,7 @@ pnpm build          # 产物在 dist/
 
 构建期变量见[配置参考](./configuration#前端-env)：`VITE_API_BASE_URL` 留空即同源；`VITE_ROUTER_HISTORY=history` 时静态托管要把未知路径回退到 `index.html`。
 
-后端没有配置 CORS，前端**应与后端同源**部署：由同一个站点托管 `dist/` 并把后端路径反向代理过去。
+后端没有配置 CORS，前端应与后端同源部署：由同一个站点托管 `dist/` 并把后端路径反向代理过去。
 
 ```nginx
 server {
@@ -138,13 +140,13 @@ gRPC 端点（`Kestrel:Endpoints:Grpc`，HTTP/2）只供内部服务调用，只
 
 | 方面 | 现状 |
 | --- | --- |
-| 实时推送 | Realtime 用进程内的连接登记与组，**单实例成立**；多实例时在线状态只看本实例，推送到不了别的实例上的连接 |
+| 实时推送 | Realtime 用进程内的连接登记与组，单实例成立；多实例时在线状态只看本实例，推送到不了别的实例上的连接 |
 | 缓存 | 宿主未装 Redis Provider，`ISharedCache` 是进程内实现，各实例不共享 |
 | 作业 | 作业定义与运行记录在 `Scheduling.Database`，多实例按框架的数据库调度协调 |
 | 数据保护 | 必须共享 `BasicApp:DataProtection:KeysDirectory` |
 | 表结构升级 | 升级器取数据库租约锁，同一时刻只有一个节点执行 |
 
-因此 6.0 预览版建议**单实例**部署。
+因此 6.0 预览版建议单实例部署。
 
 ## 下一步
 
