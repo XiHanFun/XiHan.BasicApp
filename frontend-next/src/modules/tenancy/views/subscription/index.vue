@@ -132,7 +132,7 @@ const pricing = computed(() => (subscription.value ? subscriptionPricing(t, subs
 .tenant-subscription__tile {
   background: var(--xh-bg-surface);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-surface);
 }
 
 .tenant-subscription__plan {
@@ -152,7 +152,7 @@ const pricing = computed(() => (subscription.value ? subscriptionPricing(t, subs
   block-size: 2.5rem;
   color: var(--xh-fg-brand);
   background: var(--xh-bg-brand-subtle);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 .tenant-subscription__plan-main {

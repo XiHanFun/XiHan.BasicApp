@@ -718,7 +718,7 @@ watch(tracePreset, (preset) => {
   /* 悬停反馈以 边框加强 + 背景微抬升 为主（明暗主题都可见，不依赖纯黑阴影） */
   border-color: color-mix(in srgb, var(--k) 45%, var(--t-border));
   background: linear-gradient(135deg, color-mix(in srgb, var(--k) 14%, var(--t-card)) 0%, var(--t-card) 56%);
-  box-shadow: var(--xh-shadow-md);
+  box-shadow: var(--xh-elevation-lifted);
 }
 
 /* 卡片头部：状态点 + 方法 + 时间 … 状态标签 */

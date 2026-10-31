@@ -1,24 +1,12 @@
-import type { ComponentResolver } from 'unplugin-vue-components'
 import type { PluginOption } from 'vite'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import { XiHanUIResolver } from '@xihan-ui/vue/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
-
-/**
- * XiHan.UI 是解剖式组件库：模板里的 `Xh*` 标签直接映射到 `@xihan-ui/vue` 的具名导出，免去逐个 import，摇树不受影响。
- */
-function XiHanUiResolver(): ComponentResolver {
-  return {
-    type: 'component',
-    resolve(name: string) {
-      return name.startsWith('Xh') ? { name, from: '@xihan-ui/vue' } : undefined
-    },
-  }
-}
 
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 const buildTime = new Date().toISOString().slice(0, 16).replace('T', ' ')
@@ -61,7 +49,8 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       vue(),
       Components({
-        resolvers: [XiHanUiResolver()],
+        // XiHan.UI 是解剖式组件库：模板里的 Xh* 标签由库自带的解析器按需映射到 @xihan-ui/vue 的具名导出，摇树不受影响
+        resolvers: [XiHanUIResolver()],
         // 只解析 XiHan.UI 的部件；应用自有组件一律显式 import
         dirs: [],
         dts: 'src/types/components.d.ts',

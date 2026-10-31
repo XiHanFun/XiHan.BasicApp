@@ -74,7 +74,7 @@ async function open() {
   width: var(--xh-space-7);
   height: var(--xh-space-7);
   overflow: hidden;
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-inset);
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-muted);
 }
@@ -87,6 +87,7 @@ async function open() {
 
 .schema-file-ref:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-space-0);
+  outline-offset: var(--xh-ring-offset);
+  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
 }
 </style>

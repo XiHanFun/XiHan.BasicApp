@@ -22,9 +22,9 @@
   --color-border-strong: var(--xh-border-strong);
   --color-border-invalid: var(--xh-border-invalid);
 
-  --radius-control: var(--xh-radius-sm);
-  --radius-surface: var(--xh-radius-md);
-  --radius-overlay: var(--xh-radius-lg);
+  --radius-control: var(--xh-shape-control);
+  --radius-surface: var(--xh-shape-surface);
+  --radius-overlay: var(--xh-shape-overlay);
 
   --spacing-1: var(--xh-space-1);
   --spacing-2: var(--xh-space-2);

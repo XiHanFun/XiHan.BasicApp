@@ -182,6 +182,7 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
 .float-menu-item:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
+  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
 }
 
 /* 菜单展开时停在悬停档，读得出是哪一颗弹的菜单 */

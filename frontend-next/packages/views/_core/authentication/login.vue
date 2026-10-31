@@ -100,7 +100,7 @@ const formData = ref({
   password: '',
 })
 
-const rules = computed<FormRules>(() => ({
+const rules = computed<FormRules<typeof formData.value>>(() => ({
   username: [
     { required: true, message: t('page.login.username_placeholder') },
   ],

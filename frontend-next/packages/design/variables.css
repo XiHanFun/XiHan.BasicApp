@@ -1,7 +1,6 @@
 :root {
   --font-family:
-    -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, 'Helvetica Neue', arial, 'Noto Sans', sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    var(--xh-font-family-sans), 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   /* core design tokens (light default) */
   --background: 0 0% 100%;
@@ -29,8 +28,8 @@
   --ring: 222.2 84% 4.9%;
   /* 圆角默认值，等于圆角偏好默认档（0.25）经 useTheme 换算出的像素值；单位与运行时写入的内联值保持一致 */
   --radius: 7px;
-  --overlay: 0 0% 0% / 45%;
-  --overlay-content: 0 0% 95% / 45%;
+  --overlay: 0 0% 0% / 40%;
+  --overlay-content: 0 0% 95% / 40%;
 
   /* 圆角 token */
   --radius-sm: calc(var(--radius) * 0.5);

@@ -251,20 +251,14 @@
   color: var(--xh-fg-danger);
 }
 
-/* 当文字链用的组件库按钮（表格单元格、详情里跳链路追踪那几处）：经按钮的公开槽去掉盒高、内衬与悬停 / 按下面，
-   只留品牌色字、悬停加下划线，悬停面不再铺满单元格；焦点环照旧由组件库画 */
+/* 嵌进表格单元格、详情描述里的文字链（跳链路追踪那几处）：按钮写 variant="link"（不铺面、不画边、品牌色字、
+   悬停加下划线都由组件库给），这里只经按钮的公开槽压掉盒高与内衬，不把行撑高；焦点环照旧由组件库画 */
 .xh-link-button {
   --xh-button-h: auto;
   --xh-button-px: 0;
-  --xh-button-bg-hover: transparent;
-  --xh-button-bg-active: transparent;
 
   min-block-size: 0;
   max-inline-size: 100%;
-}
-
-.xh-link-button:hover {
-  text-decoration: underline;
 }
 
 /* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
@@ -463,7 +457,7 @@
   block-size: 32px;
   padding: 0;
   border: 0;
-  border-radius: var(--xh-radius-md, 6px);
+  border-radius: var(--xh-shape-control);
   background: transparent;
   color: var(--xh-fg-muted);
   cursor: pointer;
@@ -477,6 +471,7 @@
 .xihan-icon-btn:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
+  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
 }
 
 .xihan-icon-btn:hover:not(:disabled) {

@@ -882,7 +882,7 @@ onMounted(async () => {
   word-break: break-all;
   white-space: pre-wrap;
   background: var(--xh-bg-subtle);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 /* 字段（标签 + 编辑区）吃掉详情的余量 */

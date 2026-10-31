@@ -267,7 +267,7 @@ function openAnnouncement(item: Announcement) {
   color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-control);
   cursor: pointer;
 }
 

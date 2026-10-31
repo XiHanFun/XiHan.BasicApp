@@ -612,7 +612,7 @@ async function removeRow(row: AccessPolicyRow) {
   gap: var(--xh-space-2);
   padding: var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 .policy-template__head {

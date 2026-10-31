@@ -343,7 +343,7 @@ async function submit() {
 .job-reschedule__preview {
   margin-top: var(--xh-space-3);
   padding: var(--xh-space-2) var(--xh-space-3);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
   background: var(--xh-bg-subtle);
 }
 

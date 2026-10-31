@@ -229,7 +229,7 @@ function confirmRevoke(row: OnlineSessionRow) {
   gap: var(--xh-space-3);
   padding: var(--xh-space-3) var(--xh-space-4);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
 }
 
@@ -239,7 +239,7 @@ function confirmRevoke(row: OnlineSessionRow) {
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
   flex-shrink: 0;
 }
 

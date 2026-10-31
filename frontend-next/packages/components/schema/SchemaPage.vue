@@ -918,7 +918,7 @@ const skeletonColumns = computed(() => {
 }
 
 .xh-skel-bar--square {
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-inset);
 }
 
 .xh-batch-bar {
