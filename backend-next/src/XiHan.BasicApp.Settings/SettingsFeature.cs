@@ -70,6 +70,8 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<NumberingRuleQueries>();
         context.Services.AddScoped<NumberingAllocationQueries>();
         context.Services.AddPermissionCatalog("settings", SettingsPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        SettingsFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("settings", SettingsPages.All);
         foreach (var permission in SettingsPermissions.All)
         {
