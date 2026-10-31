@@ -2,6 +2,10 @@
 export default {
   notification: {
     notifications: {
+      // 正文的编辑弹窗（4.x 同）
+      form_content_drawer_title: 'Modifier le contenu de l’annonce',
+      form_content_edit: 'Modifier le contenu',
+      form_content_count: '{count} caractères',
       title: 'Annonces',
       add_title: 'Nouvelle annonce',
       edit_title: 'Modifier l’annonce',

@@ -699,6 +699,9 @@ export default {
       },
       title: 'Profil',
     },
+    md_editor: {
+      placeholder: 'Markdown-Inhalt eingeben...',
+    },
     cron: {
       title: 'Cron-Generator',
       build: 'Erstellen',

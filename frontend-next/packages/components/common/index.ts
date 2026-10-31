@@ -1,9 +1,11 @@
 import { defineAsyncComponent } from 'vue'
 
-// 通知正文渲染（Markdown 编辑器体量大）异步懒加载，不进首屏依赖图
+// 重型编辑器（md-editor-v3）与通知正文渲染异步懒加载，不进首屏依赖图（4.x 同）
+export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))
 
 export { default as XChartInView } from './ChartInView.vue'
+export { default as XContentEditorField } from './ContentEditorField.vue'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'
 export type { GrantTransferGroup, GrantTransferItem, GrantTransferSide } from './grant-transfer'

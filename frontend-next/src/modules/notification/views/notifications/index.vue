@@ -34,7 +34,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, h, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { IconPicker, NotificationContent, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XInput, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
+import { IconPicker, NotificationContent, renderTag, SchemaPage, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
 import { NotificationContentFormat as CONTENT_FORMATS, DeliveryChannel as DELIVERY_CHANNELS, notifications as notificationsApi, NotificationPriority as PRIORITIES, NotificationTargetType as TARGET_TYPES, NotificationType as TYPES } from '~/contracts'
 import { useAuthStore } from '~/stores'
@@ -216,6 +216,8 @@ const modalVisible = ref(false)
 const submitting = ref(false)
 const submitError = ref<null | string>(null)
 const form = reactive<NotificationForm>(emptyNotificationForm())
+/** 正文按 Markdown 编辑（4.x 同：Markdown 用 md-editor-v3，其余格式用文本框） */
+const isMarkdownContent = computed(() => form.contentFormat === 'Markdown')
 const modalTitle = computed(() => (form.id ? t('notification.notifications.edit_title') : t('notification.notifications.add_title')))
 
 function openCreate() {
@@ -467,8 +469,21 @@ async function exportUnread() {
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
           <XhFieldLabel>{{ t('notification.notifications.form_content') }}</XhFieldLabel>
-          <XhFieldControl>
-            <XInput v-model:value="form.content" name="content" type="textarea" show-count :autosize="{ minRows: 4, maxRows: 12 }" :placeholder="t('notification.notifications.form_content_placeholder')" />
+          <XhFieldControl :as-child="false">
+            <XContentEditorField
+              v-model="form.content"
+              :title="t('notification.notifications.form_content_drawer_title')"
+              :placeholder="t('notification.notifications.form_content_placeholder')"
+              :edit-text="t('notification.notifications.form_content_edit')"
+              :confirm-text="t('common.actions.confirm')"
+              :cancel-text="t('common.actions.cancel')"
+              :count-label="(count: number) => t('notification.notifications.form_content_count', { count })"
+            >
+              <template #editor="{ value, update }">
+                <XMdEditor v-if="isMarkdownContent" editor-id="notification-content-editor" :model-value="value" @update:model-value="update" />
+                <XInput v-else :value="value" type="textarea" :placeholder="t('notification.notifications.form_content_placeholder')" @update:value="update" />
+              </template>
+            </XContentEditorField>
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot>

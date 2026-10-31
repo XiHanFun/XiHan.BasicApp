@@ -699,6 +699,9 @@ export default {
       },
       title: '個人設定',
     },
+    md_editor: {
+      placeholder: 'Markdown の内容を入力...',
+    },
     cron: {
       title: 'Cron 式ビルダー',
       build: '作成',

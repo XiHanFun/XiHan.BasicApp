@@ -699,6 +699,9 @@ export default {
       },
       title: 'Perfil',
     },
+    md_editor: {
+      placeholder: 'Digite conteúdo Markdown...',
+    },
     cron: {
       title: 'Gerador de cron',
       build: 'Gerar',
