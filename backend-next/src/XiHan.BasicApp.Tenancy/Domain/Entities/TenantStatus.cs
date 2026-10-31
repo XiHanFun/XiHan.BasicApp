@@ -20,4 +20,12 @@ public enum TenantStatus
     /// 停用：目录标记为禁用，租户用户不能登录、带该租户声明的调用被拒。
     /// </summary>
     Suspended = 1,
+
+    /// <summary>
+    /// 到期：到期作业把过了到期时间的生效租户标为到期，目录随之禁用。
+    /// </summary>
+    /// <remarks>
+    /// 延长到期时间之后用 <c>tenants.resume</c> 恢复；停用照常可用。
+    /// </remarks>
+    Expired = 2,
 }

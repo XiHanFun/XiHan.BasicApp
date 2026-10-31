@@ -46,6 +46,7 @@
   "identity.password.too_simple": "비밀번호에는 영문자와 숫자가 모두 포함되어야 합니다.",
   "identity.password.reused": "비밀번호는 최근 {depth}회 사용한 것과 달라야 합니다.",
   "identity.auth.tenant_unavailable": "테넌트 '{tenantId}'이(가) 존재하지 않거나 중지되었습니다.",
+  "identity.auth.tenant_expired": "테넌트 '{tenantId}'이(가) 만료되었습니다. 갱신하려면 플랫폼 관리자에게 문의하세요.",
   "auth.switch_tenant.title": "테넌트 전환",
   "auth.switch_tenant.description": "현재 세션을 다른 테넌트(소속 테넌트 또는 구성원인 테넌트)로 전환하거나 플랫폼으로 돌아갑니다(플랫폼 계정만). 새 토큰을 반환합니다.",
   "impersonation.start.title": "가장 시작",

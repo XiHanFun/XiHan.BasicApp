@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Active',
         suspended: 'Suspended',
+        expired: 'Expired',
       },
       actions: {
         create: 'Create tenant',

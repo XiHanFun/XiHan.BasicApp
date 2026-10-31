@@ -30,6 +30,7 @@ export default {
       status: {
         active: '활성',
         suspended: '중지됨',
+        expired: '만료됨',
       },
       actions: {
         create: '테넌트 개통',

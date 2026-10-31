@@ -82,6 +82,9 @@ public static class IdentityErrors
     /// <summary>
     /// 登录指定的租户不存在或已停用（不核对用户名）。
     /// </summary>
+    /// <remarks>
+    /// 已到期的是 <see cref="TenantExpired"/>。
+    /// </remarks>
     public const string TenantUnavailable = "IDENTITY_DENIED_005";
 
     /// <summary>
@@ -404,6 +407,14 @@ public static class IdentityErrors
     /// 账号已停用，不能登录。
     /// </summary>
     public const string AccountDisabled = "IDENTITY_DENIED_018";
+
+    /// <summary>
+    /// 租户已到期，不能登录、刷新或切入。
+    /// </summary>
+    /// <remarks>
+    /// 平台延长到期时间并恢复租户之后才能再进。
+    /// </remarks>
+    public const string TenantExpired = "IDENTITY_DENIED_019";
 
     /// <summary>
     /// 用户处于锁定状态，启用不适用。

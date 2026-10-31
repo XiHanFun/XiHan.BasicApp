@@ -46,6 +46,7 @@
   "identity.password.too_simple": "Le mot de passe doit contenir des lettres et des chiffres.",
   "identity.password.reused": "Le mot de passe doit être différent des {depth} derniers mots de passe.",
   "identity.auth.tenant_unavailable": "Le locataire '{tenantId}' n'existe pas ou est suspendu.",
+  "identity.auth.tenant_expired": "Le locataire '{tenantId}' a expiré. Contactez l'administrateur de la plateforme pour le renouveler.",
   "auth.switch_tenant.title": "Changer de locataire",
   "auth.switch_tenant.description": "Bascule la session actuelle vers un autre locataire (locataire d'origine ou locataire dont l'utilisateur est membre) ou revient à la plateforme (comptes plateforme uniquement) ; renvoie de nouveaux jetons.",
   "impersonation.start.title": "Démarrer l'usurpation",

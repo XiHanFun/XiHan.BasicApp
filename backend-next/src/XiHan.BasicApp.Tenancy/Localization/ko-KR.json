@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "테넌트 '{tenantId}'의 전용 데이터베이스는 이미 준비되어 변경하거나 다시 초기화할 수 없습니다.",
   "tenancy.database.not_ready": "테넌트 '{tenantId}'의 전용 데이터베이스가 아직 준비되지 않았습니다. 먼저 데이터베이스를 초기화하세요.",
   "tenancy.database.connection_required": "전용 데이터베이스에는 연결 문자열이 필요합니다.",
-  "tenancy.database.not_isolated": "테넌트 '{tenantId}'은(는) 공유 데이터베이스를 사용하므로 초기화할 전용 데이터베이스가 없습니다."
+  "tenancy.database.not_isolated": "테넌트 '{tenantId}'은(는) 공유 데이터베이스를 사용하므로 초기화할 전용 데이터베이스가 없습니다.",
+  "jobs.tenancy.tenants.expire.title": "테넌트 만료 처리",
+  "jobs.tenancy.tenants.expire.description": "만료 시각이 지난 활성 테넌트를 만료로 표시하고 테넌트 디렉터리에서 비활성화합니다. 만료 시각이 지나면 이 작업을 기다리지 않고 로그인이 거부됩니다."
 }

@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "The dedicated database of tenant '{tenantId}' is ready and cannot be changed or initialized again.",
   "tenancy.database.not_ready": "The dedicated database of tenant '{tenantId}' is not ready yet. Initialize the database first.",
   "tenancy.database.connection_required": "A dedicated database needs a connection string.",
-  "tenancy.database.not_isolated": "Tenant '{tenantId}' uses the shared database; there is no dedicated database to initialize."
+  "tenancy.database.not_isolated": "Tenant '{tenantId}' uses the shared database; there is no dedicated database to initialize.",
+  "jobs.tenancy.tenants.expire.title": "Expire tenants",
+  "jobs.tenancy.tenants.expire.description": "Mark active tenants past their expiry time as expired and disable them in the tenant directory. Sign-in is refused as soon as the expiry time passes, without waiting for this job."
 }

@@ -75,13 +75,13 @@ public sealed class Login(
         }
 
         string? tenantName = null;
-        // 租户账号：租户须在目录里且启用（停用的租户连用户名都不核对，直接拒绝）
+        // 租户账号：租户须在目录里、启用且没到期（停用或到期的租户连用户名都不核对，直接拒绝）
         if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
         {
-            var directory = await tenants.FindAsync(tenant, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, tenant, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenant)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

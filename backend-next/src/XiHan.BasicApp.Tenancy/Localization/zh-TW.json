@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "租戶 '{tenantId}' 的獨立資料庫已就緒，不能再改或再初始化。",
   "tenancy.database.not_ready": "租戶 '{tenantId}' 的獨立資料庫還沒就緒，請先初始化資料庫。",
   "tenancy.database.connection_required": "獨立資料庫要填連線字串。",
-  "tenancy.database.not_isolated": "租戶 '{tenantId}' 是共用資料庫，沒有獨立資料庫可初始化。"
+  "tenancy.database.not_isolated": "租戶 '{tenantId}' 是共用資料庫，沒有獨立資料庫可初始化。",
+  "jobs.tenancy.tenants.expire.title": "租戶到期處理",
+  "jobs.tenancy.tenants.expire.description": "把過了到期時間、仍生效的租戶標為到期並停用租戶目錄；到期時間一過登入即被拒絕，不等這個作業。"
 }

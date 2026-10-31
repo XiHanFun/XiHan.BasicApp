@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "O banco dedicado do locatário '{tenantId}' já está pronto e não pode ser alterado nem inicializado de novo.",
   "tenancy.database.not_ready": "O banco dedicado do locatário '{tenantId}' ainda não está pronto. Inicialize o banco primeiro.",
   "tenancy.database.connection_required": "Um banco dedicado precisa de uma cadeia de conexão.",
-  "tenancy.database.not_isolated": "O locatário '{tenantId}' usa o banco compartilhado; não há banco dedicado para inicializar."
+  "tenancy.database.not_isolated": "O locatário '{tenantId}' usa o banco compartilhado; não há banco dedicado para inicializar.",
+  "jobs.tenancy.tenants.expire.title": "Expirar locatários",
+  "jobs.tenancy.tenants.expire.description": "Marca como expirados os locatários ativos que passaram da data de expiração e os desativa no diretório. O login é recusado assim que a data passa, sem esperar este job."
 }

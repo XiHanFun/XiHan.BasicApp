@@ -98,10 +98,10 @@ public sealed class StartImpersonation(
         string? tenantName = null;
         if (requested is not null)
         {
-            var directory = await tenants.FindAsync(requested, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, requested, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", requested)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Runtime.Schema;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
@@ -48,7 +49,7 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 把租户的目录字段（ID、显示名、是否启用）写进框架租户目录。
+    /// 把租户的目录字段（ID、显示名、是否启用、到期时间）写进框架租户目录。
     /// </summary>
     /// <remarks>
     /// 目录缓存随之失效。
@@ -67,6 +68,12 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
             }
 
             properties[TenantSchemas.ReadyProperty] = tenant.DatabaseStatus == TenantDatabaseStatus.Ready ? "true" : "false";
+        }
+
+        // 到期时间供 Identity 登录、刷新、切换时核对（Identity 不引用 Tenancy）
+        if (tenant.ExpiresAt is { } expiresAt)
+        {
+            properties[TenantDirectoryProperties.ExpiresAt] = TenantDirectoryProperties.FormatExpiresAt(expiresAt);
         }
 
         var info = new TenantInfo { Id = tenant.TenantId, DisplayName = tenant.Name, IsEnabled = tenant.Status == TenantStatus.Active, Properties = properties };

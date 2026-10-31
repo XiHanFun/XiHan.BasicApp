@@ -128,7 +128,7 @@ builder.AddXiHan(xihan =>
 | Contracts | — | — | — |
 | Runtime | `basicapp.runtime@1` | — | `AuditorStampMiddleware`（Transaction）、表结构升级、种子执行、维护模式 |
 | Identity | `basicapp.identity@1` | 用户、在线用户 | `SessionGateMiddleware`（Authenticate） |
-| Tenancy | `basicapp.tenancy@1` | 租户、套餐、我的订阅 | — |
+| Tenancy | `basicapp.tenancy@1` | 租户、套餐、我的订阅 | `tenancy.tenants.expire` |
 | Organization | `basicapp.organization@1` | 部门、岗位 | — |
 | Access | `basicapp.access@1` | 角色、权限目录、委托、字段安全、访问策略、约束规则、菜单 | `AccessPolicyMiddleware`（Tenant）、`PermissionConditionMiddleware`（Authorize）、权限过滤器与授予来源 |
 | Settings | `basicapp.settings@1` | 参数、字典、业务编号 | — |

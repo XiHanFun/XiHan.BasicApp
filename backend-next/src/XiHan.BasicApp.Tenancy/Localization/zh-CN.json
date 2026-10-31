@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "租户 '{tenantId}' 的独立库已就绪，不能再改或再初始化。",
   "tenancy.database.not_ready": "租户 '{tenantId}' 的独立库还没就绪，请先初始化数据库。",
   "tenancy.database.connection_required": "独立库要填连接串。",
-  "tenancy.database.not_isolated": "租户 '{tenantId}' 是共库，没有独立库可初始化。"
+  "tenancy.database.not_isolated": "租户 '{tenantId}' 是共库，没有独立库可初始化。",
+  "jobs.tenancy.tenants.expire.title": "租户到期处理",
+  "jobs.tenancy.tenants.expire.description": "把过了到期时间、仍生效的租户标为到期并停用租户目录；到期时间一过登录即被拒绝，不等这个作业。"
 }

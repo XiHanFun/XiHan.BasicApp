@@ -96,10 +96,10 @@ public sealed class SwitchTenant(
         }
         else
         {
-            var directory = await tenants.FindAsync(target, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, target, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", target)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

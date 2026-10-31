@@ -46,6 +46,7 @@
   "identity.password.too_simple": "密码须同时包含字母与数字。",
   "identity.password.reused": "密码不能与最近 {depth} 次使用过的相同。",
   "identity.auth.tenant_unavailable": "租户 '{tenantId}' 不存在或已停用。",
+  "identity.auth.tenant_expired": "租户 '{tenantId}' 已到期，请联系平台管理员续期。",
   "auth.switch_tenant.title": "切换租户",
   "auth.switch_tenant.description": "把当前会话切换到另一个租户（注册地租户或成员租户）或回到平台（仅平台账号）；返回新令牌。",
   "impersonation.start.title": "开始模仿登录",

@@ -46,6 +46,7 @@
   "identity.password.too_simple": "パスワードには英字と数字の両方を含めてください。",
   "identity.password.reused": "パスワードは直近 {depth} 回に使用したものと異なる必要があります。",
   "identity.auth.tenant_unavailable": "テナント '{tenantId}' は存在しないか停止中です。",
+  "identity.auth.tenant_expired": "テナント '{tenantId}' の有効期限が切れています。更新はプラットフォーム管理者に連絡してください。",
   "auth.switch_tenant.title": "テナントの切り替え",
   "auth.switch_tenant.description": "現在のセッションを別のテナント（所属テナントまたはメンバーとして参加しているテナント）へ切り替えるか、プラットフォームへ戻します（プラットフォームアカウントのみ）。新しいトークンを返します。",
   "impersonation.start.title": "代行ログインの開始",

@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "Die eigene Datenbank des Mandanten '{tenantId}' ist bereit und kann nicht mehr geändert oder erneut initialisiert werden.",
   "tenancy.database.not_ready": "Die eigene Datenbank des Mandanten '{tenantId}' ist noch nicht bereit. Initialisieren Sie zuerst die Datenbank.",
   "tenancy.database.connection_required": "Eine eigene Datenbank benötigt eine Verbindungszeichenfolge.",
-  "tenancy.database.not_isolated": "Der Mandant '{tenantId}' nutzt die gemeinsame Datenbank; es gibt keine eigene Datenbank zu initialisieren."
+  "tenancy.database.not_isolated": "Der Mandant '{tenantId}' nutzt die gemeinsame Datenbank; es gibt keine eigene Datenbank zu initialisieren.",
+  "jobs.tenancy.tenants.expire.title": "Mandanten ablaufen lassen",
+  "jobs.tenancy.tenants.expire.description": "Markiert aktive Mandanten nach ihrem Ablaufzeitpunkt als abgelaufen und deaktiviert sie im Mandantenverzeichnis. Die Anmeldung wird ab dem Ablaufzeitpunkt verweigert, ohne auf diesen Job zu warten."
 }

@@ -96,11 +96,11 @@ public sealed class VerifyTwoFactor(
         string? tenantName = null;
         if (ticket.TenantId is { } tenantId)
         {
-            var directory = await tenants.FindAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, tenantId, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
                 await tickets.RevokeAsync(request.Ticket, context.CancellationToken).ConfigureAwait(false);
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenantId)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

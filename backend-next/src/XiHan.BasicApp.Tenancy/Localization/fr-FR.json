@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "La base dédiée du locataire '{tenantId}' est prête et ne peut plus être modifiée ni réinitialisée.",
   "tenancy.database.not_ready": "La base dédiée du locataire '{tenantId}' n'est pas encore prête. Initialisez d'abord la base.",
   "tenancy.database.connection_required": "Une base dédiée nécessite une chaîne de connexion.",
-  "tenancy.database.not_isolated": "Le locataire '{tenantId}' utilise la base partagée ; il n'y a pas de base dédiée à initialiser."
+  "tenancy.database.not_isolated": "Le locataire '{tenantId}' utilise la base partagée ; il n'y a pas de base dédiée à initialiser.",
+  "jobs.tenancy.tenants.expire.title": "Expiration des locataires",
+  "jobs.tenancy.tenants.expire.description": "Marque comme expirés les locataires actifs dont la date d’expiration est passée et les désactive dans l’annuaire. La connexion est refusée dès l’expiration, sans attendre cette tâche."
 }

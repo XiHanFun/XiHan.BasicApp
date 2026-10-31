@@ -21,6 +21,8 @@
     <!-- 租户目录：开通 / 启停 / 改名在同一工作单元里同步写 TenantRecord -->
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <!-- 内建作业：租户到期处理 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

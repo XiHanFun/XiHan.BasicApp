@@ -12,6 +12,7 @@ using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Tenancy.Domain.Services;
 using XiHan.BasicApp.Tenancy.Infrastructure;
+using XiHan.BasicApp.Tenancy.Jobs;
 using XiHan.BasicApp.Tenancy.Queries;
 using XiHan.BasicApp.Tenancy.Seeds;
 using XiHan.Framework.Kernel;
@@ -21,6 +22,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Scheduling.Abstractions;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Tenancy;
@@ -53,6 +55,7 @@ public sealed class TenancyFeature : IFeature
             new CapabilityRequirement(MultiTenancyCapabilities.Context, MultiTenancyCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
             new CapabilityRequirement(IdentityCapabilities.Identity, IdentityCapabilities.Version),
+            new CapabilityRequirement(SchedulingCapabilities.Jobs, SchedulingCapabilities.Version),
         ],
         Contributes = new Contributions
         {
@@ -77,6 +80,7 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddSingleton<IEditionGate>(static sp => sp.GetRequiredService<EditionGate>());
         context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
+        context.Services.AddJob<TenantExpiryJob>(TenantExpiryJob.Name, TenantExpiryJob.Schedule);
         context.Services.AddPermissionCatalog("tenancy", TenancyPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         TenancyFieldSecurity.Register(context.Services);

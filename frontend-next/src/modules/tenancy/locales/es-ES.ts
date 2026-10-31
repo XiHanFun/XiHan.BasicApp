@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Activo',
         suspended: 'Suspendido',
+        expired: 'Vencido',
       },
       actions: {
         create: 'Crear inquilino',

@@ -46,6 +46,7 @@
   "identity.password.too_simple": "The password must contain both letters and digits.",
   "identity.password.reused": "The password must differ from the last {depth} passwords.",
   "identity.auth.tenant_unavailable": "Tenant '{tenantId}' does not exist or is suspended.",
+  "identity.auth.tenant_expired": "Tenant '{tenantId}' has expired. Contact the platform administrator to renew it.",
   "auth.switch_tenant.title": "Switch tenant",
   "auth.switch_tenant.description": "Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens.",
   "impersonation.start.title": "Start impersonation",

@@ -47,8 +47,9 @@ public sealed record LoginByCodeRequest(ContactChannel Channel, [Required, Strin
 /// <param name="accounts">账号域服务。</param>
 /// <param name="contacts">发码。</param>
 /// <param name="tenants">框架租户目录。</param>
+/// <param name="clock">时间源（租户到期）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
-public sealed class SendLoginCode(UserAccountService accounts, ContactCodes contacts, ITenantStore tenants) : IOperation<SendLoginCodeRequest, CodeSentResponse>
+public sealed class SendLoginCode(UserAccountService accounts, ContactCodes contacts, ITenantStore tenants, TimeProvider clock) : IOperation<SendLoginCodeRequest, CodeSentResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -67,7 +68,7 @@ public sealed class SendLoginCode(UserAccountService accounts, ContactCodes cont
         }
 
         var tenant = LoginCodes.TenantOf(request.Tenant);
-        var available = await LoginCodes.EnsureTenantAsync(tenants, tenant, context.CancellationToken).ConfigureAwait(false);
+        var available = await LoginCodes.EnsureTenantAsync(tenants, tenant, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
         if (available.IsFailure)
         {
             return available.Error!;
@@ -154,7 +155,7 @@ public sealed class LoginByCode(
             return allowed.Error!;
         }
 
-        var available = await LoginCodes.EnsureTenantAsync(tenants, tenant, context.CancellationToken).ConfigureAwait(false);
+        var available = await LoginCodes.EnsureTenantAsync(tenants, tenant, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
         if (!available.TryGetValue(out var displayName))
         {
             return available.Error!;
@@ -262,20 +263,18 @@ internal static partial class LoginCodes
     }
 
     /// <summary>
-    /// 租户账号：租户须在目录里且启用。
+    /// 租户账号：租户须在目录里、启用且没到期。
     /// </summary>
     /// <returns>租户的显示名；平台或没有显示名为空串。</returns>
-    public static async ValueTask<Result<string>> EnsureTenantAsync(ITenantStore tenants, string tenant, CancellationToken cancellationToken)
+    public static async ValueTask<Result<string>> EnsureTenantAsync(ITenantStore tenants, string tenant, DateTimeOffset now, CancellationToken cancellationToken)
     {
         if (string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
         {
             return string.Empty;
         }
 
-        var directory = await tenants.FindAsync(tenant, cancellationToken).ConfigureAwait(false);
-        return directory.TryGetValue(out var info) && info.IsEnabled
-            ? info.DisplayName ?? string.Empty
-            : Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenant)));
+        var directory = await TenantDirectoryGate.CheckAsync(tenants, tenant, now, cancellationToken).ConfigureAwait(false);
+        return directory.TryGetValue(out var info) ? info.DisplayName ?? string.Empty : directory.Error!;
     }
 
     /// <summary>

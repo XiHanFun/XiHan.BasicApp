@@ -157,6 +157,11 @@ public static class TenancyErrors
     public const string DatabaseNotReady = "TENANCY_CONFLICT_014";
 
     /// <summary>
+    /// 租户已过到期时间，先延长到期时间再恢复。
+    /// </summary>
+    public const string TenantExpired = "TENANCY_CONFLICT_015";
+
+    /// <summary>
     /// 独立库要给连接串。
     /// </summary>
     public const string ConnectionRequired = "TENANCY_VALIDATION_008";

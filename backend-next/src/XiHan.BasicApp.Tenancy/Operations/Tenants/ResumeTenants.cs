@@ -15,8 +15,9 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </summary>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="service">租户域服务。</param>
+/// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsSuspend)]
-public sealed class ResumeTenants(IRepository<SysTenant, Guid> tenants, TenantService service) : IOperation<TenantIdsRequest, BatchResult>
+public sealed class ResumeTenants(IRepository<SysTenant, Guid> tenants, TenantService service, TimeProvider clock) : IOperation<TenantIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -28,6 +29,8 @@ public sealed class ResumeTenants(IRepository<SysTenant, Guid> tenants, TenantSe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return TenantStatusBatch.RunAsync(request, context, tenants, service, TenantStatus.Active);
+        // 停用或到期的都能恢复，但要没过到期时间；过了的记为逐项失败（先延长到期时间）
+        var now = clock.GetUtcNow();
+        return TenantStatusBatch.RunAsync(request, context, tenants, service, TenantStatus.Active, tenant => tenant.ExpiresAt is { } expiresAt && expiresAt <= now ? TenancyErrors.TenantExpired : null);
     }
 }

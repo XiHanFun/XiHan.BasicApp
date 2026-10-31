@@ -30,6 +30,7 @@ export default {
       status: {
         active: '启用',
         suspended: '已停用',
+        expired: '已到期',
       },
       actions: {
         create: '开通租户',

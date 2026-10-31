@@ -9,7 +9,7 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, 
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { canInitializeAdmin, canInitializeDatabase, DATABASE_PROVIDER_NAMES, inheritedEdition, initializeTenantDatabase, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_DATABASE_PROVIDERS, TENANT_DATABASE_STATUSES, TENANT_ISOLATION_MODES, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, DATABASE_PROVIDER_NAMES, inheritedEdition, initializeTenantDatabase, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_DATABASE_PROVIDERS, TENANT_DATABASE_STATUSES, TENANT_ISOLATION_MODES, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 defineOptions({ name: 'TenancyTenantsView' })
 
@@ -62,7 +62,14 @@ onMounted(async () => {
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: TenantStatus): string {
-  return status === 'Suspended' ? t('tenancy.tenants.status.suspended') : t('tenancy.tenants.status.active')
+  switch (status) {
+    case 'Suspended':
+      return t('tenancy.tenants.status.suspended')
+    case 'Expired':
+      return t('tenancy.tenants.status.expired')
+    default:
+      return t('tenancy.tenants.status.active')
+  }
 }
 
 function memberTypeLabel(type: TenantMemberType): string {
@@ -206,7 +213,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('tenancy.tenants.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('tenancy.tenants.keyword_placeholder'), order: 0 },
   { key: 'tenantId', title: t('tenancy.tenants.fields.tenant_id'), dataType: 'string', sortable: true, exportable: true, minWidth: 140, order: 1 },
   { key: 'name', title: t('tenancy.tenants.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 160, order: 2 },
-  { key: 'status', title: t('tenancy.tenants.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 3 },
+  { key: 'status', title: t('tenancy.tenants.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), tenantStatusTone(asRow(row).status)), width: 90, order: 3 },
   { key: 'editionId', title: t('tenancy.tenants.fields.edition'), dataType: 'enum', exportable: true, options: editionColumnOptions.value, render: row => editionLabel(asRow(row).editionId), ellipsis: true, minWidth: 130, order: 4 },
   { key: 'adminUserId', title: t('tenancy.tenants.fields.admin'), dataType: 'string', render: row => adminTag(asRow(row)), width: 100, order: 5 },
   // 共库即「共库」，独立库按状态（4.x 的配置状态）；失败原因悬停可看
@@ -240,7 +247,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'initialize-database', title: t('tenancy.tenants.actions.initialize_database'), scope: 'row', icon: 'lucide:database', visible: row => canInitializeDatabase(asRow(row)), permission: 'tenancy.tenants.initialize-database' },
     // 每个租户只初始化一次：已有管理员就不再出这一项；独立库没就绪时也不出（后端拒绝 TENANCY_CONFLICT_014）
     { key: 'initialize-admin', title: t('tenancy.tenants.actions.initialize_admin'), scope: 'row', icon: 'lucide:user-plus', visible: row => canInitializeAdmin(asRow(row)), permission: 'tenancy.tenants.initialize-admin' },
-    { key: 'resume', title: t('tenancy.tenants.actions.resume'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.tenants.resume_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Suspended', permission: 'tenancy.tenants.suspend' },
+    { key: 'resume', title: t('tenancy.tenants.actions.resume'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.tenants.resume_confirm', { name: asRow(row).name }), visible: row => asRow(row).status !== 'Active', permission: 'tenancy.tenants.suspend' },
     { key: 'suspend', title: t('tenancy.tenants.actions.suspend'), scope: 'row', tone: 'warning', icon: 'lucide:pause', confirm: true, confirmText: row => t('tenancy.tenants.suspend_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Active', permission: 'tenancy.tenants.suspend' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'tenancy.tenants.delete' },
   ],
@@ -491,7 +498,7 @@ function formatNullableDate(value: null | string | undefined): string {
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.status') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
-                      <XhTagRoot variant="subtle" size="sm" :tone="detail.detail.value.tenant.status === 'Active' ? 'success' : 'danger'">
+                      <XhTagRoot variant="subtle" size="sm" :tone="tenantStatusTone(detail.detail.value.tenant.status)">
                         <XhTagLabel>{{ statusLabel(detail.detail.value.tenant.status) }}</XhTagLabel>
                       </XhTagRoot>
                     </XhDescriptionsValue>

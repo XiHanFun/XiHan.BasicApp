@@ -19,7 +19,13 @@
 
 租户目录使用框架 `MultiTenancy.Database` 的 `TenantRecord`，记录 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，目录为单例并带有界缓存。`SysTenant` 是 Tenancy 的业务实体，记录套餐、到期时间、配额、管理员（所有者）、隔离方式与独立库状态。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入。
 
-租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。到期时间（`expiresAt`）目前只记录并在「我的订阅」中展示，到期不会自动停用；方案中的租户到期处理作业尚未实现，需要时由平台手动停用。
+租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。
+
+租户有到期时间（`expiresAt`，为空即不限），它随目录属性同步：
+
+- 到期时间一过，登录（各种方式）、刷新令牌、切换租户与模仿登录即被拒绝（`IDENTITY_DENIED_019`），不等作业。
+- 内建作业 `tenancy.tenants.expire` 每 5 分钟把过了到期时间、仍生效的租户标为到期（`Expired`）并停用目录，之后带该租户声明的调用也被拒绝。不吊销会话、不发通知。
+- 续期：先改到期时间（`tenants.update`），再恢复（`tenants.resume`）；没延长就恢复，逐项失败 `TENANCY_CONFLICT_015`。
 
 ## 开通三步
 
@@ -33,7 +39,7 @@ tenants.initialize-admin              建租户管理员（首次登录必须改
 | --- | --- | --- |
 | `tenants.create` / `update` / `get` / `list` | `tenancy.tenants.create` / `update` / `read` | 平台侧 |
 | `tenants.delete` | `tenancy.tenants.delete` | 还有用户的租户不能删（`TENANCY_CONFLICT_003`） |
-| `tenants.suspend` / `resume` | `tenancy.tenants.suspend` | 批量启停 |
+| `tenants.suspend` / `resume` | `tenancy.tenants.suspend` | 批量启停；停用与到期的都能恢复，要没过到期时间（`TENANCY_CONFLICT_015`） |
 | `tenants.change-edition` | `tenancy.tenants.update` | 换套餐，进权限变更日志 |
 | `tenants.configure-database` | `tenancy.tenants.configure-database` | 设隔离方式与独立库连接（`ISecretProtector` 加密）；就绪后不能再改 |
 | `tenants.initialize-database` | `tenancy.tenants.initialize-database` | 建库、只建租户库实体的表、登记结构版本；幂等，失败记原因可重试 |

@@ -51318,7 +51318,8 @@
         "type": "string",
         "enum": [
           "Active",
-          "Suspended"
+          "Suspended",
+          "Expired"
         ]
       },
       "TokenResponse": {
