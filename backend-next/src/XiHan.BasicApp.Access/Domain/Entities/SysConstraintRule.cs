@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -14,6 +15,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 见方案 5.9 与第 10 节第 7 项。静态职责分离、动态职责分离、权限互斥、基数与条件五种，违规按处理方式拒绝、警告、只记录或需审批（审批流程未接入，按拒绝）。
 /// 规则项是这条规则约束的目标（角色、权限码或用户），同一组号的项是一组；数量上限写在 <see cref="MaxAllowed"/>，条件类的条件以 JSON 存在 <see cref="Conditions"/>。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
@@ -118,6 +120,7 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
 /// <summary>
 /// 约束规则的一个规则项（平台库实体）：随规则整体替换。
 /// </summary>
+[SugarIndex("ux_{table}_rule_id_target_id", nameof(RuleId), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
 public sealed class SysConstraintRuleItem : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

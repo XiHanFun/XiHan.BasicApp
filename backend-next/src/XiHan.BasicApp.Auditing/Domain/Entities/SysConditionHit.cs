@@ -14,6 +14,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 访问策略的命中（拒绝、放行、只记录）与权限条件的拒绝；同一规则对同一来源一分钟内的命中合并成一行。
 /// 写入方是 Access 的访问策略与权限条件（「N1 四包深化」，排在本批之后），本批只有查询面。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_policy_id", nameof(PolicyId), OrderByType.Asc)]
 [SugarTable("sys_condition_hit_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysConditionHit : AuditLogRecord

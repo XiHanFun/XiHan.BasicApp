@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 平台库实体，随所属侧，方案 5.12。S3、OSS、COS、MinIO 都走 S3 协议。
 /// 上传用当前一侧的缺省配置，租户没有就用平台的缺省配置；已有副本按它记下的配置读写。访问密钥加密存储，响应里不回显。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysStorageConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

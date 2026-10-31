@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS "sys_access_policy" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_access_policy_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_access_policy_owner_tenant_id_code ON public.sys_access_policy USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_access_policy_condition" (
     "id" uuid NOT NULL,
@@ -137,6 +138,7 @@ CREATE TABLE IF NOT EXISTS "sys_access_policy_condition" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_access_policy_condition_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_access_policy_condition_owner_tenant_id_policy_id ON public.sys_access_policy_condition USING btree (owner_tenant_id, policy_id);
 
 CREATE TABLE IF NOT EXISTS "sys_bot_config" (
     "id" uuid NOT NULL,
@@ -161,6 +163,7 @@ CREATE TABLE IF NOT EXISTS "sys_bot_config" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_bot_config_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_bot_config_owner_tenant_id_code ON public.sys_bot_config USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_bot_message" (
     "id" uuid NOT NULL,
@@ -188,6 +191,7 @@ CREATE TABLE IF NOT EXISTS "sys_bot_message" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_bot_message_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_bot_message_status_created_at ON public.sys_bot_message USING btree (status, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_config" (
     "id" uuid NOT NULL,
@@ -214,6 +218,7 @@ CREATE TABLE IF NOT EXISTS "sys_config" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_config_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_config_owner_tenant_id_key ON public.sys_config USING btree (owner_tenant_id, key) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_constraint_rule" (
     "id" uuid NOT NULL,
@@ -241,6 +246,7 @@ CREATE TABLE IF NOT EXISTS "sys_constraint_rule" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_constraint_rule_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_constraint_rule_owner_tenant_id_code ON public.sys_constraint_rule USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_constraint_rule_item" (
     "id" uuid NOT NULL,
@@ -254,6 +260,7 @@ CREATE TABLE IF NOT EXISTS "sys_constraint_rule_item" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_constraint_rule_item_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_constraint_rule_item_rule_id_target_id ON public.sys_constraint_rule_item USING btree (rule_id, target_id);
 
 CREATE TABLE IF NOT EXISTS "sys_department" (
     "id" uuid NOT NULL,
@@ -275,6 +282,7 @@ CREATE TABLE IF NOT EXISTS "sys_department" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_department_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_department_tenant_id_code ON public.sys_department USING btree (tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_department_hierarchy" (
     "id" uuid NOT NULL,
@@ -285,6 +293,8 @@ CREATE TABLE IF NOT EXISTS "sys_department_hierarchy" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_department_hierarchy_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_department_hierarchy_tenant_id_descendant_id ON public.sys_department_hierarchy USING btree (tenant_id, descendant_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_department_hierarchy_tenant_id_ancestor_id_descendant_id ON public.sys_department_hierarchy USING btree (tenant_id, ancestor_id, descendant_id);
 
 CREATE TABLE IF NOT EXISTS "sys_dict" (
     "id" uuid NOT NULL,
@@ -306,6 +316,7 @@ CREATE TABLE IF NOT EXISTS "sys_dict" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_dict_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_dict_owner_tenant_id_code ON public.sys_dict USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_dict_item" (
     "id" uuid NOT NULL,
@@ -330,6 +341,8 @@ CREATE TABLE IF NOT EXISTS "sys_dict_item" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_dict_item_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_dict_item_parent_id ON public.sys_dict_item USING btree (parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_dict_item_dict_id_code ON public.sys_dict_item USING btree (dict_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_edition" (
     "id" uuid NOT NULL,
@@ -353,6 +366,7 @@ CREATE TABLE IF NOT EXISTS "sys_edition" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_edition_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_edition_code ON public.sys_edition USING btree (code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_edition_grant" (
     "id" uuid NOT NULL,
@@ -363,6 +377,7 @@ CREATE TABLE IF NOT EXISTS "sys_edition_grant" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_edition_grant_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_edition_grant_edition_id_permission_code ON public.sys_edition_grant USING btree (edition_id, permission_code);
 
 CREATE TABLE IF NOT EXISTS "sys_email" (
     "id" uuid NOT NULL,
@@ -393,6 +408,8 @@ CREATE TABLE IF NOT EXISTS "sys_email" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_email_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_email_owner_tenant_id_created_at ON public.sys_email USING btree (owner_tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_email_status_created_at ON public.sys_email USING btree (status, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_email_config" (
     "id" uuid NOT NULL,
@@ -421,6 +438,7 @@ CREATE TABLE IF NOT EXISTS "sys_email_config" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_email_config_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_email_config_owner_tenant_id_code ON public.sys_email_config USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_export_task" (
     "id" uuid NOT NULL,
@@ -452,6 +470,8 @@ CREATE TABLE IF NOT EXISTS "sys_export_task" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_export_task_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_export_task_status ON public.sys_export_task USING btree (status);
+CREATE INDEX IF NOT EXISTS ix_sys_export_task_tenant_id_requester_id_created_at ON public.sys_export_task USING btree (tenant_id, requester_id, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_field_security_rule" (
     "id" uuid NOT NULL,
@@ -477,6 +497,8 @@ CREATE TABLE IF NOT EXISTS "sys_field_security_rule" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_field_security_rule_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_field_security_rule_owner_tenant_id_entity_status ON public.sys_field_security_rule USING btree (owner_tenant_id, entity, status);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_field_security_rule_target_field ON public.sys_field_security_rule USING btree (owner_tenant_id, target_kind, target_id, entity, field) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_file" (
     "id" uuid NOT NULL,
@@ -507,6 +529,8 @@ CREATE TABLE IF NOT EXISTS "sys_file" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_file_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_file_tenant_id_created_at ON public.sys_file USING btree (tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_file_tenant_id_hash_size ON public.sys_file USING btree (tenant_id, hash, size);
 
 CREATE TABLE IF NOT EXISTS "sys_file_storage" (
     "id" uuid NOT NULL,
@@ -530,6 +554,8 @@ CREATE TABLE IF NOT EXISTS "sys_file_storage" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_file_storage_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_file_storage_storage_config_id_bucket_key ON public.sys_file_storage USING btree (storage_config_id, bucket, key);
+CREATE INDEX IF NOT EXISTS ix_sys_file_storage_tenant_id_file_id ON public.sys_file_storage USING btree (tenant_id, file_id);
 
 CREATE TABLE IF NOT EXISTS "sys_file_upload" (
     "id" uuid NOT NULL,
@@ -565,6 +591,7 @@ CREATE TABLE IF NOT EXISTS "sys_file_upload" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_file_upload_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_file_upload_tenant_id_status_expires_at ON public.sys_file_upload USING btree (tenant_id, status, expires_at);
 
 CREATE TABLE IF NOT EXISTS "sys_import_history" (
     "id" uuid NOT NULL,
@@ -582,6 +609,7 @@ CREATE TABLE IF NOT EXISTS "sys_import_history" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_import_history_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_import_history_tenant_id_user_id_page_code_created_at ON public.sys_import_history USING btree (tenant_id, user_id, page_code, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_menu" (
     "id" uuid NOT NULL,
@@ -611,6 +639,7 @@ CREATE TABLE IF NOT EXISTS "sys_menu" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_menu_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_menu_code ON public.sys_menu USING btree (code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_message_template" (
     "id" uuid NOT NULL,
@@ -635,6 +664,7 @@ CREATE TABLE IF NOT EXISTS "sys_message_template" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_message_template_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_message_template_owner_tenant_id_channel_code ON public.sys_message_template USING btree (owner_tenant_id, channel, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_migration_history" (
     "id" uuid NOT NULL,
@@ -648,6 +678,7 @@ CREATE TABLE IF NOT EXISTS "sys_migration_history" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_migration_history_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_migration_history_executed_at ON public.sys_migration_history USING btree (executed_at);
 
 CREATE TABLE IF NOT EXISTS "sys_notification" (
     "id" uuid NOT NULL,
@@ -685,6 +716,7 @@ CREATE TABLE IF NOT EXISTS "sys_notification" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_notification_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_notification_tenant_id_created_at ON public.sys_notification USING btree (tenant_id, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_numbering_allocation" (
     "id" uuid NOT NULL,
@@ -710,6 +742,9 @@ CREATE TABLE IF NOT EXISTS "sys_numbering_allocation" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_numbering_allocation_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_numbering_allocation_rule_id_generated_at ON public.sys_numbering_allocation USING btree (rule_id, generated_at);
+CREATE INDEX IF NOT EXISTS ix_sys_numbering_allocation_rule_id_period_key_end_value ON public.sys_numbering_allocation USING btree (rule_id, period_key, end_value);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_numbering_allocation_idempotency ON public.sys_numbering_allocation USING btree (owner_tenant_id, rule_id, request_tenant_id, idempotency_key);
 
 CREATE TABLE IF NOT EXISTS "sys_numbering_rule" (
     "id" uuid NOT NULL,
@@ -740,6 +775,7 @@ CREATE TABLE IF NOT EXISTS "sys_numbering_rule" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_numbering_rule_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_numbering_rule_owner_tenant_id_code ON public.sys_numbering_rule USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_o_auth_app" (
     "id" uuid NOT NULL,
@@ -772,6 +808,8 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_app" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_o_auth_app_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_o_auth_app_owner_user_id ON public.sys_o_auth_app USING btree (owner_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_app_client_id ON public.sys_o_auth_app USING btree (client_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_o_auth_code" (
     "id" uuid NOT NULL,
@@ -795,6 +833,8 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_code" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_o_auth_code_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_o_auth_code_expires_at ON public.sys_o_auth_code USING btree (expires_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_code_code_hash ON public.sys_o_auth_code USING btree (code_hash) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_o_auth_consent" (
     "id" uuid NOT NULL,
@@ -812,6 +852,7 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_consent" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_o_auth_consent_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_consent_user_id_client_id ON public.sys_o_auth_consent USING btree (user_id, client_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_o_auth_signing_key" (
     "id" uuid NOT NULL,
@@ -849,6 +890,10 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_token" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_o_auth_token_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_expires_at ON public.sys_o_auth_token USING btree (expires_at);
+CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_family_id ON public.sys_o_auth_token USING btree (family_id);
+CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_user_id_client_id ON public.sys_o_auth_token USING btree (user_id, client_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_token_token_hash ON public.sys_o_auth_token USING btree (token_hash) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_password_history" (
     "id" uuid NOT NULL,
@@ -859,6 +904,7 @@ CREATE TABLE IF NOT EXISTS "sys_password_history" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_password_history_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_password_history_user_id_created_at ON public.sys_password_history USING btree (user_id, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_permission_condition" (
     "id" uuid NOT NULL,
@@ -884,6 +930,7 @@ CREATE TABLE IF NOT EXISTS "sys_permission_condition" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_permission_condition_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_permission_condition_owner_subject ON public.sys_permission_condition USING btree (owner_tenant_id, subject_kind, subject_id);
 
 CREATE TABLE IF NOT EXISTS "sys_permission_delegation" (
     "id" uuid NOT NULL,
@@ -907,6 +954,10 @@ CREATE TABLE IF NOT EXISTS "sys_permission_delegation" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_permission_delegation_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_owner_delegatee_revoked ON public.sys_permission_delegation USING btree (owner_tenant_id, delegatee_id, revoked_at);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_owner_delegator_delegatee ON public.sys_permission_delegation USING btree (owner_tenant_id, delegator_id, delegatee_id);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_owner_tenant_id_created_at ON public.sys_permission_delegation USING btree (owner_tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_role_id ON public.sys_permission_delegation USING btree (role_id);
 
 CREATE TABLE IF NOT EXISTS "sys_permission_rule" (
     "id" uuid NOT NULL,
@@ -923,6 +974,7 @@ CREATE TABLE IF NOT EXISTS "sys_permission_rule" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_permission_rule_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_permission_rule_owner_subject_permission ON public.sys_permission_rule USING btree (owner_tenant_id, subject_kind, subject_id, permission);
 
 CREATE TABLE IF NOT EXISTS "sys_position" (
     "id" uuid NOT NULL,
@@ -942,6 +994,7 @@ CREATE TABLE IF NOT EXISTS "sys_position" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_position_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_position_tenant_id_code ON public.sys_position USING btree (tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_role" (
     "id" uuid NOT NULL,
@@ -963,6 +1016,7 @@ CREATE TABLE IF NOT EXISTS "sys_role" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_role_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_role_owner_tenant_id_code ON public.sys_role USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_role_data_scope" (
     "id" uuid NOT NULL,
@@ -975,6 +1029,7 @@ CREATE TABLE IF NOT EXISTS "sys_role_data_scope" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_role_data_scope_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_role_data_scope_role_id_department_id ON public.sys_role_data_scope USING btree (role_id, department_id);
 
 CREATE TABLE IF NOT EXISTS "sys_role_inheritance" (
     "id" uuid NOT NULL,
@@ -986,6 +1041,7 @@ CREATE TABLE IF NOT EXISTS "sys_role_inheritance" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_role_inheritance_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_role_inheritance_owner_tenant_id_role_id_parent_id ON public.sys_role_inheritance USING btree (owner_tenant_id, role_id, parent_id);
 
 CREATE TABLE IF NOT EXISTS "sys_session_role" (
     "id" uuid NOT NULL,
@@ -1002,6 +1058,9 @@ CREATE TABLE IF NOT EXISTS "sys_session_role" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_session_role_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_session_role_owner_tenant_id_activated_at ON public.sys_session_role USING btree (owner_tenant_id, activated_at);
+CREATE INDEX IF NOT EXISTS ix_sys_session_role_owner_tenant_id_user_id ON public.sys_session_role USING btree (owner_tenant_id, user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_session_role_session_id_owner_tenant_id_role_id ON public.sys_session_role USING btree (session_id, owner_tenant_id, role_id);
 
 CREATE TABLE IF NOT EXISTS "sys_sms" (
     "id" uuid NOT NULL,
@@ -1033,6 +1092,8 @@ CREATE TABLE IF NOT EXISTS "sys_sms" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_sms_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_sms_owner_tenant_id_created_at ON public.sys_sms USING btree (owner_tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_sms_status_created_at ON public.sys_sms USING btree (status, created_at);
 
 CREATE TABLE IF NOT EXISTS "sys_sms_config" (
     "id" uuid NOT NULL,
@@ -1060,6 +1121,7 @@ CREATE TABLE IF NOT EXISTS "sys_sms_config" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_sms_config_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_sms_config_owner_tenant_id_code ON public.sys_sms_config USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_storage_config" (
     "id" uuid NOT NULL,
@@ -1086,6 +1148,7 @@ CREATE TABLE IF NOT EXISTS "sys_storage_config" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_storage_config_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_storage_config_owner_tenant_id_code ON public.sys_storage_config USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_telegram_bot" (
     "id" uuid NOT NULL,
@@ -1109,6 +1172,7 @@ CREATE TABLE IF NOT EXISTS "sys_telegram_bot" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_telegram_bot_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_telegram_bot_name ON public.sys_telegram_bot USING btree (name) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_telegram_message" (
     "id" uuid NOT NULL,
@@ -1164,6 +1228,9 @@ CREATE TABLE IF NOT EXISTS "sys_tenant" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_tenant_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_tenant_admin_user_id ON public.sys_tenant USING btree (admin_user_id);
+CREATE INDEX IF NOT EXISTS ix_sys_tenant_edition_id ON public.sys_tenant USING btree (edition_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_tenant_tenant_id ON public.sys_tenant USING btree (tenant_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_tenant_member" (
     "id" uuid NOT NULL,
@@ -1182,6 +1249,8 @@ CREATE TABLE IF NOT EXISTS "sys_tenant_member" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_tenant_member_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_tenant_member_user_id ON public.sys_tenant_member USING btree (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_tenant_member_tenant_id_user_id ON public.sys_tenant_member USING btree (tenant_id, user_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user" (
     "id" uuid NOT NULL,
@@ -1210,6 +1279,9 @@ CREATE TABLE IF NOT EXISTS "sys_user" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_home_tenant_id_created_at ON public.sys_user USING btree (home_tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_user_home_tenant_id_phone_number ON public.sys_user USING btree (home_tenant_id, phone_number);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_home_tenant_id_user_name ON public.sys_user USING btree (home_tenant_id, user_name) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_api_credential" (
     "id" uuid NOT NULL,
@@ -1229,6 +1301,8 @@ CREATE TABLE IF NOT EXISTS "sys_user_api_credential" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_api_credential_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_api_credential_user_id ON public.sys_user_api_credential USING btree (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_api_credential_app_key ON public.sys_user_api_credential USING btree (app_key) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_data_scope" (
     "id" uuid NOT NULL,
@@ -1240,6 +1314,7 @@ CREATE TABLE IF NOT EXISTS "sys_user_data_scope" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_data_scope_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_data_scope_owner_tenant_id_user_id ON public.sys_user_data_scope USING btree (owner_tenant_id, user_id);
 
 CREATE TABLE IF NOT EXISTS "sys_user_data_scope_department" (
     "id" uuid NOT NULL,
@@ -1252,6 +1327,7 @@ CREATE TABLE IF NOT EXISTS "sys_user_data_scope_department" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_data_scope_department_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_data_scope_department_owner_user_department ON public.sys_user_data_scope_department USING btree (owner_tenant_id, user_id, department_id);
 
 CREATE TABLE IF NOT EXISTS "sys_user_department" (
     "id" uuid NOT NULL,
@@ -1274,6 +1350,9 @@ CREATE TABLE IF NOT EXISTS "sys_user_department" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_department_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_department_tenant_id_department_id ON public.sys_user_department USING btree (tenant_id, department_id);
+CREATE INDEX IF NOT EXISTS ix_sys_user_department_tenant_id_position_id ON public.sys_user_department USING btree (tenant_id, position_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_department_tenant_id_user_id_department_id ON public.sys_user_department USING btree (tenant_id, user_id, department_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_external_login" (
     "id" uuid NOT NULL,
@@ -1295,6 +1374,8 @@ CREATE TABLE IF NOT EXISTS "sys_user_external_login" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_external_login_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_external_login_home_tenant_id_provider_provider_key ON public.sys_user_external_login USING btree (home_tenant_id, provider, provider_key) WHERE (is_deleted = false);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_external_login_user_id_provider ON public.sys_user_external_login USING btree (user_id, provider) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_notification" (
     "id" uuid NOT NULL,
@@ -1315,6 +1396,8 @@ CREATE TABLE IF NOT EXISTS "sys_user_notification" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_notification_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_notification_tenant_id_user_id_status ON public.sys_user_notification USING btree (tenant_id, user_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_notification_tenant_id_notification_id_user_id ON public.sys_user_notification USING btree (tenant_id, notification_id, user_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_notification_preference" (
     "id" uuid NOT NULL,
@@ -1335,6 +1418,7 @@ CREATE TABLE IF NOT EXISTS "sys_user_notification_preference" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_notification_preference_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_notification_preference_user_id ON public.sys_user_notification_preference USING btree (user_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_role" (
     "id" uuid NOT NULL,
@@ -1348,6 +1432,8 @@ CREATE TABLE IF NOT EXISTS "sys_user_role" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_role_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_role_owner_tenant_id_user_id ON public.sys_user_role USING btree (owner_tenant_id, user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_role_role_id_user_id ON public.sys_user_role USING btree (role_id, user_id);
 
 CREATE TABLE IF NOT EXISTS "sys_user_security" (
     "id" uuid NOT NULL,
@@ -1375,6 +1461,7 @@ CREATE TABLE IF NOT EXISTS "sys_user_security" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_security_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_security_user_id ON public.sys_user_security USING btree (user_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_session" (
     "id" uuid NOT NULL,
@@ -1408,6 +1495,11 @@ CREATE TABLE IF NOT EXISTS "sys_user_session" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_session_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_sys_user_session_active_tenant_id_revoked_at_issued_at ON public.sys_user_session USING btree (active_tenant_id, revoked_at, issued_at);
+CREATE INDEX IF NOT EXISTS ix_sys_user_session_impersonator_session_id ON public.sys_user_session USING btree (impersonator_session_id);
+CREATE INDEX IF NOT EXISTS ix_sys_user_session_impersonator_user_id ON public.sys_user_session USING btree (impersonator_user_id);
+CREATE INDEX IF NOT EXISTS ix_sys_user_session_user_id_revoked_at ON public.sys_user_session USING btree (user_id, revoked_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_session_refresh_token_hash ON public.sys_user_session USING btree (refresh_token_hash) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_setting" (
     "id" uuid NOT NULL,
@@ -1425,6 +1517,7 @@ CREATE TABLE IF NOT EXISTS "sys_user_setting" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_user_setting_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_setting_user_id_scene_key ON public.sys_user_setting USING btree (user_id, scene, key) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_user_statistics" (
     "id" uuid NOT NULL,

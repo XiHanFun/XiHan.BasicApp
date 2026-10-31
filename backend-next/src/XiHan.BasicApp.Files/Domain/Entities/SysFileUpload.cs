@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Files.Domain.Entities;
@@ -15,6 +16,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 完成时由应用按存储列出的分片拼成对象，回读算 SHA-256，再落文件记录（内容与同一侧已有的相同即共用已有的对象）。
 /// 只有发起人能续传、完成或放弃；过了 <see cref="ExpiresAt"/> 记为过期并放弃存储里的分片。
 /// </remarks>
+[SugarIndex("ix_{table}_tenant_id_status_expires_at", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(ExpiresAt), OrderByType.Asc)]
 public sealed class SysFileUpload : TenantScopedAuditedEntity
 {
     /// <summary>

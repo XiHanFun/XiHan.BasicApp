@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -13,6 +14,8 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 同一字典内编码唯一，可按 <see cref="ParentId"/> 组成树（上级在同一字典、不成环）；每个字典至多一个缺省项。
 /// 业务数据按 <see cref="Code"/> 存；停用的项照常给出（标为停用，只用于回显历史数据）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(DictId), nameof(Code))]
+[SugarIndex("ix_{table}_parent_id", nameof(ParentId), OrderByType.Asc)]
 public sealed class SysDictItem : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

@@ -76,6 +76,8 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
                 shard.CodeFirst.SplitTables().InitTables(split);
             }
 
+            ActiveUniqueIndexes.Ensure(shard, plain);
+
             var current = versions[^1].Name;
             if (!await shard.Queryable<SysVersion>().AnyAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false))
             {

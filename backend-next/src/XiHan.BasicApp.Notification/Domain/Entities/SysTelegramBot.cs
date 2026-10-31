@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 4.x 同：令牌、Webhook 与会话都是平台级的，租户看不到。
 /// 令牌加密存储、响应里不回显；管理员、群组白名单与命令白名单供交互（Webhook 与命令）使用；广播群收平台一侧按机器人渠道发出的通知。
 /// </remarks>
+[ActiveUniqueIndex(nameof(Name))]
 public sealed class SysTelegramBot : AppAuditedEntity
 {
     /// <summary>

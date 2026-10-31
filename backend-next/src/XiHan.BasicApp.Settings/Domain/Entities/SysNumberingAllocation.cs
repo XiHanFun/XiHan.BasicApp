@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Settings.Domain.Entities;
@@ -12,6 +13,9 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 兼作幂等事实与审计。<see cref="OwnerTenantId"/> 是规则所属一侧，<see cref="RequestTenantId"/> 是发起调用的一侧，两者在租户共用平台规则时不同。
 /// 号码按格式快照与流水区间重建，不存号码列表。
 /// </remarks>
+[SugarIndex("ux_{table}_idempotency", nameof(OwnerTenantId), OrderByType.Asc, nameof(RuleId), OrderByType.Asc, nameof(RequestTenantId), OrderByType.Asc, nameof(IdempotencyKey), OrderByType.Asc, true)]
+[SugarIndex("ix_{table}_rule_id_generated_at", nameof(RuleId), OrderByType.Asc, nameof(GeneratedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_rule_id_period_key_end_value", nameof(RuleId), OrderByType.Asc, nameof(PeriodKey), OrderByType.Asc, nameof(EndValue), OrderByType.Asc)]
 public sealed class SysNumberingAllocation : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Security.Abstractions.Conditions;
 
@@ -15,6 +16,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 同一绑定里同组的子句取且、组之间取或；挂在授予上是「满足才授予」，挂在拒绝上是「满足才拒绝」。绑定按键直接对应，不经规则行（普通授予没有规则行）；
 /// 绑定没了（撤销、授予换成拒绝或反过来、删角色）即连同删除。值种类由属性登记决定，不另存值类型（4.x 的 ValueType）。
 /// </remarks>
+[SugarIndex("ix_{table}_owner_subject", nameof(OwnerTenantId), OrderByType.Asc, nameof(SubjectKind), OrderByType.Asc, nameof(SubjectId), OrderByType.Asc)]
 public sealed class SysPermissionCondition : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

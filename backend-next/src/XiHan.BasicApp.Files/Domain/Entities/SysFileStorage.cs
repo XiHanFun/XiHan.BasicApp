@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Files.Domain.Entities;
@@ -12,6 +13,8 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// <remarks>
 /// 租户库实体，记下配置、桶与对象键。每个文件恰好一个主副本，读写取主副本。
 /// </remarks>
+[SugarIndex("ix_{table}_tenant_id_file_id", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_storage_config_id_bucket_key", nameof(StorageConfigId), OrderByType.Asc, nameof(Bucket), OrderByType.Asc, nameof(Key), OrderByType.Asc)]
 public sealed class SysFileStorage : TenantScopedAuditedEntity
 {
     /// <summary>

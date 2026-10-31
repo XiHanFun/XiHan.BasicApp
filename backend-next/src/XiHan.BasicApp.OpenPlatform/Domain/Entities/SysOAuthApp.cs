@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
@@ -13,6 +14,8 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 平台库实体。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到（4.x 平台页看不到租户用户建的应用，ClientId 查重也只查平台的）。
 /// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列；4.x 用 60 万次 PBKDF2，令牌端点可被当成耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE。
 /// </remarks>
+[ActiveUniqueIndex(nameof(ClientId))]
+[SugarIndex("ix_{table}_owner_user_id", nameof(OwnerUserId), OrderByType.Asc)]
 public sealed class SysOAuthApp : AppAuditedEntity
 {
     /// <summary>

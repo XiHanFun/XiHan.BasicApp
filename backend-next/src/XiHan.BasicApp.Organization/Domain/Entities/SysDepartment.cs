@@ -11,6 +11,7 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// <remarks>
 /// 层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TenantId), nameof(Code))]
 public sealed class SysDepartment : TenantScopedAuditedEntity
 {
     /// <summary>

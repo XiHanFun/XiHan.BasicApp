@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
@@ -12,6 +13,8 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 每个部门到自己（深度 0）与到每个祖先（深度 1、2、…）各一行。
 /// 创建时写入、移动时整棵子树重算、删除时连同移除；由 <see cref="Services.DepartmentService"/> 维护，操作不直接写。
 /// </remarks>
+[SugarIndex("ux_{table}_tenant_id_ancestor_id_descendant_id", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
+[SugarIndex("ix_{table}_tenant_id_descendant_id", nameof(TenantId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc)]
 public sealed class SysDepartmentHierarchy : TenantScopedEntity
 {
     /// <summary>

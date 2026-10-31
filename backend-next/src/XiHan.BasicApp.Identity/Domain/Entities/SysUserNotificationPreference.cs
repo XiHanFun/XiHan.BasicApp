@@ -12,6 +12,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 平台库，跟着账号走，不分租户；每人至多一行，第一次保存时建。没有行即全收（4.x 同）。
 /// 只存在 6.0 里真正起作用的开关：站内信 / 邮件 / 短信三个渠道与公告 / 待办 / 安全三类（4.x 的推送、机器人、审批、营销四项没有效果，不存）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(UserId))]
 public sealed class SysUserNotificationPreference : AppAuditedEntity
 {
     /// <summary>

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Security.Abstractions.Conditions;
 
@@ -14,6 +15,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 见方案 5.9。按请求属性（地址、归属地、时段、User-Agent、主体、路径等）只记录、拒绝或放行。
 /// 平台层管全部调用，租户层管本租户已登录的调用；层内放行压过拒绝、平台拒绝不看租户层（4.x 同）。新建一律只记录，动作与状态另有操作修改。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
@@ -105,6 +107,7 @@ public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 /// <summary>
 /// 访问策略的一条条件（平台库实体）：随策略整体替换，组内且、组间或。
 /// </summary>
+[SugarIndex("ix_{table}_owner_tenant_id_policy_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(PolicyId), OrderByType.Asc)]
 public sealed class SysAccessPolicyCondition : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

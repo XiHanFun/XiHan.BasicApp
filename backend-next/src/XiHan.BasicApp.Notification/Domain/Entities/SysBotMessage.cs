@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -14,6 +15,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 发布时按本侧每个服务商的缺省机器人各写一条（平台一侧另按每个 Telegram 机器人的每个广播群各一条），与业务同一事务提交，由发送循环发出、失败按次数重试
 /// （4.x 在提交后直发、失败只记日志）。没有操作与页面，只供发送循环与排查。
 /// </remarks>
+[SugarIndex("ix_{table}_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {

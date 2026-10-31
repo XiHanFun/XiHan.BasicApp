@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -13,6 +14,7 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// <remarks>
 /// 每执行一个脚本记一行，成功与失败都记；同一脚本失败后修好重试会再记一行。
 /// </remarks>
+[SugarIndex("ix_{table}_executed_at", nameof(ExecutedAt), OrderByType.Asc)]
 public sealed class SysMigrationHistory : AppEntity
 {
     /// <summary>

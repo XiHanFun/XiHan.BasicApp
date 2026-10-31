@@ -12,6 +12,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台角色，否则是该租户的角色。
 /// 授予写在框架的 <c>PermissionGrantRecord</c>，主体是 <c>role:&lt;角色 ID&gt;</c>（跨租户不撞），租户列按所属侧；角色码在同一侧唯一且创建后不可改。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysRole : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

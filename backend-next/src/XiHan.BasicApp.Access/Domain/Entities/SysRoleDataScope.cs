@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -12,6 +13,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// <see cref="DataScope.Custom"/> 的角色能看到的部门。
 /// 保存时整体替换；角色删除时连同移除。
 /// </remarks>
+[SugarIndex("ux_{table}_role_id_department_id", nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 public sealed class SysRoleDataScope : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

@@ -13,6 +13,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// <remarks>
 /// 成功失败都记。由 Identity 在调用里登记（<see cref="LoginLogEntry"/>），调用结束后按结果落库。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_name", nameof(UserName), OrderByType.Asc)]
 [SugarTable("sys_login_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysLoginLog : AuditLogRecord

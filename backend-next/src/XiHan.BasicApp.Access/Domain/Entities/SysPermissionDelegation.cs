@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -14,6 +15,10 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 状态不落库，按撤销时间与有效期推出（<see cref="StatusAt"/>）：到了生效时间自动生效，过了到期时间自动失效；撤销保留记录。
 /// 判定时委托人此刻仍须持有所委托的权限或角色，否则不算数。
 /// </remarks>
+[SugarIndex("ix_{table}_owner_delegatee_revoked", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_owner_delegator_delegatee", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegatorId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_role_id", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

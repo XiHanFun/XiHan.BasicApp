@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Notification.Domain.Entities;
@@ -11,6 +12,8 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// <remarks>
 /// 一个接收人对一条已发布通知的阅读、确认与弹窗状态。每个（通知, 用户）至多一条；用户删除即软删除。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TenantId), nameof(NotificationId), nameof(UserId))]
+[SugarIndex("ix_{table}_tenant_id_user_id_status", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysUserNotification : TenantScopedAuditedEntity
 {

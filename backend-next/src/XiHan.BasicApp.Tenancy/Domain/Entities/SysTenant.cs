@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
@@ -13,6 +14,9 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 套餐、到期、配额、状态归这里；租户目录（ID、显示名、是否启用、分片连接）是框架的 <c>TenantRecord</c>，开通 / 启停 / 改名 / 配置独立库时在同一工作单元里同步。
 /// <see cref="TenantId"/> 是目录键（登录与令牌里的 <c>tenant</c>），创建后不可改。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TenantId))]
+[SugarIndex("ix_{table}_edition_id", nameof(EditionId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_admin_user_id", nameof(AdminUserId), OrderByType.Asc)]
 public sealed class SysTenant : AppAuditedEntity
 {
     /// <summary>

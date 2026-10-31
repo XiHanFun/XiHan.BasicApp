@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
@@ -14,6 +15,9 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 账号域实体不实现 <c>IMultiTenant</c>，用 <see cref="HomeTenantId"/>（注册地租户，平台账号为 <c>platform</c>）列标识归属，登录等无租户阶段的操作按它查。
 /// 唯一索引 <c>(home_tenant_id, user_name, is_deleted)</c>，删除后同名可重建。密码与锁定在 <see cref="SysUserSecurity"/>。
 /// </remarks>
+[ActiveUniqueIndex(nameof(HomeTenantId), nameof(UserName))]
+[SugarIndex("ix_{table}_home_tenant_id_created_at", nameof(HomeTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_home_tenant_id_phone_number", nameof(HomeTenantId), OrderByType.Asc, nameof(PhoneNumber), OrderByType.Asc)]
 public sealed class SysUser : AppAuditedEntity
 {
     /// <summary>

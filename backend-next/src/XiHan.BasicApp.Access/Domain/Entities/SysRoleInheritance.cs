@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -12,6 +13,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// <see cref="RoleId"/> 继承 <see cref="ParentId"/> 的授予（方案 5.9）。
 /// 只存直接上级，祖先按边广度优先展开；停用的上级截断经过它的继承。只在同一侧的角色之间，内置角色不参与；解除即删除。
 /// </remarks>
+[SugarIndex("ux_{table}_owner_tenant_id_role_id_parent_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, nameof(ParentId), OrderByType.Asc, true)]
 public sealed class SysRoleInheritance : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />
