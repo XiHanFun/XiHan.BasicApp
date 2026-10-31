@@ -1,3 +1,4 @@
+<!-- 单值颜色选择器：保留未受控语义，显式 null 清空当前选色。 -->
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/core'
 import {
@@ -51,7 +52,7 @@ function onValueUpdate(next: string[]) {
 
 <template>
   <XhColorPickerRoot
-    :value="value ?? undefined"
+    :value="value === null ? [] : value"
     :swatches="swatches"
     :disabled="disabled"
     :size="size"

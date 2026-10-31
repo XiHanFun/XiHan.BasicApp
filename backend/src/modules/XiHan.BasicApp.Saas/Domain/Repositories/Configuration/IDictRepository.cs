@@ -22,4 +22,8 @@ public interface IDictRepository : ISaasRepository<SysDict>
     /// 检查字典编码是否存在
     /// </summary>
     Task<bool> ExistsCodeAsync(string dictCode, long? excludeId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>在字典项写事务内递增字典版本，已缓存的旧树不再作为当前显示配置读取。</summary>
+    /// <param name="dict">已通过归属校验的父字典。</param><param name="cancellationToken">取消。</param><returns>版本已递增。</returns>
+    Task TouchItemsVersionAsync(SysDict dict, CancellationToken cancellationToken = default);
 }

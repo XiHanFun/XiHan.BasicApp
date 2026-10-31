@@ -109,6 +109,25 @@ public sealed class DictOptionsQueryTests
         await Assert.ThrowsAsync<ArgumentException>(() => CreateService().GetDictOptionsAsync(dictCode));
     }
 
+    /// <summary>版本变更后使用新缓存键，迟到的旧工厂不能覆盖新样式快照。</summary>
+    [Fact]
+    public async Task ChangedRevisionUsesDifferentCacheKeyAndProjectsStyle()
+    {
+        GivenDict("sample_status", EnableStatus.Enabled);
+        var dict = await _dictRepository.Object.GetByCodeAsync("sample_status");
+        var item = Item(1, "READY", "就绪");
+        item.Metadata = "{\"tagStyle\":{\"tone\":\"info\",\"icon\":\"ep:check\"},\"private\":42}";
+        GivenItems(item);
+        var first = await CreateService().GetDictOptionsAsync("sample_status");
+        Assert.Equal("ep:check", first[0].TagStyle!.Icon);
+        dict!.RowVersion++;
+        item.Metadata = "{\"tagStyle\":{\"tone\":\"warning\"}}";
+        var second = await CreateService().GetDictOptionsAsync("sample_status");
+        Assert.Equal("warning", second[0].TagStyle!.Tone);
+        var keys = _cache.Invocations.Where(call => call.Method.Name == "GetOrAddAsync").Select(call => (string)call.Arguments[0]!).ToArray();
+        Assert.Equal(2, keys.Distinct().Count());
+    }
+
     private DictQueryService CreateService()
     {
         var currentTenant = new Mock<ICurrentTenant>();

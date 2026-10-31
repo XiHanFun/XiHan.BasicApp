@@ -28,6 +28,20 @@ const levels = [
 ]
 
 describe('ensureDictOptions', () => {
+  it('保存后更新响应式样式，旧在途响应不能覆盖新值', async () => {
+    let finishOld!: (value: typeof levels) => void
+    const updated = [{ value: 'vip', label: '更新后的名称', isDefault: false, disabled: false, tagStyle: { tone: 'warning', backgroundColor: '#FBEAC1', textColor: '#643A10', showIcon: false, icon: 'ep:check' } }]
+    const api = vi.fn<OptionsFn>()
+      .mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve }))
+      .mockResolvedValueOnce(updated)
+    const { ensureDictOptions, invalidateDictOptions, getDictOptions } = await bootstrap(api)
+    const old = ensureDictOptions('demo_level')
+    await invalidateDictOptions('demo_level')
+    finishOld(levels)
+    await old
+    expect(api).toHaveBeenCalledTimes(2)
+    expect(getDictOptions('demo_level')[0]).toMatchObject({ label: '更新后的名称', tagStyle: { tone: 'warning', backgroundColor: '#FBEAC1', textColor: '#643A10', showIcon: false, icon: 'ep:check' } })
+  })
   it('同一编码只取一次：并发请求共用一次调用，之后读缓存', async () => {
     const api = vi.fn<OptionsFn>(async () => levels)
     const { ensureDictOptions } = await bootstrap(api)

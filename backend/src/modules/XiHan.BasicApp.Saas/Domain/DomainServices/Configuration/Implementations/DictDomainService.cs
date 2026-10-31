@@ -12,7 +12,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
 /// <summary>
-/// 字典领域服务实现
+/// 字典领域服务实现：维护显示配置和缓存版本，沿用原仓储和应用层事务。
 /// </summary>
 public sealed class DictDomainService
     : IDictDomainService
@@ -108,14 +108,16 @@ public sealed class DictDomainService
             ItemName = Required(command.ItemName, 100, nameof(command.ItemName), "字典项名称不能超过 100 个字符。"),
             ItemValue = Optional(command.ItemValue, 500, nameof(command.ItemValue), "字典项值不能超过 500 个字符。"),
             ItemDescription = Optional(command.ItemDescription, 500, nameof(command.ItemDescription), "字典项描述不能超过 500 个字符。"),
-            Metadata = OptionalJson(command.Metadata, "字典项元数据必须是合法 JSON。"),
+            Metadata = DictTagStyles.Merge(OptionalJson(command.Metadata, "字典项元数据必须是合法 JSON。"), command.TagStyle),
             IsDefault = command.IsDefault,
             Status = command.Status,
             Sort = command.Sort,
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
 
-        return new DictItemCommandResult(await _dictItemRepository.AddAsync(dictItem, cancellationToken));
+        var created = await _dictItemRepository.AddAsync(dictItem, cancellationToken);
+        await _dictRepository.TouchItemsVersionAsync(dict, cancellationToken);
+        return new DictItemCommandResult(created);
     }
 
     /// <summary>
@@ -154,6 +156,7 @@ public sealed class DictDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var dictItem = await GetDictItemOrThrowAsync(id, cancellationToken);
+        var dict = await GetDictOrThrowAsync(dictItem.DictId, cancellationToken);
         if (await _dictItemRepository.AnyAsync(item => item.ParentId == dictItem.BasicId, cancellationToken))
         {
             throw new InvalidOperationException("系统字典项存在子节点，不能直接删除。");
@@ -163,6 +166,7 @@ public sealed class DictDomainService
         {
             throw new InvalidOperationException("系统字典项删除失败。");
         }
+        await _dictRepository.TouchItemsVersionAsync(dict, cancellationToken);
     }
 
     /// <summary>
@@ -194,6 +198,17 @@ public sealed class DictDomainService
 
         ValidateDictItemUpdateCommand(command);
         var dictItem = await GetDictItemOrThrowAsync(command.BasicId, cancellationToken);
+        // 新样式编辑必须携带快照版本；未使用新字段的旧客户端保留原调用契约。
+        if (command.TagStyle is not null && command.ExpectedVersion is null)
+            throw new System.ComponentModel.DataAnnotations.ValidationException("修改标签样式必须提供编辑版本，请刷新后重试。");
+        long? expectedVersion = null;
+        if (command.ExpectedVersion is not null)
+        {
+            if (!long.TryParse(command.ExpectedVersion, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var version) || version != dictItem.RowVersion)
+                throw new InvalidOperationException("字典项版本已变化，请重新打开后再保存。");
+            expectedVersion = version;
+        }
+        var dict = await GetDictOrThrowAsync(dictItem.DictId, cancellationToken);
         _ = await ValidateParentAsync(dictItem.DictId, command.ParentId, dictItem.BasicId, cancellationToken);
         if (command.IsDefault)
         {
@@ -204,12 +219,18 @@ public sealed class DictDomainService
         dictItem.ItemName = Required(command.ItemName, 100, nameof(command.ItemName), "字典项名称不能超过 100 个字符。");
         dictItem.ItemValue = Optional(command.ItemValue, 500, nameof(command.ItemValue), "字典项值不能超过 500 个字符。");
         dictItem.ItemDescription = Optional(command.ItemDescription, 500, nameof(command.ItemDescription), "字典项描述不能超过 500 个字符。");
-        dictItem.Metadata = OptionalJson(command.Metadata, "字典项元数据必须是合法 JSON。");
+        // 仅提交样式的调用不能顺便清空其他扩展节点；完整元数据提交仍沿用原编辑契约。
+        var metadata = command.TagStyle is not null ? command.Metadata ?? dictItem.Metadata : command.Metadata;
+        dictItem.Metadata = DictTagStyles.Merge(OptionalJson(metadata, "字典项元数据必须是合法 JSON。"), command.TagStyle);
         dictItem.IsDefault = command.IsDefault;
         dictItem.Sort = command.Sort;
         dictItem.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
 
-        return new DictItemCommandResult(await _dictItemRepository.UpdateAsync(dictItem, cancellationToken));
+        var updated = expectedVersion.HasValue
+            ? await _dictItemRepository.UpdateWithVersionAsync(dictItem, expectedVersion.Value, cancellationToken)
+            : await _dictItemRepository.UpdateAsync(dictItem, cancellationToken);
+        await _dictRepository.TouchItemsVersionAsync(dict, cancellationToken);
+        return new DictItemCommandResult(updated);
     }
 
     /// <summary>
@@ -224,10 +245,13 @@ public sealed class DictDomainService
         EnsureEnum(command.Status, nameof(command.Status));
 
         var dictItem = await GetDictItemOrThrowAsync(command.BasicId, cancellationToken);
+        var dict = await GetDictOrThrowAsync(dictItem.DictId, cancellationToken);
         dictItem.Status = command.Status;
         dictItem.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? dictItem.Remark;
 
-        return new DictItemCommandResult(await _dictItemRepository.UpdateAsync(dictItem, cancellationToken));
+        var updated = await _dictItemRepository.UpdateAsync(dictItem, cancellationToken);
+        await _dictRepository.TouchItemsVersionAsync(dict, cancellationToken);
+        return new DictItemCommandResult(updated);
     }
 
     /// <summary>

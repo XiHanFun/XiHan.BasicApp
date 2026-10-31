@@ -165,3 +165,31 @@ describe('setupIconifyOffline 预载范围', () => {
     expect(registeredPrefixes().sort()).toEqual(['lucide', 'simple-icons', 'tabler'])
   })
 })
+
+describe('ensureIconLoaded 字典图标按需装载', () => {
+  it('并发及后续标签共用一次本地图标集装载，未知名称不会冒充可用', async () => {
+    const mod = await import('./offline')
+    const results = await Promise.all([mod.ensureIconLoaded('ep:check'), mod.ensureIconLoaded('ep:close')])
+    expect(results).toEqual([true, true])
+    await expect(mod.ensureIconLoaded('ep:check')).resolves.toBe(true)
+    await expect(mod.ensureIconLoaded('ep:does-not-exist')).resolves.toBe(false)
+    expect(registeredPrefixes()).toEqual(['ep'])
+  })
+
+  it('未知提供者和URL不触发图标装载', async () => {
+    const mod = await import('./offline')
+    await expect(mod.ensureIconLoaded('@external:ep:check')).resolves.toBe(false)
+    await expect(mod.ensureIconLoaded('https://example.test/icon')).resolves.toBe(false)
+    expect(addCollection).not.toHaveBeenCalled()
+  })
+
+  it('失败不占住缓存，下一次装载可以恢复', async () => {
+    vi.resetModules()
+    const icons = { prefix: 'ep', icons: {} as Record<string, object> }
+    vi.doMock('@iconify-json/ep', () => ({ icons }))
+    const mod = await import('./offline')
+    await expect(mod.ensureIconLoaded('ep:check')).resolves.toBe(false)
+    icons.icons.check = { body: '<path/>' }
+    await expect(mod.ensureIconLoaded('ep:check')).resolves.toBe(true)
+  })
+})

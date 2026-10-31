@@ -1,3 +1,4 @@
+<!-- 系统字典及标签样式维护；详情完整加载后才允许编辑，保存同步刷新字典显示缓存。 -->
 <script setup lang="ts">
 import type {
   DictCreateDto,
@@ -11,15 +12,19 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { DictTagStyle } from '~/components/common/dict-tag'
 import { XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
-import { computed, ref, useId, watch } from 'vue'
+import { computed, onUnmounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus, querySortsFromSchema } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { renderDictTag } from '~/components/common/dict-tag'
 import { toast } from '~/composables'
+import { invalidateDictOptions } from '~/composables/useDictOptions'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
+import DictTagStyleEditor from './DictTagStyleEditor.vue'
 
 defineOptions({ name: 'PlatformDictPage' })
 
@@ -36,6 +41,8 @@ interface DictFormModel {
 }
 
 interface DictItemFormModel {
+  expectedVersion?: string
+  tagStyle: DictTagStyle
   basicId?: string
   dictId: string
   isDefault: boolean
@@ -196,12 +203,15 @@ function onDictAction(payload: SchemaActionPayload) {
 const itemPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 function reloadItems() {
+  if (currentDict.value)
+    void invalidateDictOptions(currentDict.value.dictCode).catch(() => { /* 字典读取已统一提示 */ })
   void itemPageRef.value?.reload()
 }
 
 const itemFields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('setting.dict.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.dict.item_search_placeholder'), width: 220, order: 0 },
   { key: 'itemName', title: t('setting.dict.item_name'), dataType: 'string', sortable: true, minWidth: 130, order: 1 },
+  { key: 'tagStyle', title: t('setting.dict.tag_style.preview'), dataType: 'string', minWidth: 150, order: 2, render: row => renderDictTag(String(row.itemName), (row as unknown as DictItemListItemDto).tagStyle) },
   { key: 'itemCode', title: t('setting.dict.code'), dataType: 'string', sortable: true, minWidth: 130, order: 2 },
   { key: 'itemValue', title: t('setting.dict.item_value'), dataType: 'string', minWidth: 90, order: 3 },
   { key: 'isDefault', title: t('setting.dict.default'), dataType: 'boolean', sortable: true, width: 80, order: 4 },
@@ -422,6 +432,7 @@ const itemModalTitle = computed(() => (itemForm.value.basicId ? t('setting.dict.
 function createDefaultDictItemForm(): DictItemFormModel {
   return {
     dictId: '',
+    tagStyle: {},
     isDefault: false,
     itemCode: '',
     itemDescription: null,
@@ -443,7 +454,16 @@ function handleItemAdd() {
   itemModalVisible.value = true
 }
 
+// 详情不可取消时使用序号隔离迟到响应，防止快速切换编辑对象回填旧数据。
+let itemDetailRequest = 0
+onUnmounted(() => {
+  itemDetailRequest++
+})
+watch(currentDict, () => {
+  itemDetailRequest++
+})
 async function handleItemEdit(row: DictItemListItemDto) {
+  const request = ++itemDetailRequest
   itemEditingStatus.value = row.status
   // 列表行不含元数据与备注，取详情回填；否则保存时会把两者覆盖为空
   let detail: DictItemDetailDto | null = null
@@ -451,9 +471,18 @@ async function handleItemEdit(row: DictItemListItemDto) {
     detail = await dictManagementApi.itemDetail(row.basicId)
   }
   catch {
-    detail = null
+    toast.danger(t('setting.dict.tag_style.detail_failed'))
+    return
+  }
+  if (request !== itemDetailRequest)
+    return
+  if (!detail || typeof detail.editVersion !== 'string') {
+    toast.warning(t('setting.dict.tag_style.version_missing'))
+    return
   }
   itemForm.value = {
+    expectedVersion: detail.editVersion,
+    tagStyle: { ...detail.tagStyle },
     basicId: row.basicId,
     dictId: detail?.dictId ?? row.dictId,
     isDefault: detail?.isDefault ?? row.isDefault,
@@ -483,6 +512,12 @@ function validateDictItemForm() {
 }
 
 async function handleItemSubmit() {
+  if (itemSubmitLoading.value)
+    return
+  if ([itemForm.value.tagStyle.backgroundColor, itemForm.value.tagStyle.textColor].some(value => value != null && !/^#[\dA-F]{6}$/i.test(value))) {
+    toast.warning(t('setting.dict.tag_style.invalid_color'))
+    return
+  }
   if (!validateDictItemForm()) {
     return
   }
@@ -491,12 +526,14 @@ async function handleItemSubmit() {
   try {
     if (itemForm.value.basicId) {
       const updateInput: DictItemUpdateDto = {
+        expectedVersion: itemForm.value.expectedVersion,
         basicId: itemForm.value.basicId,
         isDefault: itemForm.value.isDefault,
         itemDescription: itemForm.value.itemDescription,
         itemName: itemForm.value.itemName.trim(),
         itemValue: itemForm.value.itemValue,
         metadata: itemForm.value.metadata,
+        tagStyle: itemForm.value.tagStyle,
         parentId: itemForm.value.parentId,
         remark: itemForm.value.remark,
         sort: itemForm.value.sort,
@@ -512,6 +549,7 @@ async function handleItemSubmit() {
     }
     else {
       const createInput: DictItemCreateDto = {
+        tagStyle: itemForm.value.tagStyle,
         dictId: itemForm.value.dictId,
         isDefault: itemForm.value.isDefault,
         itemCode: itemForm.value.itemCode.trim(),
@@ -677,6 +715,7 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
       <!-- 字典项 新增/编辑 -->
       <XEditModal
         v-model:show="itemModalVisible"
+        width="min(60rem, 96vw)"
         :title="itemModalTitle"
         :loading="itemSubmitLoading"
         :form-id="itemFormId"
@@ -735,6 +774,7 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
+          <DictTagStyleEditor v-model="itemForm.tagStyle" :label="itemForm.itemName" :disabled="itemSubmitLoading" />
           <XhFormFieldGroup name="isDefault">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('setting.dict.is_default') }}</XhFieldLabel>
@@ -837,12 +877,11 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
 }
 
 @media (max-width: 1024px) {
-  /* 窄屏：上下堆叠，整页可滚动；每栏给定高度以便表格内部滚动 */
+  /* 窄屏仍上下堆叠，由字典页持有纵向滚动，避免外层仅横向裁剪被浮层引擎误判为锚点离屏。 */
   .dict-mgmt {
     flex-direction: column;
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .dict-mgmt__pane {

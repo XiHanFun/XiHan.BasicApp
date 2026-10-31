@@ -57,3 +57,31 @@ export async function loadIconNames(prefix: string): Promise<string[]> {
   addCollection(data)
   return Object.keys(data.icons || {}).sort()
 }
+
+// 限于已登记的七个图标集；同页多枚标签共用在途装载，成功结果复用，失败不占住缓存。
+const iconSetLoads = new Map<string, Promise<ReadonlySet<string>>>()
+
+/** @param icon 完整离线图标ID。 @returns 图标已注册且存在时为true；未知或加载失败为false，不访问外部图标服务。 */
+export async function ensureIconLoaded(icon: string): Promise<boolean> {
+  const [prefix, name, extra] = icon.split(':')
+  if (!prefix || !name || extra !== undefined || !ICON_SET_META.some(meta => meta.prefix === prefix))
+    return false
+  let pending = iconSetLoads.get(prefix)
+  if (!pending) {
+    pending = loadIconNames(prefix).then((names) => {
+      if (!names.length)
+        iconSetLoads.delete(prefix)
+      return new Set(names)
+    })
+    iconSetLoads.set(prefix, pending)
+  }
+  try {
+    return (await pending).has(name)
+  }
+  catch (error) {
+    // 失败可由下一次显式使用重试，不保留被拒绝的共享 Promise，也不发起轮询。
+    iconSetLoads.delete(prefix)
+    console.warn('[iconify] Failed to load local icon set', prefix, error)
+    return false
+  }
+}

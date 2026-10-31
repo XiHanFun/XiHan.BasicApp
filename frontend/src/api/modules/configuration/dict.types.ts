@@ -1,5 +1,7 @@
+// 字典网络契约：标签样式通过原字典接口传递，业务编码保持不变。
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
+import type { DictTagStyle } from '~/types/dictionary'
 
 export { EnableStatus } from '../shared'
 
@@ -44,6 +46,8 @@ export interface DictItemPageQueryDto extends PageRequest {
 }
 
 export interface DictItemListItemDto extends BasicDto {
+  editVersion?: string
+  tagStyle?: DictTagStyle | null
   createdTime: DateTimeString
   dictId: ApiId
   hasExtension: boolean
@@ -76,6 +80,8 @@ export interface DictItemTreeQueryDto {
 
 /** 字典选项（业务表单下拉；值为字典项编码，树形字典按深度优先展平） */
 export interface DictOptionDto {
+  description?: string | null
+  tagStyle?: DictTagStyle | null
   disabled: boolean
   isDefault: boolean
   label: string
@@ -84,6 +90,7 @@ export interface DictOptionDto {
 }
 
 export interface DictItemTreeNodeDto extends BasicDto {
+  tagStyle?: DictTagStyle | null
   children: DictItemTreeNodeDto[]
   dictId: ApiId
   isDefault: boolean
@@ -119,6 +126,7 @@ export interface DictStatusUpdateDto extends BasicDto {
 }
 
 export interface DictItemCreateDto {
+  tagStyle?: DictTagStyle | null
   dictId: ApiId
   isDefault: boolean
   itemCode: string
@@ -131,6 +139,8 @@ export interface DictItemCreateDto {
 }
 
 export interface DictItemUpdateDto extends BasicDto {
+  expectedVersion?: string
+  tagStyle?: DictTagStyle | null
   isDefault: boolean
   itemDescription?: string | null
   itemName: string

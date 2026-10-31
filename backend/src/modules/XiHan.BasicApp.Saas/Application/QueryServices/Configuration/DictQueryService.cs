@@ -197,7 +197,7 @@ public sealed class DictQueryService
     /// <remarks>
     /// 只按登录态门控（类级 Authorize，不挂权限码）：字典是业务表单下拉的选项来源，
     /// 使用者不一定持有字典管理权限。只暴露下拉用得到的码、名、层级、默认与停用标记，
-    /// 不含项值、说明与扩展元数据。停用的字典不暴露任何项；停用的项照样返回并标成停用，
+    /// 仅额外包含已校验的标签样式，不暴露其他扩展元数据。停用的字典不暴露任何项；停用的项照样返回并标成停用，
     /// 引用了它的历史数据仍能显示名称，只是不能再选。
     /// </remarks>
     [HttpGet]
@@ -215,7 +215,7 @@ public sealed class DictQueryService
 
         var tree = await LoadDictItemTreeAsync(
             new DictItemTreeQueryDto { DictId = dict.BasicId, OnlyEnabled = false },
-            cancellationToken);
+            cancellationToken, dict.RowVersion);
 
         var options = new List<DictOptionDto>();
         AppendOptions(tree, null, options);
@@ -225,11 +225,14 @@ public sealed class DictQueryService
     /// <summary>
     /// 读取字典项树（走分布式缓存）
     /// </summary>
-    private async Task<IReadOnlyList<DictItemTreeNodeDto>> LoadDictItemTreeAsync(DictItemTreeQueryDto input, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<DictItemTreeNodeDto>> LoadDictItemTreeAsync(DictItemTreeQueryDto input, CancellationToken cancellationToken, long? revision = null)
     {
         // 字典项树为高频读取（字典驱动的下拉/选项渲染），走分布式缓存；
         // 字典/字典项写路径调 InvalidateDictionaryAsync 整体失效（considerUow 事务提交后生效）
-        var cacheKey = SaasCacheKeys.DictItemTree(_currentTenant.Id, input.DictId, input.OnlyEnabled, input.Limit);
+        // 模式删除仅作旧缓存清理；父字典版本是跨进程正确性边界，旧在途工厂只能写回旧版本键。
+        var version = revision ?? (await _dictRepository.GetByIdAsync(input.DictId, cancellationToken)
+            ?? throw new InvalidOperationException("字典不存在或当前范围不可读取。")).RowVersion;
+        var cacheKey = SaasCacheKeys.DictItemTree(_currentTenant.Id, input.DictId, input.OnlyEnabled, input.Limit) + ":v" + version.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var cached = await _dictItemTreeCache.GetOrAddAsync(
             cacheKey,
             async () =>
@@ -457,6 +460,8 @@ public sealed class DictQueryService
             {
                 Value = node.ItemCode,
                 Label = node.ItemName,
+                Description = node.ItemDescription,
+                TagStyle = node.TagStyle,
                 ParentValue = parentValue,
                 IsDefault = node.IsDefault,
                 Disabled = node.Status != EnableStatus.Enabled
