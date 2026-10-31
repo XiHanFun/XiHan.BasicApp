@@ -224,5 +224,15 @@
   "users.enable.title": "ユーザーを有効化",
   "users.enable.description": "無効化されたユーザーを一括で有効化します。すでに有効なユーザーは成功扱い、ロック中のユーザーは先にロック解除が必要です。",
   "permissions.identity.users.disable.name": "ユーザーの有効化・無効化",
-  "identity.auth.account_disabled": "このアカウントは無効化されています。管理者に連絡してください。"
+  "identity.auth.account_disabled": "このアカウントは無効化されています。管理者に連絡してください。",
+  "identity.auth.registration_closed": "セルフ登録は開放されていません。管理者にアカウントの作成を依頼してください。",
+  "identity.auth.email_taken": "メールアドレス '{email}' はすでに別のアカウントで使われています。",
+  "identity.code.title.reset_password_email": "パスワードの再設定",
+  "identity.code.title.reset_password_phone": "パスワードの再設定",
+  "auth.register.title": "セルフ登録",
+  "auth.register.description": "プラットフォームアカウントをセルフ登録します。設定で有効にする必要があり、登録後すぐにロールなしで使え、メール設定があれば歓迎メールを送ります。",
+  "auth.request_password_reset.title": "パスワード再設定の申請",
+  "auth.request_password_reset.description": "アカウントのメールアドレスまたは確認済みの電話番号に再設定コードを送ります。該当アカウントがなくても「送信済み」と答えます（送りません）。",
+  "auth.reset_password.title": "パスワードの再設定",
+  "auth.reset_password.description": "再設定コードで新しいパスワードを設定します。アカウントのすべてのセッションを失効させます。"
 }

@@ -224,5 +224,15 @@
   "users.enable.title": "사용자 활성화",
   "users.enable.description": "비활성화된 사용자를 일괄 활성화합니다. 이미 활성 상태인 사용자는 성공으로 처리하고, 잠긴 사용자는 먼저 잠금을 해제해야 합니다.",
   "permissions.identity.users.disable.name": "사용자 활성화·비활성화",
-  "identity.auth.account_disabled": "비활성화된 계정이에요. 관리자에게 문의하세요."
+  "identity.auth.account_disabled": "비활성화된 계정이에요. 관리자에게 문의하세요.",
+  "identity.auth.registration_closed": "셀프 가입이 열려 있지 않아요. 관리자에게 계정 생성을 요청하세요.",
+  "identity.auth.email_taken": "이메일 '{email}'은(는) 이미 다른 계정에서 사용 중이에요.",
+  "identity.code.title.reset_password_email": "비밀번호 재설정",
+  "identity.code.title.reset_password_phone": "비밀번호 재설정",
+  "auth.register.title": "셀프 가입",
+  "auth.register.description": "플랫폼 계정을 셀프 가입합니다. 설정에서 켜야 하며, 가입 즉시 역할 없이 쓸 수 있고 메일이 설정되어 있으면 환영 메일을 보냅니다.",
+  "auth.request_password_reset.title": "비밀번호 재설정 요청",
+  "auth.request_password_reset.description": "계정의 이메일 또는 인증된 휴대폰 번호로 재설정 코드를 보냅니다. 맞는 계정이 없어도 「보냄」으로 답합니다(보내지 않음).",
+  "auth.reset_password.title": "비밀번호 재설정",
+  "auth.reset_password.description": "재설정 코드로 새 비밀번호를 설정합니다. 계정의 모든 세션이 취소됩니다."
 }

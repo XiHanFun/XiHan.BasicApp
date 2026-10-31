@@ -39,7 +39,7 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
     /// <summary>
     /// 注册欢迎邮件。
     /// </summary>
-    public const string Welcome = "auth-welcome";
+    public const string Welcome = MessageTemplateCodes.Welcome;
 
     /// <summary>
     /// 短信登录验证码。

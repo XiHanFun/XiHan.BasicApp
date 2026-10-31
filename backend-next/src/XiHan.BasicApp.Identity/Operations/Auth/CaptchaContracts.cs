@@ -22,12 +22,13 @@ public sealed record CaptchaResponse(string CaptchaId, string Image, int Expires
 public sealed record LoginConfigRequest;
 
 /// <summary>
-/// 登录页的配置：可用的登录方式、第三方登录与是否要求图形验证码。
+/// 登录页的配置：可用的登录方式、第三方登录、是否要求图形验证码与是否开放注册。
 /// </summary>
-/// <param name="LoginMethods">登录方式（目前只有 <c>password</c>；验证码登录随 Notification、第三方登录随 OpenPlatform 加入）。</param>
+/// <param name="LoginMethods">登录方式：<c>password</c> 总在，<c>email</c> / <c>phone</c>（验证码登录）按系统参数 <c>identity.login-methods</c> 开放。</param>
 /// <param name="OAuthProviders">第三方登录提供方（配置 <c>BasicApp:Auth:OAuth</c> 里启用且填了 ClientId 的）。</param>
-/// <param name="CaptchaEnabled">密码登录是否要求图形验证码。</param>
-public sealed record LoginConfigResponse(IReadOnlyList<string> LoginMethods, IReadOnlyList<LoginProviderResponse> OAuthProviders, bool CaptchaEnabled);
+/// <param name="CaptchaEnabled">密码登录与注册是否要求图形验证码。</param>
+/// <param name="RegistrationEnabled">是否开放自助注册（<c>BasicApp:Auth:SelfRegistrationEnabled</c>）。</param>
+public sealed record LoginConfigResponse(IReadOnlyList<string> LoginMethods, IReadOnlyList<LoginProviderResponse> OAuthProviders, bool CaptchaEnabled, bool RegistrationEnabled);
 
 /// <summary>
 /// 一个第三方登录提供方。

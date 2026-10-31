@@ -224,5 +224,15 @@
   "users.enable.title": "Enable users",
   "users.enable.description": "Enables disabled users in bulk; users who are already active count as succeeded, locked users must be unlocked first.",
   "permissions.identity.users.disable.name": "Enable and disable users",
-  "identity.auth.account_disabled": "This account has been disabled. Please contact your administrator."
+  "identity.auth.account_disabled": "This account has been disabled. Please contact your administrator.",
+  "identity.auth.registration_closed": "Self-registration is not open. Ask an administrator to create an account for you.",
+  "identity.auth.email_taken": "The email '{email}' is already used by another account.",
+  "identity.code.title.reset_password_email": "Password reset",
+  "identity.code.title.reset_password_phone": "Password reset",
+  "auth.register.title": "Register",
+  "auth.register.description": "Register a platform account. Must be enabled in configuration; the account is usable immediately with no roles, and a welcome email is sent when email is configured.",
+  "auth.request_password_reset.title": "Request password reset",
+  "auth.request_password_reset.description": "Send a password reset code to the account's email or verified phone. Answers 'sent' even when no account matches (nothing is sent).",
+  "auth.reset_password.title": "Reset password",
+  "auth.reset_password.description": "Set a new password with the reset code. All sessions of the account are revoked."
 }

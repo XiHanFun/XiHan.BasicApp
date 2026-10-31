@@ -224,5 +224,15 @@
   "users.enable.title": "启用用户",
   "users.enable.description": "批量启用停用的用户；本来就正常的算成功，锁定中的要先解锁。",
   "permissions.identity.users.disable.name": "启停用户",
-  "identity.auth.account_disabled": "账号已停用，请联系管理员。"
+  "identity.auth.account_disabled": "账号已停用，请联系管理员。",
+  "identity.auth.registration_closed": "没有开放自助注册，请联系管理员开通账号。",
+  "identity.auth.email_taken": "邮箱 '{email}' 已被其他账号使用。",
+  "identity.code.title.reset_password_email": "找回密码",
+  "identity.code.title.reset_password_phone": "找回密码",
+  "auth.register.title": "自助注册",
+  "auth.register.description": "自助注册平台账号：要在配置里打开；注册后立即可用、不带角色，配好邮件时发一封欢迎邮件。",
+  "auth.request_password_reset.title": "找回密码",
+  "auth.request_password_reset.description": "发找回密码的验证码到账号的邮箱或已验证的手机号：账号不存在也回答已发送（不发）。",
+  "auth.reset_password.title": "重设密码",
+  "auth.reset_password.description": "用找回密码收到的验证码设新密码：设好后吊销这个账号的全部会话。"
 }

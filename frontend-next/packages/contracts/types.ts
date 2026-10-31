@@ -275,6 +275,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register
+         * @description Register a platform account. Must be enabled in configuration; the account is usable immediately with no roles, and a welcome email is sent when email is configured.
+         */
+        post: operations["auth.register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:request-password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request password reset
+         * @description Send a password reset code to the account's email or verified phone. Answers 'sent' even when no account matches (nothing is sent).
+         */
+        post: operations["auth.request-password-reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset password
+         * @description Set a new password with the reset code. All sessions of the account are revoked.
+         */
+        post: operations["auth.reset-password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:send-login-code": {
         parameters: {
             query?: never;
@@ -11155,19 +11215,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 登录页的配置：可用的登录方式、第三方登录与是否要求图形验证码。 */
+            /** @description 登录页的配置：可用的登录方式、第三方登录、是否要求图形验证码与是否开放注册。 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description 登录方式（目前只有 password；验证码登录随 Notification、第三方登录随 OpenPlatform 加入）。 */
+                        /** @description 登录方式：password 总在，email / phone（验证码登录）按系统参数 identity.login-methods 开放。 */
                         loginMethods: string[];
                         /** @description 第三方登录提供方（配置 BasicApp:Auth:OAuth 里启用且填了 ClientId 的）。 */
                         oAuthProviders: components["schemas"]["LoginProviderResponse"][];
-                        /** @description 密码登录是否要求图形验证码。 */
+                        /** @description 密码登录与注册是否要求图形验证码。 */
                         captchaEnabled: boolean;
+                        /** @description 是否开放自助注册（BasicApp:Auth:SelfRegistrationEnabled）。 */
+                        registrationEnabled: boolean;
                     };
                 };
             };
@@ -11367,6 +11429,156 @@ export interface operations {
                         tenantName?: string | null;
                         /** @description 模仿会话的发起人登录名；普通会话为 null。 */
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description auth.register 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 登录名：3 到 64 个字符，小写字母开头，只含小写字母、数字、.、_、-。 */
+                    userName: string;
+                    /** @description 密码，按密码策略校验。 */
+                    password: string;
+                    /** @description 邮箱：找回密码用，同一侧不能与正常账号重复。 */
+                    email: string;
+                    /** @description 显示名；不填即登录名。 */
+                    displayName?: string | null;
+                    /** @description 图形验证码标识（开了图形验证码时必填）。 */
+                    captchaId?: string | null;
+                    /** @description 图形验证码。 */
+                    captchaCode?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 注册成功的账号。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户主键。
+                         */
+                        userId: string;
+                        /** @description 登录名。 */
+                        userName: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.request-password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description auth.request-password-reset 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 发到邮箱还是手机号。 */
+                    channel: components["schemas"]["ContactChannel"];
+                    /** @description 账号的邮箱或已验证的手机号。 */
+                    target: string;
+                    /** @description 注册地租户；平台账号留空。 */
+                    tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 验证码已发出。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int32
+                         * @description 验证码的有效秒数。
+                         */
+                        expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description auth.reset-password 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 收码的是邮箱还是手机号。 */
+                    channel: components["schemas"]["ContactChannel"];
+                    /** @description 收码的邮箱或手机号。 */
+                    target: string;
+                    /** @description 收到的验证码。 */
+                    code: string;
+                    /** @description 新密码，按密码策略与历史校验。 */
+                    newPassword: string;
+                    /** @description 注册地租户；平台账号留空。 */
+                    tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 密码已重置。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 账号的登录名（回到登录页时预填）。 */
+                        userName: string;
                     };
                 };
             };

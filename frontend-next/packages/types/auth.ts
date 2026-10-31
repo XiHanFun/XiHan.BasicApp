@@ -89,8 +89,10 @@ export interface LoginConfig {
   loginMethods: string[]
   // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
   oAuthProviders: OAuthProviderItem[]
-  /** 密码登录是否要求图形验证码 */
+  /** 密码登录与注册是否要求图形验证码 */
   captchaEnabled: boolean
+  /** 是否开放自助注册（后端 BasicApp:Auth:SelfRegistrationEnabled）：开了登录页才给注册入口 */
+  registrationEnabled: boolean
 }
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
@@ -114,13 +116,17 @@ export interface LoginParams {
   deviceId?: string
 }
 
+/** 自助注册（auth.register）：注册的是平台账号，登录用用户名 */
 export interface RegisterParams {
   username: string
   password: string
+  /** 显示名；不填即用户名 */
   nickName?: string
-  /** 邮箱（必填，全平台唯一的登录身份标识） */
+  /** 邮箱（必填，找回密码用；平台一侧不能与正常账号重复） */
   email: string
-  phone?: string
+  /** 图形验证码（登录配置要求时） */
+  captchaId?: string
+  captchaCode?: string
 }
 
 export interface PhoneLoginParams {
@@ -151,14 +157,22 @@ export interface CaptchaChallenge {
   expiresInSeconds: number
 }
 
-export interface PasswordResetResult {
-  accepted: boolean
-  /** 一次性重置链接，仅开发环境回显，便于本地无邮件时联调 */
-  debugResetUrl?: string
+/** 找回密码发码（auth.request-password-reset）：账号不存在也回答已发送 */
+export interface PasswordResetRequestParams {
+  /** 注册地租户 ID；平台账号不填 */
+  tenant?: string
+  email: string
+}
+
+/** 凭找回密码的验证码设新密码（auth.reset-password）：设好后吊销这个账号的全部会话 */
+export interface PasswordResetConfirmParams extends PasswordResetRequestParams {
+  code: string
+  newPassword: string
 }
 
 export interface PasswordResetConfirmResult {
-  success: boolean
+  /** 账号的登录名（回到登录页时预填） */
+  userName: string
 }
 
 /** 登录响应（区分正常登录与双因素验证挑战） */

@@ -224,5 +224,15 @@
   "users.enable.title": "啟用使用者",
   "users.enable.description": "批次啟用已停用的使用者；原本就正常的算成功，鎖定中的要先解鎖。",
   "permissions.identity.users.disable.name": "啟停使用者",
-  "identity.auth.account_disabled": "帳號已停用，請聯絡管理員。"
+  "identity.auth.account_disabled": "帳號已停用，請聯絡管理員。",
+  "identity.auth.registration_closed": "沒有開放自助註冊，請聯絡管理員開通帳號。",
+  "identity.auth.email_taken": "郵箱 '{email}' 已被其他帳號使用。",
+  "identity.code.title.reset_password_email": "找回密碼",
+  "identity.code.title.reset_password_phone": "找回密碼",
+  "auth.register.title": "自助註冊",
+  "auth.register.description": "自助註冊平台帳號：要在設定裡開啟；註冊後立即可用、不帶角色，配好郵件時發一封歡迎郵件。",
+  "auth.request_password_reset.title": "找回密碼",
+  "auth.request_password_reset.description": "發找回密碼的驗證碼到帳號的郵箱或已驗證的手機號：帳號不存在也回答已發送（不發）。",
+  "auth.reset_password.title": "重設密碼",
+  "auth.reset_password.description": "用找回密碼收到的驗證碼設新密碼：設好後撤銷這個帳號的全部會話。"
 }

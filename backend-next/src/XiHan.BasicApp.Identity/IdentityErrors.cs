@@ -417,10 +417,20 @@ public static class IdentityErrors
     public const string TenantExpired = "IDENTITY_DENIED_019";
 
     /// <summary>
+    /// 没有开放自助注册。
+    /// </summary>
+    public const string RegistrationClosed = "IDENTITY_DENIED_020";
+
+    /// <summary>
     /// 用户处于锁定状态，启用不适用。
     /// </summary>
     /// <remarks>
     /// 要先解锁（<c>users.unlock</c>）。
     /// </remarks>
     public const string UserLocked = "IDENTITY_CONFLICT_012";
+
+    /// <summary>
+    /// 邮箱已被同一侧的正常账号使用（自助注册）。
+    /// </summary>
+    public const string EmailTaken = "IDENTITY_CONFLICT_013";
 }

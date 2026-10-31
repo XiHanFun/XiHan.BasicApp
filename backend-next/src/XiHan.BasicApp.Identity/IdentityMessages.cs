@@ -254,6 +254,34 @@ public static class IdentityMessages
     public const string TenantExpired = "identity.auth.tenant_expired";
 
     /// <summary>
+    /// 没有开放自助注册。
+    /// </summary>
+    public const string RegistrationClosed = "identity.auth.registration_closed";
+
+    /// <summary>
+    /// 邮箱已被使用。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>email</c>。
+    /// </remarks>
+    public const string EmailTaken = "identity.auth.email_taken";
+
+    /// <summary>
+    /// 自助注册的说明。
+    /// </summary>
+    public const string RegisterDescription = "auth.register.description";
+
+    /// <summary>
+    /// 找回密码发码的说明。
+    /// </summary>
+    public const string RequestPasswordResetDescription = "auth.request_password_reset.description";
+
+    /// <summary>
+    /// 凭验证码重设密码的说明。
+    /// </summary>
+    public const string ResetPasswordWithCodeDescription = "auth.reset_password.description";
+
+    /// <summary>
     /// 密码太短。
     /// </summary>
     /// <remarks>
@@ -818,6 +846,16 @@ public static class IdentityMessages
     /// 验证码短信的用途标题：手机两步验证。
     /// </summary>
     public const string CodeTitleTwoFactorPhone = "identity.code.title.two_factor_phone";
+
+    /// <summary>
+    /// 验证码用途标题：邮箱找回密码。
+    /// </summary>
+    public const string CodeTitleResetPasswordEmail = "identity.code.title.reset_password_email";
+
+    /// <summary>
+    /// 验证码用途标题：手机找回密码。
+    /// </summary>
+    public const string CodeTitleResetPasswordPhone = "identity.code.title.reset_password_phone";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 

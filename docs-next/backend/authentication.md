@@ -80,6 +80,23 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `auth.activate-roles` / `auth.session-roles` | 换本会话激活的角色（动态职责分离，见[约束规则与审批](./approval)） |
 | `auth.me` / `auth.permissions` | 当前用户、模仿横幅；权限码、角色、菜单树、页面码 |
 
+## 自助注册与找回密码
+
+| 操作 | 说明 |
+| --- | --- |
+| `auth.register` | 匿名，注册平台账号：要在配置里打开（`BasicApp:Auth:SelfRegistrationEnabled`，缺省关，否则 `IDENTITY_DENIED_020`）；开了图形验证码时同密码登录要先过验证码；登录名在平台一侧唯一，邮箱不能与平台一侧的正常账号重复（`IDENTITY_CONFLICT_013`）；注册后立即可用、不带任何角色，配好邮件时发一封 `auth-welcome` 欢迎邮件 |
+| `auth.request-password-reset` | 匿名，按邮箱或已验证的手机号发找回密码的验证码（验证类模板，标题「找回密码」）；账号不存在、不唯一也回答已发送，签发并计入限频，只是不发 |
+| `auth.reset-password` | 匿名，凭验证码设新密码：密码先按策略校验（不合格不消费验证码），码对、联系方式没变、账号正常才认；设好后清掉登录失败锁定，并吊销这个账号的全部会话 |
+
+登录配置（`auth.login-config`）带 `registrationEnabled`，登录页据此决定出不出注册入口；找回密码入口总在。要进租户的人先注册平台账号，再由租户加为成员。
+
+与 5.x 的差别：
+
+- 5.x 的注册没有开关、总是开放，账号落在固定的缺省租户。
+- 5.x 找回密码只按邮箱发一次性重置链接，6.0 发验证码，不依赖前端地址配置。
+
+平台模板里的 `auth-password-reset`（链接式）目前没有用到。
+
 ## 锁屏
 
 `auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝，只影响这一个端。解锁密码连错 5 次吊销会话（`IDENTITY_DENIED_014`）。5.x 的 HTTP 423 在 6.0 统一为这个错误码（403）。
@@ -105,7 +122,6 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 ## 尚未实现
 
-- 自助注册与找回密码（方案 5.8 的 `auth.register`、`auth.request-password-reset`、`auth.reset-password`）当前没有对应操作，前端登录页不显示这两个入口；平台模板里已有 `auth-password-reset`、`auth-welcome` 邮件模板。
 - 恢复码（5.x 也没有）。
 
 ## 下一步

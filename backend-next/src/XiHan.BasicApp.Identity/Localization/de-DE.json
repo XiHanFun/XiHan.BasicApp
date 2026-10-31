@@ -224,5 +224,15 @@
   "users.enable.title": "Benutzer aktivieren",
   "users.enable.description": "Aktiviert deaktivierte Benutzer im Stapel; bereits aktive Benutzer gelten als erfolgreich, gesperrte müssen zuerst entsperrt werden.",
   "permissions.identity.users.disable.name": "Benutzer aktivieren und deaktivieren",
-  "identity.auth.account_disabled": "Dieses Konto wurde deaktiviert. Bitte wenden Sie sich an Ihren Administrator."
+  "identity.auth.account_disabled": "Dieses Konto wurde deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
+  "identity.auth.registration_closed": "Die Selbstregistrierung ist nicht geöffnet. Bitten Sie einen Administrator, ein Konto anzulegen.",
+  "identity.auth.email_taken": "Die E-Mail-Adresse '{email}' wird bereits von einem anderen Konto verwendet.",
+  "identity.code.title.reset_password_email": "Passwort zurücksetzen",
+  "identity.code.title.reset_password_phone": "Passwort zurücksetzen",
+  "auth.register.title": "Registrieren",
+  "auth.register.description": "Ein Plattformkonto selbst registrieren. Muss in der Konfiguration aktiviert sein; das Konto ist sofort ohne Rollen nutzbar, bei konfigurierter E-Mail wird eine Willkommensnachricht gesendet.",
+  "auth.request_password_reset.title": "Passwortzurücksetzung anfordern",
+  "auth.request_password_reset.description": "Einen Code zum Zurücksetzen an die E-Mail-Adresse oder die bestätigte Telefonnummer des Kontos senden. Antwortet auch ohne passendes Konto mit „gesendet“ (es wird nichts gesendet).",
+  "auth.reset_password.title": "Passwort zurücksetzen",
+  "auth.reset_password.description": "Mit dem Code ein neues Passwort setzen. Alle Sitzungen des Kontos werden widerrufen."
 }
