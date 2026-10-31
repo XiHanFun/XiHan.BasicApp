@@ -335,6 +335,8 @@ export const routes = {
   'user-settings.update': { method: 'PUT', template: '/api/user-settings', path: [], query: [], success: 200 },
   'users.create': { method: 'POST', template: '/api/users', path: [], query: [], success: 201 },
   'users.delete': { method: 'DELETE', template: '/api/users', path: [], query: ['ids'], success: 200 },
+  'users.disable': { method: 'POST', template: '/api/users:disable', path: [], query: [], success: 200 },
+  'users.enable': { method: 'POST', template: '/api/users:enable', path: [], query: [], success: 200 },
   'users.get': { method: 'GET', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
   'users.list': { method: 'POST', template: '/api/users:list', path: [], query: [], success: 200 },
   'users.lock': { method: 'POST', template: '/api/users:lock', path: [], query: [], success: 200 },
@@ -938,6 +940,8 @@ export const userSettings = {
 export const users = {
   create: (request: RequestOf<'users.create'>, options?: CallOptions) => invoke<RequestOf<'users.create'>, ResponseOf<'users.create'>>('users.create', routes['users.create'], request, options),
   delete: (request: RequestOf<'users.delete'>, options?: CallOptions) => invoke<RequestOf<'users.delete'>, ResponseOf<'users.delete'>>('users.delete', routes['users.delete'], request, options),
+  disable: (request: RequestOf<'users.disable'>, options?: CallOptions) => invoke<RequestOf<'users.disable'>, ResponseOf<'users.disable'>>('users.disable', routes['users.disable'], request, options),
+  enable: (request: RequestOf<'users.enable'>, options?: CallOptions) => invoke<RequestOf<'users.enable'>, ResponseOf<'users.enable'>>('users.enable', routes['users.enable'], request, options),
   get: (request: RequestOf<'users.get'>, options?: CallOptions) => invoke<RequestOf<'users.get'>, ResponseOf<'users.get'>>('users.get', routes['users.get'], request, options),
   list: (request: RequestOf<'users.list'>, options?: CallOptions) => invoke<RequestOf<'users.list'>, ResponseOf<'users.list'>>('users.list', routes['users.list'], request, options),
   lock: (request: RequestOf<'users.lock'>, options?: CallOptions) => invoke<RequestOf<'users.lock'>, ResponseOf<'users.lock'>>('users.lock', routes['users.lock'], request, options),

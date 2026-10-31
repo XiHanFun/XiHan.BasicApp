@@ -415,4 +415,17 @@ public static class IdentityErrors
     /// 要先转移所有权（<c>tenants.transfer-owner</c>）。
     /// </remarks>
     public const string TenantOwner = "IDENTITY_CONFLICT_011";
+
+    /// <summary>
+    /// 账号已停用，不能登录。
+    /// </summary>
+    public const string AccountDisabled = "IDENTITY_DENIED_018";
+
+    /// <summary>
+    /// 用户处于锁定状态，启用不适用。
+    /// </summary>
+    /// <remarks>
+    /// 要先解锁（<c>users.unlock</c>）。
+    /// </remarks>
+    public const string UserLocked = "IDENTITY_CONFLICT_012";
 }

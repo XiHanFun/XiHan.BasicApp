@@ -6351,6 +6351,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users:disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable users
+         * @description Disables users in bulk and revokes their sessions; disabled users cannot sign in. You cannot disable yourself, and a tenant owner must transfer ownership first.
+         *
+         *     Requires permission identity.users.disable (Enable and disable users).
+         */
+        post: operations["users.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users:enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable users
+         * @description Enables disabled users in bulk; users who are already active count as succeeded, locked users must be unlocked first.
+         *
+         *     Requires permission identity.users.disable (Enable and disable users).
+         */
+        post: operations["users.enable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users:list": {
         parameters: {
             query?: never;
@@ -31645,6 +31689,86 @@ export interface operations {
                         changedAt: string;
                         /** @description 是否吊销了既有会话。 */
                         sessionsRevoked: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 用户批量操作的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 目标用户 ID，1 到 100 个。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 用户批量操作的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 目标用户 ID，1 到 100 个。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };

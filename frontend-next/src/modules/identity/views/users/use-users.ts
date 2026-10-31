@@ -1,8 +1,10 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
+import type { SelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
-import { toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, roles as rolesApi, sessions as sessionsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { flattenDepartments } from './use-user-departments'
 
 export type UserRow = ResponseOf<'users.list'>['items'][number]
 export type UserStatus = UserRow['status']
@@ -39,19 +41,27 @@ export function displayNameOf(row: Pick<UserRow, 'displayName' | 'userName'>): s
   return row.displayName || row.userName
 }
 
-/** 搜索字段按后端白名单下发：关键字匹配用户名与显示名，邮箱模糊匹配，状态精确匹配 */
-export const USER_QUERY: PageQueryMapping = { filters: { email: 'contains', status: 'eq' } }
+/**
+ * 搜索字段按后端白名单下发：关键字匹配用户名与显示名，邮箱与手机号模糊匹配，性别、角色与部门精确匹配（部门含下级），
+ * 状态多选，创建时间按区间
+ */
+export const USER_QUERY: PageQueryMapping = {
+  filters: { email: 'contains', phoneNumber: 'contains', gender: 'eq', roleId: 'eq', departmentId: 'eq' },
+  ranges: ['createdAt'],
+  multiples: ['status'],
+}
 
 /**
  * SchemaPage 的资源：分页、删除（批量删除由 SchemaPage 逐行调用）与提交到导出中心。
  * 导出中心的业务类型就是列表操作 ID，后台以发起人的身份逐页调 users.list：查询快照与列表用同一份分页请求。
- * 6.0 的用户状态只能经锁定 / 解锁改，没有启停接口，所以不提供 updateStatus；建用户可带初始密码、导入没有安全的映射，所以不提供 create。
+ * 启停照 4.x 走批量启用 / 停用（users.enable / users.disable，锁定另有解锁）；建用户可带初始密码、导入没有安全的映射，所以不提供 create。
  */
 export function usersResource(): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await usersApi.list(toRequest(params)), params),
     remove: async id => failedCodes(await usersApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => failedCodes(enabled ? await usersApi.enable({ ids: [String(id)] }) : await usersApi.disable({ ids: [String(id)] })),
     export: { businessType: 'users.list', buildQuery: toRequest },
   }
 }
@@ -59,6 +69,37 @@ export function usersResource(): SchemaResource<UserRow> {
 /** 锁定（状态置为 Locked、会话下线）或解锁一个用户；被后端逐项拒绝时带着错误码抛出 */
 export async function setUserLocked(id: string, locked: boolean): Promise<void> {
   failedCodes(locked ? await usersApi.lock({ ids: [id] }) : await usersApi.unlock({ ids: [id] }))
+}
+
+/**
+ * 按人强制下线：取此人在当前一侧的有效会话，一次交给 sessions.revoke（与在线用户页同一套语义与审计）；
+ * 返回下线的会话数，没有会话为 0，全部被拒时带着错误码抛出
+ */
+export async function forceSignOut(userId: string, reason: string): Promise<number> {
+  const page = await sessionsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'userId', operator: 'eq', value: userId }], sorts: [] })
+  const ids = page.items.map(session => session.id)
+  if (ids.length === 0)
+    return 0
+  const result = await sessionsApi.revoke({ ids, reason })
+  if (result.succeeded.length === 0)
+    failedCodes(result)
+  return result.succeeded.length
+}
+
+/** 角色筛选的选项：当前一侧的全部角色 */
+export async function loadRoleOptions(): Promise<{ label: string, value: string }[]> {
+  const page = await rolesApi.list({ page: { index: 1, size: 500 }, filters: [], sorts: [] })
+  return page.items.map(role => ({ label: role.name, value: role.id }))
+}
+
+/** 部门筛选的选项：部门树按层级缩进展平（选上级即含下级） */
+export async function loadDepartmentOptions(): Promise<SelectOption[]> {
+  return flattenDepartments((await departmentsApi.tree({})).items)
+}
+
+/** 停用（状态置为 Disabled、会话下线、不能登录）或启用一个用户；被后端逐项拒绝时带着错误码抛出 */
+export async function setUserDisabled(id: string, disabled: boolean): Promise<void> {
+  failedCodes(disabled ? await usersApi.disable({ ids: [id] }) : await usersApi.enable({ ids: [id] }))
 }
 
 /** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着错误码抛出 */

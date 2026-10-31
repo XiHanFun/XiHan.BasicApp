@@ -219,5 +219,11 @@
   "permissions.identity.impersonation.start.name": "Personificar usuários",
   "permissions.identity.sessions.read.name": "Ver usuários online",
   "permissions.identity.sessions.revoke.name": "Forçar logout",
-  "identity.user.tenant_owner": "Esta conta é proprietária de um locatário. Transfira a propriedade primeiro."
+  "identity.user.tenant_owner": "Esta conta é proprietária de um locatário. Transfira a propriedade primeiro.",
+  "users.disable.title": "Desativar usuários",
+  "users.disable.description": "Desativa usuários em lote e revoga as sessões deles; usuários desativados não podem entrar. Você não pode desativar a si mesmo e o proprietário de um locatário precisa transferir a propriedade antes.",
+  "users.enable.title": "Ativar usuários",
+  "users.enable.description": "Ativa em lote usuários desativados; os que já estão ativos contam como sucesso e os bloqueados precisam ser desbloqueados antes.",
+  "permissions.identity.users.disable.name": "Ativar e desativar usuários",
+  "identity.auth.account_disabled": "Esta conta foi desativada. Entre em contato com o administrador."
 }

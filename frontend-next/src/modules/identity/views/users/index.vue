@@ -20,7 +20,7 @@ import { useUserDepartments } from './use-user-departments'
 import { useUserDetail } from './use-user-detail'
 import { useUserGrants } from './use-user-grants'
 import { useUserRoles } from './use-user-roles'
-import { displayNameOf, resetUserTwoFactor, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
+import { displayNameOf, forceSignOut, loadDepartmentOptions, loadRoleOptions, resetUserTwoFactor, setUserDisabled, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
 
 defineOptions({ name: 'IdentityUsersView' })
 
@@ -78,6 +78,10 @@ function homeTenantLabel(homeTenantId: string): string {
 }
 
 const statusOptions = computed<SelectOption[]>(() => USER_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const genderOptions = computed<SelectOption[]>(() => [
+  { label: t('common.gender.male'), value: 'Male' },
+  { label: t('common.gender.female'), value: 'Female' },
+])
 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as UserRow
@@ -96,14 +100,20 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'userName', title: t('identity.users.fields.user_info'), dataType: 'string', sortable: true, exportable: true, render: row => renderUserInfo(asRow(row)), minWidth: 180, order: 1 },
   { key: 'displayName', title: t('identity.users.fields.display_name'), dataType: 'string', visible: false, exportable: true, order: 1.5 },
   { key: 'email', title: t('identity.users.fields.email'), dataType: 'email', advancedSearch: true, exportable: true, minWidth: 180, order: 2 },
-  { key: 'phoneNumber', title: t('identity.users.fields.phone'), dataType: 'phone', exportable: true, width: 140, order: 3 },
+  { key: 'phoneNumber', title: t('identity.users.fields.phone'), dataType: 'phone', advancedSearch: true, searchPlaceholder: t('identity.users.phone_placeholder'), exportable: true, width: 140, order: 3 },
+  // 仅搜索：性别、角色（启用的角色、生效中的指派）、部门（含下级，部门是租户侧数据）
+  { key: 'gender', title: t('identity.users.fields.gender'), dataType: 'enum', visible: false, advancedSearch: true, options: genderOptions.value, searchPlaceholder: t('identity.users.gender_placeholder'), order: 3.1 },
+  { key: 'roleId', title: t('identity.users.fields.roles'), dataType: 'enum', visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadRoleOptions, permission: 'access.roles.read', searchPlaceholder: t('identity.users.role_placeholder'), order: 3.2 },
+  ...(isPlatformCaller()
+    ? []
+    : [{ key: 'departmentId', title: t('identity.users.fields.departments'), dataType: 'enum' as const, visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadDepartmentOptions, permission: 'organization.departments.read', searchPlaceholder: t('identity.users.department_placeholder'), order: 3.3 }]),
   // 平台看得见全部用户，注册地一列才有区分意义；租户只看得到本租户注册的用户
   ...(isPlatformCaller()
     ? [{ key: 'homeTenantId', title: t('identity.users.fields.home_tenant'), dataType: 'string' as const, exportable: true, render: (row: object) => homeTenantLabel(asRow(row).homeTenantId), ellipsis: true, width: 120, order: 4 }]
     : []),
-  { key: 'status', title: t('identity.users.fields.status'), dataType: 'enum', searchable: true, searchPlaceholder: t('identity.users.status_placeholder'), options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 5 },
+  { key: 'status', title: t('identity.users.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, searchPlaceholder: t('identity.users.status_placeholder'), options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 5 },
   { key: 'lastLoginAt', title: t('identity.users.fields.last_login_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
-  { key: 'createdAt', title: t('identity.users.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 7 },
+  { key: 'createdAt', title: t('identity.users.fields.created_at'), dataType: 'datetime', sortable: true, advancedSearch: true, searchRange: true, exportable: true, minWidth: 170, order: 7 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -112,6 +122,7 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'identity.users.read',
   batchRemovable: true,
   removePermission: 'identity.users.delete',
+  statusPermission: 'identity.users.disable',
   rowKey: 'id',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
@@ -129,6 +140,10 @@ const schema = computed<PageSchema>(() => ({
     { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
     { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)), permission: 'identity.users.lock' },
     { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Locked', permission: 'identity.users.lock' },
+    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Disabled' && !isSelf(asRow(row)), permission: 'identity.users.disable' },
+    { key: 'enable', title: t('identity.users.actions.enable'), scope: 'row', icon: 'lucide:circle-check', confirm: true, confirmText: row => t('identity.users.confirm_enable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Disabled', permission: 'identity.users.disable' },
+    // 按人强制下线：列出此人在当前一侧的会话再走 sessions.revoke，要能看会话
+    { key: 'forceSignOut', title: t('identity.users.actions.force_sign_out'), scope: 'row', tone: 'warning', icon: 'lucide:log-out', confirm: true, confirmText: row => t('identity.users.confirm_force_sign_out', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)) && auth.can('identity.sessions.read'), permission: 'identity.sessions.revoke' },
     { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', permission: 'identity.users.reset-password' },
     { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
     // 模仿态里不能再模仿；目标须是正常状态的他人
@@ -179,6 +194,15 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         void toggleLock(row, payload.key === 'lock')
       break
+    case 'disable':
+    case 'enable':
+      if (row)
+        void toggleDisabled(row, payload.key === 'disable')
+      break
+    case 'forceSignOut':
+      if (row)
+        void signOut(row)
+      break
     case 'resetPassword':
       if (row)
         passwordReset.start(row)
@@ -211,6 +235,30 @@ async function onSubmit() {
 }
 
 // ── 账号动作 ──
+async function toggleDisabled(row: UserRow, disabled: boolean) {
+  try {
+    await setUserDisabled(row.id, disabled)
+    toast.success(disabled ? t('identity.users.disabled_done') : t('identity.users.enabled_done'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.operation_failed'))
+  }
+}
+
+async function signOut(row: UserRow) {
+  try {
+    const count = await forceSignOut(row.id, t('identity.online_users.revoke_reason'))
+    if (count === 0)
+      toast.info(t('identity.users.no_sessions'))
+    else
+      toast.success(t('identity.users.signed_out', { n: count }))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.operation_failed'))
+  }
+}
+
 async function toggleLock(row: UserRow, locked: boolean) {
   try {
     await setUserLocked(row.id, locked)
