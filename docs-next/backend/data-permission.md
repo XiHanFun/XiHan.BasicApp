@@ -30,14 +30,24 @@ var query = TenantScopedQuery.For<SysUserDepartment>(client, context)
     .ApplyDataScope(await DataScopeQuery.ResolveAsync(context), static m => m.UserId, static m => m.DepartmentId);
 ```
 
-`ApplyDataScope` 按「归属人列」或「部门列」生成 `owner IN (...) [OR department IN (...)]`。目前套用的地方：
+`ApplyDataScope` 按「归属人列」或「部门列」生成 `owner IN (...) [OR department IN (...)]`。没有归属人主键列的实体用 `ApplyDataScopeByCreator`，按审计列 `CreatedBy`（创建人的用户 ID）生成 `created_by IN (...)`，没有创建人的行（系统写入）受限时看不到：
+
+```csharp
+// Files 的文件库列表：按上传人
+var query = rows.Query<SysFile>(SideRows.SideOf(context))
+    .ApplyDataScopeByCreator(await DataScopeQuery.ResolveAsync(context), static f => f.CreatedBy);
+```
+
+目前套用的地方：
 
 | 包 | 位置 |
 | --- | --- |
 | Identity | 用户列表、详情、修改、重置密码与批量操作；在线会话列表 |
 | Organization | 部门成员列表 |
+| Files | 文件库列表（按上传人；下载与预签名仍按访问级别） |
+| Notification | 通知管理列表（按创建人；收件箱不受影响） |
 
-文件、导出、通知等列表还没有按数据范围收窄。
+导出中心本来就只列自己提交的任务，比任何数据范围都窄，不再套用。
 
 ## 字段安全
 
