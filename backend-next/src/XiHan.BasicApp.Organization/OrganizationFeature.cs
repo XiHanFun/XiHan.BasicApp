@@ -75,6 +75,8 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddScoped<IRecipientSource, DepartmentRecipientSource>();
         context.Services.AddSeeder<DemoOrganizationSeeder>();
         context.Services.AddPermissionCatalog("organization", OrganizationPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        OrganizationFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("organization", OrganizationPages.All);
         foreach (var permission in OrganizationPermissions.All)
         {
