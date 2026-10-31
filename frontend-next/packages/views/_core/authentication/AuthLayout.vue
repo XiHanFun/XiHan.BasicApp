@@ -124,15 +124,14 @@ const appName = __APP_NAME__
               'items-center': !showEntryTabs,
             }"
           >
-            <!-- 两层都裁切：组件库 next 起聚焦环画在控件盒外，外层留出环宽（ring-room），输入框随之窄一圈 -->
             <div
-              class="overflow-hidden w-full h-full ring-room"
+              class="overflow-hidden w-full h-full"
               :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'"
             >
               <!-- 登录四种入口下表单即当前标签的面板，故由切换器接住；其余页面它只透传内容 -->
               <AuthEntrySwitcher :enabled="showEntryTabs" :methods="loginMethods">
-                <!-- 这层裁掉切换过渡的 ±24px 平移；ring-room-bleed 外扩进外层的留位再内衬回来，环不被这层裁、宽度也不再缩 -->
-                <div class="overflow-hidden ring-room-bleed" :class="showEntryTabs ? 'min-h-[520px]' : ''">
+                <!-- 这层裁掉切换过渡的 ±24px 平移。不必为聚焦环留内衬：组件库的环画在控件盒内，裁切容器裁不到它 -->
+                <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                   <router-view v-slot="{ Component }">
                     <transition name="auth-slide" mode="out-in">
                       <component :is="Component" />

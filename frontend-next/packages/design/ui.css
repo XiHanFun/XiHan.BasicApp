@@ -188,21 +188,6 @@
 /* ==================== 通用结构件 ==================== */
 
 /*
- * 聚焦环留位：组件库 next 起聚焦环画在控件盒外（内圈 --xh-ring-width + 光环 --xh-ring-halo-width，共 4px），
- * overflow 不是 visible 的容器会把贴边控件的环裁掉。这类裁切容器加 .ring-room：四周留出环宽的内衬，内容窄一圈。
- * 嵌在 .ring-room 里的又一层裁切容器（如裁切换过渡平移的那层）用 .ring-room-bleed：先向外扩出环宽再内衬回来，
- * 两层叠着也只窄一圈。
- */
-.ring-room {
-  padding: calc(var(--xh-ring-width) + var(--xh-ring-halo-width));
-}
-
-.ring-room-bleed {
-  margin: calc(-1 * (var(--xh-ring-width) + var(--xh-ring-halo-width)));
-  padding: calc(var(--xh-ring-width) + var(--xh-ring-halo-width));
-}
-
-/*
  * 加载罩层：组件库的旋转标记是纯标记，不带遮罩能力，罩层由这里补上。
  * 容器给定位上下文，罩层半透明盖住内容，读数期间下面的旧数据仍可见但不可误点。
  */
@@ -486,7 +471,6 @@
 .xihan-icon-btn:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
-  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
 }
 
 .xihan-icon-btn:hover:not(:disabled) {

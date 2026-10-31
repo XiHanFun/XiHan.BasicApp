@@ -760,6 +760,12 @@ onBeforeUnmount(() => {
     calc(2 * var(--xh-motion-stagger-step));
 }
 
+/* 键盘聚焦给与组件库同一道环：2px 画在层自己的盒内。不写的话落回浏览器缺省环，画在盒外、被岛壳的 overflow 裁掉 */
+.di-layer:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
 /* ============ 折叠层：胶囊 ============ */
 .di-pill {
   width: 100%;

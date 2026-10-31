@@ -664,13 +664,18 @@ const loaderItems = computed(() =>
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.22);
 }
 
-/* 键盘聚焦给与组件库同一副环（内圈 + 光环）。自定义卡片上的取色器是透明铺满的一层，
-   它自己的环既看不见、又被卡片的 overflow 裁掉，环改画在卡片上 */
+/* 键盘聚焦给与组件库同一道环：2px 画在卡片盒内。自定义卡片上的取色器是透明铺满的一层，
+   它自己的环看不见，环改画在卡片上 */
 .theme-color-card:focus-visible,
 .custom-color-card:has(:focus-visible) {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
-  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
+}
+
+/* 色块铺满卡片、颜色就是候选的主题色，环压在上面可能同色：与组件库的实心面同一套，环内侧衬一道底色间隔线。
+   线画在色块上（卡片自己的投影被色块盖住），从卡片描边以内铺一个环宽，露在环内侧的那一截就是间隔线 */
+.theme-color-card:focus-visible .theme-color-dot:not(.custom-dot) {
+  box-shadow: inset 0 0 0 var(--xh-ring-width) var(--xh-ring-gap);
 }
 
 /* 色块充满整个卡片 */

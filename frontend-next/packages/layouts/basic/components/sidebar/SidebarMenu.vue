@@ -99,7 +99,7 @@ const collection = computed(() => toCollection(props.menuOptions))
 
 /* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给。
    组件库把行定为 inline-size: 100%，下面各档又加了左右外边距：不改回 auto 的话行宽是 100% 再加两侧外边距，
-   右边越出侧栏的滚动区一截，聚焦环（画在行盒外）右侧被裁掉、左右也不对称 */
+   右边越出侧栏的滚动区一截，行的右缘连同画在行盒内的聚焦环一起被裁掉、左右也不对称 */
 .sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   inline-size: auto;
   margin-block: 2px;

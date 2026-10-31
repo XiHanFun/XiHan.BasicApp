@@ -242,11 +242,10 @@ function handleClear() {
   cursor: pointer;
 }
 
-/* 键盘焦点环与组件库同一副：1px 内圈加光环，环宽、偏移与颜色都取令牌 */
+/* 键盘焦点环与组件库同一道：2px 画在格子盒内，环宽、偏移与颜色都取令牌 */
 .icon-picker-cell:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
-  box-shadow: 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-halo-width)) var(--xh-ring-halo);
 }
 
 .icon-picker-icon {

@@ -47,7 +47,7 @@ const placement = useWidgetPlacement()
 </script>
 
 <template>
-  <!-- 末端留出内衬：最右的账号入口不贴着视口右缘，聚焦环（画在按钮盒外）也不被主列的 overflow 裁掉 -->
+  <!-- 末端留出内衬：最右的账号入口不贴着视口右缘 -->
   <div class="flex h-full min-w-0 shrink-0 items-center pe-2">
     <!-- 命令面板入口（面板本身由布局层常驻） -->
     <HeaderSearchTrigger v-if="placement.search.value === 'header'" class="mr-1" :compact="props.searchCompact" />

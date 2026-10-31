@@ -319,6 +319,12 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   transform: scale(1);
 }
 
+/* 键盘聚焦给与组件库同一道环：2px 画在钮盒内。不写的话落回浏览器缺省环，画在盒外、被页签条的 overflow 裁掉 */
+.chrome-tab__close:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
 .chrome-tab__close:hover,
 .chrome-tab__pin:hover {
   opacity: 1 !important;
