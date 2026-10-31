@@ -4,7 +4,7 @@ import { AUTH_PATH, FORBIDDEN_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PAT
 /**
  * 核心路由（认证 + 错误页）——唯一定义源。
  * src/router/routes.ts 直接展开使用，不再重复声明。
- * 认证子页只登记 6.0 后端已支持的（登录与第三方登录回调，4.x 原样搬入）；验证码登录、注册、找回密码等随 Identity 的后续批次补回。
+ * 认证子页照 4.x：登录、验证码登录、找回密码、注册与第三方登录回调（扫码登录 6.0 不做）；找回密码 6.0 发验证码，没有 4.x 的重置链接页。
  */
 export const coreRoutes: RouteRecordRaw[] = [
   {
@@ -31,6 +31,19 @@ export const coreRoutes: RouteRecordRaw[] = [
         name: 'EmailLogin',
         component: () => import('~/views/_core/authentication/email-login.vue'),
         meta: { title: 'page.auth.email_login', hidden: true },
+      },
+      {
+        path: 'forget-password',
+        name: 'ForgetPassword',
+        component: () => import('~/views/_core/authentication/forget-password.vue'),
+        meta: { title: 'page.auth.forget_password_title', hidden: true },
+      },
+      {
+        // 注册入口由登录配置的 registrationEnabled 决定显不显示，路由常在：没开放时提交即被后端拒绝
+        path: 'register',
+        name: 'Register',
+        component: () => import('~/views/_core/authentication/register.vue'),
+        meta: { title: 'page.auth.create_account_title', hidden: true },
       },
       {
         // 后端回调把浏览器带到这里（OAUTH_CALLBACK_PATH）：登录凭票据换会话，绑定由已登录的人在这里确认；已登录也放行（见守卫）

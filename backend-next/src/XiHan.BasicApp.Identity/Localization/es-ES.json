@@ -224,5 +224,15 @@
   "users.enable.title": "Activar usuarios",
   "users.enable.description": "Activa en lote usuarios desactivados; los que ya están activos cuentan como correctos y los bloqueados deben desbloquearse primero.",
   "permissions.identity.users.disable.name": "Activar y desactivar usuarios",
-  "identity.auth.account_disabled": "Esta cuenta está desactivada. Póngase en contacto con su administrador."
+  "identity.auth.account_disabled": "Esta cuenta está desactivada. Póngase en contacto con su administrador.",
+  "identity.auth.registration_closed": "El registro está cerrado. Pida a un administrador que le cree una cuenta.",
+  "identity.auth.email_taken": "El correo '{email}' ya lo usa otra cuenta.",
+  "identity.code.title.reset_password_email": "Restablecer contraseña",
+  "identity.code.title.reset_password_phone": "Restablecer contraseña",
+  "auth.register.title": "Registrarse",
+  "auth.register.description": "Registrar una cuenta de plataforma. Debe habilitarse en la configuración; la cuenta se puede usar al instante y sin roles, y se envía un correo de bienvenida si el correo está configurado.",
+  "auth.request_password_reset.title": "Solicitar restablecimiento de contraseña",
+  "auth.request_password_reset.description": "Enviar un código de restablecimiento al correo o al teléfono verificado de la cuenta. Responde «enviado» aunque no exista la cuenta (no se envía nada).",
+  "auth.reset_password.title": "Restablecer contraseña",
+  "auth.reset_password.description": "Establecer una contraseña nueva con el código. Se revocan todas las sesiones de la cuenta."
 }

@@ -224,5 +224,15 @@
   "users.enable.title": "Activer des utilisateurs",
   "users.enable.description": "Active par lot des utilisateurs désactivés ; ceux déjà actifs comptent comme réussis, ceux verrouillés doivent d’abord être déverrouillés.",
   "permissions.identity.users.disable.name": "Activer et désactiver des utilisateurs",
-  "identity.auth.account_disabled": "Ce compte a été désactivé. Contactez votre administrateur."
+  "identity.auth.account_disabled": "Ce compte a été désactivé. Contactez votre administrateur.",
+  "identity.auth.registration_closed": "L’inscription libre n’est pas ouverte. Demandez à un administrateur de créer un compte.",
+  "identity.auth.email_taken": "L’adresse '{email}' est déjà utilisée par un autre compte.",
+  "identity.code.title.reset_password_email": "Réinitialisation du mot de passe",
+  "identity.code.title.reset_password_phone": "Réinitialisation du mot de passe",
+  "auth.register.title": "S’inscrire",
+  "auth.register.description": "Inscrire un compte de plateforme. Doit être activé dans la configuration ; le compte est utilisable tout de suite, sans rôle, et un e-mail de bienvenue part si la messagerie est configurée.",
+  "auth.request_password_reset.title": "Demander la réinitialisation du mot de passe",
+  "auth.request_password_reset.description": "Envoyer un code de réinitialisation à l’e-mail ou au téléphone vérifié du compte. Répond « envoyé » même sans compte correspondant (rien n’est envoyé).",
+  "auth.reset_password.title": "Réinitialiser le mot de passe",
+  "auth.reset_password.description": "Définir un nouveau mot de passe avec le code. Toutes les sessions du compte sont révoquées."
 }

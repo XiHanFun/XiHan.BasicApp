@@ -175,11 +175,29 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[1]).toEqual({ method: 'POST', url: '/api/oauth-consents:revoke', body: { clientId: 'cid_x' } })
   })
 
-  it('登录配置：第三方登录提供方原样给登录页（名称、显示名与类型）', async () => {
+  it('登录配置：第三方登录提供方原样给登录页（名称、显示名与类型），注册开关一并带上', async () => {
     const calls: Call[] = []
-    record(calls, () => json(200, { loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true }))
-    expect(await useAppContext().apis.getLoginConfigApi()).toEqual({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true })
+    record(calls, () => json(200, { loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true, registrationEnabled: true }))
+    expect(await useAppContext().apis.getLoginConfigApi()).toEqual({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'corp', displayName: '企业微信', type: 'wecom' }], captchaEnabled: true, registrationEnabled: true })
     expect(calls[0]).toEqual({ method: 'GET', url: '/api/auth:login-config', body: null })
+  })
+
+  it('自助注册与找回密码：匿名调用 auth.register / request-password-reset / reset-password，租户留空即平台、显示名不填即空', async () => {
+    const calls: Call[] = []
+    record(calls, (url) => {
+      if (url.endsWith(':register'))
+        return json(200, { userId: 'u-1', userName: 'eve' })
+      if (url.endsWith(':request-password-reset'))
+        return json(200, { expiresInSeconds: 600 })
+      return json(200, { userName: 'eve' })
+    })
+    const apis = useAppContext().apis
+    expect(await apis.registerApi({ username: ' eve ', email: ' eve@example.com ', password: 'Pass@123456', captchaId: 'c-1', captchaCode: '1234' })).toEqual({ userName: 'eve' })
+    expect(calls[0]).toEqual({ method: 'POST', url: '/api/auth:register', body: { userName: 'eve', password: 'Pass@123456', email: 'eve@example.com', displayName: null, captchaId: 'c-1', captchaCode: '1234' } })
+    expect(await apis.requestPasswordResetApi({ email: 'eve@example.com', tenant: ' ' })).toEqual({ expiresInSeconds: 600 })
+    expect(calls[1]).toEqual({ method: 'POST', url: '/api/auth:request-password-reset', body: { channel: 'Email', target: 'eve@example.com', tenant: null } })
+    expect(await apis.resetPasswordApi({ email: 'eve@example.com', tenant: 'acme', code: '123456', newPassword: 'Fresh@123456' })).toEqual({ userName: 'eve' })
+    expect(calls[2]).toEqual({ method: 'POST', url: '/api/auth:reset-password', body: { channel: 'Email', target: 'eve@example.com', code: '123456', newPassword: 'Fresh@123456', tenant: 'acme' } })
   })
 
   it('账号绑定：发起返回 profile.begin-external-bind 给的地址；profile.external-logins / link-external / unlink-external 投影成 4.x 的条目（账号显示名进 providerDisplayName、最近登录换成 lastLoginTime，没有的字段不给）', async () => {

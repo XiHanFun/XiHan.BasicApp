@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Identity;
 /// 身份包配置（<c>BasicApp:Auth</c>）。
 /// </summary>
 /// <remarks>
-/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流与双因素。
+/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、验证码与自助注册。
 /// </remarks>
 public sealed record IdentityOptions
 {
@@ -122,6 +122,14 @@ public sealed record IdentityOptions
     public string TotpIssuer { get; init; } = "XiHan BasicApp";
 
     /// <summary>
+    /// 是否开放自助注册（<c>auth.register</c>）。
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>SelfRegistrationEnabled</c>，缺省关：注册的是平台账号，部署方确认要开放再打开（4.x 没有开关、总是开放）。
+    /// </remarks>
+    public bool SelfRegistrationEnabled { get; init; }
+
+    /// <summary>
     /// 邮件 / 短信验证码的有效期。
     /// </summary>
     /// <remarks>
@@ -216,6 +224,11 @@ public sealed record IdentityOptions
         if (ReadBoolean(section, "CaptchaEnabled") is { } captchaEnabled)
         {
             options = options with { CaptchaEnabled = captchaEnabled };
+        }
+
+        if (ReadBoolean(section, "SelfRegistrationEnabled") is { } registration)
+        {
+            options = options with { SelfRegistrationEnabled = registration };
         }
 
         if (ReadPositive(section, "CaptchaSeconds") is { } captchaSeconds)

@@ -36,7 +36,7 @@ beforeEach(() => {
   sessionStorage.clear()
   i18n.global.locale.value = 'zh-CN'
   getLoginConfigApi.mockReset()
-  getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }], captchaEnabled: false })
+  getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }], captchaEnabled: false, registrationEnabled: false })
 })
 
 describe('登录页与第三方登录', () => {
@@ -68,5 +68,34 @@ describe('登录页与第三方登录', () => {
     const github = wrapper.findAll('button').find(button => button.text() === 'GitHub')
     await github!.trigger('click')
     expect(start).toHaveBeenCalledWith({ name: 'github', displayName: 'GitHub', type: 'github' }, { tenant: 'acme', redirect: '/settings/configs' })
+  })
+})
+
+describe('找回密码与注册入口', () => {
+  async function mountWithAuthRoutes() {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: LOGIN_PATH, component: { render: () => null } },
+        { path: '/auth/forget-password', name: 'ForgetPassword', component: { render: () => null } },
+        { path: '/auth/register', name: 'Register', component: { render: () => null } },
+      ],
+    })
+    await router.push(LOGIN_PATH)
+    registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi: vi.fn() } as unknown as AppContextApis })
+    const wrapper = mount(LoginPage, { global: { plugins: [i18n, router] } })
+    await flushPromises()
+    return wrapper
+  }
+
+  it('找回密码总在；注册入口只在登录配置开放注册时出现', async () => {
+    const closed = await mountWithAuthRoutes()
+    expect(closed.text()).toContain(t('page.login.forgot_password'))
+    expect(closed.text()).not.toContain(t('page.auth.no_account'))
+
+    getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: true })
+    const open = await mountWithAuthRoutes()
+    expect(open.text()).toContain(t('page.auth.no_account'))
+    expect(open.text()).toContain(t('page.login.register'))
   })
 })

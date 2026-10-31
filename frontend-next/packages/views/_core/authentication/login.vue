@@ -29,6 +29,7 @@ const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
   oAuthProviders: [],
   captchaEnabled: false,
+  registrationEnabled: false,
 })
 
 // ==================== 图形验证码 ====================
@@ -652,7 +653,7 @@ const onAuthInvalid = useAuthFormInvalid()
             <XhCheckbox v-model:checked="rememberMe">
               {{ t('page.login.remember_me') }}
             </XhCheckbox>
-            <!-- 找回密码与注册页随 Identity 的后续批次补回：路由没登记就不给入口 -->
+            <!-- 路由没登记就不给入口 -->
             <span v-if="router.hasRoute('ForgetPassword')" class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
               {{ t('page.login.forgot_password') }}?
             </span>
@@ -665,7 +666,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFormRoot>
 
         <p
-          v-if="router.hasRoute('Register')"
+          v-if="router.hasRoute('Register') && loginConfig.registrationEnabled"
           class="mt-6 auth-helper text-center"
           :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
         >

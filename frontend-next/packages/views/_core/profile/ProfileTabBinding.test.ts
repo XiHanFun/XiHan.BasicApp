@@ -78,7 +78,7 @@ describe('账号绑定页签', () => {
   })
 
   it('没有配置任何渠道、也没有绑定时显示空态', async () => {
-    apis.getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false })
+    apis.getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: false })
     apis.getLinkedAccountsApi.mockResolvedValue([])
     const wrapper = await render()
     expect(wrapper.text()).toContain(i18n.global.t('component.profile.binding.empty'))

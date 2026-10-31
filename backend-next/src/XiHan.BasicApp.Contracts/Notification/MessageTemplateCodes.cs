@@ -31,4 +31,12 @@ public static class MessageTemplateCodes
     /// 验证码短信（验证、换绑与两步验证）。
     /// </summary>
     public const string SmsVerificationCode = "auth-sms-verification-code";
+
+    /// <summary>
+    /// 自助注册的欢迎邮件。
+    /// </summary>
+    /// <remarks>
+    /// 变量 <c>user_name</c> 显示名、<c>brand</c> 品牌名。
+    /// </remarks>
+    public const string Welcome = "auth-welcome";
 }

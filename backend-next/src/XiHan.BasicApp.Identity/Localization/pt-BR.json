@@ -224,5 +224,15 @@
   "users.enable.title": "Ativar usuários",
   "users.enable.description": "Ativa em lote usuários desativados; os que já estão ativos contam como sucesso e os bloqueados precisam ser desbloqueados antes.",
   "permissions.identity.users.disable.name": "Ativar e desativar usuários",
-  "identity.auth.account_disabled": "Esta conta foi desativada. Entre em contato com o administrador."
+  "identity.auth.account_disabled": "Esta conta foi desativada. Entre em contato com o administrador.",
+  "identity.auth.registration_closed": "O autocadastro não está aberto. Peça a um administrador para criar sua conta.",
+  "identity.auth.email_taken": "O e-mail '{email}' já é usado por outra conta.",
+  "identity.code.title.reset_password_email": "Redefinição de senha",
+  "identity.code.title.reset_password_phone": "Redefinição de senha",
+  "auth.register.title": "Cadastrar-se",
+  "auth.register.description": "Cadastrar uma conta de plataforma. Precisa ser habilitado na configuração; a conta pode ser usada na hora, sem papéis, e um e-mail de boas-vindas é enviado quando o e-mail está configurado.",
+  "auth.request_password_reset.title": "Solicitar redefinição de senha",
+  "auth.request_password_reset.description": "Enviar um código de redefinição ao e-mail ou telefone verificado da conta. Responde \"enviado\" mesmo sem conta correspondente (nada é enviado).",
+  "auth.reset_password.title": "Redefinir senha",
+  "auth.reset_password.description": "Definir uma nova senha com o código. Todas as sessões da conta são revogadas."
 }

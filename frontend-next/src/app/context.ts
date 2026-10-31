@@ -312,15 +312,30 @@ function timeZoneOptions() {
 
 /**
  * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由。
- * 登录配置来自 `auth.login-config`（账号密码与后端配置启用的第三方登录提供方，是否要图形验证码由后端配置）；验证码登录随后续批次接入。
+ * 登录配置来自 `auth.login-config`（开放的登录方式、后端配置启用的第三方登录提供方、是否要图形验证码与是否开放注册）。
  */
 export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {
     getLoginConfigApi: async () => {
       const config = await authOps.loginConfig({}, { anonymous: true })
-      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })), captchaEnabled: config.captchaEnabled }
+      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })), captchaEnabled: config.captchaEnabled, registrationEnabled: config.registrationEnabled }
     },
     getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),
+    // 自助注册（auth.register，匿名）：注册平台账号，显示名不填即用户名；没开放即 IDENTITY_DENIED_020
+    registerApi: async (input) => {
+      const registered = await authOps.register({
+        userName: input.username.trim(),
+        password: input.password,
+        email: input.email.trim(),
+        displayName: input.nickName?.trim() || null,
+        captchaId: input.captchaId ?? null,
+        captchaCode: input.captchaCode ?? null,
+      }, { anonymous: true })
+      return { userName: registered.userName }
+    },
+    // 找回密码（auth.request-password-reset / auth.reset-password，匿名）：4.x 发一次性链接，6.0 发验证码到邮箱；租户留空即平台
+    requestPasswordResetApi: input => authOps.requestPasswordReset({ channel: 'Email', target: input.email.trim(), tenant: input.tenant?.trim() || null }, { anonymous: true }),
+    resetPasswordApi: input => authOps.resetPassword({ channel: 'Email', target: input.email.trim(), code: input.code, newPassword: input.newPassword, tenant: input.tenant?.trim() || null }, { anonymous: true }),
     // 验证码登录发码（auth.send-login-code，匿名）：租户留空即平台；账号不存在、不唯一也回答已发送（不发），不返回调试码
     sendEmailLoginCodeApi: (email, tenant) => authOps.sendLoginCode({ channel: 'Email', target: email, tenant: tenant?.trim() || null }, { anonymous: true }),
     sendPhoneLoginCodeApi: (phone, tenant) => authOps.sendLoginCode({ channel: 'Phone', target: phone, tenant: tenant?.trim() || null }, { anonymous: true }),

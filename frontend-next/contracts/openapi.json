@@ -1212,16 +1212,16 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u4E0E\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u3002",
+            "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u4E0E\u662F\u5426\u5F00\u653E\u6CE8\u518C\u3002",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "LoginConfigResponse",
-                  "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u4E0E\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u3002",
+                  "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u4E0E\u662F\u5426\u5F00\u653E\u6CE8\u518C\u3002",
                   "type": "object",
                   "properties": {
                     "loginMethods": {
-                      "description": "\u767B\u5F55\u65B9\u5F0F\uFF08\u76EE\u524D\u53EA\u6709 password\uFF1B\u9A8C\u8BC1\u7801\u767B\u5F55\u968F Notification\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u968F OpenPlatform \u52A0\u5165\uFF09\u3002",
+                      "description": "\u767B\u5F55\u65B9\u5F0F\uFF1Apassword \u603B\u5728\uFF0Cemail / phone\uFF08\u9A8C\u8BC1\u7801\u767B\u5F55\uFF09\u6309\u7CFB\u7EDF\u53C2\u6570 identity.login-methods \u5F00\u653E\u3002",
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -1235,14 +1235,19 @@
                       }
                     },
                     "captchaEnabled": {
-                      "description": "\u5BC6\u7801\u767B\u5F55\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u3002",
+                      "description": "\u5BC6\u7801\u767B\u5F55\u4E0E\u6CE8\u518C\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u3002",
+                      "type": "boolean"
+                    },
+                    "registrationEnabled": {
+                      "description": "\u662F\u5426\u5F00\u653E\u81EA\u52A9\u6CE8\u518C\uFF08BasicApp:Auth:SelfRegistrationEnabled\uFF09\u3002",
                       "type": "boolean"
                     }
                   },
                   "required": [
                     "loginMethods",
                     "oAuthProviders",
-                    "captchaEnabled"
+                    "captchaEnabled",
+                    "registrationEnabled"
                   ]
                 }
               }
@@ -1600,6 +1605,302 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:register": {
+      "post": {
+        "operationId": "auth.register",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register",
+        "description": "Register a platform account. Must be enabled in configuration; the account is usable immediately with no roles, and a welcome email is sent when email is configured.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "description": "auth.register \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RegisterRequest",
+                "description": "auth.register \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "description": "\u767B\u5F55\u540D\uFF1A3 \u5230 64 \u4E2A\u5B57\u7B26\uFF0C\u5C0F\u5199\u5B57\u6BCD\u5F00\u5934\uFF0C\u53EA\u542B\u5C0F\u5199\u5B57\u6BCD\u3001\u6570\u5B57\u3001.\u3001_\u3001-\u3002",
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 64,
+                    "pattern": "^[a-z][a-z0-9._-]*$"
+                  },
+                  "password": {
+                    "description": "\u5BC6\u7801\uFF0C\u6309\u5BC6\u7801\u7B56\u7565\u6821\u9A8C\u3002",
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  },
+                  "email": {
+                    "description": "\u90AE\u7BB1\uFF1A\u627E\u56DE\u5BC6\u7801\u7528\uFF0C\u540C\u4E00\u4FA7\u4E0D\u80FD\u4E0E\u6B63\u5E38\u8D26\u53F7\u91CD\u590D\u3002",
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "displayName": {
+                    "description": "\u663E\u793A\u540D\uFF1B\u4E0D\u586B\u5373\u767B\u5F55\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "captchaId": {
+                    "description": "\u56FE\u5F62\u9A8C\u8BC1\u7801\u6807\u8BC6\uFF08\u5F00\u4E86\u56FE\u5F62\u9A8C\u8BC1\u7801\u65F6\u5FC5\u586B\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "captchaCode": {
+                    "description": "\u56FE\u5F62\u9A8C\u8BC1\u7801\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 16
+                  }
+                },
+                "required": [
+                  "userName",
+                  "password",
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6CE8\u518C\u6210\u529F\u7684\u8D26\u53F7\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RegisterResponse",
+                  "description": "\u6CE8\u518C\u6210\u529F\u7684\u8D26\u53F7\u3002",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u7528\u6237\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "description": "\u767B\u5F55\u540D\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "userName"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:request-password-reset": {
+      "post": {
+        "operationId": "auth.request-password-reset",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Request password reset",
+        "description": "Send a password reset code to the account\u0027s email or verified phone. Answers \u0027sent\u0027 even when no account matches (nothing is sent).",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "description": "auth.request-password-reset \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RequestPasswordResetRequest",
+                "description": "auth.request-password-reset \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "description": "\u53D1\u5230\u90AE\u7BB1\u8FD8\u662F\u624B\u673A\u53F7\u3002",
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "target": {
+                    "description": "\u8D26\u53F7\u7684\u90AE\u7BB1\u6216\u5DF2\u9A8C\u8BC1\u7684\u624B\u673A\u53F7\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "tenant": {
+                    "description": "\u6CE8\u518C\u5730\u79DF\u6237\uFF1B\u5E73\u53F0\u8D26\u53F7\u7559\u7A7A\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "channel",
+                  "target"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u9A8C\u8BC1\u7801\u5DF2\u53D1\u51FA\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodeSentResponse",
+                  "description": "\u9A8C\u8BC1\u7801\u5DF2\u53D1\u51FA\u3002",
+                  "type": "object",
+                  "properties": {
+                    "expiresInSeconds": {
+                      "description": "\u9A8C\u8BC1\u7801\u7684\u6709\u6548\u79D2\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "expiresInSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:reset-password": {
+      "post": {
+        "operationId": "auth.reset-password",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Reset password",
+        "description": "Set a new password with the reset code. All sessions of the account are revoked.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "description": "auth.reset-password \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ResetPasswordWithCodeRequest",
+                "description": "auth.reset-password \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "description": "\u6536\u7801\u7684\u662F\u90AE\u7BB1\u8FD8\u662F\u624B\u673A\u53F7\u3002",
+                    "$ref": "#/components/schemas/ContactChannel"
+                  },
+                  "target": {
+                    "description": "\u6536\u7801\u7684\u90AE\u7BB1\u6216\u624B\u673A\u53F7\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "code": {
+                    "description": "\u6536\u5230\u7684\u9A8C\u8BC1\u7801\u3002",
+                    "type": "string",
+                    "minLength": 4,
+                    "maxLength": 10
+                  },
+                  "newPassword": {
+                    "description": "\u65B0\u5BC6\u7801\uFF0C\u6309\u5BC6\u7801\u7B56\u7565\u4E0E\u5386\u53F2\u6821\u9A8C\u3002",
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  },
+                  "tenant": {
+                    "description": "\u6CE8\u518C\u5730\u79DF\u6237\uFF1B\u5E73\u53F0\u8D26\u53F7\u7559\u7A7A\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "channel",
+                  "target",
+                  "code",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5BC6\u7801\u5DF2\u91CD\u7F6E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PasswordResetResponse",
+                  "description": "\u5BC6\u7801\u5DF2\u91CD\u7F6E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "userName": {
+                      "description": "\u8D26\u53F7\u7684\u767B\u5F55\u540D\uFF08\u56DE\u5230\u767B\u5F55\u9875\u65F6\u9884\u586B\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userName"
                   ]
                 }
               }

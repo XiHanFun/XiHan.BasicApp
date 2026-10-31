@@ -5,7 +5,11 @@ import type {
   ImpersonationTenantOption,
   LoginConfig,
   LoginToken,
+  PasswordResetConfirmParams,
+  PasswordResetConfirmResult,
+  PasswordResetRequestParams,
   PermissionInfo,
+  RegisterParams,
   SessionRoleOption,
   StartImpersonationParams,
   SwitchTenantParams,
@@ -125,8 +129,14 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
 export interface AppContextApis {
   /** 登录页配置：开放的登录方式、第三方登录与是否要图形验证码 */
   getLoginConfigApi: () => Promise<LoginConfig>
-  /** 图形验证码（登录配置要求时，密码登录的首段带上） */
+  /** 图形验证码（登录配置要求时，密码登录的首段与注册带上） */
   getCaptchaApi: () => Promise<CaptchaChallenge>
+  /** 自助注册平台账号（登录配置 registrationEnabled 为真时才开放），返回登录名 */
+  registerApi: (input: RegisterParams) => Promise<{ userName: string }>
+  /** 找回密码：把验证码发到账号的邮箱（账号不存在也回答已发送） */
+  requestPasswordResetApi: (input: PasswordResetRequestParams) => Promise<VerificationCodeResult>
+  /** 找回密码：凭验证码设新密码，这个账号的全部会话随之失效 */
+  resetPasswordApi: (input: PasswordResetConfirmParams) => Promise<PasswordResetConfirmResult>
   getPermissionsApi: () => Promise<PermissionInfo>
   getUserInfoApi: () => Promise<UserInfo>
   logoutApi: () => Promise<unknown>

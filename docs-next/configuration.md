@@ -160,6 +160,7 @@
 | `LoginThrottleAccountLimit` / `LoginThrottleIpLimit` | `5` / `30` | 同账号同地址、同地址跨账号的失败上限 |
 | `TwoFactorTicketMinutes` / `TwoFactorTicketMaxFailures` | `10` / `5` | 双因素票据 |
 | `TotpIssuer` | `XiHan BasicApp` | 认证器里显示的签发方 |
+| `SelfRegistrationEnabled` | `false` | 开放自助注册（`auth.register`，注册平台账号） |
 | `VerificationCodeMinutes` / `VerificationCodeIntervalSeconds` | `10` / `60` | 邮箱 / 短信验证码有效期与发送间隔 |
 | `VerificationCodeDailyPerTarget` / `VerificationCodeDailyPerAddress` | `10` / `50` | 每天每个目标、每个地址的发送上限 |
 | `VerificationCodeMaxFailures` / `VerificationCodeLockoutMinutes` | `5` / `10` | 验证码输错锁定 |

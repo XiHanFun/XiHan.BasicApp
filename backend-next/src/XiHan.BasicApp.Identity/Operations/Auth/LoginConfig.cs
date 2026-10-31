@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// 取登录页配置。
 /// </summary>
 /// <remarks>
-/// 匿名只读操作，登记在架构测试的匿名白名单。<c>GET /api/auth:login-config</c>。登录页据此决定显示哪些入口、要不要图形验证码。
+/// 匿名只读操作，登记在架构测试的匿名白名单。<c>GET /api/auth:login-config</c>。登录页据此决定显示哪些入口、要不要图形验证码、出不出注册入口。
 /// 开放的登录方式取系统参数（<see cref="LoginMethods"/>），参数写错即失败。
 /// </remarks>
 /// <param name="options">身份配置。</param>
@@ -41,6 +41,6 @@ public sealed class LoginConfig(IdentityOptions options, ExternalLoginOptions ex
             return methods.Error!;
         }
 
-        return new LoginConfigResponse(open, external.Enabled ? [.. external.Providers.Select(static p => new LoginProviderResponse(p.Name, p.DisplayName, p.Type))] : [], options.CaptchaEnabled);
+        return new LoginConfigResponse(open, external.Enabled ? [.. external.Providers.Select(static p => new LoginProviderResponse(p.Name, p.DisplayName, p.Type))] : [], options.CaptchaEnabled, options.SelfRegistrationEnabled);
     }
 }
