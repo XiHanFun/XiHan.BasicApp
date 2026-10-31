@@ -623,6 +623,7 @@ export default {
     error_reason_column: 'Fehlerursache',
   },
   schema_table_settings: {
+    index_align_label: 'Nummernausrichtung',
     density_small: 'Kompakt',
     density_medium: 'Normal',
     density_large: 'Geräumig',

@@ -9,6 +9,8 @@ import { effectScope, ref } from 'vue'
 import { storage } from '~/utils'
 import { useTableSettings } from './useTableSettings'
 
+const remote = vi.hoisted(() => ({ apply: (_value: unknown) => {} }))
+
 vi.mock('./useUserSettingSync', async () => {
   const { ref: vueRef } = await import('vue')
   return {
@@ -17,7 +19,10 @@ vi.mock('./useUserSettingSync', async () => {
       save: vi.fn(),
       subscribeRemote: () => () => {},
       // 关着同步的样子：立即就绪，不拉后端
-      bindSection: () => ({ ready: vueRef(true), settled: Promise.resolve(), dispose: () => {} }),
+      bindSection: (_section: string, target: { apply: (value: unknown) => void }) => {
+        remote.apply = target.apply
+        return { ready: vueRef(true), settled: Promise.resolve(), dispose: () => {} }
+      },
     }),
   }
 })
@@ -111,5 +116,53 @@ describe('useTableSettings 密度与竖线', () => {
     expect(on.settings.style.value).toStrictEqual({ striped: false, bordered: true, ruled: true })
     off.stop()
     on.stop()
+  })
+})
+
+describe('useTableSettings 序号列对齐', () => {
+  it('序号与数据列分别保存和恢复；未保存的调整不落地', () => {
+    const first = setup('index-align')
+    first.settings.setAlign('center')
+    first.settings.setIndexAlign('right')
+    expect(storage.get('xh:table-settings:index-align')).toBeNull()
+    first.settings.save()
+    first.stop()
+    const second = setup('index-align')
+    expect(second.settings.align.value).toBe('center')
+    expect(second.settings.indexAlign.value).toBe('right')
+    second.stop()
+  })
+
+  it('隐藏再显示保留对齐；恢复默认只在保存时持久化', () => {
+    const { settings, stop } = setup('index-reset')
+    settings.setIndexAlign('right')
+    settings.setShowIndex(false)
+    settings.save()
+    settings.setShowIndex(true)
+    expect(settings.indexAlign.value).toBe('right')
+    settings.resetDefault()
+    expect(settings.indexAlign.value).toBe('left')
+    expect(storage.get<{ indexAlign: string }>('xh:table-settings:index-reset')?.indexAlign).toBe('right')
+    settings.save()
+    expect(storage.get<{ indexAlign: string }>('xh:table-settings:index-reset')?.indexAlign).toBe('left')
+    stop()
+  })
+
+  it.each([undefined, 'justify', null, 42])('旧配置/非法值 %s 恢复为居左，不继承数据列方向', (indexAlign) => {
+    storage.set('xh:table-settings:index-legacy', { columns: [], align: 'right', indexAlign })
+    const { settings, stop } = setup('index-legacy')
+    expect(settings.align.value).toBe('right')
+    expect(settings.indexAlign.value).toBe('left')
+    stop()
+  })
+
+  it('远端同步应用独立对齐，旧远端载荷仍按居左读取', () => {
+    const { settings, stop } = setup('index-remote')
+    remote.apply({ columns: [], align: 'right', indexAlign: 'center' })
+    expect(settings.indexAlign.value).toBe('center')
+    expect(settings.align.value).toBe('right')
+    remote.apply({ columns: [], align: 'center' })
+    expect(settings.indexAlign.value).toBe('left')
+    stop()
   })
 })

@@ -1,3 +1,4 @@
+<!-- 表格渲染面板：通过组件库列契约分别控制数据列与序号列对齐，勾选/展开列保持原行为。 -->
 <script setup lang="ts" generic="TRow extends object">
 import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor } from '@xihan-ui/headless'
 import type { VNodeChild } from 'vue'
@@ -64,6 +65,8 @@ const props = withDefaults(defineProps<{
   ruled?: boolean
   /** 数据列的对齐（表格设置里选的那一档），缺省靠起始边 */
   align?: 'left' | 'center' | 'right'
+  /** 序号列的独立对齐，同时作用于表头与序号单元格。 */
+  indexAlign?: 'left' | 'center' | 'right'
   /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
   tree?: boolean
   /** 子节点字段名（默认 children） */
@@ -96,6 +99,7 @@ const props = withDefaults(defineProps<{
   bordered: true,
   ruled: false,
   align: 'left',
+  indexAlign: 'left',
   tree: false,
   childrenKey: 'children',
   defaultExpandAll: true,
@@ -261,6 +265,8 @@ const tableColumns = computed<TableColumnDef[]>(() => {
   return [
     ...prefixColumns.value.map<TableColumnDef>(c => ({
       id: c.id,
+      // 序号不是业务字段，不跟随整表数据列对齐；复用列契约保持头部和单元格一致。
+      ...(c.id === INDEX_COL && props.indexAlign !== 'left' ? { align: COLUMN_ALIGN[props.indexAlign] } : {}),
       width: c.width,
       minWidth: c.width,
       maxWidth: c.width,

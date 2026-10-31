@@ -1,3 +1,4 @@
+<!-- 表格设置面板：分别编辑数据列和序号列对齐，所有变更由父级显式保存。 -->
 <script setup lang="ts">
 import type { ColumnSetting, TableAlign, TableDensity, TableStyle } from './useTableSettings'
 import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
@@ -19,6 +20,8 @@ const props = defineProps<{
   tableStyle: TableStyle
   /** 表格对齐 */
   align: TableAlign
+  /** 序号列独立对齐；旧调用方不传时保持居左。 */
+  indexAlign?: TableAlign
   /** 是否允许多选 */
   selectable: boolean
   /** 是否显示序号列 */
@@ -33,6 +36,7 @@ const emit = defineEmits<{
   setDensity: [value: TableDensity]
   setStyle: [key: keyof TableStyle, value: boolean]
   setAlign: [value: TableAlign]
+  setIndexAlign: [value: TableAlign]
   setSelectable: [value: boolean]
   setShowIndex: [value: boolean]
   cycleSort: [key: string]
@@ -76,6 +80,16 @@ function onAlignChange(value: string | string[] | null) {
   // 对齐单选且不许清空，这里只会收到一个值
   if (typeof value === 'string')
     emit('setAlign', value as TableAlign)
+}
+
+/**
+ * 仅接受显示中的序号列的合法对齐选项，隐藏时保留原草稿。
+ * @param value 单选控件提交的方向。
+ * @returns {void} 无返回值；由父级更新偏好。
+ */
+function onIndexAlignChange(value: string | string[] | null): void {
+  if (props.showIndex && (value === 'left' || value === 'center' || value === 'right'))
+    emit('setIndexAlign', value)
 }
 
 function onStyleChange(value: string | string[] | null) {
@@ -240,6 +254,23 @@ function onSort(details: { from: number, to: number }) {
               disallow-empty
               :aria-label="t('component.schema_table_settings.align_label')"
               @update:value="onAlignChange"
+            >
+              <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
+          </div>
+
+          <!-- 序号列独立对齐；隐藏时禁用选择但保留值，重新开启可恢复。 -->
+          <div class="flex gap-2 items-center justify-between">
+            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.index_align_label') }}</span>
+            <XhToggleGroupRoot
+              size="sm"
+              :value="indexAlign ?? 'left'"
+              :disabled="!showIndex"
+              disallow-empty
+              :aria-label="t('component.schema_table_settings.index_align_label')"
+              @update:value="onIndexAlignChange"
             >
               <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}

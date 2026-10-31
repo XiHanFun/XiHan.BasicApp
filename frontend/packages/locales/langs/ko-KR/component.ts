@@ -622,6 +622,7 @@ export default {
     error_reason_column: '오류 원인',
   },
   schema_table_settings: {
+    index_align_label: '번호 열 정렬',
     density_small: '좁게',
     density_medium: '기본',
     density_large: '넓게',

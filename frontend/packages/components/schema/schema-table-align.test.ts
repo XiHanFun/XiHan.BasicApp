@@ -1,6 +1,6 @@
 /**
  * 列表页表格的对齐落到组件库的列契约上：表格设置选居中、居右时数据列一起换，
- * 靠左是库的缺省，不写出来；勾选、序号这些前缀列不跟着换。
+ * 靠左是库的缺省，不写出来；勾选、展开列不跟着换，序号列通过独立设置控制。
  */
 import type { TableColumnDef } from '@xihan-ui/headless'
 import type { SchemaColumn } from './types'
@@ -24,7 +24,9 @@ function columnDefs(props: Record<string, unknown> = {}): TableColumnDef[] {
     props: { columns, data, selectable: true, showIndex: true, ...props },
     global: { plugins: [i18n] },
   })
-  return wrapper.findComponent(XhTableRoot).props('columns') ?? []
+  const defs = wrapper.findComponent(XhTableRoot).props('columns') ?? []
+  wrapper.unmount()
+  return defs
 }
 
 describe('schemaTablePanel 的对齐', () => {
@@ -41,5 +43,21 @@ describe('schemaTablePanel 的对齐', () => {
     const prefix = defs.filter(def => def.id !== 'name' && def.id !== 'path')
     expect(prefix.length).toBeGreaterThan(0)
     expect(prefix.every(def => !('align' in def))).toBe(true)
+  })
+})
+
+describe('序号列独立对齐', () => {
+  it.each([['left', undefined], ['center', 'center'], ['right', 'end']] as const)('序号 %s 不改变数据列与勾选/展开列', (indexAlign, expected) => {
+    const defs = columnDefs({ align: 'right', indexAlign, renderExpand: () => '展开内容' })
+    const index = defs.find(def => def.id === '__index__')
+    expect(index?.align).toBe(expected)
+    expect(defs.find(def => def.id === 'name')?.align).toBe('end')
+    expect(defs.find(def => def.id === '__select__')).not.toHaveProperty('align')
+    expect(defs.find(def => def.id === '__expand__')).not.toHaveProperty('align')
+  })
+
+  it('隐藏序号时不创建该列，树表也使用同一独立对齐契约', () => {
+    expect(columnDefs({ showIndex: false, indexAlign: 'right' }).some(def => def.id === '__index__')).toBe(false)
+    expect(columnDefs({ tree: true, indexAlign: 'center' }).find(def => def.id === '__index__')).toMatchObject({ align: 'center', width: 90 })
   })
 })

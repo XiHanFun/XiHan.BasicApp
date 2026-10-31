@@ -622,6 +622,7 @@ export default {
     error_reason_column: 'エラー理由',
   },
   schema_table_settings: {
+    index_align_label: '連番列の配置',
     density_small: 'コンパクト',
     density_medium: '標準',
     density_large: 'ゆったり',

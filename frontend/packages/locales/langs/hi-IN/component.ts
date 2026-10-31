@@ -622,6 +622,7 @@ export default {
     error_reason_column: 'त्रुटि का कारण',
   },
   schema_table_settings: {
+    index_align_label: 'क्रमांक संरेखण',
     density_small: 'संकुचित',
     density_medium: 'डिफ़ॉल्ट',
     density_large: 'विस्तृत',

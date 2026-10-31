@@ -1,3 +1,4 @@
+/** 表格偏好：按页面维护数据列及序号列的独立对齐，复用既有保存和跨端同步。 */
 import type { Size } from '@xihan-ui/core'
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
@@ -41,6 +42,14 @@ export interface TableStyle {
 /** 表格对齐：数据列都按这一档排，缺省靠起始边，与组件库一致 */
 export type TableAlign = 'left' | 'center' | 'right'
 
+/** 序号列缺省居左，与新增设置前的显示行为一致。 */
+const DEFAULT_INDEX_ALIGN: TableAlign = 'left'
+
+/** 旧配置和非法值保留原序号列的起始边对齐。 */
+function readIndexAlign(value: unknown): TableAlign {
+  return value === 'center' || value === 'right' ? value : DEFAULT_INDEX_ALIGN
+}
+
 /** 表格风格默认值：不打斑马纹、显示竖线 */
 const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, ruled: true }
 
@@ -80,6 +89,8 @@ interface PersistedTableSettings {
   style?: Partial<TableStyle> & { singleLine?: boolean }
   /** 表格对齐 */
   align?: TableAlign
+  /** 序号列独立对齐；缺省居左，兼容未保存该字段的旧配置。 */
+  indexAlign?: TableAlign
   /** 是否允许多选 */
   selectable?: boolean
   /** 是否显示序号列 */
@@ -128,6 +139,7 @@ export function useTableSettings(
   const density = ref<TableDensity>('md')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const align = ref<TableAlign>('left')
+  const indexAlign = ref<TableAlign>(DEFAULT_INDEX_ALIGN)
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
 
@@ -166,6 +178,7 @@ export function useTableSettings(
     density.value = readDensity(persisted.density)
     style.value = readStyle(persisted.style)
     align.value = persisted.align ?? 'left'
+    indexAlign.value = readIndexAlign(persisted.indexAlign)
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
   }
@@ -187,6 +200,7 @@ export function useTableSettings(
       density: density.value,
       style: { ...style.value },
       align: align.value,
+      indexAlign: indexAlign.value,
       selectable: selectable.value,
       showIndex: showIndex.value,
     }
@@ -247,6 +261,15 @@ export function useTableSettings(
     align.value = value
   }
 
+  /**
+   * 只修改本页草稿，持久化和并发同步继续由显式保存及现有同步服务负责。
+   * @param value 序号列的对齐方向。
+   * @returns {void} 无返回值；不改变数据列、勾选列或序号显示开关。
+   */
+  function setIndexAlign(value: TableAlign): void {
+    indexAlign.value = readIndexAlign(value)
+  }
+
   function setSelectable(value: boolean) {
     selectable.value = value
   }
@@ -286,6 +309,7 @@ export function useTableSettings(
     density.value = 'md'
     style.value = { ...DEFAULT_STYLE }
     align.value = 'left'
+    indexAlign.value = DEFAULT_INDEX_ALIGN
     selectable.value = defaultSelectable
     showIndex.value = true
   }
@@ -310,6 +334,7 @@ export function useTableSettings(
     density,
     style,
     align,
+    indexAlign,
     selectable,
     showIndex,
     defaultSorts,
@@ -322,6 +347,7 @@ export function useTableSettings(
     setWidth,
     setStyle,
     setAlign,
+    setIndexAlign,
     setSelectable,
     setShowIndex,
     cycleSort,

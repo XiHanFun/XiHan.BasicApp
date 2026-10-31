@@ -622,6 +622,7 @@ export default {
     error_reason_column: '错误原因',
   },
   schema_table_settings: {
+    index_align_label: '序号列对齐',
     density_small: '紧凑',
     density_medium: '默认',
     density_large: '宽松',
