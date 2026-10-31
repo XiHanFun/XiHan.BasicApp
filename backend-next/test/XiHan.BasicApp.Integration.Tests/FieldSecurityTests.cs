@@ -179,6 +179,51 @@ public sealed class FieldSecurityTests : IDisposable
     }
 
     [Fact]
+    public async Task Rules_ApplyToEveryRegisteredEntity_ThroughTheSharedMiddleware()
+    {
+        var (server, _, admin) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 岗位：组织包声明式登记，读、改的规则由 Access 的中间件套用（与用户目录同一套）
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/positions", """{"code":"ops","name":"Operations","description":"Night shift"}""", admin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var positionId = createdBody.GetProperty("id").GetString()!;
+        var (_, ivyBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"ivy","displayName":"Ivy","password":"Ivy@1234567"}""", admin));
+        var ivyId = ivyBody.GetProperty("id").GetString()!;
+        var (_, roleBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles", """{"code":"planner","name":"Planner","dataScope":"All"}""", admin));
+        var roleId = roleBody.GetProperty("id").GetString()!;
+        await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:grant", """{"permissions":["organization.positions.read","organization.positions.update"]}""", admin));
+        await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:assign", $$"""{"userIds":["{{ivyId}}"]}""", admin));
+        var ivy = (await AuthFlowTests.LoginAsync(server, "ivy", "Ivy@1234567", "contoso")).GetProperty("accessToken").GetString()!;
+
+        var (_, entities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/field-security:entities", token: admin));
+        var positions = Assert.Single(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "organization.positions");
+        Assert.Equal(["code", "name", "status", "order", "description", "createdAt"], positions.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
+
+        // 说明隐藏、名称部分脱敏且只读：详情与列表都打码
+        await RuleAsync(server, admin, $$"""{"targetKind":"Role","targetId":"{{roleId}}","entity":"organization.positions","field":"description","strategy":"Hidden","isEditable":true}""");
+        await RuleAsync(server, admin, $$"""{"targetKind":"Role","targetId":"{{roleId}}","entity":"organization.positions","field":"name","strategy":"PartialMask","keepHead":1,"keepTail":1}""");
+        var (_, seen) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/positions/{positionId}", token: ivy));
+        Assert.Equal(("O********s", JsonValueKind.Null), (seen.GetProperty("name").GetString(), seen.GetProperty("description").ValueKind));
+        var (_, listed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/positions:list", "{}", ivy));
+        Assert.Equal("O********s", Assert.Single(listed.GetProperty("items").EnumerateArray()).GetProperty("name").GetString());
+
+        // 筛选受保护的字段被拒；关键字会匹配到受保护的名称也被拒
+        var (filtered, filteredBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/positions:list", """{"filters":[{"field":"description","operator":"contains","value":"Night"}]}""", ivy));
+        Assert.Equal((HttpStatusCode.Forbidden, "ACCESS_DENIED_006"), (filtered.StatusCode, filteredBody.GetProperty("code").GetString()));
+        var (searched, searchedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/positions:list", """{"keyword":"ops"}""", ivy));
+        Assert.Equal((HttpStatusCode.Forbidden, "ACCESS_DENIED_006"), (searched.StatusCode, searchedBody.GetProperty("code").GetString()));
+
+        // 交回脱敏的名称与空的说明视为没改，排序照改；改只读的名称被拒
+        var (kept, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/positions/{positionId}", """{"name":"O********s","order":5}""", ivy));
+        Assert.Equal(HttpStatusCode.OK, kept.StatusCode);
+        var (_, afterKeep) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/positions/{positionId}", token: admin));
+        Assert.Equal(("Operations", "Night shift", 5), (afterKeep.GetProperty("name").GetString(), afterKeep.GetProperty("description").GetString(), afterKeep.GetProperty("order").GetInt32()));
+        var (renamed, renamedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/positions/{positionId}", """{"name":"Other"}""", ivy));
+        Assert.Equal((HttpStatusCode.Forbidden, "ACCESS_DENIED_007"), (renamed.StatusCode, renamedBody.GetProperty("code").GetString()));
+    }
+
+    [Fact]
     public void Merge_TakesTheStrictestReading_AndTheSmallestKeep()
     {
         var merged = FieldRules.Merge(
