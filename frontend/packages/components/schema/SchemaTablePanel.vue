@@ -67,6 +67,8 @@ const props = withDefaults(defineProps<{
   align?: 'left' | 'center' | 'right'
   /** 序号列的独立对齐，同时作用于表头与序号单元格。 */
   indexAlign?: 'left' | 'center' | 'right'
+  /** 数据列对齐覆盖；未指定的列跟随整表 align。 */
+  columnAlign?: Readonly<Partial<Record<string, 'left' | 'center' | 'right'>>>
   /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
   tree?: boolean
   /** 子节点字段名（默认 children） */
@@ -100,6 +102,7 @@ const props = withDefaults(defineProps<{
   ruled: false,
   align: 'left',
   indexAlign: 'left',
+  columnAlign: () => ({}),
   tree: false,
   childrenKey: 'children',
   defaultExpandAll: true,
@@ -274,6 +277,7 @@ const tableColumns = computed<TableColumnDef[]>(() => {
     })),
     ...props.columns.map<TableColumnDef>((column) => {
       const width = declaredWidthOf(column)
+      const align = Object.hasOwn(props.columnAlign, column.key) ? props.columnAlign[column.key] ?? props.align : props.align
       return {
         id: column.key,
         label: column.title,
@@ -281,7 +285,7 @@ const tableColumns = computed<TableColumnDef[]>(() => {
         // 吸附偏移由库按列宽累加，这里只报侧别
         ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
         // 对齐交给库落到列头与数据格上（data-align），起始边是库的缺省，不必写出来
-        ...(props.align === 'left' ? {} : { align: COLUMN_ALIGN[props.align] }),
+        ...(align === 'left' ? {} : { align: COLUMN_ALIGN[align] }),
         width,
         minWidth: column.minWidth ?? width,
         // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉

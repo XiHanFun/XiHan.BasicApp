@@ -622,6 +622,10 @@ export default {
     error_reason_column: '錯誤原因',
   },
   schema_table_settings: {
+    show_index: '顯示序號欄',
+    column_align: '對齊',
+    align_default: '預設',
+    align_default_hint: '預設跟隨表格對齊',
     index_align_label: '序號欄對齊',
     density_small: '緊湊',
     density_medium: '預設',

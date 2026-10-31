@@ -622,6 +622,10 @@ export default {
     error_reason_column: 'त्रुटि का कारण',
   },
   schema_table_settings: {
+    show_index: 'क्रमांक स्तंभ दिखाएँ',
+    column_align: 'संरेखण',
+    align_default: 'डिफ़ॉल्ट',
+    align_default_hint: 'डिफ़ॉल्ट तालिका संरेखण का पालन करता है',
     index_align_label: 'क्रमांक संरेखण',
     density_small: 'संकुचित',
     density_medium: 'डिफ़ॉल्ट',

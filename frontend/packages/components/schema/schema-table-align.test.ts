@@ -61,3 +61,21 @@ describe('序号列独立对齐', () => {
     expect(columnDefs({ tree: true, indexAlign: 'center' }).find(def => def.id === '__index__')).toMatchObject({ align: 'center', width: 90 })
   })
 })
+
+describe('逐列对齐优先级', () => {
+  it('显式单列对齐优先于表格，未覆盖的列跟随表格，序号独立', () => {
+    const defs = columnDefs({ align: 'center', indexAlign: 'right', columnAlign: { name: 'left' } })
+    expect(defs.find(def => def.id === 'name')).not.toHaveProperty('align')
+    expect(defs.find(def => def.id === 'path')?.align).toBe('center')
+    expect(defs.find(def => def.id === '__index__')?.align).toBe('end')
+    expect(defs.find(def => def.id === '__select__')).not.toHaveProperty('align')
+  })
+
+  it('不同数据列可独立对齐，清除覆盖恢复整表方向', () => {
+    const defs = columnDefs({ align: 'left', columnAlign: { name: 'center', path: 'right' } })
+    expect(defs.find(def => def.id === 'name')?.align).toBe('center')
+    expect(defs.find(def => def.id === 'path')?.align).toBe('end')
+    const inherited = columnDefs({ align: 'right', columnAlign: {} })
+    expect(inherited.find(def => def.id === 'name')?.align).toBe('end')
+  })
+})

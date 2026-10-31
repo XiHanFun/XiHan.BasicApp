@@ -1,13 +1,14 @@
 <!-- 表格设置面板：分别编辑数据列和序号列对齐，所有变更由父级显式保存。 -->
 <script setup lang="ts">
 import type { ColumnSetting, TableAlign, TableDensity, TableStyle } from './useTableSettings'
-import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhSwitch, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 import XNumberInput from '../common/XNumberInput.vue'
+import XSelect from '../common/XSelect.vue'
 
 defineOptions({ name: 'SchemaTableSettings' })
 
@@ -37,6 +38,7 @@ const emit = defineEmits<{
   setStyle: [key: keyof TableStyle, value: boolean]
   setAlign: [value: TableAlign]
   setIndexAlign: [value: TableAlign]
+  setColumnAlign: [key: string, value: TableAlign | undefined]
   setSelectable: [value: boolean]
   setShowIndex: [value: boolean]
   cycleSort: [key: string]
@@ -57,6 +59,12 @@ const alignOptions = computed<Array<{ label: string, value: TableAlign }>>(() =>
   { label: t('component.schema_table_settings.align_left'), value: 'left' },
   { label: t('component.schema_table_settings.align_center'), value: 'center' },
   { label: t('component.schema_table_settings.align_right'), value: 'right' },
+])
+
+const INHERIT_ALIGNMENT = 'inherit'
+const columnAlignOptions = computed(() => [
+  { label: t('component.schema_table_settings.align_default'), value: INHERIT_ALIGNMENT },
+  ...alignOptions.value,
 ])
 
 const styleOptions = computed<Array<{ label: string, key: keyof TableStyle }>>(() => [
@@ -87,9 +95,22 @@ function onAlignChange(value: string | string[] | null) {
  * @param value 单选控件提交的方向。
  * @returns {void} 无返回值；由父级更新偏好。
  */
-function onIndexAlignChange(value: string | string[] | null): void {
+function onIndexAlignChange(value: unknown): void {
   if (props.showIndex && (value === 'left' || value === 'center' || value === 'right'))
     emit('setIndexAlign', value)
+}
+
+/**
+ * 下拉只提交已知对齐值；默认项移除覆盖而非写死当前表格方向。
+ * @param key 列字段键。
+ * @param value 下拉选中值。
+ * @returns {void} 只更新对应列的草稿。
+ */
+function onColumnAlignChange(key: string, value: unknown): void {
+  if (value === INHERIT_ALIGNMENT)
+    emit('setColumnAlign', key, undefined)
+  else if (value === 'left' || value === 'center' || value === 'right')
+    emit('setColumnAlign', key, value)
 }
 
 function onStyleChange(value: string | string[] | null) {
@@ -101,20 +122,14 @@ function onStyleChange(value: string | string[] | null) {
   }
 }
 
-/** 功能两项也是开关：多选列 / 序号列 */
+/** 多选功能沿用原开关；序号列在独立行直接控制。 */
 const FEATURE_SELECTABLE = 'selectable'
-const FEATURE_INDEX = 'index'
-const featureValue = computed(() => [
-  ...(props.selectable ? [FEATURE_SELECTABLE] : []),
-  ...(props.showIndex ? [FEATURE_INDEX] : []),
-])
+const featureValue = computed(() => props.selectable ? [FEATURE_SELECTABLE] : [])
 
 function onFeatureChange(value: string | string[] | null) {
   const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
   if (next.has(FEATURE_SELECTABLE) !== props.selectable)
     emit('setSelectable', next.has(FEATURE_SELECTABLE))
-  if (next.has(FEATURE_INDEX) !== props.showIndex)
-    emit('setShowIndex', next.has(FEATURE_INDEX))
 }
 
 /** 排序图标（无 → 升 → 降，与「固定」同款单图标循环切换；优先级由列在列表中的顺序决定） */
@@ -261,24 +276,18 @@ function onSort(details: { from: number, to: number }) {
             </XhToggleGroupRoot>
           </div>
 
-          <!-- 序号列独立对齐；隐藏时禁用选择但保留值，重新开启可恢复。 -->
+          <!-- 复用原 showIndex 偏好，显式开关默认开启；关闭仅隐藏，不丢弃对齐设置。 -->
           <div class="flex gap-2 items-center justify-between">
-            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.index_align_label') }}</span>
-            <XhToggleGroupRoot
-              size="sm"
-              :value="indexAlign ?? 'left'"
-              :disabled="!showIndex"
-              disallow-empty
-              :aria-label="t('component.schema_table_settings.index_align_label')"
-              @update:value="onIndexAlignChange"
-            >
-              <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </XhToggleGroupItem>
-            </XhToggleGroupRoot>
+            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.show_index') }}</span>
+            <div class="flex items-center gap-2">
+              <XhSwitch :checked="showIndex" :aria-label="t('component.schema_table_settings.show_index')" @update:checked="(value: boolean) => emit('setShowIndex', value)" />
+              <span class="xh-set-row__align">
+                <XSelect :value="indexAlign ?? 'left'" :options="alignOptions" :disabled="!showIndex" :aria-label="t('component.schema_table_settings.index_align_label')" @update:value="onIndexAlignChange" />
+              </span>
+            </div>
           </div>
 
-          <!-- 功能：多选列 / 序号列两个开关 -->
+          <!-- 功能：多选列开关 -->
           <div class="flex gap-2 items-center justify-between">
             <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.feature_label') }}</span>
             <XhToggleGroupRoot
@@ -291,9 +300,6 @@ function onSort(details: { from: number, to: number }) {
               <XhToggleGroupItem :value="FEATURE_SELECTABLE">
                 {{ t('component.schema_table_settings.multi_select') }}
               </XhToggleGroupItem>
-              <XhToggleGroupItem :value="FEATURE_INDEX">
-                {{ t('component.schema_table_settings.index') }}
-              </XhToggleGroupItem>
             </XhToggleGroupRoot>
           </div>
 
@@ -304,6 +310,7 @@ function onSort(details: { from: number, to: number }) {
             <span class="xh-set-head__handle" />
             <span class="flex-1">{{ t('component.schema_table_settings.column_name') }}</span>
             <span class="xh-set-head__width">{{ t('component.schema_table_settings.column_width') }}</span>
+            <span class="xh-set-row__align text-center">{{ t('component.schema_table_settings.column_align') }}</span>
             <span class="xh-set-head__col">{{ t('component.schema_table_settings.sort') }}</span>
             <span class="xh-set-head__col">{{ t('component.schema_table_settings.fixed') }}</span>
           </div>
@@ -329,6 +336,7 @@ function onSort(details: { from: number, to: number }) {
               </XhSortableItemDragTrigger>
               <!-- 勾选框只有框本身，列名是并排的一段文字，点它也切换 -->
               <XhCheckbox
+                class="xh-set-visible"
                 :checked="col.visible"
                 :aria-label="col.title"
                 @update:checked="(value: boolean) => emit('toggleVisible', col.key, value)"
@@ -340,7 +348,7 @@ function onSort(details: { from: number, to: number }) {
               >
                 {{ col.title }}
               </span>
-              <span class="xh-set-row__width">
+              <span class="xh-set-row__width" :data-label="t('component.schema_table_settings.column_width')">
                 <XNumberInput
                   :value="col.width ?? null"
                   size="sm"
@@ -350,6 +358,15 @@ function onSort(details: { from: number, to: number }) {
                   :placeholder="t('component.schema_table_settings.auto')"
                   :aria-label="`${col.title} · ${t('component.schema_table_settings.column_width')}`"
                   @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; emit('setWidth', col.key, value ?? undefined) }"
+                />
+              </span>
+              <span class="xh-set-row__align" :data-label="t('component.schema_table_settings.column_align')">
+                <XSelect
+                  :value="col.align ?? INHERIT_ALIGNMENT"
+                  :options="columnAlignOptions"
+                  :aria-label="`${col.title} · ${t('component.schema_table_settings.column_align')}`"
+                  :title="t('component.schema_table_settings.align_default_hint')"
+                  @update:value="value => onColumnAlignChange(col.key, value)"
                 />
               </span>
               <span class="xh-set-row__sort">
@@ -405,8 +422,8 @@ function onSort(details: { from: number, to: number }) {
 .xh-set-panel {
   /* 皮肤给浮层的宽高上限是 rem 值，本应用根字号 14px 会把它们压到 280px / 224px，
      不显式盖掉的话这个面板会被夹窄、列清单也露不出来 */
-  inline-size: 340px;
-  max-inline-size: 340px;
+  inline-size: min(34rem, calc(100vw - 2rem));
+  max-inline-size: calc(100vw - 2rem);
   --xh-popover-max-h: 560px;
 }
 
@@ -493,5 +510,67 @@ function onSort(details: { from: number, to: number }) {
 .xh-set-row[data-dragging] {
   opacity: 0.5;
   background: rgb(var(--primary) / 0.08);
+}
+
+/* 下拉只占一格，移动端允许列名省略；控制部件不使用组件的默认最小宽度。 */
+.xh-set-row__align {
+  inline-size: 6rem;
+  flex-shrink: 0;
+  min-inline-size: 0;
+}
+
+.xh-set-row__align :deep([data-scope='select'][data-part='root']),
+.xh-set-row__align :deep([data-scope='select'][data-part='control']),
+.xh-set-row__align :deep([data-scope='select'][data-part='trigger']) {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+/* 窄屏把数值/下拉放到下一行，保留完整列名，避免新增控件把名称挤成单字。 */
+@media (max-width: 32rem) {
+  .xh-set-head {
+    display: none;
+  }
+
+  .xh-set-row {
+    display: grid;
+    grid-template-columns: 1rem 1.25rem minmax(0, 1fr) 3rem 3rem;
+    align-items: center;
+  }
+
+  .xh-set-drag-handle {
+    grid-area: 1 / 1;
+  }
+  .xh-set-visible {
+    grid-area: 1 / 2;
+  }
+  .xh-set-row__name {
+    grid-area: 1 / 3;
+  }
+  .xh-set-row__sort {
+    grid-area: 1 / 4;
+  }
+  .xh-set-row__fixed {
+    grid-area: 1 / 5;
+  }
+  .xh-set-row__width {
+    grid-area: 2 / 3;
+  }
+  .xh-set-row .xh-set-row__align {
+    grid-area: 2 / 4 / 3 / 6;
+  }
+
+  .xh-set-row__width,
+  .xh-set-row .xh-set-row__align {
+    display: grid;
+    inline-size: 100%;
+    gap: 0.25rem;
+  }
+
+  .xh-set-row__width::before,
+  .xh-set-row .xh-set-row__align::before {
+    content: attr(data-label);
+    color: var(--xh-fg-subtle);
+    font-size: 0.75rem;
+  }
 }
 </style>
