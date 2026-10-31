@@ -748,6 +748,7 @@ export default {
     server_error_desc: 'Entschuldigung, auf dem Server ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut',
     back_home: 'Zurück zur Startseite',
     back_prev: 'Zurück',
+    maintenance: 'Das System wird gerade aktualisiert. Bitte versuchen Sie es in Kürze erneut.',
   },
   header: {
     context: {

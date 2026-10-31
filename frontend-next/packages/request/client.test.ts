@@ -132,4 +132,16 @@ describe('invoke', () => {
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'IDENTITY_DENIED_002' })
     expect(onLocked).toHaveBeenCalledOnce()
   })
+
+  it('invokes the maintenance hook while the database is upgraded or the kernel is not serving, and still throws', async () => {
+    const onMaintenance = vi.fn()
+    let code = 'RUNTIME_UNAVAILABLE_003'
+    configureRequest({ baseUrl: '', fetch: (async () => problem(503, { code, status: 503, detail: 'upgrading' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onMaintenance } })
+    await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'RUNTIME_UNAVAILABLE_003' })
+    code = 'KERNEL_UNAVAILABLE_001'
+    await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'KERNEL_UNAVAILABLE_001' })
+    code = 'KERNEL_UNEXPECTED_001'
+    await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'KERNEL_UNEXPECTED_001' })
+    expect(onMaintenance).toHaveBeenCalledTimes(2)
+  })
 })

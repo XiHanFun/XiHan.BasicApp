@@ -76,13 +76,9 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 | `SECURITY_DENIED_001` / `SECURITY_DENIED_003` | `onUnauthenticated` | 用刷新令牌换一次并重放；刷新也失败即登出 |
 | `IDENTITY_DENIED_001` | `onSessionInvalid` | 会话已吊销，清会话回登录页 |
 | `IDENTITY_DENIED_002` | `onLocked` | 拉起锁屏 |
-| `KERNEL_UNAVAILABLE_001` | `onMaintenance` | 维护提示 |
+| `RUNTIME_UNAVAILABLE_003`、`KERNEL_UNAVAILABLE_001` | `onMaintenance` | 维护提示（一批请求同时撞上只提示一次） |
 
 字段级 `errors`（字段键 → 消息数组）交给 `XEditModal` 挂回对应字段。
-
-::: warning 已知
-后端升级共享库期间维护模式返回的是 `RUNTIME_UNAVAILABLE_003`，目前不会触发 `onMaintenance`，按普通错误提示。
-:::
 
 ## 配置
 

@@ -748,6 +748,7 @@ export default {
     server_error_desc: 'Sorry, the server encountered an error, please try again later',
     back_home: 'Back to Home',
     back_prev: 'Go Back',
+    maintenance: 'The system is being upgraded. Please try again shortly.',
   },
   header: {
     context: {

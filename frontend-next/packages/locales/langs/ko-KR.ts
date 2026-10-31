@@ -748,6 +748,7 @@ export default {
     server_error_desc: '죄송해요. 서버에 오류가 발생했어요. 잠시 후 다시 시도해 주세요',
     back_home: '홈으로 돌아가기',
     back_prev: '이전 페이지로',
+    maintenance: '시스템을 업그레이드하는 중이에요. 잠시 후 다시 시도하세요.',
   },
   header: {
     context: {

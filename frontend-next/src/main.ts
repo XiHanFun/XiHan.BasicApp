@@ -1,9 +1,9 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { markLockedFromServer } from '~/composables'
+import { markLockedFromServer, toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { setupIconifyOffline } from '~/iconify'
-import { DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
+import { $t, DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
 import { configureRequest } from '~/request'
 import { setupRouterGuard } from '~/router/guard'
 import { useAppStore, useAuthStore } from '~/stores'
@@ -12,6 +12,9 @@ import App from './App.vue'
 import { registerApplicationContext } from './app/context'
 import { router } from './router'
 import './styles/index.css'
+
+/** 维护提示的最短间隔：一批请求同时撞上维护只提示一次 */
+const MAINTENANCE_NOTICE_INTERVAL_MS = 10_000
 
 async function bootstrap() {
   // 图标集离线预载：Icon 组件对挂载后才到的图标集不重渲，先于挂载装好
@@ -28,6 +31,7 @@ async function bootstrap() {
 
   const auth = useAuthStore()
   const appStore = useAppStore()
+  let lastMaintenanceNotice = 0
   const toLogin = () => {
     auth.clear()
     if (router.currentRoute.value.path !== LOGIN_PATH)
@@ -49,6 +53,14 @@ async function bootstrap() {
       onSessionInvalid: toLogin,
       // 会话被锁屏（IDENTITY_DENIED_002，带锁定原因）：拉回锁定态，锁屏遮罩接管
       onLocked: error => markLockedFromServer(typeof error.details?.reason === 'string' ? error.details.reason : null),
+      // 别的节点在升级共享库或内核还没就绪：提示稍后重试（后端这条 503 不经管道、没有本地化正文，文案由前端出）
+      onMaintenance: () => {
+        const now = Date.now()
+        if (now - lastMaintenanceNotice < MAINTENANCE_NOTICE_INTERVAL_MS)
+          return
+        lastMaintenanceNotice = now
+        toast.warning($t('error.maintenance'))
+      },
     },
   })
   // 首屏文案先装好再挂载，否则会先渲一帧裸 key；之后切语言由偏好 store 的 locale 监听驱动
