@@ -140,7 +140,7 @@ function removeRow(group: ConditionGroupModel, index: number) {
             </div>
           </div>
         </div>
-        <XhButton variant="subtle" size="sm" @click="addRow(group)">
+        <XhButton variant="dashed" size="sm" @click="addRow(group)">
           <XhButtonIndicator>
             <Icon icon="lucide:plus" width="16" />
           </XhButtonIndicator>
@@ -149,7 +149,7 @@ function removeRow(group: ConditionGroupModel, index: number) {
       </section>
     </template>
 
-    <XhButton variant="outline" size="sm" @click="addGroup">
+    <XhButton variant="dashed" size="sm" @click="addGroup">
       <XhButtonIndicator>
         <Icon icon="lucide:list-plus" width="16" />
       </XhButtonIndicator>
@@ -166,7 +166,7 @@ function removeRow(group: ConditionGroupModel, index: number) {
   margin-block-start: var(--xh-space-1);
   padding: var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 .policy-conditions__head {
@@ -199,7 +199,7 @@ function removeRow(group: ConditionGroupModel, index: number) {
   gap: var(--xh-space-2);
   padding: var(--xh-space-3);
   border: 1px dashed var(--xh-border-default);
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-inset);
 }
 
 .policy-group__head {

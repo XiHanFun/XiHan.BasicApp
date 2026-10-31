@@ -511,11 +511,11 @@ watch(
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  border-radius: 14px;
+  border-radius: var(--xh-shape-sheet);
   overflow: hidden;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
-  box-shadow: var(--xh-shadow-xl);
+  box-shadow: var(--xh-elevation-sheet);
 }
 
 .cmdk-input {
@@ -549,7 +549,7 @@ watch(
 .cmdk-esc {
   padding: 2px 7px;
   font-size: 11px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   color: hsl(var(--muted-foreground));
   background: hsl(var(--muted) / 0.6);
   border-radius: 5px;
@@ -659,7 +659,7 @@ watch(
   min-width: 16px;
   padding: 1px 4px;
   margin-right: 2px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: 11px;
   background: hsl(var(--muted) / 0.6);
   border-radius: 4px;

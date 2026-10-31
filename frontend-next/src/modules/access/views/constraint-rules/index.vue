@@ -585,7 +585,7 @@ async function removeRow(row: ConstraintRuleRow) {
             </div>
           </div>
         </div>
-        <XhButton variant="subtle" size="sm" @click="addItem">
+        <XhButton variant="dashed" size="sm" @click="addItem">
           <XhButtonIndicator>
             <Icon icon="lucide:plus" width="16" />
           </XhButtonIndicator>
@@ -626,7 +626,7 @@ async function removeRow(row: ConstraintRuleRow) {
   margin-block: var(--xh-space-2);
   padding: var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 .rule-items__head {

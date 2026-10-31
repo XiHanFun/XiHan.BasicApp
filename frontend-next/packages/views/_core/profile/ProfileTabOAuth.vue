@@ -491,7 +491,7 @@ onMounted(() => {
   flex-shrink: 0;
   width: 68px;
   font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--xh-font-family-mono);
   opacity: 0.75;
 }
 
@@ -520,7 +520,7 @@ onMounted(() => {
 
 .pf-credential__key code {
   font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--xh-font-family-mono);
   opacity: 0.85;
 }
 

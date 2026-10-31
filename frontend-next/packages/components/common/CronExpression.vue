@@ -669,7 +669,7 @@ function applyPreset(v: string): void {
 
 .cron-preview-list li {
   font-size: var(--xh-font-size-xs);
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: var(--xh-font-family-mono);
   color: hsl(var(--foreground));
 }
 
@@ -686,7 +686,7 @@ function applyPreset(v: string): void {
 }
 
 .cron-footer-expr {
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: var(--xh-font-size-sm);
   color: hsl(var(--primary));
 }

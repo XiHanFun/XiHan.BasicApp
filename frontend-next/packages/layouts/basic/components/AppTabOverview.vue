@@ -550,7 +550,7 @@ function onKeydown(e: KeyboardEvent): void {
   margin-right: 3px;
   border-radius: 4px;
   background: color-mix(in oklab, var(--tab-ov-ink) 16%, transparent);
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: 11px;
 }
 

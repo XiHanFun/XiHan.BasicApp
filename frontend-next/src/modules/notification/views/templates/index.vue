@@ -387,6 +387,6 @@ async function removeRow(row: TemplateRow) {
   word-break: break-word;
   background: var(--xh-bg-muted);
   border: 1px solid var(--xh-border-subtle);
-  border-radius: var(--xh-radius-lg);
+  border-radius: var(--xh-shape-inset);
 }
 </style>

@@ -1126,7 +1126,7 @@ function handleRestore(row: JobRow) {
 .xh-task-log-pre {
   margin: 0;
   padding: var(--xh-space-2) var(--xh-space-3);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
   background: var(--xh-bg-subtle);
   font-size: var(--xh-font-size-xs);
   line-height: var(--xh-leading-relaxed);

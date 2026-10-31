@@ -49,7 +49,7 @@ watch(() => formData.value.code, (code) => {
 })
 
 // 规则写成 computed：文案要跟着语言切换
-const rules = computed<FormRules>(() => ({
+const rules = computed<FormRules<typeof formData.value>>(() => ({
   email: [
     { required: true, message: t('page.auth.email_placeholder') },
     { type: 'email', message: t('page.auth.email_invalid') },

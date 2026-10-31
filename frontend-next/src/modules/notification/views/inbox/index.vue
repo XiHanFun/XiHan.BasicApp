@@ -333,7 +333,7 @@ onDeactivated(() => {
   gap: var(--xh-space-3);
   padding: var(--xh-space-2) var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
 }
 
@@ -364,7 +364,7 @@ onDeactivated(() => {
   gap: var(--xh-space-3);
   padding: var(--xh-space-4);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
 }
 
@@ -429,7 +429,7 @@ onDeactivated(() => {
   justify-content: center;
   inline-size: 2.375rem;
   block-size: 2.375rem;
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
   flex-shrink: 0;
 }
 

@@ -120,7 +120,7 @@ function updateDraft(value: null | string) {
   color: inherit;
   background-color: var(--xh-bg-surface);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-control);
   cursor: pointer;
   transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }

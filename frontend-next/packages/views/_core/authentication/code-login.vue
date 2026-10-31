@@ -40,7 +40,7 @@ watch(() => formData.value.code, (code) => {
 
 // 规则写成 computed：文案要跟着语言切换。组件库按 rule.message 优先、
 // 没写则回落 validateMessages 模板，这里逐条给了文案就不需要模板
-const rules = computed<FormRules>(() => ({
+const rules = computed<FormRules<typeof formData.value>>(() => ({
   phone: [
     { required: true, message: t('page.auth.phone_placeholder') },
     { pattern: /^\d{11}$/, message: t('page.auth.phone_invalid') },

@@ -1012,6 +1012,6 @@ async function copyPreviewText() {
   max-block-size: 70vh;
   overflow: auto;
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 </style>

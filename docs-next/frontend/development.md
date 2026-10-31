@@ -65,7 +65,7 @@ const schema = computed<PageSchema>(() => ({
 ## 四、样式
 
 - 只用 XiHan.UI 组件与语义令牌；不新增裸 px（`pnpm px:check` 按文件计数，只许减不许增）；
-- 圆角：control 4px、surface 8px、overlay 12px；按下 120ms 缩放到 0.97、释放 200ms；浮层只用 frosted，不用 glass；
+- 圆角：偏好设置的圆角接到组件库的圆角种子，控件、承载面与浮层同一档，内嵌件取一半，对话框与抽屉朝页面的两角取 1.25 倍；自写样式只写形状角色（`--xh-shape-control / surface / overlay / inset / sheet`），不写 `--xh-radius-*` 档位；按下 150ms 缩放到 0.97、释放 200ms；浮层只用 frosted，不用 glass；
 - 管理端保持紧凑，不加营销式大标题。
 
 ## 五、门禁与测试

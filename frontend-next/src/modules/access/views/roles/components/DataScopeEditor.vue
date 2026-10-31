@@ -218,7 +218,7 @@ function remove(departmentId: string) {
   min-block-size: 0;
   padding: var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-radius-md);
+  border-radius: var(--xh-shape-inset);
 }
 
 .data-scope-custom__title {

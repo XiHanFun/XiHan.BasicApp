@@ -168,7 +168,7 @@ function toggleExpand() {
   border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
-  box-shadow: var(--xh-shadow-md);
+  box-shadow: var(--xh-elevation-floating);
   /* 限制浮层高度并内部滚动：字段过多时也不会撑出视口、盖住下方列表 */
   max-height: calc(100vh - 160px);
   overflow-y: auto;

@@ -130,8 +130,7 @@ const clipboardTranslations = computed(() => ({ copy: t('auditing.detail.copy'),
                   <span v-if="index > 0" aria-hidden="true">·</span>
                   <XhButton
                     v-if="entry.field.trace"
-                    variant="ghost"
-                    tone="brand"
+                    variant="link"
                     size="sm"
                     class="xh-link-button"
                     :aria-label="t('auditing.detail.open_trace', { label: entry.field.label, value: entry.text })"
@@ -158,8 +157,7 @@ const clipboardTranslations = computed(() => ({ copy: t('auditing.detail.copy'),
                     <span class="log-detail__value" :class="{ 'log-detail__value--mono': entry.field.mono }">
                       <XhButton
                         v-if="entry.field.trace"
-                        variant="ghost"
-                        tone="brand"
+                        variant="link"
                         size="sm"
                         class="xh-link-button"
                         :aria-label="t('auditing.detail.open_trace', { label: entry.field.label, value: entry.text })"

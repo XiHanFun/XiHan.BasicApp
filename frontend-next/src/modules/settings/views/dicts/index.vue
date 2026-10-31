@@ -691,7 +691,7 @@ function formatBoolean(value: boolean): string {
   max-height: calc(var(--xh-space-8) * 7);
   overflow: auto;
   padding: var(--xh-space-2) var(--xh-space-3);
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-inset);
   background: var(--xh-bg-subtle);
   font-family: var(--xh-font-family-mono);
   font-size: var(--xh-text-caption-size);
