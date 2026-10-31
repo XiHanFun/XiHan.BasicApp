@@ -98,6 +98,41 @@ export function flattenDepartments(nodes: readonly DepartmentNode[], path: strin
   })
 }
 
+/** 消息树拍平成键（只要文本叶子），给字段显示名的兜底查找用 */
+export function messageKeys(messages: unknown, prefix = ''): string[] {
+  if (!messages || typeof messages !== 'object')
+    return []
+  return Object.entries(messages as Record<string, unknown>).flatMap(([key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key
+    return typeof value === 'string' ? [path] : messageKeys(value, path)
+  })
+}
+
+/** 通用字段词表的文案键前缀（创建时间、备注、排序这类各页共有的字段） */
+export const COMMON_FIELD_PREFIX = 'access.field_security.common_fields.'
+
+function snakeOf(name: string): string {
+  return name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+}
+
+/**
+ * 字段显示名的文案键：登记的键 → 同一页面命名空间（键的前两段）里末段是字段名（或 col_ / detail_ / form_ 加字段名）的键
+ * → 通用字段词表 → 没有（显示字段名）。字段名是接口的 camelCase，文案键末段是 snake_case。
+ */
+export function fieldTitleKey(titleKey: string, name: string, keys: readonly string[]): string | null {
+  const known = new Set(keys)
+  if (known.has(titleKey))
+    return titleKey
+  const snake = snakeOf(name)
+  const namespace = `${titleKey.split('.').slice(0, 2).join('.')}.`
+  const tails = new Set([snake, `col_${snake}`, `detail_${snake}`, `form_${snake}`])
+  const sibling = keys.find(key => key.startsWith(namespace) && tails.has(key.slice(key.lastIndexOf('.') + 1)))
+  if (sibling)
+    return sibling
+  const common = `${COMMON_FIELD_PREFIX}${snake}`
+  return known.has(common) ? common : null
+}
+
 /** 实体目录：实体、字段下拉的唯一来源，页面打开时取一次 */
 export function useFieldSecurityEntities() {
   const entities = ref<FieldSecurityEntity[]>([])

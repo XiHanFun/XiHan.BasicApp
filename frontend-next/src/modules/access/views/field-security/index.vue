@@ -7,11 +7,13 @@ import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
-import { FIELD_MASK_STRATEGIES, FIELD_TARGET_KINDS, fieldSecurityResource, MAX_MASK_KEEP, useFieldRuleEditor, useFieldSecurityEntities } from './use-field-security'
+import { FIELD_MASK_STRATEGIES, FIELD_TARGET_KINDS, fieldSecurityResource, fieldTitleKey, MAX_MASK_KEEP, messageKeys, useFieldRuleEditor, useFieldSecurityEntities } from './use-field-security'
 
 defineOptions({ name: 'AccessFieldSecurityView' })
 
-const { t, te } = useI18n()
+const { t, te, locale, getLocaleMessage } = useI18n()
+/** 当前语言的全部文案键：字段显示名按它兜底查找 */
+const messageKeyList = computed(() => messageKeys(getLocaleMessage(locale.value)))
 const resource = fieldSecurityResource()
 const catalog = useFieldSecurityEntities()
 const editor = useFieldRuleEditor(catalog.find)
@@ -62,9 +64,15 @@ function entityTitle(code: string): string | null {
   return entity ? titleOf(entity.titleKey, entity.code) : null
 }
 
+/** 字段显示名：登记的键、同页的同名键与通用字段词表依次找，都没有即字段名 */
+function fieldLabel(field: { titleKey: string, name: string }): string {
+  const key = fieldTitleKey(field.titleKey, field.name, messageKeyList.value)
+  return key ? t(key) : field.name
+}
+
 function fieldTitle(code: string, name: string): string | null {
   const field = catalog.find(code)?.fields.find(item => item.name === name)
-  return field ? titleOf(field.titleKey, field.name) : null
+  return field ? fieldLabel(field) : null
 }
 
 /** 确认框里的规则名：实体 · 字段 */
@@ -95,7 +103,7 @@ const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as 
 /** 表单里只列当前字段能用的读取方式 */
 const formStrategyOptions = computed(() => strategyOptions.value.map(option => ({ ...option, disabled: !editor.strategyAllowed(option.value as FieldMaskStrategy) })))
 const comboEntityOptions = computed(() => catalog.entities.value.map(entity => ({ value: entity.code, label: titleOf(entity.titleKey, entity.code), description: entity.code })))
-const comboFieldOptions = computed(() => (editor.currentEntity.value?.fields ?? []).map(field => ({ value: field.name, label: titleOf(field.titleKey, field.name), description: field.name })))
+const comboFieldOptions = computed(() => (editor.currentEntity.value?.fields ?? []).map(field => ({ value: field.name, label: fieldLabel(field), description: field.name })))
 
 const targetPlaceholder = computed(() => {
   switch (editor.form.targetKind) {

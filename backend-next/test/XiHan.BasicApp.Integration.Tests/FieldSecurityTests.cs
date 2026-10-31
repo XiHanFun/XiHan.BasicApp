@@ -60,7 +60,11 @@ public sealed class FieldSecurityTests : IDisposable
         // 实体目录
         var (_, entities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/field-security:entities", token: admin));
         var users = Assert.Single(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "identity.users");
-        Assert.Equal(["userName", "displayName", "email", "phoneNumber", "lastLoginAt"], users.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
+        // 字段由响应类型生成（4.x 同：实体的全部字段，主键与框架列除外）；会话等其余包的实体也都在
+        Assert.Equal(["userName", "displayName", "email", "phoneNumber", "homeTenantId", "status", "lastLoginAt", "createdAt", "createdBy", "avatarFileId"], users.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
+        Assert.Equal(("identity.users.fields.phone", true, true), (users.GetProperty("fields")[3].GetProperty("titleKey").GetString(), users.GetProperty("fields")[3].GetProperty("isText").GetBoolean(), users.GetProperty("fields")[3].GetProperty("isNullable").GetBoolean()));
+        Assert.False(users.GetProperty("fields")[1].GetProperty("isNullable").GetBoolean());
+        Assert.Contains(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "identity.sessions");
 
         // 角色规则：邮箱部分脱敏、只读
         await RuleAsync(server, admin, $$"""{"targetKind":"Role","targetId":"{{roleId}}","entity":"identity.users","field":"email","strategy":"PartialMask","keepHead":2,"keepTail":4}""");
@@ -74,7 +78,7 @@ public sealed class FieldSecurityTests : IDisposable
         // 不能按受保护字段筛选
         var (filtered, filteredBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", """{"filters":[{"field":"email","operator":"contains","value":"contoso"}]}""", finn));
         Assert.Equal(HttpStatusCode.Forbidden, filtered.StatusCode);
-        Assert.Equal("IDENTITY_DENIED_011", filteredBody.GetProperty("code").GetString());
+        Assert.Equal("ACCESS_DENIED_006", filteredBody.GetProperty("code").GetString());
 
         // 交回脱敏值视为没改（其他字段照改）；改只读字段被拒；建用户时填只读字段被拒
         var (kept, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/users/{erinId}", """{"displayName":"Erin Z","email":"er**********.com","phoneNumber":"13800001111"}""", finn));
@@ -84,10 +88,10 @@ public sealed class FieldSecurityTests : IDisposable
         Assert.Equal("Erin Z", afterKeep.GetProperty("displayName").GetString());
         var (changed, changedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/users/{erinId}", """{"displayName":"Erin Z","email":"other@contoso.com"}""", finn));
         Assert.Equal(HttpStatusCode.Forbidden, changed.StatusCode);
-        Assert.Equal("IDENTITY_DENIED_012", changedBody.GetProperty("code").GetString());
+        Assert.Equal("ACCESS_DENIED_007", changedBody.GetProperty("code").GetString());
         var (createdWithEmail, createdWithEmailBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"gina","displayName":"Gina","email":"gina@contoso.com"}""", finn));
         Assert.Equal(HttpStatusCode.Forbidden, createdWithEmail.StatusCode);
-        Assert.Equal("IDENTITY_DENIED_012", createdWithEmailBody.GetProperty("code").GetString());
+        Assert.Equal("ACCESS_DENIED_007", createdWithEmailBody.GetProperty("code").GetString());
 
         // 用户规则：手机号隐藏、可改写（只写）；邮箱再加一条全部星号，合并取最严
         await RuleAsync(server, admin, $$"""{"targetKind":"User","targetId":"{{finnId}}","entity":"identity.users","field":"phoneNumber","strategy":"Hidden","isEditable":true}""");
@@ -117,7 +121,7 @@ public sealed class FieldSecurityTests : IDisposable
         Assert.Empty(keywordBody.GetProperty("items").EnumerateArray());
         var (sorted, sortedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", """{"sorts":[{"field":"userName"}]}""", finn));
         Assert.Equal(HttpStatusCode.Forbidden, sorted.StatusCode);
-        Assert.Equal("IDENTITY_DENIED_011", sortedBody.GetProperty("code").GetString());
+        Assert.Equal("ACCESS_DENIED_006", sortedBody.GetProperty("code").GetString());
 
         // 停用即不再生效；规则只管所在一侧：平台超管看不到租户规则，也不受它影响
         var (_, page) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/field-security:list", """{"filters":[{"field":"field","operator":"eq","value":"displayName"}]}""", admin));

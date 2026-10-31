@@ -21,6 +21,7 @@ using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
+using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions.Resolution;
@@ -116,6 +117,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<FieldSecurityService>();
         context.Services.AddScoped<FieldSecurityQueries>();
         context.Services.AddScoped<IFieldSecurity, FieldSecurityResolver>();
+        context.Services.AddSingleton<FieldSecurityBindings>();
+        context.Services.AddScoped<IOperationResponseFilter, FieldSecurityResponseFilter>();
         context.Services.AddScoped<EffectivePermissions>();
         context.Services.AddSingleton<PermissionRules>();
         context.Services.AddSingleton<RoleAssignments>();
@@ -142,6 +145,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddSeeder<MenuSeeder>();
         context.Services.AddSeeder<AccessPolicySeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        AccessFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间；授权规则、指派与封禁的缓存，改写会让判定与库不一致，只许删、不许改写
         context.Services.AddCacheNamespace("access", editable: false);
         context.Services.AddPageCatalog("access", AccessPages.All);
@@ -156,6 +161,8 @@ public sealed class AccessFeature : IFeature
 
         // 权限条件按请求属性判定：框架授权之后、校验之前
         context.AddMiddleware<PermissionConditionMiddleware>(PipelineStage.Authorize);
+        // 字段安全：各包绑定的读、建、改操作在工作单元里统一套规则（修改时取原记录与操作同一个事务）
+        context.AddMiddleware<FieldSecurityMiddleware>(PipelineStage.Handle);
         context.Pipeline.After<PermissionConditionMiddleware, AuthorizationMiddleware>();
         context.AddGeneratedOperations();
     }

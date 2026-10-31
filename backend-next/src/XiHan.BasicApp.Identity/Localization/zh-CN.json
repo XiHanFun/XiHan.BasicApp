@@ -82,8 +82,6 @@
   "identity.two_factor.unavailable": "账号开启了双因素，但没有可用的验证方式，请联系管理员重置。",
   "identity.two_factor.totp_already_enabled": "认证器已绑定；要换设备请先关闭再重新绑定。",
   "identity.two_factor.totp_setup_missing": "认证器绑定已过期或尚未开始，请重新生成密钥。",
-  "identity.field_security.protected": "字段 {field} 受字段安全保护，不能拿来筛选或排序。",
-  "identity.field_security.read_only": "字段 {field} 对你只读，不能填写或修改。",
   "auth.activate_roles.title": "切换激活角色",
   "auth.activate_roles.description": "切换当前会话激活的角色（须都此刻持有、且不违反动态职责分离）；返回新令牌。",
   "sessions.list.title": "查询在线用户",

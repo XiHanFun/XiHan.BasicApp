@@ -404,22 +404,6 @@ public static class IdentityMessages
     public const string TotpSetupMissing = "identity.two_factor.totp_setup_missing";
 
     /// <summary>
-    /// 不能按读受保护的字段筛选或排序。
-    /// </summary>
-    /// <remarks>
-    /// 参数 <c>field</c>。
-    /// </remarks>
-    public const string FieldProtected = "identity.field_security.protected";
-
-    /// <summary>
-    /// 只读字段不能填写或改动。
-    /// </summary>
-    /// <remarks>
-    /// 参数 <c>field</c>。
-    /// </remarks>
-    public const string FieldReadOnly = "identity.field_security.read_only";
-
-    /// <summary>
     /// 操作 <c>auth.lock</c> 的说明。
     /// </summary>
     public const string LockDescription = "auth.lock.description";
