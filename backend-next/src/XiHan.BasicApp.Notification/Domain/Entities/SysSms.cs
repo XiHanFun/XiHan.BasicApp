@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -14,6 +15,8 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 写法与 <see cref="SysEmail"/> 相同。
 /// 服务商发的是它那边的模板，记录里的正文是本应用模板渲染出的文字（便于查看），参数另存一份交给服务商。
 /// </remarks>
+[SugarIndex("ix_{table}_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysSms : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {

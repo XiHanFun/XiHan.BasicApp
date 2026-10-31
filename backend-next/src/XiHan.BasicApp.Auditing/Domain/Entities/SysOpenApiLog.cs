@@ -13,6 +13,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 签名开放接口即 <c>open.*</c> 操作（<c>/api/open:{动词}</c>）。OpenPlatform 的验签中间件在调用里登记 <c>OpenApiLogEntry</c>，由审计日志中间件按调用结果落库（成败都记）。
 /// 请求与响应正文只存截断后的摘要，敏感头不落库。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_client_id", nameof(ClientId), OrderByType.Asc)]
 [SugarTable("sys_open_api_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysOpenApiLog : AuditLogRecord

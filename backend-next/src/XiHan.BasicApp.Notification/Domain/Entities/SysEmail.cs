@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -15,6 +16,8 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 由后台的发送循环按所属侧的缺省邮件配置发出，失败按退避重试，用完重试即失败；重发即改回排队中。
 /// 主题与正文在写入时已按模板渲染好，记录的就是实际发出的内容。
 /// </remarks>
+[SugarIndex("ix_{table}_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysEmail : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {

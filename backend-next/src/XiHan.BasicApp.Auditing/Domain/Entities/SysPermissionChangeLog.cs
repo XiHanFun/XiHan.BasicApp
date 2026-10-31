@@ -15,6 +15,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 记角色授予与撤销、成员加入与移出、数据范围、删除角色、套餐白名单与租户换套餐。
 /// 由 Access / Tenancy 在调用里登记（<see cref="PermissionChangeLogEntry"/>），只在调用成功时落库；操作人是公共列里的用户。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_target_user_id", nameof(TargetUserId), OrderByType.Asc)]
 [SugarTable("sys_permission_change_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysPermissionChangeLog : AuditLogRecord

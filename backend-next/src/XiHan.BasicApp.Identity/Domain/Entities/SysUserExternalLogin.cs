@@ -13,6 +13,8 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 平台库，跟着账号走。在（注册地, 提供商, 第三方标识）上唯一（4.x 同按租户唯一，但绑定写在注册地、登录却只在租户 1 里查，平台与其他租户的绑定永远登录不进）。
 /// 提供商存规范的类型名（<c>github</c>、<c>wechat</c>…，4.x 存配置的方案名，同一个微信 unionid 经两个方案会被当成两个身份）。不存第三方的令牌。
 /// </remarks>
+[ActiveUniqueIndex(nameof(HomeTenantId), nameof(Provider), nameof(ProviderKey))]
+[ActiveUniqueIndex(nameof(UserId), nameof(Provider))]
 [DiffLogIgnored]
 public sealed class SysUserExternalLogin : AppAuditedEntity
 {

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
@@ -14,6 +15,8 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 作废经条件更新抢占，抢输的按重放处理。
 /// PKCE 的 challenge 按 RFC 7636 最长 128 字符（4.x 截到 100，plain 的长 verifier 必然校验失败）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(CodeHash))]
+[SugarIndex("ix_{table}_expires_at", nameof(ExpiresAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysOAuthCode : AppAuditedEntity
 {

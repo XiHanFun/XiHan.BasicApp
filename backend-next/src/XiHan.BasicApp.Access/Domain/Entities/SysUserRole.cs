@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -12,6 +13,8 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// <see cref="OwnerTenantId"/> 与角色相同，用户的注册地必须是同一侧。
 /// 可带生效与到期时间：不在有效期内的指派不进令牌，也不参与判定（令牌里已有的角色到期即由权限过滤器拿掉）。
 /// </remarks>
+[SugarIndex("ux_{table}_role_id_user_id", nameof(RoleId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
+[SugarIndex("ix_{table}_owner_tenant_id_user_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 public sealed class SysUserRole : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

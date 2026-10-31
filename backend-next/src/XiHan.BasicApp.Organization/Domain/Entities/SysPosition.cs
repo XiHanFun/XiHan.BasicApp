@@ -11,6 +11,7 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// <remarks>
 /// 归属记录引用它；被引用时不能删除。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TenantId), nameof(Code))]
 public sealed class SysPosition : TenantScopedAuditedEntity
 {
     /// <summary>

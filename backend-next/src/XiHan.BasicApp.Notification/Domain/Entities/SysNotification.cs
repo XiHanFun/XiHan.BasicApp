@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -13,6 +14,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// <remarks>
 /// 4.x 在平台库。先存草稿，发布时按目标解析出接收人、写进各自的收件箱并实时推送；发布后不能再改。
 /// </remarks>
+[SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysNotification : TenantScopedAuditedEntity
 {
     /// <summary>

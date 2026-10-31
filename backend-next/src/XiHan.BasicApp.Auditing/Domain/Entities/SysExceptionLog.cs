@@ -13,6 +13,9 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// <remarks>
 /// 在内核把它转成 <c>KERNEL_UNEXPECTED</c> 结果之前，由 Observe 阶段的中间件写入；作业等非操作调用同样记录。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
 [SugarTable("sys_exception_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysExceptionLog : AuditLogRecord

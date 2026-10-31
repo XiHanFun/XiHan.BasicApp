@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
@@ -14,6 +15,11 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 会话 ID 即访问令牌的 <c>sid</c> 声明，刷新令牌不透明、只存散列。
 /// 吊销即置 <see cref="RevokedAt"/>，由会话门禁在 Authenticate 阶段拒绝。
 /// </remarks>
+[ActiveUniqueIndex(nameof(RefreshTokenHash))]
+[SugarIndex("ix_{table}_user_id_revoked_at", nameof(UserId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_active_tenant_id_revoked_at_issued_at", nameof(ActiveTenantId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc, nameof(IssuedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_impersonator_session_id", nameof(ImpersonatorSessionId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_impersonator_user_id", nameof(ImpersonatorUserId), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysUserSession : AppAuditedEntity
 {

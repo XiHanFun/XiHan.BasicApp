@@ -12,6 +12,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// <remarks>
 /// 由 Observe 阶段的中间件在调用结束时写入。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_session_id", nameof(SessionId), OrderByType.Asc)]
 [SugarTable("sys_access_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysAccessLog : AuditLogRecord

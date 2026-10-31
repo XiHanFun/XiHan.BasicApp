@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Contracts.Security;
 
@@ -14,6 +15,8 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 一个目标（角色、用户或部门）在一个实体字段上的读取方式与能否改写（方案 5.9）。
 /// 同一侧同一目标同一字段只有一条；规则只在所属一侧生效（平台规则管平台主体，租户规则管本租户的主体）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(TargetKind), nameof(TargetId), nameof(Entity), nameof(Field), Name = "ux_sys_field_security_rule_target_field")]
+[SugarIndex("ix_{table}_owner_tenant_id_entity_status", nameof(OwnerTenantId), OrderByType.Asc, nameof(Entity), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public sealed class SysFieldSecurityRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

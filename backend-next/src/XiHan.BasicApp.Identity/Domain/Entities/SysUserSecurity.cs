@@ -12,6 +12,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// <remarks>
 /// 平台库，表 <c>sys_user_security</c>，与用户一对一。与用户资料分开，列表与详情永远碰不到散列与密钥。
 /// </remarks>
+[ActiveUniqueIndex(nameof(UserId))]
 [DiffLogIgnored]
 public sealed class SysUserSecurity : AppAuditedEntity
 {

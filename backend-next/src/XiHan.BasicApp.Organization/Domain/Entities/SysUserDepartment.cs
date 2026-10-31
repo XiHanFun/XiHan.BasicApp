@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
@@ -11,6 +12,9 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// <remarks>
 /// 一个用户可在多个部门，恰有一个主部门（<see cref="IsPrimary"/>）；用户是平台库的 <c>SysUser</c>（注册地必须是当前租户），这里只存主键。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TenantId), nameof(UserId), nameof(DepartmentId))]
+[SugarIndex("ix_{table}_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_tenant_id_position_id", nameof(TenantId), OrderByType.Asc, nameof(PositionId), OrderByType.Asc)]
 public sealed class SysUserDepartment : TenantScopedAuditedEntity
 {
     /// <summary>

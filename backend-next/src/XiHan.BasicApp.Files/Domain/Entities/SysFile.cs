@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Files.Domain.Entities;
@@ -14,6 +15,8 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 平台一侧的文件 <see cref="TenantScopedAuditedEntity.TenantId"/> 为 <c>platform</c>（与日志同一做法）。
 /// 同一侧内容相同（SHA-256 相同）的文件共用对象，各有各的记录，删到最后一条才删对象。
 /// </remarks>
+[SugarIndex("ix_{table}_tenant_id_hash_size", nameof(TenantId), OrderByType.Asc, nameof(Hash), OrderByType.Asc, nameof(Size), OrderByType.Asc)]
+[SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysFile : TenantScopedAuditedEntity
 {
     /// <summary>

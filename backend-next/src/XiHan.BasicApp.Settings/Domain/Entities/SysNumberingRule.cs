@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 规则行同时保存当前周期与最后发出的流水值；发号在独立事务里先锁住规则行再推进，发出的号永久消耗（可以有空洞，不会重用）。
 /// 首次发号后格式（前缀、分隔符、日期格式、流水位数、重置周期、时区）冻结。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

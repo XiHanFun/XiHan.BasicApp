@@ -12,6 +12,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 权限白名单（<see cref="SysEditionGrant"/>）决定绑定它的租户能生效哪些权限，租户管理员持有 <c>*</c> 也被收窄到白名单。
 /// <see cref="Code"/> 在平台内唯一（含已软删的行之外）；至多一个缺省套餐，开通租户不指定套餐时用它。价格与计费周期只作展示（没有计费流程），用户与存储配额由 Contracts 的 <c>ITenantQuota</c> 约束（4.x 同）。
 /// </remarks>
+[ActiveUniqueIndex(nameof(Code))]
 public sealed class SysEdition : AppAuditedEntity
 {
     /// <summary>

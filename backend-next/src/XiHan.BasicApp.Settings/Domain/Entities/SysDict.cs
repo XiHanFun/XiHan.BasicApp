@@ -12,6 +12,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// <see cref="OwnerTenantId"/> 分平台字典与租户字典。字典不覆盖：平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
 /// 选项由 <see cref="SysDictItem"/> 承载；停用的字典不再给出选项。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysDict : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

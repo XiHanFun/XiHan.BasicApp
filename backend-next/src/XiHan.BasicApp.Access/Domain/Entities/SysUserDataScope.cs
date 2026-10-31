@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -12,6 +13,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 有这一行时完全取代该用户所有角色的数据范围（不取并集），没有即按角色。
 /// <see cref="DataScope.Custom"/> 的部门在 <see cref="SysUserDataScopeDepartment"/>。
 /// </remarks>
+[SugarIndex("ux_{table}_owner_tenant_id_user_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
 public sealed class SysUserDataScope : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />
@@ -31,6 +33,7 @@ public sealed class SysUserDataScope : AppRecord, IOwnedByTenant
 /// <summary>
 /// 用户级自定义数据范围的一个部门（平台库实体，随覆盖整体替换）。
 /// </summary>
+[SugarIndex("ux_{table}_owner_user_department", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 public sealed class SysUserDataScopeDepartment : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

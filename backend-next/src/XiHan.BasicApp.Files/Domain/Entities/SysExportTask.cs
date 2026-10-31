@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -14,6 +15,8 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 租户库实体，平台一侧租户为 <c>platform</c>；4.x 同。
 /// 按发起人的身份导出，结果存成临时文件。
 /// </remarks>
+[SugarIndex("ix_{table}_tenant_id_requester_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(RequesterId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarIndex("ix_{table}_status", nameof(Status), OrderByType.Asc)]
 public sealed class SysExportTask : TenantScopedAuditedEntity
 {
     /// <summary>

@@ -13,6 +13,10 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// <remarks>
 /// 来源是 SqlSugar 的差异日志回调（方案 D6），按调用缓冲，调用成功才落库。
 /// </remarks>
+[SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
+[SugarIndex("ix_{split_table}_entity_id", nameof(EntityId), OrderByType.Asc)]
 [SugarTable("sys_diff_log_{year}{month}{day}")]
 [SplitTable(SplitType.Month)]
 public sealed class SysDiffLog : AuditLogRecord

@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数。
 /// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

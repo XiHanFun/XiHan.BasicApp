@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
@@ -14,6 +15,10 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 同一次授权码兑换出来的令牌属于一个族（<see cref="FamilyId"/>）：刷新令牌轮换时旧的作废，作废的刷新令牌再被使用即整族吊销（4.x 注释说按族吊销，实际没做）。
 /// 只用于身份：只认 userinfo，后台接口不认。
 /// </remarks>
+[ActiveUniqueIndex(nameof(TokenHash))]
+[SugarIndex("ix_{table}_family_id", nameof(FamilyId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_user_id_client_id", nameof(UserId), OrderByType.Asc, nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("ix_{table}_expires_at", nameof(ExpiresAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysOAuthToken : AppAuditedEntity
 {

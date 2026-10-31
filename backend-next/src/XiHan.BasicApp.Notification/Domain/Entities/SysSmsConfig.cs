@@ -14,6 +14,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 服务商凭据、签名与模板映射（本应用的短信模板编码 → 服务商的模板 ID）。
 /// 发送用当前一侧启用的缺省配置，租户没有就用平台的；访问密钥加密存储，响应里不回显。
 /// </remarks>
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysSmsConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

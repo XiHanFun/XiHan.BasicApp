@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 种子每次对齐；展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签）运营可改，改过即 <see cref="IsCustomized"/>，种子不再覆盖，可经 <c>menus.reset</c> 恢复登记的值。
 /// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰。
 /// </remarks>
+[ActiveUniqueIndex(nameof(Code))]
 public sealed class SysMenu : AppAuditedEntity
 {
     /// <summary>

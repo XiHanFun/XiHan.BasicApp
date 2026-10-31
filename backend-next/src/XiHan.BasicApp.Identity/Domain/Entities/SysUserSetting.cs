@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 平台库实体，跟着账号走，不分租户。按（用户, 场景, 设置键）存一段 JSON。
 /// 后端不解释 <see cref="Value"/> 的语义，由前端按版本兼容解析；同一键整体覆盖写入。
 /// </remarks>
+[ActiveUniqueIndex(nameof(UserId), nameof(Scene), nameof(Key))]
 [DiffLogIgnored]
 public sealed class SysUserSetting : AppAuditedEntity
 {
