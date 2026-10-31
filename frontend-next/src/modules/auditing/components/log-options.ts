@@ -53,6 +53,7 @@ export function diffKindLabel(t: Translate, value: DiffKind): string {
     case 'Insert': return t('auditing.diff_logs.kinds.insert')
     case 'Update': return t('auditing.diff_logs.kinds.update')
     case 'Delete': return t('auditing.diff_logs.kinds.delete')
+    case 'Restore': return t('auditing.diff_logs.kinds.restore')
   }
 }
 

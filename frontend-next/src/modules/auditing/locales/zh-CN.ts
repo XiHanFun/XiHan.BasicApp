@@ -170,6 +170,7 @@ export default {
         insert: '新增',
         update: '修改',
         delete: '删除',
+        restore: '恢复',
       },
       entity_type: '实体类型',
       table_name: '数据表',

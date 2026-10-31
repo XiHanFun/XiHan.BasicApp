@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Domain.Services;
 /// 把 SqlSugar 差异日志转成数据变更日志。
 /// </summary>
 /// <remarks>
-/// 一条事件可带一批行：每行一条，修改按主键配对前后值。
+/// 一条事件可带一批行：每行一条，修改按主键配对前后值，软删除列 <c>is_deleted</c> 由真变假的记为恢复（4.x 同）。
 /// 列名含 password / hash / secret / token / salt 的值一律打码；修改里只动了时间戳、操作人、并发戳这类随写入就变的列的，不算数据变更、不记。
 /// 前后值手写成 JSON 对象（按值的类型分支，不走反射序列化）。
 /// </remarks>
@@ -26,6 +26,8 @@ public static class DiffLogRows
     public const string Masked = "***";
 
     private static readonly string[] _sensitive = ["password", "hash", "secret", "token", "salt"];
+
+    private const string SoftDeleteColumn = "is_deleted";
 
     private static readonly HashSet<string> _noise = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -75,7 +77,7 @@ public static class DiffLogRows
             yield return new SysDiffLog
             {
                 OperationId = operationId,
-                Kind = kind,
+                Kind = kind == DiffKind.Update && IsSoftDeleted(old) == true && IsSoftDeleted(current) == false ? DiffKind.Restore : kind,
                 EntityType = Clip(entityType, 256)!,
                 TableName = Clip(row.TableName, 128),
                 EntityId = Clip(KeyOf(row), 128),
@@ -96,6 +98,26 @@ public static class DiffLogRows
             .Where(c => !previous.TryGetValue(c.ColumnName, out var value) || !string.Equals(value, Text(c.Value), StringComparison.Ordinal))
             .Select(static c => c.ColumnName)
             .ToList();
+    }
+
+    /// <summary>
+    /// 这一行的软删除标记。
+    /// </summary>
+    /// <remarks>
+    /// 没有这一列为空；布尔、0 / 1 与文本都认（各库读回的类型不同）。
+    /// </remarks>
+    private static bool? IsSoftDeleted(DiffLogTableInfo? row)
+    {
+        var column = row?.Columns.FirstOrDefault(static c => string.Equals(c.ColumnName, SoftDeleteColumn, StringComparison.OrdinalIgnoreCase));
+        return column?.Value switch
+        {
+            null or DBNull => null,
+            bool flag => flag,
+            int or long or short or byte => Convert.ToInt64(column.Value, CultureInfo.InvariantCulture) != 0,
+            string text when bool.TryParse(text, out var parsed) => parsed,
+            string text when long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) => number != 0,
+            _ => null,
+        };
     }
 
     private static bool IsSensitive(string column) => _sensitive.Any(word => column.Contains(word, StringComparison.OrdinalIgnoreCase));

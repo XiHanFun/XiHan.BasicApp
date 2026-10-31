@@ -7591,7 +7591,7 @@ export interface components {
          * @description 数据变更的种类。
          * @enum {string}
          */
-        DiffKind: "Insert" | "Update" | "Delete";
+        DiffKind: "Insert" | "Update" | "Delete" | "Restore";
         /** @description 数据变更日志的列表项（不含前后值）。 */
         DiffLogResponse: {
             /**

@@ -170,6 +170,7 @@ export default {
         insert: 'Добавление',
         update: 'Обновление',
         delete: 'Удаление',
+        restore: 'Восстановление',
       },
       entity_type: 'Тип сущности',
       table_name: 'Таблица',

@@ -44845,7 +44845,8 @@
         "enum": [
           "Insert",
           "Update",
-          "Delete"
+          "Delete",
+          "Restore"
         ]
       },
       "DiffLogResponse": {
