@@ -1,6 +1,6 @@
 # 组织架构
 
-Organization 包（Tier 1，依赖 Identity 与 Tenancy）管部门、岗位与部门成员。三者都是**租户库实体**：每个租户一套，平台一侧没有组织架构。
+本页说明 Organization 包（Tier 1，依赖 Identity 与 Tenancy）提供的部门、岗位与部门成员，适用于后端开发者。三者都是租户库实体：每个租户一套，平台一侧没有组织架构。
 
 ## 部门
 
@@ -20,7 +20,7 @@ Organization 包（Tier 1，依赖 Identity 与 Tenancy）管部门、岗位与�
 | `departments.move` | `organization.departments.update` | 移到新上级：整棵子树重算闭包，拒绝移到自己或子孙之下 |
 | `departments.delete` | `organization.departments.delete` | 批量删除，摘除闭包行 |
 
-**负责人**是本租户的用户（`leaderUserId`）。前端编辑弹窗按关键字远程检索用户（需要 `identity.users.read`，看不了用户时这一栏不显示）。
+负责人是本租户的用户（`leaderUserId`）。前端编辑弹窗按关键字远程检索用户（需要 `identity.users.read`，看不了用户时这一栏不显示）。
 
 ## 岗位
 
@@ -32,14 +32,14 @@ Organization 包（Tier 1，依赖 Identity 与 Tenancy）管部门、岗位与�
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `memberships.list` | `organization.memberships.read` | 按部门（可含下级）列成员，**按数据范围收窄** |
+| `memberships.list` | `organization.memberships.read` | 按部门（可含下级）列成员，按数据范围收窄 |
 | `memberships.create` | `organization.memberships.create` | 用户注册地必须是当前租户；用户的第一个归属自动是主部门 |
 | `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间 |
 | `memberships.delete` | `organization.memberships.delete` | 批量移出 |
 
-## 被谁用
+## 使用方
 
-| 使用方 | 怎么用 |
+| 使用方 | 用法 |
 | --- | --- |
 | Access 数据范围 | 本部门 / 本部门及下级 / 自定义部门 |
 | Access 字段安全 | 部门目标的规则认所在部门及其上级 |

@@ -1,13 +1,13 @@
 # 数据模型
 
-6.0 的数据模型按**库决定协议**划分：一个实体落在平台库还是租户库，决定了它实现哪些协议接口。本页列出各包的实体与落点。实体基类见[实体基类](./entity)。
+本页列出各包的实体与落点，适用于需要了解表结构归属的后端开发者。6.0 的数据模型按库决定协议划分：一个实体落在平台库还是租户库，决定了它实现哪些协议接口。实体基类见[实体基类](./entity)。
 
-## 口诀
+## 落点规则
 
 | | 平台库实体 | 租户库实体 |
 | --- | --- | --- |
 | 基类 | `App*` | `TenantScoped*` |
-| `IMultiTenant` | **不实现** | 实现，框架仓储严格过滤 |
+| `IMultiTenant` | 不实现 | 实现，框架仓储严格过滤 |
 | 归属 | 需要时用 `OwnerTenantId`（平台为 `platform`）或 `HomeTenantId` | `TenantId`（平台一侧的租户库数据记 `platform`） |
 | 连接 | 永远是默认连接（平台库） | 租户有独立库时落 `shard` 连接 |
 | 例子 | 用户、会话、租户、角色、授权、菜单、参数、模板 | 部门、岗位、文件、通知投递、八类日志 |
@@ -74,7 +74,7 @@
 | Notification | `SysNotification`、`SysUserNotification` | 通知与按人投递 |
 | Auditing | `SysAccessLog`、`SysLoginLog`、`SysExceptionLog`、`SysDiffLog`、`SysPermissionChangeLog`、`SysConditionHit`、`SysOpenApiLog` | 七类日志按月分表（`[SplitTable(SplitType.Month)]`），只追加；平台一侧的日志租户列记 `platform` |
 
-第八类「操作日志」没有应用表：它就是框架的操作审计 `audit_record`（经 `Auditing.Database` 落库），Auditing 包只提供查询面。
+第八类「操作日志」没有应用表：它即框架的操作审计 `audit_record`（经 `Auditing.Database` 落库），Auditing 包只提供查询面。
 
 ## 框架 Provider 的表
 

@@ -1,5 +1,7 @@
 # 目录结构与代码地图
 
+本页说明仓库、后端与前端的目录结构，并列出常见改动对应的代码位置，适用于开始修改代码之前查阅。
+
 ## 仓库全貌
 
 6.0 与 5.x 在 `next` 分支上并存，互不引用；6.0 GA 时 `backend-next/`、`frontend-next/`、`docs-next/` 才会 `git mv` 成 `backend/`、`frontend/`、`docs/`。
@@ -100,7 +102,7 @@ frontend-next/
 
 已有的模块：`access`、`auditing`、`files`、`identity`、`maintenance`、`notification`、`openplatform`、`organization`、`settings`、`tenancy`、`workbench`。
 
-## 代码地图：我要改 X，去哪儿
+## 代码定位
 
 ### 后端
 
@@ -126,7 +128,7 @@ frontend-next/
 | 壳层注入的接口实现 | `src/app/context.ts`（`AppContextApis`） |
 | 主题与令牌 | `packages/design/` |
 
-### 常见「两处都要改」
+### 前后端同时改动的情形
 
 | 变更 | 后端 | 前端 |
 | --- | --- | --- |

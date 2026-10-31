@@ -1,15 +1,17 @@
 # 缓存与异步
 
+本页说明 6.0 的缓存用法与缓存管理，以及定时作业、托管循环、日志队列与提交后推送等异步机制，适用于后端开发者。
+
 ## 缓存
 
-### 用什么
+### 缓存接口
 
 | 接口 | 来源 | 用途 |
 | --- | --- | --- |
 | `ISharedCache` | 框架 `Caching.Abstractions` | 跨请求共享的对象缓存：授权规则、指派、会话门禁、验证码散列、登录节流计数、条件与策略、套餐白名单 |
 | `ICache` / 字节存储 | 框架 | 框架内部（分布式锁、租约等） |
 
-宿主当前用 Full Profile 的**进程内实现**：零外部依赖，单实例部署即可。框架提供 `Caching.Redis` 与 `Caching.Hybrid`，但宿主还没有装配它们——多实例部署时各实例的缓存不共享（授权规则写入方即时失效只对本实例生效，其他实例最迟按缓存时长过期）。
+宿主当前用 Full Profile 的进程内实现：零外部依赖，单实例部署即可。框架提供 `Caching.Redis` 与 `Caching.Hybrid`，但宿主还没有装配它们。多实例部署时各实例的缓存不共享（授权规则写入方即时失效只对本实例生效，其他实例最迟按缓存时长过期）。
 
 ### 缓存时长与失效
 
@@ -35,7 +37,7 @@
 | `openplatform:` | 否 |
 | `notification:` | 是 |
 
-不可改写的命名空间仍可删除：删了只是让缓存按需重建。
+不可改写的命名空间仍可删除，删除后缓存按需重建。
 
 缓存管理（Maintenance，平台侧）：
 
@@ -65,11 +67,11 @@
 ### 发件箱
 
 - 宿主装了框架的 `OutboxFeature`：领域事件与业务写入同事务派发（目前各包尚未登记领域事件）。
-- 邮件、短信、机器人消息的「待发送记录」是应用表（`SysEmail`、`SysSms`、`SysBotMessage`），本身就是可查可重发的发件箱：发布通知时经 `Contracts` 的 `IMessageSender` 直接入队，发送循环按 `BasicApp:Notification:DispatchInterval` 轮询，失败按 `RetryDelay` 重试至多 `MaxAttempts` 次，超过 `StuckAfter` 的发送中记录视为卡死重新排队。
+- 邮件、短信、机器人消息的「待发送记录」是应用表（`SysEmail`、`SysSms`、`SysBotMessage`），本身即可查询、可重发的发件箱：发布通知时经 `Contracts` 的 `IMessageSender` 直接入队，发送循环按 `BasicApp:Notification:DispatchInterval` 轮询，失败按 `RetryDelay` 重试至多 `MaxAttempts` 次，超过 `StuckAfter` 的发送中记录视为卡死重新排队。
 
 ### 导出
 
-导出任务（`export-tasks.submit`）在后台以**发起人的凭据**逐页调用对应的列表操作（权限、租户、数据范围与字段安全照常生效），生成 CSV / XLSX 存成 7 天的临时文件，进度经 `TaskProgress` 推送。见[文件与存储](./file)。
+导出任务（`export-tasks.submit`）在后台以发起人的凭据逐页调用对应的列表操作（权限、租户、数据范围与字段安全照常生效），生成 CSV / XLSX 存成 7 天的临时文件，进度经 `TaskProgress` 推送。见[文件与存储](./file)。
 
 ## 下一步
 

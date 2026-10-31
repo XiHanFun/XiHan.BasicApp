@@ -1,6 +1,8 @@
 # 数据库配置
 
-6.0 用 SqlSugar 作为数据层（框架 `Persistence.SqlSugar` 的「方式一」），**PostgreSQL 是缺省与唯一经过 CI 验证的库**；集成测试另用 SQLite 跑快速用例。不引入 EF Core 作为平行的业务数据层。
+本页说明 6.0 的数据库连接、多库落点、数据访问方式与建表策略，适用于后端开发者与部署人员。
+
+6.0 用 SqlSugar 作为数据层（框架 `Persistence.SqlSugar` 的「方式一」），PostgreSQL 是缺省与唯一经过 CI 验证的库；集成测试另用 SQLite 跑快速用例。不引入 EF Core 作为平行的业务数据层。
 
 ## 平台库连接
 
@@ -20,7 +22,7 @@
 }
 ```
 
-- 数据库是**启动硬要求**：绑定缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
+- 数据库是启动硬要求：绑定缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
 - `provider` 缺省 `postgresql`，由 `Runtime` 的 `DatabaseProviders` 映射成 SqlSugar 的库类型。
 - 不提交真实连接串：`appsettings.json` 留空，开发值写在 `appsettings.Development.json`，部署用环境变量 `XiHan__Bindings__db__value`。
 
@@ -49,7 +51,7 @@
 这正是「库决定协议」：平台库实体不实现 `IMultiTenant`，永远在默认连接；租户库实体实现它，随租户分库。独立库租户的连接串存在租户目录（`TenantRecord` 的 `ConnectionString` / `DatabaseProvider` 属性），以 `ISecretProtector` 密文保存，由框架按租户目录建分片连接、Runtime 解密。
 
 ::: warning 跨库事务不是两阶段提交
-工作单元经 `AsTenant()` 在全部连接上开启、提交、回滚，但提交是**顺序**的：第二个连接提交失败时第一个已经提交。需要严格原子的写入放在同一个库里；租户开通这类同时写平台库与租户库的路径由操作做补偿。
+工作单元经 `AsTenant()` 在全部连接上开启、提交、回滚，但提交是顺序的：第二个连接提交失败时第一个已经提交。需要严格原子的写入放在同一个库里；租户开通这类同时写平台库与租户库的路径由操作做补偿。
 :::
 
 ## 数据访问的三种方式
@@ -57,19 +59,19 @@
 | 场景 | 用什么 | 约束 |
 | --- | --- | --- |
 | 按 ID 取、按规约列、计数、增删改、批量 | `IRepository<TEntity, Guid>`（源生成登记） | 自动处理租户、软删除、并发戳、时间 |
-| 分页、投影、联表、聚合 | 包内 `Queries/XxxQueries.cs`，用 `ISqlSugarClient` | **必须**以 `TenantScopedQuery.For<T>(client, context)` 起手（补租户与软删除条件），连接经 `SqlSugarUnitOfWork.ConnectionFor(typeof(T))` 取 |
+| 分页、投影、联表、聚合 | 包内 `Queries/XxxQueries.cs`，用 `ISqlSugarClient` | 必须以 `TenantScopedQuery.For<T>(client, context)` 起手（补租户与软删除条件），连接经 `SqlSugarUnitOfWork.ConnectionFor(typeof(T))` 取 |
 | 按月分表的日志 | 仓储按 `[SplitTable(SplitType.Month)]` 自动走分表入口，`EntityQuery<T>.Within(时间范围)` 限定扫描的表 | 跨表聚合仍走 `Queries/` |
 
 框架没有全局查询过滤器：直接用 `ISqlSugarClient` 而不经 `TenantScopedQuery` 起手，就会漏掉租户与软删除条件。
 
-## 建表：开发与正式两条路
+## 建表策略
 
 | 环境 | 方式 |
 | --- | --- |
 | 开发 | `XiHan:Persistence:SqlSugar:InitTables = true`（Development 缺省）：启动时按已登记的实体建缺表、加缺列 |
 | 正式 | `Host/Schema/<版本>/*.sql` + 版本台账，由表结构升级器在启动时执行，见[表结构升级](./upgrade) |
 
-`InitTables` 只建缺表、加缺列。给**已有行**的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持——实体里声明成可空，或重建开发库。
+`InitTables` 只建缺表、加缺列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或重建开发库。
 
 ## 测试库
 

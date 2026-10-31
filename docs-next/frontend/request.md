@@ -1,5 +1,7 @@
 # 契约与请求
 
+本页说明管理端的契约生成物、操作调用、请求头与错误处理，适用于前端开发者与修改后端契约的开发者。
+
 6.0 前端没有手写的 API 层：一份 `openapi.json`、一个生成器、一个运行时客户端。
 
 ```text
@@ -26,7 +28,7 @@
 
 `paging.ts` 是手写的：把 SchemaPage 的查询参数转成 6.0 的 `PageRequest`、把 `PageResult` 转回 SchemaPage 读的形状。
 
-生成物**入库**；CI 先用后端重新导出 `openapi.json` 比对，再重新生成比对（`pnpm contracts:check`），任一漂移即失败。改契约的顺序：后端操作 → 导出 → 生成 → 改页面 → 同一提交。
+生成物入库；CI 先用后端重新导出 `openapi.json` 比对，再重新生成比对（`pnpm contracts:check`），任一漂移即失败。改契约的顺序：后端操作 → 导出 → 生成 → 改页面 → 同一提交。
 
 ## 调用
 
@@ -67,7 +69,7 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 
 ## 错误
 
-失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示；**分支只看 `code`**。运行时客户端按错误码触发钩子：
+失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示；分支只看 `code`。运行时客户端按错误码触发钩子：
 
 | `code` | 钩子 | 行为 |
 | --- | --- | --- |
@@ -88,8 +90,7 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 
 ## 时间与 ID
 
-- 主键是 UUID 字符串，前端没有数字字符串换算。
-- 时间是 UTC 的 ISO 8601（带 `Z`）。管理端目前用 `~/utils` 的 `formatDate` 按浏览器时区显示；按用户偏好时区显示尚未实现。
+主键是 UUID 字符串，前端不需要数字字符串换算。时间是带 `Z` 的 UTC ISO 8601 字符串，管理端目前用 `~/utils` 的 `formatDate` 按浏览器时区显示，按用户偏好时区显示尚未实现。
 
 ## 下一步
 

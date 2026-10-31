@@ -1,6 +1,8 @@
 # 数据权限与字段安全
 
-权限码回答「能不能调这个操作」；数据范围回答「能看到哪些行」；字段安全回答「行里的哪些字段能看、能改」。后两者**不在**框架的授权判定链上：6.0 的响应是不可变记录，没有 5.x 的响应过滤器，由各包在查询、投影与写入处经 `Runtime` / `Contracts` 的接口显式套用。
+本页说明数据范围与字段安全的规则及其在代码中的套用方式，适用于后端开发者与权限配置人员。
+
+权限码决定能否调用某个操作，数据范围决定能看到哪些行，字段安全决定行中哪些字段可读、可写。后两者不在框架的授权判定链上：6.0 的响应是不可变记录，没有 5.x 的响应过滤器，由各包在查询、投影与写入处经 `Runtime` / `Contracts` 的接口显式套用。
 
 ## 数据范围
 
@@ -16,12 +18,11 @@
 
 ### 来源与合并
 
-- **角色**：`roles.create` / `update` 带 `dataScope` 与自定义部门（`SysRoleDataScope`）。平台角色只能是 `All`；租户角色不写即只看自己。
-- **用户级覆盖**（`user-data-scopes.get` / `set`，权限 `access.user-data-scopes.read` / `update`，只在租户侧）：设了即**整体取代**该用户各角色的数据范围，不设即按角色取并集。
-- 平台主体、以及没有装 Access 的宿主一律不受限。
-- 数据范围不随角色继承、不随委托。
+角色通过 `roles.create` / `update` 设置 `dataScope` 与自定义部门（`SysRoleDataScope`）。平台角色只能为 `All`，租户角色不设置时只看自己的数据。
 
-### 怎么套到查询上
+用户级覆盖（`user-data-scopes.get` / `set`，权限 `access.user-data-scopes.read` / `update`，仅租户侧）设置后整体取代该用户各角色的数据范围；未设置时按角色取并集。平台主体以及未装配 Access 的宿主不受数据范围限制。数据范围不随角色继承，也不随委托传递。
+
+### 在查询中套用
 
 ```csharp
 // Organization 的部门成员查询：归属人列是成员的用户 ID，部门列是成员所在部门
@@ -36,7 +37,7 @@ var query = TenantScopedQuery.For<SysUserDepartment>(client, context)
 | Identity | 用户列表、详情、修改、重置密码与批量操作；在线会话列表 |
 | Organization | 部门成员列表 |
 
-文件、导出、通知等列表**还没有**按数据范围收窄。
+文件、导出、通知等列表还没有按数据范围收窄。
 
 ## 字段安全
 
@@ -53,10 +54,10 @@ var query = TenantScopedQuery.For<SysUserDepartment>(client, context)
 ### 命中与合并
 
 - 用户规则认本人；角色规则认此刻持有的角色（令牌声明与有效指派的交集，只认直接持有，不看继承）；部门规则认所在部门及其上级（停用的不算）。
-- 多条命中：读取方式**取最严**、部分脱敏的保留位数**取最少**、任一只读即只读。
+- 多条命中：读取方式取最严、部分脱敏的保留位数取最少、任一只读即只读。
 - 启用的规则按（侧、实体）缓存 60 秒，写入即失效；规则只在所属一侧生效。
 
-### 各包怎么套用
+### 套用位置
 
 实体与字段要先登记（`AddFieldSecurityCatalog`），再在三处显式调用 `IFieldSecurity`（`Runtime` 的 `FieldSecurityQuery.ResolveAsync` 取合并后的 `FieldRules`）：
 

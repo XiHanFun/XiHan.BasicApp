@@ -1,10 +1,12 @@
 # 权限与脱敏
 
-**安全边界在后端**：前端只决定「显示什么」，让没有权限的入口不出现、受保护的字段如实显示打码值。隐藏按钮不能代替后端授权。
+本页说明管理端如何使用后端下发的权限与字段安全结果，适用于前端开发者。
+
+安全边界在后端。前端只决定显示哪些内容：没有权限的入口不显示，受保护的字段按后端给出的打码值显示。隐藏按钮不能代替后端授权。
 
 ## 权限数据
 
-登录后守卫首次进入时调 `auth.permissions`，一次拿到：
+登录后守卫首次进入时调 `auth.permissions`，一次取得：
 
 | 项 | 用途 |
 | --- | --- |
@@ -30,7 +32,7 @@ auth.can('identity.users.create')       // 精确匹配，不认通配
 
 SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`、`exportPermission`、`importPermission` 直接填权限码。也可以用 `usePermission()` 的 `hasPermission(code | codes)`。
 
-权限码都来自生成的 `~/contracts` `permissions.ts`：`pnpm permissions:check` 扫描 `permission:`、`can('…')`、`hasPermission('…')` 里的三段点分字面量，不存在即失败——后端改名或删掉一个权限码，前端引用处在 CI 里就会暴露。
+权限码都来自生成的 `~/contracts` `permissions.ts`：`pnpm permissions:check` 扫描 `permission:`、`can('…')`、`hasPermission('…')` 里的三段点分字面量，不存在即失败。后端改名或删除权限码时，前端的引用处在 CI 中即报错。
 
 ### 组合判断
 
@@ -48,7 +50,7 @@ SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`�
 
 ## 字段安全与脱敏
 
-后端在投影时已经按字段安全规则打码，前端拿到的就是打码后的值：
+后端在投影时已按字段安全规则打码，前端收到的是打码后的值：
 
 | 情况 | 前端表现 |
 | --- | --- |
@@ -57,11 +59,11 @@ SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`�
 | 只读 | 编辑表单置灰；交回原值、打码值或空值时后端保留原值 |
 | 按受保护字段筛选或排序 | 后端拒绝（如 `IDENTITY_DENIED_011`），页面提示 |
 
-前端**不复制**字段安全的判定逻辑，也不尝试「还原」打码值。规则管理在 `/access/field-security`，见[数据权限与字段安全](../backend/data-permission)。
+前端不复制字段安全的判定逻辑，也不尝试「还原」打码值。规则管理在 `/access/field-security`，见[数据权限与字段安全](../backend/data-permission)。
 
 ## 数据范围
 
-同样只在后端：列表、详情与批量操作按数据范围收窄，前端看到的就是收窄后的结果。
+数据范围同样只在后端生效：列表、详情与批量操作按数据范围收窄，前端收到的是收窄后的结果。
 
 ## 下一步
 

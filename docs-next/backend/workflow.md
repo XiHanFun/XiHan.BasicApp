@@ -1,5 +1,7 @@
 # 工作流（规划中 · N3）
 
+本页记录工作流模块在总体方案中的设计，供规划与评估参考。
+
 ::: warning 尚未实现
 6.0 还没有 Workflow 包，菜单里没有流程定义、流程实例与审批中心，也没有相关操作与权限码。本页记录总体方案里的设计，落地时以代码为准。5.x 的工作流文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/workflow)。
 :::
@@ -12,7 +14,7 @@ Workflow 是 Tier 3 可选模块，计划在 N3 与 Printing、CodeGeneration、
 
 ### 引擎：框架的显式 Provider
 
-工作流执行能力由框架 5 的 `Workflow.Abstractions` 定义（能力 `workflow.execution@1`），BasicApp 以**显式 Provider** 接入，而不是自建引擎：
+工作流执行能力由框架 5 的 `Workflow.Abstractions` 定义（能力 `workflow.execution@1`），BasicApp 以显式 Provider 接入，而不是自建引擎：
 
 | 部分 | 方案 |
 | --- | --- |
@@ -24,7 +26,7 @@ Workflow 是 Tier 3 可选模块，计划在 N3 与 Printing、CodeGeneration、
 ### 业务接入
 
 - 业务契约 `IWorkflowBusinessHandler` 放在 `Contracts`，业务包实现它即可让自己的单据走审批；Workflow 不引用业务包。
-- Access 的**授权申请**是参照实现：提交即发起审批流，通过后执行授予（见[约束规则与审批](./approval)）。
+- Access 的授权申请是参照实现：提交即发起审批流，通过后执行授予（见[约束规则与审批](./approval)）。
 - 受理人规则沿用 5.x 的 6 种。
 
 ### 计划的资源与权限
@@ -43,7 +45,7 @@ Workflow 是 Tier 3 可选模块，计划在 N3 与 Printing、CodeGeneration、
 - 流程设计器用 `@xihan-flow/designer`，它产出的 JSON 需要映射到 5.0 `WorkflowJson`，映射层计划放在 `packages/designers/flow`；缺省项必须写全，不依赖框架对 null 的兜底。
 - 页面进 `src/modules/workflow`。
 
-## 现在能做什么
+## 当前替代方案
 
 - 需要「职责分离」类的控制：用已落地的[约束规则](./approval)。
 - 需要审批：在 6.0 预览期没有内置方案；约束规则的 `RequireApproval` 目前按拒绝处理。
