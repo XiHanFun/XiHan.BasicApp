@@ -82,8 +82,6 @@
   "identity.two_factor.unavailable": "このアカウントは二要素認証が有効ですが、使える方法がありません。管理者にリセットを依頼してください。",
   "identity.two_factor.totp_already_enabled": "認証アプリは登録済みです。端末を変える場合は先に無効にしてから登録し直してください。",
   "identity.two_factor.totp_setup_missing": "認証アプリの登録が期限切れか、まだ開始されていません。キーを生成し直してください。",
-  "identity.field_security.protected": "フィールド {field} はフィールドセキュリティで保護されているため、絞り込みや並べ替えに使えません。",
-  "identity.field_security.read_only": "フィールド {field} はあなたには読み取り専用で、入力や変更はできません。",
   "auth.activate_roles.title": "有効ロールの切り替え",
   "auth.activate_roles.description": "現在のセッションで有効にするロールを切り替えます（すべて現在保有しており、動的職務分離に違反しないこと）。新しいトークンを返します。",
   "sessions.list.title": "オンラインユーザーの一覧",

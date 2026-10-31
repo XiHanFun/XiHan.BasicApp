@@ -637,6 +637,30 @@ public static class AccessMessages
     public const string ConditionNotMet = "access.condition.not_met";
 
     /// <summary>
+    /// 字段受保护，不能筛选或排序。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
+    public const string FieldProtected = "access.field_security.protected";
+
+    /// <summary>
+    /// 关键字会匹配到受保护的字段。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
+    public const string FieldKeywordProtected = "access.field_security.keyword_protected";
+
+    /// <summary>
+    /// 字段对调用方只读。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
+    public const string FieldReadOnly = "access.field_security.read_only";
+
+    /// <summary>
     /// 试算的客户端地址写错。
     /// </summary>
     /// <remarks>

@@ -122,7 +122,7 @@ public sealed class IdentityFeature : IFeature
         // 缓存管理只开放登记过的命名空间；验证码、会话与两步验证的缓存，属鉴权数据，只许删、不许改写
         context.Services.AddCacheNamespace("identity", editable: false);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
-        context.Services.AddFieldSecurityCatalog("identity", IdentityFieldSecurity.All);
+        IdentityFieldSecurity.Register(context.Services);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错
         foreach (var permission in IdentityPermissions.All)
         {

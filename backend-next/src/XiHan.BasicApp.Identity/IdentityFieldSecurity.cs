@@ -1,7 +1,12 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Operations.Sessions;
+using XiHan.BasicApp.Identity.Operations.Users;
+using XiHan.BasicApp.Runtime.Queries;
 
 namespace XiHan.BasicApp.Identity;
 
@@ -9,8 +14,8 @@ namespace XiHan.BasicApp.Identity;
 /// 身份包登记的字段安全实体。
 /// </summary>
 /// <remarks>
-/// 见方案 5.9。用户目录（<c>users.list / get / create / update</c>）在投影、查询与写入处套用规则；
-/// 登录、刷新、个人中心等本人自己的资料不套用。字段名与响应、筛选、排序的字段同名。
+/// 见方案 5.9，4.x 同两个实体：用户目录与在线会话。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
+/// 用户目录的关键字只匹配没受保护的登录名与显示名（本包收窄），登录、刷新、个人中心等本人自己的资料不套用。
 /// </remarks>
 public static class IdentityFieldSecurity
 {
@@ -18,6 +23,11 @@ public static class IdentityFieldSecurity
     /// 用户实体码。
     /// </summary>
     public const string Users = "identity.users";
+
+    /// <summary>
+    /// 在线会话实体码。
+    /// </summary>
+    public const string Sessions = "identity.sessions";
 
     /// <summary>
     /// 登录名。
@@ -35,30 +45,20 @@ public static class IdentityFieldSecurity
     public const string Email = "email";
 
     /// <summary>
-    /// 手机号。
-    /// </summary>
-    public const string PhoneNumber = "phoneNumber";
-
-    /// <summary>
-    /// 最近登录时间。
-    /// </summary>
-    public const string LastLoginAt = "lastLoginAt";
-
-    /// <summary>
-    /// 全部实体。
+    /// 登记本包的实体与操作。
     /// </summary>
     /// <remarks>
-    /// 显示名是前端用户页已有的文案键。
+    /// 显示名沿用前端用户页与在线用户页已有的文案键。
     /// </remarks>
-    public static IReadOnlyList<FieldSecurityEntityDescriptor> All { get; } =
-    [
-        new(Users, "identity.users.title",
-        [
-            new(UserName, "identity.users.fields.user_name", IsText: true, IsNullable: false),
-            new(DisplayName, "identity.users.fields.display_name", IsText: true, IsNullable: false),
-            new(Email, "identity.users.fields.email", IsText: true, IsNullable: true),
-            new(PhoneNumber, "identity.users.fields.phone", IsText: true, IsNullable: true),
-            new(LastLoginAt, "identity.users.fields.last_login_at", IsText: false, IsNullable: true),
-        ]),
-    ];
+    /// <param name="services">服务集合。</param>
+    public static void Register(IServiceCollection services)
+        => services.AddFieldSecurity("identity", IdentityJsonContext.Default, fields => fields
+            .Entity<UserResponse>(Users, "identity.users.title", "identity.users.fields.")
+                .Title("phoneNumber", "identity.users.fields.phone")
+                .Reads(ListUsers.Id, GetUser.Id)
+                .Creates(CreateUser.Id)
+                .Updates<UpdateUserRequest>(UpdateUser.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysUser>(context, request.Id, UserResponse.From))
+            .Entity<OnlineSessionResponse>(Sessions, "identity.online_users.title", "identity.online_users.col_")
+                .Reads(ListSessions.Id)
+                .Keyword(UserName, DisplayName));
 }

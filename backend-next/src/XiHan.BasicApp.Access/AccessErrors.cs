@@ -535,4 +535,20 @@ public static class AccessErrors
     /// 参数 <c>id</c>。
     /// </remarks>
     public const string SessionRoleNotFound = "ACCESS_NOTFOUND_011";
+
+    /// <summary>
+    /// 字段受字段安全保护，不能筛选、排序或关键字搜索。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
+    public const string FieldProtected = "ACCESS_DENIED_006";
+
+    /// <summary>
+    /// 字段对调用方只读，不能填写或修改。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
+    public const string FieldReadOnly = "ACCESS_DENIED_007";
 }

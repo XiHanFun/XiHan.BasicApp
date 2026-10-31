@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fieldSecurity } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
-import { fieldSecurityResource, flattenDepartments, toDefinition, useFieldRuleEditor } from './use-field-security'
+import { COMMON_FIELD_PREFIX, fieldSecurityResource, fieldTitleKey, flattenDepartments, messageKeys, toDefinition, useFieldRuleEditor } from './use-field-security'
 
 const users = {
   code: 'identity.users',
@@ -67,5 +67,27 @@ describe('field security resource', () => {
     const update = vi.spyOn(fieldSecurity, 'update').mockResolvedValue({ ...row, status: 'Disabled' })
     await fieldSecurityResource().updateStatus!('f-1', false)
     expect(update.mock.calls[0]![0]).toEqual({ id: 'f-1', targetKind: 'User', targetId: 'u-1', entity: 'identity.users', field: 'email', strategy: 'FullMask', keepHead: null, keepTail: null, replacement: null, isEditable: false, status: 'Disabled', remark: 'r' })
+  })
+})
+
+describe('字段显示名的兜底查找', () => {
+  const keys = messageKeys({
+    notification: { bot_configs: { columns: { config_code: '配置编码' }, detail: { webhook_url: '地址' }, col_is_default: '缺省' } },
+    access: { field_security: { common_fields: { created_at: '创建时间' } } },
+    preference: { layout: { name: '别处的名称' } },
+    broken: { count: 3 },
+  })
+
+  it('消息树拍平成键，只要文本叶子', () => {
+    expect(keys).toEqual(['notification.bot_configs.columns.config_code', 'notification.bot_configs.detail.webhook_url', 'notification.bot_configs.col_is_default', 'access.field_security.common_fields.created_at', 'preference.layout.name'])
+  })
+
+  it('登记的键优先，再找同页命名空间里末段同名（或 col_ / detail_ / form_ 前缀）的键，再查通用词表，都没有为空', () => {
+    expect(fieldTitleKey('notification.bot_configs.columns.config_code', 'code', keys)).toBe('notification.bot_configs.columns.config_code')
+    expect(fieldTitleKey('notification.bot_configs.columns.webhook_url', 'webhookUrl', keys)).toBe('notification.bot_configs.detail.webhook_url')
+    expect(fieldTitleKey('notification.bot_configs.columns.is_default', 'isDefault', keys)).toBe('notification.bot_configs.col_is_default')
+    expect(fieldTitleKey('notification.bot_configs.columns.created_at', 'createdAt', keys)).toBe(`${COMMON_FIELD_PREFIX}created_at`)
+    // 别的页面的同名键不借（语义未必一样），没有即显示字段名
+    expect(fieldTitleKey('notification.bot_configs.columns.name', 'name', keys)).toBeNull()
   })
 })

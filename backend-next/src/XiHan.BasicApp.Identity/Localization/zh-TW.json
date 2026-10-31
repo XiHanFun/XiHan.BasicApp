@@ -82,8 +82,6 @@
   "identity.two_factor.unavailable": "帳號啟用了雙重驗證，但沒有可用的驗證方式，請聯絡管理員重設。",
   "identity.two_factor.totp_already_enabled": "驗證器已綁定；要更換裝置請先停用再重新綁定。",
   "identity.two_factor.totp_setup_missing": "驗證器綁定已過期或尚未開始，請重新產生金鑰。",
-  "identity.field_security.protected": "欄位 {field} 受欄位安全保護，不能用來篩選或排序。",
-  "identity.field_security.read_only": "欄位 {field} 對你唯讀，不能填寫或修改。",
   "auth.activate_roles.title": "切換啟用角色",
   "auth.activate_roles.description": "切換目前工作階段啟用的角色（須都此刻持有、且不違反動態職責分離）；傳回新權杖。",
   "sessions.list.title": "查詢線上使用者",
