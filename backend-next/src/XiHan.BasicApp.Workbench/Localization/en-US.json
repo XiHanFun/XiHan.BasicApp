@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "List workbench widgets",
+  "workbench.widgets.description": "Lists the workbench widgets registered by each package that the caller may see (key and data kind).",
+  "workbench.widget_data.title": "Get widget data",
+  "workbench.widget_data.description": "Gets the data of one workbench widget by key for the current side: metric, series, composition or items; the widget permission is checked first.",
+  "workbench.widget.not_found": "Widget {key} does not exist.",
+  "workbench.widget.denied": "You do not have permission to view widget {key}.",
+  "openapi.tags.workbench.name": "Workbench",
+  "openapi.tags.workbench.description": "Workbench widgets: statistics, charts and announcements registered by each package.",
+  "openapi.groups.workbench.name": "Workbench",
+  "openapi.groups.workbench.description": "Workbench widgets and their data."
+}

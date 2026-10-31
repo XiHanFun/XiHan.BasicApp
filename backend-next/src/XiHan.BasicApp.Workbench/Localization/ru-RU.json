@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "Список виджетов рабочего стола",
+  "workbench.widgets.description": "Перечисляет виджеты рабочего стола, зарегистрированные пакетами, которые может видеть вызывающий (ключ и вид данных).",
+  "workbench.widget_data.title": "Получить данные виджета",
+  "workbench.widget_data.description": "Получает данные одного виджета рабочего стола по ключу для текущей стороны: показатель, ряды, состав или элементы; сначала проверяется разрешение виджета.",
+  "workbench.widget.not_found": "Виджет {key} не существует.",
+  "workbench.widget.denied": "У вас нет разрешения на просмотр виджета {key}.",
+  "openapi.tags.workbench.name": "Рабочий стол",
+  "openapi.tags.workbench.description": "Виджеты рабочего стола: статистика, диаграммы и объявления от пакетов.",
+  "openapi.groups.workbench.name": "Рабочий стол",
+  "openapi.groups.workbench.description": "Виджеты рабочего стола и их данные."
+}

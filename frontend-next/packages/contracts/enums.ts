@@ -248,6 +248,9 @@ export type UserSettingScene = (typeof UserSettingScene)[number]
 export const UserStatus = ['Active', 'Disabled', 'Locked'] as const
 export type UserStatus = (typeof UserStatus)[number]
 
+export const WorkbenchWidgetKind = ['Metric', 'Chart', 'List'] as const
+export type WorkbenchWidgetKind = (typeof WorkbenchWidgetKind)[number]
+
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
   AccessPolicyAction,
@@ -332,6 +335,7 @@ export const enums = {
   UserNotificationStatus,
   UserSettingScene,
   UserStatus,
+  WorkbenchWidgetKind,
 } as const
 
 export type EnumName = keyof typeof enums

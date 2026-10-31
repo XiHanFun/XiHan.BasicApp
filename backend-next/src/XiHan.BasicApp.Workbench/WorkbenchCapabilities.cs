@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Workbench;
 public static class WorkbenchCapabilities
 {
     /// <summary>
-    /// 工作台能力：登录后的落点页面（小组件数据随 N2 加入）。
+    /// 工作台能力：登录后的落点页面与各包小组件的汇总。
     /// </summary>
     public const string Workbench = AppInfo.CapabilityPrefix + "workbench";
 

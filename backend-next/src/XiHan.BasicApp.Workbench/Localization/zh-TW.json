@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "列出工作台小工具",
+  "workbench.widgets.description": "彙總各套件登記的工作台小工具，依呼叫方的權限列出看得到的（鍵與取數形態）。",
+  "workbench.widget_data.title": "取得小工具資料",
+  "workbench.widget_data.description": "依鍵取得一個工作台小工具的資料（目前一側）：指標、序列、構成或條目；先核對小工具要求的權限。",
+  "workbench.widget.not_found": "沒有小工具 {key}。",
+  "workbench.widget.denied": "沒有檢視小工具 {key} 的權限。",
+  "openapi.tags.workbench.name": "工作台",
+  "openapi.tags.workbench.description": "工作台小工具：各套件登記的統計、圖表與公告。",
+  "openapi.groups.workbench.name": "工作台",
+  "openapi.groups.workbench.description": "工作台的小工具與資料。"
+}

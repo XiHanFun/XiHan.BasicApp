@@ -6483,6 +6483,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workbench:widget-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get widget data
+         * @description Gets the data of one workbench widget by key for the current side: metric, series, composition or items; the widget permission is checked first.
+         *
+         *     Requires sign-in.
+         */
+        get: operations["workbench.widget-data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workbench:widgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List workbench widgets
+         * @description Lists the workbench widgets registered by each package that the caller may see (key and data kind).
+         *
+         *     Requires sign-in.
+         */
+        get: operations["workbench.widgets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -10479,6 +10523,37 @@ export interface components {
          * @enum {string}
          */
         UserStatus: "Active" | "Disabled" | "Locked";
+        WorkbenchItem: {
+            id: string;
+            title: string;
+            kind?: string | null;
+            /** Format: date-time */
+            time?: string | null;
+            link?: string | null;
+        };
+        WorkbenchLine: {
+            key: string;
+            values: number[];
+        };
+        WorkbenchSeries: {
+            categories: string[];
+            lines: components["schemas"]["WorkbenchLine"][];
+        };
+        WorkbenchSlice: {
+            key: string;
+            /** Format: int64 */
+            value: number;
+            label?: string | null;
+        };
+        /** @enum {string} */
+        WorkbenchWidgetKind: "Metric" | "Chart" | "List";
+        /** @description 调用方看得到的一个小组件。 */
+        WorkbenchWidgetResponse: {
+            /** @description 键。 */
+            key: string;
+            /** @description 取数形态。 */
+            kind: components["schemas"]["WorkbenchWidgetKind"];
+        };
     };
     responses: never;
     parameters: never;
@@ -31834,6 +31909,82 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workbench.widget-data": {
+        parameters: {
+            query: {
+                /** @description 小组件的键。 */
+                key: string;
+                /** @description 统计最近几天，含今天（趋势、构成类用，缺省 30）。 */
+                days?: number;
+                /** @description 查看者所在时区相对 UTC 的分钟数（东八区为 480），「今天」与按日分桶据此算。 */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int64 */
+                        value?: number | null;
+                        /** Format: int64 */
+                        previous?: number | null;
+                        series?: components["schemas"]["WorkbenchSeries"] | null;
+                        slices?: components["schemas"]["WorkbenchSlice"][] | null;
+                        items?: components["schemas"]["WorkbenchItem"][] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workbench.widgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 调用方看得到的小组件。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 小组件，按键排序。 */
+                        items: components["schemas"]["WorkbenchWidgetResponse"][];
                     };
                 };
             };

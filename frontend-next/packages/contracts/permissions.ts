@@ -503,4 +503,6 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'tenants.mine': 'authenticated',
   'user-settings.get': 'authenticated',
   'user-settings.update': 'authenticated',
+  'workbench.widget-data': 'authenticated',
+  'workbench.widgets': 'authenticated',
 }

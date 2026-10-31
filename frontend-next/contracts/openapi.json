@@ -324,6 +324,11 @@
       "name": "versions",
       "x-displayName": "Versions",
       "description": "Each database\u0027s version ledger: schema version, upgrade lock and last upgrade."
+    },
+    {
+      "name": "workbench",
+      "x-displayName": "Workbench",
+      "description": "Workbench widgets: statistics, charts and announcements registered by each package."
     }
   ],
   "paths": {
@@ -41924,6 +41929,174 @@
           }
         }
       }
+    },
+    "/api/workbench:widget-data": {
+      "get": {
+        "operationId": "workbench.widget-data",
+        "tags": [
+          "workbench"
+        ],
+        "summary": "Get widget data",
+        "description": "Gets the data of one workbench widget by key for the current side: metric, series, composition or items; the widget permission is checked first.\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "description": "\u5C0F\u7EC4\u4EF6\u7684\u952E\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5C0F\u7EC4\u4EF6\u7684\u952E\u3002",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "description": "\u7EDF\u8BA1\u6700\u8FD1\u51E0\u5929\uFF0C\u542B\u4ECA\u5929\uFF08\u8D8B\u52BF\u3001\u6784\u6210\u7C7B\u7528\uFF0C\u7F3A\u7701 30\uFF09\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u7EDF\u8BA1\u6700\u8FD1\u51E0\u5929\uFF0C\u542B\u4ECA\u5929\uFF08\u8D8B\u52BF\u3001\u6784\u6210\u7C7B\u7528\uFF0C\u7F3A\u7701 30\uFF09\u3002",
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 366
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "\u67E5\u770B\u8005\u6240\u5728\u65F6\u533A\u76F8\u5BF9 UTC \u7684\u5206\u949F\u6570\uFF08\u4E1C\u516B\u533A\u4E3A 480\uFF09\uFF0C\u300C\u4ECA\u5929\u300D\u4E0E\u6309\u65E5\u5206\u6876\u636E\u6B64\u7B97\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u67E5\u770B\u8005\u6240\u5728\u65F6\u533A\u76F8\u5BF9 UTC \u7684\u5206\u949F\u6570\uFF08\u4E1C\u516B\u533A\u4E3A 480\uFF09\uFF0C\u300C\u4ECA\u5929\u300D\u4E0E\u6309\u65E5\u5206\u6876\u636E\u6B64\u7B97\u3002",
+              "type": "integer",
+              "format": "int32",
+              "minimum": -840,
+              "maximum": 840
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkbenchWidgetData",
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "previous": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "series": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/WorkbenchSeries"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "slices": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "$ref": "#/components/schemas/WorkbenchSlice"
+                      }
+                    },
+                    "items": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "$ref": "#/components/schemas/WorkbenchItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workbench:widgets": {
+      "get": {
+        "operationId": "workbench.widgets",
+        "tags": [
+          "workbench"
+        ],
+        "summary": "List workbench widgets",
+        "description": "Lists the workbench widgets registered by each package that the caller may see (key and data kind).\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u8C03\u7528\u65B9\u770B\u5F97\u5230\u7684\u5C0F\u7EC4\u4EF6\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkbenchWidgetsResponse",
+                  "description": "\u8C03\u7528\u65B9\u770B\u5F97\u5230\u7684\u5C0F\u7EC4\u4EF6\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5C0F\u7EC4\u4EF6\uFF0C\u6309\u952E\u6392\u5E8F\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkbenchWidgetResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -50752,6 +50925,128 @@
           "Disabled",
           "Locked"
         ]
+      },
+      "WorkbenchItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "link": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      },
+      "WorkbenchLine": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "values"
+        ]
+      },
+      "WorkbenchSeries": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkbenchLine"
+            }
+          }
+        },
+        "required": [
+          "categories",
+          "lines"
+        ]
+      },
+      "WorkbenchSlice": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "WorkbenchWidgetKind": {
+        "type": "string",
+        "enum": [
+          "Metric",
+          "Chart",
+          "List"
+        ]
+      },
+      "WorkbenchWidgetResponse": {
+        "description": "\u8C03\u7528\u65B9\u770B\u5F97\u5230\u7684\u4E00\u4E2A\u5C0F\u7EC4\u4EF6\u3002",
+        "type": "object",
+        "properties": {
+          "key": {
+            "description": "\u952E\u3002",
+            "type": "string"
+          },
+          "kind": {
+            "description": "\u53D6\u6570\u5F62\u6001\u3002",
+            "$ref": "#/components/schemas/WorkbenchWidgetKind"
+          }
+        },
+        "required": [
+          "key",
+          "kind"
+        ]
       }
     },
     "securitySchemes": {
@@ -51687,6 +51982,12 @@
         "oauth-apps",
         "oauth-consents",
         "open"
+      ]
+    },
+    {
+      "name": "Other",
+      "tags": [
+        "workbench"
       ]
     }
   ]

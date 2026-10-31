@@ -1,0 +1,12 @@
+{
+  "workbench.widgets.title": "Listar widgets del panel",
+  "workbench.widgets.description": "Lista los widgets del panel registrados por cada paquete que el llamante puede ver (clave y tipo de datos).",
+  "workbench.widget_data.title": "Obtener datos del widget",
+  "workbench.widget_data.description": "Obtiene los datos de un widget del panel por clave para el lado actual: métrica, serie, composición o elementos; primero se comprueba el permiso del widget.",
+  "workbench.widget.not_found": "El widget {key} no existe.",
+  "workbench.widget.denied": "No tiene permiso para ver el widget {key}.",
+  "openapi.tags.workbench.name": "Panel de inicio",
+  "openapi.tags.workbench.description": "Widgets del panel: estadísticas, gráficos y anuncios registrados por cada paquete.",
+  "openapi.groups.workbench.name": "Panel de inicio",
+  "openapi.groups.workbench.description": "Widgets del panel y sus datos."
+}

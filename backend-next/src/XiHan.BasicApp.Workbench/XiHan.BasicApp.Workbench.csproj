@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Workbench</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 工作台模块（Tier 3，可选，BasicApp:Modules:Workbench:Enabled）：登记工作台页面，登录后的落点；小组件数据（workbench.* 与 IWorkbenchWidgetProvider）随 N2 加入。</Description>
+    <Description>XiHan.BasicApp 6.0 工作台模块（Tier 3，可选，BasicApp:Modules:Workbench:Enabled）：登记工作台页面（登录后的落点），汇总各包经 IWorkbenchWidgetProvider 登记的小组件并按权限取数（workbench.*）；看板布局照 4.x 存在 Identity 的用户设置里，不建表。</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,5 +11,12 @@
 
   <ItemGroup>
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

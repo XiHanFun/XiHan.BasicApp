@@ -3,12 +3,14 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Auditing.Domain.Services;
+using XiHan.BasicApp.Auditing.Infrastructure;
 using XiHan.BasicApp.Auditing.Jobs;
 using XiHan.BasicApp.Auditing.Middleware;
 using XiHan.BasicApp.Auditing.Queries;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Runtime;
 using XiHan.Framework.Auditing.Abstractions.Pipeline;
 using XiHan.Framework.Kernel;
@@ -83,6 +85,7 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<PermissionChangeLogQueries>();
         context.Services.AddScoped<ConditionHitQueries>();
         context.Services.AddScoped<OpenApiLogQueries>();
+        context.Services.AddScoped<IWorkbenchWidgetProvider, AuditingWidgets>();
         context.Services.AddScoped<OperationLogQueries>();
         context.Services.AddScoped<TraceQueries>();
         context.Services.AddPermissionCatalog("auditing", AuditingPermissions.All);
