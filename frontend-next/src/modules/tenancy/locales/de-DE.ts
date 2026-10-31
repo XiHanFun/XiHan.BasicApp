@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Aktiv',
         suspended: 'Ausgesetzt',
+        expired: 'Abgelaufen',
       },
       actions: {
         create: 'Mandant einrichten',

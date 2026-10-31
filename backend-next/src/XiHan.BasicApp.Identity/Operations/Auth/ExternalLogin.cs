@@ -75,10 +75,10 @@ public sealed class ExternalLogin(
         string? tenantName = null;
         if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
         {
-            var directory = await tenants.FindAsync(tenant, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, tenant, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenant)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

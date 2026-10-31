@@ -70,10 +70,10 @@ public sealed class Refresh(
         string? tenantName = null;
         if (session.ActiveTenantId is { } tenantId)
         {
-            var directory = await tenants.FindAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
-            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            var directory = await TenantDirectoryGate.CheckAsync(tenants, tenantId, clock.GetUtcNow(), context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info))
             {
-                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenantId)));
+                return directory.Error!;
             }
 
             tenantName = info.DisplayName;

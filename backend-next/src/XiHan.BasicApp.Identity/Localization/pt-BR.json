@@ -46,6 +46,7 @@
   "identity.password.too_simple": "A senha deve conter letras e dígitos.",
   "identity.password.reused": "A senha deve ser diferente das últimas {depth} senhas.",
   "identity.auth.tenant_unavailable": "O locatário '{tenantId}' não existe ou está suspenso.",
+  "identity.auth.tenant_expired": "O locatário '{tenantId}' expirou. Entre em contato com o administrador da plataforma para renová-lo.",
   "auth.switch_tenant.title": "Trocar de locatário",
   "auth.switch_tenant.description": "Troca a sessão atual para outro locatário (o de origem ou um do qual o usuário é membro) ou volta à plataforma (somente contas de plataforma); retorna novos tokens.",
   "impersonation.start.title": "Iniciar personificação",

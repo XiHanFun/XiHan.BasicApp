@@ -224,7 +224,7 @@ export type TenantIsolationMode = (typeof TenantIsolationMode)[number]
 export const TenantMemberType = ['Member', 'Support'] as const
 export type TenantMemberType = (typeof TenantMemberType)[number]
 
-export const TenantStatus = ['Active', 'Suspended'] as const
+export const TenantStatus = ['Active', 'Suspended', 'Expired'] as const
 export type TenantStatus = (typeof TenantStatus)[number]
 
 export const TraceDimension = ['TraceId', 'UserId', 'UserName', 'SessionId', 'ClientIp'] as const

@@ -15,7 +15,14 @@ onMounted(load)
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: SubscriptionStatus): string {
-  return status === 'Suspended' ? t('tenancy.tenants.status.suspended') : t('tenancy.tenants.status.active')
+  switch (status) {
+    case 'Suspended':
+      return t('tenancy.tenants.status.suspended')
+    case 'Expired':
+      return t('tenancy.tenants.status.expired')
+    default:
+      return t('tenancy.tenants.status.active')
+  }
 }
 
 const quotas = computed(() => (subscription.value ? subscriptionQuotas(t, subscription.value) : []))

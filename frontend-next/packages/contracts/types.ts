@@ -10466,7 +10466,7 @@ export interface components {
          * @description 租户状态。
          * @enum {string}
          */
-        TenantStatus: "Active" | "Suspended";
+        TenantStatus: "Active" | "Suspended" | "Expired";
         /** @description 登录与刷新的响应：访问令牌（HS256 JWT）、不透明的刷新令牌与会话信息。 */
         TokenResponse: {
             /** @description 访问令牌，放 Authorization: Bearer。 */

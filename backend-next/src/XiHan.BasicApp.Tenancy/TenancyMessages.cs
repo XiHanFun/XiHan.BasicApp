@@ -361,6 +361,16 @@ public static class TenancyMessages
     /// </remarks>
     public const string NotIsolated = "tenancy.database.not_isolated";
 
+    /// <summary>
+    /// 到期作业的显示名。
+    /// </summary>
+    public const string ExpiryJobTitle = "jobs.tenancy.tenants.expire.title";
+
+    /// <summary>
+    /// 到期作业的说明。
+    /// </summary>
+    public const string ExpiryJobDescription = "jobs.tenancy.tenants.expire.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 
     /// <summary>

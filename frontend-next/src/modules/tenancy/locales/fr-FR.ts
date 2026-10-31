@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Actif',
         suspended: 'Suspendu',
+        expired: 'Expiré',
       },
       actions: {
         create: 'Créer un locataire',

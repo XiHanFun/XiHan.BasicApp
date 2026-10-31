@@ -134,9 +134,11 @@ export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'bil
   }
 }
 
-/** 租户状态的语气 */
-export function statusTone(status: SubscriptionStatus): 'danger' | 'success' {
-  return status === 'Active' ? 'success' : 'danger'
+/** 租户状态的语气：生效绿、停用红、到期黄（与租户管理页一致） */
+export function statusTone(status: SubscriptionStatus): 'danger' | 'success' | 'warning' {
+  if (status === 'Active')
+    return 'success'
+  return status === 'Suspended' ? 'danger' : 'warning'
 }
 
 /**

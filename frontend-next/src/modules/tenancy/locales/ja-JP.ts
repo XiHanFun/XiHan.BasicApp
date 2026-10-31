@@ -30,6 +30,7 @@ export default {
       status: {
         active: '有効',
         suspended: '停止中',
+        expired: '期限切れ',
       },
       actions: {
         create: 'テナントを開通',

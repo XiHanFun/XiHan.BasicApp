@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Ativo',
         suspended: 'Suspenso',
+        expired: 'Expirado',
       },
       actions: {
         create: 'Criar locatário',

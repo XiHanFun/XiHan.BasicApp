@@ -2,7 +2,7 @@ import type { EditionOption } from './use-tenants'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { canInitializeAdmin, canInitializeDatabase, databaseConfiguration, inheritedEdition, initializeTenantDatabase, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, tenantsResource, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, databaseConfiguration, inheritedEdition, initializeTenantDatabase, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -604,5 +604,12 @@ describe('转移所有权', () => {
     // 预选的不是能接任的成员（运维支持）就不预选
     transfer.start(tenant({ adminUserId: 'u-0' }) as never, [member('m-3', 'ops', { userId: 'u-s', memberType: 'Support' })] as never[], 'u-s')
     expect(transfer.userId.value).toBeNull()
+  })
+})
+
+describe('租户状态', () => {
+  it('筛选项含后端到期作业标出的到期；标签生效绿、停用红、到期黄', () => {
+    expect(TENANT_STATUSES).toEqual(['Active', 'Suspended', 'Expired'])
+    expect(TENANT_STATUSES.map(tenantStatusTone)).toEqual(['success', 'danger', 'warning'])
   })
 })

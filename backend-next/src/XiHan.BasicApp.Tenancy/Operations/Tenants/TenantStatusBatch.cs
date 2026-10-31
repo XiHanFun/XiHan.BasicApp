@@ -13,14 +13,14 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// 停用 / 恢复租户的共同骨架。
 /// </summary>
 /// <remarks>
-/// 逐个找租户、置状态、写回并同步租户目录；已经是目标状态的算成功。
+/// 逐个找租户、置状态、写回并同步租户目录；已经是目标状态的算成功，<c>refuse</c> 给出错误码的记为逐项失败。
 /// </remarks>
 internal static class TenantStatusBatch
 {
     /// <summary>
     /// 执行一批。
     /// </summary>
-    public static async ValueTask<Result<BatchResult>> RunAsync(TenantIdsRequest request, InvocationContext context, IRepository<SysTenant, Guid> tenants, TenantService service, TenantStatus target)
+    public static async ValueTask<Result<BatchResult>> RunAsync(TenantIdsRequest request, InvocationContext context, IRepository<SysTenant, Guid> tenants, TenantService service, TenantStatus target, Func<SysTenant, string?>? refuse = null)
     {
         if (TenantService.RequirePlatform(context) is { } denied)
         {
@@ -40,6 +40,12 @@ internal static class TenantStatusBatch
 
             if (tenant.Status != target)
             {
+                if (refuse?.Invoke(tenant) is { } code)
+                {
+                    failed.Add(new BatchFailure(id, code));
+                    continue;
+                }
+
                 tenant.Status = target;
                 var updated = await tenants.UpdateAsync(tenant, context.CancellationToken).ConfigureAwait(false);
                 if (updated.IsFailure)

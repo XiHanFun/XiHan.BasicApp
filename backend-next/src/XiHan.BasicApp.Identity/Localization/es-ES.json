@@ -46,6 +46,7 @@
   "identity.password.too_simple": "La contraseña debe contener letras y dígitos.",
   "identity.password.reused": "La contraseña debe ser distinta de las últimas {depth} contraseñas.",
   "identity.auth.tenant_unavailable": "El inquilino '{tenantId}' no existe o está suspendido.",
+  "identity.auth.tenant_expired": "El inquilino '{tenantId}' ha vencido. Contacte con el administrador de la plataforma para renovarlo.",
   "auth.switch_tenant.title": "Cambiar de inquilino",
   "auth.switch_tenant.description": "Cambia la sesión actual a otro inquilino (el de origen o uno del que el usuario es miembro) o vuelve a la plataforma (solo cuentas de plataforma); devuelve nuevos tokens.",
   "impersonation.start.title": "Iniciar suplantación",

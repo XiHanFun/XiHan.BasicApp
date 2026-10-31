@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "La base propia del inquilino '{tenantId}' ya está lista y no se puede cambiar ni volver a inicializar.",
   "tenancy.database.not_ready": "La base propia del inquilino '{tenantId}' aún no está lista. Inicializa primero la base de datos.",
   "tenancy.database.connection_required": "Una base de datos propia necesita una cadena de conexión.",
-  "tenancy.database.not_isolated": "El inquilino '{tenantId}' usa la base compartida; no hay base propia que inicializar."
+  "tenancy.database.not_isolated": "El inquilino '{tenantId}' usa la base compartida; no hay base propia que inicializar.",
+  "jobs.tenancy.tenants.expire.title": "Vencimiento de inquilinos",
+  "jobs.tenancy.tenants.expire.description": "Marca como vencidos los inquilinos activos que superaron su fecha de vencimiento y los deshabilita en el directorio. El inicio de sesión se rechaza en cuanto pasa la fecha, sin esperar a este trabajo."
 }

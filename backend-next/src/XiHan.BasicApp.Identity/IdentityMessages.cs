@@ -246,6 +246,14 @@ public static class IdentityMessages
     public const string TenantUnavailable = "identity.auth.tenant_unavailable";
 
     /// <summary>
+    /// 租户已到期。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>。
+    /// </remarks>
+    public const string TenantExpired = "identity.auth.tenant_expired";
+
+    /// <summary>
     /// 密码太短。
     /// </summary>
     /// <remarks>

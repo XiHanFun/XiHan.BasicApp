@@ -46,6 +46,7 @@
   "identity.password.too_simple": "Das Passwort muss Buchstaben und Ziffern enthalten.",
   "identity.password.reused": "Das Passwort muss sich von den letzten {depth} Passwörtern unterscheiden.",
   "identity.auth.tenant_unavailable": "Der Mandant '{tenantId}' existiert nicht oder ist ausgesetzt.",
+  "identity.auth.tenant_expired": "Der Mandant '{tenantId}' ist abgelaufen. Wenden Sie sich zur Verlängerung an den Plattformadministrator.",
   "auth.switch_tenant.title": "Mandant wechseln",
   "auth.switch_tenant.description": "Wechselt die aktuelle Sitzung in einen anderen Mandanten (Heimatmandant oder Mitgliedschaft) oder zurück zur Plattform (nur Plattformkonten); liefert neue Token.",
   "impersonation.start.title": "Imitation starten",

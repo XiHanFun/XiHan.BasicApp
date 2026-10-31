@@ -30,6 +30,7 @@ export default {
       status: {
         active: 'Активен',
         suspended: 'Приостановлен',
+        expired: 'Истёк',
       },
       actions: {
         create: 'Создать арендатора',

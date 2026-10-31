@@ -43,7 +43,7 @@ public sealed class SysTenant : AppAuditedEntity
     /// 到期时间（UTC）。
     /// </summary>
     /// <remarks>
-    /// 为空即不限。到期处理随套餐批次加入。
+    /// 为空即不限。随目录属性同步，到了这一刻 Identity 即拒绝登录、刷新与切入；到期作业把仍生效的租户标为 <see cref="TenantStatus.Expired"/>。
     /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 

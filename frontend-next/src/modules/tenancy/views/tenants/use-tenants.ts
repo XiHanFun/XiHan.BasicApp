@@ -21,7 +21,15 @@ export type TenantDatabaseStatus = TenantRow['databaseStatus']
 /** tenants.configure-database 除租户主键以外的部分：隔离方式与独立库的连接 */
 export type DatabaseConfiguration = Omit<RequestOf<'tenants.configure-database'>, 'id'>
 
-export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended']
+/** 租户状态：生效、停用，到期由后端到期作业标出（延长到期时间后恢复） */
+export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended', 'Expired']
+
+/** 状态标签的色调：生效绿、停用红、到期黄 */
+export function tenantStatusTone(status: TenantStatus): 'success' | 'danger' | 'warning' {
+  if (status === 'Active')
+    return 'success'
+  return status === 'Suspended' ? 'danger' : 'warning'
+}
 /** 隔离方式：共库（与平台同一个库、按租户字段隔离）与独立库（租户的业务数据在自己的库里） */
 export const TENANT_ISOLATION_MODES: readonly TenantIsolationMode[] = ['Field', 'Database']
 /** 独立库的状态：共库即无需独立库；独立库从待初始化起，初始化成功即就绪、失败可改正连接后再试 */

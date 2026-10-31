@@ -104,5 +104,7 @@
   "tenancy.database.initialized": "テナント '{tenantId}' の専用データベースは準備済みのため、変更や再初期化はできません。",
   "tenancy.database.not_ready": "テナント '{tenantId}' の専用データベースはまだ準備できていません。先にデータベースを初期化してください。",
   "tenancy.database.connection_required": "専用データベースには接続文字列が必要です。",
-  "tenancy.database.not_isolated": "テナント '{tenantId}' は共有データベースを使っており、初期化する専用データベースはありません。"
+  "tenancy.database.not_isolated": "テナント '{tenantId}' は共有データベースを使っており、初期化する専用データベースはありません。",
+  "jobs.tenancy.tenants.expire.title": "テナントの期限切れ処理",
+  "jobs.tenancy.tenants.expire.description": "有効期限を過ぎた有効なテナントを期限切れにし、テナントディレクトリで無効にします。期限を過ぎた時点でサインインは拒否され、このジョブを待ちません。"
 }
