@@ -699,6 +699,9 @@ export default {
       },
       title: '个人中心',
     },
+    md_editor: {
+      placeholder: '请输入 Markdown 内容...',
+    },
     cron: {
       title: 'Cron 表达式构建器',
       build: '构建',

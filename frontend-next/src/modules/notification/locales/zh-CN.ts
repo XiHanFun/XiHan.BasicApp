@@ -2,6 +2,10 @@
 export default {
   notification: {
     notifications: {
+      // 正文的编辑弹窗（4.x 同）
+      form_content_drawer_title: '编辑公告内容',
+      form_content_edit: '编辑内容',
+      form_content_count: '{count} 字',
       title: '通知公告',
       add_title: '新增公告',
       edit_title: '编辑公告',

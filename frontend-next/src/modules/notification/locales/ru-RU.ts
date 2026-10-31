@@ -2,6 +2,10 @@
 export default {
   notification: {
     notifications: {
+      // 正文的编辑弹窗（4.x 同）
+      form_content_drawer_title: 'Редактирование текста объявления',
+      form_content_edit: 'Изменить текст',
+      form_content_count: '{count} симв.',
       title: 'Объявления',
       add_title: 'Новое объявление',
       edit_title: 'Изменить объявление',

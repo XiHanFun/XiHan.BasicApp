@@ -699,6 +699,9 @@ export default {
       },
       title: '개인 센터',
     },
+    md_editor: {
+      placeholder: 'Markdown 내용을 입력하세요...',
+    },
     cron: {
       title: 'Cron 표현식 빌더',
       build: '만들기',
