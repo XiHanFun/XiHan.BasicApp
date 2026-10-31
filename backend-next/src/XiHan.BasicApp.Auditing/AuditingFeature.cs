@@ -89,6 +89,8 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<OperationLogQueries>();
         context.Services.AddScoped<TraceQueries>();
         context.Services.AddPermissionCatalog("auditing", AuditingPermissions.All);
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
+        AuditingFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("auditing", AuditingPages.All);
         foreach (var permission in AuditingPermissions.All)
         {
