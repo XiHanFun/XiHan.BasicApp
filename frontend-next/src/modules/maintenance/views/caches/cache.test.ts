@@ -16,6 +16,7 @@ import {
   isJson,
   KEY_PAGE_SIZE,
   keyPrefix,
+  layerLabel,
   leafKeys,
   loadNamespaces,
   mergeKeys,
@@ -86,8 +87,11 @@ const NAMESPACES: CacheNamespace[] = [
 ]
 
 function entry(patch: Partial<CacheEntry> = {}): CacheEntry {
-  return { key: 'notification:telegram:1', size: 12, timeToLiveSeconds: 3700, slidingSeconds: null, text: '{"a":1}', editable: true, ...patch }
+  return { key: 'notification:telegram:1', layer: 'Store', typeName: null, size: 12, timeToLiveSeconds: 3700, slidingSeconds: null, text: '{"a":1}', editable: true, ...patch }
 }
+
+/** 字节存储里的键 */
+const stored = (...keys: string[]) => keys.map(key => ({ key, layer: 'Store' as const }))
 
 describe('缓存管理：命名空间', () => {
   it('包名写出文案（不认得的原样），选项值是前缀、文本是前缀加包名，不可改写的标只读', async () => {
@@ -125,23 +129,26 @@ describe('缓存管理：键列表请求', () => {
 
   it('第一页按前缀取，加载更多带上续页标记并去重并入；没有下一页时不再发请求', async () => {
     const calls = reply(
-      { items: ['access:b', 'access:a'], continuation: 'c1' },
-      { items: ['access:b', 'access:c'], continuation: null },
+      { items: [{ key: 'access:b', layer: 'Objects' }, ...stored('access:a')], continuation: 's:c1' },
+      { items: stored('access:b', 'access:c'), continuation: null },
     )
     const list = useCacheKeys()
     expect(await list.load('access:')).toBe(true)
     expect(list.keys.value).toEqual(['access:a', 'access:b'])
-    expect(list.continuation.value).toBe('c1')
+    expect([...list.objectKeys.value]).toEqual(['access:b'])
+    expect(list.continuation.value).toBe('s:c1')
     expect(list.prefix.value).toBe('access:')
 
     expect(await list.loadMore()).toBe(true)
     expect(list.keys.value).toEqual(['access:a', 'access:b', 'access:c'])
+    // 对象缓存的键跨页保留：下一页里同名的字节存储键不把它抹掉
+    expect([...list.objectKeys.value]).toEqual(['access:b'])
     expect(list.continuation.value).toBeNull()
     expect(await list.loadMore()).toBe(false)
 
     expect(calls.map(call => `${call.method} ${call.url}`)).toEqual([
       `GET /api/caches:keys?prefix=access:&limit=${KEY_PAGE_SIZE}`,
-      `GET /api/caches:keys?prefix=access:&limit=${KEY_PAGE_SIZE}&continuation=c1`,
+      `GET /api/caches:keys?prefix=access:&limit=${KEY_PAGE_SIZE}&continuation=s:c1`,
     ])
     expect(list.loading.value).toBe(false)
   })
@@ -151,7 +158,7 @@ describe('缓存管理：键列表请求', () => {
     stub((call) => {
       if (call.url.includes('prefix=access:'))
         return slow.promise
-      return json(200, { items: ['notification:x'], continuation: null })
+      return json(200, { items: stored('notification:x'), continuation: null })
     })
     const list = useCacheKeys()
     const first = list.load('access:')
@@ -169,10 +176,11 @@ describe('缓存管理：键列表请求', () => {
     await expect(list.load('locks:')).rejects.toMatchObject({ code: 'MAINTENANCE_DENIED_002' })
     expect(list.loading.value).toBe(false)
 
-    reply({ items: ['access:a', 'access:b', 'access:c'], continuation: 'c9' })
+    reply({ items: [...stored('access:a'), { key: 'access:b', layer: 'Objects' }, ...stored('access:c')], continuation: 'c9' })
     await list.load('access:')
     list.discard(['access:b', 'access:zzz'])
     expect(list.keys.value).toEqual(['access:a', 'access:c'])
+    expect(list.objectKeys.value.size).toBe(0)
     expect(list.continuation.value).toBe('c9')
   })
 })
@@ -228,6 +236,15 @@ describe('缓存管理：缓存项', () => {
     expect(readOnlyReason(entry())).toBeNull()
     expect(readOnlyReason(entry({ editable: false }))).toBe('read-only')
     expect(readOnlyReason(entry({ text: null, editable: false }))).toBe('binary')
+  })
+
+  it('对象缓存的值按 JSON 只读：写得出为 object，写不出为 unrenderable；所在层写出文案', () => {
+    const object = entry({ layer: 'Objects', typeName: 'Demo.Snapshot', size: null, editable: false })
+    expect(readOnlyReason(object)).toBe('object')
+    expect(readOnlyReason({ ...object, text: null })).toBe('unrenderable')
+    expect(canEditEntry(object, true)).toBe(false)
+    expect(layerLabel(t, 'Objects')).toBe('maintenance.caches.layers.objects')
+    expect(layerLabel(t, 'Store')).toBe('maintenance.caches.layers.store')
   })
 
   it('只有对象或数组算 JSON；美化失败时原样', () => {

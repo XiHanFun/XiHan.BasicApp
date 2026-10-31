@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "缓存项 '{key}' 不存在或已过期。",
   "maintenance.caches.not_text": "缓存项 '{key}' 的值不是文本，不能改写。",
   "maintenance.caches.inspector_unavailable": "当前的缓存存储不支持键管理。",
+  "maintenance.caches.continuation_invalid": "续页标记不对，请从第一页重新列出。",
   "openapi.tags.caches.name": "缓存管理",
   "openapi.tags.caches.description": "应用命名空间里的缓存键：列出、查看、改写与删除。",
   "server.get.title": "获取服务器信息",

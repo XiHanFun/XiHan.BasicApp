@@ -113,4 +113,12 @@ public static class MaintenanceErrors
     /// 作业参数不是 JSON 对象。
     /// </summary>
     public const string JobDataInvalid = "MAINTENANCE_VALIDATION_005";
+
+    /// <summary>
+    /// 列缓存键的续页标记认不出。
+    /// </summary>
+    /// <remarks>
+    /// 标记里带着所在的层（对象缓存或字节存储），不是上一页给的、或那一层已不支持键管理时即此码。
+    /// </remarks>
+    public const string CacheContinuationInvalid = "MAINTENANCE_VALIDATION_006";
 }

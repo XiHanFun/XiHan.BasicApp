@@ -28,6 +28,7 @@ import {
   listJobRuns,
   loadJobTypeOptions,
   restoreJobs,
+  retryText,
   runFailedOptions,
   runStateLabel,
   runStateOptions,
@@ -40,6 +41,7 @@ import {
   sourceOptions,
   sourceTone,
   statusOptions,
+  timeoutText,
   triggerJob,
   triggerStateLabel,
   triggerStateTone,
@@ -259,6 +261,7 @@ const jobRunColumns = computed<XDataTableColumn<JobRunRow>[]>(() => [
   { ellipsis: true, key: 'triggerName', render: row => row.triggerName || '-', title: t('maintenance.jobs.trigger_name'), width: 150 },
   { key: 'state', render: row => renderTag(runStateLabel(t, row.state), runStateTone(row.state)), title: t('maintenance.jobs.log_status'), width: 96 },
   { key: 'trigger', render: row => runTriggerLabel(t, row.trigger), title: t('maintenance.jobs.trigger_mode'), width: 96 },
+  { key: 'attempt', title: t('maintenance.jobs.attempt'), width: 64 },
   { key: 'startedAt', render: row => formatDate(row.startedAt), title: t('maintenance.jobs.start_time'), width: 160 },
   { key: 'completedAt', render: row => formatDate(row.completedAt), title: t('maintenance.jobs.end_time'), width: 160 },
   { key: 'durationMs', render: row => formatDuration(row.durationMs), title: t('maintenance.jobs.execution_time'), width: 90 },
@@ -612,6 +615,18 @@ function handleRestore(row: JobRow) {
                   </XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('maintenance.jobs.timeout_seconds') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ timeoutText(t, detailData) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('maintenance.jobs.retry_policy') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ retryText(t, detailData) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('maintenance.jobs.exec_stats') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
                     {{ execStats(detailData) }}
@@ -954,6 +969,18 @@ function handleRestore(row: JobRow) {
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('maintenance.jobs.attempt') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ runDetail.attempt }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem v-if="runDetail.retryOf">
+              <XhDescriptionsLabel>{{ t('maintenance.jobs.retry_of') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <code class="xh-job-run-id">{{ runDetail.retryOf }}</code>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('maintenance.jobs.node_id') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 {{ runDetail.nodeId || '-' }}
@@ -1029,10 +1056,15 @@ function handleRestore(row: JobRow) {
 }
 
 .xh-trigger-expand code,
-.xh-job-triggers code {
+.xh-job-triggers code,
+.xh-job-run-id {
   font-family: var(--xh-font-family-mono);
   font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-default);
+}
+
+.xh-job-run-id {
+  word-break: break-all;
 }
 
 .xh-job-triggers {

@@ -26,22 +26,48 @@ public sealed record CacheNamespaceResponse(string Package, string Prefix, bool 
 public sealed record CacheNamespacesResponse(IReadOnlyList<CacheNamespaceResponse> Items);
 
 /// <summary>
+/// 缓存条目所在的层。
+/// </summary>
+/// <remarks>
+/// 进程内缓存把对象引用存在自己的表里（对象缓存），锁、幂等等组件与序列化缓存（Redis）的条目在字节存储里；两层合起来是全部条目。
+/// </remarks>
+public enum CacheLayer
+{
+    /// <summary>
+    /// 字节存储。
+    /// </summary>
+    Store = 0,
+
+    /// <summary>
+    /// 进程内的对象缓存。
+    /// </summary>
+    Objects = 1,
+}
+
+/// <summary>
 /// <c>caches.keys</c> 的请求。
 /// </summary>
 /// <param name="Prefix">键前缀：某个开放命名空间的前缀，或更长的前缀。</param>
 /// <param name="Limit">本页最多几个键。</param>
-/// <param name="Continuation">上一页给的续页标记；第一页为空。</param>
+/// <param name="Continuation">上一页给的续页标记（原样传回）；第一页为空。</param>
 public sealed record CacheKeysRequest(
     [Required, StringLength(CacheKey.MaxLength, MinimumLength = 1)] string Prefix,
     [Range(1, 1000)] int Limit = 100,
     [StringLength(1024)] string? Continuation = null);
 
 /// <summary>
+/// 列出的一个缓存键。
+/// </summary>
+/// <param name="Key">键。</param>
+/// <param name="Layer">所在的层。</param>
+public sealed record CacheKeyItem(string Key, CacheLayer Layer);
+
+/// <summary>
 /// 一页缓存键。
 /// </summary>
-/// <param name="Items">键，按存储返回的顺序（同一页内去重）。</param>
+/// <param name="Items">键：先对象缓存、后字节存储，各按存储返回的顺序（同一页内去重）。</param>
 /// <param name="Continuation">下一页的续页标记；没有下一页为空。</param>
-public sealed record CacheKeysResponse(IReadOnlyList<string> Items, string? Continuation);
+public sealed record CacheKeysResponse(IReadOnlyList<CacheKeyItem> Items, string? Continuation);
 
 /// <summary>
 /// 按键取一个缓存项的请求。
@@ -53,12 +79,14 @@ public sealed record CacheKeyRequest([Required, StringLength(CacheKey.MaxLength,
 /// 一个缓存项。
 /// </summary>
 /// <param name="Key">键。</param>
-/// <param name="Size">载荷字节数。</param>
+/// <param name="Layer">所在的层。</param>
+/// <param name="TypeName">对象缓存里值的类型全名；字节存储的为空。</param>
+/// <param name="Size">载荷字节数；对象缓存的为空。</param>
 /// <param name="TimeToLiveSeconds">剩余存活秒数；不过期为空。</param>
 /// <param name="SlidingSeconds">滑动过期的秒数；没有为空。</param>
-/// <param name="Text">载荷按 UTF-8 解出的文本；不是合法 UTF-8 时为空。</param>
-/// <param name="Editable">能否改写（命名空间允许且载荷是文本）。</param>
-public sealed record CacheEntryResponse(string Key, long Size, long? TimeToLiveSeconds, long? SlidingSeconds, string? Text, bool Editable);
+/// <param name="Text">字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空。</param>
+/// <param name="Editable">能否改写（字节存储里、命名空间允许且载荷是文本）。</param>
+public sealed record CacheEntryResponse(string Key, CacheLayer Layer, string? TypeName, long? Size, long? TimeToLiveSeconds, long? SlidingSeconds, string? Text, bool Editable);
 
 /// <summary>
 /// <c>caches.update</c> 的请求。

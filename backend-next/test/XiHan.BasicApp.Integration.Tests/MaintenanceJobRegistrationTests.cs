@@ -39,6 +39,23 @@ public sealed class MaintenanceJobRegistrationTests : IDisposable
         Assert.Equal(("reports.daily", "Runtime", jobType), (job.GetProperty("name").GetString(), job.GetProperty("source").GetString(), job.GetProperty("jobType").GetString()));
         var trigger = Assert.Single(job.GetProperty("triggers").EnumerateArray());
         Assert.Equal(("Cron", "Asia/Shanghai"), (trigger.GetProperty("kind").GetString(), trigger.GetProperty("timeZone").GetString()));
+        Assert.Equal(JsonValueKind.Null, job.GetProperty("retry").ValueKind);
+        Assert.Equal(JsonValueKind.Null, job.GetProperty("timeoutSeconds").ValueKind);
+
+        // 重试与执行时限：新建带上；修改计划按请求整体替换（不填即不重试、不限时），只给次数时间隔取缺省 60 秒
+        var (_, retried) = await SendAsync(server, HttpMethod.Post, "/api/jobs", new { name = "reports.retried", jobType, expression = "every 01:00:00", timeoutSeconds = 120, maxRetries = 3, retryDelaySeconds = 30, retryBackoff = "Exponential", retryMaxDelaySeconds = 600 }, platform);
+        Assert.Equal(120, retried.GetProperty("timeoutSeconds").GetInt64());
+        var policy = retried.GetProperty("retry");
+        Assert.Equal((3, 30L, "Exponential", 600L), (policy.GetProperty("maxRetries").GetInt32(), policy.GetProperty("delaySeconds").GetInt64(), policy.GetProperty("backoff").GetString(), policy.GetProperty("maxDelaySeconds").GetInt64()));
+        var (_, cleared) = await SendAsync(server, HttpMethod.Post, "/api/jobs/reports.retried:reschedule", new { expression = "every 02:00:00" }, platform);
+        Assert.Equal((JsonValueKind.Null, JsonValueKind.Null), (cleared.GetProperty("retry").ValueKind, cleared.GetProperty("timeoutSeconds").ValueKind));
+        var (_, fixedRetry) = await SendAsync(server, HttpMethod.Post, "/api/jobs/reports.retried:reschedule", new { expression = "every 02:00:00", maxRetries = 2 }, platform);
+        var fixedPolicy = fixedRetry.GetProperty("retry");
+        Assert.Equal((2, 60L, "Fixed", JsonValueKind.Null), (fixedPolicy.GetProperty("maxRetries").GetInt32(), fixedPolicy.GetProperty("delaySeconds").GetInt64(), fixedPolicy.GetProperty("backoff").GetString(), fixedPolicy.GetProperty("maxDelaySeconds").ValueKind));
+        var (_, reread) = await SendAsync(server, HttpMethod.Get, "/api/jobs/reports.retried", null, platform);
+        Assert.Equal(2, reread.GetProperty("retry").GetProperty("maxRetries").GetInt32());
+        Assert.Equal(HttpStatusCode.BadRequest, (await SendAsync(server, HttpMethod.Post, "/api/jobs", new { name = "reports.bad", jobType, expression = "every 01:00:00", maxRetries = 0 }, platform)).Status);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SendAsync(server, HttpMethod.Post, "/api/jobs", new { name = "reports.bad", jobType, expression = "every 01:00:00", timeoutSeconds = 2_592_001 }, platform)).Status);
 
         // 各种不合规
         Assert.Equal("MAINTENANCE_CONFLICT_003", (await SendAsync(server, HttpMethod.Post, "/api/jobs", new { name = "reports.daily", jobType, expression = "every 01:00:00" }, platform)).Body.GetProperty("code").GetString());
@@ -48,9 +65,9 @@ public sealed class MaintenanceJobRegistrationTests : IDisposable
         Assert.Equal("MAINTENANCE_CONFLICT_001", (await SendAsync(server, HttpMethod.Post, "/api/jobs", new { name = "reports.weekly", jobType = "nope", expression = "every 01:00:00" }, platform)).Body.GetProperty("code").GetString());
 
         // 删除：运行时的删掉，代码登记的与不存在的逐项拒绝
-        var (deleted, result) = await SendAsync(server, HttpMethod.Delete, "/api/jobs?ids=reports.daily&ids=auditing.retention&ids=nope.job", null, platform);
+        var (deleted, result) = await SendAsync(server, HttpMethod.Delete, "/api/jobs?ids=reports.daily&ids=reports.retried&ids=auditing.retention&ids=nope.job", null, platform);
         Assert.Equal(HttpStatusCode.OK, deleted);
-        Assert.Equal(["reports.daily"], result.GetProperty("succeeded").EnumerateArray().Select(static e => e.GetString()));
+        Assert.Equal(["reports.daily", "reports.retried"], result.GetProperty("succeeded").EnumerateArray().Select(static e => e.GetString()));
         var failed = result.GetProperty("failed").EnumerateArray().ToDictionary(static f => f.GetProperty("id").GetString()!, static f => f.GetProperty("code").GetString());
         Assert.Equal("MAINTENANCE_CONFLICT_004", failed["auditing.retention"]);
         Assert.Equal("MAINTENANCE_NOTFOUND_001", failed["nope.job"]);

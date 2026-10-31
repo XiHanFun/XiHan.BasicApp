@@ -18,10 +18,20 @@ namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 /// <param name="Id">作业名。</param>
 /// <param name="Expression">新计划：Cron 表达式（5 到 7 段），或计划的文本写法（<c>cron …</c>、<c>every …</c>、<c>once …</c>）。</param>
 /// <param name="TimeZone">Cron 表达式的时区（如 <c>Asia/Shanghai</c>）；不填按 UTC。</param>
+/// <param name="TimeoutSeconds">单次执行的时限（秒）；不填不限。</param>
+/// <param name="MaxRetries">失败后最多重试几次；不填不重试。</param>
+/// <param name="RetryDelaySeconds">第一次重试前等几秒（设了重试次数才用）。</param>
+/// <param name="RetryBackoff">重试的等待方式：每次相同或指数退避。</param>
+/// <param name="RetryMaxDelaySeconds">指数退避的等待上限（秒）；不填只受 30 天约束。</param>
 public sealed record RescheduleJobRequest(
     [Required, StringLength(JobName.MaxLength, MinimumLength = 1)] string Id,
     [Required, StringLength(256, MinimumLength = 1)] string Expression,
-    [StringLength(64)] string? TimeZone = null);
+    [StringLength(64)] string? TimeZone = null,
+    [Range(1, JobViews.MaxSeconds)] long? TimeoutSeconds = null,
+    [Range(1, JobRetryPolicy.MaxRetriesLimit)] int? MaxRetries = null,
+    [Range(1, JobViews.MaxSeconds)] long RetryDelaySeconds = 60,
+    JobRetryBackoff RetryBackoff = JobRetryBackoff.Fixed,
+    [Range(1, JobViews.MaxSeconds)] long? RetryMaxDelaySeconds = null);
 
 /// <summary>
 /// 已登记的作业类型。
@@ -30,10 +40,10 @@ public sealed record RescheduleJobRequest(
 public sealed record JobTypesResponse(IReadOnlyList<string> Items);
 
 /// <summary>
-/// 改作业的计划。
+/// 改作业的计划、重试与执行时限。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs/{id}:reschedule</c>（平台侧）。按作业现在的登记重新登记一次，只换计划：作业只能有一个计划触发器（立即执行与故障恢复留下的临时触发器不算、也不会被冲掉，多个即 <c>MAINTENANCE_CONFLICT_002</c>），
+/// <c>POST /api/jobs/{id}:reschedule</c>（平台侧）。按作业现在的登记重新登记一次，换计划，重试与执行时限按请求整体替换（不填即不重试、不限时）：作业只能有一个计划触发器（立即执行与故障恢复留下的临时触发器不算、也不会被冲掉，多个即 <c>MAINTENANCE_CONFLICT_002</c>），
 /// 类型须在作业类型登记里（否则 <c>MAINTENANCE_CONFLICT_001</c>），暂停状态保留。代码登记的作业改过即标为 <c>Overridden</c>，
 /// 重启后代码定义没变就保留这次的修改，用 <c>jobs.restore</c> 改回代码定义。
 /// </remarks>
@@ -99,6 +109,8 @@ public sealed class RescheduleJob(IJobScheduler scheduler, JobTypeRegistry types
             AllowConcurrent = status.Job.AllowConcurrent,
             RunOnEveryInstance = status.Job.RunOnEveryInstance,
             RequestsRecovery = status.Job.RequestsRecovery,
+            Retry = JobViews.RetryOf(request.MaxRetries, request.RetryDelaySeconds, request.RetryBackoff, request.RetryMaxDelaySeconds),
+            Timeout = JobViews.TimeoutOf(request.TimeoutSeconds),
             Description = status.Job.Description,
         };
         var scheduled = (await scheduler.ScheduleAsync([definition], context.CancellationToken).ConfigureAwait(false))[0];

@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "Cache entry '{key}' does not exist or has expired.",
   "maintenance.caches.not_text": "The value of cache entry '{key}' is not text and cannot be rewritten.",
   "maintenance.caches.inspector_unavailable": "The current cache store does not support key management.",
+  "maintenance.caches.continuation_invalid": "The continuation token is not valid; list again from the first page.",
   "openapi.tags.caches.name": "Caches",
   "openapi.tags.caches.description": "Cache keys of the application namespaces: list, inspect, rewrite and delete.",
   "server.get.title": "Get server information",

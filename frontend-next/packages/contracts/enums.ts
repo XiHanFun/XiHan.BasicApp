@@ -17,6 +17,9 @@ export type Architecture = (typeof Architecture)[number]
 export const BotProvider = ['DingTalk', 'Lark', 'WeCom'] as const
 export type BotProvider = (typeof BotProvider)[number]
 
+export const CacheLayer = ['Store', 'Objects'] as const
+export type CacheLayer = (typeof CacheLayer)[number]
+
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
 
@@ -116,6 +119,9 @@ export type FileUploadStatus = (typeof FileUploadStatus)[number]
 export const GrantSubjectKind = ['Role', 'User'] as const
 export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
+export const JobRetryBackoff = ['Fixed', 'Exponential'] as const
+export type JobRetryBackoff = (typeof JobRetryBackoff)[number]
+
 export const JobRunState = ['Running', 'Succeeded', 'Failed', 'Canceled', 'Lost'] as const
 export type JobRunState = (typeof JobRunState)[number]
 
@@ -125,7 +131,7 @@ export type JobScheduleKind = (typeof JobScheduleKind)[number]
 export const JobSource = ['Code', 'Runtime', 'Overridden'] as const
 export type JobSource = (typeof JobSource)[number]
 
-export const JobTrigger = ['Schedule', 'Manual', 'Recovery'] as const
+export const JobTrigger = ['Schedule', 'Manual', 'Recovery', 'Retry'] as const
 export type JobTrigger = (typeof JobTrigger)[number]
 
 export const LifecycleState = ['Declared', 'Resolved', 'Configured', 'Started', 'Ready', 'Degraded', 'Draining', 'Stopped', 'Failed'] as const
@@ -258,6 +264,7 @@ export const enums = {
   AccessResult,
   Architecture,
   BotProvider,
+  CacheLayer,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,
@@ -291,6 +298,7 @@ export const enums = {
   FileStorageStatus,
   FileUploadStatus,
   GrantSubjectKind,
+  JobRetryBackoff,
   JobRunState,
   JobScheduleKind,
   JobSource,

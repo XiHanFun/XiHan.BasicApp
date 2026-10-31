@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "A entrada de cache '{key}' não existe ou expirou.",
   "maintenance.caches.not_text": "O valor da entrada de cache '{key}' não é texto e não pode ser reescrito.",
   "maintenance.caches.inspector_unavailable": "O armazenamento de cache atual não oferece gestão de chaves.",
+  "maintenance.caches.continuation_invalid": "O token de continuação não é válido; liste novamente a partir da primeira página.",
   "openapi.tags.caches.name": "Caches",
   "openapi.tags.caches.description": "Chaves de cache dos namespaces da aplicação: listar, ver, reescrever e excluir.",
   "server.get.title": "Obter informações do servidor",

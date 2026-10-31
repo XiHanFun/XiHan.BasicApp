@@ -72,6 +72,7 @@
   "maintenance.caches.not_found": "Der Cache-Eintrag '{key}' existiert nicht oder ist abgelaufen.",
   "maintenance.caches.not_text": "Der Wert des Cache-Eintrags '{key}' ist kein Text und kann nicht überschrieben werden.",
   "maintenance.caches.inspector_unavailable": "Der aktuelle Cache-Speicher unterstützt keine Schlüsselverwaltung.",
+  "maintenance.caches.continuation_invalid": "Das Fortsetzungstoken ist ungültig; bitte ab der ersten Seite neu auflisten.",
   "openapi.tags.caches.name": "Caches",
   "openapi.tags.caches.description": "Cache-Schlüssel der Anwendungsnamensräume: auflisten, anzeigen, überschreiben und löschen.",
   "server.get.title": "Serverinformationen abrufen",
