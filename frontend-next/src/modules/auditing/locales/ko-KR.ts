@@ -102,6 +102,8 @@ export default {
       analysis_group_result: '결과',
     },
     operation_logs: {
+      description: '작업 설명',
+      location: '위치',
       title: '작업 로그',
       detail_title: '작업 로그 상세',
       keyword_placeholder: '작업, 리소스, 오류 코드 검색',

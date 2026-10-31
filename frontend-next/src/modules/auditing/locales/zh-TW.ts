@@ -102,6 +102,8 @@ export default {
       analysis_group_result: '結果',
     },
     operation_logs: {
+      description: '操作描述',
+      location: '歸屬地',
       title: '操作日誌',
       detail_title: '操作日誌詳情',
       keyword_placeholder: '搜尋操作、資源或錯誤碼',

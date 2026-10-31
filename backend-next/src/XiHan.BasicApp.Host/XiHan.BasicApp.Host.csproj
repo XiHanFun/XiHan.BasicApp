@@ -31,6 +31,7 @@
     <!-- 显式 Provider：SqlSugar、JWT、租户目录 / 授权 / 审计的数据库实现、发件箱 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Ip2Region" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />

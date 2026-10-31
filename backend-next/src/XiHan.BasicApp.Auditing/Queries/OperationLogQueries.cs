@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Auditing.Operations.OperationLogs;
 using XiHan.BasicApp.Contracts.Paging;
@@ -95,7 +96,7 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
         }
 
         var item = Item(record, context);
-        return new OperationLogDetailResponse(item.Id, item.OccurredAt, item.TraceId, item.UserId, item.UserName, item.SessionId, item.OperationId, item.Succeeded, item.ErrorCode, item.ErrorMessage, item.Resource, item.DurationMs, record.Sequence, record.DetailsJson);
+        return new OperationLogDetailResponse(item.Id, item.OccurredAt, item.TraceId, item.UserId, item.UserName, item.SessionId, item.OperationId, item.Description, item.Succeeded, item.ErrorCode, item.ErrorMessage, item.Resource, item.DurationMs, item.ClientIp, item.Browser, item.Os, item.Device, item.Location, DetailText(record.DetailsJson, "userAgent"), record.Sequence, record.DetailsJson);
     }
 
     /// <summary>
@@ -181,21 +182,29 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     /// 把审计记录投影成列表项。
     /// </summary>
     /// <remarks>
-    /// 登录名、会话与耗时取细节；有消息键的错误按调用方语言重新渲染（错误细节列就是模板参数），字面错误用落库时的文本。
+    /// 登录名、会话、耗时与写入时记下的客户端信息取细节；描述是操作的本地化标题（与 OpenAPI 摘要同一个键，取不到为空）；
+    /// 有消息键的错误按调用方语言重新渲染（错误细节列就是模板参数），字面错误用落库时的文本。
     /// </remarks>
     private static OperationLogResponse Item(AuditRecord record, InvocationContext context)
     {
         string? userName = null;
         Guid? sessionId = null;
         long? durationMs = null;
+        string? clientIp = null;
+        string? browser = null;
+        string? os = null;
+        string? device = null;
+        string? location = null;
         if (record.DetailsJson is { Length: > 0 } json)
         {
             using var details = JsonDocument.Parse(json);
             var root = details.RootElement;
-            if (root.TryGetProperty("userName", out var name) && name.ValueKind == JsonValueKind.String)
-            {
-                userName = name.GetString();
-            }
+            userName = Text(root, "userName");
+            clientIp = Text(root, "clientIp");
+            browser = Text(root, "browser");
+            os = Text(root, "os");
+            device = Text(root, "device");
+            location = Text(root, "location");
 
             if (root.TryGetProperty("sessionId", out var session) && session.ValueKind == JsonValueKind.String && Guid.TryParse(session.GetString(), out var parsed))
             {
@@ -219,11 +228,44 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
             userName,
             sessionId,
             record.Action,
+            TitleOf(record.Action, context),
             record.Succeeded,
             record.ErrorCode,
             message,
             record.Resource,
-            durationMs);
+            durationMs,
+            clientIp,
+            browser,
+            os,
+            device,
+            location);
+    }
+
+    /// <summary>
+    /// 操作的本地化标题。
+    /// </summary>
+    /// <remarks>
+    /// 键为操作 ID（<c>-</c> 换成 <c>_</c>）加 <c>.title</c>，按调用方的区域取，回退链用尽仍没有即为空。
+    /// </remarks>
+    private static string? TitleOf(string operationId, InvocationContext context)
+    {
+        var localizer = context.Services.GetService<IMessageLocalizer>();
+        var locale = localizer?.Options.Resolve(context);
+        return localizer is not null && locale is not null && localizer.Resolve(operationId.Replace('-', '_') + ".title", locale, null).TryGetValue(out var text) ? text.Text : null;
+    }
+
+    private static string? Text(JsonElement root, string name)
+        => root.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+
+    private static string? DetailText(string? json, string name)
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return null;
+        }
+
+        using var details = JsonDocument.Parse(json);
+        return Text(details.RootElement, name);
     }
 
     private static Dictionary<string, object?>? ArgumentsOf(string? json)

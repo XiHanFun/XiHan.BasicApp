@@ -102,6 +102,8 @@ export default {
       analysis_group_result: 'Ergebnis',
     },
     operation_logs: {
+      description: 'Beschreibung',
+      location: 'Standort',
       title: 'Vorgangsprotokolle',
       detail_title: 'Vorgangsprotokoll-Details',
       keyword_placeholder: 'Vorgänge, Ressourcen oder Fehlercodes suchen',

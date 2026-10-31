@@ -37,6 +37,7 @@ using XiHan.Framework.Protocols.Http.Routing;
 using XiHan.Framework.Protocols.Mcp.Transports;
 using XiHan.Framework.Scheduling.Database;
 using XiHan.Framework.Security.Database;
+using XiHan.Framework.Security.Ip2Region;
 using XiHan.Framework.Security.Jwt;
 
 namespace XiHan.BasicApp.Host;
@@ -73,6 +74,8 @@ public static class BasicAppHost
             // 方式一：回调设库类型、连接串、AopEvents（操作人、差异日志）与 snake_case 命名；协议约定由框架随后施加。全审计实体的写入带差异日志（ADR-0044）
             .UseFeature(new SqlSugarPersistenceFeature(SqlSugarRuntime.Configure) { DiffLog = DiffLogBuffer.IsLogged })
             .UseFeature<JwtSecurityFeature>()
+            // IP 归属地：宿主带的 IpDatabases/ip2region_v4.xdb 与 v6.xdb（会话的登录地点、操作日志的归属地、访问策略的地理条件）
+            .UseFeature<Ip2RegionSecurityFeature>()
             .UseFeature<DatabaseMultiTenancyFeature>()
             .UseFeature<DatabaseSecurityFeature>()
             .UseFeature<DatabaseAuditingFeature>()

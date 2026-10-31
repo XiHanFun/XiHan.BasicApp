@@ -46,6 +46,13 @@ describe('日志详情定义', () => {
     expect(status?.tone).toBeTypeOf('function')
   })
 
+  it('操作日志的详情带描述与写入时记下的客户端信息，客户端地址可追踪', () => {
+    const fields = SCHEMAS.operation!.fields
+    expect(fields.map(field => field.key)).toEqual(expect.arrayContaining(['description', 'clientIp', 'location', 'browser', 'os', 'device', 'userAgent']))
+    expect(fields.find(field => field.key === 'clientIp')?.trace).toBe('ClientIp')
+    expect(SCHEMAS.operation!.header.meta).toContain('clientIp')
+  })
+
   it('枚举字段带上契约字面量的选项（6.0 没有枚举元数据接口）', () => {
     const result = SCHEMAS.access!.fields.find(field => field.key === 'result')!
     expect(result.options?.map(option => option.value)).toEqual(['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'])

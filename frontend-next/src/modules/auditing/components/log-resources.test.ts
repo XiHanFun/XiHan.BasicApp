@@ -76,7 +76,7 @@ describe('日志列表的后端筛选登记', () => {
       expect(resource.export?.businessType).toBe(businessType)
       expect(resource.export?.buildQuery?.(params)).toEqual(toPageRequest(params, query))
     }
-    // 操作日志没有 clientIp 等列：快照与列表一样拒绝没登记的筛选
+    // 操作日志的客户端地址记在细节里，只显示、不能筛选：快照与列表一样拒绝没登记的筛选
     expect(() => operationLogsResource().export?.buildQuery?.({ page: 1, pageSize: 20, filters: { clientIp: '127.0.0.1' } })).toThrow(/clientIp/)
   })
 
@@ -85,7 +85,7 @@ describe('日志列表的后端筛选登记', () => {
     expect(conditionHitsResource().export).toBeUndefined()
   })
 
-  it('操作日志没有会话与地址列：这两项不在登记里，出现即报错', () => {
+  it('操作日志的会话与地址不能筛选：这两项不在登记里，出现即报错', () => {
     expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { clientIp: '127.0.0.1' } }, OPERATION_LOG_QUERY)).toThrow(/clientIp/)
     expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { sessionId: 'x' } }, OPERATION_LOG_QUERY)).toThrow(/sessionId/)
   })

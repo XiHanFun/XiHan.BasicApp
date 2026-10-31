@@ -9484,6 +9484,8 @@ export interface components {
             sessionId?: string | null;
             /** @description 操作 ID（审计动作）。 */
             operationId: string;
+            /** @description 操作描述（操作的本地化标题，按调用方语言）。 */
+            description?: string | null;
             /** @description 是否成功。 */
             succeeded: boolean;
             /** @description 失败的错误码。 */
@@ -9497,6 +9499,16 @@ export interface components {
              * @description 耗时（毫秒）。
              */
             durationMs?: number | null;
+            /** @description 客户端地址。 */
+            clientIp?: string | null;
+            /** @description 浏览器。 */
+            browser?: string | null;
+            /** @description 操作系统。 */
+            os?: string | null;
+            /** @description 设备类型。 */
+            device?: string | null;
+            /** @description 归属地。 */
+            location?: string | null;
         };
         /** @enum {string} */
         OperationalStatus: "Up" | "Down" | "Testing" | "Unknown" | "Dormant" | "NotPresent" | "LowerLayerDown";
@@ -24004,6 +24016,8 @@ export interface operations {
                         sessionId?: string | null;
                         /** @description 操作 ID（审计动作）。 */
                         operationId: string;
+                        /** @description 操作描述。 */
+                        description?: string | null;
                         /** @description 是否成功。 */
                         succeeded: boolean;
                         /** @description 失败的错误码。 */
@@ -24017,6 +24031,18 @@ export interface operations {
                          * @description 耗时（毫秒）。
                          */
                         durationMs?: number | null;
+                        /** @description 客户端地址。 */
+                        clientIp?: string | null;
+                        /** @description 浏览器。 */
+                        browser?: string | null;
+                        /** @description 操作系统。 */
+                        os?: string | null;
+                        /** @description 设备类型。 */
+                        device?: string | null;
+                        /** @description 归属地。 */
+                        location?: string | null;
+                        /** @description User-Agent 原文。 */
+                        userAgent?: string | null;
                         /**
                          * Format: int64
                          * @description 写入序号。
