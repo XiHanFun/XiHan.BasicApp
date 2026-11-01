@@ -190,6 +190,7 @@ public sealed class Unlock(IRepository<SysUserSession, Guid> sessions, SessionGa
                 .Where(s => s.Id == sessionId).ExecuteCommandAsync(ct).ConfigureAwait(false);
             return Result.Success();
         }, cancellationToken).ConfigureAwait(false);
+        // 吊销已在调用之外提交；失效照样推到本次调用的工作单元之后（调用随即以失败结束），这期间别的请求读到的仍是锁屏态，同样被拒绝
         await gate.InvalidateAsync(sessionId, cancellationToken).ConfigureAwait(false);
     }
 }

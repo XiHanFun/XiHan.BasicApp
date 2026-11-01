@@ -14,9 +14,11 @@ using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
+using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
@@ -27,7 +29,7 @@ namespace XiHan.BasicApp.Runtime;
 /// 运行时基座能力包（Tier 0）。
 /// </summary>
 /// <remarks>
-/// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；提供 <c>basicapp.runtime@1</c> 供各能力包依赖。
+/// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；把调用里的缓存失效推到工作单元之后（<see cref="Persistence.CacheInvalidation"/>）；提供 <c>basicapp.runtime@1</c> 供各能力包依赖。
 /// 依赖关系型持久化，启动排在框架建表之后：打开 <c>InitTables</c> 时随即补建软删除实体的部分唯一索引（<see cref="ActiveUniqueIndexes"/>）。
 /// </remarks>
 public sealed class RuntimeFeature : IHostedFeature
@@ -51,7 +53,11 @@ public sealed class RuntimeFeature : IHostedFeature
         ],
         Contributes = new Contributions
         {
-            Pipeline = [new PipelineContribution(typeof(AuditorStampMiddleware).FullName!, PipelineStage.Transaction)],
+            Pipeline =
+            [
+                new PipelineContribution(typeof(CacheInvalidationMiddleware).FullName!, PipelineStage.Transaction, Before: [typeof(UnitOfWorkMiddleware).FullName!]),
+                new PipelineContribution(typeof(AuditorStampMiddleware).FullName!, PipelineStage.Transaction),
+            ],
         },
         Entry = typeof(RuntimeFeature).FullName,
     };
@@ -83,6 +89,9 @@ public sealed class RuntimeFeature : IHostedFeature
         context.Services.AddSingleton<ITenantShardResolver, ProtectedTenantShardResolver>();
         // 持久化 Provider 的工作单元中间件也在 Transaction 阶段；本包依赖 persistence.relational@1，按拓扑序排在它之后
         context.AddMiddleware<AuditorStampMiddleware>(PipelineStage.Transaction);
+        // 失效要落在工作单元提交或回滚之后：排在 Transaction 阶段开头，并显式排在框架工作单元中间件之前
+        context.AddMiddleware<CacheInvalidationMiddleware>(PipelineStage.Transaction, Placement.Beginning);
+        context.Pipeline.Before<CacheInvalidationMiddleware, UnitOfWorkMiddleware>();
     }
 
     /// <inheritdoc />

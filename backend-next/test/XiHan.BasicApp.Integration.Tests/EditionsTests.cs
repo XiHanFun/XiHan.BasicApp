@@ -3,7 +3,10 @@
 
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -12,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 种子四档套餐（免费版缺省）、租户侧权限目录、开通即绑定缺省套餐、有效权限与判定都按白名单收窄（租户管理员的 <c>*</c> 也收窄）、
-/// 改白名单与换套餐立即生效、不受限套餐、套餐的增改删与校验、租户主体碰不到套餐管理。
+/// 改白名单与换套餐立即生效（换套餐不被提交前的门控判定回填）、不受限套餐、套餐的增改删与校验、租户主体碰不到套餐管理。
 /// </remarks>
 public sealed class EditionsTests : IDisposable
 {
@@ -164,5 +167,45 @@ public sealed class EditionsTests : IDisposable
         Assert.Equal(["TENANCY_CONFLICT_007", "TENANCY_NOTFOUND_004"], deletedBody.GetProperty("failed").EnumerateArray().Select(static f => f.GetProperty("code").GetString()).ToList());
         var (gone, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/editions/{freeId}", token: superadmin));
         Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
+    }
+
+    [Fact]
+    public async Task Editions_ChangeEdition_IsNotUndoneByACheckBeforeCommit()
+    {
+        // 不拨钟：租户侧别的请求恰在换套餐之后、提交之前判定权限，只读工作单元读到的仍是旧套餐；门控失效要落在提交之后，否则旧白名单被写回缓存，要等缓存过期才生效
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var enterpriseId = Guid.Parse(await EditionIdAsync(server, superadmin, "enterprise"));
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"contoso","name":"Contoso"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var contosoId = Guid.Parse(createdBody.GetProperty("id").GetString()!);
+        var (initialized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{contosoId}:initialize-admin", """{"userName":"admin","password":"Admin@123456"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
+        var tenantAdmin = (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", "contoso")).GetProperty("accessToken").GetString()!;
+
+        async Task<List<string?>> EffectiveAsync()
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: tenantAdmin));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return Codes(body, "permissions");
+        }
+
+        Assert.DoesNotContain("access.roles.grant", await EffectiveAsync());
+
+        // 在一次调用里把免费版换成企业版，提交之前插入租户侧另一个请求的门控判定
+        IReadOnlySet<string>? concurrent = null;
+        var changed = await server.InvokeAsync(async ctx =>
+        {
+            var outcome = await ActivatorUtilities.CreateInstance<ChangeTenantEdition>(ctx.Services).HandleAsync(new ChangeTenantEditionRequest(contosoId, enterpriseId), ctx);
+            concurrent = await ctx.Services.GetRequiredService<IEditionGate>().AllowedAsync("contoso", ctx.CancellationToken);
+            return outcome.ToResult();
+        }, superadmin);
+        changed.ThrowIfFailure();
+        Assert.NotNull(concurrent);
+        Assert.DoesNotContain("access.roles.grant", concurrent);
+
+        Assert.Contains("access.roles.grant", await EffectiveAsync());
     }
 }

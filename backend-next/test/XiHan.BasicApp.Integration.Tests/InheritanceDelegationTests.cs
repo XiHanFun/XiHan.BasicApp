@@ -226,4 +226,26 @@ public sealed class InheritanceDelegationTests : IDisposable
 
         Assert.Contains("Delegation", await ChangeTypesAsync(server, admin));
     }
+
+    [Fact]
+    public async Task Delegations_RoleDelegation_TakesEffectRightAfterCreate()
+    {
+        // 不拨钟：新建角色委托时约束检查会在同一请求里读被委托人的委托缓存，失效要落在提交之后，否则提交前的旧列表被写回缓存、要等缓存过期才生效
+        var (server, _, admin) = await StartAsync(_database);
+        await using var running = server;
+        var aliceId = await CreateUserAsync(server, admin, "alice");
+        var bobId = await CreateUserAsync(server, admin, "bob");
+        var approver = await CreateRoleAsync(server, admin, "approver", "identity.users.read");
+        var (assigned, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{approver}:assign", $$"""{"userIds":["{{aliceId}}"]}""", admin));
+        Assert.Equal(HttpStatusCode.OK, assigned.StatusCode);
+        var bob = (await AuthFlowTests.LoginAsync(server, "bob", "Pass@123456")).GetProperty("accessToken").GetString()!;
+        async Task<HttpStatusCode> ListUsersAsync() => (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob))).Response.StatusCode;
+        Assert.Equal(HttpStatusCode.Forbidden, await ListUsersAsync());
+
+        var (created, delegation) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/delegations", JsonSerializer.Serialize(new { delegatorId = aliceId, delegateeId = bobId, roleId = approver, expiresAt = DateTimeOffset.UtcNow.AddHours(1) }), admin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        Assert.Equal("Active", delegation.GetProperty("status").GetString());
+        Assert.Equal(HttpStatusCode.OK, await ListUsersAsync());
+        Assert.True(await HoldsAsync(server, bob, "identity.users.read"));
+    }
 }

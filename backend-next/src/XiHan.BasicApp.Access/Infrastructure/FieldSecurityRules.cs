@@ -57,8 +57,11 @@ public sealed class FieldSecurityRules(ISharedCache cache, IServiceScopeFactory 
     /// <summary>
     /// 一侧在一个实体上的规则有变：失效缓存。
     /// </summary>
+    /// <remarks>
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// </remarks>
     public async Task InvalidateAsync(string owner, string entity, CancellationToken cancellationToken)
-        => await cache.RemoveAsync(KeyOf(owner, entity), cancellationToken).ConfigureAwait(false);
+        => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner, entity), cancellationToken).ConfigureAwait(false);
 
     private static CacheKey KeyOf(string owner, string entity) => new($"access:field-rules:{owner}:{entity}");
 

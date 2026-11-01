@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）。
-/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效。
+/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效（推到工作单元结束之后）。
 /// </remarks>
 public sealed class SessionGate
 {
@@ -58,9 +58,13 @@ public sealed class SessionGate
     }
 
     /// <summary>
-    /// 吊销后让缓存立即失效（本实例立即生效，其他实例最迟在存活时间后生效）。
+    /// 吊销、锁屏或解锁后让会话的缓存失效。
     /// </summary>
-    public ValueTask<bool> InvalidateAsync(Guid sessionId, CancellationToken cancellationToken) => _cache.RemoveAsync(KeyOf(sessionId), cancellationToken);
+    /// <remarks>
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧判定不会被回填进缓存。
+    /// 共享缓存是进程内实现时只对本实例生效，其他实例最迟在存活时间后生效。
+    /// </remarks>
+    public ValueTask InvalidateAsync(Guid sessionId, CancellationToken cancellationToken) => CacheInvalidation.RemoveAsync(_cache, KeyOf(sessionId), cancellationToken);
 
     private static CacheKey KeyOf(Guid sessionId) => new($"identity:session:{sessionId:N}");
 
