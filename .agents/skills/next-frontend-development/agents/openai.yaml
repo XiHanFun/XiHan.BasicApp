@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 6.0 前端开发"
+  short_description: "在 next 上开发 frontend-next 的模块页面、契约调用与 SchemaPage"
+  default_prompt: "使用 $xihan-basicapp-next-frontend-development 在 frontend-next 实现并验证一个管理端功能。"
+
+policy:
+  allow_implicit_invocation: true
