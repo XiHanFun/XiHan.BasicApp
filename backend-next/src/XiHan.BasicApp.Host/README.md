@@ -24,8 +24,8 @@ Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记�
 
 ## 配置
 
-- `XiHan:Bindings:db`：平台库连接串（`value`）与库类型（`provider`，缺省 `postgresql`）。缺失即 `RUNTIME_VALIDATION_001` 中断启动。
-- `XiHan:Bindings:cache` / `XiHan:Bindings:queue`：Redis 与 RabbitMQ 连接，`appsettings.json` 里留空即不装（单机零外部依赖）；配了而连不上启动即失败。实时推送在 N3 接上 SignalR 的 Redis 背板之前不跨实例。
+- `XiHan:Bindings:db`：平台库连接串（`value`）与库类型（`provider`，缺省 `postgresql`）。缺失即 `RUNTIME_VALIDATION_001` 中断启动。`appsettings.json` 不写任何绑定（配置节里的同名绑定会整个盖掉 `SERVICE_BINDING_ROOT` 挂进来的），开发写在 `appsettings.Development.json`，部署用环境变量或 Service Binding。
+- `XiHan:Bindings:cache` / `XiHan:Bindings:queue`：Redis 与 RabbitMQ 连接，没配即不装（单机零外部依赖）；配了而连不上启动即失败。实时推送在 N3 接上 SignalR 的 Redis 背板之前不跨实例。
 - `XiHan:Security:Jwt:Secret`：HS256 密钥，至少 32 字节；`appsettings.json` 留空，由环境配置或密钥存储提供。不提交真实密钥。
 - `BasicApp:ApiDocs:Enabled`：是否映射 `/openapi.json` 与 `/scalar`；没写时 Development 为真、其余为假。
 - `BasicApp:Auth`：访问令牌分钟数、刷新令牌天数、登录失败上限与锁定分钟数、密码最短长度与历史深度、会话门禁缓存秒数（缺省见 `appsettings.json`）。

@@ -44,6 +44,8 @@ dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basi
 | `XiHan__Bindings__cache__value` | Redis 连接（多实例时配；不配即进程内缓存） |
 | `XiHan__Bindings__queue__value` | RabbitMQ 连接（AMQP URI；不配即进程内消息） |
 
+Kubernetes 也可以经 Service Binding 提供三个连接：`SERVICE_BINDING_ROOT` 下的 `db`、`cache`、`queue` 目录，各放 `type` 与 `uri` 文件（`db` 另可放 `provider`）。`appsettings.json` 不写这几个绑定，挂进来的 Secret 不会被配置文件盖掉。
+
 `ASPNETCORE_ENVIRONMENT=Production` 时 `InitTables` 关闭、`/openapi.json` 与 `/scalar` 不映射（可用 `BasicApp:ApiDocs:Enabled` 显式打开）、演示数据不写。
 
 ### 首次初始化

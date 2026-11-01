@@ -24,7 +24,9 @@
 
 ## `XiHan:Bindings:db`
 
-平台库连接，启动硬要求：缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到内存实现。
+平台库连接，启动硬要求：缺失即 `RUNTIME_VALIDATION_001` 中断启动，不回退到内存实现；`provider` 不写即 PostgreSQL。
+
+`appsettings.json` 不写任何绑定：框架先读 `SERVICE_BINDING_ROOT` 目录、再读配置节，配置节里的同名绑定会整个盖掉目录里挂进来的（值为空也一样）。本机开发写在 `appsettings.Development.json`，部署用环境变量（`XiHan__Bindings__db__value`）或 Kubernetes Service Binding（`db` 目录下放 `type`、`uri`，可选 `provider`）。
 
 ```json
 {
@@ -62,7 +64,7 @@
 }
 ```
 
-`appsettings.json` 里两个绑定的值留空，即没配；部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Kubernetes Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。不要同时写 `Configuration` 键为空串：框架优先读它，空串即启动失败。
+`appsettings.json` 不写这两个绑定，没配即单机；部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Kubernetes Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。绑定与 `Configuration` 键都配了时绑定优先（框架 `25614c9a` 起），绑定的值为空才看 `Configuration`。
 
 ### `XiHan:Caching`
 
