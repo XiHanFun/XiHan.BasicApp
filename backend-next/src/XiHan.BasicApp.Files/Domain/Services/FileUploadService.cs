@@ -124,7 +124,7 @@ public sealed partial class FileUploadService(
         {
             ContentType = FileKinds.ContentTypeOf(definition.ContentType, name),
             Metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["file-id"] = fileId.ToString("N") },
-            Overwrite = false,
+            Overwrite = StorageInstances.UploadOverwrites(config),
         };
         var started = await multipart.StartAsync(config.Bucket, key, put, cancellationToken).ConfigureAwait(false);
         if (!started.TryGetValue(out var opened))

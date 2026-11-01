@@ -54,10 +54,10 @@ describe('存储配置的表单', () => {
     expect(findConfigProblem(remoteForm({ id: 'c1', secretAccessKey: '' }), false)).toBe('secret')
   })
 
-  it('本地存储的请求不带远程设置，停用的配置不会设为缺省，空串写成 null', () => {
-    const local = { ...emptyStorageConfigForm(), code: ' local ', name: '本地', bucket: ' files ', endpoint: 'https://x', accessKeyId: 'AK', isDefault: true, status: 'Disabled' as const, order: null, remark: ' ' }
-    expect(toCreateBody(local)).toEqual({ code: 'local', name: '本地', type: 'Local', bucket: 'files', endpoint: null, region: null, accessKeyId: null, secretAccessKey: null, isDefault: false, status: 'Disabled', order: 0, remark: null })
-    expect(toUpdateBody({ ...remoteForm({ secretAccessKey: '  ', region: 'cn-hangzhou' }), id: 'c1' })).toEqual({
+  it('本地存储的请求不带远程设置、条件写入恒为开，停用的配置不会设为缺省，空串写成 null', () => {
+    const local = { ...emptyStorageConfigForm(), code: ' local ', name: '本地', bucket: ' files ', endpoint: 'https://x', accessKeyId: 'AK', conditionalWrites: false, isDefault: true, status: 'Disabled' as const, order: null, remark: ' ' }
+    expect(toCreateBody(local)).toEqual({ code: 'local', name: '本地', type: 'Local', bucket: 'files', endpoint: null, region: null, accessKeyId: null, secretAccessKey: null, conditionalWrites: true, isDefault: false, status: 'Disabled', order: 0, remark: null })
+    expect(toUpdateBody({ ...remoteForm({ secretAccessKey: '  ', region: 'cn-hangzhou', conditionalWrites: false }), id: 'c1' })).toEqual({
       id: 'c1',
       name: '阿里云',
       type: 'Oss',
@@ -66,14 +66,15 @@ describe('存储配置的表单', () => {
       region: 'cn-hangzhou',
       accessKeyId: 'AK',
       secretAccessKey: null,
+      conditionalWrites: false,
       order: 100,
       remark: null,
     })
   })
 
   it('已保存的配置回填表单，访问密钥不回显', () => {
-    const row: StorageConfigRow = { id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', endpoint: 'https://e', region: null, bucket: 'b-1', accessKeyId: 'AK', hasSecretAccessKey: true, isDefault: true, status: 'Active', order: 5, remark: null, createdAt: '2026-10-01T00:00:00Z', modifiedAt: null }
-    expect(toStorageConfigForm(row)).toEqual({ id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', bucket: 'b-1', endpoint: 'https://e', region: '', accessKeyId: 'AK', secretAccessKey: '', isDefault: true, status: 'Active', order: 5, remark: '' })
+    const row: StorageConfigRow = { id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', endpoint: 'https://e', region: null, bucket: 'b-1', accessKeyId: 'AK', hasSecretAccessKey: true, conditionalWrites: false, isDefault: true, status: 'Active', order: 5, remark: null, createdAt: '2026-10-01T00:00:00Z', modifiedAt: null }
+    expect(toStorageConfigForm(row)).toEqual({ id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', bucket: 'b-1', endpoint: 'https://e', region: '', accessKeyId: 'AK', secretAccessKey: '', conditionalWrites: false, isDefault: true, status: 'Active', order: 5, remark: '' })
   })
 
   it('批量删除的失败码认得的翻成文案，其余原样', () => {

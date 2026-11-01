@@ -19,6 +19,7 @@ namespace XiHan.BasicApp.Files.Operations.StorageConfigs;
 /// <param name="Bucket">桶名。</param>
 /// <param name="AccessKeyId">访问密钥 ID。</param>
 /// <param name="HasSecretAccessKey">是否已设访问密钥。</param>
+/// <param name="ConditionalWrites">是否条件写入（本地存储恒为开）。</param>
 /// <param name="IsDefault">是否这一侧的缺省配置。</param>
 /// <param name="Status">状态。</param>
 /// <param name="Order">排序。</param>
@@ -35,6 +36,7 @@ public sealed record StorageConfigResponse(
     string Bucket,
     string? AccessKeyId,
     bool HasSecretAccessKey,
+    bool ConditionalWrites,
     bool IsDefault,
     StorageConfigStatus Status,
     int Order,
@@ -50,7 +52,7 @@ public sealed record StorageConfigResponse(
     public static StorageConfigResponse From(SysStorageConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
-        return new(config.Id, config.Code, config.Name, config.Type, config.Endpoint, config.Region, config.Bucket, config.AccessKeyId, config.SecretAccessKey is not null, config.IsDefault, config.Status, config.Order, config.Remark, config.CreatedAt, config.ModifiedAt);
+        return new(config.Id, config.Code, config.Name, config.Type, config.Endpoint, config.Region, config.Bucket, config.AccessKeyId, config.SecretAccessKey is not null, config.ConditionalWrites, config.IsDefault, config.Status, config.Order, config.Remark, config.CreatedAt, config.ModifiedAt);
     }
 }
 
@@ -74,6 +76,7 @@ public sealed record StorageConfigIdRequest([Required] Guid Id);
 /// <param name="Region">区域。</param>
 /// <param name="AccessKeyId">访问密钥 ID（S3 兼容存储必填）。</param>
 /// <param name="SecretAccessKey">访问密钥（S3 兼容存储必填）。</param>
+/// <param name="ConditionalWrites">是否条件写入（S3 兼容存储，缺省开；服务不认 <c>If-None-Match</c> 时关掉，上传改为直接写入）。</param>
 /// <param name="IsDefault">是否设为这一侧的缺省配置。</param>
 /// <param name="Status">状态。</param>
 /// <param name="Order">排序。</param>
@@ -87,6 +90,7 @@ public sealed record CreateStorageConfigRequest(
     [StringLength(100)] string? Region = null,
     [StringLength(200)] string? AccessKeyId = null,
     [StringLength(500)] string? SecretAccessKey = null,
+    bool ConditionalWrites = true,
     bool IsDefault = false,
     StorageConfigStatus Status = StorageConfigStatus.Active,
     [Range(0, 100000)] int Order = 0,
@@ -96,7 +100,7 @@ public sealed record CreateStorageConfigRequest(
     /// 转成写入内容。
     /// </summary>
     /// <returns>写入内容。</returns>
-    public StorageConfigDefinition ToDefinition() => new(Code, Name, Type, Endpoint, Region, Bucket, AccessKeyId, SecretAccessKey, Order, Remark);
+    public StorageConfigDefinition ToDefinition() => new(Code, Name, Type, Endpoint, Region, Bucket, AccessKeyId, SecretAccessKey, Order, Remark, ConditionalWrites);
 }
 
 /// <summary>
@@ -113,6 +117,7 @@ public sealed record CreateStorageConfigRequest(
 /// <param name="Region">区域。</param>
 /// <param name="AccessKeyId">访问密钥 ID。</param>
 /// <param name="SecretAccessKey">新的访问密钥；不填即保留原值。</param>
+/// <param name="ConditionalWrites">是否条件写入（S3 兼容存储）。</param>
 /// <param name="Order">排序。</param>
 /// <param name="Remark">备注。</param>
 public sealed record UpdateStorageConfigRequest(
@@ -124,6 +129,7 @@ public sealed record UpdateStorageConfigRequest(
     [StringLength(100)] string? Region = null,
     [StringLength(200)] string? AccessKeyId = null,
     [StringLength(500)] string? SecretAccessKey = null,
+    bool ConditionalWrites = true,
     [Range(0, 100000)] int Order = 0,
     [StringLength(500)] string? Remark = null)
 {
@@ -132,7 +138,7 @@ public sealed record UpdateStorageConfigRequest(
     /// </summary>
     /// <param name="code">原编码。</param>
     /// <returns>写入内容。</returns>
-    public StorageConfigDefinition ToDefinition(string code) => new(code, Name, Type, Endpoint, Region, Bucket, AccessKeyId, SecretAccessKey, Order, Remark);
+    public StorageConfigDefinition ToDefinition(string code) => new(code, Name, Type, Endpoint, Region, Bucket, AccessKeyId, SecretAccessKey, Order, Remark, ConditionalWrites);
 }
 
 /// <summary>

@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'シークレットアクセスキー',
         secret_configured: '設定済み。空欄のままにすると変更されません',
         secret_placeholder: 'シークレットアクセスキーを入力してください',
+        conditional_writes: '条件付き書き込み',
+        conditional_writes_hint: 'アップロード時に既存オブジェクトを上書きしないことをストレージ側で保証します（If-None-Match）。サービスが対応していない場合はオフにすると、直接書き込みます。',
         is_enabled: '有効にする',
         is_default: 'デフォルトに設定',
         remark: '備考',

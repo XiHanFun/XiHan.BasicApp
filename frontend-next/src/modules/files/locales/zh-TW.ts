@@ -246,6 +246,8 @@ export default {
         secret_access_key: '存取金鑰',
         secret_configured: '已設定，留空則不修改',
         secret_placeholder: '請輸入存取金鑰',
+        conditional_writes: '條件寫入',
+        conditional_writes_hint: '上傳時由儲存保證不覆蓋既有物件（If-None-Match）；服務不支援時關閉，上傳改為直接寫入',
         is_enabled: '是否啟用',
         is_default: '設為預設',
         remark: '備註',

@@ -28,7 +28,8 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 /// <param name="SecretAccessKey">访问密钥明文；修改时为空即保留原值。</param>
 /// <param name="Order">排序。</param>
 /// <param name="Remark">备注。</param>
-public sealed record StorageConfigDefinition(string Code, string Name, StorageType Type, string? Endpoint, string? Region, string Bucket, string? AccessKeyId, string? SecretAccessKey, int Order, string? Remark);
+/// <param name="ConditionalWrites">是否条件写入（S3 兼容存储；本地存储恒为开）。</param>
+public sealed record StorageConfigDefinition(string Code, string Name, StorageType Type, string? Endpoint, string? Region, string Bucket, string? AccessKeyId, string? SecretAccessKey, int Order, string? Remark, bool ConditionalWrites = true);
 
 /// <summary>
 /// 存储配置的维护与上传目标的选取。
@@ -319,11 +320,12 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
         config.Remark = string.IsNullOrWhiteSpace(definition.Remark) ? null : definition.Remark.Trim();
         if (definition.Type == StorageType.Local)
         {
-            // 本地存储只用桶（根目录下的子目录），远程设置不留
+            // 本地存储只用桶（根目录下的子目录），远程设置不留；本地目录的不覆盖写入是原子占位，条件写入恒为开
             config.Endpoint = null;
             config.Region = null;
             config.AccessKeyId = null;
             config.SecretAccessKey = null;
+            config.ConditionalWrites = true;
             return Result.Success();
         }
 
@@ -348,6 +350,7 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
         config.Endpoint = endpoint;
         config.Region = string.IsNullOrWhiteSpace(definition.Region) ? null : definition.Region.Trim();
         config.AccessKeyId = accessKeyId;
+        config.ConditionalWrites = definition.ConditionalWrites;
         if (secret is not null)
         {
             config.SecretAccessKey = secrets.Protect(StorageInstances.SecretPurpose, secret);

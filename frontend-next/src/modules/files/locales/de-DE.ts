@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'Geheimer Zugriffsschlüssel',
         secret_configured: 'Konfiguriert; leer lassen, um es unverändert zu lassen',
         secret_placeholder: 'Bitte geheimen Zugriffsschlüssel eingeben',
+        conditional_writes: 'Bedingte Schreibvorgänge',
+        conditional_writes_hint: 'Der Speicher verhindert beim Hochladen das Überschreiben vorhandener Objekte (If-None-Match). Für Dienste ohne Unterstützung ausschalten; dann wird direkt geschrieben.',
         is_enabled: 'Aktiviert',
         is_default: 'Als Standard festlegen',
         remark: 'Bemerkung',

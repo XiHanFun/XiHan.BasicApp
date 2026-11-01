@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'Secret Access Key',
         secret_configured: 'Configured; leave blank to keep unchanged',
         secret_placeholder: 'Please enter secret access key',
+        conditional_writes: 'Conditional writes',
+        conditional_writes_hint: 'The storage refuses to overwrite existing objects on upload (If-None-Match). Turn off for services that do not support it; uploads then write directly.',
         is_enabled: 'Enabled',
         is_default: 'Set as Default',
         remark: 'Remark',

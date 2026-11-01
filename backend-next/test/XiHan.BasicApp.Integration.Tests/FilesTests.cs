@@ -243,11 +243,12 @@ public sealed class FilesTests : IDisposable
         var (created, s3) = await CreateAsync(platform, new { code = "minio", name = "MinIO", type = "MinIO", bucket = "files", endpoint = "http://localhost:9000", accessKeyId = "key", secretAccessKey = "secret" });
         Assert.Equal(HttpStatusCode.Created, created);
         Assert.True(s3.GetProperty("hasSecretAccessKey").GetBoolean());
+        Assert.True(s3.GetProperty("conditionalWrites").GetBoolean());
         Assert.False(s3.TryGetProperty("secretAccessKey", out _));
         var minio = s3.GetProperty("id").GetString()!;
         Assert.Equal("FILES_CONFLICT_001", (await CreateAsync(platform, new { code = "minio", name = "again", type = "Local", bucket = "files" })).Item2.GetProperty("code").GetString());
-        var (updated, updatedBody) = await SendAsync(server, HttpMethod.Put, $"/api/storage-configs/{minio}", """{"name":"MinIO 2","type":"MinIO","bucket":"files","endpoint":"http://localhost:9000","accessKeyId":"key"}""", platform);
-        Assert.Equal((HttpStatusCode.OK, true, "MinIO 2"), (updated, updatedBody.GetProperty("hasSecretAccessKey").GetBoolean(), updatedBody.GetProperty("name").GetString()));
+        var (updated, updatedBody) = await SendAsync(server, HttpMethod.Put, $"/api/storage-configs/{minio}", """{"name":"MinIO 2","type":"MinIO","bucket":"files","endpoint":"http://localhost:9000","accessKeyId":"key","conditionalWrites":false}""", platform);
+        Assert.Equal((HttpStatusCode.OK, true, "MinIO 2", false), (updated, updatedBody.GetProperty("hasSecretAccessKey").GetBoolean(), updatedBody.GetProperty("name").GetString(), updatedBody.GetProperty("conditionalWrites").GetBoolean()));
 
         // 缺省配置：停用的不能设为缺省，缺省的不能停用或删除
         await SendAsync(server, HttpMethod.Post, $"/api/storage-configs/{minio}:set-status", """{"status":"Disabled"}""", platform);
@@ -255,8 +256,9 @@ public sealed class FilesTests : IDisposable
         Assert.Equal("FILES_CONFLICT_002", (await SendAsync(server, HttpMethod.Post, $"/api/storage-configs/{localDefault}:set-status", """{"status":"Disabled"}""", platform)).Body.GetProperty("code").GetString());
         Assert.Equal("FILES_CONFLICT_002", (await SendAsync(server, HttpMethod.Delete, $"/api/storage-configs?ids={localDefault}", null, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
 
-        // 换缺省：新上传落到新的缺省配置上；还有副本的配置不能删
-        var (_, archiveBody) = await CreateAsync(platform, new { code = "archive", name = "Archive", type = "Local", bucket = "archive", isDefault = true });
+        // 换缺省：新上传落到新的缺省配置上；还有副本的配置不能删。本地存储的条件写入恒为开（传了关也不算）
+        var (_, archiveBody) = await CreateAsync(platform, new { code = "archive", name = "Archive", type = "Local", bucket = "archive", isDefault = true, conditionalWrites = false });
+        Assert.True(archiveBody.GetProperty("conditionalWrites").GetBoolean());
         var archive = archiveBody.GetProperty("id").GetString()!;
         Assert.False(Assert.Single(await ListAsync(server, "storage-configs", platform, """{"page":{"index":1,"size":20},"filters":[{"field":"isDefault","operator":"eq","value":"false"},{"field":"type","operator":"in","value":"Local"}]}""")).GetProperty("isDefault").GetBoolean());
         var file = (await UploadAsync(server, platform, "a.txt", Encoding.UTF8.GetBytes("archived"))).Body.GetProperty("id").GetString()!;
@@ -272,5 +274,78 @@ public sealed class FilesTests : IDisposable
         var tenantFile = (await UploadAsync(server, tenant, "t.txt", Encoding.UTF8.GetBytes("tenant"))).Body.GetProperty("id").GetString()!;
         Assert.Equal("own", Assert.Single(await StoragesAsync(server, tenant, tenantFile)).GetProperty("storageConfigCode").GetString());
         Assert.Equal("FILES_NOTFOUND_002", (await SendAsync(server, HttpMethod.Get, $"/api/storage-configs/{localDefault}", null, tenant)).Body.GetProperty("code").GetString());
+    }
+
+    /// <summary>
+    /// S3 兼容存储的条件写入开关（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）。
+    /// </summary>
+    /// <remarks>
+    /// 开着时框架建实例前探测服务是否认 <c>If-None-Match: *</c>：认的服务照常上传，不认的（<see cref="IgnoringConditionsS3Proxy"/> 把 412 改成 200）建不出实例；
+    /// 关掉时不探测，上传直接写入同一个服务。
+    /// </remarks>
+    [Fact]
+    public async Task StorageConfigs_ConditionalWrites_ProbeTheServiceOrWriteDirectly()
+    {
+        var endpoint = S3TestService.RequireEndpoint();
+        using var s3 = S3TestService.Client(endpoint);
+        var bucket = "basicapp-" + Guid.NewGuid().ToString("N")[..16];
+        await s3.PutBucketAsync(bucket);
+        try
+        {
+            await using var ignoring = await IgnoringConditionsS3Proxy.StartAsync(endpoint);
+            var (server, platform, _) = await StartAsync();
+            await using var running = server;
+            async Task<string> UseAsync(string code, Uri service)
+            {
+                var (created, body) = await SendAsync(server, HttpMethod.Post, "/api/storage-configs", JsonSerializer.Serialize(new { code, name = code, type = "MinIO", bucket, endpoint = service.ToString(), accessKeyId = S3TestService.AccessKey, secretAccessKey = S3TestService.SecretKey, isDefault = true }), platform);
+                Assert.Equal((HttpStatusCode.Created, true), (created, body.GetProperty("conditionalWrites").GetBoolean()));
+                return body.GetProperty("id").GetString()!;
+            }
+
+            async Task<string> ContentAsync(string fileId)
+            {
+                var copy = Assert.Single(await StoragesAsync(server, platform, fileId));
+                using var got = await s3.GetObjectAsync(bucket, copy.GetProperty("key").GetString());
+                using var reader = new StreamReader(got.ResponseStream);
+                return await reader.ReadToEndAsync();
+            }
+
+            // 认条件写入的服务：探测通过，以不覆盖写入落盘
+            await UseAsync("conditional", endpoint);
+            var (stored, storedBody) = await UploadAsync(server, platform, "a.txt", Encoding.UTF8.GetBytes("conditional"));
+            Assert.Equal(HttpStatusCode.OK, stored);
+            Assert.Equal("conditional", await ContentAsync(storedBody.GetProperty("id").GetString()!));
+
+            // 不认条件写入的服务：开着时建不出实例，上传 503
+            var config = await UseAsync("ignoring", ignoring.Url);
+            var (rejected, rejectedBody) = await UploadAsync(server, platform, "b.txt", Encoding.UTF8.GetBytes("rejected"));
+            Assert.Equal((HttpStatusCode.ServiceUnavailable, "OBJECTSTORAGE_UNAVAILABLE_003"), (rejected, rejectedBody.GetProperty("code").GetString()));
+
+            // 关掉：不探测，上传直接写入同一个服务
+            var (updated, updatedBody) = await SendAsync(server, HttpMethod.Put, $"/api/storage-configs/{config}", JsonSerializer.Serialize(new { name = "ignoring", type = "MinIO", bucket, endpoint = ignoring.Url.ToString(), accessKeyId = S3TestService.AccessKey, conditionalWrites = false }), platform);
+            Assert.Equal((HttpStatusCode.OK, false), (updated, updatedBody.GetProperty("conditionalWrites").GetBoolean()));
+            var (written, writtenBody) = await UploadAsync(server, platform, "c.txt", Encoding.UTF8.GetBytes("unconditional"));
+            Assert.Equal(HttpStatusCode.OK, written);
+            Assert.Equal("unconditional", await ContentAsync(writtenBody.GetProperty("id").GetString()!));
+
+            // 分片上传同样直接写入：发起、按签名地址直传（经替身）、完成
+            var (started, upload) = await SendAsync(server, HttpMethod.Post, "/api/files:start-upload", JsonSerializer.Serialize(new { originalName = "d.txt", size = 9 }), platform);
+            Assert.Equal(HttpStatusCode.OK, started);
+            var uploadId = upload.GetProperty("id").GetString()!;
+            var (_, signed) = await SendAsync(server, HttpMethod.Post, "/api/files:sign-upload-parts", $$"""{"uploadId":"{{uploadId}}","partNumbers":[1]}""", platform);
+            using (var direct = new HttpClient())
+            {
+                using var part = await direct.PutAsync(signed.GetProperty("parts")[0].GetProperty("url").GetString(), new ByteArrayContent(Encoding.UTF8.GetBytes("multipart")));
+                Assert.Equal(HttpStatusCode.OK, part.StatusCode);
+            }
+
+            var (completed, file) = await SendAsync(server, HttpMethod.Post, "/api/files:complete-upload", JsonSerializer.Serialize(new { uploadId }), platform);
+            Assert.Equal(HttpStatusCode.OK, completed);
+            Assert.Equal("multipart", await ContentAsync(file.GetProperty("id").GetString()!));
+        }
+        finally
+        {
+            await S3TestService.DeleteBucketAsync(s3, bucket);
+        }
     }
 }

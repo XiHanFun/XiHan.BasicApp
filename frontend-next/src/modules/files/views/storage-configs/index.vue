@@ -271,6 +271,13 @@ async function removeRow(row: StorageConfigRow) {
               <XInput v-model:value="form.secretAccessKey" name="secretAccessKey" type="password" :max-length="500" autocomplete="new-password" :placeholder="secretPlaceholder" />
             </XhFieldControl>
           </XhFieldRoot>
+          <XhFieldRoot class="xh-span-2">
+            <XhFieldLabel>{{ t('files.storage_configs.form.conditional_writes') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.conditionalWrites" name="conditionalWrites" />
+            </XhFieldControl>
+            <XhFieldDescription>{{ t('files.storage_configs.form.conditional_writes_hint') }}</XhFieldDescription>
+          </XhFieldRoot>
         </template>
         <XhFieldRoot v-else class="xh-span-2" required>
           <XhFieldLabel>{{ t('files.storage_configs.form.local_bucket') }}</XhFieldLabel>

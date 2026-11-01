@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'Chave de acesso secreta',
         secret_configured: 'Configurada; deixe em branco para manter',
         secret_placeholder: 'Informe a chave de acesso secreta',
+        conditional_writes: 'Gravações condicionais',
+        conditional_writes_hint: 'O armazenamento impede sobrescrever objetos existentes no envio (If-None-Match). Desative se o serviço não oferecer suporte; o envio passa a gravar diretamente.',
         is_enabled: 'Ativada',
         is_default: 'Definir como padrão',
         remark: 'Observação',

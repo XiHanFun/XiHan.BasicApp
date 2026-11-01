@@ -1179,6 +1179,7 @@ CREATE TABLE IF NOT EXISTS "sys_storage_config" (
     "bucket" character varying(63) NOT NULL,
     "access_key_id" character varying(200) DEFAULT NULL::character varying NULL,
     "secret_access_key" character varying(1000) DEFAULT NULL::character varying NULL,
+    "conditional_writes" boolean DEFAULT false NOT NULL,
     "is_default" boolean DEFAULT false NOT NULL,
     "status" integer DEFAULT 0 NOT NULL,
     "order" integer DEFAULT 0 NOT NULL,

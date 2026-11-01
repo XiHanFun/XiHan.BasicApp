@@ -10532,6 +10532,8 @@ export interface components {
             accessKeyId?: string | null;
             /** @description 是否已设访问密钥。 */
             hasSecretAccessKey: boolean;
+            /** @description 是否条件写入（本地存储恒为开）。 */
+            conditionalWrites: boolean;
             /** @description 是否这一侧的缺省配置。 */
             isDefault: boolean;
             /** @description 状态。 */
@@ -30084,6 +30086,8 @@ export interface operations {
                     accessKeyId?: string | null;
                     /** @description 访问密钥（S3 兼容存储必填）。 */
                     secretAccessKey?: string | null;
+                    /** @description 是否条件写入（S3 兼容存储，缺省开；服务不认 If-None-Match 时关掉，上传改为直接写入）。 */
+                    conditionalWrites?: boolean;
                     /** @description 是否设为这一侧的缺省配置。 */
                     isDefault?: boolean;
                     /** @description 状态。 */
@@ -30127,6 +30131,8 @@ export interface operations {
                         accessKeyId?: string | null;
                         /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否条件写入（本地存储恒为开）。 */
+                        conditionalWrites: boolean;
                         /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
                         /** @description 状态。 */
@@ -30237,6 +30243,8 @@ export interface operations {
                         accessKeyId?: string | null;
                         /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否条件写入（本地存储恒为开）。 */
+                        conditionalWrites: boolean;
                         /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
                         /** @description 状态。 */
@@ -30305,6 +30313,8 @@ export interface operations {
                     accessKeyId?: string | null;
                     /** @description 新的访问密钥；不填即保留原值。 */
                     secretAccessKey?: string | null;
+                    /** @description 是否条件写入（S3 兼容存储）。 */
+                    conditionalWrites?: boolean;
                     /**
                      * Format: int32
                      * @description 排序。
@@ -30344,6 +30354,8 @@ export interface operations {
                         accessKeyId?: string | null;
                         /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否条件写入（本地存储恒为开）。 */
+                        conditionalWrites: boolean;
                         /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
                         /** @description 状态。 */
@@ -30430,6 +30442,8 @@ export interface operations {
                         accessKeyId?: string | null;
                         /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否条件写入（本地存储恒为开）。 */
+                        conditionalWrites: boolean;
                         /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
                         /** @description 状态。 */
@@ -30518,6 +30532,8 @@ export interface operations {
                         accessKeyId?: string | null;
                         /** @description 是否已设访问密钥。 */
                         hasSecretAccessKey: boolean;
+                        /** @description 是否条件写入（本地存储恒为开）。 */
+                        conditionalWrites: boolean;
                         /** @description 是否这一侧的缺省配置。 */
                         isDefault: boolean;
                         /** @description 状态。 */

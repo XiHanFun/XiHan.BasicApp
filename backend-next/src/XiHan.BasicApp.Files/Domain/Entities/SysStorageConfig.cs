@@ -73,6 +73,15 @@ public sealed class SysStorageConfig : AppAuditedEntity, IOwnedByTenant
     public string? SecretAccessKey { get; set; }
 
     /// <summary>
+    /// 是否条件写入（S3 兼容存储，缺省开）。
+    /// </summary>
+    /// <remarks>
+    /// 开着时建实例前由框架探测服务是否认 <c>If-None-Match: *</c>（框架 ADR-0089），上传以不覆盖写入落盘，服务不认即建不出实例；
+    /// 关掉时不探测、上传直接写入，给不认条件写入的服务用（对象键带新文件的 ID，不会重复）。本地存储恒为开。
+    /// </remarks>
+    public bool ConditionalWrites { get; set; } = true;
+
+    /// <summary>
     /// 是否这一侧的缺省配置（每侧至多一条，须启用）。
     /// </summary>
     public bool IsDefault { get; set; }

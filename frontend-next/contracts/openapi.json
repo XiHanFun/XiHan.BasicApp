@@ -37607,6 +37607,10 @@
                     ],
                     "maxLength": 500
                   },
+                  "conditionalWrites": {
+                    "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08S3 \u517C\u5BB9\u5B58\u50A8\uFF0C\u7F3A\u7701\u5F00\uFF1B\u670D\u52A1\u4E0D\u8BA4 If-None-Match \u65F6\u5173\u6389\uFF0C\u4E0A\u4F20\u6539\u4E3A\u76F4\u63A5\u5199\u5165\uFF09\u3002",
+                    "type": "boolean"
+                  },
                   "isDefault": {
                     "description": "\u662F\u5426\u8BBE\u4E3A\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                     "type": "boolean"
@@ -37697,6 +37701,10 @@
                       "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
                       "type": "boolean"
                     },
+                    "conditionalWrites": {
+                      "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "isDefault": {
                       "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                       "type": "boolean"
@@ -37738,6 +37746,7 @@
                     "type",
                     "bucket",
                     "hasSecretAccessKey",
+                    "conditionalWrites",
                     "isDefault",
                     "status",
                     "order",
@@ -37839,6 +37848,10 @@
                       "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
                       "type": "boolean"
                     },
+                    "conditionalWrites": {
+                      "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "isDefault": {
                       "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                       "type": "boolean"
@@ -37880,6 +37893,7 @@
                     "type",
                     "bucket",
                     "hasSecretAccessKey",
+                    "conditionalWrites",
                     "isDefault",
                     "status",
                     "order",
@@ -37986,6 +38000,10 @@
                     ],
                     "maxLength": 500
                   },
+                  "conditionalWrites": {
+                    "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08S3 \u517C\u5BB9\u5B58\u50A8\uFF09\u3002",
+                    "type": "boolean"
+                  },
                   "order": {
                     "description": "\u6392\u5E8F\u3002",
                     "type": "integer",
@@ -38068,6 +38086,10 @@
                       "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
                       "type": "boolean"
                     },
+                    "conditionalWrites": {
+                      "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "isDefault": {
                       "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                       "type": "boolean"
@@ -38109,6 +38131,7 @@
                     "type",
                     "bucket",
                     "hasSecretAccessKey",
+                    "conditionalWrites",
                     "isDefault",
                     "status",
                     "order",
@@ -38233,6 +38256,10 @@
                       "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
                       "type": "boolean"
                     },
+                    "conditionalWrites": {
+                      "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "isDefault": {
                       "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                       "type": "boolean"
@@ -38274,6 +38301,7 @@
                     "type",
                     "bucket",
                     "hasSecretAccessKey",
+                    "conditionalWrites",
                     "isDefault",
                     "status",
                     "order",
@@ -38403,6 +38431,10 @@
                       "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
                       "type": "boolean"
                     },
+                    "conditionalWrites": {
+                      "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+                      "type": "boolean"
+                    },
                     "isDefault": {
                       "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
                       "type": "boolean"
@@ -38444,6 +38476,7 @@
                     "type",
                     "bucket",
                     "hasSecretAccessKey",
+                    "conditionalWrites",
                     "isDefault",
                     "status",
                     "order",
@@ -52399,6 +52432,10 @@
             "description": "\u662F\u5426\u5DF2\u8BBE\u8BBF\u95EE\u5BC6\u94A5\u3002",
             "type": "boolean"
           },
+          "conditionalWrites": {
+            "description": "\u662F\u5426\u6761\u4EF6\u5199\u5165\uFF08\u672C\u5730\u5B58\u50A8\u6052\u4E3A\u5F00\uFF09\u3002",
+            "type": "boolean"
+          },
           "isDefault": {
             "description": "\u662F\u5426\u8FD9\u4E00\u4FA7\u7684\u7F3A\u7701\u914D\u7F6E\u3002",
             "type": "boolean"
@@ -52440,6 +52477,7 @@
           "type",
           "bucket",
           "hasSecretAccessKey",
+          "conditionalWrites",
           "isDefault",
           "status",
           "order",

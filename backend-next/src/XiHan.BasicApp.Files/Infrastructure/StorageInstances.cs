@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Files.Infrastructure;
 /// <remarks>
 /// 实例由框架的注册表 <see cref="BlobStores"/> 建、按名缓存与释放（ADR-0050），这里只把存储配置译成定义：
 /// 本地存储共用一个实例 <see cref="LocalName"/>（以 <see cref="FilesOptions.LocalRootPath"/> 为根，桶是根下的子目录，启动时登记）；
-/// S3 兼容存储每条配置一个实例 <c>storage-&lt;配置 ID&gt;</c>，配置改了（地址、区域、桶、密钥）注册表建新实例替换旧的，删配置时移除。
+/// S3 兼容存储每条配置一个实例 <c>storage-&lt;配置 ID&gt;</c>，配置改了（地址、区域、桶、密钥、条件写入）注册表建新实例替换旧的，删配置时移除。
 /// 容量由租户配额管，本地实例不设目录存储自己的总量上限。
 /// 签名地址（ADR-0049）：S3 兼容存储的实例自己签名、客户端直连存储；本地实例由宿主的签名端点（<c>MapXiHanBlobs()</c>）代收发。
 /// </remarks>
@@ -98,11 +98,27 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
             ["SecretKey"] = secret,
             // OSS 与 COS 只接受虚拟主机式访问，S3 兼容的自建存储（MinIO 等）多用路径式
             ["ForcePathStyle"] = config.Type is StorageType.S3 or StorageType.MinIO ? "true" : "false",
-            // 健康项探这条配置的桶（只授权了一个桶的密钥列不了桶）；建实例前框架也在这个桶里探测条件写入（ADR-0089），
-            // 上传都是不覆盖写入，不关这项探测：服务不认 If-None-Match 时建不出实例
+            // 健康项探这条配置的桶（只授权了一个桶的密钥列不了桶）；开着条件写入时建实例前框架也在这个桶里探测（ADR-0089），
+            // 服务不认 If-None-Match 即建不出实例。关掉时不探测，框架拒绝不覆盖写入，上传改为直接写入（UploadOverwrites）
             ["HealthBucket"] = config.Bucket,
+            ["ConditionalWrites"] = config.ConditionalWrites ? "true" : "false",
         };
         return await stores.GetOrAddAsync(new BlobStoreDefinition(NameOf(config), S3BlobStoreProvider.ProviderName, settings), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 上传这条配置时是否覆盖写入。
+    /// </summary>
+    /// <remarks>
+    /// 对象键带新文件的 ID，从不重复：开着条件写入时仍以不覆盖写入落盘（由存储保证原子）；关掉的 S3 兼容配置框架拒绝不覆盖写入，只能直接写入。
+    /// 本地存储不看这一项（恒为开）。
+    /// </remarks>
+    /// <param name="config">存储配置。</param>
+    /// <returns>S3 兼容配置关掉了条件写入时为 <see langword="true"/>。</returns>
+    public static bool UploadOverwrites(SysStorageConfig config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return config.Type != StorageType.Local && !config.ConditionalWrites;
     }
 
     /// <summary>

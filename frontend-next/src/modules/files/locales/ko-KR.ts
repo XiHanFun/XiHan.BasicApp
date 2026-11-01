@@ -246,6 +246,8 @@ export default {
         secret_access_key: '시크릿 액세스 키',
         secret_configured: '설정되어 있어요. 비워 두면 변경되지 않아요',
         secret_placeholder: '시크릿 액세스 키를 입력하세요',
+        conditional_writes: '조건부 쓰기',
+        conditional_writes_hint: '업로드할 때 스토리지가 기존 객체를 덮어쓰지 않도록 보장해요(If-None-Match). 서비스가 지원하지 않으면 끄세요. 그러면 바로 기록해요.',
         is_enabled: '활성화 여부',
         is_default: '기본으로 설정',
         remark: '비고',

@@ -4,6 +4,11 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 存储配置的条件写入开关（2026-11-01）
+
+- S3 兼容存储配置加「条件写入」开关（缺省开）：关掉后第一次用到时不再探测 `If-None-Match`，上传与分片上传直接写入（对象键带新文件的 ID，不会覆盖），不认条件写入的服务（如 Garage、Zenko CloudServer，OSS / COS 还没验证）也能用。见[文件与存储](./backend/file#存储配置)。
+- 6.0.0 基线 `sys_storage_config` 多一列 `conditional_writes`；开发库里已有的配置加列后是关的，要开在页面上打开。
+
 ### N3 第一批：打印模板（2026-11-01）
 
 - 新增可选模块 Printing（`BasicApp:Modules:Printing:Enabled`，缺省开）：平台全局模板与租户模板的设计、样例数据预览与直打，按编码解析的作用域与 5.x 相同。见[打印模板](./backend/printing)。

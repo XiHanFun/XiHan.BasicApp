@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'Clave de acceso secreta',
         secret_configured: 'Configurada; déjala vacía para conservarla',
         secret_placeholder: 'Introduce la clave de acceso secreta',
+        conditional_writes: 'Escrituras condicionales',
+        conditional_writes_hint: 'El almacenamiento impide sobrescribir objetos existentes al subir (If-None-Match). Desactívalo si el servicio no lo admite; entonces se escribe directamente.',
         is_enabled: 'Activada',
         is_default: 'Establecer como predeterminada',
         remark: 'Observaciones',

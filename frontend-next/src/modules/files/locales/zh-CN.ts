@@ -246,6 +246,8 @@ export default {
         secret_access_key: '访问密钥',
         secret_configured: '已配置，留空则不修改',
         secret_placeholder: '请输入访问密钥',
+        conditional_writes: '条件写入',
+        conditional_writes_hint: '上传时由存储保证不覆盖已有对象（If-None-Match）；服务不支持时关闭，上传改为直接写入',
         is_enabled: '是否启用',
         is_default: '设为默认',
         remark: '备注',

@@ -15,13 +15,15 @@ Files 包（Tier 2）在框架对象存储（`IBlobStore`）之上管理存储�
 
 存储配置在运行时译成框架对象存储注册表的命名实例（框架 ADR-0050），健康项 `objectstorage.store.<名>` 随之出现在 `/health/ready`。
 
-S3 兼容配置的实例在第一次用到（或配置改了之后）时建出。建之前，框架先在这条配置的桶里探测条件写入（框架 ADR-0089）：带 `If-None-Match: *` 写两次探测键 `.xihan/probe/conditional-write`、第二次必须被拒，再探一次分片上传的条件完成。上传都是不覆盖写入，所以：
+S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省开；本地存储不看这一项，恒为开）。实例在第一次用到（或配置改了之后）时建出：
 
-- 服务要认 `If-None-Match: *`：RustFS、MinIO 可用；Garage、Zenko CloudServer 不认，返回 `OBJECTSTORAGE_UNAVAILABLE_003`；阿里云 OSS、腾讯云 COS 还没有验证。
-- 访问密钥要能写桶里的 `.xihan/probe/*` 并能放弃分片上传，被拒返回 `OBJECTSTORAGE_DENIED_002`；桶不存在返回 `OBJECTSTORAGE_NOTFOUND_001`；连不上返回 `OBJECTSTORAGE_UNAVAILABLE_001`。
-- 探测键是一个空对象，留在桶里不删。
+- **开着**：建之前框架先在这条配置的桶里探测条件写入（框架 ADR-0089）：带 `If-None-Match: *` 写两次探测键 `.xihan/probe/conditional-write`、第二次必须被拒，再探一次分片上传的条件完成；上传以不覆盖写入落盘，由存储保证原子。
+  - 服务要认 `If-None-Match: *`：RustFS、MinIO 可用；Garage、Zenko CloudServer 不认，返回 `OBJECTSTORAGE_UNAVAILABLE_003`；阿里云 OSS、腾讯云 COS、Cloudflare R2 还没有验证。
+  - 访问密钥要能写桶里的 `.xihan/probe/*` 并能放弃分片上传，被拒返回 `OBJECTSTORAGE_DENIED_002`；桶不存在返回 `OBJECTSTORAGE_NOTFOUND_001`；连不上返回 `OBJECTSTORAGE_UNAVAILABLE_001`。
+  - 探测键是一个空对象，留在桶里不删。探测失败时实例不登记，用到这条配置的读写都返回同一个错误；改好配置或服务之后，下次用到时重新探测。
+- **关掉**：不探测，上传与分片上传直接写入。对象键带新文件的 ID、从不重复，不会盖掉已有对象；给不认条件写入的服务用（上传报 `OBJECTSTORAGE_UNAVAILABLE_003` 时关掉这一项）。
 
-探测失败时实例不登记，用到这条配置的读写都返回同一个错误；改好配置或服务之后，下次用到时重新探测。
+开发库里已有的存储配置加这一列后是关的（布尔新列按 `false` 回填），要开就在存储配置页打开。
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |

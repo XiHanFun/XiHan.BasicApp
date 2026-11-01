@@ -246,6 +246,8 @@ export default {
         secret_access_key: 'Clé d’accès secrète',
         secret_configured: 'Configurée ; laissez vide pour la conserver',
         secret_placeholder: 'Saisissez la clé d’accès secrète',
+        conditional_writes: 'Écritures conditionnelles',
+        conditional_writes_hint: 'Le stockage refuse d’écraser les objets existants lors de l’envoi (If-None-Match). Désactivez-les si le service ne les prend pas en charge ; l’envoi écrit alors directement.',
         is_enabled: 'Activé',
         is_default: 'Définir par défaut',
         remark: 'Remarque',

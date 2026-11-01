@@ -846,7 +846,7 @@ public sealed partial class FileService(
         {
             ContentType = file.ContentType,
             Metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["file-id"] = file.Id.ToString("N"), ["sha256"] = hash },
-            Overwrite = false,
+            Overwrite = StorageInstances.UploadOverwrites(config),
         };
         var source = new FileStream(temp, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await using (source.ConfigureAwait(false))
