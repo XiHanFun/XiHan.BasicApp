@@ -42,7 +42,7 @@ src/XiHan.BasicApp.<包>/
 - 库决定协议：平台库实体（租户、用户与账号、角色与授权、菜单、参数、字典、模板、存储配置……）不实现 `IMultiTenant`，用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧；租户库实体（部门、文件、日志、通知投递……）用 `TenantScoped*` 基类，没有租户上下文时什么都查不到。
 - 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`。
 - 规约里可空值类型判空写 `!x.HasValue`；查询 `Take` 只收 1–1000，读全量按主键分页读完。
-- 只读操作（动词 `get` / `list` 或声明 `ReadOnly`）跑在只读工作单元里，写入即 `PERSISTENCE_DENIED_001`：要补建的行放到写操作里建，读路径缺行按缺省值读（参照 `UserAccountService.SecurityOfAsync`）。
+- 只读操作（动词 `get` / `list` 或声明 `ReadOnly`）跑在只读工作单元里，写入即 500 `PERSISTENCE_UNEXPECTED_001`（按缺陷处理，计入熔断）：要补建的行放到写操作里建，读路径缺行按缺省值读（参照 `UserAccountService.SecurityOfAsync`）。
 - 授予存储、权限检查器与收窄过滤器返回 `Result`：判定本身失败要原样向上返回（框架给 503），不能当作没有权限或悄悄隐藏东西。
 - 字符串列没写长度缺省 512，更长的显式 `[SugarColumn]` / `[LongText]`；给已有行的表加列，非可空的字符串与日期列声明成可空。
 - 高频写入的实体标 `[DiffLogIgnored]`；读操作别标 `audited`。

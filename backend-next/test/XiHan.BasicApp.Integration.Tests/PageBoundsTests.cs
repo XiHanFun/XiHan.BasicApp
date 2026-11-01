@@ -49,6 +49,18 @@ public sealed class PageBoundsTests : IDisposable
             Assert.Equal(message, Assert.Single(body.GetProperty("errors").GetProperty("page.index").EnumerateArray()).GetString());
         }
 
+        // 运行历史按偏移向框架的调度取页（Skip 是 int）：上限处正序倒序都照常是空页，越界在契约校验就拒绝，到不了框架
+        foreach (var descending in new[] { true, false })
+        {
+            var (runs, runsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/job-runs:list", JsonSerializer.Serialize(new { page = new { index = PageInfo.MaxIndex, size = PageInfo.MaxSize }, sorts = new[] { new { field = "scheduledAt", descending } } }), token));
+            Assert.Equal(HttpStatusCode.OK, runs.StatusCode);
+            Assert.Equal(0, runsBody.GetProperty("items").GetArrayLength());
+        }
+
+        var (beyond, beyondBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/job-runs:list", JsonSerializer.Serialize(new { page = new { index = int.MaxValue, size = PageInfo.MaxSize } }), token));
+        Assert.Equal(HttpStatusCode.BadRequest, beyond.StatusCode);
+        Assert.Equal("KERNEL_VALIDATION_003", beyondBody.GetProperty("code").GetString());
+
         // 平铺页码的查询（查询串）同一个上限
         var (candidates, candidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/impersonation:candidates?pageIndex={PageInfo.MaxIndex + 1}", token: token, acceptLanguage: "zh-CN"));
         Assert.Equal(HttpStatusCode.BadRequest, candidates.StatusCode);

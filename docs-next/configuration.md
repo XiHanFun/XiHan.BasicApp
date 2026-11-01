@@ -64,7 +64,7 @@
 }
 ```
 
-`appsettings.json` 不写这两个绑定，没配即单机；部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Kubernetes Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。绑定与 `Configuration` 键都配了时绑定优先（框架 `25614c9a` 起），绑定的值为空才看 `Configuration`。
+`appsettings.json` 不写这两个绑定，没配即单机；部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Kubernetes Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。绑定与 `Configuration` 键都配了时绑定优先（框架 `25614c9a` 起），绑定的值为空才看 `Configuration`。口令单独存放时，绑定可以另带 `username` / `password` 属性（Service Binding 目录里的同名文件），各自覆盖连接串里的用户名与密码（框架 `42d4c570` 起）。
 
 ### `XiHan:Caching`
 
@@ -80,7 +80,8 @@
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `RabbitMQ:QueuePrefix` | `xihan.` | 主题映射为持久队列 `<前缀><主题>` |
+| `RabbitMQ:Exchange` | `xihan` | 发布方只声明这个持久 direct 交换机，路由键 `<QueuePrefix><主题>`；不能为空或以 `amq.` 开头，RabbitMQ 上已有同名但不是持久 direct 的交换机即启动失败 |
+| `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>` 并以同名路由键绑定到交换机；没人订阅的主题发布即丢弃（记 Debug 日志），不堆积 |
 | `RabbitMQ:PrefetchCount` | `16` | 每个主题的预取条数 |
 | `RabbitMQ:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔 |
 | `MaxAttempts` | `3` | 处理失败的重试次数，用完进死信队列 |

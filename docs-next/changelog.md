@@ -4,6 +4,13 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 框架升锁 42d4c570（2026-11-01）
+
+- 只读接口里写库改报 500 `PERSISTENCE_UNEXPECTED_001`（原为 403 `PERSISTENCE_DENIED_001`），按缺陷处理；现有接口都不会触发。
+- RabbitMQ：发布方只声明交换机 `XiHan:Messaging:RabbitMQ:Exchange`（缺省 `xihan`），队列由订阅方声明；没人订阅的框架事件（如 `scheduling.job.*`）不再堆积。接过 RabbitMQ 的开发环境里旧的 `xihan.scheduling.*` 队列不会再有新消息，手工删掉（`rabbitmqctl list_queues name messages consumers` 里 `consumers` 为 0 的）。见[配置参考](./configuration#xihan-messaging)。
+- Redis 与 RabbitMQ 的绑定可以另带 `username` / `password`，覆盖连接串里的凭据。
+- 工作流的租户隔离与随业务事务、库结构读取、运行时数据源与广播订阅已进框架：N3 的工作流、代码生成与实时推送的跨实例断开不再等框架。
+
 ### 框架升锁 25614c9a（2026-11-01）
 
 - 授予判定读不到存储时返回 503 `SECURITY_UNAVAILABLE_001`，不再当作没有权限；文件访问、通知立即发布与工作台小组件同样如此。

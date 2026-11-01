@@ -149,7 +149,7 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 | 方面 | 单实例（不配连接） | 多实例 |
 | --- | --- | --- |
 | 缓存 | 进程内实现 | 配 Redis（`XiHan__Bindings__cache__value`）：授权规则、会话门禁、验证码、登录节流、开放接口防重放等共享缓存跨实例一致，写入方的失效对所有实例生效 |
-| 消息 | 进程内代理 | 配 RabbitMQ（`XiHan__Bindings__queue__value`）：发件箱派发与 CloudEvents 发布模式经它，各实例按主题竞争消费 |
+| 消息 | 进程内代理 | 配 RabbitMQ（`XiHan__Bindings__queue__value`）：发件箱派发与 CloudEvents 发布模式经它，各实例按主题竞争消费；队列由订阅方声明，没人订阅的主题（如框架的 `scheduling.*` 事件）发布即丢弃 |
 | 实时推送 | 进程内的连接登记与组 | **暂不跨实例**：SignalR 的 Redis 背板与在线状态的共享登记排在 N3（配了 Redis 即跨实例），在那之前在线状态只看本实例、推送到不了别的实例上的连接，需要实时推送的部署仍是单实例 |
 | 数据库译文 | 平台库 `message_translation` | 各实例按 `XiHan:Localization:Database:RefreshIntervalSeconds` 各自重载 |
 | 作业 | `Scheduling.Database` | 同左，按框架的数据库调度协调 |

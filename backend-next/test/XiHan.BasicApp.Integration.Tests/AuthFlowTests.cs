@@ -255,7 +255,7 @@ public sealed class AuthFlowTests : IDisposable
             return count;
         }
 
-        // 安全行被删掉（或从别处迁来没有）的账号：只读调用照常按缺省值读，不在只读工作单元里补建（框架会以 PERSISTENCE_DENIED_001 拒绝）
+        // 安全行被删掉（或从别处迁来没有）的账号：只读调用照常按缺省值读，不在只读工作单元里补建（框架会以 500 PERSISTENCE_UNEXPECTED_001 拒绝）
         (await server.InvokeAsync(async ctx =>
         {
             var securities = ctx.Services.GetRequiredService<IRepository<SysUserSecurity, Guid>>();
