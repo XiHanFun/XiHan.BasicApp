@@ -189,7 +189,7 @@
 | --- | --- | --- |
 | `Enabled` | `false` | 是否映射 CloudEvents 入站端点 `POST /events`（框架 `MapXiHanCloudEvents`），供内部服务投递事件 |
 
-端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。各包目前没有消息处理器，打开后派发模式下每个事件都是 404 `PROTOCOLS_NOTFOUND_003`；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
+端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。各包目前没有消息处理器，打开后派发模式下每个事件都是 404 `PROTOCOLS_NOTFOUND_003`；入站先只要求登录，专门的权限码等各包有了消息处理器再定；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
 
 ## `BasicApp:Schema`
 

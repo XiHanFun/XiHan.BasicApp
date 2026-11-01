@@ -4,10 +4,13 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
+using XiHan.Framework.Caching.Redis;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -17,6 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <remarks>
 /// 只开放各包登记的命名空间；按前缀分页列键（进程内的对象缓存与字节存储两层合起来、标出所在的层）、查看大小或类型与过期、按 UTF-8 或 JSON 看文本；
 /// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝。
+/// Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，没设即跳过）下只有字节存储一层，前缀稀疏时 SCAN 一段可能一个都没有，列键在操作里攒满一页再返回。
 /// </remarks>
 public sealed class MaintenanceCachesTests : IDisposable
 {
@@ -40,7 +44,8 @@ public sealed class MaintenanceCachesTests : IDisposable
     [Fact]
     public async Task Caches_AreBrowsedRewrittenAndDeleted_WithinTheApplicationNamespaces()
     {
-        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        // 两层合起来列是进程内缓存的形态：跑全量时环境变量里配了 Redis 也固定用进程内
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: static builder => builder.Configuration.AddInMemoryCollection([new("XiHan:Bindings:cache:value", "")]));
         await using var running = server;
         var cache = server.Services.GetRequiredService<ISharedCache>();
         var store = cache.Store;
@@ -119,5 +124,49 @@ public sealed class MaintenanceCachesTests : IDisposable
 
         // 没登录
         Assert.Equal(HttpStatusCode.Unauthorized, (await SendAsync(server, HttpMethod.Get, "/api/caches:namespaces", null, null)).Status);
+    }
+
+    [Fact]
+    public async Task Keys_FillAWholePage_WhenRedisScansAreSparse()
+    {
+        var redis = Environment.GetEnvironmentVariable("XIHAN_TEST_REDIS");
+        Assert.SkipWhen(string.IsNullOrWhiteSpace(redis), "XIHAN_TEST_REDIS is not set; this case only runs against a real Redis server.");
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Configuration.AddInMemoryCollection([new("XiHan:Bindings:cache:value", redis)]));
+        await using var running = server;
+        var store = server.Services.GetRequiredService<ISharedCache>().Store;
+        Assert.IsType<RedisCacheStore>(store);
+
+        // 本服务器的键前缀下先放 3000 个别的命名空间的键，要列的 7 个键在 SCAN 里就很稀疏
+        var prefix = server.Services.GetRequiredService<RedisCachingOptions>().KeyPrefix;
+        var database = server.Services.GetRequiredService<IConnectionMultiplexer>().GetDatabase();
+        var batch = database.CreateBatch();
+        var fillers = Enumerable.Range(0, 3000).Select(i => batch.StringSetAsync($"{prefix}access:filler:{i}", "x", TimeSpan.FromMinutes(10))).ToList();
+        batch.Execute();
+        await Task.WhenAll(fillers);
+        var expected = Enumerable.Range(0, 7).Select(static i => $"notification:fill:{i}").ToList();
+        foreach (var key in expected)
+        {
+            await store.SetAsync(new CacheKey(key), Encoding.UTF8.GetBytes("v"), CacheEntryOptions.Expires(TimeSpan.FromMinutes(10)), CancellationToken.None);
+        }
+
+        // 第一页攒满（同一批不拆开，可以多几个）；续页标记照旧是字节存储一层，翻完得到全部键
+        var (status, first) = await SendAsync(server, HttpMethod.Get, "/api/caches:keys?prefix=notification:fill:&limit=5", null, platform);
+        Assert.Equal(HttpStatusCode.OK, status);
+        var keys = first.GetProperty("items").EnumerateArray().Select(static k => (k.GetProperty("key").GetString()!, k.GetProperty("layer").GetString()!)).ToList();
+        var continuation = first.GetProperty("continuation").ValueKind == JsonValueKind.String ? first.GetProperty("continuation").GetString() : null;
+        Assert.True(keys.Count >= 5 || (continuation is null && keys.Count == expected.Count), $"first page had {keys.Count} keys");
+        while (continuation is not null)
+        {
+            Assert.StartsWith("s:", continuation, StringComparison.Ordinal);
+            var (_, next) = await SendAsync(server, HttpMethod.Get, $"/api/caches:keys?prefix=notification:fill:&limit=5&continuation={Uri.EscapeDataString(continuation)}", null, platform);
+            keys.AddRange(next.GetProperty("items").EnumerateArray().Select(static k => (k.GetProperty("key").GetString()!, k.GetProperty("layer").GetString()!)));
+            continuation = next.GetProperty("continuation").ValueKind == JsonValueKind.String ? next.GetProperty("continuation").GetString() : null;
+        }
+
+        Assert.Equal(expected.Select(static k => (k, "Store")), keys.Distinct().OrderBy(static k => k.Item1, StringComparer.Ordinal));
+
+        // Redis 下没有对象缓存一层：对象层的续页标记认不出
+        var (badCursor, badCursorBody) = await SendAsync(server, HttpMethod.Get, "/api/caches:keys?prefix=notification:fill:&continuation=o:0", null, platform);
+        Assert.Equal((HttpStatusCode.BadRequest, "MAINTENANCE_VALIDATION_006"), (badCursor, badCursorBody.GetProperty("code").GetString()));
     }
 }

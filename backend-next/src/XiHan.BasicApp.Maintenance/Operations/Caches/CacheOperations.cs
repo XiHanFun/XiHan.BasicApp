@@ -49,6 +49,7 @@ public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) 
 /// <remarks>
 /// <c>GET /api/caches:keys</c>（平台侧）。前缀须落在开放的命名空间里；两层合起来列：先对象缓存、再字节存储，对象缓存列完而本页没满时接着从字节存储取，每个键标出所在的层。
 /// 按续页标记往下翻（标记里带着所在的层，认不出即 <c>MAINTENANCE_VALIDATION_006</c>；Redis 是 SCAN 游标，同一个键可能出现在两页，同一页内去重）。
+/// 本页没满且还有续页时在操作里接着列，攒满、列完或往返 100 次才返回（Redis 的 SCAN 一次可能一个都没有，原先第一页常是空的）。
 /// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="namespaces">各包登记的命名空间。</param>
@@ -98,37 +99,117 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
             return Error.Validation(MaintenanceErrors.CacheContinuationInvalid, MaintenanceMessages.CacheContinuationInvalid);
         }
 
-        var items = new List<CacheKeyItem>();
-        var limit = request.Limit;
+        var page = new PageFill(request.Prefix, request.Limit);
         if (layer == CacheLayer.Objects)
         {
-            var page = await scope.Objects!.ListKeysAsync(new CacheKeyQuery { Prefix = request.Prefix, Limit = limit, Continuation = cursor }, context.CancellationToken).ConfigureAwait(false);
-            items.AddRange(page.Keys.Select(static k => new CacheKeyItem(k.Value, CacheLayer.Objects)));
-            if (page.Continuation is { } next)
+            var next = await page.FillAsync(scope.Objects!.ListKeysAsync, CacheLayer.Objects, cursor, context.CancellationToken).ConfigureAwait(false);
+            if (next is not null)
             {
-                return Page(items, ObjectCursor + next);
+                return page.Response(ObjectCursor + next);
             }
 
             if (scope.Store is null)
             {
-                return Page(items, null);
+                return page.Response(null);
             }
 
-            if (items.Count >= limit)
+            // 攒满了，或往返次数用完：字节存储留给下一页从头列
+            if (!page.CanContinue)
             {
-                return Page(items, StoreCursor);
+                return page.Response(StoreCursor);
             }
 
-            limit -= items.Count;
             cursor = null;
         }
 
-        var stored = await scope.Store!.ListKeysAsync(new CacheKeyQuery { Prefix = request.Prefix, Limit = limit, Continuation = cursor }, context.CancellationToken).ConfigureAwait(false);
-        items.AddRange(stored.Keys.Select(static k => new CacheKeyItem(k.Value, CacheLayer.Store)));
-        return Page(items, stored.Continuation is { } more ? StoreCursor + more : null);
+        var more = await page.FillAsync(scope.Store!.ListKeysAsync, CacheLayer.Store, cursor, context.CancellationToken).ConfigureAwait(false);
+        return page.Response(more is null ? null : StoreCursor + more);
     }
 
-    private static CacheKeysResponse Page(List<CacheKeyItem> items, string? continuation) => new([.. items.Distinct()], continuation);
+    /// <summary>
+    /// 攒一页缓存键。
+    /// </summary>
+    /// <remarks>
+    /// Redis 的列键是 SCAN：每次只扫一段、页大小只是提示值，前缀稀疏时一次可能一个都没有。本页没满且这一层还有续页就接着列，
+    /// 提示值取还差的个数、扫空一段就加倍（上限 <see cref="CacheKeyQuery.MaxLimit"/>），直到攒满、列完或往返次数到 <see cref="MaxRounds"/>
+    /// （到了仍没满就带着续页标记返回，标记的写法不变）；进程内的存储一次就按页大小给满。
+    /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。
+    /// </remarks>
+    /// <param name="prefix">前缀。</param>
+    /// <param name="limit">本页要几个键。</param>
+    private sealed class PageFill(string prefix, int limit)
+    {
+        /// <summary>
+        /// 一页最多向缓存发起的列键次数。
+        /// </summary>
+        public const int MaxRounds = 100;
+
+        private readonly List<CacheKeyItem> _items = [];
+        private readonly HashSet<CacheKeyItem> _seen = [];
+        private int _rounds;
+
+        /// <summary>
+        /// 本页是否已经攒满。
+        /// </summary>
+        public bool IsFull => _items.Count >= limit;
+
+        /// <summary>
+        /// 本页是否还能接着列。
+        /// </summary>
+        /// <remarks>
+        /// 没攒满且往返次数没用完。
+        /// </remarks>
+        public bool CanContinue => !IsFull && _rounds < MaxRounds;
+
+        /// <summary>
+        /// 从一层里接着列，返回这一层的续页游标。
+        /// </summary>
+        /// <param name="list">这一层的列键方法。</param>
+        /// <param name="layer">所在的层。</param>
+        /// <param name="cursor">这一层的游标，从头列为空。</param>
+        /// <param name="cancellationToken">取消令牌。</param>
+        /// <returns>这一层还没列完时的游标；列完为空。</returns>
+        public async ValueTask<string?> FillAsync(Func<CacheKeyQuery, CancellationToken, ValueTask<CacheKeyPage>> list, CacheLayer layer, string? cursor, CancellationToken cancellationToken)
+        {
+            var hint = 0;
+            while (CanContinue)
+            {
+                _rounds++;
+                hint = Math.Max(limit - _items.Count, hint);
+                var page = await list(new CacheKeyQuery { Prefix = prefix, Limit = hint, Continuation = cursor }, cancellationToken).ConfigureAwait(false);
+                var added = 0;
+                foreach (var key in page.Keys)
+                {
+                    var item = new CacheKeyItem(key.Value, layer);
+                    if (_seen.Add(item))
+                    {
+                        _items.Add(item);
+                        added++;
+                    }
+                }
+
+                // 前缀稀疏时 SCAN 一段可能一个都没有：扫空了下一段加倍；键在散列表里分布均匀，加倍后一段的命中数仍是个位数
+                if (added == 0)
+                {
+                    hint = Math.Min(hint * 2, CacheKeyQuery.MaxLimit);
+                }
+
+                cursor = page.Continuation;
+                if (cursor is null)
+                {
+                    return null;
+                }
+            }
+
+            return cursor;
+        }
+
+        /// <summary>
+        /// 生成本页的响应。
+        /// </summary>
+        /// <param name="continuation">下一页的续页标记，没有下一页为空。</param>
+        public CacheKeysResponse Response(string? continuation) => new([.. _items], continuation);
+    }
 }
 
 /// <summary>

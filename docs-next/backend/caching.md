@@ -51,7 +51,7 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 | `caches.update` | `maintenance.caches.update` | 改写值（只对可改写的命名空间） |
 | `caches.delete` / `caches.delete-by-prefix` | `maintenance.caches.delete` | 按键或按前缀删除 |
 
-进程内模式下框架的对象缓存与字节存储是分开的两张表，`caches.keys` 两层合起来列（先对象缓存、再字节存储），每个键标出所在的层；Redis 下对象条目序列化进字节存储，只有一层。
+进程内模式下框架的对象缓存与字节存储是分开的两张表，`caches.keys` 两层合起来列（先对象缓存、再字节存储），每个键标出所在的层；Redis 下对象条目序列化进字节存储，只有一层；列键是 SCAN，一段可能一个都没有，`caches.keys` 在操作里接着列到攒满一页（扫空一段提示值加倍、最多 100 次往返），续页标记照旧，同一个键可能出现在两页、同一页内去重。
 
 ## 异步与后台工作
 
