@@ -14868,14 +14868,14 @@
           {
             "name": "pageIndex",
             "in": "query",
-            "description": "\u9875\u7801\uFF0C\u4ECE 1 \u8D77\u3002",
+            "description": "\u9875\u7801\uFF0C1 \u5230 100000\u3002",
             "required": false,
             "schema": {
-              "description": "\u9875\u7801\uFF0C\u4ECE 1 \u8D77\u3002",
+              "description": "\u9875\u7801\uFF0C1 \u5230 100000\u3002",
               "type": "integer",
               "format": "int32",
               "minimum": 1,
-              "maximum": 2147483647
+              "maximum": 100000
             }
           },
           {
@@ -49728,7 +49728,7 @@
             "type": "integer",
             "format": "int32",
             "minimum": 1,
-            "maximum": 2147483647
+            "maximum": 100000
           },
           "size": {
             "type": "integer",

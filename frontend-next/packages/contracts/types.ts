@@ -18374,7 +18374,7 @@ export interface operations {
                 tenantId?: string | null;
                 /** @description 关键字，匹配登录名与显示名；可空。 */
                 keyword?: string | null;
-                /** @description 页码，从 1 起。 */
+                /** @description 页码，1 到 100000。 */
                 pageIndex?: number;
                 /** @description 页大小，1 到 100。 */
                 pageSize?: number;

@@ -11,6 +11,7 @@
 - 框架表新增 13 个索引（3 个唯一），6.0.0 基线重生成；开发库有重复数据时重建或去重，见[表结构升级](./backend/upgrade)。
 - 状态码：同一作用域的嵌套调用、一次查询超过 1000 条改为 400，撞唯一索引改为 409。
 - `appsettings.json` 不再写空的 `db`、`cache`、`queue` 绑定：原先会把 Kubernetes 经 Service Binding 挂进来的同名 Secret 整个盖掉。见[配置参考](./configuration)。
+- 页码上限 100000，越界 400（原先只限到 `int.MaxValue`，换算跳过的行数时溢出，SQLite 返回第一页、PostgreSQL 报 500）。见[接口指南](./api-guide)。
 
 ### 授权与会话缓存的失效时机（2026-11-01）
 

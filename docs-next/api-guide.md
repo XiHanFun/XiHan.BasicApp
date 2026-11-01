@@ -174,7 +174,7 @@ curl -X POST http://localhost:9710/api/roles:list \
 }
 ```
 
-- `page.index` 从 1 起，`size` 1–500；`filters` 最多 32 条、`sorts` 最多 8 条。
+- `page.index` 1–100000，`size` 1–500；越界是 400 `KERNEL_VALIDATION_003`，字段错误（`errors["page.index"]`）按 `Accept-Language` 给文案。`filters` 最多 32 条、`sorts` 最多 8 条。
 - 运算符只有 `eq`、`ne`、`contains`、`gt`、`ge`、`lt`、`le`、`in`；每个操作只接受白名单里的字段与运算符，其余给 VALIDATION 错误。
 - 受字段安全保护的字段不能筛选或排序（如 `IDENTITY_DENIED_011`）。
 
