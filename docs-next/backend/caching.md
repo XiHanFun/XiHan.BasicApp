@@ -27,6 +27,8 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 
 有效期类的判定（授予与指派的生效 / 到期）在判定时按当前时间比较，不依赖缓存重建。
 
+失效的时机：Access 的读穿缓存（权限规则、角色指派、继承图、委托、条件、访问策略、字段安全、约束规则）缓存未命中时在独立的只读工作单元里读库，看不到调用里还没提交的写入；所以写入方在调用里的失效经 Runtime 的 `CacheInvalidation` 只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库）。若在提交之前删键，同一请求里的后续读取（如新建角色委托时的约束检查）或并发请求会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存照此失效。
+
 ### 命名空间与缓存管理
 
 每个包用 `AddCacheNamespace` 登记自己的键前缀，缓存管理只开放登记过的前缀，框架自己的键（如分布式锁）不出现：
@@ -63,6 +65,7 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 | 托管能力包 | `IHostedFeature` 随应用启停的循环 | Notification 的发件箱发送循环与 Telegram 接收；Auditing 的日志批量写入 |
 | 有界队列 | 调用里只入队，后台批量落库 | 七类分表日志（`BasicApp:Auditing:QueueCapacity` / `BatchSize` / `FlushIntervalSeconds`） |
 | 提交后推送 | `RealtimeDispatchMiddleware` 暂存，调用成功才发 | `ForceLogout`、`ReceiveNotification`、`TaskProgress` |
+| 提交后失效 | `CacheInvalidationMiddleware` 暂存，工作单元结束后删键 | Access 的授权类缓存 |
 
 ### 发件箱
 

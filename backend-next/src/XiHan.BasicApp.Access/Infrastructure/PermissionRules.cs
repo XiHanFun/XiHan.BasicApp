@@ -53,8 +53,11 @@ public sealed class PermissionRules(ISharedCache cache, IServiceScopeFactory sco
     /// <summary>
     /// 主体的规则有变：失效缓存。
     /// </summary>
+    /// <remarks>
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// </remarks>
     public async Task InvalidateAsync(string owner, GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
-        => await cache.RemoveAsync(KeyOf(owner, kind, subjectId), cancellationToken).ConfigureAwait(false);
+        => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner, kind, subjectId), cancellationToken).ConfigureAwait(false);
 
     private static CacheKey KeyOf(string owner, GrantSubjectKind kind, Guid subjectId) => new($"access:rules:{owner}:{kind}:{subjectId:N}");
 

@@ -78,8 +78,11 @@ public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scop
     /// <summary>
     /// 一侧的策略失效。
     /// </summary>
+    /// <remarks>
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// </remarks>
     public async Task InvalidateAsync(string owner, CancellationToken cancellationToken)
-        => await cache.RemoveAsync(KeyOf(owner), cancellationToken).ConfigureAwait(false);
+        => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner), cancellationToken).ConfigureAwait(false);
 
     private static CacheKey KeyOf(string owner) => new($"access:policies:{owner}");
 
