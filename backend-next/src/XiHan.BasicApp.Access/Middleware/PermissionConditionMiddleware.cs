@@ -34,9 +34,21 @@ public sealed class PermissionConditionMiddleware(GrantEvaluator evaluator, Cond
         if (options.PermissionConditionMode == PermissionConditionMode.Disabled
             || !security.Principal.IsAuthenticated
             || !context.GetOperation().TryGetValue(out var operation)
-            || operation.Contract.Permission is not { } permission
-            || await evaluator.ViewAsync(security, context.CancellationToken).ConfigureAwait(false) is not { } view
-            || !view.RequiresConditions(permission))
+            || operation.Contract.Permission is not { } permission)
+        {
+            await nextStep(context).ConfigureAwait(false);
+            return;
+        }
+
+        // 授予存储读不到时这次调用以它的失败结束（框架按 SECURITY_UNAVAILABLE_001 给出 503），不当作没有条件放行
+        var viewed = await evaluator.ViewAsync(security, context.CancellationToken).ConfigureAwait(false);
+        if (!viewed.TryGetValue(out var found))
+        {
+            context.SetOutcome(viewed.Error!);
+            return;
+        }
+
+        if (!found.TryGetValue(out var view) || !view.RequiresConditions(permission))
         {
             await nextStep(context).ConfigureAwait(false);
             return;

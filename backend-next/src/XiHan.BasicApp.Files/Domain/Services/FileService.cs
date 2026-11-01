@@ -201,12 +201,18 @@ public sealed partial class FileService(
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(file);
-        if (file.AccessLevel == FileAccessLevel.Authorized && !await permissions.HasPermissionAsync(context.GetSecurity(), FilesPermissions.FilesRead, context.CancellationToken).ConfigureAwait(false))
+        if (file.AccessLevel != FileAccessLevel.Authorized)
         {
-            return Error.Denied(FilesErrors.FileAccessDenied, FilesMessages.FileAccessDenied);
+            return Result.Success();
         }
 
-        return Result.Success();
+        var granted = await permissions.HasPermissionAsync(context.GetSecurity(), FilesPermissions.FilesRead, context.CancellationToken).ConfigureAwait(false);
+        if (!granted.TryGetValue(out var allowed))
+        {
+            return granted.Error!;
+        }
+
+        return allowed ? Result.Success() : Error.Denied(FilesErrors.FileAccessDenied, FilesMessages.FileAccessDenied);
     }
 
     /// <summary>

@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access.Infrastructure;
@@ -21,7 +22,7 @@ public sealed class EditionPermissionFilter(IEnumerable<IEditionGate> gates) : I
     private readonly IEditionGate[] _gates = gates?.ToArray() ?? throw new ArgumentNullException(nameof(gates));
 
     /// <inheritdoc />
-    public async ValueTask<bool> AllowsAsync(SecurityContext security, string permission, CancellationToken cancellationToken)
+    public async ValueTask<Result<bool>> AllowsAsync(SecurityContext security, string permission, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
         ArgumentException.ThrowIfNullOrWhiteSpace(permission);

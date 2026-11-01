@@ -40,10 +40,20 @@ public sealed class CurrentPermissions(EffectivePermissions effective, GrantEval
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var security = context.GetSecurity();
-        var permissions = await effective.ResolveAsync(security, context.CancellationToken).ConfigureAwait(false);
+        var resolved = await effective.ResolveAsync(security, context.CancellationToken).ConfigureAwait(false);
+        if (!resolved.TryGetValue(out var permissions))
+        {
+            return resolved.Error!;
+        }
 
         // 角色列表与判定同源：令牌声明里此刻仍算数的（指派在有效期内、角色启用）；外部主体退回令牌声明
-        var roleIds = await evaluator.ViewAsync(security, context.CancellationToken).ConfigureAwait(false) is { } view
+        var viewed = await evaluator.ViewAsync(security, context.CancellationToken).ConfigureAwait(false);
+        if (!viewed.TryGetValue(out var found))
+        {
+            return viewed.Error!;
+        }
+
+        var roleIds = found.TryGetValue(out var view)
             ? view.Roles.Select(static r => r.RoleId).ToList()
             : security.Principal.ClaimValues(options.RoleClaim).Select(static value => Guid.TryParse(value, out var id) ? id : (Guid?)null).OfType<Guid>().Distinct().ToList();
         var summaries = roleIds.Count == 0

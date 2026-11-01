@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Contracts;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
@@ -217,13 +218,16 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     /// <summary>
     /// 组装主体此刻的授予全貌。
     /// </summary>
-    /// <returns>授予全貌；不是本应用用户时为 <see langword="null"/>。</returns>
-    public async Task<GrantView?> ViewAsync(SecurityContext security, CancellationToken cancellationToken)
+    /// <remarks>
+    /// 框架授予存储读不到时把它的失败原样返回（框架按 <c>SECURITY_UNAVAILABLE_001</c> 给出 503），不当作没有授予。
+    /// </remarks>
+    /// <returns>授予全貌；不是本应用用户时为空。</returns>
+    public async Task<Result<Maybe<GrantView>>> ViewAsync(SecurityContext security, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
         if (!Guid.TryParse(security.Principal.Id, out var userId))
         {
-            return null;
+            return Maybe.None<GrantView>();
         }
 
         var tenant = security.Tenant?.Id;
@@ -241,7 +245,8 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
             }
         }
 
-        return await BuildAsync(owner, tenant, userId, held, now, cancellationToken).ConfigureAwait(false);
+        var view = await BuildAsync(owner, tenant, userId, held, now, cancellationToken).ConfigureAwait(false);
+        return view.Map(static v => Maybe.Some(v));
     }
 
     /// <summary>
@@ -251,7 +256,7 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     /// <param name="userId">用户。</param>
     /// <param name="now">判定时刻（试算可以给别的时刻）。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public async Task<GrantView> ViewOfAsync(string owner, Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
+    public async Task<Result<GrantView>> ViewOfAsync(string owner, Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(owner);
         var tenant = string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal) ? null : owner;
@@ -259,13 +264,28 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
         return await BuildAsync(owner, tenant, userId, [.. holding], now, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<GrantView> BuildAsync(string owner, string? tenant, Guid userId, List<Guid> held, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task<Result<GrantView>> BuildAsync(string owner, string? tenant, Guid userId, List<Guid> held, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var context = new ViewBuilder(store, rules, conditions, owner, tenant, now, await hierarchy.GraphOfAsync(owner, cancellationToken).ConfigureAwait(false));
         var user = await context.SourceAsync(GrantSubjectKind.User, userId, cancellationToken).ConfigureAwait(false);
+        if (!user.TryGetValue(out var own))
+        {
+            return user.Error!;
+        }
+
         var roles = await context.ChainsAsync(held, cancellationToken).ConfigureAwait(false);
-        var (delegated, delegatedRoles) = await DelegatedAsync(context, userId, cancellationToken).ConfigureAwait(false);
-        return new GrantView(now, user, roles, delegated, delegatedRoles, accessOptions.PermissionConditionMode != PermissionConditionMode.Disabled);
+        if (!roles.TryGetValue(out var chains))
+        {
+            return roles.Error!;
+        }
+
+        var delegated = await DelegatedAsync(context, userId, cancellationToken).ConfigureAwait(false);
+        if (!delegated.TryGetValue(out var lent))
+        {
+            return delegated.Error!;
+        }
+
+        return new GrantView(now, own, chains, lent.Permissions, lent.Roles, accessOptions.PermissionConditionMode != PermissionConditionMode.Disabled);
     }
 
     /// <summary>
@@ -280,12 +300,12 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     /// <remarks>
     /// 在有效期内，且委托人此刻仍持有所委托的权限码（按委托人的指派判定，不再顺着委托人的委托传下去）或角色。
     /// </remarks>
-    private async Task<(IReadOnlySet<string> Permissions, IReadOnlyList<RoleChain> Roles)> DelegatedAsync(ViewBuilder context, Guid userId, CancellationToken cancellationToken)
+    private async Task<Result<DelegatedGrants>> DelegatedAsync(ViewBuilder context, Guid userId, CancellationToken cancellationToken)
     {
         var active = (await delegations.OfAsync(context.Owner, userId, cancellationToken).ConfigureAwait(false)).Where(d => d.IsEffectiveAt(context.Now)).ToList();
         if (active.Count == 0)
         {
-            return (new HashSet<string>(StringComparer.Ordinal), []);
+            return new DelegatedGrants(new HashSet<string>(StringComparer.Ordinal), []);
         }
 
         var permissions = new HashSet<string>(StringComparer.Ordinal);
@@ -305,7 +325,15 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
                 }
                 else if (delegation.Permission is { } permission)
                 {
-                    delegator ??= await OwnViewAsync(context, group.Key, holding, cancellationToken).ConfigureAwait(false);
+                    if (delegator is null)
+                    {
+                        var own = await OwnViewAsync(context, group.Key, holding, cancellationToken).ConfigureAwait(false);
+                        if (!own.TryGetValue(out delegator))
+                        {
+                            return own.Error!;
+                        }
+                    }
+
                     if (delegator.Allows(permission))
                     {
                         permissions.Add(permission);
@@ -314,7 +342,8 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
             }
         }
 
-        return (permissions, await context.ChainsAsync(roleIds.Distinct().ToList(), cancellationToken).ConfigureAwait(false));
+        var chains = await context.ChainsAsync(roleIds.Distinct().ToList(), cancellationToken).ConfigureAwait(false);
+        return chains.Map(roles => new DelegatedGrants(permissions, roles));
     }
 
     /// <summary>
@@ -328,7 +357,7 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     /// <param name="permission">权限码（与 <paramref name="roleId"/> 二选一）。</param>
     /// <param name="roleId">角色。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public async Task<bool> HoldsAsync(string owner, Guid userId, string? permission, Guid? roleId, CancellationToken cancellationToken)
+    public async Task<Result<bool>> HoldsAsync(string owner, Guid userId, string? permission, Guid? roleId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(owner);
         var now = clock.GetUtcNow();
@@ -345,19 +374,31 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
 
         var tenant = string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal) ? null : owner;
         var context = new ViewBuilder(store, rules, conditions, owner, tenant, now, await hierarchy.GraphOfAsync(owner, cancellationToken).ConfigureAwait(false));
-        return (await OwnViewAsync(context, userId, holding, cancellationToken).ConfigureAwait(false)).Allows(permission);
+        var own = await OwnViewAsync(context, userId, holding, cancellationToken).ConfigureAwait(false);
+        return own.Map(view => view.Allows(permission));
     }
 
     /// <summary>
     /// 用户自己的授予（本身与持有角色的链），不含委托：委托不再顺着委托人的委托传下去。
     /// </summary>
-    private static async Task<GrantView> OwnViewAsync(ViewBuilder context, Guid userId, HashSet<Guid> holding, CancellationToken cancellationToken)
-        => new(
-            context.Now,
-            await context.SourceAsync(GrantSubjectKind.User, userId, cancellationToken).ConfigureAwait(false),
-            await context.ChainsAsync([.. holding], cancellationToken).ConfigureAwait(false),
-            new HashSet<string>(StringComparer.Ordinal),
-            []);
+    private static async Task<Result<GrantView>> OwnViewAsync(ViewBuilder context, Guid userId, HashSet<Guid> holding, CancellationToken cancellationToken)
+    {
+        var user = await context.SourceAsync(GrantSubjectKind.User, userId, cancellationToken).ConfigureAwait(false);
+        if (!user.TryGetValue(out var own))
+        {
+            return user.Error!;
+        }
+
+        var roles = await context.ChainsAsync([.. holding], cancellationToken).ConfigureAwait(false);
+        return roles.Map(chains => new GrantView(context.Now, own, chains, new HashSet<string>(StringComparer.Ordinal), []));
+    }
+
+    /// <summary>
+    /// 委托带来的授予：权限码与角色的链。
+    /// </summary>
+    /// <param name="Permissions">委托来的权限码。</param>
+    /// <param name="Roles">委托来的角色的链。</param>
+    private sealed record DelegatedGrants(IReadOnlySet<string> Permissions, IReadOnlyList<RoleChain> Roles);
 
     /// <summary>
     /// 一次组装的上下文：同一侧、同一时刻、同一份继承图。
@@ -368,32 +409,50 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
 
         public DateTimeOffset Now => now;
 
-        public async Task<GrantSource> SourceAsync(GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
+        public async Task<Result<GrantSource>> SourceAsync(GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
         {
             var subject = kind == GrantSubjectKind.User ? GrantSubject.ForUser(subjectId.ToString("D")) : GrantSubject.ForRole(subjectId.ToString("D"));
+            var grants = await store.GetGrantsAsync(subject, tenant, cancellationToken).ConfigureAwait(false);
+            if (!grants.TryGetValue(out var granted))
+            {
+                return grants.Error!;
+            }
+
             return new GrantSource(
                 kind,
                 subjectId,
-                await store.GetGrantsAsync(subject, tenant, cancellationToken).ConfigureAwait(false),
+                granted,
                 await rules.OfAsync(owner, kind, subjectId, cancellationToken).ConfigureAwait(false),
                 await conditions.OfAsync(owner, kind, subjectId, cancellationToken).ConfigureAwait(false));
         }
 
-        public async Task<IReadOnlyList<RoleChain>> ChainsAsync(List<Guid> roleIds, CancellationToken cancellationToken)
+        public async Task<Result<IReadOnlyList<RoleChain>>> ChainsAsync(List<Guid> roleIds, CancellationToken cancellationToken)
         {
             var chains = new List<RoleChain>(roleIds.Count);
             foreach (var roleId in roleIds)
             {
-                var members = new List<GrantSource> { await SourceAsync(GrantSubjectKind.Role, roleId, cancellationToken).ConfigureAwait(false) };
+                var own = await SourceAsync(GrantSubjectKind.Role, roleId, cancellationToken).ConfigureAwait(false);
+                if (!own.TryGetValue(out var source))
+                {
+                    return own.Error!;
+                }
+
+                var members = new List<GrantSource> { source };
                 foreach (var (ancestor, _) in graph.EffectiveAncestorsOf(roleId))
                 {
-                    members.Add(await SourceAsync(GrantSubjectKind.Role, ancestor, cancellationToken).ConfigureAwait(false));
+                    var inherited = await SourceAsync(GrantSubjectKind.Role, ancestor, cancellationToken).ConfigureAwait(false);
+                    if (!inherited.TryGetValue(out var member))
+                    {
+                        return inherited.Error!;
+                    }
+
+                    members.Add(member);
                 }
 
                 chains.Add(new RoleChain(roleId, members));
             }
 
-            return chains;
+            return Result.Success<IReadOnlyList<RoleChain>>(chains);
         }
     }
 }

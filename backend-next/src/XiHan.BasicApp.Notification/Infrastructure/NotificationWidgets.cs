@@ -86,7 +86,7 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
     /// <remarks>
     /// 类目是 <c>email</c> 与 <c>sms</c>（没有短信发件记录的权限时只有邮件），序列是成功、失败、待发（含发送中）与取消。
     /// </remarks>
-    private async Task<WorkbenchWidgetData> DeliveriesAsync(WorkbenchWidgetQuery query, InvocationContext context)
+    private async Task<Result<WorkbenchWidgetData>> DeliveriesAsync(WorkbenchWidgetQuery query, InvocationContext context)
     {
         var owner = SideRows.SideOf(context);
         var from = query.StartOfRange(clock.GetUtcNow());
@@ -97,7 +97,15 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
             .Select(e => new StatusCount { Status = e.Status, Count = SqlFunc.AggregateCount(e.Id) })
             .ToListAsync(context.CancellationToken).ConfigureAwait(false);
         var counts = new List<List<StatusCount>> { emails };
-        if (await permissions.HasPermissionAsync(context.GetSecurity(), NotificationPermissions.SmsRead, context.CancellationToken).ConfigureAwait(false))
+
+        // 判定本身失败（授予存储读不到）时整个部件失败，不悄悄少一列
+        var smsGranted = await permissions.HasPermissionAsync(context.GetSecurity(), NotificationPermissions.SmsRead, context.CancellationToken).ConfigureAwait(false);
+        if (!smsGranted.TryGetValue(out var smsAllowed))
+        {
+            return smsGranted.Error!;
+        }
+
+        if (smsAllowed)
         {
             channels.Add("sms");
             counts.Add(await unitOfWork.ConnectionFor(typeof(SysSms)).Queryable<SysSms>()

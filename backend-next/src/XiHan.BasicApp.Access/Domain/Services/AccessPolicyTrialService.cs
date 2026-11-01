@@ -93,7 +93,13 @@ public sealed class AccessPolicyTrialService(
 
             userId = user.Id;
             userName = user.UserName;
-            roleIds = [.. (await grants.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false)).Roles.Select(static r => r.RoleId)];
+            var viewed = await grants.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false);
+            if (!viewed.TryGetValue(out var view))
+            {
+                return viewed.Error!;
+            }
+
+            roleIds = [.. view.Roles.Select(static r => r.RoleId)];
         }
 
         var userAgent = string.IsNullOrWhiteSpace(request.UserAgent) ? null : request.UserAgent.Trim();

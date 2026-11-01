@@ -10,6 +10,7 @@ using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Identity.Domain.Services;
@@ -32,6 +33,7 @@ public sealed class UserAccountService
     private readonly TimeProvider _clock;
     private readonly IUserRoleResolver[] _roleResolvers;
     private readonly IRealtimePush? _push;
+    private readonly IUnitOfWork _unitOfWork;
 
     /// <summary>
     /// 构造服务。
@@ -46,7 +48,8 @@ public sealed class UserAccountService
         SessionGate gate,
         TimeProvider clock,
         IEnumerable<IUserRoleResolver> roleResolvers,
-        IEnumerable<IRealtimePush> pushes)
+        IEnumerable<IRealtimePush> pushes,
+        IUnitOfWork unitOfWork)
     {
         ArgumentNullException.ThrowIfNull(roleResolvers);
         ArgumentNullException.ThrowIfNull(pushes);
@@ -60,6 +63,7 @@ public sealed class UserAccountService
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _gate = gate ?? throw new ArgumentNullException(nameof(gate));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
 
     /// <summary>
@@ -95,7 +99,8 @@ public sealed class UserAccountService
     /// 取用户的安全行。
     /// </summary>
     /// <remarks>
-    /// 没有即建一行空的（没有密码、不能登录）。
+    /// 没有即建一行空的（没有密码、不能登录）。只读调用里不建（框架拒绝只读工作单元里的写入）：
+    /// 安全行在建用户、注册、种子与登录这些写入里建（4.x 在建用户时建），只读调用读到缺行按缺省值给出一行不落库的。
     /// </remarks>
     public async Task<Result<SysUserSecurity>> SecurityOfAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -106,6 +111,11 @@ public sealed class UserAccountService
         }
 
         var security = new SysUserSecurity { Id = _ids.NewId(), UserId = userId, SecurityStamp = NewStamp() };
+        if (_unitOfWork.IsReadOnly)
+        {
+            return security;
+        }
+
         var added = await _securities.AddAsync(security, cancellationToken).ConfigureAwait(false);
         return added.IsFailure ? added.Error! : security;
     }

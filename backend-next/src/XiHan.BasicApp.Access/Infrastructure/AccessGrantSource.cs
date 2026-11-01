@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access.Infrastructure;
@@ -19,10 +20,10 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 public sealed class AccessGrantSource(GrantEvaluator evaluator) : IPermissionGrantSource
 {
     /// <inheritdoc />
-    public async ValueTask<IReadOnlyCollection<string>> GetGrantsAsync(SecurityContext security, CancellationToken cancellationToken)
+    public async ValueTask<Result<IReadOnlyCollection<string>>> GetGrantsAsync(SecurityContext security, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
         var view = await evaluator.ViewAsync(security, cancellationToken).ConfigureAwait(false);
-        return view is null ? [] : view.ExtraGrants();
+        return view.Map<IReadOnlyCollection<string>>(static found => found.TryGetValue(out var grants) ? grants.ExtraGrants() : []);
     }
 }

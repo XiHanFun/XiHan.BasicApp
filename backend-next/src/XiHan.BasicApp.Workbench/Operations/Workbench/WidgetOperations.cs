@@ -50,19 +50,33 @@ public sealed class WidgetCatalog(IEnumerable<IWorkbenchWidgetProvider> provider
     /// <summary>
     /// 调用方看得到的小组件。
     /// </summary>
-    public async ValueTask<IReadOnlyList<WorkbenchWidget>> VisibleAsync(InvocationContext context)
+    /// <remarks>
+    /// 权限判定本身失败（授予存储读不到）时整个列表失败，不把部件悄悄隐藏掉。
+    /// </remarks>
+    public async ValueTask<Result<IReadOnlyList<WorkbenchWidget>>> VisibleAsync(InvocationContext context)
     {
         var security = context.GetSecurity();
         var visible = new List<WorkbenchWidget>();
         foreach (var widget in providers.SelectMany(static p => p.Widgets))
         {
-            if (widget.Permission is null || await permissions.HasPermissionAsync(security, widget.Permission, context.CancellationToken).ConfigureAwait(false))
+            if (widget.Permission is not null)
             {
-                visible.Add(widget);
+                var granted = await permissions.HasPermissionAsync(security, widget.Permission, context.CancellationToken).ConfigureAwait(false);
+                if (!granted.TryGetValue(out var allowed))
+                {
+                    return granted.Error!;
+                }
+
+                if (!allowed)
+                {
+                    continue;
+                }
             }
+
+            visible.Add(widget);
         }
 
-        return visible.OrderBy(static w => w.Key, StringComparer.Ordinal).ToList();
+        return Result.Success<IReadOnlyList<WorkbenchWidget>>(visible.OrderBy(static w => w.Key, StringComparer.Ordinal).ToList());
     }
 
     /// <summary>
@@ -77,9 +91,18 @@ public sealed class WidgetCatalog(IEnumerable<IWorkbenchWidgetProvider> provider
                 continue;
             }
 
-            if (widget.Permission is not null && !await permissions.HasPermissionAsync(context.GetSecurity(), widget.Permission, context.CancellationToken).ConfigureAwait(false))
+            if (widget.Permission is not null)
             {
-                return Error.Denied(WorkbenchErrors.WidgetDenied, WorkbenchMessages.WidgetDenied, MessageArguments.Of(("key", key)));
+                var granted = await permissions.HasPermissionAsync(context.GetSecurity(), widget.Permission, context.CancellationToken).ConfigureAwait(false);
+                if (!granted.TryGetValue(out var allowed))
+                {
+                    return granted.Error!;
+                }
+
+                if (!allowed)
+                {
+                    return Error.Denied(WorkbenchErrors.WidgetDenied, WorkbenchMessages.WidgetDenied, MessageArguments.Of(("key", key)));
+                }
             }
 
             return Result.Success(provider);
@@ -110,7 +133,7 @@ public sealed class ListWidgets(WidgetCatalog catalog) : IOperation<WorkbenchWid
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var visible = await catalog.VisibleAsync(context).ConfigureAwait(false);
-        return new WorkbenchWidgetsResponse(visible.Select(static w => new WorkbenchWidgetResponse(w.Key, w.Kind)).ToList());
+        return visible.Map(static widgets => new WorkbenchWidgetsResponse(widgets.Select(static w => new WorkbenchWidgetResponse(w.Key, w.Kind)).ToList()));
     }
 }
 

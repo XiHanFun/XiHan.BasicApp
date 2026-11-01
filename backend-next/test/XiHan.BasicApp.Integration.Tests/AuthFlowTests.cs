@@ -4,9 +4,14 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Sessions;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.Framework.Domain.Specifications;
+using XiHan.Framework.Persistence.Abstractions.Queries;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -230,5 +235,51 @@ public sealed class AuthFlowTests : IDisposable
         var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", json));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return body.GetProperty("token");
+    }
+
+    [Fact]
+    public async Task ReadOnlyCalls_ReadAMissingSecurityRow_WithoutWritingIt()
+    {
+        await using var server = await StartAsync();
+        var token = (await LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (_, me) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: token));
+        var userId = Guid.Parse(me.GetProperty("user").GetProperty("id").GetString()!);
+        async Task<int> SecurityRowsAsync()
+        {
+            var count = 0;
+            (await server.InvokeAsync(async ctx =>
+            {
+                count = (await ctx.Services.GetRequiredService<IRepository<SysUserSecurity, Guid>>().ListAsync(EntityQuery.All<SysUserSecurity>().Where(new Specification<SysUserSecurity>(s => s.UserId == userId)), ctx.CancellationToken)).Count;
+                return Result.Success();
+            })).ThrowIfFailure();
+            return count;
+        }
+
+        // 安全行被删掉（或从别处迁来没有）的账号：只读调用照常按缺省值读，不在只读工作单元里补建（框架会以 PERSISTENCE_DENIED_001 拒绝）
+        (await server.InvokeAsync(async ctx =>
+        {
+            var securities = ctx.Services.GetRequiredService<IRepository<SysUserSecurity, Guid>>();
+            foreach (var row in await securities.ListAsync(EntityQuery.All<SysUserSecurity>().Where(new Specification<SysUserSecurity>(s => s.UserId == userId)), ctx.CancellationToken))
+            {
+                (await securities.RemoveAsync(row, ctx.CancellationToken)).ThrowIfFailure();
+            }
+
+            return Result.Success();
+        })).ThrowIfFailure();
+        Assert.Equal(0, await SecurityRowsAsync());
+
+        foreach (var path in new[] { "/api/auth:me", "/api/profile", "/api/profile:external-logins", "/api/profile:sessions", "/api/profile:notification-preference", "/api/my-api-credentials", "/api/my-api-credentials:settings" })
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, path, token: token));
+            Assert.True(response.StatusCode == HttpStatusCode.OK, $"{path}: {(int)response.StatusCode} {body}");
+        }
+
+        Assert.Equal(0, await SecurityRowsAsync());
+
+        // 写调用照旧补建
+        var preference = JsonSerializer.Serialize(new { channelInApp = true, channelEmail = true, channelSms = false, typeAnnouncement = true, typeTask = true, typeSecurity = true });
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:update-notification-preference", preference, token));
+        Assert.True(updated.StatusCode == HttpStatusCode.OK, updatedBody.ToString());
+        Assert.Equal(1, await SecurityRowsAsync());
     }
 }

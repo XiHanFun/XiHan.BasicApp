@@ -55,6 +55,10 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 开发库的 InitTables 只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者重建开发库。
 :::
 
+::: tip 升级框架后建不出唯一索引
+框架锁定提交升级可能带来新的唯一索引（如 `25614c9a` 给 `message_translation` 的键 + 区域、`permission_grant_record` 与 `trigger_entity` 加的）。开发库里已有重复数据时 InitTables 建不出索引，宿主启动即失败。6.0 发布前不做数据迁移、不为此写升级脚本：开发库重建后重新 `seed`，或按报错的表手工去掉重复行再启动。
+:::
+
 ## 版本与升级记录
 
 Maintenance 包提供只读的管理面（平台侧）：

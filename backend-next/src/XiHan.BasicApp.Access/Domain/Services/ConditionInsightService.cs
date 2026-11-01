@@ -79,7 +79,12 @@ public sealed class ConditionInsightService(
         }
 
         var time = request.Time ?? clock.GetUtcNow();
-        var view = await evaluator.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false);
+        var viewed = await evaluator.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false);
+        if (!viewed.TryGetValue(out var view))
+        {
+            return viewed.Error!;
+        }
+
         var source = ConditionAttributeSource.Create(RequestOf(owner, user, view, request.Permission, request.Ip, request.UserAgent, request.Path, request.Method, request.IsImpersonating, time), services, options);
         var decision = await decider.DecideAsync(view, request.Permission, source, explain: true, cancellationToken).ConfigureAwait(false);
         var names = await NamesAsync(owner, decision, cancellationToken).ConfigureAwait(false);
@@ -129,7 +134,12 @@ public sealed class ConditionInsightService(
         var items = new List<ConditionBatchTrialItemResponse>();
         foreach (var user in people.Take(BatchLimit))
         {
-            var view = await evaluator.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false);
+            var viewed = await evaluator.ViewOfAsync(owner, user.Id, time, cancellationToken).ConfigureAwait(false);
+            if (!viewed.TryGetValue(out var view))
+            {
+                return viewed.Error!;
+            }
+
             var source = ConditionAttributeSource.Create(RequestOf(owner, user, view, request.Permission, request.Ip, request.UserAgent, request.Path, request.Method, false, time), services, options);
             var decision = await decider.DecideAsync(view, request.Permission, source, explain: false, cancellationToken).ConfigureAwait(false);
             items.Add(new ConditionBatchTrialItemResponse(user.Id, user.UserName, decision.Verdict));

@@ -79,9 +79,18 @@ public sealed class CreateNotification(NotificationService service, IPermissionC
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (request.PublishImmediately && !await permissions.HasPermissionAsync(context.GetSecurity(), NotificationPermissions.NotificationsPublish, context.CancellationToken).ConfigureAwait(false))
+        if (request.PublishImmediately)
         {
-            return Error.Denied(NotificationErrors.PublishDenied, NotificationMessages.PublishDenied);
+            var granted = await permissions.HasPermissionAsync(context.GetSecurity(), NotificationPermissions.NotificationsPublish, context.CancellationToken).ConfigureAwait(false);
+            if (!granted.TryGetValue(out var allowed))
+            {
+                return granted.Error!;
+            }
+
+            if (!allowed)
+            {
+                return Error.Denied(NotificationErrors.PublishDenied, NotificationMessages.PublishDenied);
+            }
         }
 
         var created = await service.CreateAsync(context, request.ToDraft()).ConfigureAwait(false);

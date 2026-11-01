@@ -137,7 +137,13 @@ public sealed class DelegationService(
             target = role.Name;
         }
 
-        if (!await evaluator.HoldsAsync(owner, definition.DelegatorId, permission, definition.RoleId, cancellationToken).ConfigureAwait(false))
+        var holds = await evaluator.HoldsAsync(owner, definition.DelegatorId, permission, definition.RoleId, cancellationToken).ConfigureAwait(false);
+        if (!holds.TryGetValue(out var held))
+        {
+            return holds.Error!;
+        }
+
+        if (!held)
         {
             return Error.Validation(AccessErrors.DelegatorNotHolding, AccessMessages.DelegatorNotHolding, MessageArguments.Of(("target", target)));
         }

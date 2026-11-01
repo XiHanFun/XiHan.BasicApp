@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS "audit_record" (
     "details_json" text NULL,
     CONSTRAINT "audit_record_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_audit_record_se ON public.audit_record USING btree (sequence);
+CREATE INDEX IF NOT EXISTS ix_audit_record_teid_se ON public.audit_record USING btree (tenant_id, sequence);
+CREATE INDEX IF NOT EXISTS ix_audit_record_ti ON public.audit_record USING btree ("timestamp");
+CREATE INDEX IF NOT EXISTS ix_audit_record_trid ON public.audit_record USING btree (trace_id);
 
 CREATE TABLE IF NOT EXISTS "job_entity" (
     "id" character varying(128) NOT NULL,
@@ -59,6 +63,10 @@ CREATE TABLE IF NOT EXISTS "job_run_entity" (
     "sequence" bigint DEFAULT '0'::bigint NOT NULL,
     CONSTRAINT "job_run_entity_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_job_run_entity_coat ON public.job_run_entity USING btree (completed_at);
+CREATE INDEX IF NOT EXISTS ix_job_run_entity_jo_coat ON public.job_run_entity USING btree (job, completed_at);
+CREATE INDEX IF NOT EXISTS ix_job_run_entity_scat ON public.job_run_entity USING btree (scheduled_at);
+CREATE INDEX IF NOT EXISTS ix_job_run_entity_st_noid ON public.job_run_entity USING btree (state, node_id);
 
 CREATE TABLE IF NOT EXISTS "message_translation" (
     "id" uuid NOT NULL,
@@ -68,6 +76,7 @@ CREATE TABLE IF NOT EXISTS "message_translation" (
     "modified_at" timestamp with time zone NULL,
     CONSTRAINT "message_translation_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_message_translation_ke_lo ON public.message_translation USING btree (key, locale);
 
 CREATE TABLE IF NOT EXISTS "outbox_message" (
     "id" uuid NOT NULL,
@@ -81,6 +90,7 @@ CREATE TABLE IF NOT EXISTS "outbox_message" (
     "last_error" text NULL,
     CONSTRAINT "outbox_message_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_outbox_message_diat_deleat_crat ON public.outbox_message USING btree (dispatched_at, dead_lettered_at, created_at);
 
 CREATE TABLE IF NOT EXISTS "permission_grant_record" (
     "id" uuid NOT NULL,
@@ -91,6 +101,7 @@ CREATE TABLE IF NOT EXISTS "permission_grant_record" (
     "created_at" timestamp with time zone NOT NULL,
     CONSTRAINT "permission_grant_record_pkey" PRIMARY KEY (id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ux_permission_grant_record_suki_suid_pe_teid ON public.permission_grant_record USING btree (subject_kind, subject_id, permission, tenant_id);
 
 CREATE TABLE IF NOT EXISTS "scheduler_lease_entity" (
     "id" character varying(128) NOT NULL,
@@ -1594,3 +1605,5 @@ CREATE TABLE IF NOT EXISTS "trigger_entity" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "trigger_entity_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_trigger_entity_st_lo_nefiat ON public.trigger_entity USING btree (state, local, next_fire_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_trigger_entity_jo_na ON public.trigger_entity USING btree (job, name);

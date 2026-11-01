@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
@@ -26,26 +27,45 @@ public sealed class EffectivePermissions(IPermissionGrantStore store, Permission
     /// <summary>
     /// 解析为权限码集合。
     /// </summary>
-    public async Task<IReadOnlySet<string>> ResolveAsync(SecurityContext security, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlySet<string>>> ResolveAsync(SecurityContext security, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
         var tenant = security.Tenant?.Id;
         var side = catalog.ForSide(platformSide: tenant is null);
-        if (await evaluator.ViewAsync(security, cancellationToken).ConfigureAwait(false) is { } view)
+        var viewed = await evaluator.ViewAsync(security, cancellationToken).ConfigureAwait(false);
+        if (!viewed.TryGetValue(out var found))
         {
-            var held = side.Where(p => view.Allows(p.Code)).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
-            return tenant is null ? held : await NarrowAsync(held, tenant, cancellationToken).ConfigureAwait(false);
+            return viewed.Error!;
         }
 
-        var grants = new HashSet<string>(await store.GetGrantsAsync(GrantSubject.ForUser(security.Principal.Id), tenant, cancellationToken).ConfigureAwait(false), StringComparer.Ordinal);
+        if (found.TryGetValue(out var view))
+        {
+            var held = side.Where(p => view.Allows(p.Code)).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
+            return Result.Success<IReadOnlySet<string>>(tenant is null ? held : await NarrowAsync(held, tenant, cancellationToken).ConfigureAwait(false));
+        }
+
+        // 授予存储读不到时把失败原样返回，不当作没有授予
+        var own = await store.GetGrantsAsync(GrantSubject.ForUser(security.Principal.Id), tenant, cancellationToken).ConfigureAwait(false);
+        if (!own.TryGetValue(out var granted))
+        {
+            return own.Error!;
+        }
+
+        var grants = new HashSet<string>(granted, StringComparer.Ordinal);
         foreach (var role in security.Principal.ClaimValues(options.RoleClaim))
         {
-            grants.UnionWith(await store.GetGrantsAsync(GrantSubject.ForRole(role), tenant, cancellationToken).ConfigureAwait(false));
+            var roleGrants = await store.GetGrantsAsync(GrantSubject.ForRole(role), tenant, cancellationToken).ConfigureAwait(false);
+            if (!roleGrants.TryGetValue(out var inherited))
+            {
+                return roleGrants.Error!;
+            }
+
+            grants.UnionWith(inherited);
         }
 
         var all = grants.Contains(PermissionGrant.All);
         var effective = side.Where(p => all || grants.Contains(p.Code)).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
-        return tenant is null ? effective : await NarrowAsync(effective, tenant, cancellationToken).ConfigureAwait(false);
+        return Result.Success<IReadOnlySet<string>>(tenant is null ? effective : await NarrowAsync(effective, tenant, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access.Infrastructure;
@@ -19,11 +20,11 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 public sealed class AccessPermissionFilter(GrantEvaluator evaluator) : IPermissionFilter
 {
     /// <inheritdoc />
-    public async ValueTask<bool> AllowsAsync(SecurityContext security, string permission, CancellationToken cancellationToken)
+    public async ValueTask<Result<bool>> AllowsAsync(SecurityContext security, string permission, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
         ArgumentException.ThrowIfNullOrWhiteSpace(permission);
         var view = await evaluator.ViewAsync(security, cancellationToken).ConfigureAwait(false);
-        return view is null || view.Allows(permission);
+        return view.Map(found => !found.TryGetValue(out var grants) || grants.Allows(permission));
     }
 }
