@@ -41,10 +41,37 @@ public static class CacheInvalidation
     }
 
     /// <summary>
+    /// 失效一批缓存键。
+    /// </summary>
+    /// <remarks>
+    /// 与 <see cref="RemoveAsync"/> 一样在调用里只记下；不在调用里一次往返批量删除。
+    /// </remarks>
+    /// <param name="cache">共享缓存。</param>
+    /// <param name="keys">缓存键。</param>
+    /// <param name="cancellationToken">取消令牌（只用于立即删除）。</param>
+    public static async ValueTask RemoveManyAsync(ISharedCache cache, IReadOnlyList<CacheKey> keys, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(cache);
+        ArgumentNullException.ThrowIfNull(keys);
+        if (keys.Count == 0)
+        {
+            return;
+        }
+
+        if (_current.Value is { } batch)
+        {
+            batch.AddRange(cache, keys);
+            return;
+        }
+
+        await cache.RemoveManyAsync(keys, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 开一段推迟失效的范围。
     /// </summary>
     /// <remarks>
-    /// 范围里经 <see cref="RemoveAsync"/> 的失效都记下；释放时先还原外层范围，再逐个删除记下的键。
+    /// 范围里经 <see cref="RemoveAsync"/> 与 <see cref="RemoveManyAsync"/> 的失效都记下；释放时先还原外层范围，再按缓存一次往返删除记下的键。
     /// 嵌套的调用各有自己的工作单元，各自的范围在各自结束时执行，不并入外层。
     /// </remarks>
     /// <returns>范围句柄。</returns>
@@ -76,6 +103,17 @@ public static class CacheInvalidation
             }
         }
 
+        /// <summary>
+        /// 记下一批要失效的键。
+        /// </summary>
+        public void AddRange(ISharedCache cache, IEnumerable<CacheKey> keys)
+        {
+            lock (_gate)
+            {
+                _pending.AddRange(keys.Select(key => (cache, key)));
+            }
+        }
+
         /// <inheritdoc />
         public ValueTask DisposeAsync()
         {
@@ -93,10 +131,10 @@ public static class CacheInvalidation
                 _pending.Clear();
             }
 
-            // 工作单元已经结束，调用的取消令牌可能已触发，失效仍要做完；删除失败照常抛出
-            foreach (var (cache, key) in pending)
+            // 工作单元已经结束，调用的取消令牌可能已触发，失效仍要做完；同一缓存的键一次往返删除，删除失败照常抛出
+            foreach (var group in pending.GroupBy(static p => p.Cache))
             {
-                await cache.RemoveAsync(key, CancellationToken.None).ConfigureAwait(false);
+                await group.Key.RemoveManyAsync([.. group.Select(static p => p.Key)], CancellationToken.None).ConfigureAwait(false);
             }
         }
     }

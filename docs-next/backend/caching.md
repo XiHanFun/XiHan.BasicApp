@@ -19,7 +19,8 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 
 | 数据 | 时长 | 失效 |
 | --- | --- | --- |
-| 会话门禁 | `BasicApp:Auth:SessionCacheSeconds`（30 秒） | 吊销会话时清除 |
+| 会话门禁 | `BasicApp:Auth:SessionCacheSeconds`（30 秒） | 吊销、锁屏、解锁会话时清除（提交之后） |
+| 套餐白名单（按租户） | 30 秒 | 换套餐、改白名单时清除（提交之后） |
 | 权限规则、角色指派（按主体） | 60 秒 | 写入方即时失效 |
 | 字段安全规则（按侧 × 实体） | 60 秒 | 写入即失效 |
 | 启用的约束规则（按侧） | 60 秒 | 写入即失效 |
@@ -27,7 +28,7 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 
 有效期类的判定（授予与指派的生效 / 到期）在判定时按当前时间比较，不依赖缓存重建。
 
-失效的时机：Access 的读穿缓存（权限规则、角色指派、继承图、委托、条件、访问策略、字段安全、约束规则）缓存未命中时在独立的只读工作单元里读库，看不到调用里还没提交的写入；所以写入方在调用里的失效经 Runtime 的 `CacheInvalidation` 只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库）。若在提交之前删键，同一请求里的后续读取（如新建角色委托时的约束检查）或并发请求会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存照此失效。
+失效的时机：Access 的读穿缓存（权限规则、角色指派、继承图、委托、条件、访问策略、字段安全、约束规则）、Identity 的会话门禁与 Tenancy 的套餐白名单缓存未命中时在独立的只读工作单元里读库，看不到调用里还没提交的写入；所以写入方在调用里的失效经 Runtime 的 `CacheInvalidation` 只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。若在提交之前删键，同一请求里的后续读取（如新建角色委托时的约束检查）或并发请求（如被强制下线的会话恰在提交前发来的请求）会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存照此失效。
 
 ### 命名空间与缓存管理
 
@@ -65,7 +66,7 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 | 托管能力包 | `IHostedFeature` 随应用启停的循环 | Notification 的发件箱发送循环与 Telegram 接收；Auditing 的日志批量写入 |
 | 有界队列 | 调用里只入队，后台批量落库 | 七类分表日志（`BasicApp:Auditing:QueueCapacity` / `BatchSize` / `FlushIntervalSeconds`） |
 | 提交后推送 | `RealtimeDispatchMiddleware` 暂存，调用成功才发 | `ForceLogout`、`ReceiveNotification`、`TaskProgress` |
-| 提交后失效 | `CacheInvalidationMiddleware` 暂存，工作单元结束后删键 | Access 的授权类缓存 |
+| 提交后失效 | `CacheInvalidationMiddleware` 暂存，工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单 |
 
 ### 发件箱
 

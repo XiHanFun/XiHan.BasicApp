@@ -3,6 +3,9 @@
 
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Identity.Infrastructure;
+using XiHan.BasicApp.Identity.Operations.Sessions;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -11,7 +14,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证身份链路的登录、令牌、会话、刷新、注销与改密。
 /// </summary>
 /// <remarks>
-/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、当前主体、租户账号登录与本人改密。
+/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、强制下线不被提交前的门禁核对回填、当前主体、租户账号登录与本人改密。
 /// </remarks>
 public sealed class AuthFlowTests : IDisposable
 {
@@ -137,6 +140,37 @@ public sealed class AuthFlowTests : IDisposable
         var (noSession, noSessionBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:logout", "{}", TestTokens.Issue("root", null, "admin")));
         Assert.Equal(HttpStatusCode.BadRequest, noSession.StatusCode);
         Assert.Equal("IDENTITY_VALIDATION_005", noSessionBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Sessions_Revoke_IsNotUndoneByACheckBeforeCommit()
+    {
+        // 不拨钟：别的请求恰在吊销之后、提交之前核对这个会话，只读工作单元读到的仍是有效会话；门禁失效要落在提交之后，否则这份旧判定被写回缓存，吊销要等缓存过期才生效
+        await using var server = await StartAsync();
+        var admin = (await LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var other = await LoginAsync(server, "superadmin", "SuperAdmin@123");
+        var access = other.GetProperty("accessToken").GetString()!;
+        var sessionId = Guid.Parse(other.GetProperty("sessionId").GetString()!);
+        var (before, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        // 在一次调用里执行强制下线，提交之前插入另一个请求的门禁核对
+        IReadOnlyList<Guid> succeeded = [];
+        var concurrentValid = false;
+        var revoked = await server.InvokeAsync(async ctx =>
+        {
+            var outcome = await ActivatorUtilities.CreateInstance<RevokeSessions>(ctx.Services).HandleAsync(new RevokeSessionsRequest([sessionId]), ctx);
+            succeeded = outcome.TryGetValue(out var batch) ? batch.Succeeded : [];
+            concurrentValid = (await ctx.Services.GetRequiredService<SessionGate>().ValidateAsync(sessionId, ctx.CancellationToken)).IsSuccess;
+            return outcome.ToResult();
+        }, admin);
+        revoked.ThrowIfFailure();
+        Assert.Equal([sessionId], succeeded);
+        Assert.True(concurrentValid);
+
+        var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
+        Assert.Equal(HttpStatusCode.Forbidden, gone.StatusCode);
+        Assert.Equal("IDENTITY_DENIED_001", goneBody.GetProperty("code").GetString());
     }
 
     [Fact]
