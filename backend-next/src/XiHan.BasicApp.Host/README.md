@@ -1,6 +1,6 @@
 # XiHan.BasicApp.Host
 
-6.0 宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包。
+6.0 宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` / `DatabaseSchedulingFeature` / `DatabaseLocalizationFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包；配了连接时另装 `RedisCachingFeature` + `HybridCachingFeature`（绑定 `cache`）与 `RabbitMQMessagingFeature`（绑定 `queue`），由 `HostProviders` 判定，没配即 Full Profile 的内存实现。
 
 | 端点 | 来源 |
 | --- | --- |
@@ -9,6 +9,7 @@
 | `/openapi.json`、`/scalar` | `BasicApp:ApiDocs:Enabled`（缺省只在 Development 打开）；一份文档、一个生成器 |
 | `/mcp` | `MapXiHanMcp`：`Expose.Mcp` 的操作 |
 | `/xihan.basicapp.<Service>/<Method>`、`/operations.proto` | `MapXiHanGrpc` / `MapXiHanProto`：`Expose.Grpc` 的操作，Kestrel 的 `Grpc` 端点（HTTP/2，只监听 127.0.0.1） |
+| `/events` | `MapXiHanCloudEvents`：内部服务投递的 CloudEvents，`BasicApp:CloudEvents:Enabled`（缺省关），只收登录过的调用方 |
 | `/` | 应用名、版本与环境 |
 
 ## 运行
@@ -19,11 +20,12 @@ createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
 dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 
-Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记的实体建表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`outbox_message`），软删除实体的部分唯一索引随后补建。生产库的表结构由 `Schema/<版本>/*.sql` 与版本台账管理（`schema upgrade` 命令，或 `BasicApp:Schema:AutoUpgrade` 开着时启动自动执行），6.0.0 基线是 `Schema/6.0.0/0001-baseline.sql`。
+Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记的实体建表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`outbox_message`、`message_translation` 与调度表），软删除实体的部分唯一索引随后补建。生产库的表结构由 `Schema/<版本>/*.sql` 与版本台账管理（`schema upgrade` 命令，或 `BasicApp:Schema:AutoUpgrade` 开着时启动自动执行），6.0.0 基线是 `Schema/6.0.0/0001-baseline.sql`。
 
 ## 配置
 
 - `XiHan:Bindings:db`：平台库连接串（`value`）与库类型（`provider`，缺省 `postgresql`）。缺失即 `RUNTIME_VALIDATION_001` 中断启动。
+- `XiHan:Bindings:cache` / `XiHan:Bindings:queue`：Redis 与 RabbitMQ 连接，`appsettings.json` 里留空即不装（单机零外部依赖）；配了而连不上启动即失败。实时推送在 N3 接上 SignalR 的 Redis 背板之前不跨实例。
 - `XiHan:Security:Jwt:Secret`：HS256 密钥，至少 32 字节；`appsettings.json` 留空，由环境配置或密钥存储提供。不提交真实密钥。
 - `BasicApp:ApiDocs:Enabled`：是否映射 `/openapi.json` 与 `/scalar`；没写时 Development 为真、其余为假。
 - `BasicApp:Auth`：访问令牌分钟数、刷新令牌天数、登录失败上限与锁定分钟数、密码最短长度与历史深度、会话门禁缓存秒数（缺省见 `appsettings.json`）。

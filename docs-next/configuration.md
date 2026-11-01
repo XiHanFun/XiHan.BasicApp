@@ -42,6 +42,50 @@
 
 独立库租户的连接串不写在配置里：由 `tenants.configure-database` 写进租户目录，以 `ISecretProtector` 密文存放。
 
+## 分布式缓存与消息
+
+不配即单机：缓存与消息走框架的进程内实现，零外部依赖。配了连接，宿主就装上对应的 Provider，多个实例共享缓存与消息；配了而连不上，启动即失败，不退回内存实现。
+
+| 连接（任选一处） | 装上的 Provider | 健康项 |
+| --- | --- | --- |
+| 绑定 `XiHan:Bindings:cache`（类型 `cache:distributed`）或 `XiHan:Caching:Redis:Configuration` | `Caching.Redis`：`ISharedCache`、字节存储、分布式锁与幂等去重；`Caching.Hybrid`：`ICache` 成为本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1 | `caching.redis.connection` |
+| 绑定 `XiHan:Bindings:queue`（类型 `queue`）或 `XiHan:Messaging:RabbitMQ:Configuration` | `Messaging.RabbitMQ`：发件箱派发与 CloudEvents 发布模式经它，各实例按主题竞争消费 | `messaging.rabbitmq.connection` |
+
+```json
+{
+  "XiHan": {
+    "Bindings": {
+      "cache": { "type": "cache:distributed", "value": "<主机>:6379,password=<密码>" },
+      "queue": { "type": "queue", "value": "amqp://<用户>:<密码>@<主机>:5672" }
+    }
+  }
+}
+```
+
+`appsettings.json` 里两个绑定的值留空，即没配；部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Kubernetes Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。不要同时写 `Configuration` 键为空串：框架优先读它，空串即启动失败。
+
+### `XiHan:Caching`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Redis:KeyPrefix` | `xihan:` | 键前缀；同一个 Redis 给几套环境用时各取一个 |
+| `Redis:DefaultTimeToLiveSeconds` | `300` | 没指定过期时的存活时间 |
+| `Redis:PublishChanges` | `true` | 写入与删除后向频道 `<前缀>__changes` 发通知，各实例据此失效 L1 |
+| `Redis:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔 |
+| `Hybrid:LocalCapacity` / `Hybrid:LocalTimeToLiveSeconds` | `10000` / `30` | 本机 L1 的条数上限与存活上限；收不到变更通知时，别的实例的写入最迟这么久后可见 |
+
+### `XiHan:Messaging`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `RabbitMQ:QueuePrefix` | `xihan.` | 主题映射为持久队列 `<前缀><主题>` |
+| `RabbitMQ:PrefetchCount` | `16` | 每个主题的预取条数 |
+| `RabbitMQ:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔 |
+| `MaxAttempts` | `3` | 处理失败的重试次数，用完进死信队列 |
+| `Outbox:PollIntervalSeconds` / `Outbox:MaxAttempts` | `1` / `10` | 发件箱的轮询间隔与派发尝试上限 |
+
+6.0 各包目前没有登记领域事件与消息处理器（见[实体与领域事件](./backend/entity)），RabbitMQ 先承接框架的发件箱与 CloudEvents；邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
+
 ## `XiHan:Persistence:SqlSugar`
 
 | 键 | 缺省 | 说明 |
@@ -70,9 +114,18 @@
 
 租户只从令牌声明（及框架 Baggage）解析，不支持查询串与 `X-Tenant-Id` 头。
 
-## `XiHan:Localization:DefaultLocale`
+## `XiHan:Localization`
 
-缺省 `en-US`。请求按 `Accept-Language` 选区域，内置 `en-US`、`zh-CN`、`zh-TW`、`ja-JP`、`ko-KR`、`de-DE`、`es-ES`、`fr-FR`、`pt-BR`、`ru-RU`。
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `DefaultLocale` | `en-US` | 缺省区域；请求按 `Accept-Language` 选区域，内置 `en-US`、`zh-CN`、`zh-TW`、`ja-JP`、`ko-KR`、`de-DE`、`es-ES`、`fr-FR`、`pt-BR`、`ru-RU` |
+| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，`0` 只在启动时加载 |
+| `Database:MaxTranslations` | `100000` | 快照最多加载的译文条数，超出记警告 |
+
+文案有两个来源，宿主装的是框架 `Localization.Database`：
+
+- 各包与框架的语言文件嵌在程序集里，是消息目录。同名目录合并为一份（框架 ADR-0070）：区域与键取并集，同一键同一区域的模板不同即启动失败（`LOCALIZATION_CONFLICT_001`）。
+- 平台库表 `message_translation`（键、区域、模板）是运营覆盖的译文：每个回退区域先查数据库再查嵌入目录，所以同键同区域时数据库优先，没有的键照旧走嵌入目录与回退链。快照在宿主进入服务状态后加载、按刷新间隔重载，多实例各自刷新；健康项 `localization.database.translations`（加载失败为 Degraded，保留上一份快照）。维护译文的后台页面还没有。
 
 ## `XiHan:Auditing`
 
@@ -88,6 +141,9 @@
 | `Http:RoutePrefix` | `/api` | 操作路由前缀 |
 | `Grpc:Package` | `xihan.basicapp` | gRPC 服务名前缀（`/xihan.basicapp.Users/Get`） |
 | `Mcp:ServerName` | `XiHan.BasicApp` | MCP 服务名 |
+| `CloudEvents:Topics:<事件类型>` | — | 入站事件类型到主题的映射；没写时事件类型本身须是合法主题 |
+| `CloudEvents:Inbound` | `Dispatch` | `Dispatch` 在请求内派发给主题的处理器、处理器的结果即响应；`Publish` 发布到消息代理后立即 202 |
+| `CloudEvents:Webhooks:<主题>` / `CloudEvents:Outbound` | — / `Binary` | 出站 Webhook 地址与内容模式 |
 
 ## `XiHan:Kernel`
 
@@ -126,6 +182,14 @@
 | `AllowCredentials` | `true` | 是否允许携带凭据 |
 | `ExposedHeaders` | 空 | 暴露给前端脚本的响应头 |
 | `PreflightMaxAgeSeconds` | `0` | 预检结果的缓存秒数，0 为不设置 |
+
+## `BasicApp:CloudEvents`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Enabled` | `false` | 是否映射 CloudEvents 入站端点 `POST /events`（框架 `MapXiHanCloudEvents`），供内部服务投递事件 |
+
+端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。各包目前没有消息处理器，打开后派发模式下每个事件都是 404 `PROTOCOLS_NOTFOUND_003`；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
 
 ## `BasicApp:Schema`
 

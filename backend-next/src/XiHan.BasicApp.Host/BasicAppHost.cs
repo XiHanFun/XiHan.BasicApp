@@ -24,13 +24,18 @@ using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
 using XiHan.Framework.Auditing.Database;
+using XiHan.Framework.Caching.Hybrid;
+using XiHan.Framework.Caching.Redis;
 using XiHan.Framework.Hosting.AspNetCore;
 using XiHan.Framework.Hosting.AspNetCore.Blobs;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
+using XiHan.Framework.Localization.Database;
 using XiHan.Framework.Messaging.Abstractions.Outbox;
+using XiHan.Framework.Messaging.RabbitMQ;
 using XiHan.Framework.MultiTenancy.Database;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Profiles.Full;
+using XiHan.Framework.Protocols.CloudEvents.Inbound;
 using XiHan.Framework.Protocols.Grpc.Services;
 using XiHan.Framework.Protocols.Http.OpenApi;
 using XiHan.Framework.Protocols.Http.Routing;
@@ -46,7 +51,7 @@ namespace XiHan.BasicApp.Host;
 /// 宿主的装配与端点映射。
 /// </summary>
 /// <remarks>
-/// 方案 5.13：Full Profile + 显式 Provider + 全部能力包，可选模块按 <see cref="HostModules"/> 的开关装配；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
+/// 方案 5.13：Full Profile + 显式 Provider + 全部能力包，可选模块按 <see cref="HostModules"/> 的开关装配，Redis 与 RabbitMQ 按 <see cref="HostProviders"/> 配了连接才装；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
 /// </remarks>
 public static class BasicAppHost
 {
@@ -67,6 +72,8 @@ public static class BasicAppHost
 
         // 可选模块的开关在调用方改完配置之后读（测试可以关掉模块）
         var modules = HostModules.FromConfiguration(builder.Configuration);
+        // 分布式 Provider 同样在调用方改完配置之后判定：配了连接才装，没配即内存实现
+        var providers = HostProviders.FromConfiguration(builder.Configuration);
 
         // 反向代理的转发头与跨域：配置写错启动即报错；跨域没配来源即不启用（只能同源访问）
         var forwarded = ForwardedHeadersSettings.FromConfiguration(builder.Configuration);
@@ -90,6 +97,8 @@ public static class BasicAppHost
             .UseFeature<DatabaseSecurityFeature>()
             .UseFeature<DatabaseAuditingFeature>()
             .UseFeature<DatabaseSchedulingFeature>()
+            // 运营覆盖的译文存平台库：同键同区域时数据库的翻译优先，其余照旧走各包嵌入的语言文件与回退链；同名消息目录按框架 ADR-0070 合并
+            .UseFeature<DatabaseLocalizationFeature>()
             // 本地存储的签名地址由宿主代收发（Files 的存储配置用框架的命名存储实例，S3 兼容存储自己签名）
             .UseFeature<HostedBlobUrlFeature>()
             // 发件箱必装：领域事件与业务写入同事务派发
@@ -106,6 +115,18 @@ public static class BasicAppHost
             .UseFeature<RealtimeFeature>()
             .UseFeature<MaintenanceFeature>()
             .UseFeature<OpenPlatformFeature>();
+            if (providers.Redis)
+            {
+                // 显式 Provider 顶替 Full Profile 的内存缓存：ISharedCache、字节存储与分布式锁走 Redis，ICache 是本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1
+                xihan.UseFeature<RedisCachingFeature>().UseFeature<HybridCachingFeature>();
+            }
+
+            if (providers.RabbitMQ)
+            {
+                // 显式 Provider 顶替内存代理：发件箱派发与 CloudEvents 的发布模式经 RabbitMQ，各实例按主题竞争消费
+                xihan.UseFeature<RabbitMQMessagingFeature>();
+            }
+
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();
@@ -122,7 +143,8 @@ public static class BasicAppHost
     /// 映射全部端点。
     /// </summary>
     /// <remarks>
-    /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、签名地址的收发端点（<c>/blobs</c>）、普通端点。
+    /// 包括探针、操作（<c>/api/**</c>）、接口文档（按 <c>BasicApp:ApiDocs:Enabled</c>）、MCP、gRPC 与 <c>.proto</c>、实时 Hub、签名地址的收发端点（<c>/blobs</c>）、
+    /// CloudEvents 入站端点（按 <c>BasicApp:CloudEvents:Enabled</c>）、普通端点。
     /// ASP.NET Core 的认证与授权排在 <c>UseXiHan()</c> 之前：只有实时 Hub 的端点带授权策略（指定框架的 <c>XiHan</c> 认证方案，不设为缺省），操作照旧由内核认证。
     /// 转发头排在最前，之后的中间件、内核管道与普通端点拿到的都是还原后的客户端地址与协议；跨域（配了来源才启用）紧随其后，维护期间的 503 也带上跨域头。
     /// 维护模式随后：别的节点升级共享的库期间，除健康检查外一律 503。
@@ -165,6 +187,12 @@ public static class BasicAppHost
         app.MapXiHanGrpc();
         app.MapXiHanProto();
         app.MapXiHanBlobs();
+        if (CloudEventsSettings.FromConfiguration(app.Configuration).Enabled)
+        {
+            // 内部服务投递事件：入站的信封带着租户等扩展属性进处理器，只收登录过的调用方
+            app.MapXiHanCloudEvents(CloudEventsSettings.Path).RequireXiHanAuthentication();
+        }
+
         app.MapBasicAppEndpoints();
     }
 

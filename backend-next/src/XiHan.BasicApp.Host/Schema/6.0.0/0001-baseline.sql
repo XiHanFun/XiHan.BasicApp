@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS "job_run_entity" (
     CONSTRAINT "job_run_entity_pkey" PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS "message_translation" (
+    "id" uuid NOT NULL,
+    "key" character varying(256) NOT NULL,
+    "locale" character varying(35) NOT NULL,
+    "template" text NOT NULL,
+    "modified_at" timestamp with time zone NULL,
+    CONSTRAINT "message_translation_pkey" PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS "outbox_message" (
     "id" uuid NOT NULL,
     "topic" character varying(128) NOT NULL,

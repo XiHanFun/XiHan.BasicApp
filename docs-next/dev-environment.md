@@ -12,7 +12,7 @@
 | Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
 | PostgreSQL | 14+（CI 用 17） | 平台库；独立库租户另建库 |
 
-6.0 开发态只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：宿主装的是框架 Full Profile，缓存、消息、对象存储走框架的内存或文件系统缺省实现（文件缺省落本地目录 `App_Data/files`）。
+6.0 开发态只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：不配连接时缓存、消息、对象存储走框架 Full Profile 的内存或文件系统缺省实现（文件缺省落本地目录 `App_Data/files`）；要在本机联调 Redis / RabbitMQ，配上绑定 `cache` / `queue` 即可（见[配置参考](./configuration#分布式缓存与消息)），相关集成测试读环境变量 `XIHAN_TEST_REDIS` / `XIHAN_TEST_RABBITMQ`。
 
 ## 两个仓库并排检出
 

@@ -49,7 +49,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 是否需要 Redis？
 
-不需要。宿主装的是框架 Full Profile，缓存与消息走进程内实现，开发与单实例部署零外部依赖。代价是多实例时缓存与实时推送不共享，见[部署](./deployment#多实例的限制)。
+不需要。不配连接时缓存与消息走框架的进程内实现，开发与单实例部署零外部依赖。多实例部署时配上 Redis（与 RabbitMQ），宿主自动装上对应 Provider，缓存与消息跨实例共享；实时推送在 N3 接上 Redis 背板之前仍只在本实例内，见[部署](./deployment#多实例部署)。
 
 ## 认证与令牌
 

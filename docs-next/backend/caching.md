@@ -11,7 +11,9 @@
 | `ISharedCache` | 框架 `Caching.Abstractions` | 跨请求共享的对象缓存：授权规则、指派、会话门禁、验证码散列、登录节流计数、条件与策略、套餐白名单 |
 | `ICache` / 字节存储 | 框架 | 框架内部（分布式锁、租约等） |
 
-宿主当前用 Full Profile 的进程内实现：零外部依赖，单实例部署即可。框架提供 `Caching.Redis` 与 `Caching.Hybrid`，但宿主还没有装配它们。多实例部署时各实例的缓存不共享（授权规则写入方即时失效只对本实例生效，其他实例最迟按缓存时长过期）。
+不配 Redis 时是 Full Profile 的进程内实现：零外部依赖，单实例部署即可；多实例时各实例的缓存不共享（授权规则写入方即时失效只对本实例生效，其他实例最迟按缓存时长过期）。配了 Redis 连接（绑定 `cache`，见[配置参考](../configuration#分布式缓存与消息)），宿主装上 `Caching.Redis` 与 `Caching.Hybrid`：`ISharedCache`、字节存储与分布式锁走 Redis，写入方的失效对所有实例生效；`ICache` 是本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1。
+
+Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器），进程内模式存的是对象引用；缓存的类型因此要能按 JSON 往返，取回的对象也不要原地修改。
 
 ### 缓存时长与失效
 
@@ -49,9 +51,7 @@
 | `caches.update` | `maintenance.caches.update` | 改写值（只对可改写的命名空间） |
 | `caches.delete` / `caches.delete-by-prefix` | `maintenance.caches.delete` | 按键或按前缀删除 |
 
-::: warning 已知限制
-进程内模式下，框架的对象缓存与字节存储是分开的两张表，缓存管理目前只列得出字节存储里的键，经 `ISharedCache` 写的对象条目在单节点内存模式下看不到（Redis 时序列化进存储、看得到）。框架已有对应改动，升级锁定提交后接上（N2 收尾项）。
-:::
+进程内模式下框架的对象缓存与字节存储是分开的两张表，`caches.keys` 两层合起来列（先对象缓存、再字节存储），每个键标出所在的层；Redis 下对象条目序列化进字节存储，只有一层。
 
 ## 异步与后台工作
 

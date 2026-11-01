@@ -13,9 +13,9 @@
 | 运行时 | ASP.NET Core 10 运行时（或自包含发布） |
 | 数据库 | PostgreSQL 14+；独立库租户另需建库权限或预建库 |
 | 静态托管 | 任意能托管单页应用并做反向代理的 Web 服务器（Nginx、Caddy、IIS…） |
-| 可选 | 邮件 / 短信服务、S3 兼容对象存储、Telegram（都在后台页面里配置） |
+| 可选 | Redis 与 RabbitMQ（配了连接才用，见[配置参考](./configuration#分布式缓存与消息)）；邮件 / 短信服务、S3 兼容对象存储、Telegram（都在后台页面里配置） |
 
-单实例开发态零外部依赖：缓存、消息走框架内存实现，文件落本地目录。多实例部署见文末的限制。
+单实例零外部依赖：缓存、消息走框架内存实现，文件落本地目录。多实例部署见文末。
 
 ## 后端：发布
 
@@ -41,6 +41,8 @@ dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basi
 | `BasicApp__Files__LocalRootPath` | 本地存储根目录，挂持久卷 |
 | `BasicApp__OpenPlatform__Issuer` | 对外的 OIDC 签发者（反向代理后必须显式配置） |
 | `BasicApp__Auth__OAuth__CallbackBaseUrl` | 第三方登录回调的后端对外地址 |
+| `XiHan__Bindings__cache__value` | Redis 连接（多实例时配；不配即进程内缓存） |
+| `XiHan__Bindings__queue__value` | RabbitMQ 连接（AMQP URI；不配即进程内消息） |
 
 `ASPNETCORE_ENVIRONMENT=Production` 时 `InitTables` 关闭、`/openapi.json` 与 `/scalar` 不映射（可用 `BasicApp:ApiDocs:Enabled` 显式打开）、演示数据不写。
 
@@ -66,7 +68,9 @@ dotnet XiHan.BasicApp.Host.dll
 | `/health/ready` | 就绪探针：含各 Feature 与 Provider 健康项 |
 | `/health/live` | 存活探针 |
 
-宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp:6.0.0-preview.1`、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。
+配了 Redis / RabbitMQ 时就绪探针多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，应用照常服务。
+
+宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp:6.0.0-preview.1`、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。清单只列了必需的 `db`；要让打包工具一并生成 Redis 与 RabbitMQ，在 `bindings` 里加上 `{ "name": "cache", "type": "cache:distributed" }` 与 `{ "name": "queue", "type": "queue" }`。
 
 ### 维护模式
 
@@ -136,17 +140,21 @@ server {
 
 gRPC 端点（`Kestrel:Endpoints:Grpc`，HTTP/2）只供内部服务调用，只发布显式 `Expose.Grpc` 的操作。保持只监听内网地址，不要经反向代理暴露到公网；`.proto` 从 `GET /operations.proto` 取。
 
-## 多实例的限制
+CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺省关）同理：只收登录过的调用方，只开放给内网，上面的 Nginx 示例不代理它。
 
-| 方面 | 现状 |
-| --- | --- |
-| 实时推送 | Realtime 用进程内的连接登记与组，单实例成立；多实例时在线状态只看本实例，推送到不了别的实例上的连接 |
-| 缓存 | 宿主未装 Redis Provider，`ISharedCache` 是进程内实现，各实例不共享 |
-| 作业 | 作业定义与运行记录在 `Scheduling.Database`，多实例按框架的数据库调度协调 |
-| 数据保护 | 必须共享 `BasicApp:DataProtection:KeysDirectory` |
-| 表结构升级 | 升级器取数据库租约锁，同一时刻只有一个节点执行 |
+## 多实例部署
 
-因此 6.0 预览版建议单实例部署。
+| 方面 | 单实例（不配连接） | 多实例 |
+| --- | --- | --- |
+| 缓存 | 进程内实现 | 配 Redis（`XiHan__Bindings__cache__value`）：授权规则、会话门禁、验证码、登录节流、开放接口防重放等共享缓存跨实例一致，写入方的失效对所有实例生效 |
+| 消息 | 进程内代理 | 配 RabbitMQ（`XiHan__Bindings__queue__value`）：发件箱派发与 CloudEvents 发布模式经它，各实例按主题竞争消费 |
+| 实时推送 | 进程内的连接登记与组 | **暂不跨实例**：SignalR 的 Redis 背板与在线状态的共享登记排在 N3（配了 Redis 即跨实例），在那之前在线状态只看本实例、推送到不了别的实例上的连接，需要实时推送的部署仍是单实例 |
+| 数据库译文 | 平台库 `message_translation` | 各实例按 `XiHan:Localization:Database:RefreshIntervalSeconds` 各自重载 |
+| 作业 | `Scheduling.Database` | 同左，按框架的数据库调度协调 |
+| 数据保护 | 本机密钥目录 | 必须共享 `BasicApp:DataProtection:KeysDirectory` |
+| 表结构升级 | 升级器取数据库租约锁 | 同左，同一时刻只有一个节点执行 |
+
+因此要用实时推送（强制下线、站内通知、导出进度）的 6.0 预览部署仍建议单实例；配 Redis 与 RabbitMQ 解决的是缓存与消息的跨实例一致。
 
 ## 下一步
 

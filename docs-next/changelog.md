@@ -4,6 +4,12 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 宿主按配置接上分布式能力（2026-11-01）
+
+- 配了 Redis 连接（绑定 `cache`）即装 `Caching.Redis` + `Caching.Hybrid`，配了 RabbitMQ 连接（绑定 `queue`）即装 `Messaging.RabbitMQ`；不配仍是单机零外部依赖。实时推送要到 N3 接上 Redis 背板才跨实例。见[配置参考](./configuration#分布式缓存与消息)与[部署](./deployment#多实例部署)。
+- 装上 `Localization.Database`：平台库 `message_translation` 里的译文按区域覆盖嵌入的文案，6.0.0 基线随之重生成。
+- CloudEvents 入站端点 `/events`（`BasicApp:CloudEvents:Enabled`，缺省关，只收登录过的调用方）。
+
 ### 文档站发现的代码问题（2026-11-01）
 
 写这套文档时对照代码发现的出入，按 5.x 与方案补齐：

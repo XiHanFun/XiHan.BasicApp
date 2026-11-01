@@ -95,6 +95,9 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:MultiTenancy:TenantClaim", "tenant"),
         new("XiHan:Protocols:Http:RoutePrefix", ApiPrefix),
         new("XiHan:Protocols:Grpc:Package", "xihan.basicapp"),
+        // 环境变量配了 Redis / RabbitMQ 跑全量时，每个测试服务器的缓存键与队列各自独立，不串到别的用例的库（没配时没有 Provider 读它们）
+        new("XiHan:Caching:Redis:KeyPrefix", $"xihan-basicapp-test-{Guid.NewGuid():N}:"),
+        new("XiHan:Messaging:RabbitMQ:QueuePrefix", $"xihan-basicapp-test-{Guid.NewGuid():N}."),
         new("BasicApp:ApiDocs:Enabled", "true"),
         // 图形验证码缺省关：需要它的用例自己打开并换上固定码源
         new("BasicApp:Auth:CaptchaEnabled", "false"),

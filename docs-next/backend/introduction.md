@@ -80,6 +80,7 @@ builder.AddXiHan(xihan =>
     .UseFeature<DatabaseSecurityFeature>()         // 授予存储 PermissionGrantRecord
     .UseFeature<DatabaseAuditingFeature>()         // 操作审计 AuditRecord
     .UseFeature<DatabaseSchedulingFeature>()       // 作业与运行记录
+    .UseFeature<DatabaseLocalizationFeature>()     // 数据库译文 MessageTranslation，优先于嵌入的语言文件
     .UseFeature<HostedBlobUrlFeature>()            // 本地存储签名地址
     .UseFeature<Ip2RegionSecurityFeature>()        // IP 归属地
     .UseFeature<OutboxFeature>()                   // 领域事件与业务写入同事务派发
@@ -88,6 +89,16 @@ builder.AddXiHan(xihan =>
     .UseFeature<SettingsFeature>().UseFeature<FilesFeature>().UseFeature<NotificationFeature>()
     .UseFeature<AuditingFeature>().UseFeature<RealtimeFeature>().UseFeature<MaintenanceFeature>()
     .UseFeature<OpenPlatformFeature>();
+    if (providers.Redis)                           // 配了 Redis 连接（绑定 cache）
+    {
+        xihan.UseFeature<RedisCachingFeature>().UseFeature<HybridCachingFeature>();
+    }
+
+    if (providers.RabbitMQ)                        // 配了 RabbitMQ 连接（绑定 queue）
+    {
+        xihan.UseFeature<RabbitMQMessagingFeature>();
+    }
+
     if (modules.Workbench)
     {
         xihan.UseFeature<WorkbenchFeature>();      // BasicApp:Modules:Workbench:Enabled
@@ -95,7 +106,7 @@ builder.AddXiHan(xihan =>
 });
 ```
 
-`UseFullProfile()` 带来 HTTP / gRPC / MCP 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。宿主当前没有装 Redis、RabbitMQ、`Localization.Database` 等 Provider，缓存与消息是进程内实现（见[部署](../deployment#多实例的限制)）。
+`UseFullProfile()` 带来 HTTP / gRPC / MCP / CloudEvents 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。Redis 与 RabbitMQ 由 `HostProviders` 按配置决定：配了连接才装，没配即进程内实现、单机零外部依赖（见[配置参考](../configuration#分布式缓存与消息)）；实时推送要到 N3 接上 Redis 背板才跨实例（见[部署](../deployment#多实例部署)）。
 
 随后映射端点：
 
@@ -107,6 +118,7 @@ builder.AddXiHan(xihan =>
 | `MapXiHanMcp()` | `/mcp` |
 | `MapXiHanGrpc()` / `MapXiHanProto()` | gRPC 服务与 `/operations.proto` |
 | `MapXiHanBlobs()` | `/blobs`：本地存储的签名地址 |
+| `MapXiHanCloudEvents()` | `/events`：内部服务投递的 CloudEvents（`BasicApp:CloudEvents:Enabled`，缺省关，只收登录过的调用方） |
 | `MapBasicAppEndpoints()` | 文件上传与内容、头像、`/hubs/notification`、Telegram Webhook、OAuth 2.0 / OIDC 服务端、第三方登录回调 |
 
 ## 协议暴露

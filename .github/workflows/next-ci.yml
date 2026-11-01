@@ -40,6 +40,25 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      # 宿主配了连接才装的 Redis 与 RabbitMQ：DistributedProvidersTests 读 XIHAN_TEST_REDIS / XIHAN_TEST_RABBITMQ，没设即跳过
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      rabbitmq:
+        image: rabbitmq:4-alpine
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 12
     steps:
       - name: 检出 BasicApp
         uses: actions/checkout@v7
@@ -82,6 +101,8 @@ jobs:
         working-directory: XiHan.BasicApp
         env:
           XIHAN_TEST_POSTGRES: Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres
+          XIHAN_TEST_REDIS: 127.0.0.1:6379
+          XIHAN_TEST_RABBITMQ: amqp://guest:guest@127.0.0.1:5672
         run: dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build -- --report-xunit-trx
 
       - name: 上传测试结果

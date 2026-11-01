@@ -12,7 +12,7 @@
 | `/health/ready` | 就绪探针 | 各 Feature 状态与 `IHealthContributor` 条目 |
 | `/health/live` | 存活探针 | 进程存活 |
 
-健康项由各 Provider 自带（框架 ADR-0030），BasicApp 不另写：数据库、租户目录、授予存储、审计存储、调度、对象存储的每个命名实例（`objectstorage.store.<名>`）、IP 归属地库等。条目带 `description`、`checkedAt`、`durationMs` 与 `data`。
+健康项由各 Provider 自带（框架 ADR-0030），BasicApp 不另写：数据库、租户目录、授予存储、审计存储、调度、对象存储的每个命名实例（`objectstorage.store.<名>`）、IP 归属地库、数据库译文（`localization.database.translations`：还没加载为 Started，加载失败为 Degraded 并保留上一份快照）等；配了 Redis / RabbitMQ 时另有 `caching.redis.connection` / `messaging.rabbitmq.connection`（启动时连不上即启动失败，之后按 15 秒周期重探，断开时 Degraded、应用照常服务）。条目带 `description`、`checkedAt`、`durationMs` 与 `data`。
 
 健康端点不经过维护模式拦截：升级期间负载均衡仍能探测。
 

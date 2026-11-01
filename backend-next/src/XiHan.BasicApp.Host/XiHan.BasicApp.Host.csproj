@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Host</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 宿主：Full Profile + SqlSugar + JWT + 三个数据库 Provider + 发件箱，映射 HTTP / OpenAPI / Scalar / MCP / gRPC 端点。</Description>
+    <Description>XiHan.BasicApp 6.0 宿主：Full Profile + SqlSugar + JWT + 数据库 Provider + 发件箱，配了连接时装 Redis 与 RabbitMQ，映射 HTTP / OpenAPI / Scalar / MCP / gRPC / CloudEvents 端点。</Description>
     <!-- 最小 API 的端点委托在编译期生成，去掉反射绑定 -->
     <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
     <UserSecretsId>xihan-basicapp-next</UserSecretsId>
@@ -36,7 +36,12 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
+    <!-- 分布式 Provider：配了连接才装配（HostProviders），没配即 Full Profile 的内存实现 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Redis" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Hybrid" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Messaging.RabbitMQ" />
     <!-- 命令模式：help / graph / pipeline / operations / invoke 由框架提供，seed 由本宿主登记 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.CommandLine" />
   </ItemGroup>
