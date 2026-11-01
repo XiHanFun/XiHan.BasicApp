@@ -98,7 +98,8 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
             ["SecretKey"] = secret,
             // OSS 与 COS 只接受虚拟主机式访问，S3 兼容的自建存储（MinIO 等）多用路径式
             ["ForcePathStyle"] = config.Type is StorageType.S3 or StorageType.MinIO ? "true" : "false",
-            // 健康项探这条配置的桶：只授权了一个桶的密钥列不了桶
+            // 健康项探这条配置的桶（只授权了一个桶的密钥列不了桶）；建实例前框架也在这个桶里探测条件写入（ADR-0089），
+            // 上传都是不覆盖写入，不关这项探测：服务不认 If-None-Match 时建不出实例
             ["HealthBucket"] = config.Bucket,
         };
         return await stores.GetOrAddAsync(new BlobStoreDefinition(NameOf(config), S3BlobStoreProvider.ProviderName, settings), cancellationToken).ConfigureAwait(false);
