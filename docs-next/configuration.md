@@ -84,6 +84,7 @@
 | `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>` 并以同名路由键绑定到交换机；没人订阅的主题发布即丢弃（记 Debug 日志），不堆积 |
 | `RabbitMQ:PrefetchCount` | `16` | 每个主题的预取条数 |
 | `RabbitMQ:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔 |
+| `InstanceId` | 每次启动随机 | 本实例在消息里的标识：1–64 个字母、数字或 `._-`，字母或数字开头，不合文法即启动失败；配了就必须每个实例各不相同（多副本可设成 Pod 名）。6.0 各包目前没有广播订阅，不配即可 |
 | `MaxAttempts` | `3` | 处理失败的重试次数，用完进死信队列 |
 | `Outbox:PollIntervalSeconds` / `Outbox:MaxAttempts` | `1` / `10` | 发件箱的轮询间隔与派发尝试上限 |
 

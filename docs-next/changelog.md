@@ -4,6 +4,13 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 框架升锁 6c162881（2026-11-01）
+
+- 调用的截止时间到了而调用方没有取消时，一律返回 504 `KERNEL_TIMEOUT_001`（原来偶发报成 `KERNEL_CANCELLED_001`）。
+- 启动与停机期间，日志里基本不再出现工作流轮询的 `WORKFLOW_UNAVAILABLE_001` 告警（停机时偶尔还剩一个轮询周期的）。
+- 新配置 `XiHan:Messaging:InstanceId`：本实例在消息里的标识，缺省每次启动随机，见[配置参考](./configuration#xihan-messaging)。
+- 带凭据的框架配置（Redis、RabbitMQ、S3、JWT、绑定、租户分片连接等）转成文本时，凭据显示为 `***`。
+
 ### 框架升锁 42d4c570（2026-11-01）
 
 - 只读接口里写库改报 500 `PERSISTENCE_UNEXPECTED_001`（原为 403 `PERSISTENCE_DENIED_001`），按缺陷处理；现有接口都不会触发。

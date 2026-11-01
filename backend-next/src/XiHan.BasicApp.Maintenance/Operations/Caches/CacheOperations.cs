@@ -102,8 +102,13 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
         var page = new PageFill(request.Prefix, request.Limit);
         if (layer == CacheLayer.Objects)
         {
-            var next = await page.FillAsync(scope.Objects!.ListKeysAsync, CacheLayer.Objects, cursor, context.CancellationToken).ConfigureAwait(false);
-            if (next is not null)
+            var objects = await page.FillAsync(scope.Objects!.ListKeysAsync, CacheLayer.Objects, cursor, context.CancellationToken).ConfigureAwait(false);
+            if (objects.IsFailure)
+            {
+                return objects.Error!;
+            }
+
+            if (page.Continuation is { } next)
             {
                 return page.Response(ObjectCursor + next);
             }
@@ -122,8 +127,13 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
             cursor = null;
         }
 
-        var more = await page.FillAsync(scope.Store!.ListKeysAsync, CacheLayer.Store, cursor, context.CancellationToken).ConfigureAwait(false);
-        return page.Response(more is null ? null : StoreCursor + more);
+        var store = await page.FillAsync(scope.Store!.ListKeysAsync, CacheLayer.Store, cursor, context.CancellationToken).ConfigureAwait(false);
+        if (store.IsFailure)
+        {
+            return store.Error!;
+        }
+
+        return page.Response(page.Continuation is { } more ? StoreCursor + more : null);
     }
 
     /// <summary>
@@ -133,7 +143,7 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
     /// Redis 的列键是 SCAN：每次只扫一段、页大小只是提示值，前缀稀疏时一次可能一个都没有。本页没满且这一层还有续页就接着列，
     /// 提示值取还差的个数、扫空一段就加倍（上限 <see cref="CacheKeyQuery.MaxLimit"/>），直到攒满、列完或往返次数到 <see cref="MaxRounds"/>
     /// （到了仍没满就带着续页标记返回，标记的写法不变）；进程内的存储一次就按页大小给满。
-    /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。
+    /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。列键失败（如每页上限越界 <c>CACHING_VALIDATION_003</c>）原样返回，已攒的不作数。
     /// </remarks>
     /// <param name="prefix">前缀。</param>
     /// <param name="limit">本页要几个键。</param>
@@ -162,21 +172,35 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
         public bool CanContinue => !IsFull && _rounds < MaxRounds;
 
         /// <summary>
-        /// 从一层里接着列，返回这一层的续页游标。
+        /// 刚列过的那一层的续页游标。
+        /// </summary>
+        /// <remarks>
+        /// 由 <see cref="FillAsync"/> 设置；这一层列完为空。
+        /// </remarks>
+        public string? Continuation { get; private set; }
+
+        /// <summary>
+        /// 从一层里接着列，这一层的续页游标记到 <see cref="Continuation"/>。
         /// </summary>
         /// <param name="list">这一层的列键方法。</param>
         /// <param name="layer">所在的层。</param>
         /// <param name="cursor">这一层的游标，从头列为空。</param>
         /// <param name="cancellationToken">取消令牌。</param>
-        /// <returns>这一层还没列完时的游标；列完为空。</returns>
-        public async ValueTask<string?> FillAsync(Func<CacheKeyQuery, CancellationToken, ValueTask<CacheKeyPage>> list, CacheLayer layer, string? cursor, CancellationToken cancellationToken)
+        /// <returns>成功；列键失败时为那次的错误。</returns>
+        public async ValueTask<Result> FillAsync(Func<CacheKeyQuery, CancellationToken, ValueTask<Result<CacheKeyPage>>> list, CacheLayer layer, string? cursor, CancellationToken cancellationToken)
         {
             var hint = 0;
+            Continuation = cursor;
             while (CanContinue)
             {
                 _rounds++;
                 hint = Math.Max(limit - _items.Count, hint);
-                var page = await list(new CacheKeyQuery { Prefix = prefix, Limit = hint, Continuation = cursor }, cancellationToken).ConfigureAwait(false);
+                var listed = await list(new CacheKeyQuery { Prefix = prefix, Limit = hint, Continuation = Continuation }, cancellationToken).ConfigureAwait(false);
+                if (!listed.TryGetValue(out var page))
+                {
+                    return Result.Failure(listed.Error!);
+                }
+
                 var added = 0;
                 foreach (var key in page.Keys)
                 {
@@ -194,14 +218,14 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
                     hint = Math.Min(hint * 2, CacheKeyQuery.MaxLimit);
                 }
 
-                cursor = page.Continuation;
-                if (cursor is null)
+                Continuation = page.Continuation;
+                if (Continuation is null)
                 {
-                    return null;
+                    break;
                 }
             }
 
-            return cursor;
+            return Result.Success();
         }
 
         /// <summary>
