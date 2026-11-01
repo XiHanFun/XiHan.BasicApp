@@ -63,7 +63,8 @@ Host              XiHan.BasicApp.Host
 | `OpenPlatform` | 2 | 签名开放接口、OAuth 2.0 / OIDC 服务端、OAuth 应用、我的应用、授权同意 | 已落地 |
 | `Realtime` | 2 | 通知 Hub、连接与在线状态、按受众推送 | 已落地 |
 | `Workbench` | 3 | 工作台小组件汇总（各包登记的指标、图表与列表） | 已落地 |
-| `Workflow` · `Printing` · `CodeGeneration` · `Chat` | 3 | 工作流与审批中心、打印模板、代码生成、在线聊天 | 规划中（N3） |
+| `Printing` | 3 | 打印模板（平台全局与租户）、按编码解析、打印数据源目录 | 已落地 |
+| `Workflow` · `CodeGeneration` · `Chat` | 3 | 工作流与审批中心、代码生成、在线聊天 | 规划中（N3） |
 | `AI` | 3 | AI 提供商、提示词、知识库、助手 | 规划中（N4） |
 
 ## 技术栈

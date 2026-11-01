@@ -1,0 +1,346 @@
+import type { PrintTemplateDetail, PrintTemplateScope } from './models'
+/**
+ * 打印模板编辑器会话 Composable。
+ * 职责：集中管理已有模板的设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好；
+ * 模板的名称、编码、数据源等元数据在列表页的新增、编辑弹窗里改，这里只沿用详情里的那份。
+ */
+import type PrintDesignerCanvas from './PrintDesignerCanvas.vue'
+import type { PrintDocument } from '~/printing/designer'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { dialog, toast } from '~/composables'
+import { printTemplates } from '~/contracts'
+import {
+  createDefaultPrintSampleData,
+  directPrintByCode,
+  getPreferredPrinter,
+  listPrinters,
+  parsePrintTemplateJson,
+  PrintTemplateFormatError,
+  refreshPrinters,
+  setPreferredPrinter,
+} from '~/printing'
+import { createEmptyPrintDocument } from '~/printing/designer'
+import { toPrintTemplateForm, toPrintTemplateUpdateInput } from './print-template-form'
+
+/** 编辑器父组件传入的响应式属性。 */
+interface PrintTemplateEditorProps {
+  detail: PrintTemplateDetail | null
+  globalMode: boolean
+  scope: PrintTemplateScope
+  show: boolean
+}
+
+/** 编辑器向父组件发出的事件。 */
+interface PrintTemplateEditorEmit {
+  (event: 'saved', detail: PrintTemplateDetail): void
+  (event: 'update:show', value: boolean): void
+}
+
+/**
+ * 创建一个打印模板编辑会话。
+ * @param props 编辑器详情、作用域和显示状态；必须直接传入 defineProps 返回的响应式对象。
+ * @param emit 保存完成与可见性变更事件发送器。
+ * @returns 供编辑器视图绑定的状态、计算属性和操作方法。
+ * @throws 必须在 Vue setup 生命周期内调用。
+ */
+export function usePrintTemplateEditor(
+  props: Readonly<PrintTemplateEditorProps>,
+  emit: PrintTemplateEditorEmit,
+) {
+  const { t } = useI18n()
+  const designerRef = ref<InstanceType<typeof PrintDesignerCanvas> | null>(null)
+  const draftTemplate = shallowRef<PrintDocument>(createEmptyPrintDocument())
+  const currentDetail = ref<PrintTemplateDetail | null>(null)
+  const designerKey = ref(0)
+  /** 设计器判定的未保存：随它的 dirty-change 更新，改了又撤销回原样即复位 */
+  const designerDirty = ref(false)
+  /** 旧格式模板换成了空白：设计器里看着干净，库里仍是旧内容，存好前一直算未保存 */
+  const legacyReset = ref(false)
+  const dirty = computed(() => designerDirty.value || legacyReset.value)
+  const designerReady = ref(false)
+  const saveLoading = ref(false)
+  const previewLoading = ref(false)
+  const samplePreviewVisible = ref(false)
+  const directLoading = ref(false)
+  const printerLoading = ref(false)
+  const printers = ref<{ label: string, value: string }[]>([])
+  const selectedPrinter = ref<string | null>(null)
+  let abortController = new AbortController()
+
+  const title = computed(() => t('printing.print_templates.design_title', { code: currentDetail.value?.templateCode ?? '' }))
+  const canDirectPrint = computed(() => currentDetail.value?.status === 'Active')
+  /** 设计器本机草稿的键：模板 id，不同模板的草稿不串 */
+  const draftKey = computed(() => currentDetail.value?.id || undefined)
+  const printerOptions = computed(() => [
+    { label: t('printing.print_templates.client_default_printer'), value: '' },
+    ...printers.value,
+  ])
+
+  watch(
+    () => props.show,
+    (show) => {
+      if (show) {
+        void resetEditor()
+      }
+      else {
+        samplePreviewVisible.value = false
+        abortController.abort(new DOMException('打印模板编辑器已关闭。', 'AbortError'))
+      }
+    },
+  )
+
+  onMounted(() => window.addEventListener('beforeunload', preventUnload))
+  onBeforeUnmount(() => {
+    abortController.abort(new DOMException('打印模板编辑器已卸载。', 'AbortError'))
+    window.removeEventListener('beforeunload', preventUnload)
+    samplePreviewVisible.value = false
+  })
+
+  /** 重置本次编辑会话并重新装载设计器；只打开已有模板，新模板先在列表页的新增弹窗里建好。 */
+  async function resetEditor(): Promise<void> {
+    designerReady.value = false
+    abortController.abort()
+    abortController = new AbortController()
+    samplePreviewVisible.value = false
+    let legacyFormat = false
+    try {
+      const detail = props.detail
+      if (!detail)
+        throw new Error(t('printing.print_templates.not_found'))
+      currentDetail.value = detail
+      try {
+        draftTemplate.value = parsePrintTemplateJson(detail.templateJson, detail.templateCode)
+      }
+      catch (error) {
+        if (!(error instanceof PrintTemplateFormatError))
+          throw error
+        // 旧格式或损坏的模板打不开：换成空白模板并明确提示，保存后覆盖原内容
+        draftTemplate.value = createEmptyPrintDocument()
+        legacyFormat = true
+        toast.warning(t('printing.print_templates.legacy_format_reset'))
+      }
+      selectedPrinter.value = getPreferredPrinter(detail.templateCode)
+      designerKey.value += 1
+      await nextTick()
+      // 新装的设计器没有修改；旧格式换成空白的要存一次才覆盖库里的旧内容
+      designerDirty.value = false
+      legacyReset.value = legacyFormat
+      void loadPrinters(false)
+    }
+    catch (error) {
+      toast.danger((error as Error).message || t('printing.print_templates.invalid_json'))
+      emit('update:show', false)
+    }
+  }
+
+  /** 设计器就绪后才接收其模板变化，装载过程中的变化不当作编辑。 */
+  function onDesignerReady(): void {
+    designerReady.value = true
+  }
+
+  /** 接收设计变化，更新草稿；未保存与否以设计器的 dirty-change 为准。 */
+  function onDesignerChanged(template: PrintDocument): void {
+    if (!designerReady.value)
+      return
+    draftTemplate.value = template
+  }
+
+  /** 设计器判定的未保存变了：改了又撤销回原样、存好后记为已保存时它报干净。 */
+  function onDesignerDirtyChange(value: boolean): void {
+    designerDirty.value = value
+  }
+
+  /** 接收 Vue 组件模板 ref，并把宽泛的运行时实例收窄为设计器公开句柄。 */
+  function setDesignerRef(instance: unknown): void {
+    designerRef.value = instance as InstanceType<typeof PrintDesignerCanvas> | null
+  }
+
+  /**
+   * 保存设计；loading 锁阻止重复提交，并发戳用于拒绝覆盖并行编辑，模板有错误级问题时拦下。元数据沿用详情里的那份。
+   * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null。
+   */
+  async function save(): Promise<PrintTemplateDetail | null> {
+    const detail = currentDetail.value
+    if (saveLoading.value || !detail)
+      return null
+    const errorCount = designerRef.value?.validate().filter(issue => issue.severity === 'error').length ?? 0
+    if (errorCount > 0) {
+      toast.warning(t('printing.print_templates.save_blocked_issues', { count: errorCount }))
+      return null
+    }
+    const templateSnapshot = designerRef.value?.getJson() ?? draftTemplate.value
+    const templateJson = JSON.stringify(templateSnapshot)
+
+    saveLoading.value = true
+    try {
+      const saved = await printTemplates.update(toPrintTemplateUpdateInput(
+        detail,
+        toPrintTemplateForm(detail),
+        templateJson,
+        { globalMode: props.globalMode },
+      ))
+      // 存好后让设计器记为已保存，删掉这份模板的本机草稿；设计器随之报干净
+      designerRef.value?.markSaved()
+      currentDetail.value = saved
+      legacyReset.value = false
+      emit('saved', saved)
+      toast.success(t('printing.print_templates.save_success'))
+      return saved
+    }
+    catch (error) {
+      toast.danger((error as Error).message || t('printing.print_templates.save_failed'))
+      return null
+    }
+    finally {
+      saveLoading.value = false
+    }
+  }
+
+  /** 打开数据源驱动的模拟数据表单。 */
+  function openSamplePreview(): void {
+    if (designerReady.value)
+      samplePreviewVisible.value = true
+  }
+
+  /**
+   * 使用当前未保存设计和用户填写的内存模拟数据调起浏览器打印。
+   * @param sample 模拟数据弹窗输出的单对象或对象数组。
+   * @returns 打印调用完成信号。
+   */
+  async function preview(sample: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
+    if (previewLoading.value)
+      return
+    previewLoading.value = true
+    try {
+      await designerRef.value?.preview(sample)
+      samplePreviewVisible.value = false
+    }
+    catch (error) {
+      toast.danger((error as Error).message || t('printing.print_templates.preview_failed'))
+    }
+    finally {
+      previewLoading.value = false
+    }
+  }
+
+  /** 先保存最新设计，再通过公共 FIFO 直打服务交给本地打印客户端。 */
+  async function directPrint(): Promise<void> {
+    if (directLoading.value)
+      return
+    directLoading.value = true
+    try {
+      const saved = dirty.value ? await save() : currentDetail.value
+      if (!saved)
+        return
+      if (saved.status !== 'Active')
+        throw new Error(t('printing.print_templates.disabled_cannot_print'))
+      const sample = await createDefaultPrintSampleData(saved.dataSourceCode ?? null)
+      await directPrintByCode(saved.templateCode, sample, {
+        scope: props.scope,
+        printerName: selectedPrinter.value || undefined,
+        title: saved.templateName,
+        signal: abortController.signal,
+      })
+      toast.success(t('printing.print_templates.direct_success'))
+    }
+    catch (error) {
+      if ((error as Error).name !== 'AbortError')
+        toast.danger((error as Error).message || t('printing.print_templates.direct_failed'))
+    }
+    finally {
+      directLoading.value = false
+    }
+  }
+
+  /** 加载或刷新客户端打印机列表；客户端不可用时保留编辑能力。 */
+  async function loadPrinters(forceRefresh: boolean): Promise<void> {
+    if (printerLoading.value)
+      return
+    printerLoading.value = true
+    try {
+      const values = forceRefresh ? await refreshPrinters() : await listPrinters()
+      printers.value = values.map(printer => ({ label: printer.name, value: printer.name }))
+    }
+    catch (error) {
+      printers.value = []
+      if (forceRefresh)
+        toast.danger((error as Error).message || t('printing.print_templates.printer_load_failed'))
+    }
+    finally {
+      printerLoading.value = false
+    }
+  }
+
+  /** 更新本地偏好；空字符串表示交给客户端默认打印机。 */
+  async function updatePrinterPreference(value: null | string): Promise<void> {
+    selectedPrinter.value = value || null
+    const templateCode = currentDetail.value?.templateCode
+    if (!templateCode)
+      return
+    try {
+      await setPreferredPrinter(templateCode, selectedPrinter.value)
+    }
+    catch (error) {
+      toast.danger((error as Error).message)
+    }
+  }
+
+  /** 拦截关闭并在存在未保存变更时请求确认。 */
+  async function requestVisible(value: boolean): Promise<void> {
+    if (value || await confirmDiscard())
+      emit('update:show', value)
+  }
+
+  /** 返回是否允许丢弃当前未保存更改，供路由离开守卫复用。 */
+  function confirmDiscard(): Promise<boolean> {
+    if (!dirty.value)
+      return Promise.resolve(true)
+    // confirm 本身以布尔兑现：确定为 true，取消与关闭都是 false
+    return dialog.confirm({
+      badge: 'warning',
+      title: t('printing.print_templates.unsaved_title'),
+      content: t('printing.print_templates.unsaved_content'),
+      okText: t('printing.print_templates.discard'),
+      cancelText: t('common.actions.cancel'),
+    })
+  }
+
+  /** 浏览器刷新/关闭时使用原生未保存提示。 */
+  function preventUnload(event: BeforeUnloadEvent): void {
+    if (!props.show || !dirty.value)
+      return
+    event.preventDefault()
+    event.returnValue = ''
+  }
+
+  return {
+    canDirectPrint,
+    confirmDiscard,
+    currentDetail,
+    designerKey,
+    designerReady,
+    directLoading,
+    directPrint,
+    dirty,
+    draftKey,
+    draftTemplate,
+    loadPrinters,
+    onDesignerChanged,
+    onDesignerDirtyChange,
+    onDesignerReady,
+    openSamplePreview,
+    preview,
+    previewLoading,
+    printerLoading,
+    printerOptions,
+    requestVisible,
+    save,
+    saveLoading,
+    samplePreviewVisible,
+    selectedPrinter,
+    setDesignerRef,
+    title,
+    updatePrinterPreference,
+  }
+}

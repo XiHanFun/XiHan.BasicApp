@@ -23,6 +23,7 @@
     <ProjectReference Include="../XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
     <!-- Tier 3 可选模块：按 BasicApp:Modules:<名>:Enabled 装配 -->
     <ProjectReference Include="../XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

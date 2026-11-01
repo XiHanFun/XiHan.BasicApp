@@ -12,6 +12,7 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Maintenance;
 using XiHan.BasicApp.OpenPlatform;
+using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Realtime;
@@ -98,6 +99,7 @@ public static class Packages
         typeof(MaintenanceFeature).Assembly,
         typeof(OpenPlatformFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,
+        typeof(PrintingFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

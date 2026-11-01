@@ -245,6 +245,14 @@ export const routes = {
   'positions.get': { method: 'GET', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'positions.list': { method: 'POST', template: '/api/positions:list', path: [], query: [], success: 200 },
   'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
+  'print-data-sources.list': { method: 'GET', template: '/api/print-data-sources', path: [], query: [], success: 200 },
+  'print-templates.create': { method: 'POST', template: '/api/print-templates', path: [], query: [], success: 201 },
+  'print-templates.delete': { method: 'DELETE', template: '/api/print-templates', path: [], query: ['ids'], success: 200 },
+  'print-templates.get': { method: 'GET', template: '/api/print-templates/{id}', path: ['id'], query: [], success: 200 },
+  'print-templates.list': { method: 'POST', template: '/api/print-templates:list', path: [], query: [], success: 200 },
+  'print-templates.resolve': { method: 'GET', template: '/api/print-templates:resolve', path: [], query: ['templateCode', 'scope'], success: 200 },
+  'print-templates.set-status': { method: 'POST', template: '/api/print-templates/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'print-templates.update': { method: 'PUT', template: '/api/print-templates/{id}', path: ['id'], query: [], success: 200 },
   'profile.begin-external-bind': { method: 'POST', template: '/api/profile:begin-external-bind', path: [], query: [], success: 200 },
   'profile.change-contact': { method: 'POST', template: '/api/profile:change-contact', path: [], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
@@ -787,6 +795,22 @@ export const positions = {
   get: (request: RequestOf<'positions.get'>, options?: CallOptions) => invoke<RequestOf<'positions.get'>, ResponseOf<'positions.get'>>('positions.get', routes['positions.get'], request, options),
   list: (request: RequestOf<'positions.list'>, options?: CallOptions) => invoke<RequestOf<'positions.list'>, ResponseOf<'positions.list'>>('positions.list', routes['positions.list'], request, options),
   update: (request: RequestOf<'positions.update'>, options?: CallOptions) => invoke<RequestOf<'positions.update'>, ResponseOf<'positions.update'>>('positions.update', routes['positions.update'], request, options),
+}
+
+/** 资源 `print-data-sources` 的操作。 */
+export const printDataSources = {
+  list: (request: RequestOf<'print-data-sources.list'>, options?: CallOptions) => invoke<RequestOf<'print-data-sources.list'>, ResponseOf<'print-data-sources.list'>>('print-data-sources.list', routes['print-data-sources.list'], request, options),
+}
+
+/** 资源 `print-templates` 的操作。 */
+export const printTemplates = {
+  create: (request: RequestOf<'print-templates.create'>, options?: CallOptions) => invoke<RequestOf<'print-templates.create'>, ResponseOf<'print-templates.create'>>('print-templates.create', routes['print-templates.create'], request, options),
+  delete: (request: RequestOf<'print-templates.delete'>, options?: CallOptions) => invoke<RequestOf<'print-templates.delete'>, ResponseOf<'print-templates.delete'>>('print-templates.delete', routes['print-templates.delete'], request, options),
+  get: (request: RequestOf<'print-templates.get'>, options?: CallOptions) => invoke<RequestOf<'print-templates.get'>, ResponseOf<'print-templates.get'>>('print-templates.get', routes['print-templates.get'], request, options),
+  list: (request: RequestOf<'print-templates.list'>, options?: CallOptions) => invoke<RequestOf<'print-templates.list'>, ResponseOf<'print-templates.list'>>('print-templates.list', routes['print-templates.list'], request, options),
+  resolve: (request: RequestOf<'print-templates.resolve'>, options?: CallOptions) => invoke<RequestOf<'print-templates.resolve'>, ResponseOf<'print-templates.resolve'>>('print-templates.resolve', routes['print-templates.resolve'], request, options),
+  setStatus: (request: RequestOf<'print-templates.set-status'>, options?: CallOptions) => invoke<RequestOf<'print-templates.set-status'>, ResponseOf<'print-templates.set-status'>>('print-templates.set-status', routes['print-templates.set-status'], request, options),
+  update: (request: RequestOf<'print-templates.update'>, options?: CallOptions) => invoke<RequestOf<'print-templates.update'>, ResponseOf<'print-templates.update'>>('print-templates.update', routes['print-templates.update'], request, options),
 }
 
 /** 资源 `profile` 的操作。 */

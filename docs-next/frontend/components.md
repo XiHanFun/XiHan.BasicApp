@@ -42,7 +42,7 @@
 
 ## 尚未搬入
 
-- 流程设计器与打印设计器的接线（`packages/designers`、`packages/printing`），随 N3 的 Workflow、Printing。
+- 流程设计器的接线（`packages/designers/flow`），随 N3 的 Workflow；打印设计器（`packages/printing`）与设计器共用的接线（`packages/designers`）已随 Printing 搬入。
 
 ## 写法约定
 

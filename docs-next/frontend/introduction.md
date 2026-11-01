@@ -56,8 +56,9 @@ frontend-next/
 | `auditing` | 链路追踪与八个日志页 |
 | `maintenance` | 作业、缓存、服务监控、版本、升级记录 |
 | `openplatform` | OAuth 应用 |
+| `printing` | 打印模板（设计器、样例数据、预览与直打） |
 
-`workflow`、`printing`、`codegen`、`chat`、`ai` 随后端 N3 / N4 再建。
+`workflow`、`codegen`、`chat`、`ai` 随后端 N3 / N4 再建。
 
 ## 应用启动
 

@@ -194,6 +194,12 @@ export type PermissionChangeType = (typeof PermissionChangeType)[number]
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
 export type PermissionScope = (typeof PermissionScope)[number]
 
+export const PrintTemplateScope = ['Auto', 'Tenant', 'Global'] as const
+export type PrintTemplateScope = (typeof PrintTemplateScope)[number]
+
+export const PrintTemplateStatus = ['Active', 'Disabled'] as const
+export type PrintTemplateStatus = (typeof PrintTemplateStatus)[number]
+
 export const RoleStatus = ['Active', 'Disabled'] as const
 export type RoleStatus = (typeof RoleStatus)[number]
 
@@ -323,6 +329,8 @@ export const enums = {
   PermissionAction,
   PermissionChangeType,
   PermissionScope,
+  PrintTemplateScope,
+  PrintTemplateStatus,
   RoleStatus,
   SessionRoleStatus,
   SettingStatus,

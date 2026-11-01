@@ -23,12 +23,17 @@ public sealed record HostModules
     public bool Workbench { get; init; } = true;
 
     /// <summary>
+    /// 打印模块。
+    /// </summary>
+    public bool Printing { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取。
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)

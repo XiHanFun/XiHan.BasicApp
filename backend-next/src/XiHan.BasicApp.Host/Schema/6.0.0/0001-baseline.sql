@@ -1018,6 +1018,29 @@ CREATE TABLE IF NOT EXISTS "sys_position" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_position_tenant_id_code ON public.sys_position USING btree (tenant_id, code) WHERE (is_deleted = false);
 
+CREATE TABLE IF NOT EXISTS "sys_print_template" (
+    "id" uuid NOT NULL,
+    "owner_tenant_id" character varying(512) NOT NULL,
+    "template_code" character varying(512) NOT NULL,
+    "data_source_code" character varying(512) DEFAULT NULL::character varying NULL,
+    "template_name" character varying(512) NOT NULL,
+    "template_json" text NOT NULL,
+    "allow_tenant_use" boolean DEFAULT false NOT NULL,
+    "status" integer DEFAULT 0 NOT NULL,
+    "order" integer DEFAULT 0 NOT NULL,
+    "remark" character varying(512) DEFAULT NULL::character varying NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_print_template_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_print_template_owner_tenant_id_template_code ON public.sys_print_template USING btree (owner_tenant_id, template_code) WHERE (is_deleted = false);
+
 CREATE TABLE IF NOT EXISTS "sys_role" (
     "id" uuid NOT NULL,
     "owner_tenant_id" character varying(512) NOT NULL,

@@ -15,6 +15,7 @@ using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.OpenPlatform;
 using XiHan.BasicApp.OpenPlatform.Infrastructure;
 using XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
+using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -130,6 +131,11 @@ public static class BasicAppHost
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();
+            }
+
+            if (modules.Printing)
+            {
+                xihan.UseFeature<PrintingFeature>();
             }
         });
 

@@ -9,6 +9,7 @@ Tier 0 基座：跨包共享的契约，不含任何装配与基础设施。
 | `Batch/` | `BatchResult { Succeeded[], Failed[{ id, code }] }`：批量优先，集合入参的写操作统一返回它 |
 | `Security/` | `PermissionDescriptor`（码、显示名、作用侧、是否审计、说明）与三段权限码文法；字段安全的 `IFieldSecurity`（由 Access 实现）、合并后的 `FieldRules`（打码、查询门控与写入决定）、`FieldMaskStrategy` 与实体登记 `AddFieldSecurityCatalog` |
 | `Settings/` | `IConfigValueReader`（参数的生效值：租户覆盖优先、停用视为不存在、没有值回落缺省值、加密值解密后返回）与 `INumberGenerator`（按规则码发号，带幂等键；`NumberRequest` / `NumberAllocation` / `NumberingScope`），由 `Settings` 包实现 |
+| `Printing/` | 打印数据源的定义记录（字段契约与样例 JSON）与 `AddPrintDataSource` 登记：业务包登记，`Printing` 的注册表在启动时收下并校验；只是元数据，Printing 关掉时没有消费方 |
 | `AppInfo` / `TenantIds` | 应用名与版本；租户 ID 文法与平台属主常量 `platform` |
 
 ## 规则

@@ -212,7 +212,12 @@
 
 ## `BasicApp:Modules`
 
-可选模块开关 `BasicApp:Modules:<名>:Enabled`：没写即开启，写了必须是 `true` / `false`。目前只有 `Workbench`；关掉后前端把 `VITE_HOME_PATH` 留空。
+可选模块开关 `BasicApp:Modules:<名>:Enabled`：没写即开启，写了必须是 `true` / `false`。关掉的模块宿主不装配，它的页面与权限码不下发，前端模块随菜单不再出现。
+
+| 名 | 模块 | 关掉之后 |
+| --- | --- | --- |
+| `Workbench` | 工作台 | 登录后落到第一个有权限的页面，前端把 `VITE_HOME_PATH` 留空 |
+| `Printing` | 打印模板 | 其他包登记的打印数据源没有消费方，见[打印模板](./backend/printing#开关) |
 
 ## `BasicApp:Auth`
 

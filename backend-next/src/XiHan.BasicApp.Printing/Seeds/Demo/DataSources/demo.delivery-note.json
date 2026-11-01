@@ -1,0 +1,161 @@
+{
+  "code": "demo.delivery-note",
+  "name": "演示 · 送货单",
+  "fields": [
+    {
+      "key": "customer.name",
+      "label": "客户名称"
+    },
+    {
+      "key": "date",
+      "label": "送货日期",
+      "inputType": "date"
+    },
+    {
+      "key": "items",
+      "label": "送货明细",
+      "kind": "table",
+      "columns": [
+        {
+          "field": "name",
+          "title": "品名",
+          "width": 120
+        },
+        {
+          "field": "qty",
+          "title": "数量",
+          "width": 60,
+          "inputType": "number"
+        },
+        {
+          "field": "price",
+          "title": "单价",
+          "width": 70,
+          "inputType": "number"
+        },
+        {
+          "field": "amount",
+          "title": "金额",
+          "width": 80,
+          "inputType": "number"
+        }
+      ]
+    }
+  ],
+  "sample": {
+    "customer": {
+      "name": "曦寒商贸有限公司"
+    },
+    "date": "2026-10-17",
+    "items": [
+      {
+        "name": "A4 复印纸 1 号",
+        "qty": 1,
+        "price": 12.5,
+        "amount": 12.5
+      },
+      {
+        "name": "中性笔 2 号",
+        "qty": 2,
+        "price": 15.5,
+        "amount": 31
+      },
+      {
+        "name": "订书机 3 号",
+        "qty": 3,
+        "price": 18.5,
+        "amount": 55.5
+      },
+      {
+        "name": "文件夹 4 号",
+        "qty": 4,
+        "price": 21.5,
+        "amount": 86
+      },
+      {
+        "name": "便利贴 5 号",
+        "qty": 5,
+        "price": 24.5,
+        "amount": 122.5
+      },
+      {
+        "name": "计算器 6 号",
+        "qty": 1,
+        "price": 27.5,
+        "amount": 27.5
+      },
+      {
+        "name": "A4 复印纸 7 号",
+        "qty": 2,
+        "price": 30.5,
+        "amount": 61
+      },
+      {
+        "name": "中性笔 8 号",
+        "qty": 3,
+        "price": 33.5,
+        "amount": 100.5
+      },
+      {
+        "name": "订书机 9 号",
+        "qty": 4,
+        "price": 36.5,
+        "amount": 146
+      },
+      {
+        "name": "文件夹 10 号",
+        "qty": 5,
+        "price": 39.5,
+        "amount": 197.5
+      },
+      {
+        "name": "便利贴 11 号",
+        "qty": 1,
+        "price": 42.5,
+        "amount": 42.5
+      },
+      {
+        "name": "计算器 12 号",
+        "qty": 2,
+        "price": 45.5,
+        "amount": 91
+      },
+      {
+        "name": "A4 复印纸 13 号",
+        "qty": 3,
+        "price": 48.5,
+        "amount": 145.5
+      },
+      {
+        "name": "中性笔 14 号",
+        "qty": 4,
+        "price": 51.5,
+        "amount": 206
+      },
+      {
+        "name": "订书机 15 号",
+        "qty": 5,
+        "price": 54.5,
+        "amount": 272.5
+      },
+      {
+        "name": "文件夹 16 号",
+        "qty": 1,
+        "price": 57.5,
+        "amount": 57.5
+      },
+      {
+        "name": "便利贴 17 号",
+        "qty": 2,
+        "price": 60.5,
+        "amount": 121
+      },
+      {
+        "name": "计算器 18 号",
+        "qty": 3,
+        "price": 63.5,
+        "amount": 190.5
+      }
+    ]
+  }
+}

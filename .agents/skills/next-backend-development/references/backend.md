@@ -17,6 +17,7 @@ src/XiHan.BasicApp.<包>/
 ```
 
 - 目录只许上面这些（`PackageStructureTests`，`Contracts`、`Runtime`、`Host` 例外）。新包要进 `XiHan.BasicApp.slnx`、`Architecture.Tests` 的项目引用与 `Model/Packages.cs` 的 Tier 表，并在宿主 `UseFeature`。
+- Tier 3 可选模块照 Printing 的接法（方案修订（八十五））：`HostModules` 加开关、宿主 `if (modules.<名>) UseFeature`、OpenAPI 加分组、一条开关用例（关掉后页面与权限码不下发、操作 404、`/openapi.json` 照常、写错值启动即失败）。
 - 操作命名空间按资源名逐段转 Pascal：`oauth-apps` → `Operations/OauthApps`；共用 DTO 可放 `Operations/<主题>/XxxContracts.cs`。
 - 跨包协作只经 `Contracts` 的接口（`IConfigValueReader`、`ITenantQuota`、`IRealtimePush`、`IMessageSender`、`IWorkbenchWidgetProvider`、`IEditionGate` 等），实现方在自己的 Feature 里登记，消费方 `IEnumerable<>` 注入时要处理没有实现的情形。
 

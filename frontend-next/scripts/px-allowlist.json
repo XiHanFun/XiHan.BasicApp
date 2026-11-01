@@ -54,6 +54,8 @@
   "packages/views/_core/profile/index.vue": 34,
   "packages/views/_core/profile/profile-shared.css": 85,
   "src/modules/auditing/views/traces/index.vue": 58,
+  "src/modules/printing/views/print-templates/components/PrintSampleDataModal.vue": 14,
+  "src/modules/printing/views/print-templates/components/PrintSampleTableEditor.vue": 11,
   "src/modules/workbench/views/dashboard/index.vue": 1,
   "src/styles/admin-page.css": 8
 }

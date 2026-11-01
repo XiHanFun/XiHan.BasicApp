@@ -4519,6 +4519,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/print-data-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List print data sources
+         * @description List the registered print data sources (field contracts and sample JSON) for the designer and for printing; either the read or the use permission on templates is enough.
+         *
+         *     Requires policy printing.data-source-catalog.
+         */
+        get: operations["print-data-sources.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/print-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a print template
+         * @description Create a print template on the caller's side (a global template on the platform, which also needs global management): the code is unique on the side and cannot change, the data source must be registered, and the JSON must be schemaVersion 1 with pages.
+         *
+         *     Requires permission printing.print-templates.create (Create print templates).
+         */
+        post: operations["print-templates.create"];
+        /**
+         * Delete print templates
+         * @description Delete disabled templates on the caller's side in a batch; templates still enabled are refused one by one.
+         *
+         *     Requires permission printing.print-templates.delete (Delete print templates).
+         */
+        delete: operations["print-templates.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/print-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a print template
+         * @description Get a print template with its design JSON; a tenant can read a global template only when it is enabled and open to tenants.
+         *
+         *     Requires permission printing.print-templates.read (Read print templates).
+         */
+        get: operations["print-templates.get"];
+        /**
+         * Update a print template
+         * @description Update the name, data source, design JSON, tenant access, order and remark of a template on the caller's side (the code cannot change); send back the concurrency stamp you read.
+         *
+         *     Requires permission printing.print-templates.update (Update print templates).
+         */
+        put: operations["print-templates.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/print-templates/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable a print template
+         * @description Enable or disable a template on the caller's side; send back the concurrency stamp you read, and a remark, when given, replaces the current one.
+         *
+         *     Requires permission printing.print-templates.status (Enable or disable print templates).
+         */
+        post: operations["print-templates.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/print-templates:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List print templates
+         * @description Page through print templates: the platform sees every global template; a tenant sees its own templates by default and, with the Global scope, the enabled global templates open to tenants.
+         *
+         *     Requires permission printing.print-templates.read (Read print templates).
+         */
+        post: operations["print-templates.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/print-templates:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve a print template by code
+         * @description Resolve the enabled template to print by code and scope: for a tenant, Auto takes the tenant's own template first and falls back to an open global template; results are cached for 30 minutes.
+         *
+         *     Requires permission printing.print-templates.use (Use print templates).
+         */
+        get: operations["print-templates.resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile": {
         parameters: {
             query?: never;
@@ -9829,6 +9973,97 @@ export interface components {
              */
             createdAt: string;
         };
+        /** @description 打印数据源明细表的一列。 */
+        PrintDataSourceColumnResponse: {
+            /** @description 数据字段路径。 */
+            field: string;
+            /** @description 列标题。 */
+            title: string;
+            /**
+             * Format: int32
+             * @description 列宽（pt）。
+             */
+            width?: number | null;
+            /** @description 样例表格单元格的控件。 */
+            inputType?: string | null;
+            /** @description 样例表格单元格的占位文案。 */
+            placeholder?: string | null;
+        };
+        /** @description 打印数据源的一个字段。 */
+        PrintDataSourceFieldResponse: {
+            /** @description 数据字段路径。 */
+            key: string;
+            /** @description 设计器素材的标题。 */
+            label: string;
+            /** @description 元素种类：text / image / barcode / qrcode / table。 */
+            kind: string;
+            /** @description 明细表的列（只有 table 有）。 */
+            columns?: components["schemas"]["PrintDataSourceColumnResponse"][] | null;
+            /** @description 样例表单的控件。 */
+            inputType?: string | null;
+            /** @description 样例表单的占位文案。 */
+            placeholder?: string | null;
+        };
+        /** @description 一个打印数据源。 */
+        PrintDataSourceResponse: {
+            /** @description 编码。 */
+            code: string;
+            /** @description 设计器里显示的名称。 */
+            name: string;
+            /** @description 字段清单。 */
+            fields: components["schemas"]["PrintDataSourceFieldResponse"][];
+            /** @description 静态样例数据 JSON。 */
+            sampleDataJson: string;
+        };
+        /** @description 打印模板的列表项。 */
+        PrintTemplateResponse: {
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
+            id: string;
+            /** @description 是否为平台全局模板。 */
+            isGlobal: boolean;
+            /** @description 模板编码。 */
+            templateCode: string;
+            /** @description 数据源编码，为空即自由模板。 */
+            dataSourceCode?: string | null;
+            /** @description 模板名称。 */
+            templateName: string;
+            /** @description 全局模板是否向租户开放。 */
+            allowTenantUse: boolean;
+            /** @description 状态。 */
+            status: components["schemas"]["PrintTemplateStatus"];
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
+            order: number;
+            /** @description 备注。 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回。 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）。
+             */
+            modifiedAt?: string | null;
+        };
+        /**
+         * @description 打印模板的作用域。
+         * @enum {string}
+         */
+        PrintTemplateScope: "Auto" | "Tenant" | "Global";
+        /**
+         * @description 打印模板的启停状态。
+         * @enum {string}
+         */
+        PrintTemplateStatus: "Active" | "Disabled";
         ProcessorInfo: {
             name?: string | null;
             vendor?: string | null;
@@ -26117,6 +26352,521 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-data-sources.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 打印数据源目录。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 数据源，按编码排序。 */
+                        items: components["schemas"]["PrintDataSourceResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description print-templates.create 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 模板编码（本侧唯一、创建后不可改）。 */
+                    templateCode: string;
+                    /** @description 模板名称。 */
+                    templateName: string;
+                    /** @description 打印设计器的模板 JSON。 */
+                    templateJson: string;
+                    /** @description 数据源编码，为空即自由模板。 */
+                    dataSourceCode?: string | null;
+                    /** @description 全局模板是否向租户开放（租户模板忽略）。 */
+                    allowTenantUse?: boolean;
+                    /** @description 初始状态。 */
+                    status?: components["schemas"]["PrintTemplateStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 打印模板的详情。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 是否为平台全局模板。 */
+                        isGlobal: boolean;
+                        /** @description 模板编码。 */
+                        templateCode: string;
+                        /** @description 数据源编码，为空即自由模板。 */
+                        dataSourceCode?: string | null;
+                        /** @description 模板名称。 */
+                        templateName: string;
+                        /** @description 打印设计器的模板 JSON。 */
+                        templateJson: string;
+                        /** @description 全局模板是否向租户开放。 */
+                        allowTenantUse: boolean;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PrintTemplateStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.delete": {
+        parameters: {
+            query: {
+                /** @description 模板 ID，1 到 100 个。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 打印模板的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 是否为平台全局模板。 */
+                        isGlobal: boolean;
+                        /** @description 模板编码。 */
+                        templateCode: string;
+                        /** @description 数据源编码，为空即自由模板。 */
+                        dataSourceCode?: string | null;
+                        /** @description 模板名称。 */
+                        templateName: string;
+                        /** @description 打印设计器的模板 JSON。 */
+                        templateJson: string;
+                        /** @description 全局模板是否向租户开放。 */
+                        allowTenantUse: boolean;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PrintTemplateStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description print-templates.update 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 模板 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 模板名称。 */
+                    templateName: string;
+                    /** @description 打印设计器的模板 JSON。 */
+                    templateJson: string;
+                    /** @description 数据源编码，为空即自由模板。 */
+                    dataSourceCode?: string | null;
+                    /** @description 全局模板是否向租户开放（租户模板忽略）。 */
+                    allowTenantUse?: boolean;
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 打印模板的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 是否为平台全局模板。 */
+                        isGlobal: boolean;
+                        /** @description 模板编码。 */
+                        templateCode: string;
+                        /** @description 数据源编码，为空即自由模板。 */
+                        dataSourceCode?: string | null;
+                        /** @description 模板名称。 */
+                        templateName: string;
+                        /** @description 打印设计器的模板 JSON。 */
+                        templateJson: string;
+                        /** @description 全局模板是否向租户开放。 */
+                        allowTenantUse: boolean;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PrintTemplateStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description print-templates.set-status 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 模板 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态。 */
+                    status: components["schemas"]["PrintTemplateStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 打印模板的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 是否为平台全局模板。 */
+                        isGlobal: boolean;
+                        /** @description 模板编码。 */
+                        templateCode: string;
+                        /** @description 数据源编码，为空即自由模板。 */
+                        dataSourceCode?: string | null;
+                        /** @description 模板名称。 */
+                        templateName: string;
+                        /** @description 打印设计器的模板 JSON。 */
+                        templateJson: string;
+                        /** @description 全局模板是否向租户开放。 */
+                        allowTenantUse: boolean;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PrintTemplateStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PrintTemplateResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "print-templates.resolve": {
+        parameters: {
+            query: {
+                /** @description 模板编码。 */
+                templateCode: string;
+                /** @description 作用域，缺省自动。 */
+                scope?: components["schemas"]["PrintTemplateScope"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 按编码解析出的模板。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 模板 ID。
+                         */
+                        id: string;
+                        /** @description 模板编码。 */
+                        templateCode: string;
+                        /** @description 数据源编码，为空即自由模板。 */
+                        dataSourceCode?: string | null;
+                        /** @description 模板名称。 */
+                        templateName: string;
+                        /** @description 打印设计器的模板 JSON。 */
+                        templateJson: string;
+                        /** @description 请求的作用域。 */
+                        requestedScope: components["schemas"]["PrintTemplateScope"];
+                        /** @description 实际命中的作用域：Tenant 或 Global。 */
+                        resolvedScope: components["schemas"]["PrintTemplateScope"];
+                        /** @description 并发戳：前端据此判断打开样例表单之后模板有没有变。 */
+                        concurrencyStamp: string;
                     };
                 };
             };

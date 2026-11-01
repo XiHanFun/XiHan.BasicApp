@@ -4,6 +4,13 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### N3 第一批：打印模板（2026-11-01）
+
+- 新增可选模块 Printing（`BasicApp:Modules:Printing:Enabled`，缺省开）：平台全局模板与租户模板的设计、样例数据预览与直打，按编码解析的作用域与 5.x 相同。见[打印模板](./backend/printing)。
+- 业务包经 `Contracts` 的 `AddPrintDataSource` 登记打印数据源（字段契约与样例），编码重复或契约不合法时启动即失败。
+- 演示数据打开时写 6 张演示全局模板、登记 5 个演示数据源。
+- 6.0.0 基线新增表 `sys_print_template`。
+
 ### 框架升锁 7743af8e（2026-11-01）
 
 - S3 兼容存储配置第一次用到时先探测条件写入：服务要认 `If-None-Match: *`，访问密钥要能写桶里的 `.xihan/probe/*`；不满足时这条配置上的读写返回对应的 `OBJECTSTORAGE_*` 错误。阿里云 OSS、腾讯云 COS 还没有验证。见[文件与存储](./backend/file#存储配置)。

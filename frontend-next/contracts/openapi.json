@@ -236,6 +236,16 @@
       "description": "Create, read, update and delete positions."
     },
     {
+      "name": "print-data-sources",
+      "x-displayName": "Print data sources",
+      "description": "The catalog of print data sources registered by the modules: field contracts and sample data."
+    },
+    {
+      "name": "print-templates",
+      "x-displayName": "Print templates",
+      "description": "Create, read, update, delete, enable and resolve print templates; the platform maintains global templates and tenants maintain their own and use the open global ones."
+    },
+    {
       "name": "profile",
       "x-displayName": "Profile",
       "description": "Your own profile, password and username, two-factor, third-party accounts, signed-in devices and notification preferences."
@@ -30379,6 +30389,1008 @@
         }
       }
     },
+    "/api/print-data-sources": {
+      "get": {
+        "operationId": "print-data-sources.list",
+        "tags": [
+          "print-data-sources"
+        ],
+        "summary": "List print data sources",
+        "description": "List the registered print data sources (field contracts and sample JSON) for the designer and for printing; either the read or the use permission on templates is enough.\n\nRequires policy printing.data-source-catalog.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "printing.data-source-catalog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u6253\u5370\u6570\u636E\u6E90\u76EE\u5F55\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PrintDataSourcesResponse",
+                  "description": "\u6253\u5370\u6570\u636E\u6E90\u76EE\u5F55\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u6570\u636E\u6E90\uFF0C\u6309\u7F16\u7801\u6392\u5E8F\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PrintDataSourceResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/print-templates": {
+      "delete": {
+        "operationId": "print-templates.delete",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Delete print templates",
+        "description": "Delete disabled templates on the caller\u0027s side in a batch; templates still enabled are refused one by one.\n\nRequires permission printing.print-templates.delete (Delete print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u6A21\u677F ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "print-templates.create",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Create a print template",
+        "description": "Create a print template on the caller\u0027s side (a global template on the platform, which also needs global management): the code is unique on the side and cannot change, the data source must be registered, and the JSON must be schemaVersion 1 with pages.\n\nRequires permission printing.print-templates.create (Create print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "print-templates.create \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreatePrintTemplateRequest",
+                "description": "print-templates.create \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "templateCode": {
+                    "description": "\u6A21\u677F\u7F16\u7801\uFF08\u672C\u4FA7\u552F\u4E00\u3001\u521B\u5EFA\u540E\u4E0D\u53EF\u6539\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^\\S\u002B$"
+                  },
+                  "templateName": {
+                    "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "templateJson": {
+                    "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "dataSourceCode": {
+                    "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100,
+                    "pattern": "^\\S\u002B$"
+                  },
+                  "allowTenantUse": {
+                    "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\uFF08\u79DF\u6237\u6A21\u677F\u5FFD\u7565\uFF09\u3002",
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u521D\u59CB\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/PrintTemplateStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "templateCode",
+                  "templateName",
+                  "templateJson"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PrintTemplateDetailResponse",
+                  "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "isGlobal": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u5168\u5C40\u6A21\u677F\u3002",
+                      "type": "boolean"
+                    },
+                    "templateCode": {
+                      "description": "\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "string"
+                    },
+                    "dataSourceCode": {
+                      "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateName": {
+                      "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "templateJson": {
+                      "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                      "type": "string"
+                    },
+                    "allowTenantUse": {
+                      "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\u3002",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "isGlobal",
+                    "templateCode",
+                    "templateName",
+                    "templateJson",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/print-templates/{id}": {
+      "get": {
+        "operationId": "print-templates.get",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Get a print template",
+        "description": "Get a print template with its design JSON; a tenant can read a global template only when it is enabled and open to tenants.\n\nRequires permission printing.print-templates.read (Read print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PrintTemplateDetailResponse",
+                  "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "isGlobal": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u5168\u5C40\u6A21\u677F\u3002",
+                      "type": "boolean"
+                    },
+                    "templateCode": {
+                      "description": "\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "string"
+                    },
+                    "dataSourceCode": {
+                      "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateName": {
+                      "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "templateJson": {
+                      "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                      "type": "string"
+                    },
+                    "allowTenantUse": {
+                      "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\u3002",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "isGlobal",
+                    "templateCode",
+                    "templateName",
+                    "templateJson",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "print-templates.update",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Update a print template",
+        "description": "Update the name, data source, design JSON, tenant access, order and remark of a template on the caller\u0027s side (the code cannot change); send back the concurrency stamp you read.\n\nRequires permission printing.print-templates.update (Update print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "print-templates.update \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdatePrintTemplateRequest",
+                "description": "print-templates.update \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6A21\u677F ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "templateName": {
+                    "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "templateJson": {
+                    "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "dataSourceCode": {
+                    "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100,
+                    "pattern": "^\\S\u002B$"
+                  },
+                  "allowTenantUse": {
+                    "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\uFF08\u79DF\u6237\u6A21\u677F\u5FFD\u7565\uFF09\u3002",
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "templateName",
+                  "templateJson"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PrintTemplateDetailResponse",
+                  "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "isGlobal": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u5168\u5C40\u6A21\u677F\u3002",
+                      "type": "boolean"
+                    },
+                    "templateCode": {
+                      "description": "\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "string"
+                    },
+                    "dataSourceCode": {
+                      "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateName": {
+                      "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "templateJson": {
+                      "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                      "type": "string"
+                    },
+                    "allowTenantUse": {
+                      "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\u3002",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "isGlobal",
+                    "templateCode",
+                    "templateName",
+                    "templateJson",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/print-templates/{id}:set-status": {
+      "post": {
+        "operationId": "print-templates.set-status",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Enable or disable a print template",
+        "description": "Enable or disable a template on the caller\u0027s side; send back the concurrency stamp you read, and a remark, when given, replaces the current one.\n\nRequires permission printing.print-templates.status (Enable or disable print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "print-templates.set-status \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetPrintTemplateStatusRequest",
+                "description": "print-templates.set-status \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6A21\u677F ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/PrintTemplateStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PrintTemplateDetailResponse",
+                  "description": "\u6253\u5370\u6A21\u677F\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "isGlobal": {
+                      "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u5168\u5C40\u6A21\u677F\u3002",
+                      "type": "boolean"
+                    },
+                    "templateCode": {
+                      "description": "\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "string"
+                    },
+                    "dataSourceCode": {
+                      "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateName": {
+                      "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "templateJson": {
+                      "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                      "type": "string"
+                    },
+                    "allowTenantUse": {
+                      "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\u3002",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "isGlobal",
+                    "templateCode",
+                    "templateName",
+                    "templateJson",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/print-templates:list": {
+      "post": {
+        "operationId": "print-templates.list",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "List print templates",
+        "description": "Page through print templates: the platform sees every global template; a tenant sees its own templates by default and, with the Global scope, the enabled global templates open to tenants.\n\nRequires permission printing.print-templates.read (Read print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfPrintTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PrintTemplateResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/print-templates:resolve": {
+      "get": {
+        "operationId": "print-templates.resolve",
+        "tags": [
+          "print-templates"
+        ],
+        "summary": "Resolve a print template by code",
+        "description": "Resolve the enabled template to print by code and scope: for a tenant, Auto takes the tenant\u0027s own template first and falls back to an open global template; results are cached for 30 minutes.\n\nRequires permission printing.print-templates.use (Use print templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "printing.print-templates.use",
+        "parameters": [
+          {
+            "name": "templateCode",
+            "in": "query",
+            "description": "\u6A21\u677F\u7F16\u7801\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F\u7F16\u7801\u3002",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^\\S\u002B$"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "\u4F5C\u7528\u57DF\uFF0C\u7F3A\u7701\u81EA\u52A8\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u4F5C\u7528\u57DF\uFF0C\u7F3A\u7701\u81EA\u52A8\u3002",
+              "$ref": "#/components/schemas/PrintTemplateScope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6309\u7F16\u7801\u89E3\u6790\u51FA\u7684\u6A21\u677F\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ResolvedPrintTemplateResponse",
+                  "description": "\u6309\u7F16\u7801\u89E3\u6790\u51FA\u7684\u6A21\u677F\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u6A21\u677F ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "templateCode": {
+                      "description": "\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "string"
+                    },
+                    "dataSourceCode": {
+                      "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateName": {
+                      "description": "\u6A21\u677F\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "templateJson": {
+                      "description": "\u6253\u5370\u8BBE\u8BA1\u5668\u7684\u6A21\u677F JSON\u3002",
+                      "type": "string"
+                    },
+                    "requestedScope": {
+                      "description": "\u8BF7\u6C42\u7684\u4F5C\u7528\u57DF\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateScope"
+                    },
+                    "resolvedScope": {
+                      "description": "\u5B9E\u9645\u547D\u4E2D\u7684\u4F5C\u7528\u57DF\uFF1ATenant \u6216 Global\u3002",
+                      "$ref": "#/components/schemas/PrintTemplateScope"
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u524D\u7AEF\u636E\u6B64\u5224\u65AD\u6253\u5F00\u6837\u4F8B\u8868\u5355\u4E4B\u540E\u6A21\u677F\u6709\u6CA1\u6709\u53D8\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "templateCode",
+                    "templateName",
+                    "templateJson",
+                    "requestedScope",
+                    "resolvedScope",
+                    "concurrencyStamp"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile": {
       "get": {
         "operationId": "profile.get",
@@ -50155,6 +51167,219 @@
           "createdAt"
         ]
       },
+      "PrintDataSourceColumnResponse": {
+        "description": "\u6253\u5370\u6570\u636E\u6E90\u660E\u7EC6\u8868\u7684\u4E00\u5217\u3002",
+        "type": "object",
+        "properties": {
+          "field": {
+            "description": "\u6570\u636E\u5B57\u6BB5\u8DEF\u5F84\u3002",
+            "type": "string"
+          },
+          "title": {
+            "description": "\u5217\u6807\u9898\u3002",
+            "type": "string"
+          },
+          "width": {
+            "description": "\u5217\u5BBD\uFF08pt\uFF09\u3002",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "inputType": {
+            "description": "\u6837\u4F8B\u8868\u683C\u5355\u5143\u683C\u7684\u63A7\u4EF6\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "placeholder": {
+            "description": "\u6837\u4F8B\u8868\u683C\u5355\u5143\u683C\u7684\u5360\u4F4D\u6587\u6848\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "field",
+          "title"
+        ]
+      },
+      "PrintDataSourceFieldResponse": {
+        "description": "\u6253\u5370\u6570\u636E\u6E90\u7684\u4E00\u4E2A\u5B57\u6BB5\u3002",
+        "type": "object",
+        "properties": {
+          "key": {
+            "description": "\u6570\u636E\u5B57\u6BB5\u8DEF\u5F84\u3002",
+            "type": "string"
+          },
+          "label": {
+            "description": "\u8BBE\u8BA1\u5668\u7D20\u6750\u7684\u6807\u9898\u3002",
+            "type": "string"
+          },
+          "kind": {
+            "description": "\u5143\u7D20\u79CD\u7C7B\uFF1Atext / image / barcode / qrcode / table\u3002",
+            "type": "string"
+          },
+          "columns": {
+            "description": "\u660E\u7EC6\u8868\u7684\u5217\uFF08\u53EA\u6709 table \u6709\uFF09\u3002",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PrintDataSourceColumnResponse"
+            }
+          },
+          "inputType": {
+            "description": "\u6837\u4F8B\u8868\u5355\u7684\u63A7\u4EF6\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "placeholder": {
+            "description": "\u6837\u4F8B\u8868\u5355\u7684\u5360\u4F4D\u6587\u6848\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "kind"
+        ]
+      },
+      "PrintDataSourceResponse": {
+        "description": "\u4E00\u4E2A\u6253\u5370\u6570\u636E\u6E90\u3002",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "\u7F16\u7801\u3002",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u8BBE\u8BA1\u5668\u91CC\u663E\u793A\u7684\u540D\u79F0\u3002",
+            "type": "string"
+          },
+          "fields": {
+            "description": "\u5B57\u6BB5\u6E05\u5355\u3002",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrintDataSourceFieldResponse"
+            }
+          },
+          "sampleDataJson": {
+            "description": "\u9759\u6001\u6837\u4F8B\u6570\u636E JSON\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "fields",
+          "sampleDataJson"
+        ]
+      },
+      "PrintTemplateResponse": {
+        "description": "\u6253\u5370\u6A21\u677F\u7684\u5217\u8868\u9879\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "isGlobal": {
+            "description": "\u662F\u5426\u4E3A\u5E73\u53F0\u5168\u5C40\u6A21\u677F\u3002",
+            "type": "boolean"
+          },
+          "templateCode": {
+            "description": "\u6A21\u677F\u7F16\u7801\u3002",
+            "type": "string"
+          },
+          "dataSourceCode": {
+            "description": "\u6570\u636E\u6E90\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u81EA\u7531\u6A21\u677F\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateName": {
+            "description": "\u6A21\u677F\u540D\u79F0\u3002",
+            "type": "string"
+          },
+          "allowTenantUse": {
+            "description": "\u5168\u5C40\u6A21\u677F\u662F\u5426\u5411\u79DF\u6237\u5F00\u653E\u3002",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/PrintTemplateStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "isGlobal",
+          "templateCode",
+          "templateName",
+          "allowTenantUse",
+          "status",
+          "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "PrintTemplateScope": {
+        "description": "\u6253\u5370\u6A21\u677F\u7684\u4F5C\u7528\u57DF\u3002",
+        "type": "string",
+        "enum": [
+          "Auto",
+          "Tenant",
+          "Global"
+        ]
+      },
+      "PrintTemplateStatus": {
+        "description": "\u6253\u5370\u6A21\u677F\u7684\u542F\u505C\u72B6\u6001\u3002",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
       "ProcessorInfo": {
         "type": "object",
         "properties": {
@@ -52842,6 +54067,41 @@
         "displayName": "Update positions",
         "description": "Edit and disable positions."
       },
+      "printing.print-templates.create": {
+        "code": "printing.print-templates.create",
+        "displayName": "Create print templates",
+        "description": "Create templates on the caller\u0027s side; global templates also need global management."
+      },
+      "printing.print-templates.delete": {
+        "code": "printing.print-templates.delete",
+        "displayName": "Delete print templates",
+        "description": "Delete disabled templates on the caller\u0027s side."
+      },
+      "printing.print-templates.global-manage": {
+        "code": "printing.print-templates.global-manage",
+        "displayName": "Manage global print templates",
+        "description": "Maintain the platform\u0027s global templates, together with the matching create, update, status or delete permission."
+      },
+      "printing.print-templates.read": {
+        "code": "printing.print-templates.read",
+        "displayName": "Read print templates",
+        "description": "View the caller\u0027s own templates and the global templates open to tenants; the platform sees every global template."
+      },
+      "printing.print-templates.status": {
+        "code": "printing.print-templates.status",
+        "displayName": "Enable or disable print templates",
+        "description": "Enable or disable templates on the caller\u0027s side."
+      },
+      "printing.print-templates.update": {
+        "code": "printing.print-templates.update",
+        "displayName": "Update print templates",
+        "description": "Edit the metadata and the design of templates on the caller\u0027s side."
+      },
+      "printing.print-templates.use": {
+        "code": "printing.print-templates.use",
+        "displayName": "Use print templates",
+        "description": "Resolve templates by code to preview and print them, and read the data source catalog."
+      },
       "settings.configs.create": {
         "code": "settings.configs.create",
         "displayName": "Create configuration",
@@ -53137,6 +54397,13 @@
         "oauth-apps",
         "oauth-consents",
         "open"
+      ]
+    },
+    {
+      "name": "Printing",
+      "tags": [
+        "print-data-sources",
+        "print-templates"
       ]
     },
     {

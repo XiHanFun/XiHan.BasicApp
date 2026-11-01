@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Printing</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 打印模块（Tier 3，可选，BasicApp:Modules:Printing:Enabled）：平台全局模板与租户模板的设计 JSON、按编码与作用域解析（带缓存）、打印数据源目录（各包经 Contracts 的 AddPrintDataSource 登记）；设计、预览与打印在浏览器里完成。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+    <!-- 演示数据：5 个数据源与 6 张模板的 JSON，与 4.x 同一批文件；前端用例读同一批文件核对设计器校验 -->
+    <EmbeddedResource Include="Seeds/Demo/DataSources/*.json" LogicalName="Demo/DataSources/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Seeds/Demo/Templates/*.json" LogicalName="Demo/Templates/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

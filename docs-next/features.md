@@ -80,7 +80,7 @@
 | --- | --- | --- |
 | 代码生成 | CodeGeneration：模板按 6.0 写法重写（操作类、`Pages.cs`、权限常量、前端模块） | 规划中（N3） |
 | 流程定义 / 流程实例 | Workflow：框架 `workflow.execution@1` Provider，定义 JSON 为 5.0 `WorkflowJson` | 规划中（N3） |
-| 打印模板 | Printing：模板实体与 `IPrintDataSource` 注册表 | 规划中（N3） |
+| 打印模板 | Printing `print-templates.*`、`print-data-sources.list`：平台全局模板与租户模板、按编码解析、数据源经 `AddPrintDataSource` 登记；拖拽设计、样例数据、预览与直打 | 已落地 |
 | AI 提供商 / 提示词 / 知识库 / 助手 | AI：架在框架 `AI.Abstractions`、`AI.OpenAI`、`AI.VectorData` 之上 | 规划中（N4） |
 
 ## 通用使用体验

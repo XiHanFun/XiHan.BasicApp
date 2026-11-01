@@ -47,7 +47,7 @@ XiHan.Framework 5 采用了一套新的应用写法：能力包（`IFeature` + �
 | 数据迁移 | 不提供 5.x → 6.0 的迁移工具。切换到 6.0 的部署需要在 6.0 上重新录入租户与账号；5.x 部署继续由 `release/v5` / `hotfix/v5` 维护 |
 | 协议兼容 | 不提供 5.x HTTP API 的兼容层，对接方按[接口对接指南](./api-guide)调整 |
 | Native AOT | 不是目标。SqlSugar、MailKit、Scriban 等依赖不支持 AOT；操作登记仍按框架要求使用源生成的 `JsonSerializerContext` |
-| 完成度 | N3（工作流、打印、代码生成、聊天）与 N4（AI）尚未实现，评估时以[功能清单](./features)中已落地的部分为准 |
+| 完成度 | N3 的工作流、代码生成、聊天与 N4（AI）尚未实现，评估时以[功能清单](./features)中已落地的部分为准 |
 
 ## 相关
 

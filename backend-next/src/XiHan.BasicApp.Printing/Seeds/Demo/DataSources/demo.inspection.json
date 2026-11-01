@@ -1,0 +1,204 @@
+{
+  "code": "demo.inspection",
+  "name": "演示 · 设备巡检记录",
+  "fields": [
+    {
+      "key": "site",
+      "label": "巡检地点"
+    },
+    {
+      "key": "inspector",
+      "label": "检查人"
+    },
+    {
+      "key": "date",
+      "label": "巡检日期",
+      "inputType": "date"
+    },
+    {
+      "key": "notes",
+      "label": "巡检说明",
+      "inputType": "textarea"
+    },
+    {
+      "key": "checks",
+      "label": "检查项",
+      "kind": "table",
+      "columns": [
+        {
+          "field": "device",
+          "title": "设备",
+          "width": 100
+        },
+        {
+          "field": "item",
+          "title": "项目",
+          "width": 90
+        },
+        {
+          "field": "result",
+          "title": "结果",
+          "width": 70
+        }
+      ]
+    }
+  ],
+  "sample": {
+    "site": "一号厂房",
+    "inspector": "张工",
+    "date": "2026-10-17",
+    "notes": "巡检说明：\n1. 每班开机前与停机后各巡检一次，异常项当班报修。\n2. 温度与压力以设备面板读数为准，超出铭牌范围记为异常。\n3. 待观察项须在下次巡检时复查，连续两次待观察按异常处理。\n4. 配电柜巡检须两人同行，不得打开带电部分的防护罩。",
+    "checks": [
+      {
+        "device": "1 号空压机",
+        "item": "运行声音",
+        "result": "ok"
+      },
+      {
+        "device": "1 号空压机",
+        "item": "温度",
+        "result": "ok"
+      },
+      {
+        "device": "1 号空压机",
+        "item": "压力",
+        "result": "watch"
+      },
+      {
+        "device": "1 号空压机",
+        "item": "接地与线缆",
+        "result": "ok"
+      },
+      {
+        "device": "1 号空压机",
+        "item": "防护罩",
+        "result": "fault"
+      },
+      {
+        "device": "2 号空压机",
+        "item": "运行声音",
+        "result": "ok"
+      },
+      {
+        "device": "2 号空压机",
+        "item": "温度",
+        "result": "ok"
+      },
+      {
+        "device": "2 号空压机",
+        "item": "压力",
+        "result": "ok"
+      },
+      {
+        "device": "2 号空压机",
+        "item": "接地与线缆",
+        "result": "ok"
+      },
+      {
+        "device": "2 号空压机",
+        "item": "防护罩",
+        "result": "watch"
+      },
+      {
+        "device": "冷却塔",
+        "item": "运行声音",
+        "result": "ok"
+      },
+      {
+        "device": "冷却塔",
+        "item": "温度",
+        "result": "fault"
+      },
+      {
+        "device": "冷却塔",
+        "item": "压力",
+        "result": "ok"
+      },
+      {
+        "device": "冷却塔",
+        "item": "接地与线缆",
+        "result": "ok"
+      },
+      {
+        "device": "冷却塔",
+        "item": "防护罩",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 A",
+        "item": "运行声音",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 A",
+        "item": "温度",
+        "result": "watch"
+      },
+      {
+        "device": "配电柜 A",
+        "item": "压力",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 A",
+        "item": "接地与线缆",
+        "result": "fault"
+      },
+      {
+        "device": "配电柜 A",
+        "item": "防护罩",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 B",
+        "item": "运行声音",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 B",
+        "item": "温度",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 B",
+        "item": "压力",
+        "result": "ok"
+      },
+      {
+        "device": "配电柜 B",
+        "item": "接地与线缆",
+        "result": "watch"
+      },
+      {
+        "device": "配电柜 B",
+        "item": "防护罩",
+        "result": "ok"
+      },
+      {
+        "device": "消防水泵",
+        "item": "运行声音",
+        "result": "fault"
+      },
+      {
+        "device": "消防水泵",
+        "item": "温度",
+        "result": "ok"
+      },
+      {
+        "device": "消防水泵",
+        "item": "压力",
+        "result": "ok"
+      },
+      {
+        "device": "消防水泵",
+        "item": "接地与线缆",
+        "result": "ok"
+      },
+      {
+        "device": "消防水泵",
+        "item": "防护罩",
+        "result": "ok"
+      }
+    ]
+  }
+}

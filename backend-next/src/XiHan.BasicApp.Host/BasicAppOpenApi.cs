@@ -36,6 +36,7 @@ public static class BasicAppOpenApi
             Group("auditing", 80),
             Group("maintenance", 85),
             Group("openplatform", 90),
+            Group("printing", 100),
         ],
     };
 
