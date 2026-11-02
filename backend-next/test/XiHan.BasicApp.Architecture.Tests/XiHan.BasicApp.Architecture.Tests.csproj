@@ -24,6 +24,7 @@
     <ProjectReference Include="../../src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
   </ItemGroup>
 

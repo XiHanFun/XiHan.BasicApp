@@ -181,6 +181,14 @@ export const permissionDefinitions = {
   'tenancy.tenants.suspend': { code: 'tenancy.tenants.suspend', displayName: 'Suspend tenants', description: 'Suspend and resume tenants; suspended tenants cannot sign in.' },
   'tenancy.tenants.transfer-owner': { code: 'tenancy.tenants.transfer-owner', displayName: 'Transfer tenant ownership', description: 'Hand a tenant\'s ownership to one of its users or members; the previous owner stays an administrator.' },
   'tenancy.tenants.update': { code: 'tenancy.tenants.update', displayName: 'Update tenants', description: 'Edit tenant names, descriptions, expiry and order.' },
+  'workflow.workflow-assignees.read': { code: 'workflow.workflow-assignees.read', displayName: 'Read the assignee directory', description: 'List roles, positions and departments when choosing assignees.' },
+  'workflow.workflow-definitions.create': { code: 'workflow.workflow-definitions.create', displayName: 'Create workflow definitions', description: 'Create drafts and new versions of workflow definitions.' },
+  'workflow.workflow-definitions.delete': { code: 'workflow.workflow-definitions.delete', displayName: 'Delete workflow definitions', description: 'Delete draft workflow definitions.' },
+  'workflow.workflow-definitions.read': { code: 'workflow.workflow-definitions.read', displayName: 'Read workflow definitions', description: 'View the workflow definitions of the caller\'s side and their documents.' },
+  'workflow.workflow-definitions.update': { code: 'workflow.workflow-definitions.update', displayName: 'Update workflow definitions', description: 'Edit drafts, publish, disable and archive workflow definitions.' },
+  'workflow.workflow-instances.execute': { code: 'workflow.workflow-instances.execute', displayName: 'Execute workflow instances', description: 'Start, cancel, terminate and retry instances and publish signals.' },
+  'workflow.workflow-instances.read': { code: 'workflow.workflow-instances.read', displayName: 'Read workflow instances', description: 'View the workflow instances of the caller\'s side, their history and waits, and any approval detail.' },
+  'workflow.workflow-instances.update': { code: 'workflow.workflow-instances.update', displayName: 'Suspend and resume workflow instances', description: 'Suspend and resume running workflow instances.' },
 } as const
 
 /** 权限码字面量联合；`can()` 只认精确匹配，不认通配。 */
@@ -487,6 +495,29 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'users.update': 'identity.users.update',
   'versions.get': 'maintenance.versions.read',
   'versions.list': 'maintenance.versions.read',
+  'workflow-assignees.departments': 'workflow.workflow-assignees.read',
+  'workflow-assignees.positions': 'workflow.workflow-assignees.read',
+  'workflow-assignees.roles': 'workflow.workflow-assignees.read',
+  'workflow-definitions.activity-types': 'workflow.workflow-definitions.read',
+  'workflow-definitions.archive': 'workflow.workflow-definitions.update',
+  'workflow-definitions.business-types': 'workflow.workflow-definitions.read',
+  'workflow-definitions.create': 'workflow.workflow-definitions.create',
+  'workflow-definitions.delete': 'workflow.workflow-definitions.delete',
+  'workflow-definitions.disable': 'workflow.workflow-definitions.update',
+  'workflow-definitions.get': 'workflow.workflow-definitions.read',
+  'workflow-definitions.list': 'workflow.workflow-definitions.read',
+  'workflow-definitions.new-version': 'workflow.workflow-definitions.create',
+  'workflow-definitions.publish': 'workflow.workflow-definitions.update',
+  'workflow-definitions.update': 'workflow.workflow-definitions.update',
+  'workflow-instances.cancel': 'workflow.workflow-instances.execute',
+  'workflow-instances.get': 'workflow.workflow-instances.read',
+  'workflow-instances.list': 'workflow.workflow-instances.read',
+  'workflow-instances.resume': 'workflow.workflow-instances.update',
+  'workflow-instances.retry': 'workflow.workflow-instances.execute',
+  'workflow-instances.signal': 'workflow.workflow-instances.execute',
+  'workflow-instances.start': 'workflow.workflow-instances.execute',
+  'workflow-instances.suspend': 'workflow.workflow-instances.update',
+  'workflow-instances.terminate': 'workflow.workflow-instances.execute',
 }
 
 /** 操作 → 策略名（如 `authenticated`）；与权限码二选一。 */
@@ -566,4 +597,5 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'user-settings.update': 'authenticated',
   'workbench.widget-data': 'authenticated',
   'workbench.widgets': 'authenticated',
+  'workflow-assignees.users': 'authenticated',
 }

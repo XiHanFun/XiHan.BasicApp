@@ -79,7 +79,7 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["多租户 SaaS", "multi-tenancy"],
       ["缓存与异步", "caching"],
       ["定时任务", "scheduling"],
-      ["工作流（规划中 · N3）", "workflow"],
+      ["工作流", "workflow"],
       ["约束规则与审批（审批随 N3）", "approval"],
       ["消息通知", "messaging"],
       ["实时推送", "realtime"],

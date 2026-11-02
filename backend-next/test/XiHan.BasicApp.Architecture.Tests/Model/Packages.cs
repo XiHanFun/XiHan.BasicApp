@@ -20,6 +20,7 @@ using XiHan.BasicApp.Realtime;
 using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
+using XiHan.BasicApp.Workflow;
 
 namespace XiHan.BasicApp.Architecture.Tests.Model;
 
@@ -102,6 +103,7 @@ public static class Packages
         typeof(WorkbenchFeature).Assembly,
         typeof(PrintingFeature).Assembly,
         typeof(ChatFeature).Assembly,
+        typeof(WorkflowFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

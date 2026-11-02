@@ -32,6 +32,9 @@ catalog:
   '@vitejs/plugin-vue': ^6.0.10
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
+  '@xihan-flow/core': ^1.0.0-rc.2
+  '@xihan-flow/designer': ^1.0.0-rc.2
+  '@xihan-flow/runtime': ^1.0.0-rc.2
   '@xihan-print/core': ^1.0.0-rc.2
   '@xihan-print/designer': ^1.0.0-rc.2
   '@xihan-print/runtime': ^1.0.0-rc.2

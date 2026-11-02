@@ -7549,6 +7549,502 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workflow-assignees:departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Choose departments
+         * @description List the departments of the tenant as a flat list to build a tree from; empty on the platform side.
+         *
+         *     Requires permission workflow.workflow-assignees.read (Read the assignee directory).
+         */
+        get: operations["workflow-assignees.departments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-assignees:positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Choose positions
+         * @description List the enabled positions of the tenant; empty on the platform side.
+         *
+         *     Requires permission workflow.workflow-assignees.read (Read the assignee directory).
+         */
+        get: operations["workflow-assignees.positions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-assignees:roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Choose roles
+         * @description List the enabled roles of the caller's side; assignee rules refer to them by code.
+         *
+         *     Requires permission workflow.workflow-assignees.read (Read the assignee directory).
+         */
+        get: operations["workflow-assignees.roles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-assignees:users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Choose users
+         * @description Search the active accounts visible on the caller's side by keyword, or look them up by ID; support members are not included.
+         *
+         *     Requires sign-in.
+         */
+        get: operations["workflow-assignees.users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a workflow definition
+         * @description Create a draft from a WorkflowJson document; the version is the highest version of the same name plus one.
+         *
+         *     Requires permission workflow.workflow-definitions.create (Create workflow definitions).
+         */
+        post: operations["workflow-definitions.create"];
+        /**
+         * Delete workflow definitions
+         * @description Delete draft definitions.
+         *
+         *     Requires permission workflow.workflow-definitions.delete (Delete workflow definitions).
+         */
+        delete: operations["workflow-definitions.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a workflow definition
+         * @description Read a workflow definition with its whole document, as the designer opens it.
+         *
+         *     Requires permission workflow.workflow-definitions.read (Read workflow definitions).
+         */
+        get: operations["workflow-definitions.get"];
+        /**
+         * Update a workflow definition
+         * @description Replace the document of a draft; the name and version stay as stored.
+         *
+         *     Requires permission workflow.workflow-definitions.update (Update workflow definitions).
+         */
+        put: operations["workflow-definitions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish a workflow definition
+         * @description Publish a draft after the approval business check and the structural validation; all problems are listed in the error details.
+         *
+         *     Requires permission workflow.workflow-definitions.update (Update workflow definitions).
+         */
+        post: operations["workflow-definitions.publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:activity-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List activity types
+         * @description List the activity types the designer may place, with their inputs.
+         *
+         *     Requires permission workflow.workflow-definitions.read (Read workflow definitions).
+         */
+        get: operations["workflow-definitions.activity-types"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive workflow definitions
+         * @description Archive definitions in any status.
+         *
+         *     Requires permission workflow.workflow-definitions.update (Update workflow definitions).
+         */
+        post: operations["workflow-definitions.archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:business-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List approval businesses
+         * @description List the approval businesses registered by the packages: business code (the definition name), display name, form component, start variables and allowed outcomes.
+         *
+         *     Requires permission workflow.workflow-definitions.read (Read workflow definitions).
+         */
+        get: operations["workflow-definitions.business-types"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable workflow definitions
+         * @description Disable published definitions; running instances finish as usual.
+         *
+         *     Requires permission workflow.workflow-definitions.update (Update workflow definitions).
+         */
+        post: operations["workflow-definitions.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List workflow definitions
+         * @description Page through the workflow definitions of the caller's side, filtered by keyword (name, display name, description), name, category and status, ordered by name and then by version descending.
+         *
+         *     Requires permission workflow.workflow-definitions.read (Read workflow definitions).
+         */
+        post: operations["workflow-definitions.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-definitions:new-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a new version
+         * @description Copy the latest version of a name into a new draft.
+         *
+         *     Requires permission workflow.workflow-definitions.create (Create workflow definitions).
+         */
+        post: operations["workflow-definitions.new-version"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a workflow instance
+         * @description Read a workflow instance with its variables, node history, pending waits and the definition it runs.
+         *
+         *     Requires permission workflow.workflow-instances.read (Read workflow instances).
+         */
+        get: operations["workflow-instances.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel workflow instances
+         * @description Cancel running, suspended or faulted instances, compensating when enabled.
+         *
+         *     Requires permission workflow.workflow-instances.execute (Execute workflow instances).
+         */
+        post: operations["workflow-instances.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List workflow instances
+         * @description Page through the workflow instances of the caller's side, filtered by title keyword, status, definition name, correlation ID, starter and creation time, newest first.
+         *
+         *     Requires permission workflow.workflow-instances.read (Read workflow instances).
+         */
+        post: operations["workflow-instances.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume workflow instances
+         * @description Resume suspended instances.
+         *
+         *     Requires permission workflow.workflow-instances.update (Suspend and resume workflow instances).
+         */
+        post: operations["workflow-instances.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry workflow instances
+         * @description Rerun faulted instances from their faulted node.
+         *
+         *     Requires permission workflow.workflow-instances.execute (Execute workflow instances).
+         */
+        post: operations["workflow-instances.retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:signal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish a signal
+         * @description Resume the instances of the caller's side waiting for a signal, optionally only those with a correlation ID, and return how many waits it resumed.
+         *
+         *     Requires permission workflow.workflow-instances.execute (Execute workflow instances).
+         */
+        post: operations["workflow-instances.signal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a workflow
+         * @description Start an instance of the latest published version (or a given version) of a definition, with the caller as the starter.
+         *
+         *     Requires permission workflow.workflow-instances.execute (Execute workflow instances).
+         */
+        post: operations["workflow-instances.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend workflow instances
+         * @description Suspend running instances.
+         *
+         *     Requires permission workflow.workflow-instances.update (Suspend and resume workflow instances).
+         */
+        post: operations["workflow-instances.suspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workflow-instances:terminate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terminate workflow instances
+         * @description Terminate running, suspended or faulted instances without compensation.
+         *
+         *     Requires permission workflow.workflow-instances.execute (Execute workflow instances).
+         */
+        post: operations["workflow-instances.terminate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7805,6 +8301,49 @@ export interface components {
         };
         /** @enum {string} */
         Architecture: "X86" | "X64" | "Arm" | "Arm64" | "Wasm" | "S390x" | "LoongArch64" | "Armv6" | "Ppc64le" | "RiscV64";
+        /** @description 一个可选的部门。 */
+        AssigneeDepartment: {
+            /**
+             * Format: uuid
+             * @description 部门 ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 上级部门 ID。
+             */
+            parentId?: string | null;
+            /** @description 编码（受理人规则按编码引用）。 */
+            code: string;
+            /** @description 名称。 */
+            name: string;
+            /** @description 是否启用。 */
+            isActive: boolean;
+        };
+        /** @description 一个可选的角色或岗位。 */
+        AssigneeOption: {
+            /**
+             * Format: uuid
+             * @description ID。
+             */
+            id: string;
+            /** @description 编码（受理人规则按编码引用）。 */
+            code: string;
+            /** @description 名称。 */
+            name: string;
+        };
+        /** @description 一个可选的用户。 */
+        AssigneeUser: {
+            /**
+             * Format: uuid
+             * @description 用户 ID。
+             */
+            id: string;
+            /** @description 登录名。 */
+            userName: string;
+            /** @description 显示名。 */
+            displayName: string;
+        };
         /** @description 当前用户可进入的一个租户（tenants.mine 的列表项）。 */
         AvailableTenantResponse: {
             /** @description 租户 ID（目录键，切换时传它）。 */
@@ -12089,6 +12628,201 @@ export interface components {
             key: string;
             /** @description 取数形态。 */
             kind: components["schemas"]["WorkbenchWidgetKind"];
+        };
+        /** @description 活动的一个输入属性。 */
+        WorkflowActivityInputResponse: {
+            /** @description 属性名。 */
+            name: string;
+            /** @description 取值种类。 */
+            kind: string;
+            /** @description 是否必填。 */
+            required: boolean;
+        };
+        /** @description 一个活动类型。 */
+        WorkflowActivityTypeResponse: {
+            /** @description 类型名。 */
+            type: string;
+            /** @description 显示名。 */
+            displayName: string;
+            /** @description 分类。 */
+            category?: string | null;
+            /** @description 输入属性。 */
+            inputs: components["schemas"]["WorkflowActivityInputResponse"][];
+        };
+        /** @description 一个审批业务。 */
+        WorkflowBusinessTypeResponse: {
+            /** @description 业务码（流程定义名）。 */
+            code: string;
+            /** @description 显示名的文案键。 */
+            nameKey: string;
+            /** @description 单据组件路径。 */
+            formComponent: string;
+            /** @description 发起时带的变量。 */
+            variables: components["schemas"]["WorkflowBusinessVariableResponse"][];
+            /** @description 允许的结论。 */
+            outcomes: string[];
+        };
+        /** @description 审批业务的一个变量。 */
+        WorkflowBusinessVariableResponse: {
+            /** @description 变量名。 */
+            name: string;
+            /** @description 显示名的文案键。 */
+            labelKey: string;
+            /** @description 值类型。 */
+            valueType: string;
+        };
+        /** @description 流程定义（列表的一行）。 */
+        WorkflowDefinitionResponse: {
+            /**
+             * Format: uuid
+             * @description 定义 ID。
+             */
+            id: string;
+            /** @description 名字（同名的各版本共用；关联审批业务时即业务码）。 */
+            name: string;
+            /**
+             * Format: int32
+             * @description 版本。
+             */
+            version: number;
+            /** @description 显示名。 */
+            displayName?: string | null;
+            /** @description 说明。 */
+            description?: string | null;
+            /** @description 分类。 */
+            category?: string | null;
+            /** @description 状态。 */
+            status: components["schemas"]["WorkflowDefinitionStatus"];
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 发布时间。
+             */
+            publishedAt?: string | null;
+            /** @description 关联的审批业务的显示名文案键，没有关联时为空。 */
+            businessNameKey?: string | null;
+        };
+        /** @enum {string} */
+        WorkflowDefinitionStatus: "Draft" | "Published" | "Disabled" | "Archived";
+        /** @description 流程实例（列表的一行）。 */
+        WorkflowInstanceResponse: {
+            /**
+             * Format: uuid
+             * @description 实例 ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 定义 ID。
+             */
+            definitionId: string;
+            /** @description 定义名。 */
+            definitionName: string;
+            /**
+             * Format: int32
+             * @description 定义版本。
+             */
+            definitionVersion: number;
+            /** @description 标题（发起时给的显示名，没给取定义的显示名）。 */
+            title: string;
+            /** @description 状态。 */
+            status: components["schemas"]["WorkflowInstanceStatus"];
+            /** @description 关联 ID（审批业务的单据 ID）。 */
+            correlationId?: string | null;
+            /**
+             * Format: uuid
+             * @description 发起人。
+             */
+            starterId?: string | null;
+            /** @description 发起人显示名。 */
+            starterName?: string | null;
+            /**
+             * Format: uuid
+             * @description 父实例（子流程）。
+             */
+            parentInstanceId?: string | null;
+            /**
+             * Format: int32
+             * @description 子流程深度，顶层为 0。
+             */
+            depth: number;
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
+            endedAt?: string | null;
+            /** @description 结论。 */
+            outcome?: string | null;
+            /** @description 故障信息。 */
+            faultMessage?: string | null;
+        };
+        /** @enum {string} */
+        WorkflowInstanceStatus: "Running" | "Suspended" | "Completed" | "Canceled" | "Faulted" | "Terminated";
+        /** @description 一次节点执行。 */
+        WorkflowNodeInstanceResponse: {
+            /**
+             * Format: uuid
+             * @description 节点实例 ID。
+             */
+            id: string;
+            /** @description 节点 ID。 */
+            nodeId: string;
+            /** @description 活动类型。 */
+            activityType: string;
+            /** @description 状态。 */
+            status: components["schemas"]["WorkflowNodeInstanceStatus"];
+            /**
+             * Format: int32
+             * @description 第几次尝试。
+             */
+            attempt: number;
+            /**
+             * Format: date-time
+             * @description 开始时间。
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
+            endedAt?: string | null;
+            /** @description 故障信息。 */
+            faultMessage?: string | null;
+        };
+        /** @enum {string} */
+        WorkflowNodeInstanceStatus: "Running" | "Suspended" | "Completed" | "Canceled" | "Faulted" | "Compensated";
+        /** @description 一个待恢复的等待。 */
+        WorkflowWaitResponse: {
+            /**
+             * Format: uuid
+             * @description 等待 ID（用户任务即任务 ID）。
+             */
+            id: string;
+            /** @description 节点 ID。 */
+            nodeId: string;
+            /** @description 种类：UserTask、Timer、Signal、SubWorkflow、Retry、NodeTimeout 等。 */
+            kind: string;
+            /** @description 键（受理人、信号名等）。 */
+            key?: string | null;
+            /**
+             * Format: date-time
+             * @description 到期时间。
+             */
+            dueAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
+            createdAt: string;
         };
     };
     responses: never;
@@ -36163,6 +36897,1178 @@ export interface operations {
                     "application/json": {
                         /** @description 小组件，按键排序。 */
                         items: components["schemas"]["WorkbenchWidgetResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-assignees.departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 可选的部门。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 部门的平铺清单，前端按上级 ID 组树。 */
+                        items: components["schemas"]["AssigneeDepartment"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-assignees.positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 可选的角色或岗位。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 选项。 */
+                        items: components["schemas"]["AssigneeOption"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-assignees.roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 可选的角色或岗位。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 选项。 */
+                        items: components["schemas"]["AssigneeOption"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-assignees.users": {
+        parameters: {
+            query?: {
+                /** @description 关键字（登录名、显示名）。 */
+                keyword?: string | null;
+                /** @description 按 ID 回显（给了就不按关键字搜）。 */
+                ids?: string[] | null;
+                /** @description 按关键字搜时最多返回几个（1～200，缺省 50）。 */
+                limit?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 可选的用户。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 用户。 */
+                        items: components["schemas"]["AssigneeUser"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 新建流程定义草稿。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 整份定义（WorkflowJson）。 */
+                    document: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 流程定义详情。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        id: string;
+                        /** @description 名字。 */
+                        name: string;
+                        /**
+                         * Format: int32
+                         * @description 版本。
+                         */
+                        version: number;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 分类。 */
+                        category?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowDefinitionStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
+                        publishedAt?: string | null;
+                        /** @description 关联的审批业务的显示名文案键。 */
+                        businessNameKey?: string | null;
+                        /** @description 整份定义（WorkflowJson）。 */
+                        document: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.delete": {
+        parameters: {
+            query: {
+                /** @description 定义 ID。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 定义 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 流程定义详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        id: string;
+                        /** @description 名字。 */
+                        name: string;
+                        /**
+                         * Format: int32
+                         * @description 版本。
+                         */
+                        version: number;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 分类。 */
+                        category?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowDefinitionStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
+                        publishedAt?: string | null;
+                        /** @description 关联的审批业务的显示名文案键。 */
+                        businessNameKey?: string | null;
+                        /** @description 整份定义（WorkflowJson）。 */
+                        document: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 定义 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 改流程定义草稿。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 定义 ID。
+                     */
+                    id: string;
+                    /** @description 整份定义（WorkflowJson）。 */
+                    document: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 流程定义详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        id: string;
+                        /** @description 名字。 */
+                        name: string;
+                        /**
+                         * Format: int32
+                         * @description 版本。
+                         */
+                        version: number;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 分类。 */
+                        category?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowDefinitionStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
+                        publishedAt?: string | null;
+                        /** @description 关联的审批业务的显示名文案键。 */
+                        businessNameKey?: string | null;
+                        /** @description 整份定义（WorkflowJson）。 */
+                        document: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 定义 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 发布流程定义。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 定义 ID。
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 流程定义详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        id: string;
+                        /** @description 名字。 */
+                        name: string;
+                        /**
+                         * Format: int32
+                         * @description 版本。
+                         */
+                        version: number;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 分类。 */
+                        category?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowDefinitionStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
+                        publishedAt?: string | null;
+                        /** @description 关联的审批业务的显示名文案键。 */
+                        businessNameKey?: string | null;
+                        /** @description 整份定义（WorkflowJson）。 */
+                        document: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.activity-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 活动类型目录。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 活动类型。 */
+                        items: components["schemas"]["WorkflowActivityTypeResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 一批流程定义。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 定义 ID。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.business-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 审批业务目录。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 已登记的审批业务。 */
+                        items: components["schemas"]["WorkflowBusinessTypeResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 一批流程定义。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 定义 ID。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowDefinitionResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-definitions.new-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按名字开新版本。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 定义名。 */
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 流程定义详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        id: string;
+                        /** @description 名字。 */
+                        name: string;
+                        /**
+                         * Format: int32
+                         * @description 版本。
+                         */
+                        version: number;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 说明。 */
+                        description?: string | null;
+                        /** @description 分类。 */
+                        category?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowDefinitionStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 发布时间。
+                         */
+                        publishedAt?: string | null;
+                        /** @description 关联的审批业务的显示名文案键。 */
+                        businessNameKey?: string | null;
+                        /** @description 整份定义（WorkflowJson）。 */
+                        document: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 实例 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 流程实例详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 实例。 */
+                        instance: components["schemas"]["WorkflowInstanceResponse"];
+                        /** @description 变量（JSON 对象文本）。 */
+                        variables: string;
+                        /** @description 取消或终止的原因。 */
+                        cancellationReason?: string | null;
+                        /** @description 故障节点。 */
+                        faultNodeId?: string | null;
+                        /** @description 节点执行历史（按开始时间）。 */
+                        nodes: components["schemas"]["WorkflowNodeInstanceResponse"][];
+                        /** @description 待恢复的等待（用户任务、定时、信号、子流程等）。 */
+                        waits: components["schemas"]["WorkflowWaitResponse"][];
+                        /** @description 实例所用的定义（WorkflowJson），画流程图与节点状态用。 */
+                        document?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 取消、终止或挂起一批实例。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 实例 ID。 */
+                    ids: string[];
+                    /** @description 原因。 */
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowInstanceResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 一批实例。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 实例 ID。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 一批实例。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 实例 ID。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.signal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 发信号。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 信号名。 */
+                    name: string;
+                    /** @description 载荷（JSON 对象文本）。 */
+                    payload?: string | null;
+                    /** @description 关联 ID，空即不限。 */
+                    correlationId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 发信号的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int32
+                         * @description 被它恢复的等待数。
+                         */
+                        resumed: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 发起流程。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 定义名。 */
+                    name: string;
+                    /**
+                     * Format: int32
+                     * @description 版本，空即最新已发布的。
+                     */
+                    version?: number | null;
+                    /** @description 实例标题，空即取定义的显示名。 */
+                    displayName?: string | null;
+                    /** @description 关联 ID。 */
+                    correlationId?: string | null;
+                    /** @description 变量（JSON 对象文本）。 */
+                    variables?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 流程实例（列表的一行）。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 实例 ID。
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description 定义 ID。
+                         */
+                        definitionId: string;
+                        /** @description 定义名。 */
+                        definitionName: string;
+                        /**
+                         * Format: int32
+                         * @description 定义版本。
+                         */
+                        definitionVersion: number;
+                        /** @description 标题（发起时给的显示名，没给取定义的显示名）。 */
+                        title: string;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowInstanceStatus"];
+                        /** @description 关联 ID（审批业务的单据 ID）。 */
+                        correlationId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 发起人。
+                         */
+                        starterId?: string | null;
+                        /** @description 发起人显示名。 */
+                        starterName?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 父实例（子流程）。
+                         */
+                        parentInstanceId?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 子流程深度，顶层为 0。
+                         */
+                        depth: number;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间。
+                         */
+                        endedAt?: string | null;
+                        /** @description 结论。 */
+                        outcome?: string | null;
+                        /** @description 故障信息。 */
+                        faultMessage?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 取消、终止或挂起一批实例。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 实例 ID。 */
+                    ids: string[];
+                    /** @description 原因。 */
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "workflow-instances.terminate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 取消、终止或挂起一批实例。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 实例 ID。 */
+                    ids: string[];
+                    /** @description 原因。 */
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };

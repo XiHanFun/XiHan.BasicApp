@@ -272,6 +272,15 @@ export type UserStatus = (typeof UserStatus)[number]
 export const WorkbenchWidgetKind = ['Metric', 'Chart', 'List'] as const
 export type WorkbenchWidgetKind = (typeof WorkbenchWidgetKind)[number]
 
+export const WorkflowDefinitionStatus = ['Draft', 'Published', 'Disabled', 'Archived'] as const
+export type WorkflowDefinitionStatus = (typeof WorkflowDefinitionStatus)[number]
+
+export const WorkflowInstanceStatus = ['Running', 'Suspended', 'Completed', 'Canceled', 'Faulted', 'Terminated'] as const
+export type WorkflowInstanceStatus = (typeof WorkflowInstanceStatus)[number]
+
+export const WorkflowNodeInstanceStatus = ['Running', 'Suspended', 'Completed', 'Canceled', 'Faulted', 'Compensated'] as const
+export type WorkflowNodeInstanceStatus = (typeof WorkflowNodeInstanceStatus)[number]
+
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
   AccessPolicyAction,
@@ -364,6 +373,9 @@ export const enums = {
   UserSettingScene,
   UserStatus,
   WorkbenchWidgetKind,
+  WorkflowDefinitionStatus,
+  WorkflowInstanceStatus,
+  WorkflowNodeInstanceStatus,
 } as const
 
 export type EnumName = keyof typeof enums

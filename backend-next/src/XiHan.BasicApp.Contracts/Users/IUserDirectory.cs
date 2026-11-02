@@ -43,10 +43,22 @@ public interface IUserDirectory
     Task<IReadOnlySet<Guid>> ActiveInSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
 
     /// <summary>
+    /// 一侧可见的账号，含停用的。
+    /// </summary>
+    /// <remarks>
+    /// 可见口径同 <see cref="ActiveInSideAsync"/>，但不看状态：停用的照样算，已删除的不算。用于按 ID 念出这一侧已经选过的人（选人回显）。
+    /// </remarks>
+    /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID。</param>
+    /// <param name="userIds">候选用户 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>候选里这一侧可见的那些。</returns>
+    Task<IReadOnlySet<Guid>> InSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
+
+    /// <summary>
     /// 搜一侧可见的在用账号。
     /// </summary>
     /// <remarks>
-    /// 可见口径同 <see cref="ActiveInSideAsync"/>；关键字匹配登录名、显示名与邮箱（包含，大小写按库的排序规则），按登录名排序。
+    /// 可见口径同 <see cref="ActiveInSideAsync"/>；关键字只匹配登录名与显示名（包含，大小写按库的排序规则），不匹配邮箱、手机号等联系方式；按登录名排序。
     /// </remarks>
     /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID。</param>
     /// <param name="keyword">关键字，空即不筛。</param>

@@ -25,6 +25,7 @@ using XiHan.BasicApp.Realtime;
 using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
+using XiHan.BasicApp.Workflow;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Caching.Hybrid;
 using XiHan.Framework.Caching.Redis;
@@ -146,6 +147,11 @@ public static class BasicAppHost
             if (modules.Chat)
             {
                 xihan.UseFeature<ChatFeature>();
+            }
+
+            if (modules.Workflow)
+            {
+                xihan.UseFeature<WorkflowFeature>();
             }
         });
 

@@ -394,6 +394,30 @@ export const routes = {
   'versions.list': { method: 'POST', template: '/api/versions:list', path: [], query: [], success: 200 },
   'workbench.widget-data': { method: 'GET', template: '/api/workbench:widget-data', path: [], query: ['key', 'days', 'offset'], success: 200 },
   'workbench.widgets': { method: 'GET', template: '/api/workbench:widgets', path: [], query: [], success: 200 },
+  'workflow-assignees.departments': { method: 'GET', template: '/api/workflow-assignees:departments', path: [], query: [], success: 200 },
+  'workflow-assignees.positions': { method: 'GET', template: '/api/workflow-assignees:positions', path: [], query: [], success: 200 },
+  'workflow-assignees.roles': { method: 'GET', template: '/api/workflow-assignees:roles', path: [], query: [], success: 200 },
+  'workflow-assignees.users': { method: 'GET', template: '/api/workflow-assignees:users', path: [], query: ['keyword', 'ids', 'limit'], success: 200 },
+  'workflow-definitions.activity-types': { method: 'GET', template: '/api/workflow-definitions:activity-types', path: [], query: [], success: 200 },
+  'workflow-definitions.archive': { method: 'POST', template: '/api/workflow-definitions:archive', path: [], query: [], success: 200 },
+  'workflow-definitions.business-types': { method: 'GET', template: '/api/workflow-definitions:business-types', path: [], query: [], success: 200 },
+  'workflow-definitions.create': { method: 'POST', template: '/api/workflow-definitions', path: [], query: [], success: 201 },
+  'workflow-definitions.delete': { method: 'DELETE', template: '/api/workflow-definitions', path: [], query: ['ids'], success: 200 },
+  'workflow-definitions.disable': { method: 'POST', template: '/api/workflow-definitions:disable', path: [], query: [], success: 200 },
+  'workflow-definitions.get': { method: 'GET', template: '/api/workflow-definitions/{id}', path: ['id'], query: [], success: 200 },
+  'workflow-definitions.list': { method: 'POST', template: '/api/workflow-definitions:list', path: [], query: [], success: 200 },
+  'workflow-definitions.new-version': { method: 'POST', template: '/api/workflow-definitions:new-version', path: [], query: [], success: 200 },
+  'workflow-definitions.publish': { method: 'POST', template: '/api/workflow-definitions/{id}:publish', path: ['id'], query: [], success: 200 },
+  'workflow-definitions.update': { method: 'PUT', template: '/api/workflow-definitions/{id}', path: ['id'], query: [], success: 200 },
+  'workflow-instances.cancel': { method: 'POST', template: '/api/workflow-instances:cancel', path: [], query: [], success: 200 },
+  'workflow-instances.get': { method: 'GET', template: '/api/workflow-instances/{id}', path: ['id'], query: [], success: 200 },
+  'workflow-instances.list': { method: 'POST', template: '/api/workflow-instances:list', path: [], query: [], success: 200 },
+  'workflow-instances.resume': { method: 'POST', template: '/api/workflow-instances:resume', path: [], query: [], success: 200 },
+  'workflow-instances.retry': { method: 'POST', template: '/api/workflow-instances:retry', path: [], query: [], success: 200 },
+  'workflow-instances.signal': { method: 'POST', template: '/api/workflow-instances:signal', path: [], query: [], success: 200 },
+  'workflow-instances.start': { method: 'POST', template: '/api/workflow-instances:start', path: [], query: [], success: 200 },
+  'workflow-instances.suspend': { method: 'POST', template: '/api/workflow-instances:suspend', path: [], query: [], success: 200 },
+  'workflow-instances.terminate': { method: 'POST', template: '/api/workflow-instances:terminate', path: [], query: [], success: 200 },
 } as const satisfies Record<string, RouteDef>
 
 export type OperationId = keyof typeof routes
@@ -1073,4 +1097,40 @@ export const versions = {
 export const workbench = {
   widgetData: (request: RequestOf<'workbench.widget-data'>, options?: CallOptions) => invoke<RequestOf<'workbench.widget-data'>, ResponseOf<'workbench.widget-data'>>('workbench.widget-data', routes['workbench.widget-data'], request, options),
   widgets: (request: RequestOf<'workbench.widgets'>, options?: CallOptions) => invoke<RequestOf<'workbench.widgets'>, ResponseOf<'workbench.widgets'>>('workbench.widgets', routes['workbench.widgets'], request, options),
+}
+
+/** 资源 `workflow-assignees` 的操作。 */
+export const workflowAssignees = {
+  departments: (request: RequestOf<'workflow-assignees.departments'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.departments'>, ResponseOf<'workflow-assignees.departments'>>('workflow-assignees.departments', routes['workflow-assignees.departments'], request, options),
+  positions: (request: RequestOf<'workflow-assignees.positions'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.positions'>, ResponseOf<'workflow-assignees.positions'>>('workflow-assignees.positions', routes['workflow-assignees.positions'], request, options),
+  roles: (request: RequestOf<'workflow-assignees.roles'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.roles'>, ResponseOf<'workflow-assignees.roles'>>('workflow-assignees.roles', routes['workflow-assignees.roles'], request, options),
+  users: (request: RequestOf<'workflow-assignees.users'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.users'>, ResponseOf<'workflow-assignees.users'>>('workflow-assignees.users', routes['workflow-assignees.users'], request, options),
+}
+
+/** 资源 `workflow-definitions` 的操作。 */
+export const workflowDefinitions = {
+  activityTypes: (request: RequestOf<'workflow-definitions.activity-types'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.activity-types'>, ResponseOf<'workflow-definitions.activity-types'>>('workflow-definitions.activity-types', routes['workflow-definitions.activity-types'], request, options),
+  archive: (request: RequestOf<'workflow-definitions.archive'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.archive'>, ResponseOf<'workflow-definitions.archive'>>('workflow-definitions.archive', routes['workflow-definitions.archive'], request, options),
+  businessTypes: (request: RequestOf<'workflow-definitions.business-types'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.business-types'>, ResponseOf<'workflow-definitions.business-types'>>('workflow-definitions.business-types', routes['workflow-definitions.business-types'], request, options),
+  create: (request: RequestOf<'workflow-definitions.create'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.create'>, ResponseOf<'workflow-definitions.create'>>('workflow-definitions.create', routes['workflow-definitions.create'], request, options),
+  delete: (request: RequestOf<'workflow-definitions.delete'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.delete'>, ResponseOf<'workflow-definitions.delete'>>('workflow-definitions.delete', routes['workflow-definitions.delete'], request, options),
+  disable: (request: RequestOf<'workflow-definitions.disable'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.disable'>, ResponseOf<'workflow-definitions.disable'>>('workflow-definitions.disable', routes['workflow-definitions.disable'], request, options),
+  get: (request: RequestOf<'workflow-definitions.get'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.get'>, ResponseOf<'workflow-definitions.get'>>('workflow-definitions.get', routes['workflow-definitions.get'], request, options),
+  list: (request: RequestOf<'workflow-definitions.list'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.list'>, ResponseOf<'workflow-definitions.list'>>('workflow-definitions.list', routes['workflow-definitions.list'], request, options),
+  newVersion: (request: RequestOf<'workflow-definitions.new-version'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.new-version'>, ResponseOf<'workflow-definitions.new-version'>>('workflow-definitions.new-version', routes['workflow-definitions.new-version'], request, options),
+  publish: (request: RequestOf<'workflow-definitions.publish'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.publish'>, ResponseOf<'workflow-definitions.publish'>>('workflow-definitions.publish', routes['workflow-definitions.publish'], request, options),
+  update: (request: RequestOf<'workflow-definitions.update'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.update'>, ResponseOf<'workflow-definitions.update'>>('workflow-definitions.update', routes['workflow-definitions.update'], request, options),
+}
+
+/** 资源 `workflow-instances` 的操作。 */
+export const workflowInstances = {
+  cancel: (request: RequestOf<'workflow-instances.cancel'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.cancel'>, ResponseOf<'workflow-instances.cancel'>>('workflow-instances.cancel', routes['workflow-instances.cancel'], request, options),
+  get: (request: RequestOf<'workflow-instances.get'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.get'>, ResponseOf<'workflow-instances.get'>>('workflow-instances.get', routes['workflow-instances.get'], request, options),
+  list: (request: RequestOf<'workflow-instances.list'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.list'>, ResponseOf<'workflow-instances.list'>>('workflow-instances.list', routes['workflow-instances.list'], request, options),
+  resume: (request: RequestOf<'workflow-instances.resume'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.resume'>, ResponseOf<'workflow-instances.resume'>>('workflow-instances.resume', routes['workflow-instances.resume'], request, options),
+  retry: (request: RequestOf<'workflow-instances.retry'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.retry'>, ResponseOf<'workflow-instances.retry'>>('workflow-instances.retry', routes['workflow-instances.retry'], request, options),
+  signal: (request: RequestOf<'workflow-instances.signal'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.signal'>, ResponseOf<'workflow-instances.signal'>>('workflow-instances.signal', routes['workflow-instances.signal'], request, options),
+  start: (request: RequestOf<'workflow-instances.start'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.start'>, ResponseOf<'workflow-instances.start'>>('workflow-instances.start', routes['workflow-instances.start'], request, options),
+  suspend: (request: RequestOf<'workflow-instances.suspend'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.suspend'>, ResponseOf<'workflow-instances.suspend'>>('workflow-instances.suspend', routes['workflow-instances.suspend'], request, options),
+  terminate: (request: RequestOf<'workflow-instances.terminate'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.terminate'>, ResponseOf<'workflow-instances.terminate'>>('workflow-instances.terminate', routes['workflow-instances.terminate'], request, options),
 }

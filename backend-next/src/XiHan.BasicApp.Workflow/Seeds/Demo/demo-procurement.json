@@ -1,0 +1,70 @@
+{
+  "id": "demo-procurement",
+  "name": "demo-procurement",
+  "displayName": "Procurement",
+  "category": "Demo",
+  "description": "Demo: a countersign by named users runs in parallel with the headquarters leader's review, then the general manager approves; after 120 seconds without a decision it closes as timed out.",
+  "variables": [
+    { "name": "itemName", "required": false, "defaultValue": "Office equipment", "description": "Item to purchase." },
+    { "name": "amount", "required": false, "defaultValue": 5000, "description": "Purchase amount." }
+  ],
+  "nodes": [
+    { "id": "start", "activityType": "Start", "displayName": "Start" },
+    { "id": "parallel-review", "activityType": "Parallel", "displayName": "Parallel review" },
+    {
+      "id": "countersign",
+      "activityType": "UserTask",
+      "displayName": "Finance countersign",
+      "properties": {
+        "AssigneeRules": [{ "type": "User", "values": ["$user:admin$", "$user:manager$"] }],
+        "CompletionPolicy": "All",
+        "Title": "Countersign purchase: {{ itemName }} ({{ amount }})"
+      }
+    },
+    {
+      "id": "hq-review",
+      "activityType": "UserTask",
+      "displayName": "Headquarters leader review",
+      "properties": {
+        "AssigneeRules": [{ "type": "DepartmentLeader", "values": ["hq"] }],
+        "CompletionPolicy": "Any",
+        "Title": "Review purchase: {{ itemName }} ({{ amount }})"
+      }
+    },
+    { "id": "join-review", "activityType": "Join", "displayName": "Join", "properties": { "Mode": "WaitAll" } },
+    {
+      "id": "gm-approve",
+      "activityType": "UserTask",
+      "displayName": "General manager approval",
+      "timeout": "00:02:00",
+      "properties": {
+        "AssigneeRules": [{ "type": "Position", "values": ["gm"] }],
+        "CompletionPolicy": "Any",
+        "Title": "Final purchase approval: {{ itemName }} ({{ amount }})"
+      }
+    },
+    {
+      "id": "log-timeout",
+      "activityType": "Log",
+      "displayName": "Log timeout",
+      "properties": { "Message": "Purchase \"{{ itemName }}\" was not approved by the general manager in time and closed.", "Level": "Warning" }
+    },
+    { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } },
+    { "id": "end-timeout", "activityType": "End", "displayName": "Timed out", "properties": { "Outcome": "timeout" } }
+  ],
+  "transitions": [
+    { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "parallel-review" },
+    { "id": "t-countersign", "sourceNodeId": "parallel-review", "targetNodeId": "countersign" },
+    { "id": "t-hq", "sourceNodeId": "parallel-review", "targetNodeId": "hq-review" },
+    { "id": "t-countersign-approved", "sourceNodeId": "countersign", "targetNodeId": "join-review", "condition": "outcome == 'approved'" },
+    { "id": "t-countersign-rejected", "sourceNodeId": "countersign", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-hq-approved", "sourceNodeId": "hq-review", "targetNodeId": "join-review", "condition": "outcome == 'approved'" },
+    { "id": "t-hq-rejected", "sourceNodeId": "hq-review", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-join", "sourceNodeId": "join-review", "targetNodeId": "gm-approve" },
+    { "id": "t-gm-approved", "sourceNodeId": "gm-approve", "targetNodeId": "end-approved", "condition": "outcome == 'approved'" },
+    { "id": "t-gm-rejected", "sourceNodeId": "gm-approve", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-gm-timeout", "sourceNodeId": "gm-approve", "targetNodeId": "log-timeout", "condition": "outcome == 'timeout'" },
+    { "id": "t-log-timeout", "sourceNodeId": "log-timeout", "targetNodeId": "end-timeout" }
+  ]
+}

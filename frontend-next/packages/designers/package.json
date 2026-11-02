@@ -5,6 +5,9 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
+    "@xihan-flow/core": "catalog:",
+    "@xihan-flow/designer": "catalog:",
+    "@xihan-flow/runtime": "catalog:",
     "@xihan-ui/designer-kit": "catalog:",
     "@xihan-ui/designer-shell": "catalog:",
     "@xihan-ui/icons": "catalog:",

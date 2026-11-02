@@ -354,6 +354,21 @@
       "name": "workbench",
       "x-displayName": "Workbench",
       "description": "Workbench widgets: statistics, charts and announcements registered by each package."
+    },
+    {
+      "name": "workflow-assignees",
+      "x-displayName": "Workflow assignees",
+      "description": "Users, roles, positions and departments to choose from when configuring assignees, transferring or adding approvers."
+    },
+    {
+      "name": "workflow-definitions",
+      "x-displayName": "Workflow definitions",
+      "description": "Create, edit, publish, version, disable, archive and delete workflow definitions; list the approval businesses and the activity types available to the designer."
+    },
+    {
+      "name": "workflow-instances",
+      "x-displayName": "Workflow instances",
+      "description": "List and inspect workflow instances, start them, and cancel, terminate, retry, suspend, resume or signal them."
     }
   ],
   "paths": {
@@ -47153,6 +47168,2280 @@
           }
         }
       }
+    },
+    "/api/workflow-assignees:departments": {
+      "get": {
+        "operationId": "workflow-assignees.departments",
+        "tags": [
+          "workflow-assignees"
+        ],
+        "summary": "Choose departments",
+        "description": "List the departments of the tenant as a flat list to build a tree from; empty on the platform side.\n\nRequires permission workflow.workflow-assignees.read (Read the assignee directory).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-assignees.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u53EF\u9009\u7684\u90E8\u95E8\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AssigneeDepartmentsResponse",
+                  "description": "\u53EF\u9009\u7684\u90E8\u95E8\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u90E8\u95E8\u7684\u5E73\u94FA\u6E05\u5355\uFF0C\u524D\u7AEF\u6309\u4E0A\u7EA7 ID \u7EC4\u6811\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AssigneeDepartment"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-assignees:positions": {
+      "get": {
+        "operationId": "workflow-assignees.positions",
+        "tags": [
+          "workflow-assignees"
+        ],
+        "summary": "Choose positions",
+        "description": "List the enabled positions of the tenant; empty on the platform side.\n\nRequires permission workflow.workflow-assignees.read (Read the assignee directory).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-assignees.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u53EF\u9009\u7684\u89D2\u8272\u6216\u5C97\u4F4D\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AssigneeOptionsResponse",
+                  "description": "\u53EF\u9009\u7684\u89D2\u8272\u6216\u5C97\u4F4D\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u9009\u9879\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AssigneeOption"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-assignees:roles": {
+      "get": {
+        "operationId": "workflow-assignees.roles",
+        "tags": [
+          "workflow-assignees"
+        ],
+        "summary": "Choose roles",
+        "description": "List the enabled roles of the caller\u0027s side; assignee rules refer to them by code.\n\nRequires permission workflow.workflow-assignees.read (Read the assignee directory).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-assignees.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u53EF\u9009\u7684\u89D2\u8272\u6216\u5C97\u4F4D\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AssigneeOptionsResponse",
+                  "description": "\u53EF\u9009\u7684\u89D2\u8272\u6216\u5C97\u4F4D\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u9009\u9879\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AssigneeOption"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-assignees:users": {
+      "get": {
+        "operationId": "workflow-assignees.users",
+        "tags": [
+          "workflow-assignees"
+        ],
+        "summary": "Choose users",
+        "description": "Search the active accounts visible on the caller\u0027s side by keyword, or look them up by ID; support members are not included.\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "\u5173\u952E\u5B57\uFF08\u767B\u5F55\u540D\u3001\u663E\u793A\u540D\uFF09\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u5173\u952E\u5B57\uFF08\u767B\u5F55\u540D\u3001\u663E\u793A\u540D\uFF09\u3002",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u6309 ID \u56DE\u663E\uFF08\u7ED9\u4E86\u5C31\u4E0D\u6309\u5173\u952E\u5B57\u641C\uFF09\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u6309 ID \u56DE\u663E\uFF08\u7ED9\u4E86\u5C31\u4E0D\u6309\u5173\u952E\u5B57\u641C\uFF09\u3002",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "maxItems": 200
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "\u6309\u5173\u952E\u5B57\u641C\u65F6\u6700\u591A\u8FD4\u56DE\u51E0\u4E2A\uFF081\uFF5E200\uFF0C\u7F3A\u7701 50\uFF09\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u6309\u5173\u952E\u5B57\u641C\u65F6\u6700\u591A\u8FD4\u56DE\u51E0\u4E2A\uFF081\uFF5E200\uFF0C\u7F3A\u7701 50\uFF09\u3002",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u53EF\u9009\u7684\u7528\u6237\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AssigneeUsersResponse",
+                  "description": "\u53EF\u9009\u7684\u7528\u6237\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u7528\u6237\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AssigneeUser"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions": {
+      "delete": {
+        "operationId": "workflow-definitions.delete",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Delete workflow definitions",
+        "description": "Delete draft definitions.\n\nRequires permission workflow.workflow-definitions.delete (Delete workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B9A\u4E49 ID\u3002",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "workflow-definitions.create",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Create a workflow definition",
+        "description": "Create a draft from a WorkflowJson document; the version is the highest version of the same name plus one.\n\nRequires permission workflow.workflow-definitions.create (Create workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u65B0\u5EFA\u6D41\u7A0B\u5B9A\u4E49\u8349\u7A3F\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateWorkflowDefinitionRequest",
+                "description": "\u65B0\u5EFA\u6D41\u7A0B\u5B9A\u4E49\u8349\u7A3F\u3002",
+                "type": "object",
+                "properties": {
+                  "document": {
+                    "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 1000000
+                  }
+                },
+                "required": [
+                  "document"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowDefinitionDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "description": "\u540D\u5B57\u3002",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "publishedAt": {
+                      "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "businessNameKey": {
+                      "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "document": {
+                      "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "version",
+                    "status",
+                    "createdAt",
+                    "document"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions/{id}": {
+      "get": {
+        "operationId": "workflow-definitions.get",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Get a workflow definition",
+        "description": "Read a workflow definition with its whole document, as the designer opens it.\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B9A\u4E49 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowDefinitionDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "description": "\u540D\u5B57\u3002",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "publishedAt": {
+                      "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "businessNameKey": {
+                      "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "document": {
+                      "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "version",
+                    "status",
+                    "createdAt",
+                    "document"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "workflow-definitions.update",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Update a workflow definition",
+        "description": "Replace the document of a draft; the name and version stay as stored.\n\nRequires permission workflow.workflow-definitions.update (Update workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B9A\u4E49 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u6539\u6D41\u7A0B\u5B9A\u4E49\u8349\u7A3F\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateWorkflowDefinitionRequest",
+                "description": "\u6539\u6D41\u7A0B\u5B9A\u4E49\u8349\u7A3F\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u5B9A\u4E49 ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "document": {
+                    "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 1000000
+                  }
+                },
+                "required": [
+                  "id",
+                  "document"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowDefinitionDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "description": "\u540D\u5B57\u3002",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "publishedAt": {
+                      "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "businessNameKey": {
+                      "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "document": {
+                      "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "version",
+                    "status",
+                    "createdAt",
+                    "document"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions/{id}:publish": {
+      "post": {
+        "operationId": "workflow-definitions.publish",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Publish a workflow definition",
+        "description": "Publish a draft after the approval business check and the structural validation; all problems are listed in the error details.\n\nRequires permission workflow.workflow-definitions.update (Update workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B9A\u4E49 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u53D1\u5E03\u6D41\u7A0B\u5B9A\u4E49\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PublishWorkflowDefinitionRequest",
+                "description": "\u53D1\u5E03\u6D41\u7A0B\u5B9A\u4E49\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u5B9A\u4E49 ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowDefinitionDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "description": "\u540D\u5B57\u3002",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "publishedAt": {
+                      "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "businessNameKey": {
+                      "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "document": {
+                      "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "version",
+                    "status",
+                    "createdAt",
+                    "document"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:activity-types": {
+      "get": {
+        "operationId": "workflow-definitions.activity-types",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "List activity types",
+        "description": "List the activity types the designer may place, with their inputs.\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u6D3B\u52A8\u7C7B\u578B\u76EE\u5F55\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowActivityTypesResponse",
+                  "description": "\u6D3B\u52A8\u7C7B\u578B\u76EE\u5F55\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u6D3B\u52A8\u7C7B\u578B\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowActivityTypeResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:archive": {
+      "post": {
+        "operationId": "workflow-definitions.archive",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Archive workflow definitions",
+        "description": "Archive definitions in any status.\n\nRequires permission workflow.workflow-definitions.update (Update workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u4E00\u6279\u6D41\u7A0B\u5B9A\u4E49\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowDefinitionIdsRequest",
+                "description": "\u4E00\u6279\u6D41\u7A0B\u5B9A\u4E49\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9A\u4E49 ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:business-types": {
+      "get": {
+        "operationId": "workflow-definitions.business-types",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "List approval businesses",
+        "description": "List the approval businesses registered by the packages: business code (the definition name), display name, form component, start variables and allowed outcomes.\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u5BA1\u6279\u4E1A\u52A1\u76EE\u5F55\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowBusinessTypesResponse",
+                  "description": "\u5BA1\u6279\u4E1A\u52A1\u76EE\u5F55\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5DF2\u767B\u8BB0\u7684\u5BA1\u6279\u4E1A\u52A1\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowBusinessTypeResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:disable": {
+      "post": {
+        "operationId": "workflow-definitions.disable",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Disable workflow definitions",
+        "description": "Disable published definitions; running instances finish as usual.\n\nRequires permission workflow.workflow-definitions.update (Update workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u4E00\u6279\u6D41\u7A0B\u5B9A\u4E49\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowDefinitionIdsRequest",
+                "description": "\u4E00\u6279\u6D41\u7A0B\u5B9A\u4E49\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9A\u4E49 ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:list": {
+      "post": {
+        "operationId": "workflow-definitions.list",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "List workflow definitions",
+        "description": "Page through the workflow definitions of the caller\u0027s side, filtered by keyword (name, display name, description), name, category and status, ordered by name and then by version descending.\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfWorkflowDefinitionResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowDefinitionResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-definitions:new-version": {
+      "post": {
+        "operationId": "workflow-definitions.new-version",
+        "tags": [
+          "workflow-definitions"
+        ],
+        "summary": "Create a new version",
+        "description": "Copy the latest version of a name into a new draft.\n\nRequires permission workflow.workflow-definitions.create (Create workflow definitions).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-definitions.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u6309\u540D\u5B57\u5F00\u65B0\u7248\u672C\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "NewWorkflowDefinitionVersionRequest",
+                "description": "\u6309\u540D\u5B57\u5F00\u65B0\u7248\u672C\u3002",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "\u5B9A\u4E49\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowDefinitionDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9A\u4E49\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "description": "\u540D\u5B57\u3002",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "publishedAt": {
+                      "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "businessNameKey": {
+                      "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "document": {
+                      "description": "\u6574\u4EFD\u5B9A\u4E49\uFF08WorkflowJson\uFF09\u3002",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "version",
+                    "status",
+                    "createdAt",
+                    "document"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances/{id}": {
+      "get": {
+        "operationId": "workflow-instances.get",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Get a workflow instance",
+        "description": "Read a workflow instance with its variables, node history, pending waits and the definition it runs.\n\nRequires permission workflow.workflow-instances.read (Read workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u5B9E\u4F8B ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u5B9E\u4F8B ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9E\u4F8B\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowInstanceDetailResponse",
+                  "description": "\u6D41\u7A0B\u5B9E\u4F8B\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "instance": {
+                      "description": "\u5B9E\u4F8B\u3002",
+                      "$ref": "#/components/schemas/WorkflowInstanceResponse"
+                    },
+                    "variables": {
+                      "description": "\u53D8\u91CF\uFF08JSON \u5BF9\u8C61\u6587\u672C\uFF09\u3002",
+                      "type": "string"
+                    },
+                    "cancellationReason": {
+                      "description": "\u53D6\u6D88\u6216\u7EC8\u6B62\u7684\u539F\u56E0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "faultNodeId": {
+                      "description": "\u6545\u969C\u8282\u70B9\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "nodes": {
+                      "description": "\u8282\u70B9\u6267\u884C\u5386\u53F2\uFF08\u6309\u5F00\u59CB\u65F6\u95F4\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowNodeInstanceResponse"
+                      }
+                    },
+                    "waits": {
+                      "description": "\u5F85\u6062\u590D\u7684\u7B49\u5F85\uFF08\u7528\u6237\u4EFB\u52A1\u3001\u5B9A\u65F6\u3001\u4FE1\u53F7\u3001\u5B50\u6D41\u7A0B\u7B49\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowWaitResponse"
+                      }
+                    },
+                    "document": {
+                      "description": "\u5B9E\u4F8B\u6240\u7528\u7684\u5B9A\u4E49\uFF08WorkflowJson\uFF09\uFF0C\u753B\u6D41\u7A0B\u56FE\u4E0E\u8282\u70B9\u72B6\u6001\u7528\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "instance",
+                    "variables",
+                    "nodes",
+                    "waits"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:cancel": {
+      "post": {
+        "operationId": "workflow-instances.cancel",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Cancel workflow instances",
+        "description": "Cancel running, suspended or faulted instances, compensating when enabled.\n\nRequires permission workflow.workflow-instances.execute (Execute workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.execute",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowInstanceControlRequest",
+                "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9E\u4F8B ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "reason": {
+                    "description": "\u539F\u56E0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:list": {
+      "post": {
+        "operationId": "workflow-instances.list",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "List workflow instances",
+        "description": "Page through the workflow instances of the caller\u0027s side, filtered by title keyword, status, definition name, correlation ID, starter and creation time, newest first.\n\nRequires permission workflow.workflow-instances.read (Read workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfWorkflowInstanceResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkflowInstanceResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:resume": {
+      "post": {
+        "operationId": "workflow-instances.resume",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Resume workflow instances",
+        "description": "Resume suspended instances.\n\nRequires permission workflow.workflow-instances.update (Suspend and resume workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u4E00\u6279\u5B9E\u4F8B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowInstanceIdsRequest",
+                "description": "\u4E00\u6279\u5B9E\u4F8B\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9E\u4F8B ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:retry": {
+      "post": {
+        "operationId": "workflow-instances.retry",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Retry workflow instances",
+        "description": "Rerun faulted instances from their faulted node.\n\nRequires permission workflow.workflow-instances.execute (Execute workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.execute",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u4E00\u6279\u5B9E\u4F8B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowInstanceIdsRequest",
+                "description": "\u4E00\u6279\u5B9E\u4F8B\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9E\u4F8B ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:signal": {
+      "post": {
+        "operationId": "workflow-instances.signal",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Publish a signal",
+        "description": "Resume the instances of the caller\u0027s side waiting for a signal, optionally only those with a correlation ID, and return how many waits it resumed.\n\nRequires permission workflow.workflow-instances.execute (Execute workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.execute",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u53D1\u4FE1\u53F7\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SignalWorkflowInstancesRequest",
+                "description": "\u53D1\u4FE1\u53F7\u3002",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "\u4FE1\u53F7\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "payload": {
+                    "description": "\u8F7D\u8377\uFF08JSON \u5BF9\u8C61\u6587\u672C\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100000
+                  },
+                  "correlationId": {
+                    "description": "\u5173\u8054 ID\uFF0C\u7A7A\u5373\u4E0D\u9650\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u53D1\u4FE1\u53F7\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SignalWorkflowInstancesResponse",
+                  "description": "\u53D1\u4FE1\u53F7\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "resumed": {
+                      "description": "\u88AB\u5B83\u6062\u590D\u7684\u7B49\u5F85\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "resumed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:start": {
+      "post": {
+        "operationId": "workflow-instances.start",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Start a workflow",
+        "description": "Start an instance of the latest published version (or a given version) of a definition, with the caller as the starter.\n\nRequires permission workflow.workflow-instances.execute (Execute workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.execute",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u53D1\u8D77\u6D41\u7A0B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "StartWorkflowInstanceRequest",
+                "description": "\u53D1\u8D77\u6D41\u7A0B\u3002",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "\u5B9A\u4E49\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+                  },
+                  "version": {
+                    "description": "\u7248\u672C\uFF0C\u7A7A\u5373\u6700\u65B0\u5DF2\u53D1\u5E03\u7684\u3002",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "displayName": {
+                    "description": "\u5B9E\u4F8B\u6807\u9898\uFF0C\u7A7A\u5373\u53D6\u5B9A\u4E49\u7684\u663E\u793A\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "correlationId": {
+                    "description": "\u5173\u8054 ID\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "variables": {
+                    "description": "\u53D8\u91CF\uFF08JSON \u5BF9\u8C61\u6587\u672C\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100000
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D41\u7A0B\u5B9E\u4F8B\uFF08\u5217\u8868\u7684\u4E00\u884C\uFF09\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "WorkflowInstanceResponse",
+                  "description": "\u6D41\u7A0B\u5B9E\u4F8B\uFF08\u5217\u8868\u7684\u4E00\u884C\uFF09\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u5B9E\u4F8B ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "definitionId": {
+                      "description": "\u5B9A\u4E49 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "definitionName": {
+                      "description": "\u5B9A\u4E49\u540D\u3002",
+                      "type": "string"
+                    },
+                    "definitionVersion": {
+                      "description": "\u5B9A\u4E49\u7248\u672C\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "title": {
+                      "description": "\u6807\u9898\uFF08\u53D1\u8D77\u65F6\u7ED9\u7684\u663E\u793A\u540D\uFF0C\u6CA1\u7ED9\u53D6\u5B9A\u4E49\u7684\u663E\u793A\u540D\uFF09\u3002",
+                      "type": "string"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/WorkflowInstanceStatus"
+                    },
+                    "correlationId": {
+                      "description": "\u5173\u8054 ID\uFF08\u5BA1\u6279\u4E1A\u52A1\u7684\u5355\u636E ID\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "starterId": {
+                      "description": "\u53D1\u8D77\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "starterName": {
+                      "description": "\u53D1\u8D77\u4EBA\u663E\u793A\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "parentInstanceId": {
+                      "description": "\u7236\u5B9E\u4F8B\uFF08\u5B50\u6D41\u7A0B\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "depth": {
+                      "description": "\u5B50\u6D41\u7A0B\u6DF1\u5EA6\uFF0C\u9876\u5C42\u4E3A 0\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endedAt": {
+                      "description": "\u7ED3\u675F\u65F6\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "outcome": {
+                      "description": "\u7ED3\u8BBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "faultMessage": {
+                      "description": "\u6545\u969C\u4FE1\u606F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "definitionId",
+                    "definitionName",
+                    "definitionVersion",
+                    "title",
+                    "status",
+                    "depth",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:suspend": {
+      "post": {
+        "operationId": "workflow-instances.suspend",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Suspend workflow instances",
+        "description": "Suspend running instances.\n\nRequires permission workflow.workflow-instances.update (Suspend and resume workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowInstanceControlRequest",
+                "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9E\u4F8B ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "reason": {
+                    "description": "\u539F\u56E0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workflow-instances:terminate": {
+      "post": {
+        "operationId": "workflow-instances.terminate",
+        "tags": [
+          "workflow-instances"
+        ],
+        "summary": "Terminate workflow instances",
+        "description": "Terminate running, suspended or faulted instances without compensation.\n\nRequires permission workflow.workflow-instances.execute (Execute workflow instances).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "workflow.workflow-instances.execute",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "WorkflowInstanceControlRequest",
+                "description": "\u53D6\u6D88\u3001\u7EC8\u6B62\u6216\u6302\u8D77\u4E00\u6279\u5B9E\u4F8B\u3002",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u5B9E\u4F8B ID\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "reason": {
+                    "description": "\u539F\u56E0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -47716,6 +50005,91 @@
           "Armv6",
           "Ppc64le",
           "RiscV64"
+        ]
+      },
+      "AssigneeDepartment": {
+        "description": "\u4E00\u4E2A\u53EF\u9009\u7684\u90E8\u95E8\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u90E8\u95E8 ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "description": "\u4E0A\u7EA7\u90E8\u95E8 ID\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801\uFF08\u53D7\u7406\u4EBA\u89C4\u5219\u6309\u7F16\u7801\u5F15\u7528\uFF09\u3002",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0\u3002",
+            "type": "string"
+          },
+          "isActive": {
+            "description": "\u662F\u5426\u542F\u7528\u3002",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive"
+        ]
+      },
+      "AssigneeOption": {
+        "description": "\u4E00\u4E2A\u53EF\u9009\u7684\u89D2\u8272\u6216\u5C97\u4F4D\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801\uFF08\u53D7\u7406\u4EBA\u89C4\u5219\u6309\u7F16\u7801\u5F15\u7528\uFF09\u3002",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ]
+      },
+      "AssigneeUser": {
+        "description": "\u4E00\u4E2A\u53EF\u9009\u7684\u7528\u6237\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u7528\u6237 ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "description": "\u767B\u5F55\u540D\u3002",
+            "type": "string"
+          },
+          "displayName": {
+            "description": "\u663E\u793A\u540D\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userName",
+          "displayName"
         ]
       },
       "AvailableTenantResponse": {
@@ -57169,6 +59543,433 @@
           "key",
           "kind"
         ]
+      },
+      "WorkflowActivityInputResponse": {
+        "description": "\u6D3B\u52A8\u7684\u4E00\u4E2A\u8F93\u5165\u5C5E\u6027\u3002",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u5C5E\u6027\u540D\u3002",
+            "type": "string"
+          },
+          "kind": {
+            "description": "\u53D6\u503C\u79CD\u7C7B\u3002",
+            "type": "string"
+          },
+          "required": {
+            "description": "\u662F\u5426\u5FC5\u586B\u3002",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "required"
+        ]
+      },
+      "WorkflowActivityTypeResponse": {
+        "description": "\u4E00\u4E2A\u6D3B\u52A8\u7C7B\u578B\u3002",
+        "type": "object",
+        "properties": {
+          "type": {
+            "description": "\u7C7B\u578B\u540D\u3002",
+            "type": "string"
+          },
+          "displayName": {
+            "description": "\u663E\u793A\u540D\u3002",
+            "type": "string"
+          },
+          "category": {
+            "description": "\u5206\u7C7B\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "inputs": {
+            "description": "\u8F93\u5165\u5C5E\u6027\u3002",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowActivityInputResponse"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "displayName",
+          "inputs"
+        ]
+      },
+      "WorkflowBusinessTypeResponse": {
+        "description": "\u4E00\u4E2A\u5BA1\u6279\u4E1A\u52A1\u3002",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "\u4E1A\u52A1\u7801\uFF08\u6D41\u7A0B\u5B9A\u4E49\u540D\uFF09\u3002",
+            "type": "string"
+          },
+          "nameKey": {
+            "description": "\u663E\u793A\u540D\u7684\u6587\u6848\u952E\u3002",
+            "type": "string"
+          },
+          "formComponent": {
+            "description": "\u5355\u636E\u7EC4\u4EF6\u8DEF\u5F84\u3002",
+            "type": "string"
+          },
+          "variables": {
+            "description": "\u53D1\u8D77\u65F6\u5E26\u7684\u53D8\u91CF\u3002",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowBusinessVariableResponse"
+            }
+          },
+          "outcomes": {
+            "description": "\u5141\u8BB8\u7684\u7ED3\u8BBA\u3002",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "nameKey",
+          "formComponent",
+          "variables",
+          "outcomes"
+        ]
+      },
+      "WorkflowBusinessVariableResponse": {
+        "description": "\u5BA1\u6279\u4E1A\u52A1\u7684\u4E00\u4E2A\u53D8\u91CF\u3002",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u53D8\u91CF\u540D\u3002",
+            "type": "string"
+          },
+          "labelKey": {
+            "description": "\u663E\u793A\u540D\u7684\u6587\u6848\u952E\u3002",
+            "type": "string"
+          },
+          "valueType": {
+            "description": "\u503C\u7C7B\u578B\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "labelKey",
+          "valueType"
+        ]
+      },
+      "WorkflowDefinitionResponse": {
+        "description": "\u6D41\u7A0B\u5B9A\u4E49\uFF08\u5217\u8868\u7684\u4E00\u884C\uFF09\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "description": "\u540D\u5B57\uFF08\u540C\u540D\u7684\u5404\u7248\u672C\u5171\u7528\uFF1B\u5173\u8054\u5BA1\u6279\u4E1A\u52A1\u65F6\u5373\u4E1A\u52A1\u7801\uFF09\u3002",
+            "type": "string"
+          },
+          "version": {
+            "description": "\u7248\u672C\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "displayName": {
+            "description": "\u663E\u793A\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "description": "\u8BF4\u660E\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "description": "\u5206\u7C7B\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/WorkflowDefinitionStatus"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "description": "\u53D1\u5E03\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "businessNameKey": {
+            "description": "\u5173\u8054\u7684\u5BA1\u6279\u4E1A\u52A1\u7684\u663E\u793A\u540D\u6587\u6848\u952E\uFF0C\u6CA1\u6709\u5173\u8054\u65F6\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version",
+          "status",
+          "createdAt"
+        ]
+      },
+      "WorkflowDefinitionStatus": {
+        "type": "string",
+        "enum": [
+          "Draft",
+          "Published",
+          "Disabled",
+          "Archived"
+        ]
+      },
+      "WorkflowInstanceResponse": {
+        "description": "\u6D41\u7A0B\u5B9E\u4F8B\uFF08\u5217\u8868\u7684\u4E00\u884C\uFF09\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u5B9E\u4F8B ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "definitionId": {
+            "description": "\u5B9A\u4E49 ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "definitionName": {
+            "description": "\u5B9A\u4E49\u540D\u3002",
+            "type": "string"
+          },
+          "definitionVersion": {
+            "description": "\u5B9A\u4E49\u7248\u672C\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "description": "\u6807\u9898\uFF08\u53D1\u8D77\u65F6\u7ED9\u7684\u663E\u793A\u540D\uFF0C\u6CA1\u7ED9\u53D6\u5B9A\u4E49\u7684\u663E\u793A\u540D\uFF09\u3002",
+            "type": "string"
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/WorkflowInstanceStatus"
+          },
+          "correlationId": {
+            "description": "\u5173\u8054 ID\uFF08\u5BA1\u6279\u4E1A\u52A1\u7684\u5355\u636E ID\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "starterId": {
+            "description": "\u53D1\u8D77\u4EBA\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "starterName": {
+            "description": "\u53D1\u8D77\u4EBA\u663E\u793A\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parentInstanceId": {
+            "description": "\u7236\u5B9E\u4F8B\uFF08\u5B50\u6D41\u7A0B\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "depth": {
+            "description": "\u5B50\u6D41\u7A0B\u6DF1\u5EA6\uFF0C\u9876\u5C42\u4E3A 0\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "description": "\u7ED3\u675F\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "outcome": {
+            "description": "\u7ED3\u8BBA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "faultMessage": {
+            "description": "\u6545\u969C\u4FE1\u606F\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "definitionId",
+          "definitionName",
+          "definitionVersion",
+          "title",
+          "status",
+          "depth",
+          "createdAt"
+        ]
+      },
+      "WorkflowInstanceStatus": {
+        "type": "string",
+        "enum": [
+          "Running",
+          "Suspended",
+          "Completed",
+          "Canceled",
+          "Faulted",
+          "Terminated"
+        ]
+      },
+      "WorkflowNodeInstanceResponse": {
+        "description": "\u4E00\u6B21\u8282\u70B9\u6267\u884C\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u8282\u70B9\u5B9E\u4F8B ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "nodeId": {
+            "description": "\u8282\u70B9 ID\u3002",
+            "type": "string"
+          },
+          "activityType": {
+            "description": "\u6D3B\u52A8\u7C7B\u578B\u3002",
+            "type": "string"
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/WorkflowNodeInstanceStatus"
+          },
+          "attempt": {
+            "description": "\u7B2C\u51E0\u6B21\u5C1D\u8BD5\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "startedAt": {
+            "description": "\u5F00\u59CB\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "description": "\u7ED3\u675F\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "faultMessage": {
+            "description": "\u6545\u969C\u4FE1\u606F\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nodeId",
+          "activityType",
+          "status",
+          "attempt",
+          "startedAt"
+        ]
+      },
+      "WorkflowNodeInstanceStatus": {
+        "type": "string",
+        "enum": [
+          "Running",
+          "Suspended",
+          "Completed",
+          "Canceled",
+          "Faulted",
+          "Compensated"
+        ]
+      },
+      "WorkflowWaitResponse": {
+        "description": "\u4E00\u4E2A\u5F85\u6062\u590D\u7684\u7B49\u5F85\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u7B49\u5F85 ID\uFF08\u7528\u6237\u4EFB\u52A1\u5373\u4EFB\u52A1 ID\uFF09\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "nodeId": {
+            "description": "\u8282\u70B9 ID\u3002",
+            "type": "string"
+          },
+          "kind": {
+            "description": "\u79CD\u7C7B\uFF1AUserTask\u3001Timer\u3001Signal\u3001SubWorkflow\u3001Retry\u3001NodeTimeout \u7B49\u3002",
+            "type": "string"
+          },
+          "key": {
+            "description": "\u952E\uFF08\u53D7\u7406\u4EBA\u3001\u4FE1\u53F7\u540D\u7B49\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dueAt": {
+            "description": "\u5230\u671F\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "nodeId",
+          "kind",
+          "createdAt"
+        ]
       }
     },
     "securitySchemes": {
@@ -58063,6 +60864,46 @@
         "code": "tenancy.tenants.update",
         "displayName": "Update tenants",
         "description": "Edit tenant names, descriptions, expiry and order."
+      },
+      "workflow.workflow-assignees.read": {
+        "code": "workflow.workflow-assignees.read",
+        "displayName": "Read the assignee directory",
+        "description": "List roles, positions and departments when choosing assignees."
+      },
+      "workflow.workflow-definitions.create": {
+        "code": "workflow.workflow-definitions.create",
+        "displayName": "Create workflow definitions",
+        "description": "Create drafts and new versions of workflow definitions."
+      },
+      "workflow.workflow-definitions.delete": {
+        "code": "workflow.workflow-definitions.delete",
+        "displayName": "Delete workflow definitions",
+        "description": "Delete draft workflow definitions."
+      },
+      "workflow.workflow-definitions.read": {
+        "code": "workflow.workflow-definitions.read",
+        "displayName": "Read workflow definitions",
+        "description": "View the workflow definitions of the caller\u0027s side and their documents."
+      },
+      "workflow.workflow-definitions.update": {
+        "code": "workflow.workflow-definitions.update",
+        "displayName": "Update workflow definitions",
+        "description": "Edit drafts, publish, disable and archive workflow definitions."
+      },
+      "workflow.workflow-instances.execute": {
+        "code": "workflow.workflow-instances.execute",
+        "displayName": "Execute workflow instances",
+        "description": "Start, cancel, terminate and retry instances and publish signals."
+      },
+      "workflow.workflow-instances.read": {
+        "code": "workflow.workflow-instances.read",
+        "displayName": "Read workflow instances",
+        "description": "View the workflow instances of the caller\u0027s side, their history and waits, and any approval detail."
+      },
+      "workflow.workflow-instances.update": {
+        "code": "workflow.workflow-instances.update",
+        "displayName": "Suspend and resume workflow instances",
+        "description": "Suspend and resume running workflow instances."
       }
     }
   },
@@ -58199,6 +61040,14 @@
         "chat-audit",
         "chat-conversations",
         "chat-messages"
+      ]
+    },
+    {
+      "name": "Workflow",
+      "tags": [
+        "workflow-assignees",
+        "workflow-definitions",
+        "workflow-instances"
       ]
     },
     {

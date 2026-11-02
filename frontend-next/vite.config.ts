@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       // 打印设计器与应用共用 @xihan-ui/web-components 的全局配置（语言、滚动源）：预构建会把 web-components 打进 @xihan-print 自己的块，
       // 链到同级 XiHan.UI 源码联调时应用写的是另一份，设计器只看得见英文缺省；不预构建即按源码引用同一份（生产构建按真实路径去重，不受影响）
-      exclude: ['@xihan-print/core', '@xihan-print/designer', '@xihan-print/runtime'],
+      exclude: ['@xihan-flow/core', '@xihan-flow/designer', '@xihan-flow/runtime', '@xihan-print/core', '@xihan-print/designer', '@xihan-print/runtime'],
     },
     server: {
       port: Number(env.VITE_PORT) || 9100,

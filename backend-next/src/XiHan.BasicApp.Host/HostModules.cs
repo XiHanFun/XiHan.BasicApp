@@ -33,12 +33,20 @@ public sealed record HostModules
     public bool Chat { get; init; } = true;
 
     /// <summary>
+    /// 工作流模块。
+    /// </summary>
+    /// <remarks>
+    /// 流程定义与实例、审批中心；引擎是宿主恒装的数据库工作流，关掉只关 BasicApp 的 Workflow 包。
+    /// </remarks>
+    public bool Workflow { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取。
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)

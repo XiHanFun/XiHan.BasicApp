@@ -1,0 +1,50 @@
+{
+  "id": "demo-leave",
+  "name": "demo-leave",
+  "displayName": "Leave request",
+  "category": "Demo",
+  "description": "Demo: two levels of managers approve in sequence (falls back to the administrators when nobody is found) with HR copied; more than 3 days also needs the HR department.",
+  "variables": [
+    { "name": "days", "required": true, "description": "Days of leave; more than 3 also need the HR department." },
+    { "name": "reason", "required": false, "defaultValue": "Personal", "description": "Reason for the leave." }
+  ],
+  "nodes": [
+    { "id": "start", "activityType": "Start", "displayName": "Start" },
+    {
+      "id": "leader-chain",
+      "activityType": "UserTask",
+      "displayName": "Managers in sequence",
+      "properties": {
+        "AssigneeRules": [{ "type": "StarterLeaderChain", "values": ["2"] }],
+        "CompletionPolicy": "Sequential",
+        "ExcludeStarter": true,
+        "EmptyAssigneeStrategy": "Fallback",
+        "FallbackAssigneeRules": [{ "type": "Role", "values": ["admin"] }],
+        "CcRules": [{ "type": "Role", "values": ["hr_specialist"] }],
+        "Title": "Leave {{ days }} days: {{ reason }}"
+      }
+    },
+    { "id": "days-check", "activityType": "Decision", "displayName": "Days check" },
+    {
+      "id": "hr-approve",
+      "activityType": "UserTask",
+      "displayName": "HR department approval",
+      "properties": {
+        "AssigneeRules": [{ "type": "Department", "values": ["hr"] }],
+        "CompletionPolicy": "Any",
+        "Title": "Long leave {{ days }} days: {{ reason }}"
+      }
+    },
+    { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } }
+  ],
+  "transitions": [
+    { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "leader-chain" },
+    { "id": "t-chain-approved", "sourceNodeId": "leader-chain", "targetNodeId": "days-check", "condition": "outcome == 'approved'" },
+    { "id": "t-chain-rejected", "sourceNodeId": "leader-chain", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-long", "sourceNodeId": "days-check", "targetNodeId": "hr-approve", "condition": "days > 3", "priority": 1, "displayName": "More than 3 days" },
+    { "id": "t-short", "sourceNodeId": "days-check", "targetNodeId": "end-approved", "isDefault": true, "displayName": "Up to 3 days" },
+    { "id": "t-hr-approved", "sourceNodeId": "hr-approve", "targetNodeId": "end-approved", "condition": "outcome == 'approved'" },
+    { "id": "t-hr-rejected", "sourceNodeId": "hr-approve", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" }
+  ]
+}

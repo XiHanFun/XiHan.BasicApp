@@ -104,13 +104,16 @@ public sealed class DirectoryContractsTests : IDisposable
             return true;
         });
 
-        // 可见的在用账号：运维支持成员（超管）与停用的账号不算；平台一侧只有平台账号
+        // 可见的账号：运维支持成员（超管）不算，取在用的另外不算停用的；关键字不匹配邮箱；平台一侧只有平台账号
         await SettingsTestHost.InvokeAsync(server, "demo", async ctx =>
         {
             var users = ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>();
             var disabled = (await users.FindAsync(lead, ctx.CancellationToken)).ValueOrThrow();
             disabled.Status = UserStatus.Disabled;
             (await users.UpdateAsync(disabled, ctx.CancellationToken)).ThrowIfFailure();
+            var withEmail = (await users.FindAsync(manager, ctx.CancellationToken)).ValueOrThrow();
+            withEmail.Email = "boss@example.com";
+            (await users.UpdateAsync(withEmail, ctx.CancellationToken)).ThrowIfFailure();
             return true;
         });
         await SettingsTestHost.InvokeAsync(server, null, async ctx =>
@@ -118,6 +121,9 @@ public sealed class DirectoryContractsTests : IDisposable
             var directory = ctx.Services.GetRequiredService<IUserDirectory>();
             Assert.Equal(new HashSet<Guid> { admin, manager, hr }, await directory.ActiveInSideAsync("demo", [admin, manager, lead, hr, superAdmin], ctx.CancellationToken));
             Assert.Empty(await directory.ActiveInSideAsync(TenantIds.Platform, [admin, manager], ctx.CancellationToken));
+            Assert.Equal(new HashSet<Guid> { admin, manager, lead, hr }, await directory.InSideAsync("demo", [admin, manager, lead, hr, superAdmin], ctx.CancellationToken));
+            Assert.Empty(await directory.InSideAsync(TenantIds.Platform, [admin, lead], ctx.CancellationToken));
+            Assert.Empty(await directory.SearchActiveInSideAsync("demo", "example.com", 50, ctx.CancellationToken));
             Assert.Equal(["admin", "hr", "manager"], (await directory.SearchActiveInSideAsync("demo", null, 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Equal(["manager"], (await directory.SearchActiveInSideAsync("demo", "Manager", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Contains(await directory.SearchActiveInSideAsync(TenantIds.Platform, "super", 50, ctx.CancellationToken), static u => u.UserName == "superadmin");

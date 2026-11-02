@@ -1,0 +1,48 @@
+{
+  "id": "demo-expense",
+  "name": "demo-expense",
+  "displayName": "Expense claim",
+  "category": "Demo",
+  "description": "Demo: the starter's direct manager approves (any one); amounts over 10000 also need the general manager.",
+  "variables": [
+    { "name": "amount", "required": true, "description": "Amount claimed; over 10000 the general manager also approves." },
+    { "name": "reason", "required": false, "defaultValue": "Business travel", "description": "Reason for the claim." }
+  ],
+  "nodes": [
+    { "id": "start", "activityType": "Start", "displayName": "Start" },
+    {
+      "id": "leader-approve",
+      "activityType": "UserTask",
+      "displayName": "Direct manager approval",
+      "properties": {
+        "AssigneeRules": [{ "type": "StarterLeader", "values": ["1"] }],
+        "CompletionPolicy": "Any",
+        "ExcludeStarter": true,
+        "EmptyAssigneeStrategy": "AutoApprove",
+        "Title": "Expense {{ amount }}: {{ reason }}"
+      }
+    },
+    { "id": "amount-check", "activityType": "Decision", "displayName": "Amount check" },
+    {
+      "id": "gm-approve",
+      "activityType": "UserTask",
+      "displayName": "General manager approval",
+      "properties": {
+        "AssigneeRules": [{ "type": "Position", "values": ["gm"] }],
+        "CompletionPolicy": "Any",
+        "Title": "Large expense {{ amount }}: {{ reason }}"
+      }
+    },
+    { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } }
+  ],
+  "transitions": [
+    { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "leader-approve" },
+    { "id": "t-leader-approved", "sourceNodeId": "leader-approve", "targetNodeId": "amount-check", "condition": "outcome == 'approved'" },
+    { "id": "t-leader-rejected", "sourceNodeId": "leader-approve", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-large", "sourceNodeId": "amount-check", "targetNodeId": "gm-approve", "condition": "amount > 10000", "priority": 1, "displayName": "Over 10000" },
+    { "id": "t-small", "sourceNodeId": "amount-check", "targetNodeId": "end-approved", "isDefault": true, "displayName": "Up to 10000" },
+    { "id": "t-gm-approved", "sourceNodeId": "gm-approve", "targetNodeId": "end-approved", "condition": "outcome == 'approved'" },
+    { "id": "t-gm-rejected", "sourceNodeId": "gm-approve", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" }
+  ]
+}

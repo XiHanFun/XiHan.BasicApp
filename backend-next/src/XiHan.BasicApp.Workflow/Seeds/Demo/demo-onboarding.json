@@ -1,0 +1,75 @@
+{
+  "id": "demo-onboarding",
+  "name": "demo-onboarding",
+  "displayName": "Onboarding",
+  "category": "Demo",
+  "description": "Demo: set variables, log, HR prepares (the starter is copied), the mentor confirms (expression assignee), wait 60 seconds, start a procurement subflow for each piece of equipment, then an expense subflow for the travel.",
+  "variables": [
+    { "name": "employeeName", "required": true, "description": "Name of the new employee." },
+    { "name": "travelAmount", "required": false, "defaultValue": 800, "description": "Travel expense to claim." }
+  ],
+  "nodes": [
+    { "id": "start", "activityType": "Start", "displayName": "Start" },
+    {
+      "id": "init",
+      "activityType": "SetVariable",
+      "displayName": "Prepare the checklist",
+      "properties": {
+        "Values": { "equipment": ["Laptop", "Monitor", "Badge"], "mentorId": "$user:lead$" },
+        "Expressions": { "budget": "travelAmount + 5000" }
+      }
+    },
+    { "id": "log-start", "activityType": "Log", "displayName": "Log start", "properties": { "Message": "Onboarding started: {{ employeeName }}, budget {{ budget }}" } },
+    {
+      "id": "hr-prepare",
+      "activityType": "UserTask",
+      "displayName": "HR preparation",
+      "properties": {
+        "AssigneeRules": [{ "type": "Role", "values": ["hr_specialist"] }],
+        "CompletionPolicy": "Any",
+        "CcRules": [{ "type": "Starter", "values": [] }],
+        "Title": "Prepare onboarding: {{ employeeName }}"
+      }
+    },
+    {
+      "id": "mentor-confirm",
+      "activityType": "UserTask",
+      "displayName": "Mentor confirmation",
+      "properties": {
+        "AssigneeRules": [{ "type": "Expression", "values": ["mentorId"] }],
+        "CompletionPolicy": "Any",
+        "EmptyAssigneeStrategy": "AutoApprove",
+        "Title": "Confirm mentoring: {{ employeeName }}"
+      }
+    },
+    { "id": "wait-first-day", "activityType": "Delay", "displayName": "Wait for the first day", "properties": { "Duration": 60 } },
+    {
+      "id": "equipment-purchase",
+      "activityType": "ForEach",
+      "displayName": "Purchase each piece of equipment",
+      "properties": { "Items": "equipment", "ItemVariable": "itemName", "DefinitionName": "demo-procurement", "Parallel": true }
+    },
+    {
+      "id": "travel-expense",
+      "activityType": "SubWorkflow",
+      "displayName": "Travel expense",
+      "properties": { "DefinitionName": "demo-expense", "VariableExpressions": { "amount": "travelAmount", "reason": "'Onboarding travel'" } }
+    },
+    { "id": "log-done", "activityType": "Log", "displayName": "Log completion", "properties": { "Message": "Onboarding completed: {{ employeeName }}" } },
+    { "id": "end-approved", "activityType": "End", "displayName": "Onboarded", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "Onboarding canceled", "properties": { "Outcome": "rejected" } }
+  ],
+  "transitions": [
+    { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "init" },
+    { "id": "t-init", "sourceNodeId": "init", "targetNodeId": "log-start" },
+    { "id": "t-log-start", "sourceNodeId": "log-start", "targetNodeId": "hr-prepare" },
+    { "id": "t-hr-approved", "sourceNodeId": "hr-prepare", "targetNodeId": "mentor-confirm", "condition": "outcome == 'approved'" },
+    { "id": "t-hr-rejected", "sourceNodeId": "hr-prepare", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-mentor-approved", "sourceNodeId": "mentor-confirm", "targetNodeId": "wait-first-day", "condition": "outcome == 'approved'" },
+    { "id": "t-mentor-rejected", "sourceNodeId": "mentor-confirm", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
+    { "id": "t-wait", "sourceNodeId": "wait-first-day", "targetNodeId": "equipment-purchase" },
+    { "id": "t-equipment", "sourceNodeId": "equipment-purchase", "targetNodeId": "travel-expense" },
+    { "id": "t-travel", "sourceNodeId": "travel-expense", "targetNodeId": "log-done" },
+    { "id": "t-done", "sourceNodeId": "log-done", "targetNodeId": "end-approved" }
+  ]
+}
