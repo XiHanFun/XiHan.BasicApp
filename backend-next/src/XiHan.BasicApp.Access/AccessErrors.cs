@@ -551,4 +551,98 @@ public static class AccessErrors
     /// 参数 <c>field</c>。
     /// </remarks>
     public const string FieldReadOnly = "ACCESS_DENIED_007";
+
+    /// <summary>
+    /// 授权申请不存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string PermissionRequestNotFound = "ACCESS_NOTFOUND_012";
+
+    /// <summary>
+    /// 授权申请没有指定角色或权限。
+    /// </summary>
+    public const string PermissionRequestTargetRequired = "ACCESS_VALIDATION_051";
+
+    /// <summary>
+    /// 申请的权限不存在或不属于这一侧。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
+    public const string PermissionRequestPermissionUnknown = "ACCESS_VALIDATION_052";
+
+    /// <summary>
+    /// 期望失效时间不晚于现在。
+    /// </summary>
+    public const string PermissionRequestExpiryPassed = "ACCESS_VALIDATION_053";
+
+    /// <summary>
+    /// 手工只能把申请置为已驳回或已撤回。
+    /// </summary>
+    /// <remarks>
+    /// 审批通过必须走审批流程并自动授权。参数 <c>status</c>。
+    /// </remarks>
+    public const string PermissionRequestStatusInvalid = "ACCESS_VALIDATION_054";
+
+    /// <summary>
+    /// 申请的角色已停用。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string PermissionRequestRoleDisabled = "ACCESS_VALIDATION_055";
+
+    /// <summary>
+    /// 同一对象已有待审批的申请。
+    /// </summary>
+    public const string PermissionRequestDuplicate = "ACCESS_CONFLICT_013";
+
+    /// <summary>
+    /// 申请已经完结。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>status</c>。
+    /// </remarks>
+    public const string PermissionRequestNotPending = "ACCESS_CONFLICT_014";
+
+    /// <summary>
+    /// 审批通过了，但指派或直授没有执行。
+    /// </summary>
+    /// <remarks>
+    /// 如违反约束规则、申请人已不在这一侧；结束节点随之故障、申请保持待审批，处理后重试流程。参数 <c>code</c>（指派或直授给的错误码）。
+    /// </remarks>
+    public const string PermissionRequestGrantFailed = "ACCESS_CONFLICT_015";
+
+    /// <summary>
+    /// 只能维护自己的申请。
+    /// </summary>
+    public const string PermissionRequestNotOwner = "ACCESS_DENIED_008";
+
+    /// <summary>
+    /// 不能审批或处理自己的申请。
+    /// </summary>
+    public const string PermissionRequestSelfHandled = "ACCESS_DENIED_009";
+
+    /// <summary>
+    /// 处理人无权授出申请的对象。
+    /// </summary>
+    /// <remarks>
+    /// 角色要持有 <c>access.roles.assign</c>，权限要持有 <c>access.user-grants.grant</c>。参数 <c>permission</c>。
+    /// </remarks>
+    public const string PermissionRequestCannotGrant = "ACCESS_DENIED_010";
+
+    /// <summary>
+    /// 申请人不是这一侧的在用账号。
+    /// </summary>
+    public const string PermissionRequestRequesterInactive = "ACCESS_DENIED_011";
+
+    /// <summary>
+    /// 审批未启用。
+    /// </summary>
+    /// <remarks>
+    /// Workflow 模块关掉时提交与重新提交授权申请即这个错误（方案 W1），列表照常、进度为空。
+    /// </remarks>
+    public const string ApprovalUnavailable = "ACCESS_UNAVAILABLE_002";
 }

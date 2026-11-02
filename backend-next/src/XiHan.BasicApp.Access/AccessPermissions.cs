@@ -118,6 +118,31 @@ public static class AccessPermissions
     public const string DelegationsDelete = "access.delegations.delete";
 
     /// <summary>
+    /// 查看授权申请（含审批进度）。
+    /// </summary>
+    public const string PermissionRequestsRead = "access.permission-requests.read";
+
+    /// <summary>
+    /// 提交授权申请。
+    /// </summary>
+    public const string PermissionRequestsCreate = "access.permission-requests.create";
+
+    /// <summary>
+    /// 修改并重新提交自己的申请。
+    /// </summary>
+    public const string PermissionRequestsUpdate = "access.permission-requests.update";
+
+    /// <summary>
+    /// 撤回自己的申请。
+    /// </summary>
+    public const string PermissionRequestsWithdraw = "access.permission-requests.withdraw";
+
+    /// <summary>
+    /// 手工驳回或撤回别人的申请。
+    /// </summary>
+    public const string PermissionRequestsStatus = "access.permission-requests.status";
+
+    /// <summary>
     /// 查看权限条件与条件属性目录。
     /// </summary>
     public const string PermissionConditionsRead = "access.permission-conditions.read";
@@ -263,6 +288,11 @@ public static class AccessPermissions
         new(DelegationsCreate, "Create delegations", PermissionScope.Both, audited: true, description: "Let a user hand one of their permissions or roles to another user for a limited time."),
         new(DelegationsRevoke, "Revoke delegations", PermissionScope.Both, audited: true, description: "End a pending or active delegation before it expires."),
         new(DelegationsDelete, "Delete delegations", PermissionScope.Both, audited: true, description: "Delete delegation records; an active one stops taking effect."),
+        new(PermissionRequestsRead, "Read permission requests", PermissionScope.Both, description: "View the requests for roles and permissions on the caller's side and their approval progress."),
+        new(PermissionRequestsCreate, "Submit permission requests", PermissionScope.Both, audited: true, description: "Request a role or a permission for yourself and start its approval."),
+        new(PermissionRequestsUpdate, "Resubmit permission requests", PermissionScope.Both, audited: true, description: "Change your own pending request and start its approval again."),
+        new(PermissionRequestsWithdraw, "Withdraw permission requests", PermissionScope.Both, audited: true, description: "Withdraw your own pending requests together with their approvals."),
+        new(PermissionRequestsStatus, "Close permission requests", PermissionScope.Both, audited: true, description: "Reject or withdraw other users' pending requests by hand."),
         new(PermissionConditionsRead, "Read permission conditions", PermissionScope.Both, description: "View the conditions on role and user grants and the condition attribute catalog."),
         new(PermissionConditionsCreate, "Create permission conditions", PermissionScope.Both, audited: true, description: "Add conditions to a role or user grant or denial: met to grant, or met to deny."),
         new(PermissionConditionsUpdate, "Update permission conditions", PermissionScope.Both, audited: true, description: "Edit, enable and disable permission conditions."),

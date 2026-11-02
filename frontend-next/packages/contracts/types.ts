@@ -5087,6 +5087,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/permission-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a permission request
+         * @description Request a role or a permission code (or both) for yourself and start its approval in the same transaction; not available when approval is not enabled.
+         *
+         *     Requires permission access.permission-requests.create (Submit permission requests).
+         */
+        post: operations["permission-requests.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a permission request
+         * @description Read a permission request with its approval progress.
+         *
+         *     Requires permission access.permission-requests.read (Read permission requests).
+         */
+        get: operations["permission-requests.get"];
+        /**
+         * Resubmit a permission request
+         * @description Change your own pending request, withdraw its approval and start a new one with the new content.
+         *
+         *     Requires permission access.permission-requests.update (Resubmit permission requests).
+         */
+        put: operations["permission-requests.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-requests:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List permission requests
+         * @description Page through the permission requests of the caller's side, filtered by keyword (reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.
+         *
+         *     Requires permission access.permission-requests.read (Read permission requests).
+         */
+        post: operations["permission-requests.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-requests:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close permission requests
+         * @description Reject or withdraw other users' pending requests by hand and withdraw their running approvals; you cannot handle your own requests and must be able to grant what is requested.
+         *
+         *     Requires permission access.permission-requests.status (Close permission requests).
+         */
+        post: operations["permission-requests.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-requests:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Withdraw permission requests
+         * @description Withdraw your own pending requests together with their running approvals.
+         *
+         *     Requires permission access.permission-requests.withdraw (Withdraw permission requests).
+         */
+        post: operations["permission-requests.withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -11732,6 +11848,118 @@ export interface components {
             /** @description 错误码。 */
             code: string;
         };
+        /** @description 等着办的人。 */
+        PermissionRequestAssignee: {
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
+            userId: string;
+            /** @description 显示名。 */
+            displayName: string;
+        };
+        /** @description 授权申请的审批进度。 */
+        PermissionRequestProgress: {
+            /**
+             * Format: uuid
+             * @description 最近一次的审批流程实例。
+             */
+            instanceId: string;
+            /** @description 流程状态。 */
+            status: components["schemas"]["WorkflowBusinessStatus"];
+            /** @description 结论。 */
+            outcome?: string | null;
+            /** @description 运行中时等着办的节点。 */
+            pendingNodeNames: string[];
+            /** @description 运行中时等着办的人。 */
+            pendingAssignees: components["schemas"]["PermissionRequestAssignee"][];
+            /** @description 故障原因。 */
+            faultMessage?: string | null;
+            /**
+             * Format: date-time
+             * @description 发起时间。
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
+            endedAt?: string | null;
+        };
+        /** @description 一条授权申请。 */
+        PermissionRequestResponse: {
+            /**
+             * Format: uuid
+             * @description ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 申请人。
+             */
+            requestUserId: string;
+            /** @description 申请人显示名。 */
+            requestUserName?: string | null;
+            /**
+             * Format: uuid
+             * @description 申请的角色。
+             */
+            roleId?: string | null;
+            /** @description 角色编码。 */
+            roleCode?: string | null;
+            /** @description 角色名。 */
+            roleName?: string | null;
+            /** @description 角色说明。 */
+            roleDescription?: string | null;
+            /** @description 申请的权限码。 */
+            permissionCode?: string | null;
+            /** @description 权限名（按界面语言）。 */
+            permissionName?: string | null;
+            /** @description 权限说明（按界面语言）。 */
+            permissionDescription?: string | null;
+            /** @description 状态。 */
+            status: components["schemas"]["PermissionRequestStatus"];
+            /** @description 申请原因。 */
+            reason: string;
+            /**
+             * Format: date-time
+             * @description 期望生效时间。
+             */
+            expectedEffectiveAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 期望失效时间。
+             */
+            expectedExpiresAt?: string | null;
+            /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态）。 */
+            isExpectedExpired: boolean;
+            /**
+             * Format: uuid
+             * @description 当前的审批流程实例。
+             */
+            workflowInstanceId?: string | null;
+            /** @description 审批进度（没有发起过、审批未启用时为空）。 */
+            workflow?: components["schemas"]["PermissionRequestProgress"] | null;
+            /** @description 审批是否启用（Workflow 模块关掉时为假，方案 W1）。 */
+            approvalEnabled: boolean;
+            /** @description 备注。 */
+            remark?: string | null;
+            /**
+             * Format: date-time
+             * @description 提交时间。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 最后修改时间。
+             */
+            modifiedAt?: string | null;
+        };
+        /**
+         * @description 授权申请的状态。
+         * @enum {string}
+         */
+        PermissionRequestStatus: "Pending" | "Approved" | "Rejected" | "Withdrawn";
         /** @description 一条权限描述。 */
         PermissionResponse: {
             /** @description 权限码 <包>.<资源>.<动作>。 */
@@ -13012,6 +13240,8 @@ export interface components {
          * @enum {string}
          */
         WorkflowApprovalTimelineKind: "Started" | "Completed" | "Transferred" | "AddedAssignees" | "CarbonCopied" | "AutoDecided" | "Pending" | "Finished";
+        /** @enum {string} */
+        WorkflowBusinessStatus: "Running" | "Suspended" | "Completed" | "Canceled" | "Faulted" | "Terminated";
         /** @description 一个审批业务。 */
         WorkflowBusinessTypeResponse: {
             /** @description 业务码（流程定义名）。 */
@@ -29456,6 +29686,486 @@ export interface operations {
                         denies: components["schemas"]["ConditionTrialSetResponse"][];
                         /** @description 授予路径。 */
                         paths: components["schemas"]["ConditionTrialPathResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 提交授权申请。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 申请的角色（与权限码至少给一个）。
+                     */
+                    roleId?: string | null;
+                    /** @description 申请的权限码（与角色至少给一个）。 */
+                    permissionCode?: string | null;
+                    /** @description 申请原因。 */
+                    reason: string;
+                    /**
+                     * Format: date-time
+                     * @description 期望生效时间（为空即通过后立即生效）。
+                     */
+                    expectedEffectiveAt?: string | null;
+                    /**
+                     * Format: date-time
+                     * @description 期望失效时间（为空即长期有效，要晚于现在与生效时间）。
+                     */
+                    expectedExpiresAt?: string | null;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一条授权申请。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description ID。
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description 申请人。
+                         */
+                        requestUserId: string;
+                        /** @description 申请人显示名。 */
+                        requestUserName?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 申请的角色。
+                         */
+                        roleId?: string | null;
+                        /** @description 角色编码。 */
+                        roleCode?: string | null;
+                        /** @description 角色名。 */
+                        roleName?: string | null;
+                        /** @description 角色说明。 */
+                        roleDescription?: string | null;
+                        /** @description 申请的权限码。 */
+                        permissionCode?: string | null;
+                        /** @description 权限名（按界面语言）。 */
+                        permissionName?: string | null;
+                        /** @description 权限说明（按界面语言）。 */
+                        permissionDescription?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PermissionRequestStatus"];
+                        /** @description 申请原因。 */
+                        reason: string;
+                        /**
+                         * Format: date-time
+                         * @description 期望生效时间。
+                         */
+                        expectedEffectiveAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 期望失效时间。
+                         */
+                        expectedExpiresAt?: string | null;
+                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态）。 */
+                        isExpectedExpired: boolean;
+                        /**
+                         * Format: uuid
+                         * @description 当前的审批流程实例。
+                         */
+                        workflowInstanceId?: string | null;
+                        /** @description 审批进度（没有发起过、审批未启用时为空）。 */
+                        workflow?: components["schemas"]["PermissionRequestProgress"] | null;
+                        /** @description 审批是否启用（Workflow 模块关掉时为假，方案 W1）。 */
+                        approvalEnabled: boolean;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 最后修改时间。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一条授权申请。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description ID。
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description 申请人。
+                         */
+                        requestUserId: string;
+                        /** @description 申请人显示名。 */
+                        requestUserName?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 申请的角色。
+                         */
+                        roleId?: string | null;
+                        /** @description 角色编码。 */
+                        roleCode?: string | null;
+                        /** @description 角色名。 */
+                        roleName?: string | null;
+                        /** @description 角色说明。 */
+                        roleDescription?: string | null;
+                        /** @description 申请的权限码。 */
+                        permissionCode?: string | null;
+                        /** @description 权限名（按界面语言）。 */
+                        permissionName?: string | null;
+                        /** @description 权限说明（按界面语言）。 */
+                        permissionDescription?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PermissionRequestStatus"];
+                        /** @description 申请原因。 */
+                        reason: string;
+                        /**
+                         * Format: date-time
+                         * @description 期望生效时间。
+                         */
+                        expectedEffectiveAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 期望失效时间。
+                         */
+                        expectedExpiresAt?: string | null;
+                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态）。 */
+                        isExpectedExpired: boolean;
+                        /**
+                         * Format: uuid
+                         * @description 当前的审批流程实例。
+                         */
+                        workflowInstanceId?: string | null;
+                        /** @description 审批进度（没有发起过、审批未启用时为空）。 */
+                        workflow?: components["schemas"]["PermissionRequestProgress"] | null;
+                        /** @description 审批是否启用（Workflow 模块关掉时为假，方案 W1）。 */
+                        approvalEnabled: boolean;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 最后修改时间。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 修改并重新提交授权申请。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description ID。
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description 申请的角色（与权限码至少给一个）。
+                     */
+                    roleId?: string | null;
+                    /** @description 申请的权限码（与角色至少给一个）。 */
+                    permissionCode?: string | null;
+                    /** @description 申请原因。 */
+                    reason: string;
+                    /**
+                     * Format: date-time
+                     * @description 期望生效时间。
+                     */
+                    expectedEffectiveAt?: string | null;
+                    /**
+                     * Format: date-time
+                     * @description 期望失效时间。
+                     */
+                    expectedExpiresAt?: string | null;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一条授权申请。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description ID。
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description 申请人。
+                         */
+                        requestUserId: string;
+                        /** @description 申请人显示名。 */
+                        requestUserName?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 申请的角色。
+                         */
+                        roleId?: string | null;
+                        /** @description 角色编码。 */
+                        roleCode?: string | null;
+                        /** @description 角色名。 */
+                        roleName?: string | null;
+                        /** @description 角色说明。 */
+                        roleDescription?: string | null;
+                        /** @description 申请的权限码。 */
+                        permissionCode?: string | null;
+                        /** @description 权限名（按界面语言）。 */
+                        permissionName?: string | null;
+                        /** @description 权限说明（按界面语言）。 */
+                        permissionDescription?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["PermissionRequestStatus"];
+                        /** @description 申请原因。 */
+                        reason: string;
+                        /**
+                         * Format: date-time
+                         * @description 期望生效时间。
+                         */
+                        expectedEffectiveAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 期望失效时间。
+                         */
+                        expectedExpiresAt?: string | null;
+                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态）。 */
+                        isExpectedExpired: boolean;
+                        /**
+                         * Format: uuid
+                         * @description 当前的审批流程实例。
+                         */
+                        workflowInstanceId?: string | null;
+                        /** @description 审批进度（没有发起过、审批未启用时为空）。 */
+                        workflow?: components["schemas"]["PermissionRequestProgress"] | null;
+                        /** @description 审批是否启用（Workflow 模块关掉时为假，方案 W1）。 */
+                        approvalEnabled: boolean;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 提交时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 最后修改时间。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PermissionRequestResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 手工处理一批授权申请。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description ID，1 到 100 个。 */
+                    ids: string[];
+                    /** @description 置为的状态（只能是已驳回或已撤回）。 */
+                    status: components["schemas"]["PermissionRequestStatus"];
+                    /** @description 备注（也是流程的取消原因）。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 一批授权申请。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description ID，1 到 100 个。 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };

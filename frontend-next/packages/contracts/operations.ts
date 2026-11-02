@@ -267,6 +267,12 @@ export const routes = {
   'permission-conditions.list': { method: 'GET', template: '/api/permission-conditions', path: [], query: ['subjectKind', 'subjectId'], success: 200 },
   'permission-conditions.trial': { method: 'GET', template: '/api/permission-conditions:trial', path: [], query: ['userId', 'permission', 'ip', 'time', 'userAgent', 'path', 'method', 'isImpersonating'], success: 200 },
   'permission-conditions.update': { method: 'PUT', template: '/api/permission-conditions/{id}', path: ['id'], query: [], success: 200 },
+  'permission-requests.create': { method: 'POST', template: '/api/permission-requests', path: [], query: [], success: 201 },
+  'permission-requests.get': { method: 'GET', template: '/api/permission-requests/{id}', path: ['id'], query: [], success: 200 },
+  'permission-requests.list': { method: 'POST', template: '/api/permission-requests:list', path: [], query: [], success: 200 },
+  'permission-requests.set-status': { method: 'POST', template: '/api/permission-requests:set-status', path: [], query: [], success: 200 },
+  'permission-requests.update': { method: 'PUT', template: '/api/permission-requests/{id}', path: ['id'], query: [], success: 200 },
+  'permission-requests.withdraw': { method: 'POST', template: '/api/permission-requests:withdraw', path: [], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'policies.attributes': { method: 'GET', template: '/api/policies:attributes', path: [], query: [], success: 200 },
   'policies.create': { method: 'POST', template: '/api/policies', path: [], query: [], success: 201 },
@@ -887,6 +893,16 @@ export const permissionConditions = {
   list: (request: RequestOf<'permission-conditions.list'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.list'>, ResponseOf<'permission-conditions.list'>>('permission-conditions.list', routes['permission-conditions.list'], request, options),
   trial: (request: RequestOf<'permission-conditions.trial'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.trial'>, ResponseOf<'permission-conditions.trial'>>('permission-conditions.trial', routes['permission-conditions.trial'], request, options),
   update: (request: RequestOf<'permission-conditions.update'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.update'>, ResponseOf<'permission-conditions.update'>>('permission-conditions.update', routes['permission-conditions.update'], request, options),
+}
+
+/** 资源 `permission-requests` 的操作。 */
+export const permissionRequests = {
+  create: (request: RequestOf<'permission-requests.create'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.create'>, ResponseOf<'permission-requests.create'>>('permission-requests.create', routes['permission-requests.create'], request, options),
+  get: (request: RequestOf<'permission-requests.get'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.get'>, ResponseOf<'permission-requests.get'>>('permission-requests.get', routes['permission-requests.get'], request, options),
+  list: (request: RequestOf<'permission-requests.list'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.list'>, ResponseOf<'permission-requests.list'>>('permission-requests.list', routes['permission-requests.list'], request, options),
+  setStatus: (request: RequestOf<'permission-requests.set-status'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.set-status'>, ResponseOf<'permission-requests.set-status'>>('permission-requests.set-status', routes['permission-requests.set-status'], request, options),
+  update: (request: RequestOf<'permission-requests.update'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.update'>, ResponseOf<'permission-requests.update'>>('permission-requests.update', routes['permission-requests.update'], request, options),
+  withdraw: (request: RequestOf<'permission-requests.withdraw'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.withdraw'>, ResponseOf<'permission-requests.withdraw'>>('permission-requests.withdraw', routes['permission-requests.withdraw'], request, options),
 }
 
 /** 资源 `permissions` 的操作。 */

@@ -16,6 +16,7 @@ using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
+using XiHan.BasicApp.Contracts.Workflow;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
@@ -131,6 +132,10 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<RoleHierarchyReader>();
         context.Services.AddScoped<DelegationService>();
         context.Services.AddScoped<DelegationQueries>();
+        // 授权申请：提交即经审批业务服务发起流程（Workflow 关掉时没有服务，列表照常、提交报审批未启用），结论与中止经审批业务处理器回写
+        context.Services.AddScoped<PermissionRequestStore>();
+        context.Services.AddScoped<PermissionRequestService>();
+        context.Services.AddWorkflowBusiness<PermissionRequestApprovalHandler>();
         // 上级角色与委托给出的授予（存储没命中时框架来问），之后照常经下面的过滤器收窄
         context.Services.AddSingleton<IPermissionGrantSource, AccessGrantSource>();
         // 先按本包规则收窄（Deny、有效期、此刻算数的角色），再按套餐白名单收窄

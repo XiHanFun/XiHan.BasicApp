@@ -90,11 +90,19 @@ public sealed class WorkflowFeature : IFeature
         context.Services.AddMessageHandler<InstanceFaultedHandler>(WorkflowTopics.InstanceFaulted);
         context.Services.AddScoped<IWorkbenchWidgetProvider, WorkflowWidgets>();
 
-        // 构造一次登记表：同一业务码登记两次在启动阶段就失败（照 4.x 的「同编码多个即抛错」，提前到装配）
+        // 构造一次登记表：同一业务码登记两次在启动阶段就失败（照 4.x 的「同编码多个即抛错」，提前到装配）。
+        // 业务处理器依赖工作单元，作用域只能异步释放；启动核对是同步的，这里同步等释放完（没打开过连接，立即完成）
         context.AddStartupCheck(static services =>
         {
-            using var scope = services.CreateScope();
-            _ = scope.ServiceProvider.GetRequiredService<WorkflowBusinessRegistry>();
+            var scope = services.CreateAsyncScope();
+            try
+            {
+                _ = scope.ServiceProvider.GetRequiredService<WorkflowBusinessRegistry>();
+            }
+            finally
+            {
+                scope.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
         });
         context.Services.AddAssigneeProvider<RoleAssigneeProvider>();
         context.Services.AddAssigneeProvider<DepartmentAssigneeProvider>();

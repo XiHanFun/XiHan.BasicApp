@@ -971,6 +971,184 @@ public static class AccessMessages
     /// </summary>
     public const string TrialAccessPolicyDescription = "policies.trial.description";
 
+    /// <summary>
+    /// 操作 <c>permission-requests.list</c> 的说明。
+    /// </summary>
+    public const string ListPermissionRequestsDescription = "permission_requests.list.description";
+
+    /// <summary>
+    /// 操作 <c>permission-requests.get</c> 的说明。
+    /// </summary>
+    public const string GetPermissionRequestDescription = "permission_requests.get.description";
+
+    /// <summary>
+    /// 操作 <c>permission-requests.create</c> 的说明。
+    /// </summary>
+    public const string CreatePermissionRequestDescription = "permission_requests.create.description";
+
+    /// <summary>
+    /// 操作 <c>permission-requests.update</c> 的说明。
+    /// </summary>
+    public const string UpdatePermissionRequestDescription = "permission_requests.update.description";
+
+    /// <summary>
+    /// 操作 <c>permission-requests.withdraw</c> 的说明。
+    /// </summary>
+    public const string WithdrawPermissionRequestsDescription = "permission_requests.withdraw.description";
+
+    /// <summary>
+    /// 操作 <c>permission-requests.set-status</c> 的说明。
+    /// </summary>
+    public const string SetPermissionRequestStatusDescription = "permission_requests.set_status.description";
+
+    /// <summary>
+    /// 授权申请不存在。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string PermissionRequestNotFound = "access.permission_request.not_found";
+
+    /// <summary>
+    /// 没有指定角色或权限。
+    /// </summary>
+    public const string PermissionRequestTargetRequired = "access.permission_request.target_required";
+
+    /// <summary>
+    /// 权限不存在或不属于这一侧。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
+    public const string PermissionRequestPermissionUnknown = "access.permission_request.permission_unknown";
+
+    /// <summary>
+    /// 期望失效时间不晚于现在。
+    /// </summary>
+    public const string PermissionRequestExpiryPassed = "access.permission_request.expiry_passed";
+
+    /// <summary>
+    /// 手工只能驳回或撤回。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>status</c>。
+    /// </remarks>
+    public const string PermissionRequestStatusInvalid = "access.permission_request.status_invalid";
+
+    /// <summary>
+    /// 角色已停用。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string PermissionRequestRoleDisabled = "access.permission_request.role_disabled";
+
+    /// <summary>
+    /// 同一对象已有待审批的申请。
+    /// </summary>
+    public const string PermissionRequestDuplicate = "access.permission_request.duplicate";
+
+    /// <summary>
+    /// 申请已经完结。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>status</c>。
+    /// </remarks>
+    public const string PermissionRequestNotPending = "access.permission_request.not_pending";
+
+    /// <summary>
+    /// 审批通过但授予没有执行。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
+    public const string PermissionRequestGrantFailed = "access.permission_request.grant_failed";
+
+    /// <summary>
+    /// 只能维护自己的申请。
+    /// </summary>
+    public const string PermissionRequestNotOwner = "access.permission_request.not_owner";
+
+    /// <summary>
+    /// 不能处理自己的申请。
+    /// </summary>
+    public const string PermissionRequestSelfHandled = "access.permission_request.self_handled";
+
+    /// <summary>
+    /// 无权授出申请的对象。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>permission</c>（处理人缺的权限码）。
+    /// </remarks>
+    public const string PermissionRequestCannotGrant = "access.permission_request.cannot_grant";
+
+    /// <summary>
+    /// 申请人不是这一侧的在用账号。
+    /// </summary>
+    public const string PermissionRequestRequesterInactive = "access.permission_request.requester_inactive";
+
+    /// <summary>
+    /// 审批未启用。
+    /// </summary>
+    public const string ApprovalUnavailable = "access.permission_request.approval_unavailable";
+
+    /// <summary>
+    /// 审批流程的标题。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>targets</c>（申请对象）。
+    /// </remarks>
+    public const string PermissionRequestWorkflowTitle = "access.permission_request.workflow_title";
+
+    /// <summary>
+    /// 标题里的角色。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
+    public const string PermissionRequestTargetRole = "access.permission_request.target_role";
+
+    /// <summary>
+    /// 标题里的权限。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
+    public const string PermissionRequestTargetPermission = "access.permission_request.target_permission";
+
+    /// <summary>
+    /// 标题里两个对象之间的分隔。
+    /// </summary>
+    public const string PermissionRequestTargetSeparator = "access.permission_request.target_separator";
+
+    /// <summary>
+    /// 申请人撤回时流程的取消原因。
+    /// </summary>
+    public const string PermissionRequestWithdrawnByRequester = "access.permission_request.withdrawn_by_requester";
+
+    /// <summary>
+    /// 修改后重新提交时旧流程的取消原因。
+    /// </summary>
+    public const string PermissionRequestResubmitted = "access.permission_request.resubmitted";
+
+    /// <summary>
+    /// 管理员手工处理时流程的取消原因。
+    /// </summary>
+    public const string PermissionRequestClosedByAdmin = "access.permission_request.closed_by_admin";
+
+    /// <summary>
+    /// 流程中止时申请的备注。
+    /// </summary>
+    public const string PermissionRequestAborted = "access.permission_request.aborted";
+
+    /// <summary>
+    /// 审批通过自动授权的原因。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string PermissionRequestGrantReason = "access.permission_request.grant_reason";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

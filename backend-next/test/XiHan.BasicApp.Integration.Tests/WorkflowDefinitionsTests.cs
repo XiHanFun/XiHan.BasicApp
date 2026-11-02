@@ -81,7 +81,9 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         var (_, terminating) = await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions", Json(new { document = terminate }), platform);
         Assert.Equal("WORKFLOW_VALIDATION_102", (await SendAsync(server, HttpMethod.Post, $"/api/workflow-definitions/{terminating.GetProperty("id").GetString()}:publish", "{}", platform)).Body.GetProperty("code").GetString());
         var types = (await SendAsync(server, HttpMethod.Get, "/api/workflow-definitions:business-types", null, platform)).Body.GetProperty("items");
-        var type = Assert.Single(types.EnumerateArray());
+        // 各包登记的审批业务按业务码排：Access 的授权申请与测试的业务
+        Assert.Equal(["permission-request", TestBusiness.Code], types.EnumerateArray().Select(static t => t.GetProperty("code").GetString()).ToList());
+        var type = types.EnumerateArray().Single(static t => t.GetProperty("code").GetString() == TestBusiness.Code);
         Assert.Equal((TestBusiness.Code, "tests/form/index"), (type.GetProperty("code").GetString(), type.GetProperty("formComponent").GetString()));
         var activities = (await SendAsync(server, HttpMethod.Get, "/api/workflow-definitions:activity-types", null, platform)).Body.GetProperty("items").EnumerateArray().Select(static a => a.GetProperty("type").GetString()).ToList();
         Assert.Equal(16, activities.Count);

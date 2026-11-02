@@ -9,6 +9,7 @@ using XiHan.BasicApp.Access.Operations.Delegations;
 using XiHan.BasicApp.Access.Operations.FieldSecurity;
 using XiHan.BasicApp.Access.Operations.LoginBans;
 using XiHan.BasicApp.Access.Operations.PermissionConditions;
+using XiHan.BasicApp.Access.Operations.PermissionRequests;
 using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
@@ -134,4 +135,11 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(GetSessionRoleRequest))]
 [JsonSerializable(typeof(SessionRolesRequest))]
 [JsonSerializable(typeof(SessionRolesResponse))]
+[JsonSerializable(typeof(PermissionRequestResponse))]
+[JsonSerializable(typeof(PageResult<PermissionRequestResponse>))]
+[JsonSerializable(typeof(GetPermissionRequestRequest))]
+[JsonSerializable(typeof(CreatePermissionRequestRequest))]
+[JsonSerializable(typeof(UpdatePermissionRequestRequest))]
+[JsonSerializable(typeof(PermissionRequestIdsRequest))]
+[JsonSerializable(typeof(SetPermissionRequestStatusRequest))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

@@ -33,7 +33,7 @@ public static class AccessPages
     /// <summary>
     /// 委托页：限时把权限或角色交给别的用户。
     /// </summary>
-    public static PageDescriptor Delegations { get; } = new("access.delegations", "/access/delegations", "access.delegations.title", "lucide:file-key", 206, AccessPermissions.DelegationsRead);
+    public static PageDescriptor Delegations { get; } = new("access.delegations", "/access/delegations", "access.delegations.title", "lucide:file-key", 206, AccessPermissions.PermissionRequestsRead);
 
     /// <summary>
     /// 访问策略页（Access 包）。

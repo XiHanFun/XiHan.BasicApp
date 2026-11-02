@@ -200,6 +200,9 @@ export type PermissionAction = (typeof PermissionAction)[number]
 export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange', 'ConstraintViolation', 'TenantOwner'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
+export const PermissionRequestStatus = ['Pending', 'Approved', 'Rejected', 'Withdrawn'] as const
+export type PermissionRequestStatus = (typeof PermissionRequestStatus)[number]
+
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
 export type PermissionScope = (typeof PermissionScope)[number]
 
@@ -274,6 +277,9 @@ export type WorkbenchWidgetKind = (typeof WorkbenchWidgetKind)[number]
 
 export const WorkflowApprovalTimelineKind = ['Started', 'Completed', 'Transferred', 'AddedAssignees', 'CarbonCopied', 'AutoDecided', 'Pending', 'Finished'] as const
 export type WorkflowApprovalTimelineKind = (typeof WorkflowApprovalTimelineKind)[number]
+
+export const WorkflowBusinessStatus = ['Running', 'Suspended', 'Completed', 'Canceled', 'Faulted', 'Terminated'] as const
+export type WorkflowBusinessStatus = (typeof WorkflowBusinessStatus)[number]
 
 export const WorkflowDefinitionStatus = ['Draft', 'Published', 'Disabled', 'Archived'] as const
 export type WorkflowDefinitionStatus = (typeof WorkflowDefinitionStatus)[number]
@@ -355,6 +361,7 @@ export const enums = {
   OrganizationStatus,
   PermissionAction,
   PermissionChangeType,
+  PermissionRequestStatus,
   PermissionScope,
   PrintTemplateScope,
   PrintTemplateStatus,
@@ -380,6 +387,7 @@ export const enums = {
   UserStatus,
   WorkbenchWidgetKind,
   WorkflowApprovalTimelineKind,
+  WorkflowBusinessStatus,
   WorkflowDefinitionStatus,
   WorkflowInstanceStatus,
   WorkflowNodeInstanceStatus,

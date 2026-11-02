@@ -1,9 +1,9 @@
 # 约束规则与审批
 
-本页说明已落地的约束规则与会话角色激活，以及规划中的审批设计，适用于后端开发者与权限配置人员。
+本页说明约束规则、会话角色激活与授权申请，适用于后端开发者与权限配置人员。
 
 ::: info 本页范围
-约束规则（职责分离、互斥、基数、条件）与会话角色激活已落地（Access 包）。审批（授权申请提交即发起审批流、审批中心）依赖 Workflow，属于 N3，规划中，当前不可用。
+约束规则（职责分离、互斥、基数、条件）、会话角色激活与授权申请都在 Access 包。授权申请的审批走 Workflow（审批中心见[工作流](./workflow#待办与审批中心)），Workflow 关掉时授权申请照常列出、不能提交。
 :::
 
 ## 约束规则
@@ -46,15 +46,25 @@
 - 用户自助：`auth.session-roles` 查看、`auth.activate-roles` 换激活集（会话续用、刷新令牌轮换，违反 DSD 即 `ACCESS_CONFLICT_012`），激活集变化记登录日志（`RoleActivation`）。模仿态的会话不能切换。
 - 管理：`session-roles.list` / `get`（`access.session-roles.read`）。
 
-## 审批（规划中 · N3）
+## 授权申请
 
-方案中的设计：
+用户为自己申请一个角色或一个权限码（也可以都申请），提交即在同一个事务里发起审批业务 `permission-request` 的流程；审批通过即按期望的有效期指派角色、直授权限，驳回或中止即完结。它是 Contracts 审批业务接入（`IWorkflowBusinessHandler`）的参照实现，表 `sys_permission_request` 在租户库（平台一侧租户为 `platform`）。
 
-- 授权申请：用户申请某个权限或角色，提交即发起审批流；审批通过后由 Access 执行授予。Access 的授权申请是 `Contracts` 里 `IWorkflowBusinessHandler` 业务接入契约的参照实现。
-- 审批中心：待我审批、我已审批、我发起的、抄送我的四个视图；办理同意、驳回、转办、加签，发起人可撤回。
-- 约束规则的 `RequireApproval`：接入审批后改为发起审批而不是直接拒绝。
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `permission-requests.list` / `get` | `access.permission-requests.read` | 这一侧全部的申请，带审批进度；关键字匹配申请原因与备注，可按申请人、角色、权限码与状态过滤 |
+| `permission-requests.create` | `.create` | 申请人要是这一侧的在用账号；角色存在且启用、权限码在这一侧的目录里，期望失效时间晚于现在；同一对象只能有一条待审批的申请 |
+| `permission-requests.update` | `.update` | 修改自己待审批的申请并重新提交：撤回旧流程、按新内容重新发起 |
+| `permission-requests.withdraw` | `.withdraw` | 批量；撤回自己待审批的申请，同时撤回流程 |
+| `permission-requests.set-status` | `.status` | 批量；管理员手工驳回或撤回别人待审批的申请（不能置为已批准、不能处理自己的、要能授出申请的对象），同时撤回流程 |
 
-这些随 Workflow 包在 N3 落地，见[工作流](./workflow)。
+- **缺省流程**：当前分区第一次提交时建并发布「管理员审批」（角色 `admin`，不含申请人自己），可在流程定义里新建版本调整。找不到审批人（如这一侧只有申请人一个管理员）即发起故障 `WORKFLOW_CONFLICT_101`，申请随之回滚。
+- **审批**：审批人不能审批自己的申请，且要能授出申请的对象（角色要 `access.roles.assign`，权限要 `access.user-grants.grant`）。通过时重核对象仍可用，角色经指派（过约束规则，拦截类违规即失败）、权限经直授写入，任一步失败即结束节点故障、申请保持待审批（`ACCESS_CONFLICT_015`），处理后在流程实例里重试。直授的权限立即生效，角色在申请人下次换发令牌时生效。
+- **中止**：管理员取消、终止流程或发起人在审批中心撤回时，待审批的申请置为已撤回。
+- **状态**：待审批、已批准、已拒绝、已撤回；5.x 的「已过期」从未写入过，6.0 去掉，列表照 5.x 按期望失效时间算出「已过期」标记。
+- **Workflow 关掉**：列表照常、进度为空并标「审批未启用」，提交与重新提交 503 `ACCESS_UNAVAILABLE_002`。
+- **页面**：「授权申请」页（页面码与路由仍是 `access.delegations` / `/access/delegations`，菜单权限 `access.permission-requests.read`）：「申请」页签在前，「委托」页签按 `access.delegations.read` 显示。审批中心里的单据组件是 `access/permission-request-approval/index`。
+- 约束规则的「需审批」照 5.x 等同拒绝，不改为发起审批。
 
 ## 下一步
 

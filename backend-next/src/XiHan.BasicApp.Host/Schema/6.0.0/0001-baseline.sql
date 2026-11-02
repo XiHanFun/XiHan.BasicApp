@@ -1153,6 +1153,32 @@ CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_owner_delegator_delegate
 CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_owner_tenant_id_created_at ON public.sys_permission_delegation USING btree (owner_tenant_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_sys_permission_delegation_role_id ON public.sys_permission_delegation USING btree (role_id);
 
+CREATE TABLE IF NOT EXISTS "sys_permission_request" (
+    "id" uuid NOT NULL,
+    "request_user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "role_id" uuid NULL,
+    "permission_code" character varying(128) DEFAULT NULL::character varying NULL,
+    "reason" character varying(1000) NOT NULL,
+    "expected_effective_at" timestamp with time zone NULL,
+    "expected_expires_at" timestamp with time zone NULL,
+    "workflow_instance_id" uuid NULL,
+    "status" integer DEFAULT 0 NOT NULL,
+    "remark" character varying(500) DEFAULT NULL::character varying NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_permission_request_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_request_tenant_id_created_at ON public.sys_permission_request USING btree (tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_request_tenant_id_request_user_id ON public.sys_permission_request USING btree (tenant_id, request_user_id);
+CREATE INDEX IF NOT EXISTS ix_sys_permission_request_tenant_id_status ON public.sys_permission_request USING btree (tenant_id, status);
+
 CREATE TABLE IF NOT EXISTS "sys_permission_rule" (
     "id" uuid NOT NULL,
     "owner_tenant_id" character varying(512) NOT NULL,
