@@ -64,7 +64,7 @@ export default {
     instances: {
       title: 'ワークフローインスタンス',
       keyword: 'キーワード',
-      keyword_placeholder: 'インスタンス名',
+      keyword_placeholder: '名称 / 業務伝票番号',
       name: 'インスタンス名',
       definition_code: 'ワークフローコード',
       version: 'バージョン',

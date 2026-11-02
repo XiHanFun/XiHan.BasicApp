@@ -64,7 +64,7 @@ export default {
     instances: {
       title: 'Workflow Instances',
       keyword: 'Keyword',
-      keyword_placeholder: 'Instance name',
+      keyword_placeholder: 'Name / Correlation id',
       name: 'Name',
       definition_code: 'Definition Code',
       version: 'Version',

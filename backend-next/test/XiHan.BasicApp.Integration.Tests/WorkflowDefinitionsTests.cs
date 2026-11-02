@@ -134,8 +134,10 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(("approve", "UserTask", me), (wait.GetProperty("nodeId").GetString(), wait.GetProperty("kind").GetString(), wait.GetProperty("key").GetString()));
         Assert.Contains("tests-approval", detail.GetProperty("document").GetString(), StringComparison.Ordinal);
 
-        // 列表：关键字是实例标题，关联 ID 可多个
+        // 列表：关键字匹配实例标题与关联 ID（照 4.x，按字面，_ 不是通配符），关联 ID 筛选可多个
         Assert.Single(await ListAsync(server, "workflow-instances", platform, """{"keyword":"first"}"""));
+        Assert.Single(await ListAsync(server, "workflow-instances", platform, """{"keyword":"doc-1"}"""));
+        Assert.Empty(await ListAsync(server, "workflow-instances", platform, """{"keyword":"doc_1"}"""));
         Assert.Single(await ListAsync(server, "workflow-instances", platform, """{"filters":[{"field":"correlationId","operator":"in","value":"doc-1,doc-2"},{"field":"status","operator":"eq","value":"Running"}]}"""));
 
         // 控制：挂起、恢复、取消；已结束的再取消算成功，不存在的逐项失败

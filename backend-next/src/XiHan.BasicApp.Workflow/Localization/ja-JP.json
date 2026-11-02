@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "アクティビティ種別一覧",
   "workflow_definitions.activity_types.description": "デザイナーに配置できるアクティビティ種別を入力項目とともに一覧します。",
   "workflow_instances.list.title": "ワークフローインスタンス一覧",
-  "workflow_instances.list.description": "呼び出し側のワークフローインスタンスをページ単位で一覧します。タイトルのキーワード、状態、定義名、相関 ID、起票者、作成日時で絞り込み、新しい順に並べます。",
+  "workflow_instances.list.description": "呼び出し側のワークフローインスタンスをページ単位で一覧します。キーワード（タイトルまたは相関 ID）、状態、定義名、相関 ID、起票者、作成日時で絞り込み、新しい順に並べます。",
   "workflow_instances.get.title": "ワークフローインスタンスの詳細",
   "workflow_instances.get.description": "ワークフローインスタンスを、変数、ノードの実行履歴、再開待ちの待機ポイント、実行中の定義とともに取得します。",
   "workflow_instances.start.title": "ワークフローを開始",

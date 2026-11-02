@@ -64,7 +64,7 @@ export default {
     instances: {
       title: '流程實例',
       keyword: '關鍵字',
-      keyword_placeholder: '實例名稱',
+      keyword_placeholder: '名稱/業務單號',
       name: '實例名稱',
       definition_code: '流程編碼',
       version: '版本號',

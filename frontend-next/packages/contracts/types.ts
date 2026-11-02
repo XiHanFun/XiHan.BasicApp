@@ -7902,7 +7902,7 @@ export interface paths {
         put?: never;
         /**
          * List workflow instances
-         * @description Page through the workflow instances of the caller's side, filtered by title keyword, status, definition name, correlation ID, starter and creation time, newest first.
+         * @description Page through the workflow instances of the caller's side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, newest first.
          *
          *     Requires permission workflow.workflow-instances.read (Read workflow instances).
          */

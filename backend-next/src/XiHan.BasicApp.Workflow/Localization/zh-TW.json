@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "查詢活動類型",
   "workflow_definitions.activity_types.description": "列出設計器可放置的活動類型及其輸入屬性。",
   "workflow_instances.list.title": "查詢流程實例",
-  "workflow_instances.list.description": "分頁查詢目前這一側的流程實例，可依標題關鍵字、狀態、定義名稱、關聯 ID、發起人與建立時間篩選，依建立時間遞減排序。",
+  "workflow_instances.list.description": "分頁查詢目前這一側的流程實例，可依關鍵字（標題或關聯 ID）、狀態、定義名稱、關聯 ID、發起人與建立時間篩選，依建立時間遞減排序。",
   "workflow_instances.get.title": "取得流程實例",
   "workflow_instances.get.description": "讀取流程實例及其變數、節點執行歷史、待恢復的等待點與所用的定義。",
   "workflow_instances.start.title": "發起流程",

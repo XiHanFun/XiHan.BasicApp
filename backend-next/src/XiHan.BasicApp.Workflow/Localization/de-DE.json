@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "Aktivitätstypen auflisten",
   "workflow_definitions.activity_types.description": "Die Aktivitätstypen, die der Designer platzieren kann, mit ihren Eingaben auflisten.",
   "workflow_instances.list.title": "Workflow-Instanzen auflisten",
-  "workflow_instances.list.description": "Workflow-Instanzen der Seite des Aufrufers seitenweise auflisten, gefiltert nach Titelstichwort, Status, Definitionsname, Korrelations-ID, Initiator und Erstellungszeit, neueste zuerst.",
+  "workflow_instances.list.description": "Workflow-Instanzen der Seite des Aufrufers seitenweise auflisten, gefiltert nach Stichwort (Titel oder Korrelations-ID), Status, Definitionsname, Korrelations-ID, Initiator und Erstellungszeit, neueste zuerst.",
   "workflow_instances.get.title": "Workflow-Instanz abrufen",
   "workflow_instances.get.description": "Eine Workflow-Instanz mit ihren Variablen, dem Knotenverlauf, den ausstehenden Wartepunkten und der ausgeführten Definition lesen.",
   "workflow_instances.start.title": "Workflow starten",

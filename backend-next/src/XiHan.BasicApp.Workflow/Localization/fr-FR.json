@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "Lister les types d'activité",
   "workflow_definitions.activity_types.description": "Lister les types d'activité que le concepteur peut placer, avec leurs entrées.",
   "workflow_instances.list.title": "Lister les instances de workflow",
-  "workflow_instances.list.description": "Lister par page les instances de workflow du côté de l'appelant, filtrées par mot-clé du titre, statut, nom de définition, ID de corrélation, initiateur et date de création, des plus récentes aux plus anciennes.",
+  "workflow_instances.list.description": "Lister par page les instances de workflow du côté de l'appelant, filtrées par mot-clé (titre ou ID de corrélation), statut, nom de définition, ID de corrélation, initiateur et date de création, des plus récentes aux plus anciennes.",
   "workflow_instances.get.title": "Obtenir une instance de workflow",
   "workflow_instances.get.description": "Lire une instance de workflow avec ses variables, l'historique des nœuds, les attentes en cours et la définition qu'elle exécute.",
   "workflow_instances.start.title": "Démarrer un workflow",

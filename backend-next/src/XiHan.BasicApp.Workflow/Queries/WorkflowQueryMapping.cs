@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Workflow.Queries;
 /// <remarks>
 /// 过滤、分页与计数都由框架在存储里做（框架第八批 G1、G2，ADR-0096）；这里只把分页请求换成框架的查询，筛选字段是白名单，越界即
 /// <see cref="WorkflowErrors.QueryUnsupported"/>。排序由框架固定（定义按名字升序、版本降序，实例按创建时间降序），请求里带了排序同样是这个错误。
-/// 关键字照框架的口径：定义匹配名字、显示名与说明，实例匹配标题（不匹配关联 ID 与定义名）。
+/// 关键字照框架的口径（与 4.x 同）：定义匹配名字、显示名与说明，实例匹配标题与关联 ID，按字面匹配（<c>%</c>、<c>_</c> 不是通配符）。
 /// </remarks>
 public static class WorkflowQueryMapping
 {

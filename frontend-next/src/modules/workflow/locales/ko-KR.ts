@@ -64,7 +64,7 @@ export default {
     instances: {
       title: '워크플로 인스턴스',
       keyword: '키워드',
-      keyword_placeholder: '인스턴스 이름',
+      keyword_placeholder: '이름/업무 번호',
       name: '인스턴스 이름',
       definition_code: '워크플로 코드',
       version: '버전',

@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "List activity types",
   "workflow_definitions.activity_types.description": "List the activity types the designer may place, with their inputs.",
   "workflow_instances.list.title": "List workflow instances",
-  "workflow_instances.list.description": "Page through the workflow instances of the caller's side, filtered by title keyword, status, definition name, correlation ID, starter and creation time, newest first.",
+  "workflow_instances.list.description": "Page through the workflow instances of the caller's side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, newest first.",
   "workflow_instances.get.title": "Get a workflow instance",
   "workflow_instances.get.description": "Read a workflow instance with its variables, node history, pending waits and the definition it runs.",
   "workflow_instances.start.title": "Start a workflow",

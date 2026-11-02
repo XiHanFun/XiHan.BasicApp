@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "查询活动类型",
   "workflow_definitions.activity_types.description": "列出设计器可放的活动类型及其输入属性。",
   "workflow_instances.list.title": "查询流程实例",
-  "workflow_instances.list.description": "分页查询当前一侧的流程实例，可按标题关键字、状态、定义名、关联 ID、发起人与创建时间过滤，按创建时间降序。",
+  "workflow_instances.list.description": "分页查询当前一侧的流程实例，可按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建时间过滤，按创建时间降序。",
   "workflow_instances.get.title": "获取流程实例",
   "workflow_instances.get.description": "读取流程实例及其变量、节点执行历史、待恢复的等待与所用的定义。",
   "workflow_instances.start.title": "发起流程",

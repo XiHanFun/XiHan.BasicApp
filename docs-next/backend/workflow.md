@@ -31,7 +31,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按标题关键字、状态、定义名、关联 ID、发起人与创建区间过滤，按创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
+| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，按创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
 | `workflow-instances.start` | `.execute` | 发起人是调用方；按名字取最新已发布的版本 |
 | `workflow-instances.cancel` / `terminate` / `retry` / `signal` | `.execute` | 取消（启用补偿时逆序补偿）、终止（不补偿）、故障重试、发信号 |
 | `workflow-instances.suspend` / `resume` | `.update` | 挂起与恢复 |

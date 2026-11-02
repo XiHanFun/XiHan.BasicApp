@@ -64,7 +64,7 @@ export default {
     instances: {
       title: 'Экземпляры процессов',
       keyword: 'Ключевое слово',
-      keyword_placeholder: 'Название экземпляра',
+      keyword_placeholder: 'Название / ID корреляции',
       name: 'Название',
       definition_code: 'Код определения',
       version: 'Версия',

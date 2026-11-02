@@ -28,5 +28,5 @@ public static class WorkflowFieldSecurity
                 .Keyword("name", "displayName", "description")
             .Entity<WorkflowInstanceResponse>("workflow.workflow-instances", "workflow.instances.title", "workflow.instances.fields.")
                 .Reads(ListWorkflowInstances.Id)
-                .Keyword("title"));
+                .Keyword("title", "correlationId"));
 }

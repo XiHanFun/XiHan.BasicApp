@@ -64,7 +64,7 @@ export default {
     instances: {
       title: 'Instâncias de fluxo de trabalho',
       keyword: 'Palavra-chave',
-      keyword_placeholder: 'Nome da instância',
+      keyword_placeholder: 'Nome / ID de correlação',
       name: 'Nome',
       definition_code: 'Código da definição',
       version: 'Versão',

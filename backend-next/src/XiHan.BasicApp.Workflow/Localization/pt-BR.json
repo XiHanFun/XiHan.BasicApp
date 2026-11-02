@@ -46,7 +46,7 @@
   "workflow_definitions.activity_types.title": "Listar tipos de atividade",
   "workflow_definitions.activity_types.description": "Listar os tipos de atividade que o designer pode posicionar, com suas entradas.",
   "workflow_instances.list.title": "Listar instâncias de fluxo de trabalho",
-  "workflow_instances.list.description": "Listar por página as instâncias de fluxo de trabalho do lado de quem chama, filtradas por palavra-chave do título, status, nome da definição, ID de correlação, iniciador e data de criação, das mais recentes para as mais antigas.",
+  "workflow_instances.list.description": "Listar por página as instâncias de fluxo de trabalho do lado de quem chama, filtradas por palavra-chave (título ou ID de correlação), status, nome da definição, ID de correlação, iniciador e data de criação, das mais recentes para as mais antigas.",
   "workflow_instances.get.title": "Obter uma instância de fluxo de trabalho",
   "workflow_instances.get.description": "Ler uma instância de fluxo de trabalho com suas variáveis, o histórico de nós, as esperas pendentes e a definição que ela executa.",
   "workflow_instances.start.title": "Iniciar um fluxo de trabalho",

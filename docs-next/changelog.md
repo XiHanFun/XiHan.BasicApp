@@ -4,6 +4,11 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 框架升锁 0806ea7c（2026-11-02）
+
+- 流程实例列表的关键字也匹配关联 ID（业务单号），与 5.x 相同；关键字里的 `%`、`_` 按字面匹配，不再当通配符。
+- 6.0.0 基线里工作流实例与书签表的查询列改名（`search_text`、`search_instance_text`）。6.0 不做数据迁移：已有的开发库请重建，否则旧库会多两个不再使用的列，升级前写入的流程按关键字搜不到。
+
 ### 流程定义与流程实例（2026-11-02）
 
 - 新的可选模块 Workflow（`BasicApp:Modules:Workflow:Enabled`，缺省开）：流程定义页（新建、全屏设计器、发布、新版本、停用、归档、删除草稿、发起）与流程实例页（详情里看变量、节点执行历史与流程图，挂起、恢复、取消、终止、重试）。权限码 `workflow.workflow-definitions.*`、`workflow.workflow-instances.*` 与 `workflow.workflow-assignees.read`，平台与租户两侧都可用，各看各的流程。见[工作流](./backend/workflow)。
