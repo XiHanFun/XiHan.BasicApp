@@ -9,6 +9,7 @@ using XiHan.BasicApp.Host.Commands;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.Framework.Hosting.CommandLine;
 using XiHan.Framework.Hosting.CommandLine.Runtime;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -70,11 +71,18 @@ public sealed class SeedTests : IDisposable
         Assert.Equal("completed", JsonDocument.Parse(ranOut).RootElement.GetProperty("status").GetString());
         await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123");
 
-        // 框架的 help 列出本应用的命令（说明键由宿主的消息目录提供；help 本身不按区域翻译）
-        var (help, helpOut, _) = await RunAsync(runner, ["help"]);
-        Assert.Equal(CommandLineExitCodes.Success, help);
-        Assert.Contains("  seed", helpOut, StringComparison.Ordinal);
-        Assert.Contains(HostMessages.SeedDescription, helpOut, StringComparison.Ordinal);
+        // 框架的 help 列出本应用的命令，说明按当前消息作用域翻译（目录由命令模式登记）。
+        // 调用流上没有作用域时取进程默认作用域：测试进程里各宿主并行启动、后启动的覆盖它（框架设计如此），
+        // 所以这里在调用流上装本宿主的作用域，说明一定出自本宿主的目录
+        using (MessageScope.Use(server.Services.GetRequiredService<IMessageResolver>(), "en-US"))
+        {
+            var expected = HostMessages.SeedDescription.L();
+            Assert.NotEqual(HostMessages.SeedDescription, expected);
+            var (help, helpOut, _) = await RunAsync(runner, ["help"]);
+            Assert.Equal(CommandLineExitCodes.Success, help);
+            Assert.Contains("  seed", helpOut, StringComparison.Ordinal);
+            Assert.Contains(expected, helpOut, StringComparison.Ordinal);
+        }
     }
 
     private static async Task<(int ExitCode, string Output, string Error)> RunAsync(CommandLineRunner runner, string[] args)
