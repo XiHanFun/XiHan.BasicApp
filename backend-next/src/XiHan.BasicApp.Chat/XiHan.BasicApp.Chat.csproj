@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Chat</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 在线聊天模块（Tier 3，可选，BasicApp:Modules:Chat:Enabled）：单聊、群聊、部门群与助手会话（租户库），消息、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub（/hubs/chat）与提交后推送，附件以会话为访问范围，部门群随组织的部门归属事件同步，敏感词与保留清理作业，聊天审计。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Organization/XiHan.BasicApp.Organization.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

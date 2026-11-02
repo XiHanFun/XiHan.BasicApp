@@ -15,19 +15,22 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/memberships</c>。用户注册地必须是当前租户；同一用户同一部门只能有一条；用户的第一条归属自动成为主部门，显式设主时其他归属取消主标记。
+/// 加入即发出领域事件 <c>basicapp.organization.membership-changed</c>（Chat 据此把用户加进已有的部门群）。
 /// </remarks>
 /// <param name="memberships">归属仓储。</param>
 /// <param name="departments">部门域服务。</param>
 /// <param name="positions">岗位仓储。</param>
 /// <param name="service">归属域服务。</param>
 /// <param name="ids">标识生成器。</param>
+/// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsCreate)]
 public sealed class CreateMembership(
     IRepository<SysUserDepartment, Guid> memberships,
     DepartmentService departments,
     IRepository<SysPosition, Guid> positions,
     MembershipService service,
-    IIdGenerator<Guid> ids) : IOperation<CreateMembershipRequest, MembershipResponse>
+    IIdGenerator<Guid> ids,
+    TimeProvider clock) : IOperation<CreateMembershipRequest, MembershipResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -85,6 +88,7 @@ public sealed class CreateMembership(
             }
         }
 
+        membership.RecordJoined(clock.GetUtcNow());
         var added = await memberships.AddAsync(membership, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)
         {

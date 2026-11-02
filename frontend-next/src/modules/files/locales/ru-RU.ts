@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: 'Загрузка',
         fast_upload: 'Мгновенная загрузка',
+        chat: 'Вложение чата',
       },
       storage_statuses: {
         normal: 'Норма',

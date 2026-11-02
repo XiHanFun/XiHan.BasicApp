@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: 'Upload',
         fast_upload: 'Sofort-Upload',
+        chat: 'Chat-Anhang',
       },
       storage_statuses: {
         normal: 'Normal',

@@ -57,8 +57,9 @@ frontend-next/
 | `maintenance` | 作业、缓存、服务监控、版本、升级记录 |
 | `openplatform` | OAuth 应用 |
 | `printing` | 打印模板（设计器、样例数据、预览与直打） |
+| `chat` | 在线聊天（全屏页与顶栏的浮动面板）、聊天审计 |
 
-`workflow`、`codegen`、`chat`、`ai` 随后端 N3 / N4 再建。
+`workflow`、`codegen`、`ai` 随后端 N3 / N4 再建。
 
 ## 应用启动
 

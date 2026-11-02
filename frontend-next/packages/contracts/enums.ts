@@ -20,6 +20,15 @@ export type BotProvider = (typeof BotProvider)[number]
 export const CacheLayer = ['Store', 'Objects'] as const
 export type CacheLayer = (typeof CacheLayer)[number]
 
+export const ChatConversationType = ['Single', 'Group', 'Department', 'Assistant'] as const
+export type ChatConversationType = (typeof ChatConversationType)[number]
+
+export const ChatMemberRole = ['Owner', 'Admin', 'Member'] as const
+export type ChatMemberRole = (typeof ChatMemberRole)[number]
+
+export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'System'] as const
+export type ChatMessageType = (typeof ChatMessageType)[number]
+
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
 
@@ -271,6 +280,9 @@ export const enums = {
   Architecture,
   BotProvider,
   CacheLayer,
+  ChatConversationType,
+  ChatMemberRole,
+  ChatMessageType,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,

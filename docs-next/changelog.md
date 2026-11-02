@@ -4,6 +4,15 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### N3 第二批：在线聊天（2026-11-01）
+
+- 新增可选模块 Chat（`BasicApp:Modules:Chat:Enabled`，缺省开）：单聊、群聊、部门群与助手会话类型（助手回复随 N4），消息的发送、撤回、编辑、表情回应、置顶、转发、提及与已读回执，聊天 Hub `/hubs/chat`。见[在线聊天](./backend/chat)。
+- 与 5.x 不同：转发由服务端一次完成；附件以会话为访问范围，上传只要聊天的发送权限；部门群随部门成员的加入与移出自动进出，Organization 为此发出领域事件 `basicapp.organization.membership-changed`。
+- 聊天审计：当前一侧全部会话的消息，可看消息详情与会话成员。
+- 聊天里的时间按偏好设置的应用时区显示（与审计页一致），「今天 / 昨天」按应用时区的日历日算。
+- 参数 `chat.policy`（保留天数与敏感词）与每天 4 点的保留清理作业 `chat.messages.cleanup`。
+- 6.0.0 基线新增表 `sys_chat_conversation`、`sys_chat_conversation_member`、`sys_chat_message`、`sys_chat_message_reaction`。
+
 ### N3 第二批：实时推送跨实例（2026-11-01）
 
 - 配了 Redis（绑定 `cache`）时实时推送跨实例：SignalR 接 Redis 背板，在线状态汇总各实例写进共享缓存的连接，强制下线时别的实例上的连接被移出全部组；再配了 RabbitMQ 时还由所在实例断开。不配 Redis 仍全部在本实例内。见[实时推送](./backend/realtime#跨实例)。

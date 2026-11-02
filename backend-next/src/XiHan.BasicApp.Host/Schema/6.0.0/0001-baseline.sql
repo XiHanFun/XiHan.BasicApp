@@ -215,6 +215,110 @@ CREATE TABLE IF NOT EXISTS "sys_bot_message" (
 );
 CREATE INDEX IF NOT EXISTS ix_sys_bot_message_status_created_at ON public.sys_bot_message USING btree (status, created_at);
 
+CREATE TABLE IF NOT EXISTS "sys_chat_conversation" (
+    "id" uuid NOT NULL,
+    "type" integer DEFAULT 0 NOT NULL,
+    "name" character varying(100) DEFAULT NULL::character varying NULL,
+    "avatar" character varying(500) DEFAULT NULL::character varying NULL,
+    "pair_key" character varying(100) DEFAULT NULL::character varying NULL,
+    "department_id" uuid NULL,
+    "owner_user_id" uuid NULL,
+    "assistant_id" uuid NULL,
+    "member_count" integer DEFAULT 0 NOT NULL,
+    "last_seq" bigint DEFAULT '0'::bigint NOT NULL,
+    "last_message_id" uuid NULL,
+    "last_message_at" timestamp with time zone NULL,
+    "last_message_preview" character varying(200) DEFAULT NULL::character varying NULL,
+    "announcement" character varying(2000) DEFAULT NULL::character varying NULL,
+    "description" character varying(500) DEFAULT NULL::character varying NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_chat_conversation_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_tenant_id_department_id ON public.sys_chat_conversation USING btree (tenant_id, department_id);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_tenant_id_last_message_at ON public.sys_chat_conversation USING btree (tenant_id, last_message_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_conversation_tenant_id_pair_key ON public.sys_chat_conversation USING btree (tenant_id, pair_key) WHERE (is_deleted = false);
+
+CREATE TABLE IF NOT EXISTS "sys_chat_conversation_member" (
+    "id" uuid NOT NULL,
+    "conversation_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "role" integer DEFAULT 0 NOT NULL,
+    "unread_count" integer DEFAULT 0 NOT NULL,
+    "last_read_message_id" uuid NULL,
+    "last_read_seq" bigint DEFAULT '0'::bigint NOT NULL,
+    "last_read_at" timestamp with time zone NULL,
+    "is_muted" boolean DEFAULT false NOT NULL,
+    "is_pinned" boolean DEFAULT false NOT NULL,
+    "is_silenced" boolean DEFAULT false NOT NULL,
+    "joined_at" timestamp with time zone NOT NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_chat_conversation_member_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_member_tenant_id_conversation_id ON public.sys_chat_conversation_member USING btree (tenant_id, conversation_id);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_member_tenant_id_user_id ON public.sys_chat_conversation_member USING btree (tenant_id, user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_conversation_member_conversation_user ON public.sys_chat_conversation_member USING btree (tenant_id, conversation_id, user_id) WHERE (is_deleted = false);
+
+CREATE TABLE IF NOT EXISTS "sys_chat_message" (
+    "id" uuid NOT NULL,
+    "conversation_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "seq" bigint DEFAULT '0'::bigint NOT NULL,
+    "sender_user_id" uuid NULL,
+    "sender_name" character varying(100) DEFAULT NULL::character varying NULL,
+    "type" integer DEFAULT 0 NOT NULL,
+    "content" text NULL,
+    "attachments" text NULL,
+    "is_recalled" boolean DEFAULT false NOT NULL,
+    "recalled_at" timestamp with time zone NULL,
+    "client_message_id" character varying(50) DEFAULT NULL::character varying NULL,
+    "reply_to_message_id" uuid NULL,
+    "reply_preview" character varying(300) DEFAULT NULL::character varying NULL,
+    "edited_at" timestamp with time zone NULL,
+    "mentioned_user_ids" character varying(1000) DEFAULT NULL::character varying NULL,
+    "is_pinned" boolean DEFAULT false NOT NULL,
+    "pinned_by_user_id" uuid NULL,
+    "pinned_at" timestamp with time zone NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_chat_message_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_message_tenant_id_created_at ON public.sys_chat_message USING btree (tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_message_tenant_id_sender_user_id ON public.sys_chat_message USING btree (tenant_id, sender_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_message_tenant_id_conversation_id_seq ON public.sys_chat_message USING btree (tenant_id, conversation_id, seq);
+
+CREATE TABLE IF NOT EXISTS "sys_chat_message_reaction" (
+    "id" uuid NOT NULL,
+    "conversation_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "message_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "user_name" character varying(100) DEFAULT NULL::character varying NULL,
+    "emoji" character varying(16) NOT NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_chat_message_reaction_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_chat_message_reaction_tenant_id_conversation_id ON public.sys_chat_message_reaction USING btree (tenant_id, conversation_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_message_reaction_message_user_emoji ON public.sys_chat_message_reaction USING btree (tenant_id, message_id, user_id, emoji);
+
 CREATE TABLE IF NOT EXISTS "sys_config" (
     "id" uuid NOT NULL,
     "owner_tenant_id" character varying(512) NOT NULL,

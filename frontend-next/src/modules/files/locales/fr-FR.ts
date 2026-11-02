@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: 'Téléversement',
         fast_upload: 'Téléversement instantané',
+        chat: 'Pièce jointe de chat',
       },
       storage_statuses: {
         normal: 'Normal',

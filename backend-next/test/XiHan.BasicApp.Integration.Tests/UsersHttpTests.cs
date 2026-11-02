@@ -182,8 +182,9 @@ public sealed class UsersHttpTests : IDisposable
         // 实时 Hub 不进接口文档；推送方法另出 realtime.json（Hub 路径与前端订阅的方法名）
         Assert.False(document.GetProperty("paths").TryGetProperty("/hubs/notification", out _));
         using var realtime = JsonDocument.Parse(Host.Contracts.ContractsExporter.BuildRealtime());
-        var hub = Assert.Single(realtime.RootElement.GetProperty("hubs").EnumerateArray());
-        Assert.Equal("/hubs/notification", hub.GetProperty("path").GetString());
-        Assert.Equal(["ForceLogout", "ReceiveNotification", "TaskProgress", "UserSettingChanged"], hub.GetProperty("methods").EnumerateArray().Select(static m => m.GetString()).ToList());
+        var hubs = realtime.RootElement.GetProperty("hubs").EnumerateArray().ToList();
+        Assert.Equal(["/hubs/chat", "/hubs/notification"], hubs.Select(static h => h.GetProperty("path").GetString()).ToList());
+        Assert.Equal(["ForceLogout", "ReceiveNotification", "TaskProgress", "UserSettingChanged"], hubs[1].GetProperty("methods").EnumerateArray().Select(static m => m.GetString()).ToList());
+        Assert.Equal(["JoinConversation", "LeaveConversation", "Typing"], hubs[0].GetProperty("invocations").EnumerateArray().Select(static m => m.GetString()).ToList());
     }
 }

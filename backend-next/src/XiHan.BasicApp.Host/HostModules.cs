@@ -28,12 +28,17 @@ public sealed record HostModules
     public bool Printing { get; init; } = true;
 
     /// <summary>
+    /// 在线聊天模块。
+    /// </summary>
+    public bool Chat { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取。
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)

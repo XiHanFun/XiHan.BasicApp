@@ -3,6 +3,7 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Organization.Operations.Departments;
 using XiHan.BasicApp.Organization.Operations.Memberships;
@@ -21,6 +22,7 @@ namespace XiHan.BasicApp.Organization;
     PropertyNameCaseInsensitive = true,
     NumberHandling = JsonNumberHandling.AllowReadingFromString,
     UseStringEnumConverter = true)]
+[JsonSerializable(typeof(MembershipChanged))]
 [JsonSerializable(typeof(CreateDepartmentRequest))]
 [JsonSerializable(typeof(GetDepartmentRequest))]
 [JsonSerializable(typeof(DepartmentTreeRequest))]

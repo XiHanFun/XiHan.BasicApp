@@ -37,6 +37,8 @@
 | `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间 |
 | `memberships.delete` | `organization.memberships.delete` | 批量移出 |
 
+加入与移出部门时记领域事件 `basicapp.organization.membership-changed`（`Contracts` 的 `MembershipChanged`：用户、部门、加入还是移出、发生时间），随写入进发件箱；改岗位、主部门等不发。Chat 据此同步部门群成员，见[在线聊天](./chat#部门群同步)。
+
 ## 使用方
 
 | 使用方 | 用法 |

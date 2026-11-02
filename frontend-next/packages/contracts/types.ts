@@ -677,6 +677,752 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-audit/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Audit message details
+         * @description Returns a message with its conversation, attachments, mentions, reply and reactions; recalled or edited text is not kept.
+         *
+         *     Requires permission chat.chat-audit.read (Audit chat messages).
+         */
+        get: operations["chat-audit.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-audit:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Audit chat messages
+         * @description Pages through every message on the caller's side without membership; filters by conversation, sender, type, time and recall state, excluding recalled messages by default.
+         *
+         *     Requires permission chat.chat-audit.read (Audit chat messages).
+         */
+        post: operations["chat-audit.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-audit:members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Audit conversation members
+         * @description Lists a conversation and its current members without membership.
+         *
+         *     Requires permission chat.chat-audit.read (Audit chat messages).
+         */
+        get: operations["chat-audit.members"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:add-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add group members
+         * @description Adds users to a group chat; group chats only, owner or administrator, new members must belong to the caller's side.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.add-members"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:create-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create group chat
+         * @description Creates a group chat with the caller as owner and at least two members on the caller's side, posting a system notice to the members.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.create-group"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:department-tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Department tree
+         * @description Lists the enabled departments on the caller's side as a tree for opening department chats; the platform has no departments.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.department-tree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Leave group chat
+         * @description Leaves a group chat; group chats only, the owner must transfer ownership first.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.leave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark as read
+         * @description Clears the unread count and moves the read position forward (never back; to the latest when no message is given), pushed to all members.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.mark-read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Conversation members
+         * @description Lists the members of a conversation by role and join time; members only.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.members"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My conversations
+         * @description Lists the caller's conversations on their side: pinned first, then by the latest message; single chats show the peer's user name.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mute conversation
+         * @description Mutes or unmutes a conversation for the caller only, synced to their other devices.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.mute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:open-department": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open department chat
+         * @description Opens a department chat, creating it and adding the department's members if missing; only members of the department may enter and it has no owner or administrators.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.open-department"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:open-single": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open single chat
+         * @description Opens the single chat with a peer, creating it if missing; a pair has one single chat per side and the peer must belong to the caller's side.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.open-single"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pin conversation
+         * @description Pins or unpins a conversation for the caller only, synced to their other devices.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.pin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:read-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read positions
+         * @description Lists the message and sequence number each member has read up to, for read receipts; members only.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.read-positions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:remove-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remove group members
+         * @description Removes members from a group chat; group chats only, owner or administrator; non-members, the owner and the caller fail per item.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.remove-members"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:set-member-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set member role
+         * @description Switches a member between administrator and regular member; group chats only, by the owner.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.set-member-role"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:silence-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Silence members
+         * @description Silences or unsilences members; owner or administrator of a group or department chat; non-members, the owner and administrators fail per item.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.silence-members"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:transfer-owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transfer ownership
+         * @description Transfers ownership to another member; group chats only, by the owner, who becomes a regular member.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.transfer-owner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:update-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update chat info
+         * @description Updates the name, announcement, description and avatar; owner or administrator, department chats keep their name, a new announcement is posted in the operator's name.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.update-info"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:user-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * User options
+         * @description Lists active accounts on the caller's side by keyword for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.user-options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload one chat attachment as multipart form data (field `file`).
+         * @description Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Edit message
+         * @description Edits the caller's own text message within 5 minutes, if not silenced and free of sensitive words.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.edit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:fast-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fast upload attachment
+         * @description Reuses a file with the same content on the caller's side as a chat attachment, or returns empty so the client uploads normally; needs only the chat send permission.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.fast-upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:forward": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forward message
+         * @description Forwards a message to one or more conversations, copying its type, text and attachments without a forwarded-from mark; assistant replies go out as text; each conversation succeeds or fails on its own.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.forward"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Message history
+         * @description Returns a page of messages by sequence (before a message or around one), with reactions; members only.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pin message
+         * @description Pins a message; both sides in single chats, owner or administrators otherwise, up to 10 per conversation.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.pin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:pinned": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pinned messages
+         * @description Lists a conversation's pinned messages, most recently pinned first; members only.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.pinned"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:presign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attachment URL
+         * @description Signs a download URL for an attachment for a conversation member; the file must appear in the conversation or be the caller's own unsent chat upload.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.presign"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:react": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * React to message
+         * @description Toggles an emoji reaction on a message; reacting again with the same emoji removes it; members only.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.react"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:recall": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recall message
+         * @description Recalls the caller's own message within 2 minutes, clearing its text and keeping the row and attachments.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.recall"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search messages
+         * @description Searches a conversation's text and attachment names, excluding recalled messages, newest first; members only.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send message
+         * @description Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, then pushes it to all members.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:unpin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unpin message
+         * @description Unpins a message with the same rules as pinning.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.unpin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/condition-hits/{id}": {
         parameters: {
             query?: never;
@@ -7169,6 +7915,348 @@ export interface components {
             /** @description 能否改写值（鉴权相关的只许删）。 */
             editable: boolean;
         };
+        /** @description 上传好的附件。 */
+        ChatAttachmentResponse: {
+            /**
+             * Format: uuid
+             * @description 文件。
+             */
+            fileId: string;
+            /** @description 文件名。 */
+            fileName: string;
+            /**
+             * Format: int64
+             * @description 大小（字节）。
+             */
+            fileSize: number;
+            /** @description 内容类型。 */
+            contentType: string;
+        };
+        /**
+         * ChatAttachmentUploadResponse
+         * @description 上传或秒传的结果。
+         */
+        ChatAttachmentUploadResponse: {
+            /** @description 附件；秒传没命中为空，前端再走普通上传（POST /api/chat-messages/attachments，总有值）。 */
+            attachment?: components["schemas"]["ChatAttachmentResponse"] | null;
+        };
+        /** @description 审计里的会话。 */
+        ChatAuditConversationResponse: {
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
+            id: string;
+            /** @description 会话类型。 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /** @description 会话名称（单聊为空）。 */
+            conversationName?: string | null;
+            /**
+             * Format: int32
+             * @description 成员数。
+             */
+            memberCount: number;
+            /**
+             * Format: uuid
+             * @description 群主。
+             */
+            ownerUserId?: string | null;
+            /**
+             * Format: uuid
+             * @description 部门群对应的部门。
+             */
+            departmentId?: string | null;
+            /** @description 群公告。 */
+            announcement?: string | null;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 最后一条消息的时间（UTC）。
+             */
+            lastMessageAt?: string | null;
+        };
+        /** @description 审计里的一条消息。 */
+        ChatAuditMessageResponse: {
+            /**
+             * Format: uuid
+             * @description 消息。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
+            conversationId: string;
+            /** @description 会话名称（单聊为空）。 */
+            conversationName?: string | null;
+            /** @description 会话类型。 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /**
+             * Format: uuid
+             * @description 发送人（中性的系统提示为空）。
+             */
+            senderUserId?: string | null;
+            /** @description 发送人名字的快照。 */
+            senderUserName?: string | null;
+            /** @description 消息类型。 */
+            messageType: components["schemas"]["ChatMessageType"];
+            /** @description 正文（撤回后为空）。 */
+            content?: string | null;
+            /** @description 附件文件名的摘要。 */
+            fileName?: string | null;
+            /** @description 已撤回。 */
+            isRecalled: boolean;
+            /**
+             * Format: date-time
+             * @description 编辑时间（UTC）。
+             */
+            editedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 发送时间（UTC）。
+             */
+            createdAt: string;
+        };
+        /** @description 我的会话列表项。 */
+        ChatConversationListItem: {
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
+            conversationId: string;
+            /** @description 会话类型。 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /** @description 显示名（单聊是对端的用户名）。 */
+            displayName: string;
+            /** @description 头像：单聊是对端的头像文件，群与部门群是文件主键或直链（文件主键经 chat-messages.presign 凭会话换地址）。 */
+            avatar?: string | null;
+            /**
+             * Format: uuid
+             * @description 单聊的对端用户。
+             */
+            peerUserId?: string | null;
+            /**
+             * Format: uuid
+             * @description 部门群对应的部门。
+             */
+            departmentId?: string | null;
+            /**
+             * Format: uuid
+             * @description 助手会话对应的助手。
+             */
+            assistantId?: string | null;
+            /**
+             * Format: int32
+             * @description 成员数。
+             */
+            memberCount: number;
+            /** @description 我的角色。 */
+            memberRole: components["schemas"]["ChatMemberRole"];
+            /**
+             * Format: int32
+             * @description 我的未读数。
+             */
+            unreadCount: number;
+            /** @description 我设了免打扰。 */
+            isMuted: boolean;
+            /** @description 我置顶了它。 */
+            isPinned: boolean;
+            /** @description 我被禁言。 */
+            isSilenced: boolean;
+            /** @description 群公告。 */
+            announcement?: string | null;
+            /** @description 群描述。 */
+            description?: string | null;
+            /**
+             * Format: date-time
+             * @description 最后一条消息的时间（UTC）。
+             */
+            lastMessageAt?: string | null;
+            /** @description 最后一条消息的预览。 */
+            lastMessagePreview?: string | null;
+            /**
+             * Format: int64
+             * @description 最大消息序号。
+             */
+            lastSeq: number;
+        };
+        /**
+         * @description 会话类型。
+         * @enum {string}
+         */
+        ChatConversationType: "Single" | "Group" | "Department" | "Assistant";
+        /** @description 部门树的节点。 */
+        ChatDepartmentNode: {
+            /**
+             * Format: uuid
+             * @description 部门。
+             */
+            departmentId: string;
+            /** @description 部门名称。 */
+            departmentName: string;
+            /** @description 下级部门。 */
+            children: components["schemas"]["ChatDepartmentNode"][];
+        };
+        /** @description 会话成员。 */
+        ChatMemberItem: {
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
+            userId: string;
+            /** @description 用户名。 */
+            userName?: string | null;
+            /** @description 显示名。 */
+            displayName?: string | null;
+            /** @description 角色。 */
+            memberRole: components["schemas"]["ChatMemberRole"];
+            /** @description 被禁言。 */
+            isSilenced: boolean;
+            /**
+             * Format: date-time
+             * @description 入会时间（UTC）。
+             */
+            joinedAt: string;
+        };
+        /**
+         * @description 成员角色。
+         * @enum {string}
+         */
+        ChatMemberRole: "Owner" | "Admin" | "Member";
+        /** @description 消息的附件。 */
+        ChatMessageAttachment: {
+            /**
+             * Format: uuid
+             * @description 文件。
+             */
+            fileId: string;
+            /** @description 文件名。 */
+            fileName: string;
+            /**
+             * Format: int64
+             * @description 大小（字节）。
+             */
+            fileSize?: number | null;
+            /**
+             * Format: int32
+             * @description 语音时长（秒）。
+             */
+            durationSeconds?: number | null;
+        };
+        /** @description 一条消息。 */
+        ChatMessageItem: {
+            /**
+             * Format: uuid
+             * @description 消息。
+             */
+            messageId: string;
+            /**
+             * Format: uuid
+             * @description 会话。
+             */
+            conversationId: string;
+            /**
+             * Format: int64
+             * @description 会话内序号。
+             */
+            seq: number;
+            /**
+             * Format: uuid
+             * @description 发送人（中性的系统提示为空）。
+             */
+            senderUserId?: string | null;
+            /** @description 发送人名字的快照。 */
+            senderUserName?: string | null;
+            /** @description 消息类型。 */
+            messageType: components["schemas"]["ChatMessageType"];
+            /** @description 正文（撤回后为空）。 */
+            content?: string | null;
+            /** @description 附件。 */
+            attachments: components["schemas"]["ChatMessageAttachment"][];
+            /** @description 已撤回。 */
+            isRecalled: boolean;
+            /** @description 客户端消息标识。 */
+            clientMessageId?: string | null;
+            /**
+             * Format: date-time
+             * @description 发送时间（UTC）。
+             */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description 回复的消息。
+             */
+            replyToMessageId?: string | null;
+            /** @description 回复快照。 */
+            replyPreview?: string | null;
+            /**
+             * Format: date-time
+             * @description 编辑时间（UTC）。
+             */
+            editedAt?: string | null;
+            /** @description 提及的用户。 */
+            mentionedUserIds: string[];
+            /** @description 已置顶。 */
+            isPinned: boolean;
+            /** @description 表情回应（历史里带，推送与搜索不带）。 */
+            reactions: components["schemas"]["ChatReactionItem"][];
+        };
+        /**
+         * @description 消息类型。
+         * @enum {string}
+         */
+        ChatMessageType: "Text" | "Image" | "Voice" | "File" | "Assistant" | "System";
+        /** @description 表情回应。 */
+        ChatReactionItem: {
+            /** @description 表情。 */
+            emoji: string;
+            /**
+             * Format: uuid
+             * @description 回应的用户。
+             */
+            userId: string;
+            /** @description 用户名。 */
+            userName?: string | null;
+        };
+        /** @description 成员的已读位。 */
+        ChatReadPosition: {
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
+            userId: string;
+            /**
+             * Format: uuid
+             * @description 已读到的消息。
+             */
+            lastReadMessageId?: string | null;
+            /**
+             * Format: int64
+             * @description 已读到的消息序号（没读过为 0）。
+             */
+            lastReadSeq: number;
+        };
+        /** @description 可选的用户。 */
+        ChatUserOption: {
+            /**
+             * Format: uuid
+             * @description 用户。
+             */
+            userId: string;
+            /** @description 用户名。 */
+            userName: string;
+            /** @description 显示名。 */
+            displayName: string;
+            /**
+             * Format: uuid
+             * @description 头像文件（前端按它换签名地址显示）。
+             */
+            avatarFileId?: string | null;
+        };
         /** @description 条件属性目录里的一项。 */
         ConditionAttributeResponse: {
             /** @description 登记名（族以 .* 结尾）。 */
@@ -12821,6 +13909,1670 @@ export interface operations {
                     "application/json": {
                         /** @description 命名空间，按前缀排序。 */
                         items: components["schemas"]["CacheNamespaceResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-audit.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 消息。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 审计里的消息详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息摘要。 */
+                        message: components["schemas"]["ChatAuditMessageResponse"];
+                        /** @description 所在会话。 */
+                        conversation: components["schemas"]["ChatAuditConversationResponse"];
+                        /**
+                         * Format: int64
+                         * @description 会话内序号。
+                         */
+                        seq: number;
+                        /** @description 附件。 */
+                        attachments: components["schemas"]["ChatMessageAttachment"][];
+                        /** @description 提及的用户。 */
+                        mentionedUserIds: string[];
+                        /**
+                         * Format: uuid
+                         * @description 回复的消息。
+                         */
+                        replyToMessageId?: string | null;
+                        /** @description 回复快照。 */
+                        replyPreview?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 撤回时间（UTC）。
+                         */
+                        recalledAt?: string | null;
+                        /** @description 已置顶。 */
+                        isPinned: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 置顶时间（UTC）。
+                         */
+                        pinnedAt?: string | null;
+                        /** @description 客户端消息标识。 */
+                        clientMessageId?: string | null;
+                        /** @description 表情回应。 */
+                        reactions: components["schemas"]["ChatReactionItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-audit.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ChatAuditMessageResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-audit.members": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 审计里的会话成员。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 会话。 */
+                        conversation: components["schemas"]["ChatAuditConversationResponse"];
+                        /** @description 现有成员（按角色再按入会时间）。 */
+                        items: components["schemas"]["ChatMemberItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.add-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按会话与一批用户的请求（加人、移出）。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 用户。 */
+                    userIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.create-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.create-group 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 群名。 */
+                    conversationName: string;
+                    /** @description 成员（不含也会自动加上群主自己）。 */
+                    memberUserIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 打开或建立会话的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                        /** @description 会话类型。 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称。 */
+                        conversationName?: string | null;
+                        /** @description 是否新建。 */
+                        created: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.department-tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 当前一侧启用的部门树。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 顶层部门。 */
+                        items: components["schemas"]["ChatDepartmentNode"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按会话的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的会话。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.mark-read 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /**
+                     * Format: uuid
+                     * @description 读到的消息；为空即读到最新。
+                     */
+                    upToMessageId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 成员的已读位。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
+                        userId: string;
+                        /**
+                         * Format: uuid
+                         * @description 已读到的消息。
+                         */
+                        lastReadMessageId?: string | null;
+                        /**
+                         * Format: int64
+                         * @description 已读到的消息序号（没读过为 0）。
+                         */
+                        lastReadSeq: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.members": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 会话成员（按角色再按入会时间）。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 成员。 */
+                        items: components["schemas"]["ChatMemberItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 我的会话（置顶优先，再按最后消息时间倒序）。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 会话。 */
+                        items: components["schemas"]["ChatConversationListItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.mute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.mute 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 免打扰为真，取消为假。 */
+                    isMuted: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description 个人开关的新状态。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 开为真。 */
+                        isOn: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.open-department": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.open-department 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 部门。
+                     */
+                    departmentId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 打开或建立会话的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                        /** @description 会话类型。 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称。 */
+                        conversationName?: string | null;
+                        /** @description 是否新建。 */
+                        created: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.open-single": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.open-single 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 对端用户。
+                     */
+                    peerUserId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 打开或建立会话的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                        /** @description 会话类型。 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称。 */
+                        conversationName?: string | null;
+                        /** @description 是否新建。 */
+                        created: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.pin 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 置顶为真，取消为假。 */
+                    isPinned: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description 个人开关的新状态。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 开为真。 */
+                        isOn: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.read-positions": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成员的已读位。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 已读位。 */
+                        items: components["schemas"]["ChatReadPosition"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.remove-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按会话与一批用户的请求（加人、移出）。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 用户。 */
+                    userIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.set-member-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.set-member-role 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /**
+                     * Format: uuid
+                     * @description 成员。
+                     */
+                    userId: string;
+                    /** @description 新角色（只能是管理员或普通成员）。 */
+                    memberRole: components["schemas"]["ChatMemberRole"];
+                };
+            };
+        };
+        responses: {
+            /** @description 会话成员。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户。
+                         */
+                        userId: string;
+                        /** @description 用户名。 */
+                        userName?: string | null;
+                        /** @description 显示名。 */
+                        displayName?: string | null;
+                        /** @description 角色。 */
+                        memberRole: components["schemas"]["ChatMemberRole"];
+                        /** @description 被禁言。 */
+                        isSilenced: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 入会时间（UTC）。
+                         */
+                        joinedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.silence-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.silence-members 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 成员。 */
+                    userIds: string[];
+                    /** @description 禁言为真，解除为假。 */
+                    isSilenced: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.transfer-owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.transfer-owner 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /**
+                     * Format: uuid
+                     * @description 新群主（须是现有成员）。
+                     */
+                    newOwnerUserId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的会话。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.update-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.update-info 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 群名。 */
+                    conversationName?: string | null;
+                    /** @description 群公告。 */
+                    announcement?: string | null;
+                    /** @description 群描述。 */
+                    description?: string | null;
+                    /** @description 头像：文件主键（须是自己在聊天里上传的）或直链。 */
+                    avatar?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的会话。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.user-options": {
+        parameters: {
+            query?: {
+                /** @description 关键字（匹配用户名与显示名）。 */
+                keyword?: string | null;
+                /** @description 条数上限，缺省 50。 */
+                limit?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 可选的用户。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 用户。 */
+                        items: components["schemas"]["ChatUserOption"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatAttachmentUploadResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.edit 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 消息。
+                     */
+                    messageId: string;
+                    /** @description 新的正文。 */
+                    content: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一条消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 消息。
+                         */
+                        messageId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: int64
+                         * @description 会话内序号。
+                         */
+                        seq: number;
+                        /**
+                         * Format: uuid
+                         * @description 发送人（中性的系统提示为空）。
+                         */
+                        senderUserId?: string | null;
+                        /** @description 发送人名字的快照。 */
+                        senderUserName?: string | null;
+                        /** @description 消息类型。 */
+                        messageType: components["schemas"]["ChatMessageType"];
+                        /** @description 正文（撤回后为空）。 */
+                        content?: string | null;
+                        /** @description 附件。 */
+                        attachments: components["schemas"]["ChatMessageAttachment"][];
+                        /** @description 已撤回。 */
+                        isRecalled: boolean;
+                        /** @description 客户端消息标识。 */
+                        clientMessageId?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 发送时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: uuid
+                         * @description 回复的消息。
+                         */
+                        replyToMessageId?: string | null;
+                        /** @description 回复快照。 */
+                        replyPreview?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 编辑时间（UTC）。
+                         */
+                        editedAt?: string | null;
+                        /** @description 提及的用户。 */
+                        mentionedUserIds: string[];
+                        /** @description 已置顶。 */
+                        isPinned: boolean;
+                        /** @description 表情回应（历史里带，推送与搜索不带）。 */
+                        reactions: components["schemas"]["ChatReactionItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.fast-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.fast-upload 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description SHA-256（十六进制）。 */
+                    hash: string;
+                    /**
+                     * Format: int64
+                     * @description 大小（字节）。
+                     */
+                    size: number;
+                    /** @description 文件名。 */
+                    fileName: string;
+                    /** @description 内容类型。 */
+                    contentType?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 上传或秒传的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatAttachmentUploadResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.forward": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.forward 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 要转发的消息。
+                     */
+                    messageId: string;
+                    /** @description 转到的会话。 */
+                    conversationIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.history": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+                /** @description 取这条之前的。 */
+                beforeMessageId?: string | null;
+                /** @description 以这条为中心。 */
+                aroundMessageId?: string | null;
+                /** @description 条数，1 到 100，缺省 30。 */
+                take?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一页消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息（历史按序号正序，搜索按时间倒序）。 */
+                        items: components["schemas"]["ChatMessageItem"][];
+                        /** @description 还有更早的。 */
+                        hasMore: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按消息的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 消息。
+                     */
+                    messageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 消息。
+                         */
+                        messageId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.pinned": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一组消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息。 */
+                        items: components["schemas"]["ChatMessageItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.presign": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+                /** @description 附件的文件。 */
+                fileId: string;
+                /** @description 以附件下载（带原始文件名）；否则内联显示。 */
+                download?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 附件的下载地址。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 地址（原样使用，不能再拼参数）。 */
+                        url: string;
+                        /**
+                         * Format: date-time
+                         * @description 到期时间（UTC）。
+                         */
+                        expiresAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.react": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.react 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 消息。
+                     */
+                    messageId: string;
+                    /** @description 表情（再点同一个即取消）。 */
+                    emoji: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 回应开关的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 加上为真，取消为假。 */
+                        added: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.recall": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按消息的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 消息。
+                     */
+                    messageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 消息。
+                         */
+                        messageId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.search": {
+        parameters: {
+            query: {
+                /** @description 会话。 */
+                conversationId: string;
+                /** @description 关键字（匹配正文与附件名，不含已撤回的）。 */
+                keyword?: string | null;
+                /** @description 取这条之前的。 */
+                beforeMessageId?: string | null;
+                /** @description 条数，1 到 50，缺省 20。 */
+                take?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一页消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息（历史按序号正序，搜索按时间倒序）。 */
+                        items: components["schemas"]["ChatMessageItem"][];
+                        /** @description 还有更早的。 */
+                        hasMore: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.send 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话。
+                     */
+                    conversationId: string;
+                    /** @description 消息类型（文本、图片、语音、文件）。 */
+                    messageType: components["schemas"]["ChatMessageType"];
+                    /** @description 正文（文本必填，图片与文件可带说明，语音没有）。 */
+                    content?: string | null;
+                    /** @description 附件（须是自己在聊天里上传的文件）。 */
+                    attachments?: components["schemas"]["ChatMessageAttachment"][] | null;
+                    /** @description 客户端消息标识。 */
+                    clientMessageId?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description 回复的消息。
+                     */
+                    replyToMessageId?: string | null;
+                    /** @description 提及的成员。 */
+                    mentionedUserIds?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一条消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 消息。
+                         */
+                        messageId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话。
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: int64
+                         * @description 会话内序号。
+                         */
+                        seq: number;
+                        /**
+                         * Format: uuid
+                         * @description 发送人（中性的系统提示为空）。
+                         */
+                        senderUserId?: string | null;
+                        /** @description 发送人名字的快照。 */
+                        senderUserName?: string | null;
+                        /** @description 消息类型。 */
+                        messageType: components["schemas"]["ChatMessageType"];
+                        /** @description 正文（撤回后为空）。 */
+                        content?: string | null;
+                        /** @description 附件。 */
+                        attachments: components["schemas"]["ChatMessageAttachment"][];
+                        /** @description 已撤回。 */
+                        isRecalled: boolean;
+                        /** @description 客户端消息标识。 */
+                        clientMessageId?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 发送时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: uuid
+                         * @description 回复的消息。
+                         */
+                        replyToMessageId?: string | null;
+                        /** @description 回复快照。 */
+                        replyPreview?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 编辑时间（UTC）。
+                         */
+                        editedAt?: string | null;
+                        /** @description 提及的用户。 */
+                        mentionedUserIds: string[];
+                        /** @description 已置顶。 */
+                        isPinned: boolean;
+                        /** @description 表情回应（历史里带，推送与搜索不带）。 */
+                        reactions: components["schemas"]["ChatReactionItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.unpin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按消息的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 消息。
+                     */
+                    messageId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的消息。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 消息。
+                         */
+                        messageId: string;
                     };
                 };
             };

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.BasicApp.Contracts.Organization;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
@@ -11,11 +12,12 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 一个用户可在多个部门，恰有一个主部门（<see cref="IsPrimary"/>）；用户是平台库的 <c>SysUser</c>（注册地必须是当前租户），这里只存主键。
+/// 加入与移出部门时记领域事件 <see cref="MembershipChanged"/>（主题 <c>basicapp.organization.membership-changed</c>），随写入进发件箱。
 /// </remarks>
 [ActiveUniqueIndex(nameof(TenantId), nameof(UserId), nameof(DepartmentId))]
 [SugarIndex("ix_{table}_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("ix_{table}_tenant_id_position_id", nameof(TenantId), OrderByType.Asc, nameof(PositionId), OrderByType.Asc)]
-public sealed class SysUserDepartment : TenantScopedAuditedEntity
+public sealed class SysUserDepartment : TenantScopedAggregateRoot
 {
     /// <summary>
     /// 用户。
@@ -59,4 +61,16 @@ public sealed class SysUserDepartment : TenantScopedAuditedEntity
     /// 部门内排序号。
     /// </summary>
     public int Order { get; set; }
+
+    /// <summary>
+    /// 记下用户加入了部门。
+    /// </summary>
+    /// <param name="at">发生时间（UTC）。</param>
+    public void RecordJoined(DateTimeOffset at) => Raise(new MembershipChanged(UserId, DepartmentId, Joined: true, at));
+
+    /// <summary>
+    /// 记下用户移出了部门。
+    /// </summary>
+    /// <param name="at">发生时间（UTC）。</param>
+    public void RecordLeft(DateTimeOffset at) => Raise(new MembershipChanged(UserId, DepartmentId, Joined: false, at));
 }

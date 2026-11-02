@@ -4,6 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.Framework.Protocols.Http.OpenApi;
 
@@ -91,31 +92,51 @@ public static class ContractsExporter
     /// 生成推送方法清单。
     /// </summary>
     /// <remarks>
-    /// 格式 <c>{"hubs":[{"path":"/hubs/notification","methods":[...]}]}</c>，方法按字母序，缩进两格、LF 换行。
+    /// 格式 <c>{"hubs":[{"path":"/hubs/chat","methods":[...],"invocations":[...]}, ...]}</c>：Hub 按路径排序，<c>methods</c> 是服务端推送的方法、
+    /// <c>invocations</c> 是客户端可调的方法（没有即不写），都按字母序，缩进两格、LF 换行。聊天 Hub 不论聊天模块开没开都列出（它是契约的一部分）。
     /// </remarks>
     public static byte[] BuildRealtime()
     {
+        (string Path, IReadOnlyList<string> Methods, IReadOnlyList<string> Invocations)[] hubs =
+        [
+            (RealtimeHubs.Chat, ChatRealtimeMethods.All, ChatRealtimeMethods.Invocations),
+            (RealtimeHubs.Notification, RealtimeMethods.All, []),
+        ];
         using var buffer = new MemoryStream();
         using (var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true, NewLine = "\n" }))
         {
             writer.WriteStartObject();
             writer.WriteStartArray("hubs");
-            writer.WriteStartObject();
-            writer.WriteString("path", RealtimeHubs.Notification);
-            writer.WriteStartArray("methods");
-            foreach (var method in RealtimeMethods.All.Order(StringComparer.Ordinal))
+            foreach (var (path, methods, invocations) in hubs.OrderBy(static h => h.Path, StringComparer.Ordinal))
             {
-                writer.WriteStringValue(method);
+                writer.WriteStartObject();
+                writer.WriteString("path", path);
+                WriteNames(writer, "methods", methods);
+                if (invocations.Count > 0)
+                {
+                    WriteNames(writer, "invocations", invocations);
+                }
+
+                writer.WriteEndObject();
             }
 
-            writer.WriteEndArray();
-            writer.WriteEndObject();
             writer.WriteEndArray();
             writer.WriteEndObject();
         }
 
         buffer.WriteByte((byte)'\n');
         return buffer.ToArray();
+    }
+
+    private static void WriteNames(Utf8JsonWriter writer, string property, IReadOnlyList<string> names)
+    {
+        writer.WriteStartArray(property);
+        foreach (var name in names.Order(StringComparer.Ordinal))
+        {
+            writer.WriteStringValue(name);
+        }
+
+        writer.WriteEndArray();
     }
 
     /// <summary>

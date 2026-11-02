@@ -1,0 +1,1081 @@
+<script setup lang="ts">
+import type {
+  ChatMemberItem,
+  ChatMessageAttachment,
+} from '../types'
+import type { ChatMessageType } from '~/contracts'
+import type { AppDropdownOption } from '~/types'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress, XhSpinner } from '@xihan-ui/vue'
+import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XDropdown from '~/components/common/XDropdown.vue'
+import XInput from '~/components/common/XInput.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
+
+import { toast } from '~/composables'
+import { Icon } from '~/iconify'
+import { useUserStore } from '~/stores'
+import { LocalStorage } from '~/utils'
+import { getChatApi } from '../api-contract'
+import { useVoiceRecorder } from '../composables/useVoiceRecorder'
+import {
+  CHAT_PERMISSIONS,
+  CHAT_SEND_KEY_STORAGE_KEY,
+} from '../constants'
+import { useChatStore } from '../store'
+import {
+  CHAT_MAX_CONTENT_LENGTH,
+  CHAT_MAX_MENTION_COUNT,
+} from '../types'
+import { chatErrorText, messageBodyLabel } from './chat-helpers'
+
+defineOptions({ name: 'ChatComposer' })
+
+const props = defineProps<{
+  conversationId: string
+}>()
+
+// emoji-mart 及其数据（~600KB）异步拆包：首次点开表情按钮才加载
+const ChatEmojiPicker = defineAsyncComponent(() => import('./ChatEmojiPicker.vue'))
+
+type ChatSendKey = 'ctrl-enter' | 'enter'
+
+/** 待发附件（粘贴/选择后暂存输入区，发送时才上传） */
+interface PendingAttachment {
+  id: number
+  file: File
+  messageType: ChatMessageType
+  /** 图片的本地预览 objectURL（发送/移除时 revoke） */
+  previewUrl: null | string
+}
+
+const { t } = useI18n()
+const chatStore = useChatStore()
+const userStore = useUserStore()
+
+const draft = ref('')
+const sending = ref(false)
+const uploadingPercent = ref<null | number>(null)
+/** 进度条旁那句「上传中 N%」兼作进度条的名字 */
+const uploadingLabelId = useId()
+const imageInputRef = ref<HTMLInputElement>()
+const fileInputRef = ref<HTMLInputElement>()
+/** XInput 暴露底层元素与聚焦，插入 @ / 换行时按光标位置改写正文 */
+const textInputRef = ref<{ el: HTMLInputElement | HTMLTextAreaElement | null, focus: () => void, blur: () => void } | null>(null)
+const showEmojiPicker = ref(false)
+const showMentionPicker = ref(false)
+const mentionMembers = ref<ChatMemberItem[]>([])
+const mentionLoading = ref(false)
+/** 打 @ 唤起成员列表时那个 @ 在正文里的位置；点工具条 @ 钮唤起时为 null，选中即插在光标处 */
+let mentionAtIndex: null | number = null
+/** 已插入的 @ 名单：显示名 → userId（发送时按「@名字仍在正文中」过滤） */
+const mentionDrafts = new Map<string, string>()
+
+const pendingAttachments = ref<PendingAttachment[]>([])
+/** 会话切换时暂存各会话的待发附件（File 对象仅存内存，不入 localStorage 草稿） */
+const pendingStash = new Map<string, PendingAttachment[]>()
+let attachmentSeq = 0
+
+/** 发送键偏好（QQ 式可切换：Enter 直发 / Ctrl+Enter 发送），localStorage 持久化 */
+const sendKey = ref<ChatSendKey>(LocalStorage.get<ChatSendKey>(CHAT_SEND_KEY_STORAGE_KEY) ?? 'enter')
+
+const canSend = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.send))
+const isSilenced = computed(() => chatStore.activeConversation?.isSilenced ?? false)
+const trimmedDraft = computed(() => draft.value.trim())
+const isEditing = computed(() => chatStore.editTarget?.conversationId === props.conversationId && !!chatStore.editTarget)
+const replyTarget = computed(() =>
+  chatStore.replyTarget?.conversationId === props.conversationId ? chatStore.replyTarget : null)
+const isGroupLike = computed(() =>
+  chatStore.activeConversation?.conversationType === 'Group'
+  || chatStore.activeConversation?.conversationType === 'Department')
+
+const placeholder = computed(() =>
+  sendKey.value === 'enter' ? t('chat.composer.placeholder_enter') : t('chat.composer.placeholder_ctrl_enter'))
+
+/** 发送模式下拉（当前项打勾，另一项占位对齐） */
+const sendKeyOptions = computed<AppDropdownOption[]>(() => {
+  const check = () => h(Icon, { icon: 'lucide:check', width: 14, height: 14 })
+  const blank = () => h('span', { style: 'display:inline-block;width:14px' })
+  return [
+    { key: 'enter', label: t('chat.composer.send_key_enter'), icon: sendKey.value === 'enter' ? check : blank },
+    { key: 'ctrl-enter', label: t('chat.composer.send_key_ctrl_enter'), icon: sendKey.value === 'ctrl-enter' ? check : blank },
+  ]
+})
+
+function handleSendKeySelect(key: number | string) {
+  sendKey.value = key === 'ctrl-enter' ? 'ctrl-enter' : 'enter'
+  LocalStorage.set(CHAT_SEND_KEY_STORAGE_KEY, sendKey.value)
+}
+
+// 会话切换：恢复草稿与待发附件、清 @ 名单与回复/编辑态残留
+watch(() => props.conversationId, (id, oldId) => {
+  if (oldId) {
+    pendingStash.set(oldId, pendingAttachments.value)
+  }
+  pendingAttachments.value = pendingStash.get(id) ?? []
+  draft.value = chatStore.getDraft(id)
+  mentionDrafts.clear()
+  // 成员名单按会话取：不清会把上一个群的人列给这个群
+  mentionMembers.value = []
+  showMentionPicker.value = false
+}, { immediate: true })
+
+// 成员列表打开（打 @ 或点 @ 钮）时才取名单；收起时忘掉这次的 @ 位置
+watch(showMentionPicker, (open) => {
+  if (open) {
+    void loadMentionMembers()
+  }
+  else {
+    mentionAtIndex = null
+  }
+})
+
+// 组件销毁：释放所有会话待发图片的本地预览 URL
+onBeforeUnmount(() => {
+  exitVoiceMode()
+  pendingStash.set(props.conversationId, pendingAttachments.value)
+  for (const list of pendingStash.values()) {
+    for (const attachment of list) {
+      if (attachment.previewUrl) {
+        URL.revokeObjectURL(attachment.previewUrl)
+      }
+    }
+  }
+})
+
+// 进入/退出编辑态：正文替换为被编辑消息，退出恢复草稿
+watch(isEditing, (editing) => {
+  if (editing) {
+    draft.value = chatStore.editTarget?.content ?? ''
+    void nextTick(() => textInputRef.value?.focus())
+  }
+  else {
+    draft.value = chatStore.getDraft(props.conversationId)
+  }
+})
+
+// 头像菜单「@TA」→ 在光标处插入提及
+watch(() => chatStore.mentionRequest, (request) => {
+  if (!request || request.conversationId !== props.conversationId || isEditing.value) {
+    return
+  }
+  const name = request.userName || request.userId
+  const textarea = textInputRef.value?.el
+  const pos = textarea?.selectionStart ?? draft.value.length
+  draft.value = `${draft.value.slice(0, pos)}@${name} ${draft.value.slice(pos)}`
+  mentionDrafts.set(name, request.userId)
+  chatStore.setDraft(props.conversationId, draft.value)
+  void nextTick(() => {
+    textarea?.focus()
+    const caret = pos + name.length + 2
+    textarea?.setSelectionRange(caret, caret)
+  })
+})
+
+function buildReplyPreview(): null | string {
+  const target = replyTarget.value
+  if (!target) {
+    return null
+  }
+  return `${target.senderUserName ?? ''}: ${messageBodyLabel(target)}`.slice(0, 300)
+}
+
+/** 收集仍存在于正文中的 @ 名单 */
+function collectMentionIds(content: string): string[] {
+  const ids: string[] = []
+  for (const [name, userId] of mentionDrafts) {
+    if (content.includes(`@${name}`) && !ids.includes(userId)) {
+      ids.push(userId)
+    }
+  }
+  return ids.slice(0, CHAT_MAX_MENTION_COUNT)
+}
+
+function handleInput() {
+  if (!isEditing.value) {
+    chatStore.setDraft(props.conversationId, draft.value)
+  }
+  chatStore.sendTyping(props.conversationId)
+  detectMentionTrigger()
+}
+
+/** 在光标处插入换行（Enter 直发模式下 Ctrl+Enter 换行，textarea 默认不插入需手动） */
+function insertNewlineAtCursor() {
+  const textarea = textInputRef.value?.el
+  const start = textarea?.selectionStart ?? draft.value.length
+  const end = textarea?.selectionEnd ?? draft.value.length
+  draft.value = `${draft.value.slice(0, start)}\n${draft.value.slice(end)}`
+  if (!isEditing.value) {
+    chatStore.setDraft(props.conversationId, draft.value)
+  }
+  void nextTick(() => {
+    textarea?.focus()
+    textarea?.setSelectionRange(start + 1, start + 1)
+  })
+}
+
+/** 键盘分发：回车发送还是换行随偏好切换 */
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    // 中文输入法组合态的回车是选词，不发送
+    if (event.isComposing) {
+      return
+    }
+    if (sendKey.value === 'ctrl-enter') {
+      // Ctrl+Enter 发送模式：普通回车默认换行
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+        void handleSendText()
+      }
+      return
+    }
+    // Enter 直发模式
+    if (event.shiftKey || event.altKey) {
+      return
+    }
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault()
+      insertNewlineAtCursor()
+      return
+    }
+    event.preventDefault()
+    void handleSendText()
+    return
+  }
+  if (event.key === 'Escape') {
+    if (isEditing.value) {
+      cancelEdit()
+    }
+    else {
+      showMentionPicker.value = false
+    }
+  }
+}
+
+/** 群聊中输入 @ 唤起成员选择 */
+function detectMentionTrigger() {
+  if (!isGroupLike.value || isEditing.value) {
+    return
+  }
+  const textarea = textInputRef.value?.el
+  const pos = textarea?.selectionStart ?? draft.value.length
+  if (pos > 0 && draft.value[pos - 1] === '@') {
+    mentionAtIndex = pos - 1
+    showMentionPicker.value = true
+  }
+}
+
+async function loadMentionMembers() {
+  if (mentionMembers.value.length || mentionLoading.value) {
+    return
+  }
+  const conversationId = props.conversationId
+  mentionLoading.value = true
+  try {
+    const members = await getChatApi().members(conversationId)
+    // 请求在途时切了会话：这份名单属于上一个会话，不能留给当前这个
+    if (conversationId !== props.conversationId) {
+      return
+    }
+    const me = userStore.userInfo?.basicId
+    mentionMembers.value = members.filter(member => member.userId !== me)
+  }
+  catch {
+    mentionMembers.value = []
+  }
+  finally {
+    mentionLoading.value = false
+  }
+}
+
+/**
+ * 插入「@名字 」：打 @ 唤起的替换从那个 @ 到光标这一段，点 @ 钮唤起的直接插在光标处。
+ * 先把焦点交给正文框再改正文：浮层看到焦点移到了外面，按「已交出」收起、不把焦点还给 @ 钮；
+ * 反过来先收浮层，它会把焦点还给触发器，正文框就接不着往下打字了。
+ */
+function insertMention(member: ChatMemberItem) {
+  const textarea = textInputRef.value?.el
+  const caret = textarea?.selectionStart ?? draft.value.length
+  const start = mentionAtIndex !== null && mentionAtIndex < caret && draft.value[mentionAtIndex] === '@'
+    ? mentionAtIndex
+    : caret
+  const name = member.userName || member.userId
+  textarea?.focus()
+  draft.value = `${draft.value.slice(0, start)}@${name} ${draft.value.slice(caret)}`
+  mentionDrafts.set(name, member.userId)
+  chatStore.setDraft(props.conversationId, draft.value)
+  void nextTick(() => {
+    const next = start + name.length + 2
+    textarea?.setSelectionRange(next, next)
+  })
+}
+
+/** 在光标处插入表情（超长丢弃；插入后回焦并把光标落在表情后，面板保持打开支持连选） */
+function insertEmoji(emoji: string) {
+  if (draft.value.length + emoji.length > CHAT_MAX_CONTENT_LENGTH) {
+    return
+  }
+  const textarea = textInputRef.value?.el
+  const start = textarea?.selectionStart ?? draft.value.length
+  const end = textarea?.selectionEnd ?? draft.value.length
+  draft.value = draft.value.slice(0, start) + emoji + draft.value.slice(end)
+  if (!isEditing.value) {
+    chatStore.setDraft(props.conversationId, draft.value)
+  }
+  void nextTick(() => {
+    textarea?.focus()
+    const caret = start + emoji.length
+    textarea?.setSelectionRange(caret, caret)
+  })
+}
+
+async function handleSendText() {
+  const content = trimmedDraft.value
+  const attachments = pendingAttachments.value
+  if ((!content && !attachments.length) || sending.value) {
+    return
+  }
+  if (content.length > CHAT_MAX_CONTENT_LENGTH) {
+    toast.warning(t('chat.composer.too_long', { max: CHAT_MAX_CONTENT_LENGTH }))
+    return
+  }
+
+  // 编辑态只处理正文；无正文（仅附件）不进入编辑分支
+  if (isEditing.value && chatStore.editTarget) {
+    if (!content) {
+      return
+    }
+    sending.value = true
+    try {
+      await chatStore.editMessage(props.conversationId, chatStore.editTarget.messageId, content)
+      draft.value = chatStore.getDraft(props.conversationId)
+    }
+    catch (error) {
+      toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
+    }
+    finally {
+      sending.value = false
+    }
+    return
+  }
+
+  sending.value = true
+  try {
+    // 阶段一：上传全部待发附件并按类型分组（失败保留待发列表可重试）；成功后清空输入区
+    if (attachments.length) {
+      let images: ChatMessageAttachment[] = []
+      let files: ChatMessageAttachment[] = []
+      try {
+        ({ images, files } = await uploadPending(attachments))
+      }
+      catch (error) {
+        toast.danger(chatErrorText(error) || t('chat.composer.upload_failed'))
+        return
+      }
+      clearPendingAttachments()
+      // 阶段二：图片合一条、文件合一条发送（发送失败以可重发气泡留在消息流）
+      if (images.length) {
+        await chatStore.sendMessage({
+          conversationId: props.conversationId,
+          messageType: 'Image',
+          content: null,
+          attachments: images,
+        }).catch(() => {})
+      }
+      if (files.length) {
+        await chatStore.sendMessage({
+          conversationId: props.conversationId,
+          messageType: 'File',
+          content: null,
+          attachments: files,
+        }).catch(() => {})
+      }
+    }
+
+    if (!content) {
+      return
+    }
+    const replyPreview = buildReplyPreview()
+    const replyToMessageId = replyTarget.value?.messageId ?? null
+    const mentionedUserIds = collectMentionIds(content)
+    draft.value = ''
+    chatStore.setDraft(props.conversationId, '')
+    chatStore.replyTarget = null
+    mentionDrafts.clear()
+    await chatStore.sendMessage({
+      conversationId: props.conversationId,
+      messageType: 'Text',
+      content,
+      replyToMessageId,
+      mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : null,
+    }, { replyPreview }).catch(() => {})
+  }
+  finally {
+    sending.value = false
+  }
+}
+
+function cancelEdit() {
+  chatStore.editTarget = null
+}
+
+function cancelReply() {
+  chatStore.replyTarget = null
+}
+
+// ── 语音消息：进入独立的「按住说话」面板，按住空格/按钮录音，松开即发 ────
+const voice = useVoiceRecorder()
+const voiceMode = ref(false)
+
+const voiceElapsedText = computed(() => {
+  const seconds = voice.elapsed.value
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
+})
+
+function enterVoiceMode(): void {
+  voiceMode.value = true
+  // 面板接管键盘，输入框留着焦点会让空格打进草稿
+  textInputRef.value?.blur()
+  window.addEventListener('keydown', handleVoiceKeydown)
+  window.addEventListener('keyup', handleVoiceKeyup)
+}
+
+function exitVoiceMode(): void {
+  voice.cancel()
+  voiceMode.value = false
+  window.removeEventListener('keydown', handleVoiceKeydown)
+  window.removeEventListener('keyup', handleVoiceKeyup)
+}
+
+/** 开始说话：麦克风被拒绝时退出面板，免得停在一个按了没反应的界面 */
+async function startTalking(): Promise<void> {
+  if (voice.recording.value || sending.value) {
+    return
+  }
+  try {
+    await voice.start()
+  }
+  catch {
+    // getUserMedia 被拒绝或无可用设备；也可能是非安全上下文（HTTPS 之外）
+    toast.danger(t('chat.composer.voice_denied'))
+    exitVoiceMode()
+  }
+}
+
+/** 松开发送：太短当误触，留在面板可重来 */
+async function stopTalking(): Promise<void> {
+  if (!voice.recording.value) {
+    return
+  }
+  const result = await voice.stop()
+  if (!result) {
+    toast.warning(t('chat.composer.voice_too_short'))
+    return
+  }
+  sending.value = true
+  try {
+    const uploaded = await getChatApi().uploadAttachment(result.file)
+    await chatStore.sendMessage({
+      conversationId: props.conversationId,
+      messageType: 'Voice',
+      content: null,
+      attachments: [{
+        fileId: uploaded.fileId,
+        fileName: uploaded.fileName,
+        fileSize: uploaded.fileSize,
+        durationSeconds: result.durationSeconds,
+      }],
+    })
+    // 发完留在面板：连着说几条是常态，退出交给 Esc 或「退出」
+  }
+  catch (error) {
+    toast.danger(chatErrorText(error) || t('chat.composer.voice_failed'))
+  }
+  finally {
+    sending.value = false
+  }
+}
+
+/** 按住后指针滑出按钮：按松手处理，避免录音卡在进行中 */
+function handleOrbLeave(): void {
+  if (voice.recording.value) {
+    void stopTalking()
+  }
+}
+
+function handleVoiceKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    exitVoiceMode()
+    return
+  }
+  if (event.code !== 'Space' || event.repeat) {
+    return
+  }
+  // 阻止空格滚动页面；面板期间输入框已失焦，不会打进草稿
+  event.preventDefault()
+  void startTalking()
+}
+
+function handleVoiceKeyup(event: KeyboardEvent): void {
+  if (event.code !== 'Space') {
+    return
+  }
+  event.preventDefault()
+  void stopTalking()
+}
+
+/** 上传全部待发附件并按类型分组（整批统一进度）；任一失败即上抛，调用方保留待发列表 */
+async function uploadPending(attachments: PendingAttachment[]) {
+  const images: ChatMessageAttachment[] = []
+  const files: ChatMessageAttachment[] = []
+  uploadingPercent.value = 0
+  try {
+    for (const [index, attachment] of attachments.entries()) {
+      const uploaded = await getChatApi().uploadAttachment(attachment.file, (percent) => {
+        uploadingPercent.value = Math.round(((index + percent / 100) / attachments.length) * 100)
+      })
+      const entry: ChatMessageAttachment = {
+        fileId: uploaded.fileId,
+        fileName: uploaded.fileName,
+        fileSize: uploaded.fileSize,
+      }
+      ;(attachment.messageType === 'Image' ? images : files).push(entry)
+    }
+    return { images, files }
+  }
+  finally {
+    uploadingPercent.value = null
+  }
+}
+
+/** 清空待发列表并释放本地预览 URL */
+function clearPendingAttachments() {
+  for (const attachment of pendingAttachments.value) {
+    if (attachment.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl)
+    }
+  }
+  pendingAttachments.value = []
+}
+
+/** 暂存到待发列表（QQ 语义：先进输入区，发送时才上传）；不传 forcedType 时按 MIME 归类 */
+function addAttachments(files: File[], forcedType?: ChatMessageType) {
+  for (const file of files) {
+    const messageType = forcedType ?? (file.type.startsWith('image/') ? 'Image' : 'File')
+    pendingAttachments.value.push({
+      id: ++attachmentSeq,
+      file,
+      messageType,
+      previewUrl: messageType === 'Image' ? URL.createObjectURL(file) : null,
+    })
+  }
+}
+
+function removeAttachment(id: number) {
+  const target = pendingAttachments.value.find(attachment => attachment.id === id)
+  if (target?.previewUrl) {
+    URL.revokeObjectURL(target.previewUrl)
+  }
+  pendingAttachments.value = pendingAttachments.value.filter(attachment => attachment.id !== id)
+}
+
+function handlePickedFile(event: Event, messageType: ChatMessageType) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) {
+    return
+  }
+  addAttachments([file], messageType)
+}
+
+/** 粘贴：剪贴板含文件（截图/复制的文件）时拦截默认粘贴，暂存待发列表；纯文本走默认粘贴 */
+function handlePaste(event: ClipboardEvent) {
+  if (isEditing.value) {
+    return
+  }
+  const files = [...(event.clipboardData?.files ?? [])]
+  if (!files.length) {
+    return
+  }
+  event.preventDefault()
+  addAttachments(files)
+}
+</script>
+
+<template>
+  <div class="border-t border-border">
+    <div v-if="!canSend" class="py-3 text-center text-xs text-muted-foreground">
+      {{ t('chat.composer.no_permission') }}
+    </div>
+    <div v-else-if="isSilenced" class="py-3 text-center text-xs text-muted-foreground">
+      <Icon icon="lucide:mic-off" width="12" height="12" class="mr-1 inline-block align-[-1px]" />
+      {{ t('chat.composer.silenced') }}
+    </div>
+    <!-- 语音输入面板：接管整个输入区，按住空格或按钮说话，松开即发 -->
+    <div v-else-if="voiceMode" class="chat-voice-panel">
+      <button
+        type="button"
+        class="chat-voice-orb"
+        :class="{ 'is-recording': voice.recording.value }"
+        :aria-label="t('chat.composer.voice')"
+        :disabled="sending"
+        @pointerdown.prevent="startTalking"
+        @pointerup.prevent="stopTalking"
+        @pointerleave="handleOrbLeave"
+      >
+        <Icon icon="lucide:mic" width="26" height="26" />
+      </button>
+      <div class="chat-voice-panel__hint">
+        <template v-if="sending">
+          {{ t('chat.composer.voice_sending') }}
+        </template>
+        <template v-else-if="voice.recording.value">
+          {{ t('chat.composer.voice_release') }} · {{ voiceElapsedText }}
+        </template>
+        <template v-else>
+          {{ t('chat.composer.voice_hold_tip') }}
+          <button type="button" class="chat-voice-panel__exit" @click="exitVoiceMode">
+            {{ t('chat.composer.voice_exit') }}
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <template v-else>
+      <!-- 编辑态横条 -->
+      <div v-if="isEditing" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
+        <Icon icon="lucide:pencil" width="12" height="12" class="shrink-0 text-primary" />
+        <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ t('chat.composer.editing') }}</span>
+        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelEdit">
+          <Icon icon="lucide:x" width="12" height="12" />
+        </button>
+      </div>
+
+      <!-- 回复引用条 -->
+      <div v-else-if="replyTarget" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-muted/50 px-2 py-1">
+        <Icon icon="lucide:reply" width="12" height="12" class="shrink-0 text-primary" />
+        <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+          {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ messageBodyLabel(replyTarget) }}
+        </span>
+        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelReply">
+          <Icon icon="lucide:x" width="12" height="12" />
+        </button>
+      </div>
+
+      <!-- 附件上传进度 -->
+      <div v-if="uploadingPercent != null" class="mx-2.5 mt-2 flex items-center gap-2">
+        <XhProgress
+          :value="uploadingPercent"
+          variant="line"
+          size="sm"
+          class="flex-1"
+          :aria-labelledby="uploadingLabelId"
+        />
+        <span :id="uploadingLabelId" class="shrink-0 text-[11px] text-muted-foreground">
+          {{ t('chat.composer.uploading', { percent: uploadingPercent }) }}
+        </span>
+      </div>
+
+      <!-- 工具条（QQ 式：表情/图片/文件在输入区上方一排） -->
+      <div class="flex items-center gap-0.5 px-2 pt-1.5">
+        <XhPopoverRoot v-model:open="showEmojiPicker" placement="top-start">
+          <!-- as-child：触发器缺省渲染成 button，这里借用作者自己的按钮，好与同排另外三个图标钮同款 -->
+          <XhPopoverTrigger as-child>
+            <button type="button" class="chat-composer-btn" :aria-label="t('chat.composer.emoji')">
+              <Icon icon="lucide:smile" width="18" height="18" />
+            </button>
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <!-- 表情面板自带完整卡片相，浮层这层只当容器：去掉内边距、放开高度上限 -->
+            <XhPopoverContent class="chat-emoji-popover" :aria-label="t('chat.composer.emoji')">
+              <ChatEmojiPicker @select="insertEmoji" />
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
+        <!-- 群聊 @ 成员：列表挂在这颗钮上。点钮打开，正文里打 @ 也由内容驱动打开；
+             浮层触发器按组件库契约是一颗按钮，不能拿输入框的外层当锚点 -->
+        <XhPopoverRoot v-if="isGroupLike" v-model:open="showMentionPicker" placement="top-start">
+          <XhPopoverTrigger as-child>
+            <button
+              type="button"
+              class="chat-composer-btn"
+              :aria-label="t('chat.composer.mention')"
+              :disabled="isEditing"
+            >
+              <Icon icon="lucide:at-sign" width="18" height="18" />
+            </button>
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <XhPopoverContent :aria-label="t('chat.composer.mention')">
+              <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
+                <div v-if="mentionLoading" class="flex justify-center py-3">
+                  <XhSpinner size="sm" />
+                </div>
+                <div v-else-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
+                  {{ t('chat.composer.mention_empty') }}
+                </div>
+                <button
+                  v-for="member in mentionMembers"
+                  :key="member.userId"
+                  type="button"
+                  class="chat-mention-item"
+                  @click="insertMention(member)"
+                >
+                  <XUserAvatar :name="member.userName" :size="24" />
+                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
+                </button>
+              </div>
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
+        <XTooltip :content="t('chat.composer.image')">
+          <button
+            type="button"
+            class="chat-composer-btn"
+            :aria-label="t('chat.composer.image')"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="imageInputRef?.click()"
+          >
+            <Icon icon="lucide:image" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.file')">
+          <button
+            type="button"
+            class="chat-composer-btn"
+            :aria-label="t('chat.composer.file')"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="fileInputRef?.click()"
+          >
+            <Icon icon="lucide:paperclip" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.voice')">
+          <button
+            v-if="voice.supported.value"
+            type="button"
+            class="chat-composer-btn"
+            :aria-label="t('chat.composer.voice')"
+            :disabled="uploadingPercent != null || isEditing || sending"
+            @click="enterVoiceMode"
+          >
+            <Icon icon="lucide:mic" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <input
+          ref="imageInputRef"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          @change="handlePickedFile($event, 'Image')"
+        >
+        <input
+          ref="fileInputRef"
+          type="file"
+          class="hidden"
+          @change="handlePickedFile($event, 'File')"
+        >
+      </div>
+
+      <!-- 待发附件（粘贴/选择暂存，发送时才上传）；编辑态下隐藏 -->
+      <div v-if="pendingAttachments.length && !isEditing" class="mx-2.5 mt-1.5 flex flex-wrap gap-2">
+        <div v-for="attachment in pendingAttachments" :key="attachment.id" class="chat-attach-item">
+          <img
+            v-if="attachment.previewUrl"
+            :src="attachment.previewUrl"
+            :alt="attachment.file.name"
+            class="chat-attach-thumb"
+          >
+          <template v-else>
+            <Icon icon="lucide:file" width="14" height="14" class="shrink-0 text-muted-foreground" />
+            <span class="max-w-40 truncate text-xs">{{ attachment.file.name }}</span>
+          </template>
+          <button type="button" class="chat-attach-remove" :aria-label="t('chat.thread.remove')" @click="removeAttachment(attachment.id)">
+            <Icon icon="lucide:x" width="10" height="10" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 正文框：组件库的多行文本字段，描边与聚焦环照常；群聊打 @ 唤起工具条上的成员列表 -->
+      <div class="px-2.5 pt-1">
+        <XInput
+          ref="textInputRef"
+          v-model:value="draft"
+          type="textarea"
+          :autosize="{ minRows: 5, maxRows: 10 }"
+          :max-length="CHAT_MAX_CONTENT_LENGTH"
+          :placeholder="placeholder"
+          @input="handleInput"
+          @keydown="handleKeydown"
+          @paste="handlePaste"
+        />
+      </div>
+
+      <!-- 底部：发送按钮 + 发送模式下拉（QQ 式分体按钮） -->
+      <div class="flex items-center justify-end px-2.5 pt-2 pb-2.5">
+        <div class="chat-send-group">
+          <XhButton
+            variant="subtle"
+            tone="brand"
+            size="sm"
+            :disabled="(!trimmedDraft && !pendingAttachments.length) || sending"
+            :loading="sending"
+            class="chat-send-main"
+            @click="handleSendText"
+          >
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}</XhButtonLabel>
+          </XhButton>
+          <!-- 发送方式菜单钮只有箭头：名字取当前的发送方式，读屏念出的是它控制的那件事 -->
+          <XDropdown :options="sendKeyOptions" placement="top-end" @select="handleSendKeySelect">
+            <XhButton
+              variant="subtle"
+              tone="brand"
+              size="sm"
+              icon-only
+              class="chat-send-arrow"
+              :aria-label="sendKey === 'enter' ? t('chat.composer.send_key_enter') : t('chat.composer.send_key_ctrl_enter')"
+            >
+              <Icon icon="lucide:chevron-up" width="14" height="14" />
+            </XhButton>
+          </XDropdown>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+/* 表情浮层：卡片相（面/描边/投影/圆角）一律交给浮层皮肤，面板自己不再画一层，
+   否则既是两层卡片，硬编码的 10px 圆角与自制阴影也和站内其他浮层不是一套。
+   这里只做两件事：
+   ① 内边距归零，让面板贴着浮层的边；
+   ② 抬高度上限——皮肤缺省是 --xh-overlay-max-h（16rem=256px），而表情面板固定 320px，
+      缺省值会把底部裁掉半行。写 px 不写 rem：面板是第三方定的像素高，
+      而根字号是用户可调偏好，用 rem 卡在 12px 档下又会被裁。
+      仍写具体值而不是 none，是为了留住皮肤那条 min(上限, 可用高)，继续按视口可用高度收口。 */
+.chat-emoji-popover {
+  --xh-popover-max-h: 336px;
+  --xh-popover-px: 0px;
+  --xh-popover-py: 0px;
+
+  /* 宽度上限撤掉：皮肤缺省是 --xh-overlay-max-w（20rem=320px），比表情面板窄，
+     面板被压窄后最右一列表情与搜索框都会溢出、再被下面那条 overflow 裁掉。
+     皮肤给的是 inline-size:max-content，撤掉上限即按面板实宽站好；
+     视口方向的收口由面板自己的 max-width: calc(100vw - 24px) 兜着 */
+  --xh-popover-max-w: none;
+
+  /* 面板内部是自定义元素、自带方角背景，浮层不裁就会从圆角处顶出来 */
+  overflow: hidden;
+}
+
+.chat-composer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.chat-composer-btn:hover:not(:disabled) {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* ── 语音输入面板 ───────────────────────────────────────────────── */
+.chat-voice-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px 16px 24px;
+}
+
+/* 大圆按钮：常态实心带光晕，录音时放大并持续呼吸 */
+.chat-voice-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, hsl(var(--primary) / 92%), hsl(var(--primary)));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  box-shadow:
+    0 0 0 10px hsl(var(--primary) / 10%),
+    0 8px 24px hsl(var(--primary) / 35%);
+  transition:
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  /* 按住说话期间不要触发文本选中与长按菜单 */
+  user-select: none;
+  touch-action: none;
+}
+
+.chat-voice-orb:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.chat-voice-orb:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chat-voice-orb.is-recording {
+  transform: scale(1.08);
+  animation: chat-voice-pulse 1.4s var(--xh-motion-ease-sweep) infinite;
+}
+
+@keyframes chat-voice-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 10px hsl(var(--primary) / 12%),
+      0 8px 24px hsl(var(--primary) / 35%);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 20px hsl(var(--primary) / 6%),
+      0 8px 28px hsl(var(--primary) / 45%);
+  }
+}
+
+/* 尊重系统的「减少动态效果」：停掉脉冲，录音态仍由放大的球体与光环表示 */
+@media (prefers-reduced-motion: reduce) {
+  .chat-voice-orb.is-recording {
+    animation: none;
+  }
+}
+
+.chat-voice-panel__hint {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-voice-panel__exit {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: hsl(var(--primary));
+  cursor: pointer;
+}
+
+.chat-voice-panel__exit:hover {
+  text-decoration: underline;
+}
+
+.chat-composer-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-composer-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.chat-composer-inline-btn:hover {
+  background: hsl(var(--accent));
+}
+
+.chat-mention-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.chat-mention-item:hover {
+  background: hsl(var(--accent));
+}
+
+/* 待发附件条目：图片显示缩略图，文件显示图标+名称，右上角浮动移除按钮 */
+.chat-attach-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--muted) / 40%);
+}
+
+.chat-attach-thumb {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.chat-attach-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: hsl(var(--foreground) / 70%);
+  color: hsl(var(--background));
+  cursor: pointer;
+}
+
+.chat-attach-remove:hover {
+  background: hsl(var(--destructive));
+}
+
+/* 发送分体按钮：主按钮 + 模式箭头拼接（QQ 式） */
+.chat-send-group {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.chat-send-group .chat-send-main {
+  min-width: 64px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.chat-send-group .chat-send-arrow {
+  padding: 0 6px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid hsl(var(--primary-foreground, 0 0% 100%) / 30%);
+}
+</style>

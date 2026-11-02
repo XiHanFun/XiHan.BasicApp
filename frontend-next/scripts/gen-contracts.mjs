@@ -229,6 +229,15 @@ function emitRealtime(manifest) {
   lines.push('')
   lines.push('export type RealtimeMethod = typeof RealtimeMethods[keyof typeof RealtimeMethods]')
   lines.push('')
+  const invocations = [...new Set(hubs.flatMap(hub => hub.invocations ?? []))].sort()
+  lines.push('/** 客户端可调的 Hub 方法名（后端各 Hub 的客户端方法，如聊天的进入会话、正在输入）。 */')
+  lines.push('export const RealtimeInvocations = {')
+  for (const invocation of invocations)
+    lines.push(`  ${invocation}: ${quote(invocation)},`)
+  lines.push('} as const')
+  lines.push('')
+  lines.push('export type RealtimeInvocation = typeof RealtimeInvocations[keyof typeof RealtimeInvocations]')
+  lines.push('')
   return lines.join('\n')
 }
 

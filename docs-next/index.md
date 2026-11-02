@@ -63,7 +63,7 @@ features:
 <div class="bap-card bap-card--done"><b>N0 骨架与验证</b><span>已完成</span><p>Host、Contracts、Runtime、架构测试与前端契约生成；HTTP / gRPC / MCP 三协议冒烟。</p></div>
 <div class="bap-card bap-card--done"><b>N1 身份与租户基座</b><span>已完成</span><p>Identity、Tenancy、Organization、Access 与前端壳层、登录、核心管理页。</p></div>
 <div class="bap-card bap-card--doing"><b>N2 平台能力</b><span>八批已落地，收尾中</span><p>Settings、Auditing、Files、Realtime、Notification、OpenPlatform、Maintenance、Workbench；正在补齐对照 5.x 的收尾差距。</p></div>
-<div class="bap-card bap-card--todo"><b>N3 可选模块</b><span>规划中</span><p>Workflow（含审批中心）、Printing、CodeGeneration、Chat。</p></div>
+<div class="bap-card bap-card--doing"><b>N3 可选模块</b><span>进行中</span><p>Printing、Chat 已落地；Workflow（含审批中心）、CodeGeneration 规划中。</p></div>
 <div class="bap-card bap-card--todo"><b>N4 AI</b><span>规划中</span><p>AI 提供商、知识库与助手，架在框架 AI 子系统之上。</p></div>
 <div class="bap-card bap-card--todo"><b>N5 / N6 对齐与切换</b><span>未开始</span><p>对齐矩阵核销、文档切到 6.0、目录 <code>git mv</code> 与发布 6.0.0。</p></div>
 </div>

@@ -37,6 +37,7 @@ public static class BasicAppOpenApi
             Group("maintenance", 85),
             Group("openplatform", 90),
             Group("printing", 100),
+            Group("chat", 110, ["chat-messages"]),
         ],
     };
 

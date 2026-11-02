@@ -88,7 +88,7 @@
 | `MaxAttempts` | `3` | 处理失败的重试次数，用完进死信队列 |
 | `Outbox:PollIntervalSeconds` / `Outbox:MaxAttempts` | `1` / `10` | 发件箱的轮询间隔与派发尝试上限 |
 
-6.0 目前的消息处理器只有 Realtime 断开连接的广播订阅，各包还没有登记领域事件（见[实体与领域事件](./backend/entity)），RabbitMQ 承接它、框架的发件箱与 CloudEvents；邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
+6.0 目前的消息处理器是 Realtime 断开连接的广播订阅与 Chat 订阅的部门归属变更（Organization 的领域事件，见[实体基类](./backend/entity#领域事件)），RabbitMQ 承接它们、框架的发件箱与 CloudEvents；邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
 
 ## `XiHan:Persistence:SqlSugar`
 
@@ -193,7 +193,7 @@
 | --- | --- | --- |
 | `Enabled` | `false` | 是否映射 CloudEvents 入站端点 `POST /events`（框架 `MapXiHanCloudEvents`），供内部服务投递事件 |
 
-端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。各包目前没有消息处理器，打开后派发模式下每个事件都是 404 `PROTOCOLS_NOTFOUND_003`；入站先只要求登录，专门的权限码等各包有了消息处理器再定；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
+端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。登记了处理器的主题只有 Realtime 的断开连接与 Chat 订阅的部门归属变更，都是 BasicApp 内部的事件，其余主题在派发模式下都是 404 `PROTOCOLS_NOTFOUND_003`；入站目前只要求登录，专门的权限码还没定；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
 
 ## `BasicApp:Schema`
 
@@ -218,6 +218,7 @@
 | --- | --- | --- |
 | `Workbench` | 工作台 | 登录后落到第一个有权限的页面，前端把 `VITE_HOME_PATH` 留空 |
 | `Printing` | 打印模板 | 其他包登记的打印数据源没有消费方，见[打印模板](./backend/printing#开关) |
+| `Chat` | 在线聊天与聊天审计 | 聊天 Hub 与附件上传端点不映射，Organization 的部门归属事件没有订阅方，见[在线聊天](./backend/chat#开关) |
 
 ## `BasicApp:Auth`
 

@@ -1,6 +1,25 @@
 {
   "hubs": [
     {
+      "path": "/hubs/chat",
+      "methods": [
+        "ChatAssistantCompleted",
+        "ChatAssistantDelta",
+        "ChatConversationChanged",
+        "ChatMessageEdited",
+        "ChatMessageRecalled",
+        "ChatReactionChanged",
+        "ChatReadPositionChanged",
+        "ChatTyping",
+        "ReceiveChatMessage"
+      ],
+      "invocations": [
+        "JoinConversation",
+        "LeaveConversation",
+        "Typing"
+      ]
+    },
+    {
       "path": "/hubs/notification",
       "methods": [
         "ForceLogout",

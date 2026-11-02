@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: 'Subida',
         fast_upload: 'Subida instantánea',
+        chat: 'Adjunto de chat',
       },
       storage_statuses: {
         normal: 'Normal',

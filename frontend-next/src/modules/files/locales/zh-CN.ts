@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: '普通上传',
         fast_upload: '秒传',
+        chat: '聊天附件',
       },
       storage_statuses: {
         normal: '正常',

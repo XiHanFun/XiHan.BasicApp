@@ -70,7 +70,7 @@ Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器�
 
 ### 发件箱
 
-- 宿主装了框架的 `OutboxFeature`：领域事件与业务写入同事务派发（目前各包尚未登记领域事件）。
+- 宿主装了框架的 `OutboxFeature`：领域事件与业务写入同事务派发（已登记的事件见[实体基类](./entity#领域事件)）。
 - 邮件、短信、机器人消息的「待发送记录」是应用表（`SysEmail`、`SysSms`、`SysBotMessage`），本身即可查询、可重发的发件箱：发布通知时经 `Contracts` 的 `IMessageSender` 直接入队，发送循环按 `BasicApp:Notification:DispatchInterval` 轮询，失败按 `RetryDelay` 重试至多 `MaxAttempts` 次，超过 `StuckAfter` 的发送中记录视为卡死重新排队。
 
 ### 导出

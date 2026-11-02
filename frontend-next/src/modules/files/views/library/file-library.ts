@@ -19,8 +19,8 @@ export const FILE_KINDS: readonly FileKind[] = ['Image', 'Document', 'Video', 'A
 export const FILE_STATUSES: readonly FileStatus[] = ['Normal', 'Archived', 'Corrupted']
 /** 访问级别：同一侧已登录即可、还要持有 files.files.read、公开（任何已登录主体不分侧都能换签名地址，头像用） */
 export const FILE_ACCESS_LEVELS: readonly FileAccessLevel[] = ['Authenticated', 'Authorized', 'Public']
-/** 来源（后端写入的字面量） */
-export const FILE_SOURCES = ['upload', 'fast-upload'] as const
+/** 来源（后端写入的字面量；chat 是聊天附件，经 Files 的附件契约写入） */
+export const FILE_SOURCES = ['upload', 'fast-upload', 'chat'] as const
 
 /**
  * 列表的后端筛选（与后端白名单一致）：关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；
@@ -278,6 +278,7 @@ export function sourceLabel(t: Translate, source: string): string {
   switch (source) {
     case 'upload': return t('files.library.sources.upload')
     case 'fast-upload': return t('files.library.sources.fast_upload')
+    case 'chat': return t('files.library.sources.chat')
     default: return source || '-'
   }
 }

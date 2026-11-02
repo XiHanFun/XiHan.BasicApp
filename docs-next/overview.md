@@ -24,7 +24,7 @@ Ring 1  Kernel（操作、管道、Result / Error、消息目录）    Ring 0  P
 Tier 0 基座       Contracts → Runtime
 Tier 1 身份租户    Identity → Tenancy → Organization → Access
 Tier 2 平台能力    Settings | Notification | Files | Auditing | Maintenance | OpenPlatform | Realtime
-Tier 3 可选模块    Workbench（已落地）| Workflow | Printing | CodeGeneration | Chat | AI（规划中）
+Tier 3 可选模块    Workbench | Printing | Chat（已落地）| Workflow | CodeGeneration | AI（规划中）
 Host              XiHan.BasicApp.Host
 ```
 
@@ -64,7 +64,8 @@ Host              XiHan.BasicApp.Host
 | `Realtime` | 2 | 通知 Hub、连接与在线状态、按受众推送 | 已落地 |
 | `Workbench` | 3 | 工作台小组件汇总（各包登记的指标、图表与列表） | 已落地 |
 | `Printing` | 3 | 打印模板（平台全局与租户）、按编码解析、打印数据源目录 | 已落地 |
-| `Workflow` · `CodeGeneration` · `Chat` | 3 | 工作流与审批中心、代码生成、在线聊天 | 规划中（N3） |
+| `Chat` | 3 | 单聊、群聊、部门群与助手会话类型、聊天 Hub、聊天审计、保留清理 | 已落地 |
+| `Workflow` · `CodeGeneration` | 3 | 工作流与审批中心、代码生成 | 规划中（N3） |
 | `AI` | 3 | AI 提供商、提示词、知识库、助手 | 规划中（N4） |
 
 ## 技术栈

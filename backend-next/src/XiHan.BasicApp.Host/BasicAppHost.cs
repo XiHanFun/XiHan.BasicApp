@@ -4,6 +4,7 @@
 using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
+using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
@@ -138,6 +139,11 @@ public static class BasicAppHost
             {
                 xihan.UseFeature<PrintingFeature>();
             }
+
+            if (modules.Chat)
+            {
+                xihan.UseFeature<ChatFeature>();
+            }
         });
 
         var app = builder.Build();
@@ -207,7 +213,7 @@ public static class BasicAppHost
     /// 映射不能用操作表达的普通端点。
     /// </summary>
     /// <remarks>
-    /// 包括根路径的应用信息、文件的上传与下载、实时 Hub；OAuth 重定向、Webhook 随各包补入。
+    /// 包括根路径的应用信息、文件的上传与下载、实时 Hub、聊天附件的上传（聊天模块开着时）；OAuth 重定向、Webhook 随各包补入。
     /// </remarks>
     public static IEndpointRouteBuilder MapBasicAppEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -219,6 +225,11 @@ public static class BasicAppHost
         endpoints.MapFileEndpoints();
         endpoints.MapProfileEndpoints();
         endpoints.MapRealtimeHubs();
+        if (HostModules.FromConfiguration(endpoints.ServiceProvider.GetRequiredService<IConfiguration>()).Chat)
+        {
+            endpoints.MapChatEndpoints();
+        }
+
         endpoints.MapTelegramWebhook();
         endpoints.MapOAuthServer();
         endpoints.MapExternalLogin();

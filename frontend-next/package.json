@@ -32,6 +32,7 @@
     "check": "pnpm run type-check && pnpm run lint && pnpm run px:check && pnpm run token:check && pnpm run i18n:check && pnpm run modules:check && pnpm run contracts:check && pnpm run permissions:check"
   },
   "dependencies": {
+    "@emoji-mart/data": "catalog:",
     "@iconify/vue": "catalog:",
     "@microsoft/signalr": "catalog:",
     "@vueuse/core": "catalog:",
@@ -46,6 +47,7 @@
     "@xihan-ui/tokens": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "dayjs": "catalog:",
+    "emoji-mart": "catalog:",
     "pinia": "catalog:",
     "pinyin-pro": "catalog:",
     "vue": "catalog:",

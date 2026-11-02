@@ -33,7 +33,7 @@ XiHan.BasicApp 是曦寒生态的企业级中后台应用。6.0 是一次从零�
 | N0 骨架与验证 | 解决方案、Host、Contracts、Runtime、架构测试、前端脚手架与契约生成；三协议冒烟 | 已完成（2026-10-28） |
 | N1 身份与租户基座 | Identity、Tenancy、Organization、Access；前端壳层、登录、用户 / 角色 / 菜单 / 租户 / 部门页 | 已完成（2026-10-28） |
 | N2 平台能力 | Settings、Auditing、Files、Realtime、Notification、OpenPlatform、Maintenance、Workbench 八批与「N1 四包深化」 | 八批已落地，收尾补齐中 |
-| N3 可选模块 | Workflow（含审批中心）、Printing、CodeGeneration、Chat | 规划中 |
+| N3 可选模块 | Workflow（含审批中心）、Printing、CodeGeneration、Chat | Printing、Chat 已落地，其余规划中 |
 | N4 AI | AI 包与助手接入 Chat | 规划中 |
 | N5 对齐与收口 / N6 切换 | 对齐矩阵核销、文档切到 6.0、目录替换与发布 | 未开始 |
 

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
+using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host;
@@ -100,6 +101,7 @@ public static class Packages
         typeof(OpenPlatformFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,
         typeof(PrintingFeature).Assembly,
+        typeof(ChatFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

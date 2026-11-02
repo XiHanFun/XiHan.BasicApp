@@ -17,6 +17,7 @@ using XiHan.BasicApp.Tenancy;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
@@ -71,6 +72,8 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddScoped<MembershipService>();
         context.Services.AddScoped<PositionQueries>();
         context.Services.AddScoped<MembershipQueries>();
+        // 第一个领域事件（方案 D7）：部门归属的加入与移出随写入进发件箱，信封的 subject 是用户
+        context.Services.AddDomainEvent(Topics.OrganizationMembershipChanged, Topics.OrganizationMembershipChanged, OrganizationJsonContext.Default.MembershipChanged, static e => e.UserId.ToString());
         // 通知按部门找人（含下级部门）
         context.Services.AddScoped<IRecipientSource, DepartmentRecipientSource>();
         context.Services.AddSeeder<DemoOrganizationSeeder>();

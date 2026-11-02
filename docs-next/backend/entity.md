@@ -76,7 +76,13 @@ public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 
 `AppAggregateRoot` 带事件缓冲，框架的派发机制是：聚合在方法里记录事件；每种事件在所属包的 `Configure` 里 `AddDomainEvent<TEvent>(topic, type, jsonTypeInfo)` 显式登记，主题格式 `basicapp.<包>.<事件>`；工作单元在 Transaction 阶段提交前经发件箱把事件打成 CloudEvents 信封，与业务写入同事务（宿主已装 `OutboxFeature`）；未登记就发事件是装配错误，第一次调用即暴露。
 
-目前已落地的包还没有登记任何领域事件或消息处理器：跨包协作走 `Contracts` 里的接口（如通知发布时经 `IMessageSender` 直接入队），推送走 `IRealtimePush`。需要异步解耦时再按上面的方式接入。
+主题常量集中在 `Contracts` 的 `Topics`，事件记录放在 `Contracts` 里发出方的目录（订阅方不引用发出方的包）。目前登记的领域事件：
+
+| 主题 | 发出 | 订阅 |
+| --- | --- | --- |
+| `basicapp.organization.membership-changed` | Organization：加入或移出部门（`SysUserDepartment` 是聚合根） | Chat：同步部门群成员（见[在线聊天](./chat#部门群同步)） |
+
+订阅方在自己的 `Configure` 里 `AddMessageHandler<THandler>(topic)` 登记；投递至少一次、可能乱序，处理器要按当时的状态核对、重复处理无副作用。其余跨包协作照旧走 `Contracts` 里的接口（如通知发布时经 `IMessageSender` 直接入队），推送走 `IRealtimePush`。
 
 ## 下一步
 

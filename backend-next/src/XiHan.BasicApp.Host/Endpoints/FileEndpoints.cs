@@ -67,33 +67,13 @@ internal static class FileEndpoints
     private static async Task<IResult> UploadAsync(HttpContext http, FileService files, FilesOptions options)
     {
         var context = ContextOf(http);
-        // Kestrel 缺省只收 30 MB 的请求体，按文件上限放宽到这个端点
-        if (http.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limit)
+        var read = await ReadFormFileAsync(http, options).ConfigureAwait(false);
+        if (!read.TryGetValue(out var upload))
         {
-            limit.MaxRequestBodySize = options.MaxUploadBytes + FormOverhead;
+            return Fail(context, read.Error!);
         }
 
-        if (!http.Request.HasFormContentType)
-        {
-            return Fail(context, Error.Validation(FilesErrors.FileEmpty, FilesMessages.FileEmpty));
-        }
-
-        IFormCollection form;
-        try
-        {
-            form = await http.Request.ReadFormAsync(new FormOptions { MultipartBodyLengthLimit = options.MaxUploadBytes + FormOverhead }, http.RequestAborted).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is InvalidDataException or BadHttpRequestException)
-        {
-            return Fail(context, Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", options.MaxUploadBytes))));
-        }
-
-        var file = form.Files.GetFile("file") ?? (form.Files.Count > 0 ? form.Files[0] : null);
-        if (file is null || file.Length == 0)
-        {
-            return Fail(context, Error.Validation(FilesErrors.FileEmpty, FilesMessages.FileEmpty));
-        }
-
+        var (form, file) = upload;
         var details = new FileDetails(
             Enum.TryParse<FileAccessLevel>(form["accessLevel"], ignoreCase: true, out var level) && Enum.IsDefined(level) ? level : FileAccessLevel.Authorized,
             bool.TryParse(form["isTemporary"], out var temporary) && temporary,
@@ -172,6 +152,38 @@ internal static class FileEndpoints
     }
 
     /// <summary>
+    /// 读 multipart 表单里上传的一个文件（字段 <c>file</c>，没有即第一个文件）。
+    /// </summary>
+    /// <remarks>
+    /// Kestrel 缺省只收 30 MB 的请求体，按文件上限放宽到这个请求；不是表单、没有文件或空文件是 <c>FILES_VALIDATION</c> 的「没有文件」，超过上限是「文件太大」。
+    /// </remarks>
+    internal static async Task<Result<(IFormCollection Form, IFormFile File)>> ReadFormFileAsync(HttpContext http, FilesOptions options)
+    {
+        if (http.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limit)
+        {
+            limit.MaxRequestBodySize = options.MaxUploadBytes + FormOverhead;
+        }
+
+        if (!http.Request.HasFormContentType)
+        {
+            return Error.Validation(FilesErrors.FileEmpty, FilesMessages.FileEmpty);
+        }
+
+        IFormCollection form;
+        try
+        {
+            form = await http.Request.ReadFormAsync(new FormOptions { MultipartBodyLengthLimit = options.MaxUploadBytes + FormOverhead }, http.RequestAborted).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or BadHttpRequestException)
+        {
+            return Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", options.MaxUploadBytes)));
+        }
+
+        var file = form.Files.GetFile("file") ?? (form.Files.Count > 0 ? form.Files[0] : null);
+        return file is null || file.Length == 0 ? Error.Validation(FilesErrors.FileEmpty, FilesMessages.FileEmpty) : (form, file);
+    }
+
+    /// <summary>
     /// 请求的字节范围。
     /// </summary>
     /// <remarks>
@@ -198,7 +210,7 @@ internal static class FileEndpoints
     /// <summary>
     /// 失败：结果交给框架按 Problem Details 写出（响应还没开始写）。
     /// </summary>
-    private static IResult Fail(InvocationContext context, Error error)
+    internal static IResult Fail(InvocationContext context, Error error)
     {
         context.SetOutcome(error);
         return Results.Empty;
@@ -207,7 +219,7 @@ internal static class FileEndpoints
     /// <summary>
     /// 端点的调用上下文（端点都在框架管道里执行，一定有）。
     /// </summary>
-    private static InvocationContext ContextOf(HttpContext http)
+    internal static InvocationContext ContextOf(HttpContext http)
         => http.GetXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The file endpoints must run inside the XiHan pipeline.");
 
     private static string? Clip(string? value, int length)

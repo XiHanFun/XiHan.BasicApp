@@ -97,8 +97,9 @@ public sealed partial class FileService(
     /// <param name="contentType">上传方给的内容类型。</param>
     /// <param name="details">附加信息。</param>
     /// <param name="side">存到哪一侧；为空即调用方所在的一侧（头像固定存平台侧，不计入租户的存储配额）。</param>
+    /// <param name="source">来源；为空即 <see cref="SourceUpload"/>（聊天附件记 <c>chat</c>）。</param>
     /// <returns>新文件。</returns>
-    public async Task<Result<SysFile>> UploadAsync(InvocationContext context, Stream content, string? fileName, string? contentType, FileDetails details, string? side = null)
+    public async Task<Result<SysFile>> UploadAsync(InvocationContext context, Stream content, string? fileName, string? contentType, FileDetails details, string? side = null, string? source = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(content);
@@ -126,13 +127,13 @@ public sealed partial class FileService(
                 return allowed.Error!;
             }
 
-            var reused = await ReuseAsync(target, written.Hash, written.Size, name, contentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
+            var reused = await ReuseAsync(target, written.Hash, written.Size, name, contentType, details, source ?? SourceUpload, cancellationToken).ConfigureAwait(false);
             if (reused.TryGetValue(out var copy))
             {
                 return copy;
             }
 
-            return await StoreAsync(target, temp, written.Size, written.Hash, name, contentType, details, cancellationToken).ConfigureAwait(false);
+            return await StoreAsync(target, temp, written.Size, written.Hash, name, contentType, details, source ?? SourceUpload, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -155,8 +156,9 @@ public sealed partial class FileService(
     /// <param name="fileName">原始文件名。</param>
     /// <param name="contentType">内容类型。</param>
     /// <param name="details">附加信息。</param>
+    /// <param name="source">来源；为空即 <see cref="SourceFastUpload"/>（聊天附件记 <c>chat</c>）。</param>
     /// <returns>新文件；没命中为无值。</returns>
-    public async Task<Result<Maybe<SysFile>>> FastUploadAsync(InvocationContext context, string hash, long size, string fileName, string? contentType, FileDetails details)
+    public async Task<Result<Maybe<SysFile>>> FastUploadAsync(InvocationContext context, string hash, long size, string fileName, string? contentType, FileDetails details, string? source = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(details);
@@ -185,7 +187,7 @@ public sealed partial class FileService(
             return allowed.Error!;
         }
 
-        return Result.Success(await ReuseAsync(side, normalized, size, name, contentType, details, SourceFastUpload, context.CancellationToken).ConfigureAwait(false));
+        return Result.Success(await ReuseAsync(side, normalized, size, name, contentType, details, source ?? SourceFastUpload, context.CancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -794,7 +796,7 @@ public sealed partial class FileService(
     /// <remarks>
     /// 同一侧有内容相同的正常文件（主副本正常）就复制出一条新记录与一个指向同一对象的主副本。
     /// </remarks>
-    private async Task<Maybe<SysFile>> ReuseAsync(string side, string hash, long size, string name, string? contentType, FileDetails details, string source, CancellationToken cancellationToken)
+    private async Task<Maybe<SysFile>> ReuseAsync(string side, string hash, long size, string name, string? contentType, FileDetails details, string origin, CancellationToken cancellationToken)
     {
         var candidates = await rows.Query<SysFile>(side).Where(f => f.Hash == hash && f.Size == size && f.Status == FileStatus.Normal).Take(5).ToListAsync(cancellationToken).ConfigureAwait(false);
         foreach (var candidate in candidates)
@@ -804,7 +806,7 @@ public sealed partial class FileService(
                 continue;
             }
 
-            var file = NewFile(side, name, contentType, size, hash, details, source);
+            var file = NewFile(side, name, contentType, size, hash, details, origin);
             await rows.InsertAsync(file, cancellationToken).ConfigureAwait(false);
             await rows.InsertAsync(new SysFileStorage
             {
@@ -825,7 +827,7 @@ public sealed partial class FileService(
         return Maybe.None<SysFile>();
     }
 
-    private async Task<Result<SysFile>> StoreAsync(string side, string temp, long size, string hash, string name, string? contentType, FileDetails details, CancellationToken cancellationToken)
+    private async Task<Result<SysFile>> StoreAsync(string side, string temp, long size, string hash, string name, string? contentType, FileDetails details, string origin, CancellationToken cancellationToken)
     {
         var target = await configs.UploadTargetAsync(side, cancellationToken).ConfigureAwait(false);
         if (!target.TryGetValue(out var config))
@@ -839,7 +841,7 @@ public sealed partial class FileService(
             return store.Error!;
         }
 
-        var file = NewFile(side, name, contentType, size, hash, details, SourceUpload);
+        var file = NewFile(side, name, contentType, size, hash, details, origin);
         var now = clock.GetUtcNow();
         var key = $"{side}/{now:yyyy}/{now:MM}/{now:dd}/{file.Id:N}{file.Extension}";
         var put = new BlobPutOptions

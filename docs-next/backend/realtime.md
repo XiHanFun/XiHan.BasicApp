@@ -3,7 +3,7 @@
 本页说明 Hub 的登记、推送方法、推送契约、在线状态与跨实例，适用于后端开发者。
 
 ::: info 本页范围
-通知 Hub（强制下线、站内通知、任务进度、跨端设置同步）、在线状态与配了 Redis 时的跨实例已落地（Realtime 包）。在线聊天（`/hubs/chat`、会话、群聊、AI 助手会话）属于 Chat 包，N3 规划中，当前不可用。
+通知 Hub（强制下线、站内通知、任务进度、跨端设置同步）、在线状态与配了 Redis 时的跨实例由 Realtime 包提供；聊天 Hub `/hubs/chat` 由 Chat 包登记，会话、消息与聊天专用的推送方法见[在线聊天](./chat)。
 :::
 
 框架 5 不再包装 SignalR，实时能力是 BasicApp 自己的 Realtime 包（Tier 2）：直接用 ASP.NET Core SignalR，其他包只经 `Contracts` 的接口使用它。
@@ -29,6 +29,7 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
 | `TaskProgress` | Files | 导出任务进度 |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
+| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
 
 方法清单由 `contracts export` 一并导出为 `frontend-next/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
 
@@ -75,10 +76,6 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 广播要经消息代理：只配了 Redis、没配 RabbitMQ 时广播只到本实例，别的实例上被吊销的连接只是被移出全部组、不再收到推送，等客户端收到 `ForceLogout` 自行断开或令牌过期——这是写明的语义，不是兜底。写共享缓存失败只记 Warning，在线状态等下一次心跳修复，不影响连接本身。
 
-## 在线聊天（规划中 · N3）
-
-方案中的 Chat 包：会话、成员、消息、反应；`/hubs/chat`；敏感词；保留清理作业；聊天审计（`chat-audit`）；补齐 5.x 缺少的消息转发（`chat-messages.forward`）；AI 助手会话复用 Chat，助手回复流式推送（随 N4）。
-
 ## 下一步
 
-- [消息通知](./messaging) · [前端实时通信](../frontend/realtime) · [统一认证](./authentication)
+- [在线聊天](./chat) · [消息通知](./messaging) · [前端实时通信](../frontend/realtime) · [统一认证](./authentication)

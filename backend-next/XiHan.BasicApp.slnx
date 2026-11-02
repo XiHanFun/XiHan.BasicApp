@@ -21,6 +21,7 @@
   <Folder Name="/3.Optional/">
     <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
     <Project Path="src/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
+    <Project Path="src/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
   </Folder>
   <Folder Name="/Host/">
     <Project Path="src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />

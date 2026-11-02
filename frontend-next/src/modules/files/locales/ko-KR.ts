@@ -24,6 +24,7 @@ export default {
       sources: {
         upload: '일반 업로드',
         fast_upload: '빠른 업로드',
+        chat: '채팅 첨부 파일',
       },
       storage_statuses: {
         normal: '정상',

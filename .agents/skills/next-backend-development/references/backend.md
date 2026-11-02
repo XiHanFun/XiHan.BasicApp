@@ -20,6 +20,7 @@ src/XiHan.BasicApp.<包>/
 - Tier 3 可选模块照 Printing 的接法（方案修订（八十五））：`HostModules` 加开关、宿主 `if (modules.<名>) UseFeature`、OpenAPI 加分组、一条开关用例（关掉后页面与权限码不下发、操作 404、`/openapi.json` 照常、写错值启动即失败）。
 - 操作命名空间按资源名逐段转 Pascal：`oauth-apps` → `Operations/OauthApps`；共用 DTO 可放 `Operations/<主题>/XxxContracts.cs`。
 - 跨包协作只经 `Contracts` 的接口（`IConfigValueReader`、`ITenantQuota`、`IRealtimePush`、`IMessageSender`、`IWorkbenchWidgetProvider`、`IEditionGate` 等），实现方在自己的 Feature 里登记，消费方 `IEnumerable<>` 注入时要处理没有实现的情形。
+- 异步解耦用领域事件（方案修订（八十九），Organization → Chat 的部门群同步）：发出方的实体是聚合根、在方法里记事件，`Configure` 里 `AddDomainEvent(Topics.X, type, jsonTypeInfo, subject)`；主题常量在 `Contracts/Topics.cs`，事件记录放 `Contracts/<发出方>/`；订阅方 `AddMessageHandler<THandler>(topic)`。投递至少一次、可能乱序，处理器按处理时的当前状态核对，重复处理无副作用。
 
 ## 操作
 

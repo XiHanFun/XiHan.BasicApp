@@ -2,7 +2,7 @@
 
 本页说明管理端的 SignalR 连接、重连与推送处理，适用于前端开发者。
 
-前端经 `@microsoft/signalr` 连接后端 Realtime 包的通知 Hub。在线聊天（`/hubs/chat`）随后端 Chat 包在 N3 落地，目前没有。
+前端经 `@microsoft/signalr` 连接后端 Realtime 包的通知 Hub；聊天模块另连聊天 Hub `/hubs/chat`（两条独立连接，见下文「聊天」）。
 
 ## 连接
 
@@ -33,6 +33,22 @@
 
 推送不保证送达：断线期间错过的通知以收件箱为准（重连或打开通知中心时重新拉取）。
 
+## 聊天
+
+聊天模块（`src/modules/chat`）在布局里经壳层扩展建立 `useSignalR(RealtimeHubs.Chat)`，持有会话读权限（`chat.chat-conversations.read`）才连：
+
+| 方向 | 方法 | 前端处理 |
+| --- | --- | --- |
+| 推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatMessageEdited`、`ChatReactionChanged` | 按会话内序号 `seq` 并入消息流，重复到达的不覆盖已有那条 |
+| 推送 | `ChatReadPositionChanged` | 已读位只前移，群消息的已读人数按序号比 |
+| 推送 | `ChatConversationChanged` | 按变更类型刷新会话列表、成员与群信息 |
+| 推送 | `ChatTyping` | 显示「正在输入」4 秒 |
+| 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复，随 N4 |
+| 调用 | `JoinConversation` / `LeaveConversation` | 打开与离开会话时进出会话组 |
+| 调用 | `Typing` | 输入时节流 3 秒调用一次 |
+
+客户端可调的方法名同样来自生成的 `RealtimeInvocations`。会话列表与消息里的时间按偏好设置的应用时区显示（与审计页的 `formatDate` 同一个时区），「今天 / 昨天」也按应用时区的日历日算。附件与群头像经 `chat-messages.presign` 凭会话换签名地址，不走通用文件的签名。
+
 ## 订阅推送
 
 ```ts
@@ -46,4 +62,4 @@ on('ReceiveNotification', (payload) => { /* … */ })
 
 ## 下一步
 
-- [后端实时推送](../backend/realtime) · [消息通知](../backend/messaging)
+- [后端实时推送](../backend/realtime) · [在线聊天](../backend/chat) · [消息通知](../backend/messaging)

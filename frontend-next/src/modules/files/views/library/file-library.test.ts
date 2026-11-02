@@ -172,6 +172,7 @@ describe('存储副本', () => {
     expect(storageReasonLabel(t, 'missing')).toBe('files.library.storage_reasons.missing')
     expect(storageReasonLabel(t, null)).toBe('')
     expect(sourceLabel(t, 'fast-upload')).toBe('files.library.sources.fast_upload')
+    expect(sourceLabel(t, 'chat')).toBe('files.library.sources.chat')
     expect(sourceLabel(t, 'import')).toBe('import')
   })
 })
