@@ -1644,7 +1644,7 @@ export interface paths {
         put?: never;
         /**
          * List code generation data sources
-         * @description Page through the external data sources used by code generation; filter by database type and status, search by name and description.
+         * @description Page through the external data sources used by code generation; filter by database type and status, search by name, description, host and database name.
          *
          *     Requires permission codegeneration.codegen-datasources.read (Read code generation data sources).
          */
@@ -1669,6 +1669,232 @@ export interface paths {
          *     Requires permission codegeneration.codegen-datasources.read (Read code generation data sources).
          */
         get: operations["codegen-datasources.options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-table-columns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List code generation columns
+         * @description List the column configurations of a table, ordered by sort number.
+         *
+         *     Requires permission codegeneration.codegen-table-columns.read (Read code generation columns).
+         */
+        get: operations["codegen-table-columns.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-table-columns:save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save code generation columns
+         * @description Save the column configurations of a table at once: every column must belong to the table, an option source keeps only the setting it needs, and fields changed here are kept when the schema is synchronized. Send back each concurrency stamp you read.
+         *
+         *     Requires permission codegeneration.codegen-table-columns.update (Update code generation columns).
+         */
+        post: operations["codegen-table-columns.save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete code generation tables
+         * @description Delete table configurations in a batch together with their column configurations.
+         *
+         *     Requires permission codegeneration.codegen-tables.delete (Delete code generation tables).
+         */
+        delete: operations["codegen-tables.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a code generation table
+         * @description Get a table configuration with its column configurations.
+         *
+         *     Requires permission codegeneration.codegen-tables.read (Read code generation tables).
+         */
+        get: operations["codegen-tables.get"];
+        /**
+         * Update a code generation table
+         * @description Update a table configuration as a whole; the template type cannot be universal and importing needs creating. Fields changed here are kept when the schema is synchronized. Send back the concurrency stamp you read.
+         *
+         *     Requires permission codegeneration.codegen-tables.update (Update code generation tables).
+         */
+        put: operations["codegen-tables.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable a code generation table
+         * @description Enable or disable a table configuration; disabled tables cannot be browsed in the no-code runtime. Send back the concurrency stamp you read; a remark, when given, replaces the current one.
+         *
+         *     Requires permission codegeneration.codegen-tables.update (Update code generation tables).
+         */
+        post: operations["codegen-tables.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables/{id}:sync-schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Synchronize a table with its schema
+         * @description Re-read the schema of the table: structural fields follow the database, inferred fields follow the new inference unless edited by hand, new columns are added and dropped columns are removed.
+         *
+         *     Requires permission codegeneration.codegen-tables.import (Import code generation tables).
+         */
+        post: operations["codegen-tables.sync-schema"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables:db-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List database tables
+         * @description Page through the tables of the primary database or of an enabled data source to import; the keyword matches names and comments, and sharded tables are folded into one logical name.
+         *
+         *     Requires permission codegeneration.codegen-tables.read (Read code generation tables).
+         */
+        post: operations["codegen-tables.db-tables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import database tables
+         * @description Import tables as table configurations, inferring class names, types, controls and query modes from the schema; each table succeeds or fails on its own (already imported, missing or without columns).
+         *
+         *     Requires permission codegeneration.codegen-tables.import (Import code generation tables).
+         */
+        post: operations["codegen-tables.import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List code generation tables
+         * @description Page through the imported table configurations; filter by template type, delivery, generation result and status, search by table name, class name and comment.
+         *
+         *     Requires permission codegeneration.codegen-tables.read (Read code generation tables).
+         */
+        post: operations["codegen-tables.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables:options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List code generation table options
+         * @description List every table configuration ordered by table name, to pick master tables and related tables.
+         *
+         *     Requires permission codegeneration.codegen-tables.read (Read code generation tables).
+         */
+        get: operations["codegen-tables.options"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9260,10 +9486,50 @@ export interface components {
          */
         CodeGenDatabaseType: "MySql" | "SqlServer" | "PostgreSql" | "Oracle" | "Sqlite";
         /**
+         * @description 生成产物的交付方式。
+         * @enum {string}
+         */
+        CodeGenDeliveryType: "Zip" | "Project";
+        /**
+         * @description 列的选项来源。
+         * @enum {string}
+         */
+        CodeGenDictSelectorType: "DictSelector" | "EnumSelector" | "ConstSelector" | "TableSelector" | "TreeSelector";
+        /**
+         * @description 生成结果。
+         * @enum {string}
+         */
+        CodeGenGenerationStatus: "NotGenerated" | "Generated" | "Failed";
+        /**
+         * @description 列的表单控件。
+         * @enum {string}
+         */
+        CodeGenHtmlType: "Input" | "Textarea" | "Select" | "Radio" | "Checkbox" | "DatePicker" | "DateTimePicker" | "TimePicker" | "ImageUpload" | "FileUpload" | "Editor" | "InputNumber" | "Switch" | "TreeSelect";
+        /**
+         * @description 列的查询方式。
+         * @enum {string}
+         */
+        CodeGenQueryType: "Equal" | "NotEqual" | "GreaterThan" | "GreaterThanOrEqual" | "LessThan" | "LessThanOrEqual" | "Like" | "LikeLeft" | "LikeRight" | "Between" | "In" | "NotIn";
+        /**
+         * @description 生成范围。
+         * @enum {string}
+         */
+        CodeGenScope: "All" | "BackendOnly" | "FrontendOnly";
+        /**
          * @description 数据源、表配置、列配置与模板的启停状态。
          * @enum {string}
          */
         CodeGenStatus: "Active" | "Disabled";
+        /**
+         * @description 生成目标。
+         * @enum {string}
+         */
+        CodeGenTarget: "NewPackage" | "ExistingPackage";
+        /**
+         * @description 生成模式。
+         * @enum {string}
+         */
+        CodeGenTemplateType: "Single" | "Tree" | "MasterDetail" | "Universal";
         /** @description 数据源的列表项。 */
         CodegenDatasourceResponse: {
             /**
@@ -9304,6 +9570,272 @@ export interface components {
              * @description 排序号。
              */
             order: number;
+            /** @description 备注。 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回。 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）。
+             */
+            modifiedAt?: string | null;
+        };
+        /** @description 库里的一张表。 */
+        CodegenDbTableResponse: {
+            /** @description 表名（分表是折叠后的逻辑名）。 */
+            name: string;
+            /** @description 表注释。 */
+            comment?: string | null;
+            /** @description 是否分表。 */
+            isSplit: boolean;
+        };
+        /** @description 导入一张表失败的原因。 */
+        CodegenImportFailure: {
+            /** @description 表名。 */
+            tableName: string;
+            /** @description 错误码。 */
+            code: string;
+            /** @description 原因（按调用方的区域）。 */
+            message: string;
+        };
+        /** @description 保存一列的人工配置。 */
+        CodegenTableColumnInput: {
+            /**
+             * Format: uuid
+             * @description 列配置 ID。
+             */
+            id: string;
+            /** @description 读到的并发戳。 */
+            concurrencyStamp: string;
+            /** @description C# 类型。 */
+            cSharpType?: string | null;
+            /** @description C# 属性名。 */
+            cSharpProperty?: string | null;
+            /** @description TypeScript 类型。 */
+            tsType?: string | null;
+            /** @description 是否必填。 */
+            isRequired: boolean;
+            /** @description 是否唯一。 */
+            isUnique: boolean;
+            /** @description 是否在列表里显示。 */
+            isList: boolean;
+            /** @description 是否进新建表单。 */
+            isInsert: boolean;
+            /** @description 是否进编辑表单。 */
+            isEdit: boolean;
+            /** @description 是否可查询。 */
+            isQuery: boolean;
+            /** @description 查询方式。 */
+            queryType: components["schemas"]["CodeGenQueryType"];
+            /** @description 表单控件。 */
+            htmlType: components["schemas"]["CodeGenHtmlType"];
+            /** @description 选项来源。 */
+            dictSelectorType?: components["schemas"]["CodeGenDictSelectorType"] | null;
+            /** @description 字典码（系统字典时必填）。 */
+            dictCode?: string | null;
+            /** @description 枚举类型全名（枚举时必填）。 */
+            enumTypeName?: string | null;
+            /** @description 常量选项 JSON（常量数组时必填）。 */
+            constValues?: string | null;
+            /**
+             * Format: uuid
+             * @description 关联表的表配置 ID（关联表或关联树时必填）。
+             */
+            relationTableId?: string | null;
+            /** @description 关联表的显示列名（关联表时必填，关联树缺省取它的名称列）。 */
+            relationLabelColumn?: string | null;
+            /** @description 缺省值。 */
+            defaultValue?: string | null;
+            /**
+             * Format: decimal
+             * @description 最小值。
+             */
+            minValue?: number | null;
+            /**
+             * Format: decimal
+             * @description 最大值。
+             */
+            maxValue?: number | null;
+            /** @description 校验用的正则。 */
+            regexPattern?: string | null;
+            /** @description 校验不过时的提示。 */
+            validationMessage?: string | null;
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
+            order: number;
+            /** @description 状态。 */
+            status: components["schemas"]["CodeGenStatus"];
+        };
+        /** @description 列配置。 */
+        CodegenTableColumnResponse: {
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 表配置 ID。
+             */
+            tableId: string;
+            /** @description 库里的列名。 */
+            columnName: string;
+            /** @description 列注释。 */
+            columnComment?: string | null;
+            /** @description 库里的列类型名。 */
+            columnType?: string | null;
+            /** @description C# 类型。 */
+            cSharpType?: string | null;
+            /** @description C# 属性名。 */
+            cSharpProperty?: string | null;
+            /** @description TypeScript 类型。 */
+            tsType?: string | null;
+            /**
+             * Format: int32
+             * @description 长度（只有字符与二进制类型有）。
+             */
+            columnLength?: number | null;
+            /**
+             * Format: int32
+             * @description 小数位数。
+             */
+            decimalDigits?: number | null;
+            /** @description 是否主键。 */
+            isPrimaryKey: boolean;
+            /** @description 是否自增。 */
+            isIdentity: boolean;
+            /** @description 是否可空。 */
+            isNullable: boolean;
+            /** @description 是否实体基类的列（主键、租户、审计、软删与并发戳）。 */
+            isBase: boolean;
+            /** @description 是否必填。 */
+            isRequired: boolean;
+            /** @description 是否唯一。 */
+            isUnique: boolean;
+            /** @description 是否在列表里显示。 */
+            isList: boolean;
+            /** @description 是否进新建表单。 */
+            isInsert: boolean;
+            /** @description 是否进编辑表单。 */
+            isEdit: boolean;
+            /** @description 是否可查询。 */
+            isQuery: boolean;
+            /** @description 查询方式。 */
+            queryType: components["schemas"]["CodeGenQueryType"];
+            /** @description 表单控件。 */
+            htmlType: components["schemas"]["CodeGenHtmlType"];
+            /** @description 选项来源。 */
+            dictSelectorType?: components["schemas"]["CodeGenDictSelectorType"] | null;
+            /** @description 字典码。 */
+            dictCode?: string | null;
+            /** @description 枚举类型全名。 */
+            enumTypeName?: string | null;
+            /** @description 常量选项（JSON）。 */
+            constValues?: string | null;
+            /**
+             * Format: uuid
+             * @description 关联表的表配置 ID。
+             */
+            relationTableId?: string | null;
+            /** @description 关联表的显示列名。 */
+            relationLabelColumn?: string | null;
+            /** @description 缺省值。 */
+            defaultValue?: string | null;
+            /**
+             * Format: decimal
+             * @description 最小值。
+             */
+            minValue?: number | null;
+            /**
+             * Format: decimal
+             * @description 最大值。
+             */
+            maxValue?: number | null;
+            /** @description 校验用的正则。 */
+            regexPattern?: string | null;
+            /** @description 校验不过时的提示。 */
+            validationMessage?: string | null;
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
+            order: number;
+            /** @description 状态。 */
+            status: components["schemas"]["CodeGenStatus"];
+            /** @description 并发戳：保存时原样交回。 */
+            concurrencyStamp: string;
+        };
+        /** @description 表配置。 */
+        CodegenTableResponse: {
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
+            id: string;
+            /** @description 库里的表名。 */
+            tableName: string;
+            /** @description 表注释。 */
+            tableComment?: string | null;
+            /** @description 实体类名。 */
+            className: string;
+            /** @description 包的根命名空间。 */
+            namespace?: string | null;
+            /** @description 包名。 */
+            moduleName?: string | null;
+            /** @description 业务名。 */
+            businessName?: string | null;
+            /** @description 功能名。 */
+            functionName?: string | null;
+            /** @description 作者。 */
+            author?: string | null;
+            /** @description 生成模式。 */
+            templateType: components["schemas"]["CodeGenTemplateType"];
+            /** @description 交付方式。 */
+            deliveryType: components["schemas"]["CodeGenDeliveryType"];
+            /** @description 生成范围。 */
+            scope: components["schemas"]["CodeGenScope"];
+            /** @description 生成目标。 */
+            target: components["schemas"]["CodeGenTarget"];
+            /** @description 勾选的动作（逗号分隔，为空即缺省集合）。 */
+            enabledActions?: string | null;
+            /** @description 主键列名。 */
+            primaryKeyColumn?: string | null;
+            /** @description 树表的父级列名。 */
+            treeParentColumn?: string | null;
+            /** @description 树表的名称列名。 */
+            treeNameColumn?: string | null;
+            /**
+             * Format: uuid
+             * @description 主从模式里主表的表配置 ID。
+             */
+            masterTableId?: string | null;
+            /** @description 主从模式里指向主表的外键列名。 */
+            masterForeignKey?: string | null;
+            /** @description 数据库类型。 */
+            databaseType: components["schemas"]["CodeGenDatabaseType"];
+            /**
+             * Format: uuid
+             * @description 数据源 ID，为空即主库。
+             */
+            dataSourceId?: string | null;
+            /** @description 最近一次生成的结果。 */
+            generationStatus: components["schemas"]["CodeGenGenerationStatus"];
+            /**
+             * Format: date-time
+             * @description 最近一次成功生成的时间（UTC）。
+             */
+            lastGeneratedAt?: string | null;
+            /** @description 扩展选项（JSON）。 */
+            options?: string | null;
+            /** @description 状态。 */
+            status: components["schemas"]["CodeGenStatus"];
             /** @description 备注。 */
             remark?: string | null;
             /** @description 并发戳：修改与启停时原样交回。 */
@@ -18103,6 +18635,692 @@ export interface operations {
                     "application/json": {
                         /** @description 全部数据源，按排序号与名称。 */
                         items: components["schemas"]["CodegenDatasourceResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-table-columns.list": {
+        parameters: {
+            query: {
+                /** @description 表配置 ID。 */
+                tableId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一张表的列配置。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列配置，按排序号。 */
+                        items: components["schemas"]["CodegenTableColumnResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-table-columns.save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-table-columns.save 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    tableId: string;
+                    /** @description 要保存的列，都属于这张表。 */
+                    columns: components["schemas"]["CodegenTableColumnInput"][];
+                };
+            };
+        };
+        responses: {
+            /** @description 一张表的列配置。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列配置，按排序号。 */
+                        items: components["schemas"]["CodegenTableColumnResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.delete": {
+        parameters: {
+            query: {
+                /** @description 表配置 ID，1 到 100 个。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 表配置的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 表配置。 */
+                        table: components["schemas"]["CodegenTableResponse"];
+                        /** @description 列配置，按排序号。 */
+                        columns: components["schemas"]["CodegenTableColumnResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-tables.update 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 库里的表名。 */
+                    tableName: string;
+                    /** @description 实体类名。 */
+                    className: string;
+                    /** @description 生成模式。 */
+                    templateType: components["schemas"]["CodeGenTemplateType"];
+                    /** @description 交付方式。 */
+                    deliveryType: components["schemas"]["CodeGenDeliveryType"];
+                    /** @description 生成范围。 */
+                    scope: components["schemas"]["CodeGenScope"];
+                    /** @description 生成目标。 */
+                    target: components["schemas"]["CodeGenTarget"];
+                    /** @description 数据库类型。 */
+                    databaseType: components["schemas"]["CodeGenDatabaseType"];
+                    /** @description 状态。 */
+                    status: components["schemas"]["CodeGenStatus"];
+                    /** @description 表注释。 */
+                    tableComment?: string | null;
+                    /** @description 包的根命名空间。 */
+                    namespace?: string | null;
+                    /** @description 包名。 */
+                    moduleName?: string | null;
+                    /** @description 业务名。 */
+                    businessName?: string | null;
+                    /** @description 功能名。 */
+                    functionName?: string | null;
+                    /** @description 作者。 */
+                    author?: string | null;
+                    /** @description 勾选的动作（逗号分隔）。 */
+                    enabledActions?: string | null;
+                    /** @description 主键列名。 */
+                    primaryKeyColumn?: string | null;
+                    /** @description 树表的父级列名。 */
+                    treeParentColumn?: string | null;
+                    /** @description 树表的名称列名。 */
+                    treeNameColumn?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description 主表的表配置 ID。
+                     */
+                    masterTableId?: string | null;
+                    /** @description 指向主表的外键列名。 */
+                    masterForeignKey?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID，为空即主库。
+                     */
+                    dataSourceId?: string | null;
+                    /** @description 扩展选项（JSON）。 */
+                    options?: string | null;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 表配置。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 库里的表名。 */
+                        tableName: string;
+                        /** @description 表注释。 */
+                        tableComment?: string | null;
+                        /** @description 实体类名。 */
+                        className: string;
+                        /** @description 包的根命名空间。 */
+                        namespace?: string | null;
+                        /** @description 包名。 */
+                        moduleName?: string | null;
+                        /** @description 业务名。 */
+                        businessName?: string | null;
+                        /** @description 功能名。 */
+                        functionName?: string | null;
+                        /** @description 作者。 */
+                        author?: string | null;
+                        /** @description 生成模式。 */
+                        templateType: components["schemas"]["CodeGenTemplateType"];
+                        /** @description 交付方式。 */
+                        deliveryType: components["schemas"]["CodeGenDeliveryType"];
+                        /** @description 生成范围。 */
+                        scope: components["schemas"]["CodeGenScope"];
+                        /** @description 生成目标。 */
+                        target: components["schemas"]["CodeGenTarget"];
+                        /** @description 勾选的动作（逗号分隔，为空即缺省集合）。 */
+                        enabledActions?: string | null;
+                        /** @description 主键列名。 */
+                        primaryKeyColumn?: string | null;
+                        /** @description 树表的父级列名。 */
+                        treeParentColumn?: string | null;
+                        /** @description 树表的名称列名。 */
+                        treeNameColumn?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 主从模式里主表的表配置 ID。
+                         */
+                        masterTableId?: string | null;
+                        /** @description 主从模式里指向主表的外键列名。 */
+                        masterForeignKey?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /**
+                         * Format: uuid
+                         * @description 数据源 ID，为空即主库。
+                         */
+                        dataSourceId?: string | null;
+                        /** @description 最近一次生成的结果。 */
+                        generationStatus: components["schemas"]["CodeGenGenerationStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 最近一次成功生成的时间（UTC）。
+                         */
+                        lastGeneratedAt?: string | null;
+                        /** @description 扩展选项（JSON）。 */
+                        options?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-tables.set-status 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态。 */
+                    status: components["schemas"]["CodeGenStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 表配置。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 库里的表名。 */
+                        tableName: string;
+                        /** @description 表注释。 */
+                        tableComment?: string | null;
+                        /** @description 实体类名。 */
+                        className: string;
+                        /** @description 包的根命名空间。 */
+                        namespace?: string | null;
+                        /** @description 包名。 */
+                        moduleName?: string | null;
+                        /** @description 业务名。 */
+                        businessName?: string | null;
+                        /** @description 功能名。 */
+                        functionName?: string | null;
+                        /** @description 作者。 */
+                        author?: string | null;
+                        /** @description 生成模式。 */
+                        templateType: components["schemas"]["CodeGenTemplateType"];
+                        /** @description 交付方式。 */
+                        deliveryType: components["schemas"]["CodeGenDeliveryType"];
+                        /** @description 生成范围。 */
+                        scope: components["schemas"]["CodeGenScope"];
+                        /** @description 生成目标。 */
+                        target: components["schemas"]["CodeGenTarget"];
+                        /** @description 勾选的动作（逗号分隔，为空即缺省集合）。 */
+                        enabledActions?: string | null;
+                        /** @description 主键列名。 */
+                        primaryKeyColumn?: string | null;
+                        /** @description 树表的父级列名。 */
+                        treeParentColumn?: string | null;
+                        /** @description 树表的名称列名。 */
+                        treeNameColumn?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 主从模式里主表的表配置 ID。
+                         */
+                        masterTableId?: string | null;
+                        /** @description 主从模式里指向主表的外键列名。 */
+                        masterForeignKey?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /**
+                         * Format: uuid
+                         * @description 数据源 ID，为空即主库。
+                         */
+                        dataSourceId?: string | null;
+                        /** @description 最近一次生成的结果。 */
+                        generationStatus: components["schemas"]["CodeGenGenerationStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 最近一次成功生成的时间（UTC）。
+                         */
+                        lastGeneratedAt?: string | null;
+                        /** @description 扩展选项（JSON）。 */
+                        options?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.sync-schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-tables.get 与 sync-schema 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 同步结构的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int32
+                         * @description 新增的列数。
+                         */
+                        addedCount: number;
+                        /**
+                         * Format: int32
+                         * @description 更新的列数。
+                         */
+                        updatedCount: number;
+                        /**
+                         * Format: int32
+                         * @description 移除的列数。
+                         */
+                        removedCount: number;
+                        /** @description 新增的列。 */
+                        addedColumns: string[];
+                        /** @description 移除的列。 */
+                        removedColumns: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.db-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-tables.db-tables 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID，为空即主库。
+                     */
+                    dataSourceId?: string | null;
+                    /** @description 关键字（匹配表名与注释）。 */
+                    keyword?: string | null;
+                    /** @description 页码与页大小。 */
+                    page: components["schemas"]["PageInfo"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CodegenDbTableResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-tables.import 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 表名（照库表列表返回的原名），1 到 100 张。 */
+                    tableNames: string[];
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID，为空即主库。
+                     */
+                    dataSourceId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 导入的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 导入了的表。 */
+                        succeeded: string[];
+                        /** @description 没导入的表与原因。 */
+                        failed: components["schemas"]["CodegenImportFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CodegenTableResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 表配置下拉选项。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 全部表配置，按表名。 */
+                        items: components["schemas"]["CodegenTableResponse"][];
                     };
                 };
             };

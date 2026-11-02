@@ -32,8 +32,32 @@ export type ChatMessageType = (typeof ChatMessageType)[number]
 export const CodeGenDatabaseType = ['MySql', 'SqlServer', 'PostgreSql', 'Oracle', 'Sqlite'] as const
 export type CodeGenDatabaseType = (typeof CodeGenDatabaseType)[number]
 
+export const CodeGenDeliveryType = ['Zip', 'Project'] as const
+export type CodeGenDeliveryType = (typeof CodeGenDeliveryType)[number]
+
+export const CodeGenDictSelectorType = ['DictSelector', 'EnumSelector', 'ConstSelector', 'TableSelector', 'TreeSelector'] as const
+export type CodeGenDictSelectorType = (typeof CodeGenDictSelectorType)[number]
+
+export const CodeGenGenerationStatus = ['NotGenerated', 'Generated', 'Failed'] as const
+export type CodeGenGenerationStatus = (typeof CodeGenGenerationStatus)[number]
+
+export const CodeGenHtmlType = ['Input', 'Textarea', 'Select', 'Radio', 'Checkbox', 'DatePicker', 'DateTimePicker', 'TimePicker', 'ImageUpload', 'FileUpload', 'Editor', 'InputNumber', 'Switch', 'TreeSelect'] as const
+export type CodeGenHtmlType = (typeof CodeGenHtmlType)[number]
+
+export const CodeGenQueryType = ['Equal', 'NotEqual', 'GreaterThan', 'GreaterThanOrEqual', 'LessThan', 'LessThanOrEqual', 'Like', 'LikeLeft', 'LikeRight', 'Between', 'In', 'NotIn'] as const
+export type CodeGenQueryType = (typeof CodeGenQueryType)[number]
+
+export const CodeGenScope = ['All', 'BackendOnly', 'FrontendOnly'] as const
+export type CodeGenScope = (typeof CodeGenScope)[number]
+
 export const CodeGenStatus = ['Active', 'Disabled'] as const
 export type CodeGenStatus = (typeof CodeGenStatus)[number]
+
+export const CodeGenTarget = ['NewPackage', 'ExistingPackage'] as const
+export type CodeGenTarget = (typeof CodeGenTarget)[number]
+
+export const CodeGenTemplateType = ['Single', 'Tree', 'MasterDetail', 'Universal'] as const
+export type CodeGenTemplateType = (typeof CodeGenTemplateType)[number]
 
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
@@ -311,7 +335,15 @@ export const enums = {
   ChatMemberRole,
   ChatMessageType,
   CodeGenDatabaseType,
+  CodeGenDeliveryType,
+  CodeGenDictSelectorType,
+  CodeGenGenerationStatus,
+  CodeGenHtmlType,
+  CodeGenQueryType,
+  CodeGenScope,
   CodeGenStatus,
+  CodeGenTarget,
+  CodeGenTemplateType,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,

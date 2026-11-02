@@ -51,6 +51,16 @@
       "description": "External databases to import table schemas from and to query in the no-code runtime; credentials are stored encrypted."
     },
     {
+      "name": "codegen-table-columns",
+      "x-displayName": "Code generation columns",
+      "description": "Column configurations of a table: types, form controls, query modes and option sources."
+    },
+    {
+      "name": "codegen-tables",
+      "x-displayName": "Code generation tables",
+      "description": "Table configurations imported from database schemas: listing, import, schema synchronization, editing and deletion."
+    },
+    {
       "name": "condition-hits",
       "x-displayName": "Condition hits",
       "description": "Query condition hits: hits of access policies and permission conditions."
@@ -8692,7 +8702,7 @@
           "codegen-datasources"
         ],
         "summary": "List code generation data sources",
-        "description": "Page through the external data sources used by code generation; filter by database type and status, search by name and description.\n\nRequires permission codegeneration.codegen-datasources.read (Read code generation data sources).",
+        "description": "Page through the external data sources used by code generation; filter by database type and status, search by name, description, host and database name.\n\nRequires permission codegeneration.codegen-datasources.read (Read code generation data sources).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "codegeneration.codegen-datasources.read",
         "parameters": [],
@@ -8804,6 +8814,1435 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/CodegenDatasourceResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-table-columns": {
+      "get": {
+        "operationId": "codegen-table-columns.list",
+        "tags": [
+          "codegen-table-columns"
+        ],
+        "summary": "List code generation columns",
+        "description": "List the column configurations of a table, ordered by sort number.\n\nRequires permission codegeneration.codegen-table-columns.read (Read code generation columns).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-table-columns.read",
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "query",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u5F20\u8868\u7684\u5217\u914D\u7F6E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableColumnsResponse",
+                  "description": "\u4E00\u5F20\u8868\u7684\u5217\u914D\u7F6E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5217\u914D\u7F6E\uFF0C\u6309\u6392\u5E8F\u53F7\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTableColumnResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-table-columns:save": {
+      "post": {
+        "operationId": "codegen-table-columns.save",
+        "tags": [
+          "codegen-table-columns"
+        ],
+        "summary": "Save code generation columns",
+        "description": "Save the column configurations of a table at once: every column must belong to the table, an option source keeps only the setting it needs, and fields changed here are kept when the schema is synchronized. Send back each concurrency stamp you read.\n\nRequires permission codegeneration.codegen-table-columns.update (Update code generation columns).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-table-columns.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-table-columns.save \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SaveCodegenTableColumnsRequest",
+                "description": "codegen-table-columns.save \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "tableId": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "columns": {
+                    "description": "\u8981\u4FDD\u5B58\u7684\u5217\uFF0C\u90FD\u5C5E\u4E8E\u8FD9\u5F20\u8868\u3002",
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/CodegenTableColumnInput"
+                    },
+                    "minItems": 1,
+                    "maxItems": 500
+                  }
+                },
+                "required": [
+                  "tableId",
+                  "columns"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u5F20\u8868\u7684\u5217\u914D\u7F6E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableColumnsResponse",
+                  "description": "\u4E00\u5F20\u8868\u7684\u5217\u914D\u7F6E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5217\u914D\u7F6E\uFF0C\u6309\u6392\u5E8F\u53F7\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTableColumnResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables": {
+      "delete": {
+        "operationId": "codegen-tables.delete",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Delete code generation tables",
+        "description": "Delete table configurations in a batch together with their column configurations.\n\nRequires permission codegeneration.codegen-tables.delete (Delete code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u8868\u914D\u7F6E ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables/{id}": {
+      "get": {
+        "operationId": "codegen-tables.get",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Get a code generation table",
+        "description": "Get a table configuration with its column configurations.\n\nRequires permission codegeneration.codegen-tables.read (Read code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u8868\u914D\u7F6E\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableDetailResponse",
+                  "description": "\u8868\u914D\u7F6E\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "table": {
+                      "description": "\u8868\u914D\u7F6E\u3002",
+                      "$ref": "#/components/schemas/CodegenTableResponse"
+                    },
+                    "columns": {
+                      "description": "\u5217\u914D\u7F6E\uFF0C\u6309\u6392\u5E8F\u53F7\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTableColumnResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "table",
+                    "columns"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "codegen-tables.update",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Update a code generation table",
+        "description": "Update a table configuration as a whole; the template type cannot be universal and importing needs creating. Fields changed here are kept when the schema is synchronized. Send back the concurrency stamp you read.\n\nRequires permission codegeneration.codegen-tables.update (Update code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-tables.update \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateCodegenTableRequest",
+                "description": "codegen-tables.update \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "tableName": {
+                    "description": "\u5E93\u91CC\u7684\u8868\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "className": {
+                    "description": "\u5B9E\u4F53\u7C7B\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "templateType": {
+                    "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenTemplateType"
+                  },
+                  "deliveryType": {
+                    "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenDeliveryType"
+                  },
+                  "scope": {
+                    "description": "\u751F\u6210\u8303\u56F4\u3002",
+                    "$ref": "#/components/schemas/CodeGenScope"
+                  },
+                  "target": {
+                    "description": "\u751F\u6210\u76EE\u6807\u3002",
+                    "$ref": "#/components/schemas/CodeGenTarget"
+                  },
+                  "databaseType": {
+                    "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                    "$ref": "#/components/schemas/CodeGenDatabaseType"
+                  },
+                  "status": {
+                    "description": "\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "tableComment": {
+                    "description": "\u8868\u6CE8\u91CA\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "namespace": {
+                    "description": "\u5305\u7684\u6839\u547D\u540D\u7A7A\u95F4\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "moduleName": {
+                    "description": "\u5305\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "businessName": {
+                    "description": "\u4E1A\u52A1\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "functionName": {
+                    "description": "\u529F\u80FD\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "author": {
+                    "description": "\u4F5C\u8005\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "enabledActions": {
+                    "description": "\u52FE\u9009\u7684\u52A8\u4F5C\uFF08\u9017\u53F7\u5206\u9694\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "primaryKeyColumn": {
+                    "description": "\u4E3B\u952E\u5217\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "treeParentColumn": {
+                    "description": "\u6811\u8868\u7684\u7236\u7EA7\u5217\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "treeNameColumn": {
+                    "description": "\u6811\u8868\u7684\u540D\u79F0\u5217\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "masterTableId": {
+                    "description": "\u4E3B\u8868\u7684\u8868\u914D\u7F6E ID\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "masterForeignKey": {
+                    "description": "\u6307\u5411\u4E3B\u8868\u7684\u5916\u952E\u5217\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "dataSourceId": {
+                    "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "options": {
+                    "description": "\u6269\u5C55\u9009\u9879\uFF08JSON\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "tableName",
+                  "className",
+                  "templateType",
+                  "deliveryType",
+                  "scope",
+                  "target",
+                  "databaseType",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u8868\u914D\u7F6E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableResponse",
+                  "description": "\u8868\u914D\u7F6E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tableName": {
+                      "description": "\u5E93\u91CC\u7684\u8868\u540D\u3002",
+                      "type": "string"
+                    },
+                    "tableComment": {
+                      "description": "\u8868\u6CE8\u91CA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "className": {
+                      "description": "\u5B9E\u4F53\u7C7B\u540D\u3002",
+                      "type": "string"
+                    },
+                    "namespace": {
+                      "description": "\u5305\u7684\u6839\u547D\u540D\u7A7A\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "moduleName": {
+                      "description": "\u5305\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessName": {
+                      "description": "\u4E1A\u52A1\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "functionName": {
+                      "description": "\u529F\u80FD\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "author": {
+                      "description": "\u4F5C\u8005\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateType": {
+                      "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+                      "$ref": "#/components/schemas/CodeGenTemplateType"
+                    },
+                    "deliveryType": {
+                      "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+                      "$ref": "#/components/schemas/CodeGenDeliveryType"
+                    },
+                    "scope": {
+                      "description": "\u751F\u6210\u8303\u56F4\u3002",
+                      "$ref": "#/components/schemas/CodeGenScope"
+                    },
+                    "target": {
+                      "description": "\u751F\u6210\u76EE\u6807\u3002",
+                      "$ref": "#/components/schemas/CodeGenTarget"
+                    },
+                    "enabledActions": {
+                      "description": "\u52FE\u9009\u7684\u52A8\u4F5C\uFF08\u9017\u53F7\u5206\u9694\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u96C6\u5408\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "primaryKeyColumn": {
+                      "description": "\u4E3B\u952E\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "treeParentColumn": {
+                      "description": "\u6811\u8868\u7684\u7236\u7EA7\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "treeNameColumn": {
+                      "description": "\u6811\u8868\u7684\u540D\u79F0\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "masterTableId": {
+                      "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u4E3B\u8868\u7684\u8868\u914D\u7F6E ID\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "masterForeignKey": {
+                      "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u6307\u5411\u4E3B\u8868\u7684\u5916\u952E\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "dataSourceId": {
+                      "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "generationStatus": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u751F\u6210\u7684\u7ED3\u679C\u3002",
+                      "$ref": "#/components/schemas/CodeGenGenerationStatus"
+                    },
+                    "lastGeneratedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6210\u529F\u751F\u6210\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "options": {
+                      "description": "\u6269\u5C55\u9009\u9879\uFF08JSON\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "tableName",
+                    "className",
+                    "templateType",
+                    "deliveryType",
+                    "scope",
+                    "target",
+                    "databaseType",
+                    "generationStatus",
+                    "status",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables/{id}:set-status": {
+      "post": {
+        "operationId": "codegen-tables.set-status",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Enable or disable a code generation table",
+        "description": "Enable or disable a table configuration; disabled tables cannot be browsed in the no-code runtime. Send back the concurrency stamp you read; a remark, when given, replaces the current one.\n\nRequires permission codegeneration.codegen-tables.update (Update code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-tables.set-status \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetCodegenTableStatusRequest",
+                "description": "codegen-tables.set-status \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u8868\u914D\u7F6E\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableResponse",
+                  "description": "\u8868\u914D\u7F6E\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tableName": {
+                      "description": "\u5E93\u91CC\u7684\u8868\u540D\u3002",
+                      "type": "string"
+                    },
+                    "tableComment": {
+                      "description": "\u8868\u6CE8\u91CA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "className": {
+                      "description": "\u5B9E\u4F53\u7C7B\u540D\u3002",
+                      "type": "string"
+                    },
+                    "namespace": {
+                      "description": "\u5305\u7684\u6839\u547D\u540D\u7A7A\u95F4\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "moduleName": {
+                      "description": "\u5305\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessName": {
+                      "description": "\u4E1A\u52A1\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "functionName": {
+                      "description": "\u529F\u80FD\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "author": {
+                      "description": "\u4F5C\u8005\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateType": {
+                      "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+                      "$ref": "#/components/schemas/CodeGenTemplateType"
+                    },
+                    "deliveryType": {
+                      "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+                      "$ref": "#/components/schemas/CodeGenDeliveryType"
+                    },
+                    "scope": {
+                      "description": "\u751F\u6210\u8303\u56F4\u3002",
+                      "$ref": "#/components/schemas/CodeGenScope"
+                    },
+                    "target": {
+                      "description": "\u751F\u6210\u76EE\u6807\u3002",
+                      "$ref": "#/components/schemas/CodeGenTarget"
+                    },
+                    "enabledActions": {
+                      "description": "\u52FE\u9009\u7684\u52A8\u4F5C\uFF08\u9017\u53F7\u5206\u9694\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u96C6\u5408\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "primaryKeyColumn": {
+                      "description": "\u4E3B\u952E\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "treeParentColumn": {
+                      "description": "\u6811\u8868\u7684\u7236\u7EA7\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "treeNameColumn": {
+                      "description": "\u6811\u8868\u7684\u540D\u79F0\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "masterTableId": {
+                      "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u4E3B\u8868\u7684\u8868\u914D\u7F6E ID\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "masterForeignKey": {
+                      "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u6307\u5411\u4E3B\u8868\u7684\u5916\u952E\u5217\u540D\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "dataSourceId": {
+                      "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "generationStatus": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u751F\u6210\u7684\u7ED3\u679C\u3002",
+                      "$ref": "#/components/schemas/CodeGenGenerationStatus"
+                    },
+                    "lastGeneratedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6210\u529F\u751F\u6210\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "options": {
+                      "description": "\u6269\u5C55\u9009\u9879\uFF08JSON\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "tableName",
+                    "className",
+                    "templateType",
+                    "deliveryType",
+                    "scope",
+                    "target",
+                    "databaseType",
+                    "generationStatus",
+                    "status",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables/{id}:sync-schema": {
+      "post": {
+        "operationId": "codegen-tables.sync-schema",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Synchronize a table with its schema",
+        "description": "Re-read the schema of the table: structural fields follow the database, inferred fields follow the new inference unless edited by hand, new columns are added and dropped columns are removed.\n\nRequires permission codegeneration.codegen-tables.import (Import code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.import",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-tables.get \u4E0E sync-schema \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CodegenTableIdRequest",
+                "description": "codegen-tables.get \u4E0E sync-schema \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u540C\u6B65\u7ED3\u6784\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenSyncResponse",
+                  "description": "\u540C\u6B65\u7ED3\u6784\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "addedCount": {
+                      "description": "\u65B0\u589E\u7684\u5217\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "updatedCount": {
+                      "description": "\u66F4\u65B0\u7684\u5217\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "removedCount": {
+                      "description": "\u79FB\u9664\u7684\u5217\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "addedColumns": {
+                      "description": "\u65B0\u589E\u7684\u5217\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "removedColumns": {
+                      "description": "\u79FB\u9664\u7684\u5217\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "addedCount",
+                    "updatedCount",
+                    "removedCount",
+                    "addedColumns",
+                    "removedColumns"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables:db-tables": {
+      "post": {
+        "operationId": "codegen-tables.db-tables",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "List database tables",
+        "description": "Page through the tables of the primary database or of an enabled data source to import; the keyword matches names and comments, and sharded tables are folded into one logical name.\n\nRequires permission codegeneration.codegen-tables.read (Read code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.read",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-tables.db-tables \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ListCodegenDbTablesRequest",
+                "description": "codegen-tables.db-tables \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "dataSourceId": {
+                    "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "keyword": {
+                    "description": "\u5173\u952E\u5B57\uFF08\u5339\u914D\u8868\u540D\u4E0E\u6CE8\u91CA\uFF09\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 200
+                  },
+                  "page": {
+                    "description": "\u9875\u7801\u4E0E\u9875\u5927\u5C0F\u3002",
+                    "$ref": "#/components/schemas/PageInfo"
+                  }
+                },
+                "required": [
+                  "page"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfCodegenDbTableResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenDbTableResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables:import": {
+      "post": {
+        "operationId": "codegen-tables.import",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Import database tables",
+        "description": "Import tables as table configurations, inferring class names, types, controls and query modes from the schema; each table succeeds or fails on its own (already imported, missing or without columns).\n\nRequires permission codegeneration.codegen-tables.import (Import code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.import",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-tables.import \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ImportCodegenTablesRequest",
+                "description": "codegen-tables.import \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "tableNames": {
+                    "description": "\u8868\u540D\uFF08\u7167\u5E93\u8868\u5217\u8868\u8FD4\u56DE\u7684\u539F\u540D\uFF09\uFF0C1 \u5230 100 \u5F20\u3002",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  },
+                  "dataSourceId": {
+                    "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "tableNames"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5BFC\u5165\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenImportResponse",
+                  "description": "\u5BFC\u5165\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "description": "\u5BFC\u5165\u4E86\u7684\u8868\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "description": "\u6CA1\u5BFC\u5165\u7684\u8868\u4E0E\u539F\u56E0\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenImportFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables:list": {
+      "post": {
+        "operationId": "codegen-tables.list",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "List code generation tables",
+        "description": "Page through the imported table configurations; filter by template type, delivery, generation result and status, search by table name, class name and comment.\n\nRequires permission codegeneration.codegen-tables.read (Read code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfCodegenTableResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTableResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables:options": {
+      "get": {
+        "operationId": "codegen-tables.options",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "List code generation table options",
+        "description": "List every table configuration ordered by table name, to pick master tables and related tables.\n\nRequires permission codegeneration.codegen-tables.read (Read code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u8868\u914D\u7F6E\u4E0B\u62C9\u9009\u9879\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTableOptionsResponse",
+                  "description": "\u8868\u914D\u7F6E\u4E0B\u62C9\u9009\u9879\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5168\u90E8\u8868\u914D\u7F6E\uFF0C\u6309\u8868\u540D\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTableResponse"
                       }
                     }
                   },
@@ -54425,12 +55864,105 @@
           "Sqlite"
         ]
       },
+      "CodeGenDeliveryType": {
+        "description": "\u751F\u6210\u4EA7\u7269\u7684\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+        "type": "string",
+        "enum": [
+          "Zip",
+          "Project"
+        ]
+      },
+      "CodeGenDictSelectorType": {
+        "description": "\u5217\u7684\u9009\u9879\u6765\u6E90\u3002",
+        "type": "string",
+        "enum": [
+          "DictSelector",
+          "EnumSelector",
+          "ConstSelector",
+          "TableSelector",
+          "TreeSelector"
+        ]
+      },
+      "CodeGenGenerationStatus": {
+        "description": "\u751F\u6210\u7ED3\u679C\u3002",
+        "type": "string",
+        "enum": [
+          "NotGenerated",
+          "Generated",
+          "Failed"
+        ]
+      },
+      "CodeGenHtmlType": {
+        "description": "\u5217\u7684\u8868\u5355\u63A7\u4EF6\u3002",
+        "type": "string",
+        "enum": [
+          "Input",
+          "Textarea",
+          "Select",
+          "Radio",
+          "Checkbox",
+          "DatePicker",
+          "DateTimePicker",
+          "TimePicker",
+          "ImageUpload",
+          "FileUpload",
+          "Editor",
+          "InputNumber",
+          "Switch",
+          "TreeSelect"
+        ]
+      },
+      "CodeGenQueryType": {
+        "description": "\u5217\u7684\u67E5\u8BE2\u65B9\u5F0F\u3002",
+        "type": "string",
+        "enum": [
+          "Equal",
+          "NotEqual",
+          "GreaterThan",
+          "GreaterThanOrEqual",
+          "LessThan",
+          "LessThanOrEqual",
+          "Like",
+          "LikeLeft",
+          "LikeRight",
+          "Between",
+          "In",
+          "NotIn"
+        ]
+      },
+      "CodeGenScope": {
+        "description": "\u751F\u6210\u8303\u56F4\u3002",
+        "type": "string",
+        "enum": [
+          "All",
+          "BackendOnly",
+          "FrontendOnly"
+        ]
+      },
       "CodeGenStatus": {
         "description": "\u6570\u636E\u6E90\u3001\u8868\u914D\u7F6E\u3001\u5217\u914D\u7F6E\u4E0E\u6A21\u677F\u7684\u542F\u505C\u72B6\u6001\u3002",
         "type": "string",
         "enum": [
           "Active",
           "Disabled"
+        ]
+      },
+      "CodeGenTarget": {
+        "description": "\u751F\u6210\u76EE\u6807\u3002",
+        "type": "string",
+        "enum": [
+          "NewPackage",
+          "ExistingPackage"
+        ]
+      },
+      "CodeGenTemplateType": {
+        "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+        "type": "string",
+        "enum": [
+          "Single",
+          "Tree",
+          "MasterDetail",
+          "Universal"
         ]
       },
       "CodegenDatasourceResponse": {
@@ -54538,6 +56070,671 @@
           "lastTestResult",
           "status",
           "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "CodegenDbTableResponse": {
+        "description": "\u5E93\u91CC\u7684\u4E00\u5F20\u8868\u3002",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u8868\u540D\uFF08\u5206\u8868\u662F\u6298\u53E0\u540E\u7684\u903B\u8F91\u540D\uFF09\u3002",
+            "type": "string"
+          },
+          "comment": {
+            "description": "\u8868\u6CE8\u91CA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isSplit": {
+            "description": "\u662F\u5426\u5206\u8868\u3002",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "isSplit"
+        ]
+      },
+      "CodegenImportFailure": {
+        "description": "\u5BFC\u5165\u4E00\u5F20\u8868\u5931\u8D25\u7684\u539F\u56E0\u3002",
+        "type": "object",
+        "properties": {
+          "tableName": {
+            "description": "\u8868\u540D\u3002",
+            "type": "string"
+          },
+          "code": {
+            "description": "\u9519\u8BEF\u7801\u3002",
+            "type": "string"
+          },
+          "message": {
+            "description": "\u539F\u56E0\uFF08\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tableName",
+          "code",
+          "message"
+        ]
+      },
+      "CodegenTableColumnInput": {
+        "description": "\u4FDD\u5B58\u4E00\u5217\u7684\u4EBA\u5DE5\u914D\u7F6E\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u5217\u914D\u7F6E ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "concurrencyStamp": {
+            "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "cSharpType": {
+            "description": "C# \u7C7B\u578B\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "cSharpProperty": {
+            "description": "C# \u5C5E\u6027\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "tsType": {
+            "description": "TypeScript \u7C7B\u578B\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "isRequired": {
+            "description": "\u662F\u5426\u5FC5\u586B\u3002",
+            "type": "boolean"
+          },
+          "isUnique": {
+            "description": "\u662F\u5426\u552F\u4E00\u3002",
+            "type": "boolean"
+          },
+          "isList": {
+            "description": "\u662F\u5426\u5728\u5217\u8868\u91CC\u663E\u793A\u3002",
+            "type": "boolean"
+          },
+          "isInsert": {
+            "description": "\u662F\u5426\u8FDB\u65B0\u5EFA\u8868\u5355\u3002",
+            "type": "boolean"
+          },
+          "isEdit": {
+            "description": "\u662F\u5426\u8FDB\u7F16\u8F91\u8868\u5355\u3002",
+            "type": "boolean"
+          },
+          "isQuery": {
+            "description": "\u662F\u5426\u53EF\u67E5\u8BE2\u3002",
+            "type": "boolean"
+          },
+          "queryType": {
+            "description": "\u67E5\u8BE2\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenQueryType"
+          },
+          "htmlType": {
+            "description": "\u8868\u5355\u63A7\u4EF6\u3002",
+            "$ref": "#/components/schemas/CodeGenHtmlType"
+          },
+          "dictSelectorType": {
+            "description": "\u9009\u9879\u6765\u6E90\u3002",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodeGenDictSelectorType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dictCode": {
+            "description": "\u5B57\u5178\u7801\uFF08\u7CFB\u7EDF\u5B57\u5178\u65F6\u5FC5\u586B\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "enumTypeName": {
+            "description": "\u679A\u4E3E\u7C7B\u578B\u5168\u540D\uFF08\u679A\u4E3E\u65F6\u5FC5\u586B\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "constValues": {
+            "description": "\u5E38\u91CF\u9009\u9879 JSON\uFF08\u5E38\u91CF\u6570\u7EC4\u65F6\u5FC5\u586B\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relationTableId": {
+            "description": "\u5173\u8054\u8868\u7684\u8868\u914D\u7F6E ID\uFF08\u5173\u8054\u8868\u6216\u5173\u8054\u6811\u65F6\u5FC5\u586B\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "relationLabelColumn": {
+            "description": "\u5173\u8054\u8868\u7684\u663E\u793A\u5217\u540D\uFF08\u5173\u8054\u8868\u65F6\u5FC5\u586B\uFF0C\u5173\u8054\u6811\u7F3A\u7701\u53D6\u5B83\u7684\u540D\u79F0\u5217\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "defaultValue": {
+            "description": "\u7F3A\u7701\u503C\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "minValue": {
+            "description": "\u6700\u5C0F\u503C\u3002",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "decimal"
+          },
+          "maxValue": {
+            "description": "\u6700\u5927\u503C\u3002",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "decimal"
+          },
+          "regexPattern": {
+            "description": "\u6821\u9A8C\u7528\u7684\u6B63\u5219\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "validationMessage": {
+            "description": "\u6821\u9A8C\u4E0D\u8FC7\u65F6\u7684\u63D0\u793A\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7\u3002",
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/CodeGenStatus"
+          }
+        },
+        "required": [
+          "id",
+          "concurrencyStamp",
+          "isRequired",
+          "isUnique",
+          "isList",
+          "isInsert",
+          "isEdit",
+          "isQuery",
+          "queryType",
+          "htmlType",
+          "order",
+          "status"
+        ]
+      },
+      "CodegenTableColumnResponse": {
+        "description": "\u5217\u914D\u7F6E\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableId": {
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "columnName": {
+            "description": "\u5E93\u91CC\u7684\u5217\u540D\u3002",
+            "type": "string"
+          },
+          "columnComment": {
+            "description": "\u5217\u6CE8\u91CA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "columnType": {
+            "description": "\u5E93\u91CC\u7684\u5217\u7C7B\u578B\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cSharpType": {
+            "description": "C# \u7C7B\u578B\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cSharpProperty": {
+            "description": "C# \u5C5E\u6027\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tsType": {
+            "description": "TypeScript \u7C7B\u578B\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "columnLength": {
+            "description": "\u957F\u5EA6\uFF08\u53EA\u6709\u5B57\u7B26\u4E0E\u4E8C\u8FDB\u5236\u7C7B\u578B\u6709\uFF09\u3002",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "decimalDigits": {
+            "description": "\u5C0F\u6570\u4F4D\u6570\u3002",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "isPrimaryKey": {
+            "description": "\u662F\u5426\u4E3B\u952E\u3002",
+            "type": "boolean"
+          },
+          "isIdentity": {
+            "description": "\u662F\u5426\u81EA\u589E\u3002",
+            "type": "boolean"
+          },
+          "isNullable": {
+            "description": "\u662F\u5426\u53EF\u7A7A\u3002",
+            "type": "boolean"
+          },
+          "isBase": {
+            "description": "\u662F\u5426\u5B9E\u4F53\u57FA\u7C7B\u7684\u5217\uFF08\u4E3B\u952E\u3001\u79DF\u6237\u3001\u5BA1\u8BA1\u3001\u8F6F\u5220\u4E0E\u5E76\u53D1\u6233\uFF09\u3002",
+            "type": "boolean"
+          },
+          "isRequired": {
+            "description": "\u662F\u5426\u5FC5\u586B\u3002",
+            "type": "boolean"
+          },
+          "isUnique": {
+            "description": "\u662F\u5426\u552F\u4E00\u3002",
+            "type": "boolean"
+          },
+          "isList": {
+            "description": "\u662F\u5426\u5728\u5217\u8868\u91CC\u663E\u793A\u3002",
+            "type": "boolean"
+          },
+          "isInsert": {
+            "description": "\u662F\u5426\u8FDB\u65B0\u5EFA\u8868\u5355\u3002",
+            "type": "boolean"
+          },
+          "isEdit": {
+            "description": "\u662F\u5426\u8FDB\u7F16\u8F91\u8868\u5355\u3002",
+            "type": "boolean"
+          },
+          "isQuery": {
+            "description": "\u662F\u5426\u53EF\u67E5\u8BE2\u3002",
+            "type": "boolean"
+          },
+          "queryType": {
+            "description": "\u67E5\u8BE2\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenQueryType"
+          },
+          "htmlType": {
+            "description": "\u8868\u5355\u63A7\u4EF6\u3002",
+            "$ref": "#/components/schemas/CodeGenHtmlType"
+          },
+          "dictSelectorType": {
+            "description": "\u9009\u9879\u6765\u6E90\u3002",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodeGenDictSelectorType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dictCode": {
+            "description": "\u5B57\u5178\u7801\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enumTypeName": {
+            "description": "\u679A\u4E3E\u7C7B\u578B\u5168\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "constValues": {
+            "description": "\u5E38\u91CF\u9009\u9879\uFF08JSON\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relationTableId": {
+            "description": "\u5173\u8054\u8868\u7684\u8868\u914D\u7F6E ID\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "relationLabelColumn": {
+            "description": "\u5173\u8054\u8868\u7684\u663E\u793A\u5217\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "defaultValue": {
+            "description": "\u7F3A\u7701\u503C\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "minValue": {
+            "description": "\u6700\u5C0F\u503C\u3002",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "decimal"
+          },
+          "maxValue": {
+            "description": "\u6700\u5927\u503C\u3002",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "decimal"
+          },
+          "regexPattern": {
+            "description": "\u6821\u9A8C\u7528\u7684\u6B63\u5219\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validationMessage": {
+            "description": "\u6821\u9A8C\u4E0D\u8FC7\u65F6\u7684\u63D0\u793A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/CodeGenStatus"
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FDD\u5B58\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tableId",
+          "columnName",
+          "isPrimaryKey",
+          "isIdentity",
+          "isNullable",
+          "isBase",
+          "isRequired",
+          "isUnique",
+          "isList",
+          "isInsert",
+          "isEdit",
+          "isQuery",
+          "queryType",
+          "htmlType",
+          "order",
+          "status",
+          "concurrencyStamp"
+        ]
+      },
+      "CodegenTableResponse": {
+        "description": "\u8868\u914D\u7F6E\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableName": {
+            "description": "\u5E93\u91CC\u7684\u8868\u540D\u3002",
+            "type": "string"
+          },
+          "tableComment": {
+            "description": "\u8868\u6CE8\u91CA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "className": {
+            "description": "\u5B9E\u4F53\u7C7B\u540D\u3002",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "\u5305\u7684\u6839\u547D\u540D\u7A7A\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moduleName": {
+            "description": "\u5305\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessName": {
+            "description": "\u4E1A\u52A1\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "functionName": {
+            "description": "\u529F\u80FD\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author": {
+            "description": "\u4F5C\u8005\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateType": {
+            "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenTemplateType"
+          },
+          "deliveryType": {
+            "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenDeliveryType"
+          },
+          "scope": {
+            "description": "\u751F\u6210\u8303\u56F4\u3002",
+            "$ref": "#/components/schemas/CodeGenScope"
+          },
+          "target": {
+            "description": "\u751F\u6210\u76EE\u6807\u3002",
+            "$ref": "#/components/schemas/CodeGenTarget"
+          },
+          "enabledActions": {
+            "description": "\u52FE\u9009\u7684\u52A8\u4F5C\uFF08\u9017\u53F7\u5206\u9694\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u96C6\u5408\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primaryKeyColumn": {
+            "description": "\u4E3B\u952E\u5217\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "treeParentColumn": {
+            "description": "\u6811\u8868\u7684\u7236\u7EA7\u5217\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "treeNameColumn": {
+            "description": "\u6811\u8868\u7684\u540D\u79F0\u5217\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "masterTableId": {
+            "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u4E3B\u8868\u7684\u8868\u914D\u7F6E ID\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "masterForeignKey": {
+            "description": "\u4E3B\u4ECE\u6A21\u5F0F\u91CC\u6307\u5411\u4E3B\u8868\u7684\u5916\u952E\u5217\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "databaseType": {
+            "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+            "$ref": "#/components/schemas/CodeGenDatabaseType"
+          },
+          "dataSourceId": {
+            "description": "\u6570\u636E\u6E90 ID\uFF0C\u4E3A\u7A7A\u5373\u4E3B\u5E93\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "generationStatus": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u751F\u6210\u7684\u7ED3\u679C\u3002",
+            "$ref": "#/components/schemas/CodeGenGenerationStatus"
+          },
+          "lastGeneratedAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u6210\u529F\u751F\u6210\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "options": {
+            "description": "\u6269\u5C55\u9009\u9879\uFF08JSON\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/CodeGenStatus"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tableName",
+          "className",
+          "templateType",
+          "deliveryType",
+          "scope",
+          "target",
+          "databaseType",
+          "generationStatus",
+          "status",
           "concurrencyStamp",
           "createdAt"
         ]
@@ -64547,10 +66744,35 @@
         "displayName": "Update code generation data sources",
         "description": "Edit, enable or disable data sources and test their connections."
       },
+      "codegeneration.codegen-table-columns.read": {
+        "code": "codegeneration.codegen-table-columns.read",
+        "displayName": "Read code generation columns",
+        "description": "View the column configurations of a table."
+      },
+      "codegeneration.codegen-table-columns.update": {
+        "code": "codegeneration.codegen-table-columns.update",
+        "displayName": "Update code generation columns",
+        "description": "Save the column configurations of a table."
+      },
+      "codegeneration.codegen-tables.delete": {
+        "code": "codegeneration.codegen-tables.delete",
+        "displayName": "Delete code generation tables",
+        "description": "Delete table configurations together with their column configurations."
+      },
+      "codegeneration.codegen-tables.import": {
+        "code": "codegeneration.codegen-tables.import",
+        "displayName": "Import code generation tables",
+        "description": "Import database tables as table configurations and synchronize them with the latest schema."
+      },
       "codegeneration.codegen-tables.read": {
         "code": "codegeneration.codegen-tables.read",
         "displayName": "Read code generation tables",
-        "description": "Open the code generation page and view the imported table configurations."
+        "description": "Open the code generation page, view the imported table configurations and list the tables of a database."
+      },
+      "codegeneration.codegen-tables.update": {
+        "code": "codegeneration.codegen-tables.update",
+        "displayName": "Update code generation tables",
+        "description": "Edit, enable or disable table configurations."
       },
       "files.files.create": {
         "code": "files.files.create",
@@ -65353,7 +67575,9 @@
     {
       "name": "Code generation",
       "tags": [
-        "codegen-datasources"
+        "codegen-datasources",
+        "codegen-table-columns",
+        "codegen-tables"
       ]
     },
     {

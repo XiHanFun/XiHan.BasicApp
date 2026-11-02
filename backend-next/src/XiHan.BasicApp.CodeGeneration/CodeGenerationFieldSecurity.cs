@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Runtime.Queries;
 
@@ -28,5 +29,11 @@ public static class CodeGenerationFieldSecurity
                 .Creates(CreateCodegenDatasource.Id)
                 .Updates<UpdateCodegenDatasourceRequest>(UpdateCodegenDatasource.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenDataSource>(context, request.Id, CodegenDatasourceDetailResponse.From))
                 .Updates<SetCodegenDatasourceStatusRequest>(SetCodegenDatasourceStatus.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenDataSource>(context, request.Id, CodegenDatasourceDetailResponse.From))
-                .Keyword("sourceName", "sourceDescription", "host", "databaseName"));
+                .Keyword("sourceName", "sourceDescription", "host", "databaseName")
+            .Entity<CodegenTableResponse>("codegeneration.codegen-tables", "codegeneration.code_gen.table.title", "codegeneration.code_gen.table.fields.")
+                .Reads(ListCodegenTables.Id, ListCodegenTableOptions.Id)
+                .ReadsAt(GetCodegenTable.Id, "table")
+                .Updates<UpdateCodegenTableRequest>(UpdateCodegenTable.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTable>(context, request.Id, CodegenTableResponse.From))
+                .Updates<SetCodegenTableStatusRequest>(SetCodegenTableStatus.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTable>(context, request.Id, CodegenTableResponse.From))
+                .Keyword("tableName", "className", "tableComment"));
 }

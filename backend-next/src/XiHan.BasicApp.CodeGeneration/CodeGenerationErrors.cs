@@ -18,6 +18,11 @@ public static class CodeGenerationErrors
     public const string DataSourceNotFound = "CODEGENERATION_NOTFOUND_001";
 
     /// <summary>
+    /// 表配置不存在。
+    /// </summary>
+    public const string TableNotFound = "CODEGENERATION_NOTFOUND_002";
+
+    /// <summary>
     /// 已有同名的数据源。
     /// </summary>
     public const string DataSourceNameTaken = "CODEGENERATION_CONFLICT_001";
@@ -33,12 +38,47 @@ public static class CodeGenerationErrors
     public const string DataSourceDisabled = "CODEGENERATION_CONFLICT_003";
 
     /// <summary>
+    /// 这张库表已经导入过。
+    /// </summary>
+    public const string TableAlreadyImported = "CODEGENERATION_CONFLICT_004";
+
+    /// <summary>
     /// 列表不支持该筛选或排序。
     /// </summary>
     public const string QueryUnsupported = "CODEGENERATION_VALIDATION_001";
 
     /// <summary>
+    /// 库表没有列。
+    /// </summary>
+    public const string TableHasNoColumn = "CODEGENERATION_VALIDATION_002";
+
+    /// <summary>
+    /// 表配置的生成模式不能是通用。
+    /// </summary>
+    public const string TemplateTypeUniversal = "CODEGENERATION_VALIDATION_003";
+
+    /// <summary>
+    /// 勾了导入却没勾新建。
+    /// </summary>
+    public const string ActionsConflict = "CODEGENERATION_VALIDATION_004";
+
+    /// <summary>
+    /// 列配置不属于这张表。
+    /// </summary>
+    public const string ColumnNotInTable = "CODEGENERATION_VALIDATION_005";
+
+    /// <summary>
+    /// 列的选项来源缺少它要的配置。
+    /// </summary>
+    public const string SelectorInvalid = "CODEGENERATION_VALIDATION_006";
+
+    /// <summary>
     /// 数据源的口令或连接串解不开。
     /// </summary>
     public const string SecretUnreadable = "CODEGENERATION_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 主库的数据库类型不在支持之列。
+    /// </summary>
+    public const string DatabaseUnsupported = "CODEGENERATION_UNAVAILABLE_002";
 }

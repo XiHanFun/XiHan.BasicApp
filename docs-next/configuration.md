@@ -236,6 +236,12 @@
 | `Workflow` | 流程定义、流程实例与审批中心 | 引擎与九张表照旧（宿主恒装数据库工作流）；其他包登记的审批业务没有消费方，见[工作流](./backend/workflow#模块开关) |
 | `CodeGeneration` | 代码生成（只在平台一侧） | 五张表照样建；已登记的外部数据源连接不再建立，见[代码生成](./backend/code-generation#模块开关) |
 
+## `BasicApp:CodeGeneration`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `TablePrefixes` | `sys_` | 导入表时推断类名去掉的表名前缀，逗号分隔、取最长的匹配（5.x 是 `CodeGeneration:TablePrefixes`，缺省 `Sys_,Saas_`） |
+
 ## `BasicApp:Auth`
 
 | 键 | 缺省 | 说明 |

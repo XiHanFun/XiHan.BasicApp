@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.CodeGeneration.Domain.Services;
 using XiHan.BasicApp.CodeGeneration.Queries;
@@ -58,8 +59,12 @@ public sealed class CodeGenerationFeature : IFeature
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddMessageCatalog(CodeGenerationMessages.Catalog);
         context.Services.AddGeneratedRepositories();
+        context.Services.AddSingleton(static services => CodeGenerationOptions.FromConfiguration(services.GetRequiredService<IConfiguration>()));
         context.Services.AddScoped<CodeGenDataSourceService>();
         context.Services.AddScoped<CodegenDatasourceQueries>();
+        context.Services.AddScoped<CodeGenInference>();
+        context.Services.AddScoped<CodeGenTableService>();
+        context.Services.AddScoped<CodegenTableQueries>();
         context.Services.AddPermissionCatalog("codegeneration", CodeGenerationPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用（照 4.x 的登记范围）
         CodeGenerationFieldSecurity.Register(context.Services);

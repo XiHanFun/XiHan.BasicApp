@@ -43,6 +43,31 @@ public static class CodeGenerationPermissions
     public const string TablesRead = "codegeneration.codegen-tables.read";
 
     /// <summary>
+    /// 修改与启停表配置。
+    /// </summary>
+    public const string TablesUpdate = "codegeneration.codegen-tables.update";
+
+    /// <summary>
+    /// 删除表配置。
+    /// </summary>
+    public const string TablesDelete = "codegeneration.codegen-tables.delete";
+
+    /// <summary>
+    /// 导入库表与同步结构。
+    /// </summary>
+    public const string TablesImport = "codegeneration.codegen-tables.import";
+
+    /// <summary>
+    /// 查看列配置。
+    /// </summary>
+    public const string TableColumnsRead = "codegeneration.codegen-table-columns.read";
+
+    /// <summary>
+    /// 保存列配置。
+    /// </summary>
+    public const string TableColumnsUpdate = "codegeneration.codegen-table-columns.update";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -51,6 +76,11 @@ public static class CodeGenerationPermissions
         new(DatasourcesCreate, "Create code generation data sources", PermissionScope.Platform, audited: true, description: "Create external data sources; the password and the connection string are stored encrypted."),
         new(DatasourcesUpdate, "Update code generation data sources", PermissionScope.Platform, audited: true, description: "Edit, enable or disable data sources and test their connections."),
         new(DatasourcesDelete, "Delete code generation data sources", PermissionScope.Platform, audited: true, description: "Delete data sources that no table configuration references."),
-        new(TablesRead, "Read code generation tables", PermissionScope.Platform, description: "Open the code generation page and view the imported table configurations."),
+        new(TablesRead, "Read code generation tables", PermissionScope.Platform, description: "Open the code generation page, view the imported table configurations and list the tables of a database."),
+        new(TablesUpdate, "Update code generation tables", PermissionScope.Platform, audited: true, description: "Edit, enable or disable table configurations."),
+        new(TablesDelete, "Delete code generation tables", PermissionScope.Platform, audited: true, description: "Delete table configurations together with their column configurations."),
+        new(TablesImport, "Import code generation tables", PermissionScope.Platform, audited: true, description: "Import database tables as table configurations and synchronize them with the latest schema."),
+        new(TableColumnsRead, "Read code generation columns", PermissionScope.Platform, description: "View the column configurations of a table."),
+        new(TableColumnsUpdate, "Update code generation columns", PermissionScope.Platform, audited: true, description: "Save the column configurations of a table."),
     ];
 }

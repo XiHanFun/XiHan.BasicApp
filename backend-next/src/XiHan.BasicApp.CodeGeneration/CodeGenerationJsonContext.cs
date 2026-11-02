@@ -3,6 +3,8 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 
@@ -12,7 +14,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成模块操作的请求 / 响应序列化上下文。
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。
+/// 源生成；枚举按字符串。表与列配置里人工改过的字段集合（字符串数组）也经它往返。
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
@@ -30,6 +32,24 @@ namespace XiHan.BasicApp.CodeGeneration;
 [JsonSerializable(typeof(CodegenDatasourceOptionsResponse))]
 [JsonSerializable(typeof(CodegenDatasourceTestResponse))]
 [JsonSerializable(typeof(PageResult<CodegenDatasourceResponse>))]
+[JsonSerializable(typeof(CodegenTableIdRequest))]
+[JsonSerializable(typeof(ListCodegenTableOptionsRequest))]
+[JsonSerializable(typeof(ListCodegenDbTablesRequest))]
+[JsonSerializable(typeof(ImportCodegenTablesRequest))]
+[JsonSerializable(typeof(UpdateCodegenTableRequest))]
+[JsonSerializable(typeof(SetCodegenTableStatusRequest))]
+[JsonSerializable(typeof(CodegenTableIdsRequest))]
+[JsonSerializable(typeof(CodegenTableResponse))]
+[JsonSerializable(typeof(CodegenTableDetailResponse))]
+[JsonSerializable(typeof(CodegenTableOptionsResponse))]
+[JsonSerializable(typeof(CodegenImportResponse))]
+[JsonSerializable(typeof(CodegenSyncResponse))]
+[JsonSerializable(typeof(PageResult<CodegenTableResponse>))]
+[JsonSerializable(typeof(PageResult<CodegenDbTableResponse>))]
+[JsonSerializable(typeof(ListCodegenTableColumnsRequest))]
+[JsonSerializable(typeof(SaveCodegenTableColumnsRequest))]
+[JsonSerializable(typeof(CodegenTableColumnsResponse))]
+[JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class CodeGenerationJsonContext : JsonSerializerContext;

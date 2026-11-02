@@ -8,19 +8,21 @@ import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '~/stores'
 import DatasourcePanel from './components/DatasourcePanel.vue'
+import TablePanel from './components/TablePanel.vue'
 
 defineOptions({ name: 'CodegenerationCodeGenView' })
 
-type CodeGenTab = 'datasource'
+type CodeGenTab = 'table' | 'datasource'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 
 const tabs = computed(() => ({
+  table: auth.can('codegeneration.codegen-tables.read'),
   datasource: auth.can('codegeneration.codegen-datasources.read'),
 }))
 
-const activeTab = ref<CodeGenTab>('datasource')
+const activeTab = ref<CodeGenTab>('table')
 
 // 当前页签没有读权限时落到第一个看得见的页签
 watchEffect(() => {
@@ -37,11 +39,17 @@ watchEffect(() => {
     <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
     <XhTabsRoot v-model:value="activeTab" variant="line" class="code-gen__tabs">
       <XhTabsList>
+        <XhTabsTrigger v-if="tabs.table" value="table">
+          {{ t('codegeneration.code_gen.tabs.table') }}
+        </XhTabsTrigger>
         <XhTabsTrigger v-if="tabs.datasource" value="datasource">
           {{ t('codegeneration.code_gen.tabs.datasource') }}
         </XhTabsTrigger>
         <XhTabsIndicator />
       </XhTabsList>
+      <XhTabsContent v-if="tabs.table" value="table">
+        <TablePanel />
+      </XhTabsContent>
       <XhTabsContent v-if="tabs.datasource" value="datasource">
         <DatasourcePanel />
       </XhTabsContent>

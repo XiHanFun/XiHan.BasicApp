@@ -86,6 +86,17 @@ export const routes = {
   'codegen-datasources.set-status': { method: 'POST', template: '/api/codegen-datasources/{id}:set-status', path: ['id'], query: [], success: 200 },
   'codegen-datasources.test-connection': { method: 'POST', template: '/api/codegen-datasources/{id}:test-connection', path: ['id'], query: [], success: 200 },
   'codegen-datasources.update': { method: 'PUT', template: '/api/codegen-datasources/{id}', path: ['id'], query: [], success: 200 },
+  'codegen-table-columns.list': { method: 'GET', template: '/api/codegen-table-columns', path: [], query: ['tableId'], success: 200 },
+  'codegen-table-columns.save': { method: 'POST', template: '/api/codegen-table-columns:save', path: [], query: [], success: 200 },
+  'codegen-tables.db-tables': { method: 'POST', template: '/api/codegen-tables:db-tables', path: [], query: [], success: 200 },
+  'codegen-tables.delete': { method: 'DELETE', template: '/api/codegen-tables', path: [], query: ['ids'], success: 200 },
+  'codegen-tables.get': { method: 'GET', template: '/api/codegen-tables/{id}', path: ['id'], query: [], success: 200 },
+  'codegen-tables.import': { method: 'POST', template: '/api/codegen-tables:import', path: [], query: [], success: 200 },
+  'codegen-tables.list': { method: 'POST', template: '/api/codegen-tables:list', path: [], query: [], success: 200 },
+  'codegen-tables.options': { method: 'GET', template: '/api/codegen-tables:options', path: [], query: [], success: 200 },
+  'codegen-tables.set-status': { method: 'POST', template: '/api/codegen-tables/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'codegen-tables.sync-schema': { method: 'POST', template: '/api/codegen-tables/{id}:sync-schema', path: ['id'], query: [], success: 200 },
+  'codegen-tables.update': { method: 'PUT', template: '/api/codegen-tables/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
@@ -568,6 +579,25 @@ export const codegenDatasources = {
   setStatus: (request: RequestOf<'codegen-datasources.set-status'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.set-status'>, ResponseOf<'codegen-datasources.set-status'>>('codegen-datasources.set-status', routes['codegen-datasources.set-status'], request, options),
   testConnection: (request: RequestOf<'codegen-datasources.test-connection'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.test-connection'>, ResponseOf<'codegen-datasources.test-connection'>>('codegen-datasources.test-connection', routes['codegen-datasources.test-connection'], request, options),
   update: (request: RequestOf<'codegen-datasources.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.update'>, ResponseOf<'codegen-datasources.update'>>('codegen-datasources.update', routes['codegen-datasources.update'], request, options),
+}
+
+/** 资源 `codegen-table-columns` 的操作。 */
+export const codegenTableColumns = {
+  list: (request: RequestOf<'codegen-table-columns.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-table-columns.list'>, ResponseOf<'codegen-table-columns.list'>>('codegen-table-columns.list', routes['codegen-table-columns.list'], request, options),
+  save: (request: RequestOf<'codegen-table-columns.save'>, options?: CallOptions) => invoke<RequestOf<'codegen-table-columns.save'>, ResponseOf<'codegen-table-columns.save'>>('codegen-table-columns.save', routes['codegen-table-columns.save'], request, options),
+}
+
+/** 资源 `codegen-tables` 的操作。 */
+export const codegenTables = {
+  dbTables: (request: RequestOf<'codegen-tables.db-tables'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.db-tables'>, ResponseOf<'codegen-tables.db-tables'>>('codegen-tables.db-tables', routes['codegen-tables.db-tables'], request, options),
+  delete: (request: RequestOf<'codegen-tables.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.delete'>, ResponseOf<'codegen-tables.delete'>>('codegen-tables.delete', routes['codegen-tables.delete'], request, options),
+  get: (request: RequestOf<'codegen-tables.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.get'>, ResponseOf<'codegen-tables.get'>>('codegen-tables.get', routes['codegen-tables.get'], request, options),
+  import: (request: RequestOf<'codegen-tables.import'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.import'>, ResponseOf<'codegen-tables.import'>>('codegen-tables.import', routes['codegen-tables.import'], request, options),
+  list: (request: RequestOf<'codegen-tables.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.list'>, ResponseOf<'codegen-tables.list'>>('codegen-tables.list', routes['codegen-tables.list'], request, options),
+  options: (request: RequestOf<'codegen-tables.options'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.options'>, ResponseOf<'codegen-tables.options'>>('codegen-tables.options', routes['codegen-tables.options'], request, options),
+  setStatus: (request: RequestOf<'codegen-tables.set-status'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.set-status'>, ResponseOf<'codegen-tables.set-status'>>('codegen-tables.set-status', routes['codegen-tables.set-status'], request, options),
+  syncSchema: (request: RequestOf<'codegen-tables.sync-schema'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.sync-schema'>, ResponseOf<'codegen-tables.sync-schema'>>('codegen-tables.sync-schema', routes['codegen-tables.sync-schema'], request, options),
+  update: (request: RequestOf<'codegen-tables.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.update'>, ResponseOf<'codegen-tables.update'>>('codegen-tables.update', routes['codegen-tables.update'], request, options),
 }
 
 /** 资源 `condition-hits` 的操作。 */

@@ -4,6 +4,12 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 代码生成：表结构导入、表与列配置（2026-11-03）
+
+- 代码生成页多「表配置」页签：从主库或数据源导入库表（按表隔离，失败的列出原因）、编辑表配置（多「生成目标」：新建包或加入已有包，5.x 的父菜单不再需要）、列配置、同步表结构与删除，与 5.x 相同。
+- 与 5.x 不同：导入时数据库类型按来源取，不再让人选；列类型按各库的类型名映射（Oracle 的 `NUMBER` 按精度分整数与定点数）；列配置里的列注释只显示（5.x 能改却不保存）；保存列配置不再把缺省值、正则与校验提示清空；选项与枚举的显示名按界面语言。
+- 权限码 `codegeneration.codegen-tables.{update,delete,import}` 与 `codegeneration.codegen-table-columns.{read,update}`，只在平台一侧。
+
 ### 代码生成：数据源（2026-11-03）
 
 - 新的可选模块 CodeGeneration（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开，只在平台一侧）：代码生成页（`/codegeneration/code-gen`）先有「数据源」页签，表配置、模板、生成历史随后补上。见[代码生成](./backend/code-generation)。
