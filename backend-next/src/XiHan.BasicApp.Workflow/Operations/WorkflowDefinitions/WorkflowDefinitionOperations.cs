@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Workflow.Operations.WorkflowDefinitions;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-definitions:list</c>。当前一侧的定义（平台只看平台的，租户只看本租户的），框架在存储里按关键字（名字、显示名、说明）、名字、分类、状态与创建时间过滤、
-/// 按一列排序并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>。
+/// 按多列排序（照 4.x）并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>。
 /// </remarks>
 /// <param name="catalog">定义目录。</param>
 /// <param name="business">审批业务登记表。</param>

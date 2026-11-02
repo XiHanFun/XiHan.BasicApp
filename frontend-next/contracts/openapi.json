@@ -50311,7 +50311,7 @@
           "workflow-definitions"
         ],
         "summary": "List workflow definitions",
-        "description": "Page through the workflow definitions of the caller\u0027s side, filtered by keyword (name, display name, description), name, category, status and creation time, sorted by one of status, name, display name, version, creation time or publish time (by default by name and then by version descending).\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
+        "description": "Page through the workflow definitions of the caller\u0027s side, filtered by keyword (name, display name, description), name, category, status and creation time, sorted by any of status, name, display name, version, creation time and publish time in the given order (by default by name and then by version descending).\n\nRequires permission workflow.workflow-definitions.read (Read workflow definitions).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "workflow.workflow-definitions.read",
         "parameters": [],
@@ -50730,7 +50730,7 @@
           "workflow-instances"
         ],
         "summary": "List workflow instances",
-        "description": "Page through the workflow instances of the caller\u0027s side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, sorted by one of status, definition name, title, creation time or end time (newest first by default).\n\nRequires permission workflow.workflow-instances.read (Read workflow instances).",
+        "description": "Page through the workflow instances of the caller\u0027s side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, sorted by any of status, definition name, title, creation time and end time in the given order (newest first by default).\n\nRequires permission workflow.workflow-instances.read (Read workflow instances).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "workflow.workflow-instances.read",
         "parameters": [],

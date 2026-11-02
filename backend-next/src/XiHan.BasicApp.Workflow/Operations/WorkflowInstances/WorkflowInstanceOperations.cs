@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:list</c>。当前一侧的实例（含子流程），框架在存储里按关键字（标题、关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤、
-/// 按一列排序并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>。
+/// 按多列排序（照 4.x）并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>。
 /// </remarks>
 /// <param name="engine">引擎。</param>
 /// <param name="users">用户目录（发起人显示名）。</param>

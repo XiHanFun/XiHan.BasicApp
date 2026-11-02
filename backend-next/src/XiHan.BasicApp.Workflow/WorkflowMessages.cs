@@ -195,14 +195,6 @@ public static class WorkflowMessages
     public const string SortUnsupported = "workflow.query.sort_unsupported";
 
     /// <summary>
-    /// 排序多于一列。
-    /// </summary>
-    /// <remarks>
-    /// 框架的流程查询一次只按一个字段排序；参数 <c>field</c> 是多出来的第一列。
-    /// </remarks>
-    public const string SortSingle = "workflow.query.sort_single";
-
-    /// <summary>
     /// 编码类受理人规则没给编码。
     /// </summary>
     /// <remarks>

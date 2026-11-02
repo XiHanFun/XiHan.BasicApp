@@ -16,9 +16,10 @@ namespace XiHan.BasicApp.Workflow.Queries;
 /// 列表请求到框架查询的换算。
 /// </summary>
 /// <remarks>
-/// 过滤、排序、分页与计数都由框架在存储里做（框架第八批 G1、G2，ADR-0096；第十一、十二批的排序，ADR-0102、ADR-0103）；这里只把分页请求换成框架的查询，
-/// 筛选与排序字段是白名单，越界即 <see cref="WorkflowErrors.QueryUnsupported"/>。定义与实例一次只按一列排序（框架只有一个排序字段，同值由框架的次序键定），
-/// 列名照响应的字段名；没给排序时是框架的缺省（定义按名字升序、版本降序，实例按创建时间降序）。状态按生命周期的先后排（同 4.x）。我发起的与待办顺序固定。
+/// 过滤、排序、分页与计数都由框架在存储里做（框架第八批 G1、G2，ADR-0096；第十一至十三批的排序，ADR-0102～ADR-0104）；这里只把分页请求换成框架的查询，
+/// 筛选与排序字段是白名单，越界即 <see cref="WorkflowErrors.QueryUnsupported"/>。定义与实例照 4.x 多列排序：请求的排序项按顺序映射，第一项是主排序，
+/// 之后是次级排序，同值由框架补的次序键定；列名照响应的字段名，同一列给两次或超过可排序列数由框架报 <c>WORKFLOW_VALIDATION_002</c>。
+/// 没给排序时是框架的缺省（定义按名字升序、版本降序，实例按创建时间降序）。状态按生命周期的先后排（同 4.x）。我发起的与待办顺序固定。
 /// 关键字照框架的口径（与 4.x 同）：定义匹配名字、显示名与说明，实例匹配标题与关联 ID，按字面匹配（<c>%</c>、<c>_</c> 不是通配符）。
 /// </remarks>
 public static class WorkflowQueryMapping
@@ -54,8 +55,8 @@ public static class WorkflowQueryMapping
     public static Result<WorkflowDefinitionQuery> Definitions(PageRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var sorted = SortOf(request, _definitionSorts);
-        if (!sorted.TryGetValue(out var sort))
+        var sorted = SortsOf(request, _definitionSorts, static (field, descending) => new WorkflowDefinitionSort(field, descending));
+        if (!sorted.TryGetValue(out var sorts))
         {
             return sorted.Error!;
         }
@@ -91,8 +92,6 @@ public static class WorkflowQueryMapping
             }
         }
 
-        // 没给排序即框架的缺省（名字升序）
-        var given = sort.ValueOr(new SortChoice<WorkflowDefinitionSortField>(default, false));
         return new WorkflowDefinitionQuery
         {
             Keyword = request.Keyword,
@@ -101,8 +100,7 @@ public static class WorkflowQueryMapping
             Status = status,
             CreatedFrom = createdFrom,
             CreatedTo = createdTo,
-            SortBy = given.Field,
-            Descending = given.Descending,
+            Sorts = sorts,
             Skip = request.Page.Skip,
             Limit = request.Page.Size,
         };
@@ -121,18 +119,13 @@ public static class WorkflowQueryMapping
     public static Result<WorkflowInstanceQuery> Instances(PageRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var sorted = SortOf(request, _instanceSorts);
-        if (!sorted.TryGetValue(out var sort))
+        var sorted = SortsOf(request, _instanceSorts, static (field, descending) => new WorkflowInstanceSort(field, descending));
+        if (!sorted.TryGetValue(out var sorts))
         {
             return sorted.Error!;
         }
 
-        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, Skip = request.Page.Skip, Limit = request.Page.Size };
-        if (sort.TryGetValue(out var given))
-        {
-            // 框架的实例缺省降序，方向要显式给
-            query = query with { SortBy = given.Field, Descending = given.Descending };
-        }
+        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, Sorts = sorts, Skip = request.Page.Skip, Limit = request.Page.Size };
 
         foreach (var filter in request.Filters)
         {
@@ -224,23 +217,21 @@ public static class WorkflowQueryMapping
         return new UserTaskQuery { AssigneeId = assignee, Keyword = request.Keyword, Descending = true, Skip = request.Page.Skip, Limit = request.Page.Size };
     }
 
-    private static Result<Maybe<SortChoice<TField>>> SortOf<TField>(PageRequest request, Dictionary<string, TField> fields)
+    private static Result<List<TSort>> SortsOf<TField, TSort>(PageRequest request, Dictionary<string, TField> fields, Func<TField, bool, TSort> create)
         where TField : struct, Enum
     {
-        if (request.Sorts.Count == 0)
+        var sorts = new List<TSort>(request.Sorts.Count);
+        foreach (var sort in request.Sorts)
         {
-            return Maybe.None<SortChoice<TField>>();
+            if (!fields.TryGetValue(sort.Field, out var field))
+            {
+                return Error.Validation(WorkflowErrors.QueryUnsupported, WorkflowMessages.SortUnsupported, MessageArguments.Of(("field", sort.Field)));
+            }
+
+            sorts.Add(create(field, sort.Descending));
         }
 
-        if (request.Sorts.Count > 1)
-        {
-            return Error.Validation(WorkflowErrors.QueryUnsupported, WorkflowMessages.SortSingle, MessageArguments.Of(("field", request.Sorts[1].Field)));
-        }
-
-        var sort = request.Sorts[0];
-        return fields.TryGetValue(sort.Field, out var field)
-            ? Maybe.Some(new SortChoice<TField>(field, sort.Descending))
-            : Error.Validation(WorkflowErrors.QueryUnsupported, WorkflowMessages.SortUnsupported, MessageArguments.Of(("field", sort.Field)));
+        return sorts;
     }
 
     private static Result RequireNoSort(PageRequest request)
@@ -273,7 +264,4 @@ public static class WorkflowQueryMapping
 
     private static bool TryParseTime(string value, out DateTimeOffset time)
         => DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out time);
-
-    private readonly record struct SortChoice<TField>(TField Field, bool Descending)
-        where TField : struct, Enum;
 }

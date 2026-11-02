@@ -58,7 +58,7 @@ function isRunning(row: WorkflowInstanceRow) {
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用。
-// 照 4.x 五列可排序，一次一列（框架只有一个排序字段），不排序时创建时间降序；关键字匹配实例名称（标题）与关联 ID
+// 照 4.x 五列可排序、可 Shift 追加次级排序，不排序时创建时间降序；关键字匹配实例名称（标题）与关联 ID
 const asRow = (row: object) => row as WorkflowInstanceRow
 
 const fields = computed<ListFieldSchema[]>(() => [
