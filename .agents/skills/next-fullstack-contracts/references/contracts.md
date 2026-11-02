@@ -54,7 +54,7 @@
 ## 实时
 
 - Hub 路径与推送方法名由 `contracts export` 另出 `realtime.json`，前端生成 `packages/contracts/realtime.ts`；载荷是各包自己的 record，按包的源生成上下文序列化。
-- 推送经 `IRealtimePush` 按受众（会话、某侧用户、所有侧用户、某侧全部）发出，在调用提交后才发；目前只在本实例内，配了 Redis 时接 SignalR 背板排在 N3 第二批。
+- 推送经 `IRealtimePush` 按 Hub 路径与受众（会话、某侧用户、所有侧用户、某侧全部）发出，在调用提交后才发（瞬时事件用 `SendNowAsync`，只能在事务之外）；配了 Redis 时经 SignalR 背板跨实例，没配只在本实例内。
 
 ## 导出与生成
 

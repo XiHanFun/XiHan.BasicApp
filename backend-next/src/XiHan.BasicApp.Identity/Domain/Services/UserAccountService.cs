@@ -215,7 +215,7 @@ public sealed class UserAccountService
         if (_push is not null)
         {
             var ids = sessions.Select(static s => s.Id).ToList();
-            await _push.SendAsync(RealtimeAudience.Sessions(ids), RealtimeMethods.ForceLogout, new ForceLogoutPayload(message, ids), IdentityJsonContext.Default.ForceLogoutPayload, cancellationToken).ConfigureAwait(false);
+            await _push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.Sessions(ids), RealtimeMethods.ForceLogout, new ForceLogoutPayload(message, ids), IdentityJsonContext.Default.ForceLogoutPayload, cancellationToken).ConfigureAwait(false);
             await _push.DisconnectAsync(ids, cancellationToken).ConfigureAwait(false);
         }
 

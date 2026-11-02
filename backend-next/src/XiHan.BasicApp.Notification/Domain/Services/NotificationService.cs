@@ -617,6 +617,6 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             _ => "Info",
         };
         var payload = new NotificationPushPayload(tone, notification.Title, notification.Content, notification.ContentFormat, notification.Id, notification.NotificationType, UserNotificationStatus.Unread, notification.PublishedAt ?? clock.GetUtcNow());
-        await _push.SendAsync(RealtimeAudience.UsersIn(SideRows.SideOf(context), users), RealtimeMethods.ReceiveNotification, payload, NotificationJsonContext.Default.NotificationPushPayload, context.CancellationToken).ConfigureAwait(false);
+        await _push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(SideRows.SideOf(context), users), RealtimeMethods.ReceiveNotification, payload, NotificationJsonContext.Default.NotificationPushPayload, context.CancellationToken).ConfigureAwait(false);
     }
 }

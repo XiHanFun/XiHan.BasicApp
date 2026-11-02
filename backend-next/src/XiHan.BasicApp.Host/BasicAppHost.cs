@@ -113,7 +113,8 @@ public static class BasicAppHost
             .UseFeature<FilesFeature>()
             .UseFeature<NotificationFeature>()
             .UseFeature<AuditingFeature>()
-            .UseFeature<RealtimeFeature>()
+            // 配了 Redis 即跨实例：SignalR 背板、共享的在线登记、广播断开连接（方案 N3 第二批）
+            .UseFeature(new RealtimeFeature(scaleOut: providers.Redis))
             .UseFeature<MaintenanceFeature>()
             .UseFeature<OpenPlatformFeature>();
             if (providers.Redis)

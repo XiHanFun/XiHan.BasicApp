@@ -70,7 +70,7 @@ public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings
         foreach (var push in pushes)
         {
             var changed = new UserSettingChangedPayload(scene, key, setting.Value, request.ClientId, request.Origin);
-            await push.SendAsync(RealtimeAudience.Users([userId]), RealtimeMethods.UserSettingChanged, changed, IdentityJsonContext.Default.UserSettingChangedPayload, context.CancellationToken).ConfigureAwait(false);
+            await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.Users([userId]), RealtimeMethods.UserSettingChanged, changed, IdentityJsonContext.Default.UserSettingChangedPayload, context.CancellationToken).ConfigureAwait(false);
         }
 
         return new UserSettingResponse(scene, key, setting.Value, setting.ModifiedAt ?? setting.CreatedAt);

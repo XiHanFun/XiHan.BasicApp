@@ -4,48 +4,53 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Contracts.Realtime;
+using XiHan.BasicApp.Realtime.Handlers;
+using XiHan.Framework.Messaging.Abstractions.Envelopes;
+using XiHan.Framework.Messaging.Abstractions.Publishing;
+using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// <see cref="IRealtimePush"/> 的实现（作用域），调用成功提交后才发出推送。
+/// <see cref="IRealtimePush"/> 的实现（作用域）。
 /// </summary>
 /// <remarks>
 /// 调用管道里由 <see cref="Middleware.RealtimeDispatchMiddleware"/> 开一层暂存，
 /// 推送先记进当前层，调用成功提交后并入外层或发出，失败即丢弃；不在管道里立即发出。发送失败只记日志，不影响已经提交的调用。
+/// 断开连接：本实例上的连接直接移出并断开；配了 Redis 时别的实例登记的连接经背板移出全部组；再经消息代理广播，由各实例断开自己的连接。
 /// </remarks>
-/// <param name="hub">通知 Hub 的上下文。</param>
-/// <param name="registry">连接登记（按会话断开）。</param>
+/// <param name="hubs">Hub 登记表。</param>
+/// <param name="closer">移出与断开连接。</param>
+/// <param name="node">本实例的标识。</param>
+/// <param name="services">当前作用域（取工作单元、发布者与在线登记板）。</param>
 /// <param name="logger">日志。</param>
-internal sealed partial class RealtimeOutbox(IHubContext<NotificationHub> hub, ConnectionRegistry registry, ILogger<RealtimeOutbox> logger) : IRealtimePush
+internal sealed partial class RealtimeOutbox(RealtimeHubCatalog hubs, ConnectionCloser closer, RealtimeNode node, IServiceProvider services, ILogger<RealtimeOutbox> logger) : IRealtimePush
 {
-    /// <summary>
-    /// 断开前的宽限。
-    /// </summary>
-    /// <remarks>
-    /// 先发出的 ForceLogout 还在连接的发送缓冲里（长轮询要等下一次轮询取走），立即断开会把它丢掉。
-    /// </remarks>
-    private static readonly TimeSpan _disconnectGrace = TimeSpan.FromSeconds(2);
-
     private readonly Stack<List<Func<Task>>> _frames = new();
 
     /// <inheritdoc />
-    public ValueTask SendAsync<T>(RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(audience);
-        ArgumentException.ThrowIfNullOrWhiteSpace(method);
-        ArgumentNullException.ThrowIfNull(payloadInfo);
-        if (audience.IsEmpty)
+        var send = Prepare(hub, audience, method, payload, payloadInfo);
+        return send is null ? ValueTask.CompletedTask : EnqueueAsync(send, method);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask SendNowAsync<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
+    {
+        if (services.GetService<IUnitOfWork>() is { State: UnitOfWorkState.Active })
         {
-            return ValueTask.CompletedTask;
+            throw new InvalidOperationException($"Realtime push '{method}' is sent immediately and cannot be used inside a transaction; use SendAsync so it follows the commit.");
         }
 
-        // 记下时就序列化：载荷是调用此刻的状态，不随之后的修改变化
-        var element = JsonSerializer.SerializeToElement(payload, payloadInfo);
-        var clients = ClientsOf(audience);
-        return EnqueueAsync(() => clients.SendAsync(method, element, CancellationToken.None), method);
+        var send = Prepare(hub, audience, method, payload, payloadInfo);
+        if (send is not null)
+        {
+            await RunAsync(send, method).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc />
@@ -57,22 +62,31 @@ internal sealed partial class RealtimeOutbox(IHubContext<NotificationHub> hub, C
             return ValueTask.CompletedTask;
         }
 
-        var targets = sessionIds.ToArray();
+        var targets = sessionIds.Distinct().ToArray();
         return EnqueueAsync(async () =>
         {
-            var connections = registry.OfSessions(targets);
-            // 先移出全部组：之后的推送不再送到这些连接；宽限之后再断开
-            foreach (var connection in connections)
+            await closer.CloseLocalAsync(targets).ConfigureAwait(false);
+            if (services.GetService<PresenceBoard>() is { } board)
             {
-                foreach (var group in RealtimeGroups.Of(connection.SessionId, connection.UserId, connection.Side))
+                // 别的实例上的连接：经背板移出全部组，之后的推送不再送到；断开由它们自己的实例收到广播后做
+                var wanted = targets.ToHashSet();
+                foreach (var entry in (await board.OthersAsync(CancellationToken.None).ConfigureAwait(false)).Where(e => wanted.Contains(e.SessionId)))
                 {
-                    await hub.Groups.RemoveFromGroupAsync(connection.ConnectionId, group, CancellationToken.None).ConfigureAwait(false);
+                    await closer.RemoveFromGroupsAsync(entry.Hub, entry.ConnectionId, [.. RealtimeGroups.Of(entry.SessionId, entry.UserId, entry.Side), .. entry.Groups]).ConfigureAwait(false);
                 }
             }
 
-            if (connections.Count > 0)
+            var envelope = new MessageEnvelope
             {
-                _ = AbortLaterAsync(connections);
+                Id = Guid.NewGuid().ToString("N"),
+                Source = DisconnectHandler.SourceOf(node),
+                Type = DisconnectHandler.Topic,
+                Data = JsonSerializer.SerializeToUtf8Bytes(new DisconnectRequest(targets), RealtimeJsonContext.Default.DisconnectRequest),
+            };
+            var published = await services.GetRequiredService<IMessagePublisher>().PublishAsync(DisconnectHandler.Topic, envelope, CancellationToken.None).ConfigureAwait(false);
+            if (published.IsFailure)
+            {
+                LogBroadcastFailed(logger, published.Error!.Code);
             }
         }, "disconnect");
     }
@@ -105,21 +119,31 @@ internal sealed partial class RealtimeOutbox(IHubContext<NotificationHub> hub, C
         }
     }
 
-    private static async Task AbortLaterAsync(IReadOnlyList<RealtimeConnection> connections)
+    private Func<Task>? Prepare<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo)
     {
-        await Task.Delay(_disconnectGrace).ConfigureAwait(false);
-        foreach (var connection in connections)
+        ArgumentException.ThrowIfNullOrWhiteSpace(hub);
+        ArgumentNullException.ThrowIfNull(audience);
+        ArgumentException.ThrowIfNullOrWhiteSpace(method);
+        ArgumentNullException.ThrowIfNull(payloadInfo);
+        // 没登记的 Hub 在调用里就抛出，而不是等到提交之后
+        var context = hubs.ContextOf(hub, services);
+        if (audience.IsEmpty)
         {
-            connection.Caller.Abort();
+            return null;
         }
+
+        // 记下时就序列化：载荷是调用此刻的状态，不随之后的修改变化
+        var element = JsonSerializer.SerializeToElement(payload, payloadInfo);
+        var clients = ClientsOf(context.Clients, audience);
+        return () => clients.SendAsync(method, element, CancellationToken.None);
     }
 
-    private IClientProxy ClientsOf(RealtimeAudience audience) => audience.Kind switch
+    private static IClientProxy ClientsOf(IHubClients clients, RealtimeAudience audience) => audience.Kind switch
     {
-        RealtimeAudienceKind.Sessions => hub.Clients.Groups(audience.Ids.Select(RealtimeGroups.Session).ToList()),
-        RealtimeAudienceKind.UsersInSide => hub.Clients.Groups(audience.Ids.Select(id => RealtimeGroups.UserIn(audience.SideId!, id)).ToList()),
-        RealtimeAudienceKind.Users => hub.Clients.Groups(audience.Ids.Select(RealtimeGroups.User).ToList()),
-        RealtimeAudienceKind.Side => hub.Clients.Group(RealtimeGroups.Side(audience.SideId!)),
+        RealtimeAudienceKind.Sessions => clients.Groups(audience.Ids.Select(RealtimeGroups.Session).ToList()),
+        RealtimeAudienceKind.UsersInSide => clients.Groups(audience.Ids.Select(id => RealtimeGroups.UserIn(audience.SideId!, id)).ToList()),
+        RealtimeAudienceKind.Users => clients.Groups(audience.Ids.Select(RealtimeGroups.User).ToList()),
+        RealtimeAudienceKind.Side => clients.Group(RealtimeGroups.Side(audience.SideId!)),
         _ => throw new ArgumentOutOfRangeException(nameof(audience), audience.Kind, "Unknown realtime audience."),
     };
 
@@ -150,4 +174,7 @@ internal sealed partial class RealtimeOutbox(IHubContext<NotificationHub> hub, C
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Realtime push '{What}' failed.")]
     private static partial void LogSendFailed(ILogger logger, string what, Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Broadcasting the realtime disconnect failed ({Code}); connections on other instances stay until their clients log out.")]
+    private static partial void LogBroadcastFailed(ILogger logger, string code);
 }

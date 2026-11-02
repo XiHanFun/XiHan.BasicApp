@@ -21,7 +21,7 @@
 
 - 健康项由各 Provider 自带（框架 ADR-0030），BasicApp 不另写：数据库、租户目录、授予、审计、调度、对象存储命名实例、IP 归属地、数据库译文，以及配了才有的 `caching.redis.connection` / `messaging.rabbitmq.connection`。端点 `/health/startup`、`/health/ready`、`/health/live`，不经维护模式拦截。
 - 配了而连不上的 Provider 启动即失败；运行中断开记 Degraded、应用照常服务。不改失败等级、不加内存兜底来掩盖不可用。
-- 实时推送与在线状态目前只在本实例（配了 Redis 即跨实例排在 N3 第二批）；多实例部署时缓存与消息靠 Redis / RabbitMQ，数据保护密钥目录必须共享。
+- 实时推送与在线状态配了 Redis 即跨实例（强制下线要立刻断开别的实例上的连接还要 RabbitMQ），没配只在本实例；多实例部署时缓存与消息靠 Redis / RabbitMQ，数据保护密钥目录必须共享。
 
 ## 表结构与种子
 

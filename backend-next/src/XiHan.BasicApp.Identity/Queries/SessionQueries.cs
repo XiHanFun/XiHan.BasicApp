@@ -95,7 +95,7 @@ public sealed class SessionQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IR
         var users = userIds.Count == 0
             ? []
             : (await unitOfWork.ConnectionFor(typeof(SysUser)).Queryable<SysUser>().Where(u => userIds.Contains(u.Id)).ToListAsync(context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
-        var online = _presence?.ConnectedSessions(rows.Select(static s => s.Id)) ?? new HashSet<Guid>();
+        IReadOnlySet<Guid> online = _presence is null ? new HashSet<Guid>() : await _presence.ConnectedSessionsAsync(rows.Select(static s => s.Id).ToList(), context.CancellationToken).ConfigureAwait(false);
         var current = CurrentSessionOf(context);
         var items = rows.Select(s =>
         {
@@ -128,7 +128,8 @@ public sealed class SessionQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IR
         var query = await ActiveAsync(context).ConfigureAwait(false);
         var owners = await query.Select(static s => s.UserId).ToListAsync(context.CancellationToken).ConfigureAwait(false);
         var side = context.GetSecurity().Tenant?.Id ?? TenantIds.Platform;
-        return new SessionSummaryResponse(owners.Count, owners.Distinct().Count(), _presence?.ConnectedUsers(side) ?? 0);
+        var realtime = _presence is null ? 0 : await _presence.ConnectedUsersAsync(side, context.CancellationToken).ConfigureAwait(false);
+        return new SessionSummaryResponse(owners.Count, owners.Distinct().Count(), realtime);
     }
 
     /// <summary>

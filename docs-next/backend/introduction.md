@@ -106,7 +106,7 @@ builder.AddXiHan(xihan =>
 });
 ```
 
-`UseFullProfile()` 带来 HTTP / gRPC / MCP / CloudEvents 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。Redis 与 RabbitMQ 由 `HostProviders` 按配置决定：配了连接才装，没配即进程内实现、单机零外部依赖（见[配置参考](../configuration#分布式缓存与消息)）；实时推送要到 N3 接上 Redis 背板才跨实例（见[部署](../deployment#多实例部署)）。
+`UseFullProfile()` 带来 HTTP / gRPC / MCP / CloudEvents 协议、文件系统对象存储、内存缓存与消息、OpenTelemetry；再 `UseFeature` 一个显式 Provider 即顶替对应的缺省实现。Redis 与 RabbitMQ 由 `HostProviders` 按配置决定：配了连接才装，没配即进程内实现、单机零外部依赖（见[配置参考](../configuration#分布式缓存与消息)）；配了 Redis 时实时推送也跨实例（见[部署](../deployment#多实例部署)）。
 
 随后映射端点：
 

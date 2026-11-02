@@ -14,6 +14,11 @@ public static class RealtimeHubs
     public const string Notification = "/hubs/notification";
 
     /// <summary>
+    /// 聊天 Hub：消息、撤回、会话变更、正在输入等经它推送（Chat 包登记并映射）。
+    /// </summary>
+    public const string Chat = "/hubs/chat";
+
+    /// <summary>
     /// 全部 Hub 的路径前缀。
     /// </summary>
     /// <remarks>

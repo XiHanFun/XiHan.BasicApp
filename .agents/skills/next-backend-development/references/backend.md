@@ -52,7 +52,7 @@ src/XiHan.BasicApp.<包>/
 
 - 共享缓存用 `ISharedCache`，键前缀在包里 `AddCacheNamespace` 登记。宿主配了 Redis（绑定 `cache`）就是 Redis，值要能按 JSON 往返；Access 等包把缓存值存成字符串，新写的缓存照此做。
 - 读穿缓存的失效写 `CacheInvalidation.RemoveAsync(cache, key, ct)`（批量 `RemoveManyAsync`，Runtime）：调用里只记下，`CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键。直接 `cache.RemoveAsync` / `RemoveManyAsync` 会在提交前删，同一请求或并发请求未命中时经 `StoreScope` 读不到未提交的行、把旧数据写回缓存，变更要等缓存过期才生效；进程内缓存的测试若靠 `ManualClock` 拨钟让条目过期会掩盖它，要写不拨钟、改完立刻请求的用例。只有并发窗口、同一请求里没有再读的，用 `server.InvokeAsync` 在一次调用里执行真实操作、提交前插一次读（`AuthFlowTests.Sessions_Revoke_IsNotUndoneByACheckBeforeCommit`）。
-- 宿主的分布式 Provider 由 `HostProviders` 按配置装配（Redis + Hybrid、RabbitMQ），`DatabaseLocalizationFeature` 常装；实时推送目前是进程内的，配了 Redis 时接 SignalR 背板排在 N3 第二批。
+- 宿主的分布式 Provider 由 `HostProviders` 按配置装配（Redis + Hybrid、RabbitMQ），`DatabaseLocalizationFeature` 常装；Realtime 由宿主按是否配了 Redis 以 `scaleOut` 装配（SignalR Redis 背板、在线状态存共享缓存、断开连接广播）。各包的 Hub 继承 `RealtimeHub` 并 `AddRealtimeHub<THub>(路径)` 登记，推送 `IRealtimePush.SendAsync(hub, …)` 随提交发出，瞬时事件用 `SendNowAsync`（事务里调用即抛出）。
 - 同阶段中间件按清单 ID 字典序排，跨包依赖要 `context.Pipeline.After<Mine, Theirs>()` 并在清单 `PipelineContribution.After` 同步声明。
 - 后台循环开平台调用前等 `app.State.IsServing()`。
 

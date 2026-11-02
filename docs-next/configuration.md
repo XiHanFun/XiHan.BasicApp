@@ -84,11 +84,11 @@
 | `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>` 并以同名路由键绑定到交换机；没人订阅的主题发布即丢弃（记 Debug 日志），不堆积 |
 | `RabbitMQ:PrefetchCount` | `16` | 每个主题的预取条数 |
 | `RabbitMQ:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔 |
-| `InstanceId` | 每次启动随机 | 本实例在消息里的标识：1–64 个字母、数字或 `._-`，字母或数字开头，不合文法即启动失败；配了就必须每个实例各不相同（多副本可设成 Pod 名）。6.0 各包目前没有广播订阅，不配即可 |
+| `InstanceId` | 每次启动随机 | 本实例在消息里的标识：1–64 个字母、数字或 `._-`，字母或数字开头，不合文法即启动失败；配了就必须每个实例各不相同（多副本可设成 Pod 名）。Realtime 的断开连接是广播订阅，RabbitMQ 上按它给每个实例建自己的队列；不配即可 |
 | `MaxAttempts` | `3` | 处理失败的重试次数，用完进死信队列 |
 | `Outbox:PollIntervalSeconds` / `Outbox:MaxAttempts` | `1` / `10` | 发件箱的轮询间隔与派发尝试上限 |
 
-6.0 各包目前没有登记领域事件与消息处理器（见[实体与领域事件](./backend/entity)），RabbitMQ 先承接框架的发件箱与 CloudEvents；邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
+6.0 目前的消息处理器只有 Realtime 断开连接的广播订阅，各包还没有登记领域事件（见[实体与领域事件](./backend/entity)），RabbitMQ 承接它、框架的发件箱与 CloudEvents；邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
 
 ## `XiHan:Persistence:SqlSugar`
 

@@ -4,6 +4,11 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### N3 第二批：实时推送跨实例（2026-11-01）
+
+- 配了 Redis（绑定 `cache`）时实时推送跨实例：SignalR 接 Redis 背板，在线状态汇总各实例写进共享缓存的连接，强制下线时别的实例上的连接被移出全部组；再配了 RabbitMQ 时还由所在实例断开。不配 Redis 仍全部在本实例内。见[实时推送](./backend/realtime#跨实例)。
+- 各包的 Hub 继承 `RealtimeHub`、经 `AddRealtimeHub` 登记，由宿主统一映射；推送按 Hub 路径发出，另有事务之外的立即推送 `SendNowAsync`。
+
 ### 存储配置的条件写入开关（2026-11-01）
 
 - S3 兼容存储配置加「条件写入」开关（缺省开）：关掉后第一次用到时不再探测 `If-None-Match`，上传与分片上传直接写入（对象键带新文件的 ID，不会覆盖），不认条件写入的服务（如 Garage、Zenko CloudServer，OSS / COS 还没验证）也能用。见[文件与存储](./backend/file#存储配置)。
