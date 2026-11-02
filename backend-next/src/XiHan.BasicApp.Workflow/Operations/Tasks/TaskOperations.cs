@@ -152,7 +152,7 @@ public sealed class CompleteTask(WorkflowOwnTasks own, IWorkflowTaskService task
         }
 
         await records.AppendAsync(task.Caller.Side, task.Snapshot, [task.Caller.UserId!.Value], WorkflowTaskRecordAction.Completed, outcome, request.Comment, null, context.CancellationToken).ConfigureAwait(false);
-        return new WorkflowTaskActionResponse(WorkflowIds.ToContract(after.Id), after.Status, after.Status == WorkflowInstanceStatus.Faulted ? after.Fault?.Message : null);
+        return new WorkflowTaskActionResponse(WorkflowIds.ToContract(after.Id), after.Status, after.Status == WorkflowInstanceStatus.Faulted ? after.Fault?.Localize() : null);
     }
 }
 

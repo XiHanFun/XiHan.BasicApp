@@ -193,7 +193,11 @@ public sealed class PermissionRequestsTests : IDisposable
         await using (server)
         {
             var target = await RoleAsync(server, platform, "auditors", ["identity.users.read"]);
-            Assert.Equal((HttpStatusCode.Conflict, "WORKFLOW_CONFLICT_101"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = target, reason = "Nobody approves" }), platform)));
+            var (faulted, faultedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/permission-requests", Json(new { roleId = target, reason = "Nobody approves" }), platform, "zh-CN"));
+            Assert.Equal((HttpStatusCode.Conflict, "WORKFLOW_CONFLICT_101"), (faulted.StatusCode, faultedBody.GetProperty("code").GetString()));
+
+            // 中文调用方看到的发起失败原因是中文（框架把引擎的故障原因存成消息键，ADR-0105）
+            Assert.Equal("审批流程发起即故障：用户任务 'admin-approve' 没有解析出指派人。", faultedBody.GetProperty("detail").GetString());
             Assert.Empty(await ListAsync(server, "permission-requests", platform));
             Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_051"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { reason = "Nothing" }), platform)));
             Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_052"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { permissionCode = "nothing.here.read", reason = "Unknown" }), platform)));

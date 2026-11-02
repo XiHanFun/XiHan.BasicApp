@@ -221,10 +221,12 @@ public sealed class TaskTransferredHandler(WorkflowNotifier notifier, WorkflowTe
 /// </summary>
 /// <remarks>
 /// 订阅 <see cref="WorkflowTopics.InstanceFaulted"/>。照 4.x 的 <c>WorkflowInstanceFaultedNotificationHandler</c>：只通知发起人，链接到「我发起的」。
+/// 故障原因是消息键与参数（框架 ADR-0105），在收件人的区域里装上消息作用域再本地化，与通知的其余文案同一种语言；升级前写入的故障没有键，照旧是原文。
 /// </remarks>
 /// <param name="notifier">去重与投递。</param>
 /// <param name="texts">文案。</param>
-public sealed class InstanceFaultedHandler(WorkflowNotifier notifier, WorkflowTexts texts) : IMessageHandler
+/// <param name="resolver">消息解析（故障原因按区域本地化）。</param>
+public sealed class InstanceFaultedHandler(WorkflowNotifier notifier, WorkflowTexts texts, IMessageResolver resolver) : IMessageHandler
 {
     /// <inheritdoc />
     public async ValueTask<Result> HandleAsync(MessageDelivery delivery, InvocationContext context, CancellationToken cancellationToken)
@@ -246,9 +248,13 @@ public sealed class InstanceFaultedHandler(WorkflowNotifier notifier, WorkflowTe
         await notifier.DeliverAsync(
             context,
             [starter],
-            locale => (
-                texts.Render(locale, WorkflowMessages.NotifyFaultTitle, ("instance", instance)),
-                texts.Render(locale, WorkflowMessages.NotifyFaultContent, ("instance", instance), ("reason", data.Fault?.Message ?? string.Empty))),
+            locale =>
+            {
+                using var scope = MessageScope.Use(resolver, locale);
+                return (
+                    texts.Render(locale, WorkflowMessages.NotifyFaultTitle, ("instance", instance)),
+                    texts.Render(locale, WorkflowMessages.NotifyFaultContent, ("instance", instance), ("reason", data.Fault?.Localize() ?? string.Empty)));
+            },
             WorkflowNotifier.StartedLink,
             WorkflowIds.ToContract(data.InstanceId)).ConfigureAwait(false);
         return Result.Success();

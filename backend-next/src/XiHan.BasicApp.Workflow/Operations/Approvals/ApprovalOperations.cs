@@ -155,7 +155,7 @@ public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskSe
                 registry.Find(instance.DefinitionName.Value)?.Descriptor.NameKey,
                 instance.CreatedAt,
                 instance.EndedAt,
-                instance.Fault?.Message,
+                instance.Fault?.Localize(),
                 nodeNames,
                 waiting.Select(static t => t.AssigneeId).Distinct(StringComparer.Ordinal).Select(id => names.GetValueOrDefault(id) ?? id).ToList()));
         }
@@ -261,7 +261,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
             instance.CreatedAt,
             instance.StartedAt,
             instance.EndedAt,
-            instance.Fault?.Message,
+            instance.Fault?.Localize(),
             instance.CancellationReason,
             me is not null && string.Equals(instance.StarterId, me, StringComparison.Ordinal) && instance.ParentInstanceId is null
                 && instance.Status is WorkflowInstanceStatus.Running or WorkflowInstanceStatus.Suspended or WorkflowInstanceStatus.Faulted,
@@ -383,7 +383,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
         timeline.AddRange(events.OrderBy(static e => e.Time));
         if (instance.IsFinal)
         {
-            timeline.Add(new(WorkflowApprovalTimelineKind.Finished, null, null, null, null, instance.Outcome, instance.Status == WorkflowInstanceStatus.Faulted ? instance.Fault?.Message : instance.CancellationReason, [], instance.Status, instance.EndedAt));
+            timeline.Add(new(WorkflowApprovalTimelineKind.Finished, null, null, null, null, instance.Outcome, instance.Status == WorkflowInstanceStatus.Faulted ? instance.Fault?.Localize() : instance.CancellationReason, [], instance.Status, instance.EndedAt));
         }
 
         foreach (var task in pending.OrderBy(static t => t.CreatedAt))

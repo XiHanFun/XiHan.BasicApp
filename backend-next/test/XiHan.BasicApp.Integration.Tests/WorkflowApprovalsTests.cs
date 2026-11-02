@@ -334,6 +334,37 @@ public sealed class WorkflowApprovalsTests : IDisposable
         return (response.StatusCode, json);
     }
 
+    [Fact]
+    public async Task Faults_AreLocalized_ForTheCallerAndTheRecipient()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 受理角色没有成员：发起即故障，框架把原因存成消息键与参数（ADR-0105），读的时候按读取方的区域本地化
+        var faulting = Approval
+            .Replace("\"type\": \"User\", \"values\": [\"ASSIGNEE\"]", "\"type\": \"Role\", \"values\": [\"nobody\"]", StringComparison.Ordinal)
+            .Replace("\"CcUserIds\": [\"CC\"], ", string.Empty, StringComparison.Ordinal)
+            .Replace("tests-business", "tests-faulting", StringComparison.Ordinal);
+        var (_, draft) = await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions", Json(new { document = faulting }), platform);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/workflow-definitions/{draft.GetProperty("id").GetString()}:publish", "{}", platform)).Status);
+
+        // 发起人在偏好里存了日文：故障通知按收件人的语言
+        var (saved, _) = await SendAsync(server, HttpMethod.Put, "/api/user-settings", Json(new { scene = "Preference", key = "global", value = """{"xihan_locale":"ja-JP"}""", clientId = "tests" }), platform);
+        Assert.Equal(HttpStatusCode.OK, saved);
+
+        // 中文调用方看到中文的原因，英文读取方看到英文
+        var (started, instance) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/workflow-instances:start", Json(new { name = "tests-faulting" }), platform, "zh-CN"));
+        Assert.Equal(HttpStatusCode.OK, started.StatusCode);
+        Assert.Equal(("Faulted", "用户任务 'approve' 没有解析出指派人。"), (instance.GetProperty("status").GetString(), instance.GetProperty("faultMessage").GetString()));
+        var (_, english) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/workflow-instances/{instance.GetProperty("id").GetString()}", token: platform, acceptLanguage: "en-US"));
+        Assert.Equal("User task 'approve' resolved no assignee.", english.GetProperty("instance").GetProperty("faultMessage").GetString());
+
+        await EventuallyAsync(async () => (await InboxAsync(server, platform)).Any(static i => i.GetProperty("link").GetString() == "/workflow/approvals?tab=started"));
+        var notice = (await InboxAsync(server, platform)).Single(static i => i.GetProperty("link").GetString() == "/workflow/approvals?tab=started");
+        Assert.StartsWith("ワークフロー障害：", notice.GetProperty("title").GetString(), StringComparison.Ordinal);
+        Assert.EndsWith("：ユーザータスク 'approve' の担当者を解決できませんでした。", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
+    }
+
     private static async Task<List<JsonElement>> ListAsync(BasicAppTestServer server, string resource, string token, string body = """{"page":{"index":1,"size":50}}""", string suffix = "list")
     {
         var (response, json) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/{resource}:{suffix}", body, token));

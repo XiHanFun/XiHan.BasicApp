@@ -69,7 +69,7 @@ public sealed record WorkflowInstanceResponse(
             instance.CreatedAt,
             instance.EndedAt,
             instance.Outcome,
-            instance.Fault?.Message);
+            instance.Fault?.Localize());
     }
 }
 
@@ -113,7 +113,7 @@ public sealed record WorkflowNodeInstanceResponse(Guid Id, string NodeId, string
     public static WorkflowNodeInstanceResponse From(WorkflowNodeInstance node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        return new(WorkflowIds.ToContract(node.Id), node.NodeId, node.ActivityType.Value, node.Status, node.Attempt, node.StartedAt, node.EndedAt, node.Fault?.Message);
+        return new(WorkflowIds.ToContract(node.Id), node.NodeId, node.ActivityType.Value, node.Status, node.Attempt, node.StartedAt, node.EndedAt, node.Fault?.Localize());
     }
 }
 

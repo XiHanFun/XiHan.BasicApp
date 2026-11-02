@@ -72,7 +72,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
         // 发起即故障（如首个审批节点解析不到人）：整单失败，调用方随之回滚
         if (instance.Status == WorkflowInstanceStatus.Faulted)
         {
-            return Error.Conflict(WorkflowErrors.StartFaulted, WorkflowMessages.StartFaulted, MessageArguments.Of(("reason", instance.Fault?.Message ?? string.Empty)));
+            return Error.Conflict(WorkflowErrors.StartFaulted, WorkflowMessages.StartFaulted, MessageArguments.Of(("reason", instance.Fault?.Localize() ?? string.Empty)));
         }
 
         return new WorkflowBusinessStartResult(WorkflowIds.ToContract(instance.Id), WorkflowBusinessStatuses.Of(instance.Status), instance.Outcome);
@@ -201,7 +201,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
                 instance.Outcome,
                 nodeNames,
                 assignees,
-                instance.Fault?.Message,
+                instance.Fault?.Localize(),
                 instance.StartedAt ?? instance.CreatedAt,
                 instance.EndedAt);
         }
