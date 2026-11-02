@@ -113,7 +113,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     /// 租约的每一步自己提交，与业务事务不在一起：SQLite 只有一个写者，租约表与业务表同库时自己等自己直到 <c>WORKFLOW_TIMEOUT_001</c>。
     /// 照框架的选项把租约表放进同目录的另一个库文件（<see cref="SqliteDatabase"/> 清理时一并删掉）；PostgreSQL 不用配。
     /// </remarks>
-    internal static IEnumerable<KeyValuePair<string, string?>> WorkflowLeases(string connectionString, string provider)
+    private static IEnumerable<KeyValuePair<string, string?>> WorkflowLeases(string connectionString, string provider)
     {
         const string prefix = "Data Source=";
         if (!string.Equals(provider, "sqlite", StringComparison.OrdinalIgnoreCase) || !connectionString.StartsWith(prefix, StringComparison.Ordinal))
