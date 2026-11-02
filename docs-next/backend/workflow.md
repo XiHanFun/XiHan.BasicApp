@@ -20,10 +20,10 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 | --- | --- | --- |
 | `workflow-definitions.list` / `get` | `workflow.workflow-definitions.read` | 列表在库里按关键字（名字、显示名、说明）、名字、分类、状态与创建时间过滤分页，可按状态、名字、显示名、版本、创建时间与发布时间多列排序（排序项依次为主次，同一列只能给一次），缺省名字升序、版本降序；详情带整份 WorkflowJson |
 | `workflow-definitions.create` / `update` | `.create` / `.update` | 以 WorkflowJson 建草稿（版本按同名最大版本加一）、改草稿（名字与版本沿用已存的） |
-| `workflow-definitions.publish` | `.update` | 单条：关联了审批业务的先过业务校验，再由框架做结构校验，问题全部列在 `details.errors`（`WORKFLOW_VALIDATION_001`） |
+| `workflow-definitions.publish` | `.update` | 单条：关联了审批业务的先过业务校验，再由框架做结构校验（`WORKFLOW_VALIDATION_001`）：问题按路径列在字段级 `errors`（键是定义 JSON 里的路径，如 `nodes[2].properties.Cron`、`transitions[0].condition`，定义级的问题是 `nodes`；值按调用方的语言），`detail` 是汇总；设计器按下标标出对应的节点与连线 |
 | `workflow-definitions.new-version` | `.create` | 以某个名字的最新版本为底复制出新草稿 |
 | `workflow-definitions.disable` / `archive` / `delete` | `.update` / `.update` / `.delete` | 批量；停用只对已发布的，删除只删草稿 |
-| `workflow-definitions.business-types` / `activity-types` | `.read` | 已登记的审批业务；设计器可放的活动（不含 Script 与框架 5 新增的事件网关、补偿、外部任务） |
+| `workflow-definitions.business-types` / `activity-types` | `.read` | 已登记的审批业务；设计器可放的活动（不含 Script 与框架 5 新增的事件网关、补偿、外部任务），显示名与分类展示名 `categoryName` 按调用方的语言 |
 
 关联审批业务的定义（名字等于业务码）发布前要满足：每个结束节点都写结论、结论在业务允许的范围里（缺省 `approved` / `rejected`，否则 `WORKFLOW_VALIDATION_101`），不能有终止节点（`WORKFLOW_VALIDATION_102`）。
 
@@ -31,7 +31,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，可按状态、定义名、标题、创建时间与结束时间多列排序，缺省创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
+| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，可按状态、定义名、标题、创建时间与结束时间多列排序，缺省创建时间降序；详情带变量、最近一次错误（出错继续的节点记下的 `lastError`，按调用方的语言）、节点执行历史（带状态展示名）、待恢复的等待与所用的定义 |
 | `workflow-instances.start` | `.execute` | 发起人是调用方；按名字取最新已发布的版本 |
 | `workflow-instances.cancel` / `terminate` / `retry` / `signal` | `.execute` | 取消（启用补偿时逆序补偿）、终止（不补偿）、故障重试、发信号；审批业务的实例先过改动前校验（发信号除外），不过的那一项记失败、不交给引擎 |
 | `workflow-instances.suspend` / `resume` | `.update` | 挂起与恢复 |

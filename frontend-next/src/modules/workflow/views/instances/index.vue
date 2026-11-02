@@ -336,7 +336,7 @@ function onAction(payload: SchemaActionPayload) {
             </XhDescriptionsItem>
           </XhDescriptionsRoot>
           <XhDescriptionsRoot
-            v-if="detailData.instance.faultMessage || detailData.cancellationReason"
+            v-if="detailData.instance.faultMessage || detailData.lastError || detailData.cancellationReason"
             :columns="1"
             variant="outline"
             size="sm"
@@ -345,6 +345,13 @@ function onAction(payload: SchemaActionPayload) {
               <XhDescriptionsLabel>{{ t('workflow.instances.fault_message') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 <span class="text-red-500">{{ detailData.instance.faultMessage }}</span>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <!-- 流程捕获的最近一次错误（变量 lastError）：后端按界面语言给出，不显示变量里进程缺省区域的 message -->
+            <XhDescriptionsItem v-if="detailData.lastError">
+              <XhDescriptionsLabel>{{ t('workflow.instances.last_error') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ detailData.lastError }}
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem v-if="detailData.cancellationReason">
@@ -398,7 +405,7 @@ function onAction(payload: SchemaActionPayload) {
                 <td>
                   <XhTagRoot variant="subtle" :tone="nodeStatusTone(node.status)">
                     <XhTagLabel>
-                      {{ node.status }}
+                      {{ node.statusName }}
                     </XhTagLabel>
                   </XhTagRoot>
                 </td>

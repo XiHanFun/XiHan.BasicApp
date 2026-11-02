@@ -4,8 +4,10 @@
  * - 受理人规则里 BasicApp 注册的类型（角色、部门、岗位、发起人主管等）参数要填全；
  *   框架内置的 User / Expression 由预设检查，这里不重复报。
  * - 关联了审批业务的流程：结束节点要声明业务认可的结果，终止节点让业务得不到结论。
+ * - 发布失败时后端给的逐条问题（见 server-diagnostics.ts）：标在对应的节点与连线上，对象已删掉的不再报。
  */
 
+import type { ServerDiagnostic } from './server-diagnostics'
 import type { FlowDocument, SchemaIssue, SchemaRule } from '~/designers/flow'
 import { isRuleComplete, readRules, RULE_PROPERTY_KEYS } from './assignee-rules'
 
@@ -19,12 +21,17 @@ export const WORKFLOW_ISSUE_KEYS: Readonly<Record<string, string>> = {
   'workflow.business-terminate': 'business_terminate',
 }
 
+/** 后端发布时报的问题：文案已翻译，放在参数 message 里 */
+export const SERVER_DIAGNOSTIC_CODE = 'workflow.server-diagnostic'
+
 /** 预设自己检查的规则类型 */
 const PRESET_RULE_TYPES = new Set(['User', 'Starter', 'Expression'])
 
 export interface WorkflowRuleOptions {
   /** 流程编码对应的审批业务允许的结果；没有关联业务时返回 undefined */
   businessOutcomes: (code: string) => readonly string[] | undefined
+  /** 最近一次发布失败时后端给的问题；没有时返回空 */
+  serverDiagnostics?: () => readonly ServerDiagnostic[]
 }
 
 function nodeIssue(document: FlowDocument, index: number, code: string, severity: 'error' | 'warning'): SchemaIssue {
@@ -61,5 +68,14 @@ export function createWorkflowRules(options: WorkflowRuleOptions): SchemaRule<Fl
     })
   }
 
-  return [assigneeIncomplete, businessOutcomes]
+  const serverIssues: SchemaRule<FlowDocument, unknown> = document => (options.serverDiagnostics?.() ?? []).flatMap((diagnostic): SchemaIssue[] => {
+    const params = { message: diagnostic.message }
+    if (!diagnostic.target)
+      return [{ code: SERVER_DIAGNOSTIC_CODE, path: [], severity: 'error', params }]
+    const { kind, id } = diagnostic.target
+    const index = (kind === 'node' ? document.nodes : document.edges).findIndex(item => item.id === id)
+    return index < 0 ? [] : [{ code: SERVER_DIAGNOSTIC_CODE, path: [kind === 'node' ? 'nodes' : 'edges', index], target: { kind, id }, severity: 'error', params }]
+  })
+
+  return [assigneeIncomplete, businessOutcomes, serverIssues]
 }

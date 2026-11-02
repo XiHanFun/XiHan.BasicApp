@@ -4,6 +4,7 @@
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Workflow.Domain.Services;
+using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Instances;
 
 namespace XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
@@ -78,6 +79,7 @@ public sealed record WorkflowInstanceResponse(
 /// </summary>
 /// <param name="Instance">实例。</param>
 /// <param name="Variables">变量（JSON 对象文本）。</param>
+/// <param name="LastError">流程捕获的最近一次错误（变量 <c>lastError</c>，按调用方的区域本地化；变量里的 <c>message</c> 是进程缺省区域的文本，不直接展示）。</param>
 /// <param name="CancellationReason">取消或终止的原因。</param>
 /// <param name="FaultNodeId">故障节点。</param>
 /// <param name="Nodes">节点执行历史（按开始时间）。</param>
@@ -86,6 +88,7 @@ public sealed record WorkflowInstanceResponse(
 public sealed record WorkflowInstanceDetailResponse(
     WorkflowInstanceResponse Instance,
     string Variables,
+    string? LastError,
     string? CancellationReason,
     string? FaultNodeId,
     IReadOnlyList<WorkflowNodeInstanceResponse> Nodes,
@@ -99,11 +102,12 @@ public sealed record WorkflowInstanceDetailResponse(
 /// <param name="NodeId">节点 ID。</param>
 /// <param name="ActivityType">活动类型。</param>
 /// <param name="Status">状态。</param>
+/// <param name="StatusName">状态的展示名（按调用方的区域）。</param>
 /// <param name="Attempt">第几次尝试。</param>
 /// <param name="StartedAt">开始时间。</param>
 /// <param name="EndedAt">结束时间。</param>
 /// <param name="FaultMessage">故障信息。</param>
-public sealed record WorkflowNodeInstanceResponse(Guid Id, string NodeId, string ActivityType, WorkflowNodeInstanceStatus Status, int Attempt, DateTimeOffset StartedAt, DateTimeOffset? EndedAt, string? FaultMessage)
+public sealed record WorkflowNodeInstanceResponse(Guid Id, string NodeId, string ActivityType, WorkflowNodeInstanceStatus Status, string StatusName, int Attempt, DateTimeOffset StartedAt, DateTimeOffset? EndedAt, string? FaultMessage)
 {
     /// <summary>
     /// 从框架的节点实例投影。
@@ -113,7 +117,7 @@ public sealed record WorkflowNodeInstanceResponse(Guid Id, string NodeId, string
     public static WorkflowNodeInstanceResponse From(WorkflowNodeInstance node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        return new(WorkflowIds.ToContract(node.Id), node.NodeId, node.ActivityType.Value, node.Status, node.Attempt, node.StartedAt, node.EndedAt, node.Fault?.Localize());
+        return new(WorkflowIds.ToContract(node.Id), node.NodeId, node.ActivityType.Value, node.Status, node.Status.Localize(), node.Attempt, node.StartedAt, node.EndedAt, node.Fault?.Localize());
     }
 }
 

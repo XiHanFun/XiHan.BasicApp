@@ -256,6 +256,54 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(("/workflow/definitions", "workflow/definitions/index"), (page.GetProperty("route").GetString(), page.GetProperty("component").GetString()));
     }
 
+    [Fact]
+    public async Task Diagnostics_LastError_AndStatusNames_FollowTheCallersLocale()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 发布不合法：Problem Details 的字段级 errors 键是节点与连线的路径，值按调用方的语言（框架 ADR-0106）
+        var broken = Doc("tests-broken", "someone", "rejected").Replace("\"targetNodeId\": \"approve\"", "\"targetNodeId\": \"nowhere\"", StringComparison.Ordinal);
+        var (_, draft) = await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions", Json(new { document = broken }), platform);
+        var (invalid, problem) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/workflow-definitions/{draft.GetProperty("id").GetString()}:publish", "{}", platform, "zh-CN"));
+        Assert.Equal((HttpStatusCode.BadRequest, "WORKFLOW_VALIDATION_001"), (invalid.StatusCode, problem.GetProperty("code").GetString()));
+        Assert.Matches(@"^工作流定义有 \d+ 处问题。$", problem.GetProperty("detail").GetString()!);
+        Assert.Equal("转移 't1' 的目标节点 'nowhere' 不存在。", problem.GetProperty("errors").GetProperty("transitions[0].targetNodeId")[0].GetString());
+
+        // 活动类型目录：显示名与分类展示名按调用方的语言，分类标识照旧
+        var (_, activities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/workflow-definitions:activity-types", token: platform, acceptLanguage: "zh-CN"));
+        var userTask = activities.GetProperty("items").EnumerateArray().Single(static a => a.GetProperty("type").GetString() == "UserTask");
+        Assert.Equal(("用户任务", "Human", "人工"), (userTask.GetProperty("displayName").GetString(), userTask.GetProperty("category").GetString(), userTask.GetProperty("categoryName").GetString()));
+
+        // lastError：出错继续的节点把故障记进变量，详情按调用方的语言给出；节点状态带展示名
+        const string continuing = """
+            {
+              "id": "x", "name": "tests-continue", "displayName": "Continue",
+              "nodes": [
+                { "id": "start", "activityType": "Start" },
+                { "id": "each", "activityType": "ForEach", "continueOnError": true, "properties": { "Items": "3", "DefinitionName": "tests-continue" } },
+                { "id": "errored", "activityType": "End", "properties": { "Outcome": "errored" } },
+                { "id": "fine", "activityType": "End", "properties": { "Outcome": "fine" } }
+              ],
+              "transitions": [
+                { "id": "t1", "sourceNodeId": "start", "targetNodeId": "each" },
+                { "id": "t2", "sourceNodeId": "each", "targetNodeId": "errored", "condition": "outcome == 'error' && lastError.code != null" },
+                { "id": "t3", "sourceNodeId": "each", "targetNodeId": "fine", "isDefault": true }
+              ]
+            }
+            """;
+        var (_, continueDraft) = await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions", Json(new { document = continuing }), platform);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/workflow-definitions/{continueDraft.GetProperty("id").GetString()}:publish", "{}", platform)).Status);
+        var (_, instance) = await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:start", Json(new { name = "tests-continue" }), platform);
+        Assert.Equal(("Completed", "errored"), (instance.GetProperty("status").GetString(), instance.GetProperty("outcome").GetString()));
+        var (_, detail) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/workflow-instances/{instance.GetProperty("id").GetString()}", token: platform, acceptLanguage: "zh-CN"));
+        Assert.Equal("活动属性 'Items' 的求值结果必须是数组。", detail.GetProperty("lastError").GetString());
+        var start = detail.GetProperty("nodes").EnumerateArray().Single(static n => n.GetProperty("nodeId").GetString() == "start");
+        Assert.Equal(("Completed", "已完成"), (start.GetProperty("status").GetString(), start.GetProperty("statusName").GetString()));
+        var (_, english) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/workflow-instances/{instance.GetProperty("id").GetString()}", token: platform, acceptLanguage: "en-US"));
+        Assert.Equal("Activity property 'Items' must evaluate to an array.", english.GetProperty("lastError").GetString());
+    }
+
     private static string Doc(string name, string assignee, string rejectedOutcome)
         => Approval.Replace("NAME", name, StringComparison.Ordinal).Replace("ASSIGNEE", assignee, StringComparison.Ordinal).Replace("OUTCOME", rejectedOutcome, StringComparison.Ordinal);
 

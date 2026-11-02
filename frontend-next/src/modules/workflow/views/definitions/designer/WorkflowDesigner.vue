@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { WorkflowBusinessType } from '../definition-metadata'
+import type { ServerDiagnostic } from './server-diagnostics'
 import type { FlowDesignerEventMap, FlowDocument, XhFlowDesigner } from '~/designers/flow'
 import { computed, getCurrentInstance, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,7 +17,7 @@ import { openDefinition, serializeDefinition } from './definition-codec'
 import { FLOW_DESIGNER_DEFAULT_SETTINGS } from './designer-settings'
 import { createWorkflowExtension } from './workflow-extension'
 import { createWorkflowHostExtension } from './workflow-host-extension'
-import { restrictActivityTypes } from './workflow-palette'
+import { paletteCategoryNames, restrictActivityTypes } from './workflow-palette'
 
 /**
  * 流程定义设计器：XiHan 流程设计器（<xh-flow-designer>）装上工作流引擎预设与 BasicApp 的扩展。
@@ -37,6 +38,8 @@ const props = defineProps<{
    * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿。
    */
   draftKey?: string
+  /** 最近一次发布失败时后端给的问题（见 server-diagnostics.ts），标在对应的节点与连线上 */
+  diagnostics?: readonly ServerDiagnostic[]
 }>()
 
 const emit = defineEmits<{
@@ -67,9 +70,14 @@ void workflowDefinitions.businessTypes({})
 
 /** 后端能跑的活动类型（workflow-definitions.activity-types）：取回之后才挂设计器，物料第一次铺好就是收窄过的 */
 const activityTypes = shallowRef<ReadonlySet<string>>()
+/** 物料分组的展示名取后端目录里的分类展示名（已按界面语言翻译）；目录里没有的分组沿用预设的文案 */
+const categoryNames = shallowRef<Record<string, string>>({})
 const activityTypesReady = ref(false)
 void workflowDefinitions.activityTypes({})
-  .then(({ items }) => { activityTypes.value = new Set(items.map(item => item.type)) })
+  .then(({ items }) => {
+    activityTypes.value = new Set(items.map(item => item.type))
+    categoryNames.value = paletteCategoryNames(items)
+  })
   .catch((error: unknown) => { toast.danger((error as Error)?.message || t('workflow.designer.err_activity_types')) })
   .finally(() => { activityTypesReady.value = true })
 // 每次打开设计器刷新一次角色/岗位/部门清单（多个规则编辑器共用）
@@ -87,11 +95,13 @@ const preset = computed(() => restrictActivityTypes(createXihanWorkflow({ texts:
 /** 审批业务清单到达后重建一次：规则按关联的业务检查结束节点，新的扩展对象让设计器重新校验 */
 const workflowExtension = computed(() => {
   void businessTypes.value
+  const diagnostics = props.diagnostics ?? []
   return createWorkflowExtension({
     appContext,
     businessTypes: () => businessTypes.value,
     document: () => schema.value,
     t: (key, params) => params ? t(key, params) : t(key),
+    serverDiagnostics: () => diagnostics,
   })
 })
 
@@ -109,11 +119,11 @@ const groupTexts = computed(() => xihanWorkflowTexts(locale.value))
 
 function applyExtensions(designer: XhFlowDesigner) {
   designer.extensions = extensions.value
-  designer.paletteGroupLabels = groupTexts.value?.categories
+  designer.paletteGroupLabels = { ...groupTexts.value?.categories, ...categoryNames.value }
   designer.propertyGroupLabels = groupTexts.value?.groups
 }
 
-watch([extensions, groupTexts], () => {
+watch([extensions, groupTexts, categoryNames], () => {
   if (designerRef.value)
     applyExtensions(designerRef.value)
 })

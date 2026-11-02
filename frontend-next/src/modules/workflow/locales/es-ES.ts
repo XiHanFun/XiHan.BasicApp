@@ -89,6 +89,7 @@ export default {
       starter: 'Iniciador',
       fault_message: 'Mensaje de error',
       cancellation_reason: 'Motivo de la cancelación',
+      last_error: 'Último error',
       creation_time: 'Creada el',
       start_time: 'Iniciado el',
       end_time: 'Finalizado el',

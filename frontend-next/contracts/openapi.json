@@ -50573,6 +50573,13 @@
                       "description": "\u53D8\u91CF\uFF08JSON \u5BF9\u8C61\u6587\u672C\uFF09\u3002",
                       "type": "string"
                     },
+                    "lastError": {
+                      "description": "\u6D41\u7A0B\u6355\u83B7\u7684\u6700\u8FD1\u4E00\u6B21\u9519\u8BEF\uFF08\u53D8\u91CF lastError\uFF0C\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\u672C\u5730\u5316\uFF1B\u53D8\u91CF\u91CC\u7684 message \u662F\u8FDB\u7A0B\u7F3A\u7701\u533A\u57DF\u7684\u6587\u672C\uFF0C\u4E0D\u76F4\u63A5\u5C55\u793A\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "cancellationReason": {
                       "description": "\u53D6\u6D88\u6216\u7EC8\u6B62\u7684\u539F\u56E0\u3002",
                       "type": [
@@ -61826,11 +61833,18 @@
             "type": "string"
           },
           "displayName": {
-            "description": "\u663E\u793A\u540D\u3002",
+            "description": "\u663E\u793A\u540D\uFF08\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09\u3002",
             "type": "string"
           },
           "category": {
-            "description": "\u5206\u7C7B\u3002",
+            "description": "\u5206\u7C7B\u6807\u8BC6\uFF08\u5206\u7EC4\u7528\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "categoryName": {
+            "description": "\u5206\u7C7B\u7684\u5C55\u793A\u540D\uFF08\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09\u3002",
             "type": [
               "string",
               "null"
@@ -62537,6 +62551,10 @@
             "description": "\u72B6\u6001\u3002",
             "$ref": "#/components/schemas/WorkflowNodeInstanceStatus"
           },
+          "statusName": {
+            "description": "\u72B6\u6001\u7684\u5C55\u793A\u540D\uFF08\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09\u3002",
+            "type": "string"
+          },
           "attempt": {
             "description": "\u7B2C\u51E0\u6B21\u5C1D\u8BD5\u3002",
             "type": "integer",
@@ -62568,6 +62586,7 @@
           "nodeId",
           "activityType",
           "status",
+          "statusName",
           "attempt",
           "startedAt"
         ]

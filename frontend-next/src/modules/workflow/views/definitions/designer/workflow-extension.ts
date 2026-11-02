@@ -9,6 +9,7 @@
 
 import type { AppContext } from 'vue'
 import type { WorkflowBusinessType } from '../definition-metadata'
+import type { ServerDiagnostic } from './server-diagnostics'
 import type { FlowDesignerExtension, FlowDocument, FlowEdge, FlowPropertyEditorContext } from '~/designers/flow'
 import { h } from 'vue'
 import { createVuePropertyEditor } from '~/designers'
@@ -16,7 +17,7 @@ import { XIHAN_WORKFLOW_ASSIGNEE_RULES } from '~/designers/flow'
 import AssigneeRulesEditor from './AssigneeRulesEditor.vue'
 import EdgeConditionEditor from './EdgeConditionEditor.vue'
 import FlowMetadataField from './FlowMetadataField.vue'
-import { createWorkflowRules, WORKFLOW_EXTENSION_ID, WORKFLOW_ISSUE_KEYS } from './workflow-rules'
+import { createWorkflowRules, SERVER_DIAGNOSTIC_CODE, WORKFLOW_EXTENSION_ID, WORKFLOW_ISSUE_KEYS } from './workflow-rules'
 
 /** 源节点类型 → 常见办理结果（连线条件一键填入） */
 const OUTCOME_HINTS: Readonly<Record<string, readonly string[]>> = {
@@ -33,6 +34,8 @@ export interface WorkflowExtensionOptions {
   document: () => FlowDocument | undefined
   /** 问题说明与提示的文案 */
   t: (key: string, params?: Record<string, unknown>) => string
+  /** 最近一次发布失败时后端给的问题 */
+  serverDiagnostics?: () => readonly ServerDiagnostic[]
 }
 
 type Context = FlowPropertyEditorContext
@@ -82,8 +85,11 @@ export function createWorkflowExtension(options: WorkflowExtensionOptions): Flow
     id: WORKFLOW_EXTENSION_ID,
     rules: createWorkflowRules({
       businessOutcomes: code => options.businessTypes().find(item => item.code === code)?.outcomes,
+      serverDiagnostics: options.serverDiagnostics,
     }),
     issueText: (issue) => {
+      if (issue.code === SERVER_DIAGNOSTIC_CODE)
+        return String(issue.params?.message ?? '')
       const key = WORKFLOW_ISSUE_KEYS[issue.code]
       return key ? options.t(`workflow.designer.validate.${key}`) : undefined
     },

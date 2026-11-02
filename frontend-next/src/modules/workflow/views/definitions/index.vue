@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/core'
 import type { WorkflowBusinessType, WorkflowDefinitionDetail, WorkflowDefinitionRow } from './definition-metadata'
+import type { ServerDiagnostic } from './designer/server-diagnostics'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, SchemaResource } from '~/components'
 import type { WorkflowDefinitionStatus } from '~/contracts'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -9,8 +10,10 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XJsonBlock, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { toPageRequest, toSchemaPageResult, workflowDefinitions, workflowInstances } from '~/contracts'
+import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
 import MetadataModal from './DefinitionMetadataModal.vue'
+import { serverDiagnostics } from './designer/server-diagnostics'
 import WorkflowDesigner from './designer/WorkflowDesigner.vue'
 import WorkflowGraphView from './designer/WorkflowGraphView.vue'
 
@@ -185,10 +188,13 @@ const editTargetId = ref<string | null>(null)
 const editJson = ref('')
 const designerKey = ref(0)
 const workflowDesignerRef = ref<InstanceType<typeof WorkflowDesigner> | null>(null)
+/** 发布被拒时后端给的逐条问题，打开设计器时标在节点与连线上；正常打开时为空 */
+const editDiagnostics = ref<readonly ServerDiagnostic[]>([])
 
-function openDesigner(detail: WorkflowDefinitionDetail) {
+function openDesigner(detail: WorkflowDefinitionDetail, diagnostics: readonly ServerDiagnostic[] = []) {
   editTargetId.value = detail.id
   editJson.value = detail.document
+  editDiagnostics.value = diagnostics
   designerKey.value++
   editVisible.value = true
 }
@@ -262,6 +268,19 @@ function ensureSucceeded(result: { failed: { code: string }[] }) {
     throw new Error(result.failed.map(failure => failure.code).join('; '))
 }
 
+/**
+ * 发布被定义校验拒绝时（Problem Details 带字段级 errors，键是节点与连线的路径）：打开这份草稿的设计器，问题标在对应的节点与连线上
+ * @returns 是否已经这样处理
+ */
+async function openPublishProblems(row: WorkflowDefinitionRow, error: unknown): Promise<boolean> {
+  if (!(error instanceof ApiError) || !error.errors || Object.keys(error.errors).length === 0)
+    return false
+  const detail = await workflowDefinitions.get({ id: row.id })
+  toast.danger(error.message)
+  openDesigner(detail, serverDiagnostics(detail.document, error.errors))
+  return true
+}
+
 async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'archive' | 'delete', row: WorkflowDefinitionRow) {
   try {
     switch (action) {
@@ -289,6 +308,8 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
     reload()
   }
   catch (error) {
+    if (action === 'publish' && await openPublishProblems(row, error).catch(() => false))
+      return
     toast.danger((error as Error)?.message || t('workflow.definitions.err_operation'))
   }
 }
@@ -422,6 +443,7 @@ function onAction(payload: SchemaActionPayload) {
           class="workflow-designer-modal__body"
           :draft-key="editTargetId ?? undefined"
           :initial-json="editJson"
+          :diagnostics="editDiagnostics"
           :saving="editLoading"
           @save="handleDesignerSave"
           @close="editVisible = false"

@@ -89,6 +89,7 @@ export default {
       starter: '發起人',
       fault_message: '故障訊息',
       cancellation_reason: '取消理由',
+      last_error: '最近一次錯誤',
       creation_time: '建立時間',
       start_time: '開始時間',
       end_time: '結束時間',

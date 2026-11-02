@@ -112,6 +112,7 @@ public sealed class GetWorkflowInstance(IWorkflowEngine engine, IWorkflowDefinit
         return new WorkflowInstanceDetailResponse(
             WorkflowInstanceResponse.From(instance, starters),
             instance.Variables.ToJsonString(),
+            WorkflowJson.DeserializeFault(instance.Variables[WorkflowEngine.LastErrorVariable])?.Localize(),
             instance.CancellationReason,
             instance.FaultNodeId,
             history.Select(WorkflowNodeInstanceResponse.From).ToList(),

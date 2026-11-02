@@ -1,12 +1,14 @@
 /**
  * 设计器上 BasicApp 自己的校验规则的单元测试。
  *
- * 职责边界：只测 workflow-rules.ts——BasicApp 注册的受理人类型参数要填全、关联审批业务时的结束与终止节点。
+ * 职责边界：只测 workflow-rules.ts——BasicApp 注册的受理人类型参数要填全、关联审批业务时的结束与终止节点、
+ * 发布失败时后端给的问题落到节点与连线上。
  * 预设与通用校验的规则由流程设计器仓库的测试覆盖。
  */
-import type { FlowDocument, FlowNode } from '~/designers/flow'
+import type { ServerDiagnostic } from './server-diagnostics'
+import type { FlowDocument, FlowEdge, FlowNode } from '~/designers/flow'
 import { describe, expect, it } from 'vitest'
-import { createWorkflowRules } from './workflow-rules'
+import { createWorkflowRules, SERVER_DIAGNOSTIC_CODE } from './workflow-rules'
 
 function node(id: string, type: string, properties?: Record<string, unknown>): FlowNode {
   return { id, type, x: 0, y: 0, width: 160, height: 48, ...(properties ? { data: { properties } } : {}) } as FlowNode
@@ -57,5 +59,24 @@ describe('关联审批业务时的结束与终止节点', () => {
 
   it('没有关联业务的流程不检查结束结果', () => {
     expect(run(documentOf([node('missing', 'End'), node('stop', 'Terminate')], 'generic'), ['approved'])).toEqual([])
+  })
+})
+
+describe('发布失败时后端给的问题', () => {
+  it('标在对应的节点与连线上，定义级问题不带对象，对象已删掉的不再报', () => {
+    const diagnostics: ServerDiagnostic[] = [
+      { target: { kind: 'node', id: 'b' }, message: '用户任务没有受理人。' },
+      { target: { kind: 'edge', id: 't1' }, message: '条件不是布尔值。' },
+      { target: { kind: 'node', id: 'gone' }, message: '已删掉的节点' },
+      { message: '工作流定义没有开始节点。' },
+    ]
+    const document: FlowDocument = { ...documentOf([node('a', 'Start'), node('b', 'UserTask')], 'generic'), edges: [{ id: 't1' } as FlowEdge] }
+    const rules = createWorkflowRules({ businessOutcomes: () => undefined, serverDiagnostics: () => diagnostics })
+    const issues = rules.flatMap(rule => rule(document, {} as never)).filter(issue => issue.code === SERVER_DIAGNOSTIC_CODE)
+    expect(issues.map(issue => ({ path: issue.path, target: issue.target, severity: issue.severity, message: issue.params?.message }))).toEqual([
+      { path: ['nodes', 1], target: { kind: 'node', id: 'b' }, severity: 'error', message: '用户任务没有受理人。' },
+      { path: ['edges', 0], target: { kind: 'edge', id: 't1' }, severity: 'error', message: '条件不是布尔值。' },
+      { path: [], target: undefined, severity: 'error', message: '工作流定义没有开始节点。' },
+    ])
   })
 })

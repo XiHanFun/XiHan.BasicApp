@@ -89,6 +89,7 @@ export default {
       starter: 'Инициатор',
       fault_message: 'Сообщение об ошибке',
       cancellation_reason: 'Причина отмены',
+      last_error: 'Последняя ошибка',
       creation_time: 'Создан',
       start_time: 'Начало',
       end_time: 'Окончание',

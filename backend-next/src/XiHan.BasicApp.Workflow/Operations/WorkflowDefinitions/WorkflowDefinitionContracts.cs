@@ -189,10 +189,11 @@ public sealed record WorkflowActivityTypesResponse(IReadOnlyList<WorkflowActivit
 /// 一个活动类型。
 /// </summary>
 /// <param name="Type">类型名。</param>
-/// <param name="DisplayName">显示名。</param>
-/// <param name="Category">分类。</param>
+/// <param name="DisplayName">显示名（按调用方的区域）。</param>
+/// <param name="Category">分类标识（分组用）。</param>
+/// <param name="CategoryName">分类的展示名（按调用方的区域）。</param>
 /// <param name="Inputs">输入属性。</param>
-public sealed record WorkflowActivityTypeResponse(string Type, string DisplayName, string? Category, IReadOnlyList<WorkflowActivityInputResponse> Inputs)
+public sealed record WorkflowActivityTypeResponse(string Type, string DisplayName, string? Category, string? CategoryName, IReadOnlyList<WorkflowActivityInputResponse> Inputs)
 {
     /// <summary>
     /// 从框架的活动描述投影。
@@ -202,7 +203,7 @@ public sealed record WorkflowActivityTypeResponse(string Type, string DisplayNam
     public static WorkflowActivityTypeResponse From(ActivityDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return new(descriptor.Type, descriptor.DisplayName, descriptor.Category, descriptor.Inputs.Select(static i => new WorkflowActivityInputResponse(i.Name, i.Kind, i.Required)).ToList());
+        return new(descriptor.Type, descriptor.DisplayName, descriptor.Category, descriptor.CategoryName, descriptor.Inputs.Select(static i => new WorkflowActivityInputResponse(i.Name, i.Kind, i.Required)).ToList());
     }
 }
 

@@ -89,6 +89,7 @@ export default {
       starter: '開始者',
       fault_message: '障害メッセージ',
       cancellation_reason: 'キャンセル理由',
+      last_error: '直近のエラー',
       creation_time: '作成日時',
       start_time: '開始日時',
       end_time: '終了日時',

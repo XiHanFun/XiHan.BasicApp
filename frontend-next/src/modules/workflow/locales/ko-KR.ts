@@ -89,6 +89,7 @@ export default {
       starter: '시작자',
       fault_message: '오류 메시지',
       cancellation_reason: '취소 사유',
+      last_error: '최근 오류',
       creation_time: '생성 시간',
       start_time: '시작 시간',
       end_time: '종료 시간',

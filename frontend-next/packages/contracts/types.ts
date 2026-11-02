@@ -13068,10 +13068,12 @@ export interface components {
         WorkflowActivityTypeResponse: {
             /** @description 类型名。 */
             type: string;
-            /** @description 显示名。 */
+            /** @description 显示名（按调用方的区域）。 */
             displayName: string;
-            /** @description 分类。 */
+            /** @description 分类标识（分组用）。 */
             category?: string | null;
+            /** @description 分类的展示名（按调用方的区域）。 */
+            categoryName?: string | null;
             /** @description 输入属性。 */
             inputs: components["schemas"]["WorkflowActivityInputResponse"][];
         };
@@ -13373,6 +13375,8 @@ export interface components {
             activityType: string;
             /** @description 状态。 */
             status: components["schemas"]["WorkflowNodeInstanceStatus"];
+            /** @description 状态的展示名（按调用方的区域）。 */
+            statusName: string;
             /**
              * Format: int32
              * @description 第几次尝试。
@@ -39270,6 +39274,8 @@ export interface operations {
                         instance: components["schemas"]["WorkflowInstanceResponse"];
                         /** @description 变量（JSON 对象文本）。 */
                         variables: string;
+                        /** @description 流程捕获的最近一次错误（变量 lastError，按调用方的区域本地化；变量里的 message 是进程缺省区域的文本，不直接展示）。 */
+                        lastError?: string | null;
                         /** @description 取消或终止的原因。 */
                         cancellationReason?: string | null;
                         /** @description 故障节点。 */

@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { createXihanWorkflow } from '~/designers/flow'
-import { restrictActivityTypes } from './workflow-palette'
+import { paletteCategoryNames, restrictActivityTypes } from './workflow-palette'
 
 const preset = createXihanWorkflow({ legacyAssignees: false })
 const typesOf = (extension: ReturnType<typeof createXihanWorkflow>) => extension.nodeTypes?.map(nodeType => nodeType.type) ?? []
@@ -25,5 +25,17 @@ describe('restrictActivityTypes', () => {
     const restricted = restrictActivityTypes(preset, new Set(['Start', 'End', 'UserTask', 'Script', 'EventGateway']))
 
     expect(typesOf(restricted)).toEqual(['Start', 'End', 'UserTask'])
+  })
+})
+
+describe('paletteCategoryNames', () => {
+  it('分类标识小写后对上预设的分组，没有展示名的不给', () => {
+    expect(paletteCategoryNames([
+      { category: 'Control', categoryName: '流程控制' },
+      { category: 'Human', categoryName: '人工' },
+      { category: 'Control', categoryName: '流程控制' },
+      { category: 'Data', categoryName: null },
+      { category: null, categoryName: '无分类' },
+    ])).toEqual({ control: '流程控制', human: '人工' })
   })
 })
