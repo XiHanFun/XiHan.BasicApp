@@ -51,7 +51,20 @@
 
 ## 演示数据
 
-`BasicApp:Seed:EnableDemoData` 打开时，种子 `organization.demo` 在演示租户 `demo` 里写部门 `hq → rd / mkt`、岗位 `manager / engineer`，并把租户管理员放进总部。
+`BasicApp:Seed:EnableDemoData` 打开时，种子 `organization.demo` 在演示租户 `demo` 里写部门 `hq → rd / mkt / hr`、岗位 `gm / manager / engineer / specialist` 与负责人，并给演示成员排主部门任职（流程演示要用，照 5.x 示例企业）：
+
+| 账号 | 部门 / 岗位 | 负责人 |
+| --- | --- | --- |
+| `admin` | 总部 / 总经理 | 总部 |
+| `manager` | 研发部 / 经理 | 研发部 |
+| `lead` | 研发部 / 工程师 | — |
+| `hr` | 人事部 / 专员 | — |
+
+只首写：租户里已有部门即跳过。
+
+## 组织目录
+
+Contracts 的 `IOrganizationDirectory`（Organization 实现）给别的包按编码取部门成员、部门负责人、岗位任职，按用户取主部门往上的部门链，以及选人用的部门与岗位清单；只读调用所在租户、只取启用的部门与岗位，平台一侧为空。工作流的组织类受理人用它。
 
 ## 前端
 

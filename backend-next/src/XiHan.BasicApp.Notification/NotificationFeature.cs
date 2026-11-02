@@ -88,6 +88,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<MessageRecordService>();
         context.Services.AddScoped<MessagingQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, NotificationWidgets>();
+        context.Services.AddScoped<IInboxDelivery, InboxDelivery>();
         context.Services.AddScoped<BotConfigService>();
         context.Services.AddScoped<TelegramBotService>();
         context.Services.AddScoped<BotBroadcaster>();

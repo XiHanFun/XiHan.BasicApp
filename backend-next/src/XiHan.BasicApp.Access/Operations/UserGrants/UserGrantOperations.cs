@@ -62,14 +62,9 @@ public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastruct
 /// <remarks>
 /// <c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）。
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="grants">用户直接授予。</param>
-/// <param name="rules">授予规则。</param>
-/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
-/// <param name="enforcer">约束规则求值（权限互斥）。</param>
+/// <param name="grants">直授。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -78,25 +73,7 @@ public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalo
 
     /// <inheritdoc />
     public async ValueTask<Result<PermissionBatchResult>> HandleAsync(UserPermissionsRequest request, InvocationContext context)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(context);
-        var window = GrantWindow.Validate(request.EffectiveAt, request.ExpiresAt);
-        if (window.IsFailure)
-        {
-            return window.Error!;
-        }
-
-        return await UserGrantBatch.RunAsync(request, context, users, catalog, PermissionChangeType.UserGrant, async (user, owner, permissions, ct) =>
-        {
-            var outcomes = await grants.GrantAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
-            var ok = outcomes.Where(static o => o.Outcome.IsSuccess).Select(static o => o.Grant.Permission).ToList();
-            (await rules.SetAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Grant, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
-            (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Deny, ct).ConfigureAwait(false)).ThrowIfFailure();
-            return outcomes;
-        }, async (user, owner, accepted, ct) =>
-            await enforcer.ScreenPermissionsAsync(owner, [.. await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)], accepted, context, userId: user.Id).ConfigureAwait(false)).ConfigureAwait(false);
-    }
+        => await grants.GrantAsync(request, context).ConfigureAwait(false);
 }
 
 /// <summary>

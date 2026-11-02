@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Organization.Seeds;
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 20，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。
-/// 在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部」、岗位「经理 / 工程师」，并把演示管理员放进总部（经理、主部门）。
+/// 在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部 / 人事部」、岗位「总经理 / 经理 / 工程师 / 专员」与负责人，并给演示成员排主部门任职（照 4.x 示例企业里流程演示要用的那几位）：
+/// 管理员 <c>admin</c> 是总经理、总部负责人；<c>manager</c> 是研发部经理、研发部负责人；<c>lead</c> 是研发部工程师；<c>hr</c> 是人事部专员。
 /// 部门是租户库实体，种子调用本身没有租户，所以经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入；租户里已有部门即跳过（只首写）。
 /// </remarks>
 /// <param name="runner">按租户发起调用的运行器。</param>
@@ -61,10 +62,17 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
         var users = context.Services.GetRequiredService<IRepository<SysUser, Guid>>();
         var ids = context.Services.GetRequiredService<IIdGenerator<Guid>>();
 
-        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "Headquarters", Order = 0, Description = "Seeded when BasicApp:Seed:EnableDemoData is on." };
-        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "Research & Development", ParentId = headquarters.Id, Order = 10 };
+        // 演示成员按登录名取（账号由演示租户种子在前一阶段写入；缺了的就不排任职、不当负责人）
+        string[] names = [DemoTenantSeeder.DemoAdminUserName, .. DemoTenantSeeder.DemoStaff.Select(static s => s.UserName)];
+        var found = (await users.ListAsync(EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == DemoTenantSeeder.DemoTenantId && names.Contains(u.UserName))), context.CancellationToken).ConfigureAwait(false))
+            .ToDictionary(static u => u.UserName, static u => u.Id, StringComparer.Ordinal);
+        Guid? UserOf(string userName) => found.TryGetValue(userName, out var id) ? id : null;
+
+        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "Headquarters", Order = 0, LeaderUserId = UserOf(DemoTenantSeeder.DemoAdminUserName), Description = "Seeded when BasicApp:Seed:EnableDemoData is on." };
+        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "Research & Development", ParentId = headquarters.Id, Order = 10, LeaderUserId = UserOf("manager") };
         var marketing = new SysDepartment { Id = ids.NewId(), Code = "mkt", Name = "Marketing", ParentId = headquarters.Id, Order = 20 };
-        foreach (var department in new[] { headquarters, engineering, marketing })
+        var humanResources = new SysDepartment { Id = ids.NewId(), Code = "hr", Name = "Human Resources", ParentId = headquarters.Id, Order = 30 };
+        foreach (var department in new[] { headquarters, engineering, marketing, humanResources })
         {
             var added = await departments.AddAsync(department, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
@@ -79,9 +87,11 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
             }
         }
 
-        var manager = new SysPosition { Id = ids.NewId(), Code = "manager", Name = "Manager", Order = 0 };
-        var engineer = new SysPosition { Id = ids.NewId(), Code = "engineer", Name = "Engineer", Order = 10 };
-        foreach (var outcome in await positions.AddRangeAsync([manager, engineer], context.CancellationToken).ConfigureAwait(false))
+        var generalManager = new SysPosition { Id = ids.NewId(), Code = "gm", Name = "General Manager", Order = 0 };
+        var manager = new SysPosition { Id = ids.NewId(), Code = "manager", Name = "Manager", Order = 10 };
+        var engineer = new SysPosition { Id = ids.NewId(), Code = "engineer", Name = "Engineer", Order = 20 };
+        var specialist = new SysPosition { Id = ids.NewId(), Code = "specialist", Name = "Specialist", Order = 30 };
+        foreach (var outcome in await positions.AddRangeAsync([generalManager, manager, engineer, specialist], context.CancellationToken).ConfigureAwait(false))
         {
             if (outcome.IsFailure)
             {
@@ -89,12 +99,30 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
             }
         }
 
-        var admins = await users.ListAsync(EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == DemoTenantSeeder.DemoTenantId && u.UserName == DemoTenantSeeder.DemoAdminUserName)).Page(0, 1), context.CancellationToken).ConfigureAwait(false);
-        if (admins.Count == 0)
+        (string UserName, SysDepartment Department, SysPosition Position, string Number)[] staff =
+        [
+            (DemoTenantSeeder.DemoAdminUserName, headquarters, generalManager, "0001"),
+            ("manager", engineering, manager, "0002"),
+            ("lead", engineering, engineer, "0003"),
+            ("hr", humanResources, specialist, "0004"),
+        ];
+        var rows = staff
+            .Where(s => found.ContainsKey(s.UserName))
+            .Select(s => new SysUserDepartment { Id = ids.NewId(), UserId = found[s.UserName], DepartmentId = s.Department.Id, PositionId = s.Position.Id, IsPrimary = true, EmployeeNumber = s.Number })
+            .ToList();
+        if (rows.Count == 0)
         {
             return Result.Success();
         }
 
-        return await memberships.AddAsync(new SysUserDepartment { Id = ids.NewId(), UserId = admins[0].Id, DepartmentId = headquarters.Id, PositionId = manager.Id, IsPrimary = true, EmployeeNumber = "0001" }, context.CancellationToken).ConfigureAwait(false);
+        foreach (var outcome in await memberships.AddRangeAsync(rows, context.CancellationToken).ConfigureAwait(false))
+        {
+            if (outcome.IsFailure)
+            {
+                return outcome;
+            }
+        }
+
+        return Result.Success();
     }
 }

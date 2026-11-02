@@ -88,7 +88,7 @@ tenants.initialize-admin              建租户管理员（首次登录必须改
 
 ## 演示租户
 
-`BasicApp:Seed:EnableDemoData` 打开时，种子 `tenancy.demo` 写演示租户 `demo` 与其管理员 `admin`（首次登录须改密，初始密码见 `DemoTenantSeeder`）。
+`BasicApp:Seed:EnableDemoData` 打开时，种子 `tenancy.demo` 写演示租户 `demo`、其管理员 `admin`，以及流程演示要用的成员账号 `manager`、`lead`、`hr`（密码同管理员，首次登录都须改密，初始密码见 `DemoTenantSeeder`）；种子 `access.demo` 在 `demo` 里建角色 `employee`（工作流的查看与发起、聊天的查看与发送，指派给三个成员）与 `hr_specialist`（自定义数据范围研发部与市场部，指派给 `hr`），可选模块的权限码只授出已登记的。
 
 ## 下一步
 

@@ -28,4 +28,30 @@ public interface IUserDirectory
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>按用户 ID 索引的摘要；不存在的不在结果里（已删除的用户照常返回，历史记录要显示名字）。</returns>
     Task<IReadOnlyDictionary<Guid, UserSummary>> FindAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 一侧可见的在用账号。
+    /// </summary>
+    /// <remarks>
+    /// 平台一侧是注册在平台的账号，租户一侧是注册在该租户的账号与在有效期内的普通成员（运维支持成员不算）；只算状态为在用、没删除的。
+    /// 用于把候选人收窄到这一侧能收到待办、能被选中的人。
+    /// </remarks>
+    /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID。</param>
+    /// <param name="userIds">候选用户 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>候选里可见且在用的那些。</returns>
+    Task<IReadOnlySet<Guid>> ActiveInSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 搜一侧可见的在用账号。
+    /// </summary>
+    /// <remarks>
+    /// 可见口径同 <see cref="ActiveInSideAsync"/>；关键字匹配登录名、显示名与邮箱（包含，大小写按库的排序规则），按登录名排序。
+    /// </remarks>
+    /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID。</param>
+    /// <param name="keyword">关键字，空即不筛。</param>
+    /// <param name="limit">最多返回几个（1～200）。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配的账号摘要。</returns>
+    Task<IReadOnlyList<UserSummary>> SearchActiveInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken);
 }

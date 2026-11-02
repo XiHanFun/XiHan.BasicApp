@@ -23,7 +23,8 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 /// <remarks>
 /// 号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。写入：
 /// 租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
-/// 以及平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿）。新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写。
+/// 平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿），以及流程演示要用的三个成员账号 <see cref="DemoStaff"/>（密码同管理员、首次登录须改密，照 4.x 的部门主管、项目负责人与人事专员）。
+/// 新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写，成员账号按登录名只首写、删掉的不补。
 /// </remarks>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="members">成员仓储。</param>
@@ -59,6 +60,14 @@ public sealed class DemoTenantSeeder(
     /// 演示租户管理员初始密码。
     /// </summary>
     public const string DemoAdminPassword = "Demo@123456";
+
+    /// <summary>
+    /// 流程演示要用的成员账号。
+    /// </summary>
+    /// <remarks>
+    /// 登录名与显示名；部门、岗位与负责人由 Organization 的演示种子写，角色由 Access 的演示种子写。
+    /// </remarks>
+    public static IReadOnlyList<(string UserName, string DisplayName)> DemoStaff { get; } = [("manager", "Demo Manager"), ("lead", "Demo Lead"), ("hr", "Demo HR")];
 
     /// <inheritdoc />
     public string Name => "tenancy.demo";
@@ -120,6 +129,15 @@ public sealed class DemoTenantSeeder(
             }
         }
 
+        foreach (var (userName, displayName) in DemoStaff)
+        {
+            var staffed = await EnsureStaffAsync(userName, displayName, context).ConfigureAwait(false);
+            if (staffed.IsFailure)
+            {
+                return staffed;
+            }
+        }
+
         if (tenant.AdminUserId is not null)
         {
             return Result.Success();
@@ -162,5 +180,29 @@ public sealed class DemoTenantSeeder(
 
         tenant.AdminUserId = admin.Id;
         return await tenants.UpdateAsync(tenant, context.CancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<Result> EnsureStaffAsync(string userName, string displayName, InvocationContext context)
+    {
+        var existing = EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == DemoTenantId && u.UserName == userName)) with { IncludeDeleted = true };
+        if (await users.CountAsync(existing, context.CancellationToken).ConfigureAwait(false) > 0)
+        {
+            return Result.Success();
+        }
+
+        var user = new SysUser { Id = ids.NewId(), UserName = userName, DisplayName = displayName, HomeTenantId = DemoTenantId, Status = UserStatus.Active };
+        var added = await users.AddAsync(user, context.CancellationToken).ConfigureAwait(false);
+        if (added.IsFailure)
+        {
+            return added;
+        }
+
+        var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!securityResult.TryGetValue(out var security))
+        {
+            return securityResult.ToResult();
+        }
+
+        return await accounts.SetPasswordAsync(security, DemoAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
     }
 }

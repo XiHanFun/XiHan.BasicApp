@@ -191,13 +191,13 @@ public sealed class OrganizationTests : IDisposable
         var admin = (await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;
         var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: admin));
         Assert.Equal(HttpStatusCode.OK, tree.StatusCode);
-        Assert.Equal(3, treeBody.GetProperty("total").GetInt64());
+        Assert.Equal(4, treeBody.GetProperty("total").GetInt64());
         var root = Assert.Single(treeBody.GetProperty("items").EnumerateArray());
         Assert.Equal("hq", root.GetProperty("department").GetProperty("code").GetString());
         Assert.Equal(1, root.GetProperty("memberCount").GetInt64());
-        Assert.Equal(["rd", "mkt"], root.GetProperty("children").EnumerateArray().Select(static n => n.GetProperty("department").GetProperty("code").GetString()).ToList());
+        Assert.Equal(["rd", "mkt", "hr"], root.GetProperty("children").EnumerateArray().Select(static n => n.GetProperty("department").GetProperty("code").GetString()).ToList());
         var (positions, positionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/positions:list", "{}", admin));
         Assert.Equal(HttpStatusCode.OK, positions.StatusCode);
-        Assert.Equal(["manager", "engineer"], positionsBody.GetProperty("items").EnumerateArray().Select(static p => p.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["gm", "manager", "engineer", "specialist"], positionsBody.GetProperty("items").EnumerateArray().Select(static p => p.GetProperty("code").GetString()).ToList());
     }
 }

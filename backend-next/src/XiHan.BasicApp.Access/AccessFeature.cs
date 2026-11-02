@@ -107,6 +107,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();
+        context.Services.AddScoped<RoleAssignmentService>();
+        context.Services.AddScoped<UserGrantService>();
         context.Services.AddScoped<MenuService>();
         context.Services.AddScoped<RoleGrants>();
         context.Services.AddScoped<UserGrants>();
@@ -140,10 +142,12 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<IDataScopeResolver, DataScopeResolver>();
         // 通知按角色找人（此刻有效的直接指派）
         context.Services.AddScoped<IRecipientSource, RoleRecipientSource>();
+        context.Services.AddScoped<IRoleMemberDirectory, RoleMemberDirectory>();
         context.Services.AddScoped<ITenantInitializer, TenantRoleInitializer>();
         context.Services.AddSeeder<PlatformRoleSeeder>();
         context.Services.AddSeeder<MenuSeeder>();
         context.Services.AddSeeder<AccessPolicySeeder>();
+        context.Services.AddSeeder<DemoAccessSeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         AccessFieldSecurity.Register(context.Services);

@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
@@ -76,6 +77,7 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddDomainEvent(Topics.OrganizationMembershipChanged, Topics.OrganizationMembershipChanged, OrganizationJsonContext.Default.MembershipChanged, static e => e.UserId.ToString());
         // 通知按部门找人（含下级部门）
         context.Services.AddScoped<IRecipientSource, DepartmentRecipientSource>();
+        context.Services.AddScoped<IOrganizationDirectory, OrganizationDirectory>();
         context.Services.AddSeeder<DemoOrganizationSeeder>();
         context.Services.AddPermissionCatalog("organization", OrganizationPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
