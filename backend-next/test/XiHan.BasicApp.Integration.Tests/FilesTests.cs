@@ -3,9 +3,11 @@
 
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Amazon.S3.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Auditing.Domain.Services;
@@ -342,6 +344,54 @@ public sealed class FilesTests : IDisposable
             var (completed, file) = await SendAsync(server, HttpMethod.Post, "/api/files:complete-upload", JsonSerializer.Serialize(new { uploadId }), platform);
             Assert.Equal(HttpStatusCode.OK, completed);
             Assert.Equal("multipart", await ContentAsync(file.GetProperty("id").GetString()!));
+        }
+        finally
+        {
+            await S3TestService.DeleteBucketAsync(s3, bucket);
+        }
+    }
+
+    /// <summary>
+    /// S3 兼容存储建实例时的失败语义（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）。
+    /// </summary>
+    /// <remarks>
+    /// 框架在建命名实例时探测条件写入：凭据被拒与桶不存在时实例不建，这条配置上的上传返回对应的错误；
+    /// 连不上时实例照建、后台重试，探明之前不覆盖写入返回 503；探测通过后桶里留下保留前缀下的探测键。
+    /// </remarks>
+    [Fact]
+    public async Task StorageConfigs_S3Probe_RejectsDeniedMissingAndDefersUnreachable()
+    {
+        var endpoint = S3TestService.RequireEndpoint();
+        using var s3 = S3TestService.Client(endpoint);
+        var bucket = "basicapp-" + Guid.NewGuid().ToString("N")[..16];
+        await s3.PutBucketAsync(bucket);
+        try
+        {
+            var (server, platform, _) = await StartAsync();
+            await using var running = server;
+            async Task<(HttpStatusCode Status, string? Code)> UploadToAsync(string code, Uri service, string targetBucket, string secret)
+            {
+                var (created, _) = await SendAsync(server, HttpMethod.Post, "/api/storage-configs", JsonSerializer.Serialize(new { code, name = code, type = "MinIO", bucket = targetBucket, endpoint = service.ToString(), accessKeyId = S3TestService.AccessKey, secretAccessKey = secret, isDefault = true }), platform);
+                Assert.Equal(HttpStatusCode.Created, created);
+                var (status, body) = await UploadAsync(server, platform, code + ".txt", Encoding.UTF8.GetBytes(code));
+                return (status, status == HttpStatusCode.OK ? null : body.GetProperty("code").GetString());
+            }
+
+            // 凭据被拒、桶不存在：实例不建，上传返回探测时的错误
+            Assert.Equal((HttpStatusCode.Forbidden, "OBJECTSTORAGE_DENIED_002"), await UploadToAsync("denied", endpoint, bucket, "not-the-secret"));
+            Assert.Equal((HttpStatusCode.NotFound, "OBJECTSTORAGE_NOTFOUND_001"), await UploadToAsync("missing", endpoint, bucket + "-none", S3TestService.SecretKey));
+
+            // 连不上：实例照建、后台重试，探明之前不覆盖写入是 503
+            using var closed = new TcpListener(IPAddress.Loopback, 0);
+            closed.Start();
+            var port = ((IPEndPoint)closed.LocalEndpoint).Port;
+            closed.Stop();
+            Assert.Equal((HttpStatusCode.ServiceUnavailable, "OBJECTSTORAGE_UNAVAILABLE_004"), await UploadToAsync("unreachable", new Uri($"http://127.0.0.1:{port}"), bucket, S3TestService.SecretKey));
+
+            // 探测通过：照常上传，桶里留下保留前缀下的探测键
+            Assert.Equal((HttpStatusCode.OK, (string?)null), await UploadToAsync("reachable", endpoint, bucket, S3TestService.SecretKey));
+            var keys = (await s3.ListObjectsV2Async(new ListObjectsV2Request { BucketName = bucket })).S3Objects.Select(o => o.Key).ToList();
+            Assert.Contains(keys, k => k.StartsWith(".xihan/probe/", StringComparison.Ordinal));
         }
         finally
         {
