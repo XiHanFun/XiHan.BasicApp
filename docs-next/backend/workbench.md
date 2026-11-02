@@ -32,7 +32,7 @@
 
 请求带查看者的时区偏移（管理端取应用时区此刻的偏移）：「今日」「按小时」这类统计按查看者的本地日计算（库里按 UTC 小时分组再换算）。
 
-## 已登记的小组件（15 个）
+## 已登记的小组件（16 个）
 
 | 包 | 键 | 形态 | 权限 |
 | --- | --- | --- | --- |
@@ -46,6 +46,7 @@
 | Maintenance | `maintenance.job-runs` | Chart | `maintenance.job-runs.read` |
 | Notification | `notification.announcements` | List | — |
 | Notification | `notification.deliveries` | Chart | `notification.emails.read` / `notification.sms.read` |
+| Workflow | `workflow.todo` | List | —（Workflow 开着才有） |
 
 前端据此渲染公告轮播、今日统计与访问概况、在线设备、登录失败原因、登录趋势、存储占用、热门操作、访问时段、作业执行、异常类型、消息发送等图表；图表壳带取数中、出错与无数据的占位。
 
@@ -66,6 +67,8 @@
 1. 在包的 `Infrastructure/` 实现 `IWorkbenchWidgetProvider`，登记键（`<包>.<名>`）、形态与权限码；
 2. 在 `Configure` 里把提供者登记进容器；
 3. 在前端 `src/modules/workbench` 里加呈现（标题、图标、尺寸、图表类型与文案）。
+
+可选模块不改工作台：在模块的 `setup.ts` 里以 `registerWorkbenchWidget`（`~/stores`）登记列表型小组件——看板上的键、后端小组件键、标题 / 说明 / 空态文案键、图标、缺省宽度、所属页面与「查看全部」的路由；看板用同一个列表外观渲染（标题栏是总数与「查看全部」，正文是最近几条），排在内置小组件之后、进缺省看板，按所属页面是否下发决定显隐，模块关掉时随之隐藏。工作流的「我的待办」就是这样接的。
 
 ## 下一步
 

@@ -29,6 +29,7 @@ export default {
       all_added: '已全部添加',
       empty_title: '暂无小组件',
       empty: '还没有小组件，点「自定义 → 添加小组件」试试',
+      view_all: '查看全部',
       welcome: {
         title: '欢迎',
         desc: '上手提示与快捷链接',

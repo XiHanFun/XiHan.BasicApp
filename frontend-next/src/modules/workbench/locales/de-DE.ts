@@ -29,6 +29,7 @@ export default {
       all_added: 'Alle hinzugefügt',
       empty_title: 'Noch keine Widgets',
       empty: 'Noch keine Widgets. Versuchen Sie „Anpassen“ und dann „Widget hinzufügen“',
+      view_all: 'Alle anzeigen',
       welcome: {
         title: 'Willkommen',
         desc: 'Erste Schritte und Schnellzugriffe',

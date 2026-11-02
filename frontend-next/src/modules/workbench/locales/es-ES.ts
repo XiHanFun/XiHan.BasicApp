@@ -29,6 +29,7 @@ export default {
       all_added: 'Ya están todos',
       empty_title: 'Aún no hay widgets',
       empty: 'Aún no hay widgets. Prueba Personalizar y luego Añadir widget',
+      view_all: 'Ver todo',
       welcome: {
         title: 'Bienvenida',
         desc: 'Primeros pasos y enlaces rápidos',

@@ -29,6 +29,7 @@ export default {
       all_added: 'All added',
       empty_title: 'No widgets yet',
       empty: 'No widgets yet. Try Customize then Add widget',
+      view_all: 'View all',
       welcome: {
         title: 'Welcome',
         desc: 'Getting started and quick links',

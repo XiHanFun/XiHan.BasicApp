@@ -13,7 +13,7 @@ frontend-next/
 ```
 
 - `packages/` 不引用 `@/`；模块之间不互相引用，共用的东西放 `packages/`。
-- 模块的 `setup.ts` 登记本模块文案（`registerModuleLocales(import.meta.glob(...))`）；视图键全局唯一（`modules:check`）。可选模块的 `setup.ts` 另把要接进公共包的函数登记上（如打印的 `configurePrinting`），只登记函数、不发请求。
+- 模块的 `setup.ts` 登记本模块文案（`registerModuleLocales(import.meta.glob(...))`）；视图键全局唯一（`modules:check`）。可选模块的 `setup.ts` 另把要接进公共包的函数登记上（如打印的 `configurePrinting`），只登记函数、不发请求。壳层的顶栏按钮、浮层经 `registerShellExtension`，看板的列表型小组件经 `registerWorkbenchWidget`（挂在模块的一个页面上，后端不下发页面即隐藏，方案修订（一百））。
 - 设计器（Web Components）共用的接线在 `packages/designers`，各款设计器在自己的包或子路径（`packages/printing`、`~/printing/designer`）；依赖走 catalog，模板里 `xh-` 开头的标签是自定义元素（`vite.config.ts` 的 `isCustomElement`）。
 - 新增 `src/modules/*/views/**/index.vue` 后 Vitest 可能还看不到（`node_modules/.vitest-cache` 缓存了 `import.meta.glob` 的结果），先删缓存再跑。
 - `src/types/env.d.ts` 的 `declare module '*.vue'` 让缺失的 `.vue` 导入照样过类型检查与构建，删 `.vue` 文件后要 grep 导入。

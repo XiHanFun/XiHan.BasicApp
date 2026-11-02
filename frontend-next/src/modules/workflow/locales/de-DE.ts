@@ -2,6 +2,11 @@
 // 菜单标题键来自后端页面登记（workflow.approvals.title、workflow.definitions.title、workflow.instances.title）；@ 是 vue-i18n 链接消息的保留字符，不要写进文案。
 export default {
   workflow: {
+    todo_widget: {
+      title: 'Meine Aufgaben',
+      desc: 'Genehmigungsaufgaben, die auf Sie warten, neueste zuerst',
+      empty: 'Keine offenen Genehmigungen',
+    },
     definitions: {
       title: 'Workflow-Definitionen',
       keyword: 'Stichwort',

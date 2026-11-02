@@ -29,6 +29,7 @@ export default {
       all_added: '已全部新增',
       empty_title: '暫無小工具',
       empty: '還沒有小工具，點「自訂 → 新增小工具」試試',
+      view_all: '查看全部',
       welcome: {
         title: '歡迎',
         desc: '入門提示與快速連結',

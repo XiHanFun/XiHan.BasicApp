@@ -7,8 +7,8 @@ import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { useUserSettingSync } from '~/components/schema'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore } from '~/stores'
-import { DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './components'
+import { useAppStore, useAuthStore } from '~/stores'
+import { canShowWidget, DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './components'
 
 defineOptions({ name: 'WorkbenchDashboardPage' })
 
@@ -29,15 +29,17 @@ function spanLabel(span: number): string {
 const { t } = useI18n()
 const { hasPermission } = usePermission()
 const appStore = useAppStore()
+const auth = useAuthStore()
+// 调用方可见的页面：模块登记的小组件按所属页面门控（可选模块关掉时后端不下发它的页面）
+const pages = computed(() => new Set(auth.permissions?.pages ?? []))
 // 看板布局随用户设置同步（本地即时 + 后端跨端同步，复用 SchemaPage 同一套机制）
 // 同步开关在「偏好设置 → 同步 → 仪表盘看板」，本页只读 appStore.widgetsSyncEnabled 显示状态徽标
 // 场景键保持 'workbench:widgets'（历史键），避免更名导致用户已保存布局丢失
 const sync = useUserSettingSync('workbench:widgets')
 
-// 小组件是否对当前用户可见：未声明权限码则人人可见，声明则按权限码门控
+// 小组件是否对当前用户可见：按声明的权限码与所属页面门控，都没声明则人人可见
 function canShow(key: string): boolean {
-  const def = WIDGET_MAP[key]
-  return !!def && (!def.permission || hasPermission(def.permission))
+  return canShowWidget(WIDGET_MAP[key], hasPermission, pages.value)
 }
 function clampSpan(span: number) {
   if (!Number.isFinite(span))

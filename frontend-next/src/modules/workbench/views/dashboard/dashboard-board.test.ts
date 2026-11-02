@@ -28,6 +28,7 @@ vi.mock('./components', () => {
     WIDGETS,
     WIDGET_MAP: Object.fromEntries(WIDGETS.map(widget => [widget.key, widget])),
     DEFAULT_BOARD: WIDGETS.map(widget => ({ key: widget.key, span: widget.defaultSpan })),
+    canShowWidget: (widget: unknown) => !!widget,
   }
 })
 

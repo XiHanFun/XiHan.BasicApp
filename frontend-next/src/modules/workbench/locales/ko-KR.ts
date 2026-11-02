@@ -29,6 +29,7 @@ export default {
       all_added: '모두 추가됨',
       empty_title: '위젯이 없어요',
       empty: '아직 위젯이 없어요. “사용자 지정 → 위젯 추가”를 눌러 보세요',
+      view_all: '모두 보기',
       welcome: {
         title: '환영',
         desc: '시작 안내와 바로가기 링크',

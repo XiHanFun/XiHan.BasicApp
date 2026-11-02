@@ -29,6 +29,7 @@ export default {
       all_added: 'すべて追加済み',
       empty_title: 'ウィジェットがありません',
       empty: 'まだウィジェットがありません。「カスタマイズ → ウィジェットを追加」から試してみてください',
+      view_all: 'すべて表示',
       welcome: {
         title: 'ようこそ',
         desc: '使い始めのヒントとクイックリンク',

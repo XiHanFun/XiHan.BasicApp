@@ -1,5 +1,7 @@
 import type { Component } from 'vue'
-import { markRaw } from 'vue'
+import type { WorkbenchListWidget } from '~/stores'
+import { defineComponent, h, markRaw } from 'vue'
+import { useWorkbenchWidgets } from '~/stores'
 import AnnouncementWidget from './AnnouncementWidget.vue'
 import DeliveriesWidget from './charts/DeliveriesWidget.vue'
 import ExceptionTypesWidget from './charts/ExceptionTypesWidget.vue'
@@ -13,6 +15,7 @@ import StorageMixWidget from './charts/StorageMixWidget.vue'
 import TopOperationsWidget from './charts/TopOperationsWidget.vue'
 import ClockWidget from './ClockWidget.vue'
 import FavoritesWidget from './FavoritesWidget.vue'
+import RegisteredListWidget from './RegisteredListWidget.vue'
 import StatsWidget from './StatsWidget.vue'
 import TodoWidget from './TodoWidget.vue'
 import WelcomeWidget from './WelcomeWidget.vue'
@@ -27,6 +30,8 @@ export interface WidgetDef {
   component: Component
   /** 可选权限码：声明后仅拥有该权限的用户可见/可添加此小组件（缺省人人可见） */
   permission?: string
+  /** 所属页面（模块登记的小组件）：调用方可见的页面里有它才显示，可选模块关掉时随之隐藏 */
+  page?: string
 }
 
 function widget(key: string, i18nKey: string, icon: string, defaultSpan: number, component: Component, permission?: string): WidgetDef {
@@ -66,6 +71,34 @@ export const WIDGETS: WidgetDef[] = [
   widget('deliveries', 'deliveries', 'lucide:send', 4, DeliveriesWidget, 'notification.emails.read'),
 ]
 
+/** 模块登记的列表型小组件（registerWorkbenchWidget）：同一个列表外观，排在内置小组件之后 */
+function registered(widget: WorkbenchListWidget): WidgetDef {
+  return {
+    key: widget.key,
+    titleKey: widget.titleKey,
+    descKey: widget.descKey,
+    icon: widget.icon,
+    defaultSpan: widget.defaultSpan,
+    component: markRaw(defineComponent({ name: 'RegisteredWidget', setup: () => () => h(RegisteredListWidget, { widget }) })),
+    permission: widget.permission,
+    page: widget.page,
+  }
+}
+
+// 模块 setup 在挂载之前登记完，看板这一块按需加载时已经齐了
+WIDGETS.push(...useWorkbenchWidgets().map(registered))
+
+/**
+ * 小组件对当前用户是否可见：声明了权限码按权限码门控，声明了所属页面按调用方可见的页面门控，都没声明人人可见。
+ * @param widget 小组件定义。
+ * @param hasPermission 权限判定。
+ * @param pages 调用方可见的页面编码。
+ * @returns 是否可见。
+ */
+export function canShowWidget(widget: WidgetDef | undefined, hasPermission: (code: string) => boolean, pages: ReadonlySet<string>): boolean {
+  return !!widget && (!widget.permission || hasPermission(widget.permission)) && (!widget.page || pages.has(widget.page))
+}
+
 export const WIDGET_MAP: Record<string, WidgetDef> = Object.fromEntries(WIDGETS.map(widget => [widget.key, widget]))
 
 /** 看板项：小组件键 + 宽度 */
@@ -79,5 +112,6 @@ export interface BoardItem {
  * 欢迎(4) 时间(4) 收藏入口(4) / 便签待办(3) 公告轮播(9) /
  * 今日统计(2) 访问概况(4) 在线设备(3) 登录失败原因(3) / 登录趋势(8) 存储占用(4) /
  * 访问最多的操作(8) 访问时段(4) / 作业执行(4) 异常类型(4) 消息发送(4)
+ * 模块登记的小组件接在最后（如工作流的「我的待办」），看不到的由 canShowWidget 滤掉。
  */
 export const DEFAULT_BOARD: BoardItem[] = WIDGETS.map(widget => ({ key: widget.key, span: widget.defaultSpan }))
