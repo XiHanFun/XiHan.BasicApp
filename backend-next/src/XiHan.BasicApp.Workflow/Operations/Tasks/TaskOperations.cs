@@ -160,14 +160,15 @@ public sealed class CompleteTask(WorkflowOwnTasks own, IWorkflowTaskService task
 /// 转办。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks/{id}:transfer</c>。照 4.x 只要登录；目标要是当前一侧可见的在用账号，已经是这个节点的受理人时 <c>WORKFLOW_CONFLICT_004</c>。写一条转办记录。
+/// <c>POST /api/tasks/{id}:transfer</c>。照 4.x 只要登录；目标要是当前一侧可见的在用账号，已经是这个节点的受理人时 <c>WORKFLOW_CONFLICT_004</c>。审批业务的顶层实例先问业务的改动前校验。写一条转办记录。
 /// </remarks>
 /// <param name="own">调用方名下的待办。</param>
 /// <param name="tasks">任务服务。</param>
 /// <param name="records">审批记录。</param>
 /// <param name="users">用户目录。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService tasks, WorkflowTaskRecords records, IUserDirectory users) : IOperation<TransferTaskRequest, WorkflowTaskActionResponse>
+public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService tasks, WorkflowTaskRecords records, IUserDirectory users, WorkflowBusinessChanges changes) : IOperation<TransferTaskRequest, WorkflowTaskActionResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -183,6 +184,12 @@ public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService task
         if (!found.TryGetValue(out var task))
         {
             return found.Error!;
+        }
+
+        var allowed = await changes.CheckAsync(task.Instance, WorkflowBusinessChangeKind.Transfer, context).ConfigureAwait(false);
+        if (allowed.IsFailure)
+        {
+            return allowed.Error!;
         }
 
         var assignable = await WorkflowOwnTasks.RequireAssignableAsync(users, task.Caller.Side, [request.TargetUserId], context.CancellationToken).ConfigureAwait(false);
@@ -206,14 +213,15 @@ public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService task
 /// 加签。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks/{id}:add-assignees</c>。照 4.x 只要登录；加的人都要是当前一侧可见的在用账号，按节点的完成策略一起办（或签任一人、会签全部、依次排在后面）。写一条加签记录。
+/// <c>POST /api/tasks/{id}:add-assignees</c>。照 4.x 只要登录；加的人都要是当前一侧可见的在用账号，按节点的完成策略一起办（或签任一人、会签全部、依次排在后面）。审批业务的顶层实例先问业务的改动前校验。写一条加签记录。
 /// </remarks>
 /// <param name="own">调用方名下的待办。</param>
 /// <param name="tasks">任务服务。</param>
 /// <param name="records">审批记录。</param>
 /// <param name="users">用户目录。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class AddTaskAssignees(WorkflowOwnTasks own, IWorkflowTaskService tasks, WorkflowTaskRecords records, IUserDirectory users) : IOperation<AddTaskAssigneesRequest, WorkflowTaskActionResponse>
+public sealed class AddTaskAssignees(WorkflowOwnTasks own, IWorkflowTaskService tasks, WorkflowTaskRecords records, IUserDirectory users, WorkflowBusinessChanges changes) : IOperation<AddTaskAssigneesRequest, WorkflowTaskActionResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -229,6 +237,12 @@ public sealed class AddTaskAssignees(WorkflowOwnTasks own, IWorkflowTaskService 
         if (!found.TryGetValue(out var task))
         {
             return found.Error!;
+        }
+
+        var allowed = await changes.CheckAsync(task.Instance, WorkflowBusinessChangeKind.AddAssignees, context).ConfigureAwait(false);
+        if (allowed.IsFailure)
+        {
+            return allowed.Error!;
         }
 
         var targets = request.UserIds.Distinct().ToList();

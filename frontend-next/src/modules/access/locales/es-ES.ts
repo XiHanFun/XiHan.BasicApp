@@ -407,7 +407,7 @@ export default {
       variable_role: 'Rol solicitado',
       variable_role_code: 'Código del rol solicitado',
       variable_permission_code: 'Código del permiso solicitado',
-      keyword_placeholder: 'Buscar motivo / observación',
+      keyword_placeholder: 'Buscar solicitante / motivo',
       status_placeholder: 'Todos los estados',
       fields: {
         keyword: 'Palabra clave',

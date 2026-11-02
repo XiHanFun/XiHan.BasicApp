@@ -126,6 +126,9 @@ public sealed class DirectoryContractsTests : IDisposable
             Assert.Empty(await directory.SearchActiveInSideAsync("demo", "example.com", 50, ctx.CancellationToken));
             Assert.Equal(["admin", "hr", "manager"], (await directory.SearchActiveInSideAsync("demo", null, 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Equal(["manager"], (await directory.SearchActiveInSideAsync("demo", "Manager", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
+            Assert.Equal(["admin", "hr", "lead", "manager"], (await directory.SearchInSideAsync("demo", null, 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
+            Assert.Equal(["lead"], (await directory.SearchInSideAsync("demo", "lea", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
+            Assert.Empty(await directory.SearchInSideAsync(TenantIds.Platform, "lead", 50, ctx.CancellationToken));
             Assert.Contains(await directory.SearchActiveInSideAsync(TenantIds.Platform, "super", 50, ctx.CancellationToken), static u => u.UserName == "superadmin");
             return true;
         });

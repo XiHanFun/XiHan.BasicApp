@@ -285,6 +285,8 @@ public sealed class WorkflowDefinitionsTests : IDisposable
 
         public ValueTask<Result> OnTaskCompletingAsync(WorkflowBusinessTask task, InvocationContext context) => ValueTask.FromResult(Result.Success());
 
+        public ValueTask<Result> OnChangingAsync(WorkflowBusinessChange change, InvocationContext context) => ValueTask.FromResult(Result.Success());
+
         public ValueTask<Result> OnOutcomeAsync(WorkflowBusinessOutcome outcome, InvocationContext context) => ValueTask.FromResult(Result.Success());
 
         public ValueTask<Result> OnAbortedAsync(WorkflowBusinessAborted aborted, InvocationContext context) => ValueTask.FromResult(Result.Success());

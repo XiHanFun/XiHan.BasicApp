@@ -407,7 +407,7 @@ export default {
       variable_role: 'Requested role',
       variable_role_code: 'Requested role code',
       variable_permission_code: 'Requested permission code',
-      keyword_placeholder: 'Search reason / remark',
+      keyword_placeholder: 'Search applicant / reason',
       status_placeholder: 'All statuses',
       fields: {
         keyword: 'Keyword',

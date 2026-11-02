@@ -407,7 +407,7 @@ export default {
       variable_role: '申請するロール',
       variable_role_code: '申請するロールのコード',
       variable_permission_code: '申請する権限のコード',
-      keyword_placeholder: '申請理由 / 備考を検索',
+      keyword_placeholder: '申請者 / 理由を検索',
       status_placeholder: 'すべてのステータス',
       fields: {
         keyword: 'キーワード',

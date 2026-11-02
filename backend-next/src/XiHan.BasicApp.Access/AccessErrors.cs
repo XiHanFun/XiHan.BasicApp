@@ -595,6 +595,14 @@ public static class AccessErrors
     public const string PermissionRequestRoleDisabled = "ACCESS_VALIDATION_055";
 
     /// <summary>
+    /// 角色与权限同时申请。
+    /// </summary>
+    /// <remarks>
+    /// 照 4.x 的界面二选一，提交与修改重提都校验。
+    /// </remarks>
+    public const string PermissionRequestTargetExclusive = "ACCESS_VALIDATION_056";
+
+    /// <summary>
     /// 同一对象已有待审批的申请。
     /// </summary>
     public const string PermissionRequestDuplicate = "ACCESS_CONFLICT_013";
@@ -614,6 +622,14 @@ public static class AccessErrors
     /// 如违反约束规则、申请人已不在这一侧；结束节点随之故障、申请保持待审批，处理后重试流程。参数 <c>code</c>（指派或直授给的错误码）。
     /// </remarks>
     public const string PermissionRequestGrantFailed = "ACCESS_CONFLICT_015";
+
+    /// <summary>
+    /// 模仿会话里不能对授权申请做写操作。
+    /// </summary>
+    /// <remarks>
+    /// 提交、修改重提、撤回、手工处理，以及授权申请审批单上的办理、转办、加签、撤回、取消、终止、重试、挂起与恢复（6.0 新加，4.x 没有）。
+    /// </remarks>
+    public const string PermissionRequestImpersonating = "ACCESS_CONFLICT_016";
 
     /// <summary>
     /// 只能维护自己的申请。

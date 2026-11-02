@@ -33,7 +33,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 | --- | --- | --- |
 | `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，可按状态、定义名、标题、创建时间或结束时间排序，缺省创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
 | `workflow-instances.start` | `.execute` | 发起人是调用方；按名字取最新已发布的版本 |
-| `workflow-instances.cancel` / `terminate` / `retry` / `signal` | `.execute` | 取消（启用补偿时逆序补偿）、终止（不补偿）、故障重试、发信号 |
+| `workflow-instances.cancel` / `terminate` / `retry` / `signal` | `.execute` | 取消（启用补偿时逆序补偿）、终止（不补偿）、故障重试、发信号；审批业务的实例先过改动前校验（发信号除外），不过的那一项记失败、不交给引擎 |
 | `workflow-instances.suspend` / `resume` | `.update` | 挂起与恢复 |
 
 控制类都是批量，逐项返回 `BatchResult`。BasicApp 自己的错误码在 `WORKFLOW_` 前缀下从 101 起编（`WORKFLOW_NOTFOUND_101` 定义不存在、`102` 实例不存在），引擎、目录与任务服务的失败（001 段）原样返回。
@@ -61,17 +61,17 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 | --- | --- |
 | `tasks.list` | 我的待办：关键字匹配任务标题、实例标题、定义名与关联 ID，按到达时间降序，带节点、发起人与审批业务；还暴露给 MCP 与智能体 |
 | `tasks.complete` | 办理：结论（缺省 `approved` / `rejected`，节点的 `AllowedOutcomes` 另有约定时按它）与意见；审批业务先过办理前校验，不过即待办保留；办理后实例故障照常返回并带上原因 |
-| `tasks.transfer` / `tasks.add-assignees` | 转办、加签：目标要是当前一侧可见的在用账号（`WORKFLOW_VALIDATION_106`），加签一次至多 20 人 |
+| `tasks.transfer` / `tasks.add-assignees` | 转办、加签：目标要是当前一侧可见的在用账号（`WORKFLOW_VALIDATION_106`），加签一次至多 20 人；审批业务先过改动前校验 |
 | `approvals.list-done` / `list-cc` | 我已审批（办理、转办、加签）、抄送我的：读审批记录，关键字匹配任务标题、实例标题与关联 ID，带实例现在的状态 |
 | `approvals.list-started` | 我发起的：只取顶层实例，关键字匹配标题与关联 ID，可按状态过滤，运行中的带等着办的节点与人 |
 | `approvals.get` | 详情按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 `workflow.workflow-instances.read`，其余 403 `WORKFLOW_DENIED_101`；带审批业务的单据、调用方的待办与审批轨迹 |
-| `approvals.withdraw` | 发起人撤回自己运行中、挂起或故障的顶层实例（即取消），之后回调审批业务的中止回写 |
+| `approvals.withdraw` | 发起人撤回自己运行中、挂起或故障的顶层实例（即取消），审批业务先过改动前校验，之后回调中止回写 |
 
 办理、转办、加签、抄送各写一条审批记录（`sys_workflow_task_record`，租户库、只追加，平台一侧租户为 `platform`）；「我已审批」「抄送我的」与审批轨迹都读它。找不到人按策略自动通过或驳回的节点在轨迹里记为自动处理。
 
 ## 审批业务接入
 
-业务包在 `Configure` 里以 `services.AddWorkflowBusiness<THandler>()` 登记一个 `IWorkflowBusinessHandler`（Contracts `Workflow/`）：描述（业务码即流程定义名、单据组件、发起变量、允许的结论、缺省定义的 WorkflowJson）、办理前校验、结论回写、中止回写与单据数据。同一业务码登记两次，宿主启动即失败。
+业务包在 `Configure` 里以 `services.AddWorkflowBusiness<THandler>()` 登记一个 `IWorkflowBusinessHandler`（Contracts `Workflow/`）：描述（业务码即流程定义名、单据组件、发起变量、允许的结论、缺省定义的 WorkflowJson）、办理前校验、改动前校验（转办、加签、发起人撤回与管理员的取消、终止、重试、挂起、恢复之前；只读，不过即拒绝，批量里那一项记失败、不交给引擎）、结论回写、中止回写与单据数据。同一业务码登记两次，宿主启动即失败。
 
 业务包经 `IWorkflowBusinessService`（Workflow 关掉时没有实现，以 `IEnumerable<>` 注入）发起、撤回与查进度：
 

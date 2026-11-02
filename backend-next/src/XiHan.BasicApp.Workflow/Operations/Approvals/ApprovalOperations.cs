@@ -4,6 +4,7 @@
 using System.Text.Json.Nodes;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workflow;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Services;
 using XiHan.BasicApp.Workflow.Queries;
@@ -400,13 +401,14 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
 /// </summary>
 /// <remarks>
 /// <c>POST /api/approvals/{id}:withdraw</c>。照 4.x 只要登录：只有发起人能撤回自己运行中、挂起或故障的顶层实例（子流程随父流程结束），即取消实例，之后回调审批业务的中止回写；
-/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧（4.x 的实例已取消、只报回写失败）。
+/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧（4.x 的实例已取消、只报回写失败）。撤回之前先问审批业务的改动前校验。
 /// </remarks>
 /// <param name="engine">引擎。</param>
 /// <param name="aborts">中止回写。</param>
 /// <param name="texts">文案。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class WithdrawApproval(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowTexts texts) : IOperation<WithdrawApprovalRequest, WithdrawApprovalResponse>
+public sealed class WithdrawApproval(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowTexts texts, WorkflowBusinessChanges changes) : IOperation<WithdrawApprovalRequest, WithdrawApprovalResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -438,6 +440,12 @@ public sealed class WithdrawApproval(IWorkflowEngine engine, WorkflowBusinessAbo
         if (instance.IsFinal && instance.Status != WorkflowInstanceStatus.Faulted)
         {
             return Error.Conflict(WorkflowErrors.WithdrawFinished, WorkflowMessages.WithdrawFinished);
+        }
+
+        var allowed = await changes.CheckAsync(instance, WorkflowBusinessChangeKind.Withdraw, context).ConfigureAwait(false);
+        if (allowed.IsFailure)
+        {
+            return allowed.Error!;
         }
 
         var reason = string.IsNullOrWhiteSpace(request.Reason) ? texts.Render(context, WorkflowMessages.WithdrawReason) : request.Reason.Trim();

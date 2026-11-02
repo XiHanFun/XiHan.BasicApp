@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Contracts.Workflow;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions.Messages;
@@ -19,7 +20,7 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 授权申请的对象：角色、权限，或两者都有。
+/// 授权申请的对象：角色或权限（二选一）。
 /// </summary>
 /// <param name="Role">申请的角色。</param>
 /// <param name="Permission">申请的权限。</param>
@@ -29,7 +30,8 @@ public sealed record PermissionRequestTarget(SysRole? Role, PermissionDescriptor
 /// 授权申请的读写与校验（作用域）。
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>PermissionRequestDomainService</c>：对象至少一个、有效期合法且失效时间晚于现在、角色存在且启用、权限码在这一侧的目录里，同一申请人同一对象只能有一条待审批。
+/// 照 4.x 的 <c>PermissionRequestDomainService</c>：有效期合法且失效时间晚于现在、角色存在且启用、权限码在这一侧的目录里，同一申请人同一对象只能有一条待审批；
+/// 对象照 4.x 的界面二选一（4.x 的接口两者都给也收，用户已定接口同样二选一）。模仿会话里对申请的写操作一律拒绝（6.0 新加，4.x 没有）。
 /// 操作与审批业务处理器共用；它不依赖审批业务服务（处理器被审批业务服务构造时不成环）。
 /// </remarks>
 /// <param name="rows">按侧读写。</param>
@@ -47,9 +49,40 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     public const string BusinessCode = "permission-request";
 
     /// <summary>
+    /// 关键字按申请人匹配时，从用户目录最多取几个人。
+    /// </summary>
+    public const int RequesterMatchLimit = 200;
+
+    /// <summary>
     /// 按侧读写。
     /// </summary>
     public SideRows Rows => rows;
+
+    /// <summary>
+    /// 模仿会话里拒绝对申请的写操作。
+    /// </summary>
+    /// <remarks>
+    /// 口径同个人中心与我的 OAuth 应用（冲突），按令牌带不带模仿者判定。
+    /// </remarks>
+    public static Result RejectImpersonation(InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.GetSecurity().Principal.ClaimValues(IdentityClaims.Actor).Any()
+            ? Error.Conflict(AccessErrors.PermissionRequestImpersonating, AccessMessages.PermissionRequestImpersonating)
+            : Result.Success();
+    }
+
+    /// <summary>
+    /// 关键字匹配的申请人。
+    /// </summary>
+    /// <remarks>
+    /// 经用户目录在这一侧按登录名与显示名搜（含停用的账号），按登录名取前 <see cref="RequesterMatchLimit"/> 个。
+    /// </remarks>
+    public async Task<IReadOnlyList<Guid>> RequestersMatchingAsync(string side, string keyword, CancellationToken cancellationToken)
+    {
+        var found = await users.SearchInSideAsync(side, keyword, RequesterMatchLimit, cancellationToken).ConfigureAwait(false);
+        return found.Select(static u => u.Id).ToList();
+    }
 
     /// <summary>
     /// 按 ID 取这一侧的申请。
@@ -71,6 +104,11 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
         if (roleId is null && string.IsNullOrWhiteSpace(permissionCode))
         {
             return Error.Validation(AccessErrors.PermissionRequestTargetRequired, AccessMessages.PermissionRequestTargetRequired);
+        }
+
+        if (roleId is not null && !string.IsNullOrWhiteSpace(permissionCode))
+        {
+            return Error.Validation(AccessErrors.PermissionRequestTargetExclusive, AccessMessages.PermissionRequestTargetExclusive);
         }
 
         var window = GrantWindow.Validate(effectiveAt, expiresAt);

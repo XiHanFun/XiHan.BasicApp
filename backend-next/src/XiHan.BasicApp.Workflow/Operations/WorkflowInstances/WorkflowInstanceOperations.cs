@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Users;
+using XiHan.BasicApp.Contracts.Workflow;
 using XiHan.BasicApp.Workflow.Domain.Services;
 using XiHan.BasicApp.Workflow.Queries;
 using XiHan.Framework.Kernel.Operations;
@@ -171,12 +172,13 @@ public sealed class StartWorkflowInstance(IWorkflowEngine engine, IUserDirectory
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:cancel</c>。批量；运行中、挂起与故障的实例可取消（启用了补偿的逆序补偿），已结束的算成功。
-/// 审批业务的顶层实例取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）。
+/// 审批业务的顶层实例取消前先问业务的改动前校验，不过的那一项记失败、不取消；取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）。
 /// </remarks>
 /// <param name="engine">引擎。</param>
 /// <param name="aborts">中止回写。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
-public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts) : IOperation<WorkflowInstanceControlRequest, BatchResult>
+public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -189,7 +191,7 @@ public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusi
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        var canceled = await engine.CancelAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false);
+        var canceled = await changes.RunAsync(ids, WorkflowBusinessChangeKind.Cancel, passed => engine.CancelAsync(passed, request.Reason, context.CancellationToken), context).ConfigureAwait(false);
         return await WorkflowInstances.AbortedAsync(ids, canceled, request.Reason, aborts, context).ConfigureAwait(false);
     }
 }
@@ -198,12 +200,13 @@ public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusi
 /// 终止流程实例。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿，审批业务同样回调中止回写。
+/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿，审批业务同样先问改动前校验、之后回调中止回写。
 /// </remarks>
 /// <param name="engine">引擎。</param>
 /// <param name="aborts">中止回写。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
-public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts) : IOperation<WorkflowInstanceControlRequest, BatchResult>
+public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -216,7 +219,7 @@ public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowB
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        var terminated = await engine.TerminateAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false);
+        var terminated = await changes.RunAsync(ids, WorkflowBusinessChangeKind.Terminate, passed => engine.TerminateAsync(passed, request.Reason, context.CancellationToken), context).ConfigureAwait(false);
         return await WorkflowInstances.AbortedAsync(ids, terminated, request.Reason, aborts, context).ConfigureAwait(false);
     }
 }
@@ -225,11 +228,12 @@ public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowB
 /// 重试故障的流程实例。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:retry</c>。批量；只对有故障节点的故障实例，从故障节点重跑。
+/// <c>POST /api/workflow-instances:retry</c>。批量；只对有故障节点的故障实例，从故障节点重跑；审批业务的顶层实例先问改动前校验。
 /// </remarks>
 /// <param name="engine">引擎。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
-public sealed class RetryWorkflowInstances(IWorkflowEngine engine) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
+public sealed class RetryWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -242,7 +246,7 @@ public sealed class RetryWorkflowInstances(IWorkflowEngine engine) : IOperation<
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        return WorkflowInstances.Batch(ids, await engine.RetryAsync(ids.Select(WorkflowIds.ToEngine).ToList(), context.CancellationToken).ConfigureAwait(false));
+        return WorkflowInstances.Batch(ids, await changes.RunAsync(ids, WorkflowBusinessChangeKind.Retry, passed => engine.RetryAsync(passed, context.CancellationToken), context).ConfigureAwait(false));
     }
 }
 
@@ -250,11 +254,12 @@ public sealed class RetryWorkflowInstances(IWorkflowEngine engine) : IOperation<
 /// 挂起流程实例。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:suspend</c>。批量；只对运行中的。
+/// <c>POST /api/workflow-instances:suspend</c>。批量；只对运行中的；审批业务的顶层实例先问改动前校验。
 /// </remarks>
 /// <param name="engine">引擎。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesUpdate)]
-public sealed class SuspendWorkflowInstances(IWorkflowEngine engine) : IOperation<WorkflowInstanceControlRequest, BatchResult>
+public sealed class SuspendWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -267,7 +272,7 @@ public sealed class SuspendWorkflowInstances(IWorkflowEngine engine) : IOperatio
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        return WorkflowInstances.Batch(ids, await engine.SuspendAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false));
+        return WorkflowInstances.Batch(ids, await changes.RunAsync(ids, WorkflowBusinessChangeKind.Suspend, passed => engine.SuspendAsync(passed, request.Reason, context.CancellationToken), context).ConfigureAwait(false));
     }
 }
 
@@ -275,11 +280,12 @@ public sealed class SuspendWorkflowInstances(IWorkflowEngine engine) : IOperatio
 /// 恢复挂起的流程实例。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:resume</c>。批量；只对挂起的。
+/// <c>POST /api/workflow-instances:resume</c>。批量；只对挂起的；审批业务的顶层实例先问改动前校验。
 /// </remarks>
 /// <param name="engine">引擎。</param>
+/// <param name="changes">审批业务的改动前校验。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesUpdate)]
-public sealed class ResumeWorkflowInstances(IWorkflowEngine engine) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
+public sealed class ResumeWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -292,7 +298,7 @@ public sealed class ResumeWorkflowInstances(IWorkflowEngine engine) : IOperation
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        return WorkflowInstances.Batch(ids, await engine.ResumeInstancesAsync(ids.Select(WorkflowIds.ToEngine).ToList(), context.CancellationToken).ConfigureAwait(false));
+        return WorkflowInstances.Batch(ids, await changes.RunAsync(ids, WorkflowBusinessChangeKind.Resume, passed => engine.ResumeInstancesAsync(passed, context.CancellationToken), context).ConfigureAwait(false));
     }
 }
 

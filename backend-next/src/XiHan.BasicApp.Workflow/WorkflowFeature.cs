@@ -78,6 +78,7 @@ public sealed class WorkflowFeature : IFeature
         context.Services.AddScoped<WorkflowRecordQueries>();
         context.Services.AddScoped<WorkflowApprovals>();
         context.Services.AddScoped<WorkflowBusinessAborts>();
+        context.Services.AddScoped<WorkflowBusinessChanges>();
         context.Services.AddScoped<WorkflowNotifier>();
 
         // 审批业务：发起、撤回与进度给业务包用；结论在结束节点经结果处理器回写（同一个事务）

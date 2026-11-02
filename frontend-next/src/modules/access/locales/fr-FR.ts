@@ -407,7 +407,7 @@ export default {
       variable_role: 'Rôle demandé',
       variable_role_code: 'Code du rôle demandé',
       variable_permission_code: 'Code de la permission demandée',
-      keyword_placeholder: 'Rechercher un motif / une remarque',
+      keyword_placeholder: 'Rechercher un demandeur / un motif',
       status_placeholder: 'Tous les statuts',
       fields: {
         keyword: 'Mot-clé',

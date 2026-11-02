@@ -44,6 +44,12 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
         if (Workflow is not { } workflow)
         {
             return Error.Unavailable(AccessErrors.ApprovalUnavailable, AccessMessages.ApprovalUnavailable);
@@ -92,6 +98,12 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
         if (Workflow is not { } workflow)
         {
             return Error.Unavailable(AccessErrors.ApprovalUnavailable, AccessMessages.ApprovalUnavailable);
@@ -154,6 +166,12 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
         var requester = await store.RequesterAsync(context).ConfigureAwait(false);
         if (!requester.TryGetValue(out var me))
         {
@@ -171,6 +189,12 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
         if (request.Status is not (PermissionRequestStatus.Rejected or PermissionRequestStatus.Withdrawn))
         {
             return Error.Validation(AccessErrors.PermissionRequestStatusInvalid, AccessMessages.PermissionRequestStatusInvalid, MessageArguments.Of(("status", request.Status)));
@@ -188,17 +212,22 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     /// 分页列出这一侧的申请。
     /// </summary>
     /// <remarks>
-    /// 照 4.x：持有查看权限即看这一侧全部的申请；关键字匹配申请原因与备注，筛选申请人、角色、权限码与状态，缺省按提交时间降序。
+    /// 照 4.x：持有查看权限即看这一侧全部的申请；关键字匹配申请人（经用户目录按登录名与显示名，见 <see cref="PermissionRequestStore.RequestersMatchingAsync"/>）、申请原因与备注，
+    /// 筛选申请人、角色、权限码与状态，缺省按提交时间降序。
     /// </remarks>
     public async Task<Result<PageResult<PermissionRequestResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = store.Rows.Query<SysPermissionRequest>(SideRows.SideOf(context));
+        var side = SideRows.SideOf(context);
+        var query = store.Rows.Query<SysPermissionRequest>(side);
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-            query = query.Where(r => r.Reason.Contains(keyword) || (r.Remark != null && r.Remark.Contains(keyword)));
+            var requesters = await store.RequestersMatchingAsync(side, keyword, context.CancellationToken).ConfigureAwait(false);
+            query = requesters.Count == 0
+                ? query.Where(r => r.Reason.Contains(keyword) || (r.Remark != null && r.Remark.Contains(keyword)))
+                : query.Where(r => r.Reason.Contains(keyword) || (r.Remark != null && r.Remark.Contains(keyword)) || requesters.Contains(r.RequestUserId));
         }
 
         foreach (var filter in request.Filters)

@@ -80,7 +80,7 @@ export function expectedValidity(t: Translate, row: Pick<PermissionRequestRow, '
   })
 }
 
-/** 申请的对象：角色名与权限名（后端已按界面语言给出；6.0 可以同时申请两者，都列出来） */
+/** 申请的对象：角色名或权限名（二选一，后端已按界面语言给出） */
 export function requestTarget(row: Pick<PermissionRequestRow, 'permissionCode' | 'permissionName' | 'roleCode' | 'roleId' | 'roleName'>): string {
   const parts: string[] = []
   if (row.roleId)

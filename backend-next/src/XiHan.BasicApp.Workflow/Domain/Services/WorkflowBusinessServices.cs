@@ -304,6 +304,80 @@ public sealed class WorkflowBusinessOutcomeDispatcher(WorkflowBusinessRegistry r
 }
 
 /// <summary>
+/// 改动前校验（转办、加签、撤回与管理员的实例控制之前问业务）。
+/// </summary>
+/// <remarks>
+/// 只对登记过的业务、有单据 ID 的顶层实例回调 <see cref="IWorkflowBusinessHandler.OnChangingAsync"/>（如授权申请在模仿会话里一律拒绝）。批量控制先逐个校验，
+/// 不过的那一项记失败、不交给引擎，免得流程已中止而单据还待审批；找不到的实例不在这里报，交给引擎照常报。
+/// </remarks>
+/// <param name="registry">审批业务登记表。</param>
+/// <param name="engine">引擎。</param>
+public sealed class WorkflowBusinessChanges(WorkflowBusinessRegistry registry, IWorkflowEngine engine)
+{
+    /// <summary>
+    /// 校验一个实例。
+    /// </summary>
+    /// <param name="instance">实例。</param>
+    /// <param name="kind">改动的种类。</param>
+    /// <param name="context">调用上下文。</param>
+    /// <returns>业务是否允许；不需要回调时成功。</returns>
+    public async ValueTask<Result> CheckAsync(WorkflowInstance instance, WorkflowBusinessChangeKind kind, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(context);
+        if (instance.ParentInstanceId is not null
+            || string.IsNullOrWhiteSpace(instance.CorrelationId)
+            || registry.Find(instance.DefinitionName.Value) is not { } handler)
+        {
+            return Result.Success();
+        }
+
+        return await handler.OnChangingAsync(new WorkflowBusinessChange(handler.Descriptor.Code, instance.CorrelationId, WorkflowIds.ToContract(instance.Id), kind), context).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 批量控制：校验过的交给引擎，不过的记失败。
+    /// </summary>
+    /// <param name="ids">实例 ID（已去重）。</param>
+    /// <param name="kind">改动的种类。</param>
+    /// <param name="run">对校验过的那些调引擎。</param>
+    /// <param name="context">调用上下文。</param>
+    /// <returns>与 <paramref name="ids"/> 一一对应的结果。</returns>
+    public async Task<IReadOnlyList<Result<WorkflowInstance>>> RunAsync(IReadOnlyList<Guid> ids, WorkflowBusinessChangeKind kind, Func<IReadOnlyList<string>, ValueTask<IReadOnlyList<Result<WorkflowInstance>>>> run, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+        ArgumentNullException.ThrowIfNull(run);
+        ArgumentNullException.ThrowIfNull(context);
+        var denied = new Dictionary<Guid, Error>();
+        foreach (var id in ids)
+        {
+            var found = await engine.FindInstanceAsync(WorkflowIds.ToEngine(id), context.CancellationToken).ConfigureAwait(false);
+            if (!found.TryGetValue(out var maybe) || !maybe.TryGetValue(out var instance))
+            {
+                continue;
+            }
+
+            var allowed = await CheckAsync(instance, kind, context).ConfigureAwait(false);
+            if (allowed.IsFailure)
+            {
+                denied[id] = allowed.Error!;
+            }
+        }
+
+        var passed = ids.Where(id => !denied.ContainsKey(id)).ToList();
+        IReadOnlyList<Result<WorkflowInstance>> outcomes = passed.Count == 0 ? [] : await run(passed.Select(WorkflowIds.ToEngine).ToList()).ConfigureAwait(false);
+        var merged = new List<Result<WorkflowInstance>>(ids.Count);
+        var next = 0;
+        foreach (var id in ids)
+        {
+            merged.Add(denied.TryGetValue(id, out var error) ? error : outcomes[next++]);
+        }
+
+        return merged;
+    }
+}
+
+/// <summary>
 /// 中止回写（管理员取消、终止，发起人撤回之后通知业务）。
 /// </summary>
 /// <remarks>

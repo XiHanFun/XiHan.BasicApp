@@ -48,13 +48,25 @@ public sealed class UserDirectory(SqlSugarUnitOfWork unitOfWork, IEnumerable<ITe
         => VisibleInSideAsync(side, userIds, activeOnly: false, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<UserSummary>> SearchActiveInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<UserSummary>> SearchActiveInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken)
+        => SearchAsync(side, keyword, limit, activeOnly: true, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<UserSummary>> SearchInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken)
+        => SearchAsync(side, keyword, limit, activeOnly: false, cancellationToken);
+
+    private async Task<IReadOnlyList<UserSummary>> SearchAsync(string side, string? keyword, int limit, bool activeOnly, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(side);
         ArgumentOutOfRangeException.ThrowIfLessThan(limit, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(limit, MaxSearchLimit);
         var members = (await MembersAsync(side, cancellationToken).ConfigureAwait(false)).ToList();
-        var query = unitOfWork.ConnectionFor(typeof(SysUser)).Queryable<SysUser>().Where(u => !u.IsDeleted && u.Status == UserStatus.Active);
+        var query = unitOfWork.ConnectionFor(typeof(SysUser)).Queryable<SysUser>().Where(u => !u.IsDeleted);
+        if (activeOnly)
+        {
+            query = query.Where(static u => u.Status == UserStatus.Active);
+        }
+
         query = members.Count == 0 ? query.Where(u => u.HomeTenantId == side) : query.Where(u => u.HomeTenantId == side || members.Contains(u.Id));
         if (!string.IsNullOrWhiteSpace(keyword))
         {

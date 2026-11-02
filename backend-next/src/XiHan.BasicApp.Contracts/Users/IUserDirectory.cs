@@ -66,4 +66,17 @@ public interface IUserDirectory
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>匹配的账号摘要。</returns>
     Task<IReadOnlyList<UserSummary>> SearchActiveInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 搜一侧可见的账号，含停用的。
+    /// </summary>
+    /// <remarks>
+    /// 可见口径同 <see cref="InSideAsync"/>，关键字的匹配与排序同 <see cref="SearchActiveInSideAsync"/>。用于按人名过滤这一侧的单据（如授权申请按申请人）。
+    /// </remarks>
+    /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID。</param>
+    /// <param name="keyword">关键字，空即不筛。</param>
+    /// <param name="limit">最多返回几个（1～200）。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配的账号摘要。</returns>
+    Task<IReadOnlyList<UserSummary>> SearchInSideAsync(string side, string? keyword, int limit, CancellationToken cancellationToken);
 }

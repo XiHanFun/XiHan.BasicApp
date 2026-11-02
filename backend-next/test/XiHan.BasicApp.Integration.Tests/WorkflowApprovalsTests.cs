@@ -388,6 +388,8 @@ public sealed class WorkflowApprovalsTests : IDisposable
             return ValueTask.FromResult(task.Outcome == "rejected" ? Result.Failure(Error.Validation("TESTS_VALIDATION_001", "tests.veto")) : Result.Success());
         }
 
+        public ValueTask<Result> OnChangingAsync(WorkflowBusinessChange change, InvocationContext context) => ValueTask.FromResult(Result.Success());
+
         public ValueTask<Result> OnOutcomeAsync(WorkflowBusinessOutcome outcome, InvocationContext context)
         {
             log.Add($"outcome:{outcome.BusinessId}:{outcome.Outcome}");
@@ -429,6 +431,8 @@ public sealed class WorkflowApprovalsTests : IDisposable
             """);
 
         public ValueTask<Result> OnTaskCompletingAsync(WorkflowBusinessTask task, InvocationContext context) => ValueTask.FromResult(Result.Success());
+
+        public ValueTask<Result> OnChangingAsync(WorkflowBusinessChange change, InvocationContext context) => ValueTask.FromResult(Result.Success());
 
         public ValueTask<Result> OnOutcomeAsync(WorkflowBusinessOutcome outcome, InvocationContext context)
         {

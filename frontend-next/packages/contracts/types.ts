@@ -5148,7 +5148,7 @@ export interface paths {
         put?: never;
         /**
          * List permission requests
-         * @description Page through the permission requests of the caller's side, filtered by keyword (reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.
+         * @description Page through the permission requests of the caller's side, filtered by keyword (requester, reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.
          *
          *     Requires permission access.permission-requests.read (Read permission requests).
          */
@@ -29713,10 +29713,10 @@ export interface operations {
                 "application/json": {
                     /**
                      * Format: uuid
-                     * @description 申请的角色（与权限码至少给一个）。
+                     * @description 申请的角色（与权限码二选一）。
                      */
                     roleId?: string | null;
-                    /** @description 申请的权限码（与角色至少给一个）。 */
+                    /** @description 申请的权限码（与角色二选一）。 */
                     permissionCode?: string | null;
                     /** @description 申请原因。 */
                     reason: string;
@@ -29943,10 +29943,10 @@ export interface operations {
                     id: string;
                     /**
                      * Format: uuid
-                     * @description 申请的角色（与权限码至少给一个）。
+                     * @description 申请的角色（与权限码二选一）。
                      */
                     roleId?: string | null;
-                    /** @description 申请的权限码（与角色至少给一个）。 */
+                    /** @description 申请的权限码（与角色二选一）。 */
                     permissionCode?: string | null;
                     /** @description 申请原因。 */
                     reason: string;

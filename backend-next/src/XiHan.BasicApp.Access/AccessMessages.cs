@@ -1015,6 +1015,16 @@ public static class AccessMessages
     public const string PermissionRequestTargetRequired = "access.permission_request.target_required";
 
     /// <summary>
+    /// 角色与权限同时申请。
+    /// </summary>
+    public const string PermissionRequestTargetExclusive = "access.permission_request.target_exclusive";
+
+    /// <summary>
+    /// 模仿会话里不能对授权申请做写操作。
+    /// </summary>
+    public const string PermissionRequestImpersonating = "access.permission_request.impersonation_active";
+
+    /// <summary>
     /// 权限不存在或不属于这一侧。
     /// </summary>
     /// <remarks>

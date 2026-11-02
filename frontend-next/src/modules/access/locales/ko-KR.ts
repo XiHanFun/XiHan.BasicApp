@@ -407,7 +407,7 @@ export default {
       variable_role: '신청 역할',
       variable_role_code: '신청 역할 코드',
       variable_permission_code: '신청 권한 코드',
-      keyword_placeholder: '신청 사유 / 비고 검색',
+      keyword_placeholder: '신청자 / 사유 검색',
       status_placeholder: '전체 상태',
       fields: {
         keyword: '키워드',

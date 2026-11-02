@@ -91,8 +91,8 @@ public sealed record GetPermissionRequestRequest(Guid Id);
 /// <summary>
 /// 提交授权申请。
 /// </summary>
-/// <param name="RoleId">申请的角色（与权限码至少给一个）。</param>
-/// <param name="PermissionCode">申请的权限码（与角色至少给一个）。</param>
+/// <param name="RoleId">申请的角色（与权限码二选一）。</param>
+/// <param name="PermissionCode">申请的权限码（与角色二选一）。</param>
 /// <param name="Reason">申请原因。</param>
 /// <param name="ExpectedEffectiveAt">期望生效时间（为空即通过后立即生效）。</param>
 /// <param name="ExpectedExpiresAt">期望失效时间（为空即长期有效，要晚于现在与生效时间）。</param>
@@ -109,8 +109,8 @@ public sealed record CreatePermissionRequestRequest(
 /// 修改并重新提交授权申请。
 /// </summary>
 /// <param name="Id">ID。</param>
-/// <param name="RoleId">申请的角色（与权限码至少给一个）。</param>
-/// <param name="PermissionCode">申请的权限码（与角色至少给一个）。</param>
+/// <param name="RoleId">申请的角色（与权限码二选一）。</param>
+/// <param name="PermissionCode">申请的权限码（与角色二选一）。</param>
 /// <param name="Reason">申请原因。</param>
 /// <param name="ExpectedEffectiveAt">期望生效时间。</param>
 /// <param name="ExpectedExpiresAt">期望失效时间。</param>

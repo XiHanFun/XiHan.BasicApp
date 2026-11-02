@@ -407,7 +407,7 @@ export default {
       variable_role: 'Beantragte Rolle',
       variable_role_code: 'Code der beantragten Rolle',
       variable_permission_code: 'Code der beantragten Berechtigung',
-      keyword_placeholder: 'Grund / Bemerkung suchen',
+      keyword_placeholder: 'Antragsteller / Grund suchen',
       status_placeholder: 'Alle Status',
       fields: {
         keyword: 'Stichwort',

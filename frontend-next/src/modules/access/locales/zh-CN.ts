@@ -407,7 +407,7 @@ export default {
       variable_role: '申请角色',
       variable_role_code: '申请角色编码',
       variable_permission_code: '申请权限编码',
-      keyword_placeholder: '搜索申请原因 / 备注',
+      keyword_placeholder: '搜索申请人 / 原因',
       status_placeholder: '全部状态',
       fields: {
         keyword: '关键词',

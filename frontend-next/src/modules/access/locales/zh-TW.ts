@@ -407,7 +407,7 @@ export default {
       variable_role: '申請角色',
       variable_role_code: '申請角色編碼',
       variable_permission_code: '申請權限編碼',
-      keyword_placeholder: '搜尋申請事由 / 備註',
+      keyword_placeholder: '搜尋申請人 / 事由',
       status_placeholder: '全部狀態',
       fields: {
         keyword: '關鍵字',

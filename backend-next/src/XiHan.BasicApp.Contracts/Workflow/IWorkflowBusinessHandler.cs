@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Contracts.Workflow;
 /// 审批业务（业务包实现）。
 /// </summary>
 /// <remarks>
-/// 业务包把自己的单据接进审批流：描述（业务码即流程定义名、单据组件、允许的结论、缺省定义），办理前校验、结论回写、中止回写与单据数据。
+/// 业务包把自己的单据接进审批流：描述（业务码即流程定义名、单据组件、允许的结论、缺省定义），办理前校验、改动前校验、结论回写、中止回写与单据数据。
 /// 业务包在 <c>Configure</c> 里以 <see cref="WorkflowBusinessExtensions.AddWorkflowBusiness{THandler}"/> 登记，同一业务码登记两次时 Workflow 启动即失败；
 /// Workflow 没装时没有消费方。各回调都在引擎这次操作的调用里执行，与流程写入同一个事务。
 /// </remarks>
@@ -32,6 +32,17 @@ public interface IWorkflowBusinessHandler
     /// <param name="context">调用上下文。</param>
     /// <returns>是否允许办理。</returns>
     ValueTask<Result> OnTaskCompletingAsync(WorkflowBusinessTask task, InvocationContext context);
+
+    /// <summary>
+    /// 改动前校验。
+    /// </summary>
+    /// <remarks>
+    /// 办理之外的改动（转办、加签、撤回，管理员的取消、终止、重试、挂起与恢复）之前调用；只读校验，失败即拒绝这次改动，批量操作里那一项记失败、不发起。
+    /// </remarks>
+    /// <param name="change">改动。</param>
+    /// <param name="context">调用上下文。</param>
+    /// <returns>是否允许改动。</returns>
+    ValueTask<Result> OnChangingAsync(WorkflowBusinessChange change, InvocationContext context);
 
     /// <summary>
     /// 结论回写。

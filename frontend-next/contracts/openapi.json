@@ -31983,7 +31983,7 @@
                 "type": "object",
                 "properties": {
                   "roleId": {
-                    "description": "\u7533\u8BF7\u7684\u89D2\u8272\uFF08\u4E0E\u6743\u9650\u7801\u81F3\u5C11\u7ED9\u4E00\u4E2A\uFF09\u3002",
+                    "description": "\u7533\u8BF7\u7684\u89D2\u8272\uFF08\u4E0E\u6743\u9650\u7801\u4E8C\u9009\u4E00\uFF09\u3002",
                     "type": [
                       "string",
                       "null"
@@ -31991,7 +31991,7 @@
                     "format": "uuid"
                   },
                   "permissionCode": {
-                    "description": "\u7533\u8BF7\u7684\u6743\u9650\u7801\uFF08\u4E0E\u89D2\u8272\u81F3\u5C11\u7ED9\u4E00\u4E2A\uFF09\u3002",
+                    "description": "\u7533\u8BF7\u7684\u6743\u9650\u7801\uFF08\u4E0E\u89D2\u8272\u4E8C\u9009\u4E00\uFF09\u3002",
                     "type": [
                       "string",
                       "null"
@@ -32446,7 +32446,7 @@
                     "format": "uuid"
                   },
                   "roleId": {
-                    "description": "\u7533\u8BF7\u7684\u89D2\u8272\uFF08\u4E0E\u6743\u9650\u7801\u81F3\u5C11\u7ED9\u4E00\u4E2A\uFF09\u3002",
+                    "description": "\u7533\u8BF7\u7684\u89D2\u8272\uFF08\u4E0E\u6743\u9650\u7801\u4E8C\u9009\u4E00\uFF09\u3002",
                     "type": [
                       "string",
                       "null"
@@ -32454,7 +32454,7 @@
                     "format": "uuid"
                   },
                   "permissionCode": {
-                    "description": "\u7533\u8BF7\u7684\u6743\u9650\u7801\uFF08\u4E0E\u89D2\u8272\u81F3\u5C11\u7ED9\u4E00\u4E2A\uFF09\u3002",
+                    "description": "\u7533\u8BF7\u7684\u6743\u9650\u7801\uFF08\u4E0E\u89D2\u8272\u4E8C\u9009\u4E00\uFF09\u3002",
                     "type": [
                       "string",
                       "null"
@@ -32682,7 +32682,7 @@
           "permission-requests"
         ],
         "summary": "List permission requests",
-        "description": "Page through the permission requests of the caller\u0027s side, filtered by keyword (reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.\n\nRequires permission access.permission-requests.read (Read permission requests).",
+        "description": "Page through the permission requests of the caller\u0027s side, filtered by keyword (requester, reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.\n\nRequires permission access.permission-requests.read (Read permission requests).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.permission-requests.read",
         "parameters": [],

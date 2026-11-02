@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 平台一侧：提交即发起缺省的「管理员审批」流程（当前分区第一次时建并发布），审批通过即按申请指派角色或直授权限并生效，驳回、撤回、重新提交、
-/// 管理员手工处理与取消流程的中止回写；发起即故障时整单回滚；Workflow 关掉时列表照常、提交即审批未启用（方案 W1）。
+/// 管理员手工处理与取消流程的中止回写；对象二选一、关键字匹配申请人；模仿会话里对申请的写操作一律拒绝；发起即故障时整单回滚；Workflow 关掉时列表照常、提交即审批未启用（方案 W1）。
 /// </remarks>
 public sealed class PermissionRequestsTests : IDisposable
 {
@@ -114,6 +114,78 @@ public sealed class PermissionRequestsTests : IDisposable
     }
 
     [Fact]
+    public async Task TargetIsExclusive_KeywordMatchesRequester_AndImpersonationCannotWrite()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        var ids = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (name, display) in new[] { ("alice", "Alice Liddell"), ("carol", "Carol") })
+        {
+            var (created, user) = await SendAsync(server, HttpMethod.Post, "/api/users", Json(new { userName = name, displayName = display, password = "Pass@123456" }), platform);
+            Assert.Equal(HttpStatusCode.Created, created);
+            ids[name] = user.GetProperty("id").GetString()!;
+        }
+
+        var requesters = await RoleAsync(server, platform, "requesters", ["access.permission-requests.read", "access.permission-requests.create", "access.permission-requests.update", "access.permission-requests.withdraw"]);
+        await SendAsync(server, HttpMethod.Post, $"/api/roles/{requesters}:assign", Json(new { userIds = new[] { ids["alice"] } }), platform);
+        var auditors = await RoleAsync(server, platform, "auditors", ["identity.users.read"]);
+        var (_, roles) = await SendAsync(server, HttpMethod.Post, "/api/roles:list", """{"page":{"index":1,"size":100}}""", platform);
+        var admin = roles.GetProperty("items").EnumerateArray().Single(static r => r.GetProperty("code").GetString() == "admin").GetProperty("id").GetString()!;
+        await SendAsync(server, HttpMethod.Post, $"/api/roles/{admin}:assign", Json(new { userIds = new[] { ids["carol"] } }), platform);
+        var alice = await LoginAsync(server, "alice");
+        var carol = await LoginAsync(server, "carol");
+
+        // 角色与权限码二选一：都给、都不给，提交与修改重提都校验
+        Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_056"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = auditors, permissionCode = "access.delegations.read", reason = "Both" }), alice)));
+        var (_, request) = await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = auditors, reason = "Need to audit users" }), alice);
+        var requestId = request.GetProperty("id").GetString()!;
+        var instanceId = request.GetProperty("workflowInstanceId").GetString()!;
+        Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_056"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { roleId = auditors, permissionCode = "access.delegations.read", reason = "Both" }), alice)));
+        Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_051"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { reason = "Neither" }), alice)));
+
+        // 关键字照 4.x 也匹配申请人：登录名、显示名（经用户目录），以及申请原因与备注
+        Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"alice"}"""));
+        Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"Liddell"}"""));
+        Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"audit users"}"""));
+        Assert.Empty(await ListAsync(server, "permission-requests", carol, """{"keyword":"carol"}"""));
+
+        // 模仿会话里对授权申请的写操作一律 409（6.0 新加，4.x 没有）：申请方的提交、修改重提、撤回与审批中心撤回
+        var asAlice = await ImpersonateAsync(server, ids["alice"]);
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { permissionCode = "access.delegations.read", reason = "As someone else" }), asAlice)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { roleId = auditors, reason = "Changed" }), asAlice)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests:withdraw", Json(new { ids = new[] { requestId } }), asAlice)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, $"/api/approvals/{instanceId}:withdraw", "{}", asAlice)));
+        Assert.Single(await ListAsync(server, "permission-requests", asAlice));
+
+        // 审批方：同意、驳回、转办、加签与手工处理
+        var asCarol = await ImpersonateAsync(server, ids["carol"]);
+        var task = Assert.Single(await ListAsync(server, "tasks", asCarol));
+        var taskId = task.GetProperty("id").GetString();
+        var superadminId = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("user").GetProperty("id").GetString();
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, $"/api/tasks/{taskId}:complete", """{"outcome":"approved"}""", asCarol)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, $"/api/tasks/{taskId}:complete", """{"outcome":"rejected"}""", asCarol)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, $"/api/tasks/{taskId}:transfer", Json(new { targetUserId = superadminId }), asCarol)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, $"/api/tasks/{taskId}:add-assignees", Json(new { userIds = new[] { superadminId } }), asCarol)));
+        Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests:set-status", Json(new { ids = new[] { requestId }, status = "Rejected" }), asCarol)));
+
+        // 管理员控制流程：中止前就拒绝，那一项记失败、流程不动；找不到的实例照常由引擎报
+        var missing = Guid.NewGuid().ToString();
+        foreach (var (action, body) in new[] { ("cancel", Json(new { ids = new[] { instanceId, missing }, reason = "Stop" })), ("terminate", Json(new { ids = new[] { instanceId }, reason = "Stop" })), ("suspend", Json(new { ids = new[] { instanceId } })) })
+        {
+            var (_, batch) = await SendAsync(server, HttpMethod.Post, $"/api/workflow-instances:{action}", body, asCarol);
+            Assert.Empty(batch.GetProperty("succeeded").EnumerateArray());
+            Assert.Equal("ACCESS_CONFLICT_016", batch.GetProperty("failed")[0].GetProperty("code").GetString());
+        }
+
+        var (_, still) = await SendAsync(server, HttpMethod.Get, $"/api/permission-requests/{requestId}", null, carol);
+        Assert.Equal(("Pending", "Running"), (still.GetProperty("status").GetString(), still.GetProperty("workflow").GetProperty("status").GetString()));
+
+        // 正常会话照常：审批通过即授予
+        await CompleteAsync(server, carol, requestId, "approved");
+        Assert.Equal("Approved", (await SendAsync(server, HttpMethod.Get, $"/api/permission-requests/{requestId}", null, alice)).Body.GetProperty("status").GetString());
+    }
+
+    [Fact]
     public async Task StartFaulted_RollsBack_AndWorkflowOff_ListsWithoutApproval()
     {
         // 平台只有超管一个管理员：超管自己申请时缺省流程找不到审批人（不含申请人），发起即故障，申请随之回滚
@@ -154,6 +226,15 @@ public sealed class PermissionRequestsTests : IDisposable
         var instance = request.GetProperty("workflowInstanceId").GetString();
         var task = Assert.Single(tasks, t => t.GetProperty("instanceId").GetString() == instance);
         Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/tasks/{task.GetProperty("id").GetString()}:complete", Json(new { outcome }), approver)).Status);
+    }
+
+    private static async Task<string> ImpersonateAsync(BasicAppTestServer server, string userId)
+    {
+        // 每次用超管的一个新会话发起，一个会话同时只挂一条模仿会话
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (started, body) = await SendAsync(server, HttpMethod.Post, "/api/impersonation:start", Json(new { targetUserId = userId, reason = "tests" }), superadmin);
+        Assert.Equal(HttpStatusCode.OK, started);
+        return body.GetProperty("accessToken").GetString()!;
     }
 
     private static async Task<List<string>> PermissionsAsync(BasicAppTestServer server, string token)

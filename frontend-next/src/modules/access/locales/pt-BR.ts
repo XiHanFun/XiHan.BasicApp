@@ -407,7 +407,7 @@ export default {
       variable_role: 'Função solicitada',
       variable_role_code: 'Código da função solicitada',
       variable_permission_code: 'Código da permissão solicitada',
-      keyword_placeholder: 'Pesquisar motivo / observação',
+      keyword_placeholder: 'Pesquisar solicitante / motivo',
       status_placeholder: 'Todos os status',
       fields: {
         keyword: 'Palavra-chave',

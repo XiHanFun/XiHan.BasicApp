@@ -407,7 +407,7 @@ export default {
       variable_role: 'Запрошенная роль',
       variable_role_code: 'Код запрошенной роли',
       variable_permission_code: 'Код запрошенного разрешения',
-      keyword_placeholder: 'Поиск по причине / примечанию',
+      keyword_placeholder: 'Поиск по заявителю / причине',
       status_placeholder: 'Все статусы',
       fields: {
         keyword: 'Ключевое слово',

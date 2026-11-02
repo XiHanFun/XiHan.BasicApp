@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// 照 4.x 的 <c>PermissionRequestWorkflowHandler</c>：
 /// <list type="bullet">
 /// <item>同意前校验审批人：不能审批自己的申请，且要能授出申请的对象；</item>
+/// <item>模仿会话里拒绝办理（同意、驳回都算）与转办、加签、撤回，以及管理员的取消、终止、重试、挂起与恢复（6.0 新加，4.x 没有）；</item>
 /// <item>结论 <c>approved</c>：重核对象仍可用，按期望的有效期指派角色（经 <see cref="RoleAssignmentService"/>，过约束规则，拦截类违规即失败）与直授权限（经 <see cref="UserGrantService"/>），
 /// 再置为已批准；任一步失败即返回失败，结束节点故障、申请保持待审批，处理后重试流程（4.x 同）；已批准时幂等；</item>
 /// <item>结论 <c>rejected</c> 置为已驳回；中止（管理员取消、终止，发起人在审批中心撤回）把待审批的置为已撤回；</item>
@@ -76,6 +77,12 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
     {
         ArgumentNullException.ThrowIfNull(task);
         ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
         if (!string.Equals(task.Outcome, "approved", StringComparison.Ordinal))
         {
             return Result.Success();
@@ -90,6 +97,13 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
         return request.RequestUserId == task.ActorId
             ? Error.Denied(AccessErrors.PermissionRequestSelfHandled, AccessMessages.PermissionRequestSelfHandled)
             : await store.CanGrantAsync(request, context).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public ValueTask<Result> OnChangingAsync(WorkflowBusinessChange change, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        return ValueTask.FromResult(PermissionRequestStore.RejectImpersonation(context));
     }
 
     /// <inheritdoc />

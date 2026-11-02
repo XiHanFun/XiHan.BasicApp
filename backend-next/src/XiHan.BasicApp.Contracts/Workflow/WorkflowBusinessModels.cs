@@ -52,6 +52,15 @@ public sealed record WorkflowBusinessTask(string BusinessCode, string BusinessId
 public sealed record WorkflowBusinessOutcome(string BusinessCode, string BusinessId, Guid InstanceId, string Outcome);
 
 /// <summary>
+/// 办理之外的改动。
+/// </summary>
+/// <param name="BusinessCode">业务码。</param>
+/// <param name="BusinessId">单据 ID。</param>
+/// <param name="InstanceId">实例 ID。</param>
+/// <param name="Kind">改动的种类。</param>
+public sealed record WorkflowBusinessChange(string BusinessCode, string BusinessId, Guid InstanceId, WorkflowBusinessChangeKind Kind);
+
+/// <summary>
 /// 中止的审批。
 /// </summary>
 /// <param name="BusinessCode">业务码。</param>
@@ -105,6 +114,52 @@ public sealed record WorkflowBusinessProgress(
 /// <param name="UserId">用户 ID。</param>
 /// <param name="DisplayName">显示名。</param>
 public sealed record WorkflowBusinessAssignee(Guid UserId, string DisplayName);
+
+/// <summary>
+/// 办理之外的改动的种类。
+/// </summary>
+public enum WorkflowBusinessChangeKind
+{
+    /// <summary>
+    /// 转办。
+    /// </summary>
+    Transfer = 1,
+
+    /// <summary>
+    /// 加签。
+    /// </summary>
+    AddAssignees = 2,
+
+    /// <summary>
+    /// 发起人在审批中心撤回。
+    /// </summary>
+    Withdraw = 3,
+
+    /// <summary>
+    /// 管理员取消。
+    /// </summary>
+    Cancel = 4,
+
+    /// <summary>
+    /// 管理员终止。
+    /// </summary>
+    Terminate = 5,
+
+    /// <summary>
+    /// 管理员重试。
+    /// </summary>
+    Retry = 6,
+
+    /// <summary>
+    /// 管理员挂起。
+    /// </summary>
+    Suspend = 7,
+
+    /// <summary>
+    /// 管理员恢复。
+    /// </summary>
+    Resume = 8,
+}
 
 /// <summary>
 /// 审批实例的状态。
