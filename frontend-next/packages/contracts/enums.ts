@@ -272,6 +272,9 @@ export type UserStatus = (typeof UserStatus)[number]
 export const WorkbenchWidgetKind = ['Metric', 'Chart', 'List'] as const
 export type WorkbenchWidgetKind = (typeof WorkbenchWidgetKind)[number]
 
+export const WorkflowApprovalTimelineKind = ['Started', 'Completed', 'Transferred', 'AddedAssignees', 'CarbonCopied', 'AutoDecided', 'Pending', 'Finished'] as const
+export type WorkflowApprovalTimelineKind = (typeof WorkflowApprovalTimelineKind)[number]
+
 export const WorkflowDefinitionStatus = ['Draft', 'Published', 'Disabled', 'Archived'] as const
 export type WorkflowDefinitionStatus = (typeof WorkflowDefinitionStatus)[number]
 
@@ -280,6 +283,9 @@ export type WorkflowInstanceStatus = (typeof WorkflowInstanceStatus)[number]
 
 export const WorkflowNodeInstanceStatus = ['Running', 'Suspended', 'Completed', 'Canceled', 'Faulted', 'Compensated'] as const
 export type WorkflowNodeInstanceStatus = (typeof WorkflowNodeInstanceStatus)[number]
+
+export const WorkflowTaskRecordAction = ['Completed', 'Transferred', 'AddedAssignees', 'CarbonCopied'] as const
+export type WorkflowTaskRecordAction = (typeof WorkflowTaskRecordAction)[number]
 
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
@@ -373,9 +379,11 @@ export const enums = {
   UserSettingScene,
   UserStatus,
   WorkbenchWidgetKind,
+  WorkflowApprovalTimelineKind,
   WorkflowDefinitionStatus,
   WorkflowInstanceStatus,
   WorkflowNodeInstanceStatus,
+  WorkflowTaskRecordAction,
 } as const
 
 export type EnumName = keyof typeof enums

@@ -4,6 +4,8 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Workflow.Operations.Approvals;
+using XiHan.BasicApp.Workflow.Operations.Tasks;
 using XiHan.BasicApp.Workflow.Operations.WorkflowAssignees;
 using XiHan.BasicApp.Workflow.Operations.WorkflowDefinitions;
 using XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
@@ -50,4 +52,15 @@ namespace XiHan.BasicApp.Workflow;
 [JsonSerializable(typeof(AssigneeUsersResponse))]
 [JsonSerializable(typeof(AssigneeOptionsResponse))]
 [JsonSerializable(typeof(AssigneeDepartmentsResponse))]
+[JsonSerializable(typeof(PageResult<WorkflowTaskResponse>))]
+[JsonSerializable(typeof(CompleteTaskRequest))]
+[JsonSerializable(typeof(TransferTaskRequest))]
+[JsonSerializable(typeof(AddTaskAssigneesRequest))]
+[JsonSerializable(typeof(WorkflowTaskActionResponse))]
+[JsonSerializable(typeof(PageResult<WorkflowApprovalRecordResponse>))]
+[JsonSerializable(typeof(PageResult<WorkflowApprovalInstanceResponse>))]
+[JsonSerializable(typeof(GetApprovalRequest))]
+[JsonSerializable(typeof(WorkflowApprovalDetailResponse))]
+[JsonSerializable(typeof(WithdrawApprovalRequest))]
+[JsonSerializable(typeof(WithdrawApprovalResponse))]
 public sealed partial class WorkflowJsonContext : JsonSerializerContext;

@@ -5,19 +5,26 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Workbench;
+using XiHan.BasicApp.Contracts.Workflow;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Workflow.Domain.Services;
+using XiHan.BasicApp.Workflow.Handlers;
 using XiHan.BasicApp.Workflow.Infrastructure;
+using XiHan.BasicApp.Workflow.Operations.Approvals;
+using XiHan.BasicApp.Workflow.Queries;
 using XiHan.BasicApp.Workflow.Seeds;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Workflow.Abstractions;
+using XiHan.Framework.Workflow.Abstractions.Events;
 using EngineCapabilities = XiHan.Framework.Workflow.Abstractions.WorkflowCapabilities;
 
 namespace XiHan.BasicApp.Workflow;
@@ -62,7 +69,26 @@ public sealed class WorkflowFeature : IFeature
     {
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddMessageCatalog(WorkflowMessages.Catalog);
+        context.Services.AddGeneratedRepositories();
         context.Services.AddScoped<WorkflowBusinessRegistry>();
+        context.Services.AddScoped<WorkflowTexts>();
+        context.Services.AddScoped<WorkflowLookup>();
+        context.Services.AddScoped<WorkflowTaskRecords>();
+        context.Services.AddScoped<WorkflowOwnTasks>();
+        context.Services.AddScoped<WorkflowRecordQueries>();
+        context.Services.AddScoped<WorkflowApprovals>();
+        context.Services.AddScoped<WorkflowBusinessAborts>();
+        context.Services.AddScoped<WorkflowNotifier>();
+
+        // 审批业务：发起、撤回与进度给业务包用；结论在结束节点经结果处理器回写（同一个事务）
+        context.Services.AddScoped<IWorkflowBusinessService, WorkflowBusinessService>();
+        context.Services.AddWorkflowOutcomeHandler<WorkflowBusinessOutcomeDispatcher>();
+
+        // 通知：待办与抄送、转办、故障（竞争消费，按消息 ID 去重）
+        context.Services.AddMessageHandler<TaskCreatedHandler>(WorkflowTopics.TaskCreated);
+        context.Services.AddMessageHandler<TaskTransferredHandler>(WorkflowTopics.TaskTransferred);
+        context.Services.AddMessageHandler<InstanceFaultedHandler>(WorkflowTopics.InstanceFaulted);
+        context.Services.AddScoped<IWorkbenchWidgetProvider, WorkflowWidgets>();
 
         // 构造一次登记表：同一业务码登记两次在启动阶段就失败（照 4.x 的「同编码多个即抛错」，提前到装配）
         context.AddStartupCheck(static services =>

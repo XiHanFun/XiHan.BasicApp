@@ -1,8 +1,8 @@
 # 工作流
 
-本页说明工作流的引擎与存储、流程定义与实例的操作和权限、组织类受理人、审批业务的接入、演示流程与模块开关，适用于设计流程、接入审批的后端与前端开发者。
+本页说明工作流的引擎与存储、流程定义与实例的操作和权限、组织类受理人、待办与审批中心、审批业务的接入、通知、演示流程与模块开关，适用于设计流程、接入审批的后端与前端开发者。
 
-Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架 5 的工作流，本包只做管理操作、组织类受理人、审批业务接入与页面；模型与规则沿用 5.x，写法换成 6.0 的。审批中心与授权申请随 N3 第三批后续几笔进来。
+Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架 5 的工作流，本包只做管理操作、组织类受理人、待办与审批中心、审批业务接入、通知与页面；模型与规则沿用 5.x，写法换成 6.0 的。授权申请（Access）随 N3 第三批后一笔进来。
 
 ## 引擎与存储
 
@@ -53,9 +53,38 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 数据来自 Contracts 的组织目录（Organization 实现）与角色成员目录（Access 实现）。设计器与转办、加签选人用 `workflow-assignees.users`（只要登录；关键字只匹配登录名与显示名，缺省 50、至多 200 个；按 ID 回显含停用的账号）与 `roles` / `positions` / `departments`（`workflow.workflow-assignees.read`）。
 
+## 待办与审批中心
+
+照 5.x 只要登录（不设权限码），主体一律锁定为调用方：
+
+| 操作 | 说明 |
+| --- | --- |
+| `tasks.list` | 我的待办：关键字匹配任务标题、实例标题、定义名与关联 ID，按到达时间降序，带节点、发起人与审批业务；还暴露给 MCP 与智能体 |
+| `tasks.complete` | 办理：结论（缺省 `approved` / `rejected`，节点的 `AllowedOutcomes` 另有约定时按它）与意见；审批业务先过办理前校验，不过即待办保留；办理后实例故障照常返回并带上原因 |
+| `tasks.transfer` / `tasks.add-assignees` | 转办、加签：目标要是当前一侧可见的在用账号（`WORKFLOW_VALIDATION_106`），加签一次至多 20 人 |
+| `approvals.list-done` / `list-cc` | 我已审批（办理、转办、加签）、抄送我的：读审批记录，关键字匹配任务标题、实例标题与关联 ID，带实例现在的状态 |
+| `approvals.list-started` | 我发起的：只取顶层实例，关键字匹配标题与关联 ID，可按状态过滤，运行中的带等着办的节点与人 |
+| `approvals.get` | 详情按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 `workflow.workflow-instances.read`，其余 403 `WORKFLOW_DENIED_101`；带审批业务的单据、调用方的待办与审批轨迹 |
+| `approvals.withdraw` | 发起人撤回自己运行中、挂起或故障的顶层实例（即取消），之后回调审批业务的中止回写 |
+
+办理、转办、加签、抄送各写一条审批记录（`sys_workflow_task_record`，租户库、只追加，平台一侧租户为 `platform`）；「我已审批」「抄送我的」与审批轨迹都读它。找不到人按策略自动通过或驳回的节点在轨迹里记为自动处理。
+
 ## 审批业务接入
 
-业务包在 `Configure` 里以 `services.AddWorkflowBusiness<THandler>()` 登记一个 `IWorkflowBusinessHandler`（Contracts `Workflow/`）：描述（业务码即流程定义名、单据组件、发起变量、允许的结论、缺省定义的 WorkflowJson）、办理前校验、结论回写、中止回写与单据数据。同一业务码登记两次，宿主启动即失败。发起、撤回与查进度经 `IWorkflowBusinessService`（随审批中心进来）。
+业务包在 `Configure` 里以 `services.AddWorkflowBusiness<THandler>()` 登记一个 `IWorkflowBusinessHandler`（Contracts `Workflow/`）：描述（业务码即流程定义名、单据组件、发起变量、允许的结论、缺省定义的 WorkflowJson）、办理前校验、结论回写、中止回写与单据数据。同一业务码登记两次，宿主启动即失败。
+
+业务包经 `IWorkflowBusinessService`（Workflow 关掉时没有实现，以 `IEnumerable<>` 注入）发起、撤回与查进度：
+
+- 发起：业务码即定义名，单据 ID 写进关联 ID；当前分区还没有这个名字的定义时按缺省定义建并发布（平台与租户各一份）；同一单据已有进行中的实例 `WORKFLOW_CONFLICT_005`；发起即故障（如首个审批节点找不到人）`WORKFLOW_CONFLICT_101`，调用方随之回滚。都在业务的事务里，与单据一起提交。
+- 结论回写：顶层实例走到带结论的结束节点时，在同一个事务里调业务的 `OnOutcomeAsync`；失败即结束节点故障、实例停在故障态，修好后重试再回写。
+- 中止回写：管理员取消、终止（批量，回写失败记为那一项失败，实例照样已中止）与发起人在审批中心撤回（回写失败即整个撤回回滚）之后调 `OnAbortedAsync`；业务自己经服务撤回的不回调。
+- 进度：一次至多 1000 张单据，每张取最近一次的顶层实例，运行中的带等着办的节点与人。
+
+## 通知
+
+订阅 `workflow.task.created`、`workflow.task.transferred` 与 `workflow.instance.faulted`（竞争消费），经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心：受理人收待办；被抄送人收抄送并写抄送记录（同一实例同一节点对同一人只记一次、只通知一次）；转办的新受理人收转办；实例故障时发起人收故障。投递至少一次，按消息 ID 去重（`sys_workflow_message_receipt`）；Notification 没装或投递失败只记日志，不阻断流程。文案按处理时的区域取。
+
+工作台小组件 `workflow.todo`（我的待办）：值是调用方的待办数，条目是最近到达的 5 条，点开到审批中心直接办理。管理端的看板还没有接这个小组件（可选模块往看板登记小组件的方式待定）。
 
 ## 演示流程
 
@@ -76,7 +105,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 前端
 
-`src/modules/workflow`：流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图）。设计器是 `@xihan-flow/*`，`packages/designers` 把它的 4.x 定义格式与 WorkflowJson 互相映射，面板去掉 Script。
+`src/modules/workflow`：审批中心（待我审批、我已审批、抄送我的、我发起的四个页签与详情抽屉，深链 `?tab=` / `?instanceId=` / `?taskId=`）、流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图）。设计器是 `@xihan-flow/*`，`packages/designers` 把它的 4.x 定义格式与 WorkflowJson 互相映射，面板去掉 Script。
 
 ## 下一步
 

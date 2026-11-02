@@ -15,6 +15,7 @@ public static class WorkflowPages
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
+        new("workflow.approvals", "/workflow/approvals", "workflow.approvals.title", "lucide:list-checks", 730),
         new("workflow.definitions", "/workflow/definitions", "workflow.definitions.title", "lucide:git-branch", 740, WorkflowPermissions.DefinitionsRead),
         new("workflow.instances", "/workflow/instances", "workflow.instances.title", "lucide:activity", 750, WorkflowPermissions.InstancesRead),
     ];

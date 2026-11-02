@@ -1766,6 +1766,42 @@ CREATE TABLE IF NOT EXISTS "sys_version" (
     CONSTRAINT "sys_version_pkey" PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS "sys_workflow_message_receipt" (
+    "id" uuid NOT NULL,
+    "message_id" character varying(128) NOT NULL,
+    "topic" character varying(128) NOT NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_workflow_message_receipt_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_workflow_message_receipt_tenant_id_message_id ON public.sys_workflow_message_receipt USING btree (tenant_id, message_id);
+
+CREATE TABLE IF NOT EXISTS "sys_workflow_task_record" (
+    "id" uuid NOT NULL,
+    "instance_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "task_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "node_id" character varying(64) NOT NULL,
+    "node_name" character varying(200) NOT NULL,
+    "definition_name" character varying(128) NOT NULL,
+    "instance_title" character varying(200) NOT NULL,
+    "title" character varying(500) NOT NULL,
+    "correlation_id" character varying(128) DEFAULT NULL::character varying NULL,
+    "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "action" integer DEFAULT 0 NOT NULL,
+    "outcome" character varying(64) DEFAULT NULL::character varying NULL,
+    "comment" character varying(2000) DEFAULT NULL::character varying NULL,
+    "target_user_ids" character varying(1000) DEFAULT NULL::character varying NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_workflow_task_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_workflow_task_record_tenant_id_instance_id ON public.sys_workflow_task_record USING btree (tenant_id, instance_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sys_workflow_task_record_tenant_id_user_id_action ON public.sys_workflow_task_record USING btree (tenant_id, user_id, action, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS "tenant_record" (
     "id" character varying(128) NOT NULL,
     "display_name" character varying(256) DEFAULT NULL::character varying NULL,

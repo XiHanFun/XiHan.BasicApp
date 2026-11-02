@@ -1,7 +1,8 @@
 /**
  * 流程实例页的状态、结果与运行轨迹着色规则（纯函数）。
  *
- * 4.x 的结果色调与标准结果在审批中心的 approval-labels 里，实例页借用；6.0 审批中心还没搬，先放在实例页，文案在 workflow.instances 下。
+ * 4.x 的结果色调与标准结果在审批中心的 approval-labels 里，实例页借用；6.0 先搬的实例页，放在这里、文案在 workflow.instances 下，
+ * 审批中心（approvals/approval-labels）反过来借用这里的色调、标准结果与状态 / 结果文案键。
  */
 import type { Tone } from '@xihan-ui/core'
 import type { WorkflowInstanceStatus, WorkflowNodeInstanceStatus } from '~/contracts'

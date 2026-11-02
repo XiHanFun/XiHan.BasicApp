@@ -8,6 +8,7 @@ using XiHan.Framework.Primitives;
 using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Instances;
+using XiHan.Framework.Workflow.Abstractions.Tasks;
 
 namespace XiHan.BasicApp.Workflow.Queries;
 
@@ -120,6 +121,64 @@ public static class WorkflowQueryMapping
         }
 
         return query;
+    }
+
+    /// <summary>
+    /// 我发起的。
+    /// </summary>
+    /// <remarks>
+    /// 照 4.x：发起人锁定为调用方、只取顶层实例；关键字（标题或关联 ID），筛选只有 <c>status</c>（<c>eq</c> / <c>in</c>）。
+    /// </remarks>
+    /// <param name="request">分页请求。</param>
+    /// <param name="starter">调用方（引擎用户 ID）。</param>
+    /// <returns>框架查询。</returns>
+    public static Result<WorkflowInstanceQuery> Started(PageRequest request, string starter)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var sorted = RequireNoSort(request);
+        if (sorted.IsFailure)
+        {
+            return sorted.Error!;
+        }
+
+        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, StarterId = starter, TopLevelOnly = true, Skip = request.Page.Skip, Limit = request.Page.Size };
+        foreach (var filter in request.Filters)
+        {
+            if (filter is not { Field: "status", Operator: "eq" or "in" } || !TryParseStatuses(filter.Value ?? string.Empty, out var statuses))
+            {
+                return Unsupported(filter);
+            }
+
+            query = query with { Statuses = statuses };
+        }
+
+        return query;
+    }
+
+    /// <summary>
+    /// 我的待办。
+    /// </summary>
+    /// <remarks>
+    /// 受理人锁定为调用方；关键字匹配任务标题、实例标题、定义名与关联 ID（与 4.x 同），按创建时间降序，没有筛选。
+    /// </remarks>
+    /// <param name="request">分页请求。</param>
+    /// <param name="assignee">调用方（引擎用户 ID）。</param>
+    /// <returns>框架查询。</returns>
+    public static Result<UserTaskQuery> Tasks(PageRequest request, string assignee)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var sorted = RequireNoSort(request);
+        if (sorted.IsFailure)
+        {
+            return sorted.Error!;
+        }
+
+        if (request.Filters.Count > 0)
+        {
+            return Unsupported(request.Filters[0]);
+        }
+
+        return new UserTaskQuery { AssigneeId = assignee, Keyword = request.Keyword, Descending = true, Skip = request.Page.Skip, Limit = request.Page.Size };
     }
 
     private static Result RequireNoSort(PageRequest request)

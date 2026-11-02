@@ -210,6 +210,190 @@ public static class WorkflowMessages
     /// </remarks>
     public const string AssigneeLevelInvalid = "workflow.assignees.level_invalid";
 
+    /// <summary>
+    /// 待办列表的说明。
+    /// </summary>
+    public const string ListTasksDescription = "tasks.list.description";
+
+    /// <summary>
+    /// 办理待办的说明。
+    /// </summary>
+    public const string CompleteTaskDescription = "tasks.complete.description";
+
+    /// <summary>
+    /// 转办的说明。
+    /// </summary>
+    public const string TransferTaskDescription = "tasks.transfer.description";
+
+    /// <summary>
+    /// 加签的说明。
+    /// </summary>
+    public const string AddTaskAssigneesDescription = "tasks.add_assignees.description";
+
+    /// <summary>
+    /// 我已审批的说明。
+    /// </summary>
+    public const string ListDoneApprovalsDescription = "approvals.list_done.description";
+
+    /// <summary>
+    /// 抄送我的说明。
+    /// </summary>
+    public const string ListCcApprovalsDescription = "approvals.list_cc.description";
+
+    /// <summary>
+    /// 我发起的说明。
+    /// </summary>
+    public const string ListStartedApprovalsDescription = "approvals.list_started.description";
+
+    /// <summary>
+    /// 审批详情的说明。
+    /// </summary>
+    public const string GetApprovalDescription = "approvals.get.description";
+
+    /// <summary>
+    /// 撤回的说明。
+    /// </summary>
+    public const string WithdrawApprovalDescription = "approvals.withdraw.description";
+
+    /// <summary>
+    /// 待办不存在、已办理或不归调用方。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string TaskNotFound = "workflow.tasks.not_found";
+
+    /// <summary>
+    /// 目标不能作为受理人。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
+    public const string AssigneeUnavailable = "workflow.assignees.unavailable";
+
+    /// <summary>
+    /// 审批业务没有登记。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
+    public const string BusinessNotRegistered = "workflow.business.not_registered";
+
+    /// <summary>
+    /// 审批业务的实例缺少单据 ID。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>instance</c>。
+    /// </remarks>
+    public const string BusinessIdMissing = "workflow.business.id_missing";
+
+    /// <summary>
+    /// 一次查询的单据太多。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
+    public const string ProgressTooMany = "workflow.business.progress_too_many";
+
+    /// <summary>
+    /// 审批发起即故障。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>reason</c>。
+    /// </remarks>
+    public const string StartFaulted = "workflow.business.start_faulted";
+
+    /// <summary>
+    /// 子流程不能单独撤回。
+    /// </summary>
+    public const string WithdrawSubWorkflow = "workflow.approvals.withdraw_sub_workflow";
+
+    /// <summary>
+    /// 流程已结束，不能撤回。
+    /// </summary>
+    public const string WithdrawFinished = "workflow.approvals.withdraw_finished";
+
+    /// <summary>
+    /// 只能撤回自己发起的流程。
+    /// </summary>
+    public const string WithdrawNotStarter = "workflow.approvals.withdraw_not_starter";
+
+    /// <summary>
+    /// 撤回没写原因时的原因。
+    /// </summary>
+    public const string WithdrawReason = "workflow.approvals.withdraw_reason";
+
+    /// <summary>
+    /// 没有查看这条审批的权限。
+    /// </summary>
+    public const string ApprovalHidden = "workflow.approvals.hidden";
+
+    /// <summary>
+    /// 待办通知的标题。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>title</c>（任务标题）。
+    /// </remarks>
+    public const string NotifyTodoTitle = "workflow.notify.todo_title";
+
+    /// <summary>
+    /// 待办通知的正文。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>instance</c>（实例标题）。
+    /// </remarks>
+    public const string NotifyTodoContent = "workflow.notify.todo_content";
+
+    /// <summary>
+    /// 抄送通知的标题。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>title</c>（任务标题）。
+    /// </remarks>
+    public const string NotifyCcTitle = "workflow.notify.cc_title";
+
+    /// <summary>
+    /// 抄送通知的正文。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>instance</c>（实例标题）。
+    /// </remarks>
+    public const string NotifyCcContent = "workflow.notify.cc_content";
+
+    /// <summary>
+    /// 转办通知的标题。
+    /// </summary>
+    public const string NotifyTransferTitle = "workflow.notify.transfer_title";
+
+    /// <summary>
+    /// 转办通知的正文。
+    /// </summary>
+    public const string NotifyTransferContent = "workflow.notify.transfer_content";
+
+    /// <summary>
+    /// 转办通知带意见的正文。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>comment</c>。
+    /// </remarks>
+    public const string NotifyTransferContentWithComment = "workflow.notify.transfer_content_comment";
+
+    /// <summary>
+    /// 故障通知的标题。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>instance</c>（实例标题）。
+    /// </remarks>
+    public const string NotifyFaultTitle = "workflow.notify.fault_title";
+
+    /// <summary>
+    /// 故障通知的正文。
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>instance</c>（实例标题）、<c>reason</c>（故障原因）。
+    /// </remarks>
+    public const string NotifyFaultContent = "workflow.notify.fault_content";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(WorkflowMessages)));
 
     /// <summary>

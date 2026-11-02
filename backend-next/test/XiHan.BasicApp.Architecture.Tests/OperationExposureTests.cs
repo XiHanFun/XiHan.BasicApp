@@ -43,6 +43,8 @@ public sealed class OperationExposureTests
         ["dicts.get"] = DirectoryRead,
         ["dicts.options"] = DirectoryRead,
         ["dict-items.list"] = DirectoryRead,
+        // 我的待办（5.4 已列）：受理人锁定为调用方，智能体替用户看自己的待办
+        ["tasks.list"] = Expose.Http | Expose.Mcp | Expose.Ai,
     };
 
     /// <summary>

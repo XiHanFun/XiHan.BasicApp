@@ -171,10 +171,12 @@ public sealed class StartWorkflowInstance(IWorkflowEngine engine, IUserDirectory
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:cancel</c>。批量；运行中、挂起与故障的实例可取消（启用了补偿的逆序补偿），已结束的算成功。
+/// 审批业务的顶层实例取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）。
 /// </remarks>
 /// <param name="engine">引擎。</param>
+/// <param name="aborts">中止回写。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
-public sealed class CancelWorkflowInstances(IWorkflowEngine engine) : IOperation<WorkflowInstanceControlRequest, BatchResult>
+public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -187,7 +189,8 @@ public sealed class CancelWorkflowInstances(IWorkflowEngine engine) : IOperation
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        return WorkflowInstances.Batch(ids, await engine.CancelAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false));
+        var canceled = await engine.CancelAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false);
+        return await WorkflowInstances.AbortedAsync(ids, canceled, request.Reason, aborts, context).ConfigureAwait(false);
     }
 }
 
@@ -195,11 +198,12 @@ public sealed class CancelWorkflowInstances(IWorkflowEngine engine) : IOperation
 /// 终止流程实例。
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿。
+/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿，审批业务同样回调中止回写。
 /// </remarks>
 /// <param name="engine">引擎。</param>
+/// <param name="aborts">中止回写。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
-public sealed class TerminateWorkflowInstances(IWorkflowEngine engine) : IOperation<WorkflowInstanceControlRequest, BatchResult>
+public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -212,7 +216,8 @@ public sealed class TerminateWorkflowInstances(IWorkflowEngine engine) : IOperat
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var ids = request.Ids.Distinct().ToList();
-        return WorkflowInstances.Batch(ids, await engine.TerminateAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false));
+        var terminated = await engine.TerminateAsync(ids.Select(WorkflowIds.ToEngine).ToList(), request.Reason, context.CancellationToken).ConfigureAwait(false);
+        return await WorkflowInstances.AbortedAsync(ids, terminated, request.Reason, aborts, context).ConfigureAwait(false);
     }
 }
 
@@ -344,6 +349,32 @@ internal static class WorkflowInstances
     {
         var ids = instances.Select(static i => WorkflowIds.UserOf(i.StarterId)).OfType<Guid>().Distinct().ToList();
         return ids.Count == 0 ? new Dictionary<Guid, UserSummary>() : await users.FindAsync(ids, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task<BatchResult> AbortedAsync(IReadOnlyList<Guid> ids, IReadOnlyList<Result<WorkflowInstance>> outcomes, string? reason, WorkflowBusinessAborts aborts, InvocationContext context)
+    {
+        var succeeded = new List<Guid>();
+        var failed = new List<BatchFailure>();
+        for (var i = 0; i < ids.Count; i++)
+        {
+            if (!outcomes[i].TryGetValue(out var instance))
+            {
+                failed.Add(new BatchFailure(ids[i], outcomes[i].Error!.Code));
+                continue;
+            }
+
+            var notified = await aborts.NotifyAsync(instance, reason, context).ConfigureAwait(false);
+            if (notified.IsSuccess)
+            {
+                succeeded.Add(ids[i]);
+            }
+            else
+            {
+                failed.Add(new BatchFailure(ids[i], notified.Error!.Code));
+            }
+        }
+
+        return new BatchResult(succeeded, failed);
     }
 
     public static BatchResult Batch(IReadOnlyList<Guid> ids, IReadOnlyList<Result<WorkflowInstance>> outcomes)

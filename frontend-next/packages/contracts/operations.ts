@@ -8,6 +8,11 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'approvals.get': { method: 'GET', template: '/api/approvals/{id}', path: ['id'], query: ['taskId'], success: 200 },
+  'approvals.list-cc': { method: 'POST', template: '/api/approvals:list-cc', path: [], query: [], success: 200 },
+  'approvals.list-done': { method: 'POST', template: '/api/approvals:list-done', path: [], query: [], success: 200 },
+  'approvals.list-started': { method: 'POST', template: '/api/approvals:list-started', path: [], query: [], success: 200 },
+  'approvals.withdraw': { method: 'POST', template: '/api/approvals/{id}:withdraw', path: ['id'], query: [], success: 200 },
   'auth.activate-roles': { method: 'POST', template: '/api/auth:activate-roles', path: [], query: [], success: 200 },
   'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
   'auth.external-login': { method: 'POST', template: '/api/auth:external-login', path: [], query: [], success: 200 },
@@ -348,6 +353,10 @@ export const routes = {
   'storage-configs.set-status': { method: 'POST', template: '/api/storage-configs/{id}:set-status', path: ['id'], query: [], success: 200 },
   'storage-configs.update': { method: 'PUT', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
   'subscription.get': { method: 'GET', template: '/api/subscription', path: [], query: [], success: 200 },
+  'tasks.add-assignees': { method: 'POST', template: '/api/tasks/{id}:add-assignees', path: ['id'], query: [], success: 200 },
+  'tasks.complete': { method: 'POST', template: '/api/tasks/{id}:complete', path: ['id'], query: [], success: 200 },
+  'tasks.list': { method: 'POST', template: '/api/tasks:list', path: [], query: [], success: 200 },
+  'tasks.transfer': { method: 'POST', template: '/api/tasks/{id}:transfer', path: ['id'], query: [], success: 200 },
   'telegram-bots.create': { method: 'POST', template: '/api/telegram-bots', path: [], query: [], success: 201 },
   'telegram-bots.delete': { method: 'DELETE', template: '/api/telegram-bots', path: [], query: ['ids'], success: 200 },
   'telegram-bots.get': { method: 'GET', template: '/api/telegram-bots/{id}', path: ['id'], query: [], success: 200 },
@@ -435,6 +444,15 @@ export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] ext
 export const accessLogs = {
   get: (request: RequestOf<'access-logs.get'>, options?: CallOptions) => invoke<RequestOf<'access-logs.get'>, ResponseOf<'access-logs.get'>>('access-logs.get', routes['access-logs.get'], request, options),
   list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
+}
+
+/** 资源 `approvals` 的操作。 */
+export const approvals = {
+  get: (request: RequestOf<'approvals.get'>, options?: CallOptions) => invoke<RequestOf<'approvals.get'>, ResponseOf<'approvals.get'>>('approvals.get', routes['approvals.get'], request, options),
+  listCc: (request: RequestOf<'approvals.list-cc'>, options?: CallOptions) => invoke<RequestOf<'approvals.list-cc'>, ResponseOf<'approvals.list-cc'>>('approvals.list-cc', routes['approvals.list-cc'], request, options),
+  listDone: (request: RequestOf<'approvals.list-done'>, options?: CallOptions) => invoke<RequestOf<'approvals.list-done'>, ResponseOf<'approvals.list-done'>>('approvals.list-done', routes['approvals.list-done'], request, options),
+  listStarted: (request: RequestOf<'approvals.list-started'>, options?: CallOptions) => invoke<RequestOf<'approvals.list-started'>, ResponseOf<'approvals.list-started'>>('approvals.list-started', routes['approvals.list-started'], request, options),
+  withdraw: (request: RequestOf<'approvals.withdraw'>, options?: CallOptions) => invoke<RequestOf<'approvals.withdraw'>, ResponseOf<'approvals.withdraw'>>('approvals.withdraw', routes['approvals.withdraw'], request, options),
 }
 
 /** 资源 `auth` 的操作。 */
@@ -1011,6 +1029,14 @@ export const storageConfigs = {
 /** 资源 `subscription` 的操作。 */
 export const subscription = {
   get: (request: RequestOf<'subscription.get'>, options?: CallOptions) => invoke<RequestOf<'subscription.get'>, ResponseOf<'subscription.get'>>('subscription.get', routes['subscription.get'], request, options),
+}
+
+/** 资源 `tasks` 的操作。 */
+export const tasks = {
+  addAssignees: (request: RequestOf<'tasks.add-assignees'>, options?: CallOptions) => invoke<RequestOf<'tasks.add-assignees'>, ResponseOf<'tasks.add-assignees'>>('tasks.add-assignees', routes['tasks.add-assignees'], request, options),
+  complete: (request: RequestOf<'tasks.complete'>, options?: CallOptions) => invoke<RequestOf<'tasks.complete'>, ResponseOf<'tasks.complete'>>('tasks.complete', routes['tasks.complete'], request, options),
+  list: (request: RequestOf<'tasks.list'>, options?: CallOptions) => invoke<RequestOf<'tasks.list'>, ResponseOf<'tasks.list'>>('tasks.list', routes['tasks.list'], request, options),
+  transfer: (request: RequestOf<'tasks.transfer'>, options?: CallOptions) => invoke<RequestOf<'tasks.transfer'>, ResponseOf<'tasks.transfer'>>('tasks.transfer', routes['tasks.transfer'], request, options),
 }
 
 /** 资源 `telegram-bots` 的操作。 */

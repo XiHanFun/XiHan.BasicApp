@@ -522,6 +522,11 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
 
 /** 操作 → 策略名（如 `authenticated`）；与权限码二选一。 */
 export const operationPolicy: Partial<Record<OperationId, string>> = {
+  'approvals.get': 'authenticated',
+  'approvals.list-cc': 'authenticated',
+  'approvals.list-done': 'authenticated',
+  'approvals.list-started': 'authenticated',
+  'approvals.withdraw': 'authenticated',
   'auth.activate-roles': 'authenticated',
   'auth.lock': 'authenticated',
   'auth.logout': 'authenticated',
@@ -592,6 +597,10 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'profile.update': 'authenticated',
   'profile.update-notification-preference': 'authenticated',
   'profile.verify-contact': 'authenticated',
+  'tasks.add-assignees': 'authenticated',
+  'tasks.complete': 'authenticated',
+  'tasks.list': 'authenticated',
+  'tasks.transfer': 'authenticated',
   'tenants.mine': 'authenticated',
   'user-settings.get': 'authenticated',
   'user-settings.update': 'authenticated',

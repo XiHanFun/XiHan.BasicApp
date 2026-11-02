@@ -45,6 +45,116 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/approvals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an approval
+         * @description Read an approval with its business form, the caller's pending task and the trail; only participants and holders of the instance read permission may see it.
+         *
+         *     Requires sign-in.
+         */
+        get: operations["approvals.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Withdraw an approval
+         * @description Cancel a running, suspended or faulted top-level instance the caller started, and let the approval business write back.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["approvals.withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals:list-cc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List approvals copied to me
+         * @description Page through the tasks copied to the caller, newest first, with the instance's current status.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["approvals.list-cc"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals:list-done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List approvals I handled
+         * @description Page through the tasks the caller completed, transferred or added approvers to, newest first, with the instance's current status.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["approvals.list-done"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals:list-started": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List approvals I started
+         * @description Page through the top-level instances the caller started, filtered by keyword (title or correlation ID) and status, newest first, with who they are waiting for.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["approvals.list-started"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:activate-roles": {
         parameters: {
             query?: never;
@@ -6681,6 +6791,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tasks/{id}:add-assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add approvers
+         * @description Add active accounts visible on the same side as approvers of one of the caller's tasks.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["tasks.add-assignees"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a task
+         * @description Complete one of the caller's tasks with an outcome and a comment; an approval business checks it first, and the record and the business write-back commit together.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["tasks.complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{id}:transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transfer a task
+         * @description Hand one of the caller's tasks over to another active account visible on the same side.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["tasks.transfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List my tasks
+         * @description Page through the caller's pending tasks, filtered by keyword (task title, instance title, definition name, correlation ID), newest first, with node, starter and approval business.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["tasks.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/telegram-bots": {
         parameters: {
             query?: never;
@@ -12649,6 +12847,171 @@ export interface components {
             /** @description 输入属性。 */
             inputs: components["schemas"]["WorkflowActivityInputResponse"][];
         };
+        /** @description 审批业务的单据。 */
+        WorkflowApprovalBusinessResponse: {
+            /** @description 业务码。 */
+            code: string;
+            /** @description 显示名的文案键。 */
+            nameKey: string;
+            /** @description 单据组件路径。 */
+            formComponent: string;
+            /** @description 单据 ID。 */
+            businessId: string;
+            /** @description 单据数据（JSON 文本；单据已不存在时为空）。 */
+            data?: string | null;
+        };
+        /** @description 我发起的里的一条。 */
+        WorkflowApprovalInstanceResponse: {
+            /**
+             * Format: uuid
+             * @description 流程实例。
+             */
+            id: string;
+            /** @description 流程定义名。 */
+            definitionName: string;
+            /**
+             * Format: int32
+             * @description 定义版本。
+             */
+            definitionVersion: number;
+            /** @description 实例标题。 */
+            title: string;
+            /** @description 状态。 */
+            status: components["schemas"]["WorkflowInstanceStatus"];
+            /** @description 结论。 */
+            outcome?: string | null;
+            /** @description 关联 ID。 */
+            correlationId?: string | null;
+            /** @description 审批业务显示名的文案键。 */
+            businessNameKey?: string | null;
+            /**
+             * Format: date-time
+             * @description 发起时间。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 结束时间。
+             */
+            endedAt?: string | null;
+            /** @description 故障原因。 */
+            faultMessage?: string | null;
+            /** @description 运行中时等着办的节点。 */
+            pendingNodeNames: string[];
+            /** @description 运行中时等着办的人。 */
+            pendingAssigneeNames: string[];
+        };
+        /** @description 我已审批、抄送我的里的一条。 */
+        WorkflowApprovalRecordResponse: {
+            /**
+             * Format: uuid
+             * @description 记录 ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 流程实例。
+             */
+            instanceId: string;
+            /**
+             * Format: uuid
+             * @description 任务。
+             */
+            taskId: string;
+            /** @description 实例标题。 */
+            instanceTitle: string;
+            /** @description 流程定义名。 */
+            definitionName: string;
+            /** @description 节点 ID。 */
+            nodeId: string;
+            /** @description 节点名。 */
+            nodeName: string;
+            /** @description 任务标题。 */
+            title: string;
+            /** @description 关联 ID。 */
+            correlationId?: string | null;
+            /** @description 动作。 */
+            action: components["schemas"]["WorkflowTaskRecordAction"];
+            /** @description 办理的结论。 */
+            outcome?: string | null;
+            /** @description 意见。 */
+            comment?: string | null;
+            /**
+             * Format: date-time
+             * @description 时间。
+             */
+            createdAt: string;
+            /** @description 审批业务显示名的文案键（不是审批业务的顶层实例为空）。 */
+            businessNameKey?: string | null;
+            /**
+             * Format: uuid
+             * @description 发起人。
+             */
+            starterId?: string | null;
+            /** @description 发起人显示名。 */
+            starterName?: string | null;
+            /** @description 实例现在的状态（实例已清理时为空）。 */
+            instanceStatus?: components["schemas"]["WorkflowInstanceStatus"] | null;
+            /** @description 实例的结论。 */
+            instanceOutcome?: string | null;
+        };
+        /** @description 调用方的待办。 */
+        WorkflowApprovalTaskResponse: {
+            /**
+             * Format: uuid
+             * @description 任务 ID。
+             */
+            taskId: string;
+            /** @description 节点 ID。 */
+            nodeId: string;
+            /** @description 节点名。 */
+            nodeName: string;
+            /** @description 任务标题。 */
+            title: string;
+            /**
+             * Format: date-time
+             * @description 到达时间。
+             */
+            createdAt: string;
+            /** @description 节点允许的结论（没写时为空，前端按同意 / 驳回）。 */
+            allowedOutcomes: string[];
+            /** @description 任务表单数据（JSON 对象文本）。 */
+            formData: string;
+        };
+        /** @description 审批轨迹的一项。 */
+        WorkflowApprovalTimelineItem: {
+            /** @description 种类。 */
+            kind: components["schemas"]["WorkflowApprovalTimelineKind"];
+            /** @description 节点 ID。 */
+            nodeId?: string | null;
+            /** @description 节点名。 */
+            nodeName?: string | null;
+            /**
+             * Format: uuid
+             * @description 办理人、被抄送人或待办人。
+             */
+            userId?: string | null;
+            /** @description 显示名。 */
+            userName?: string | null;
+            /** @description 结论。 */
+            outcome?: string | null;
+            /** @description 意见、故障或取消的原因。 */
+            comment?: string | null;
+            /** @description 转办与加签的目标。 */
+            targetUserNames: string[];
+            /** @description 结束时实例的状态。 */
+            instanceStatus?: components["schemas"]["WorkflowInstanceStatus"] | null;
+            /**
+             * Format: date-time
+             * @description 时间。
+             */
+            time?: string | null;
+        };
+        /**
+         * @description 审批轨迹的种类。
+         * @enum {string}
+         */
+        WorkflowApprovalTimelineKind: "Started" | "Completed" | "Transferred" | "AddedAssignees" | "CarbonCopied" | "AutoDecided" | "Pending" | "Finished";
         /** @description 一个审批业务。 */
         WorkflowBusinessTypeResponse: {
             /** @description 业务码（流程定义名）。 */
@@ -12800,6 +13163,50 @@ export interface components {
         };
         /** @enum {string} */
         WorkflowNodeInstanceStatus: "Running" | "Suspended" | "Completed" | "Canceled" | "Faulted" | "Compensated";
+        /**
+         * @description 审批记录的动作。
+         * @enum {string}
+         */
+        WorkflowTaskRecordAction: "Completed" | "Transferred" | "AddedAssignees" | "CarbonCopied";
+        /** @description 一条待办。 */
+        WorkflowTaskResponse: {
+            /**
+             * Format: uuid
+             * @description 任务 ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 流程实例。
+             */
+            instanceId: string;
+            /** @description 实例标题。 */
+            instanceTitle: string;
+            /** @description 流程定义名。 */
+            definitionName: string;
+            /** @description 节点 ID。 */
+            nodeId: string;
+            /** @description 节点名。 */
+            nodeName: string;
+            /** @description 任务标题。 */
+            title: string;
+            /** @description 关联 ID（审批业务的单据 ID）。 */
+            correlationId?: string | null;
+            /**
+             * Format: date-time
+             * @description 到达时间。
+             */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description 发起人。
+             */
+            starterId?: string | null;
+            /** @description 发起人显示名。 */
+            starterName?: string | null;
+            /** @description 审批业务显示名的文案键（不是审批业务的顶层实例为空）。 */
+            businessNameKey?: string | null;
+        };
         /** @description 一个待恢复的等待。 */
         WorkflowWaitResponse: {
             /**
@@ -12952,6 +13359,280 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AccessLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "approvals.get": {
+        parameters: {
+            query?: {
+                /** @description 只看调用方自己的这条待办（不给即调用方在该实例里的第一条）。 */
+                taskId?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description 流程实例。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 审批详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 流程实例。
+                         */
+                        instanceId: string;
+                        /** @description 实例标题。 */
+                        title: string;
+                        /** @description 流程定义名。 */
+                        definitionName: string;
+                        /** @description 定义的显示名（没有时是定义名）。 */
+                        definitionDisplayName: string;
+                        /**
+                         * Format: int32
+                         * @description 定义版本。
+                         */
+                        definitionVersion: number;
+                        /** @description 状态。 */
+                        status: components["schemas"]["WorkflowInstanceStatus"];
+                        /** @description 结论。 */
+                        outcome?: string | null;
+                        /** @description 关联 ID。 */
+                        correlationId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 发起人。
+                         */
+                        starterId?: string | null;
+                        /** @description 发起人显示名。 */
+                        starterName?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间。
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 开始执行的时间。
+                         */
+                        startedAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间。
+                         */
+                        endedAt?: string | null;
+                        /** @description 故障原因。 */
+                        faultMessage?: string | null;
+                        /** @description 取消或终止的原因。 */
+                        cancellationReason?: string | null;
+                        /** @description 调用方能否撤回（发起人，且实例运行中、挂起或故障）。 */
+                        canWithdraw: boolean;
+                        /** @description 审批业务的单据（不是审批业务的顶层实例为空）。 */
+                        business?: components["schemas"]["WorkflowApprovalBusinessResponse"] | null;
+                        /** @description 调用方在这个实例里的待办（没有时为空）。 */
+                        task?: components["schemas"]["WorkflowApprovalTaskResponse"] | null;
+                        /** @description 审批轨迹：发起、办理 / 转办 / 加签 / 抄送与无人时的自动处理（按时间）、结束或当前待办。 */
+                        timeline: components["schemas"]["WorkflowApprovalTimelineItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "approvals.withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 流程实例。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 撤回。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 流程实例。
+                     */
+                    id: string;
+                    /** @description 原因（不写即「发起人撤回」）。 */
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 撤回之后的实例。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 流程实例。
+                         */
+                        instanceId: string;
+                        /** @description 实例状态。 */
+                        status: components["schemas"]["WorkflowInstanceStatus"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "approvals.list-cc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowApprovalRecordResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "approvals.list-done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowApprovalRecordResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "approvals.list-started": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowApprovalInstanceResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
@@ -34165,6 +34846,225 @@ export interface operations {
                          * @description 已用存储（字节）。
                          */
                         usedStorageBytes: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tasks.add-assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 任务 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 加签。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 任务 ID。
+                     */
+                    id: string;
+                    /** @description 加给谁（当前一侧可见的在用账号）。 */
+                    userIds: string[];
+                    /** @description 意见。 */
+                    comment?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 办理、转办或加签之后的实例。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 流程实例。
+                         */
+                        instanceId: string;
+                        /** @description 实例状态。 */
+                        instanceStatus: components["schemas"]["WorkflowInstanceStatus"];
+                        /** @description 办理后实例故障时的原因（审批已记下，是后续节点或业务回写出错，要管理员处理后重试）。 */
+                        faultMessage?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tasks.complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 任务 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 办理待办。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 任务 ID。
+                     */
+                    id: string;
+                    /** @description 结论（approved / rejected 或节点允许的其他结论）。 */
+                    outcome: string;
+                    /** @description 意见。 */
+                    comment?: string | null;
+                    /** @description 附加的流程变量（JSON 对象文本）。 */
+                    variables?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 办理、转办或加签之后的实例。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 流程实例。
+                         */
+                        instanceId: string;
+                        /** @description 实例状态。 */
+                        instanceStatus: components["schemas"]["WorkflowInstanceStatus"];
+                        /** @description 办理后实例故障时的原因（审批已记下，是后续节点或业务回写出错，要管理员处理后重试）。 */
+                        faultMessage?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tasks.transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 任务 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 转办。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 任务 ID。
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description 转给谁（当前一侧可见的在用账号）。
+                     */
+                    targetUserId: string;
+                    /** @description 意见。 */
+                    comment?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 办理、转办或加签之后的实例。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 流程实例。
+                         */
+                        instanceId: string;
+                        /** @description 实例状态。 */
+                        instanceStatus: components["schemas"]["WorkflowInstanceStatus"];
+                        /** @description 办理后实例故障时的原因（审批已记下，是后续节点或业务回写出错，要管理员处理后重试）。 */
+                        faultMessage?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tasks.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkflowTaskResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
