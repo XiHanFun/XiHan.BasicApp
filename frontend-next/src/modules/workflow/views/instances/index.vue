@@ -58,7 +58,7 @@ function isRunning(row: WorkflowInstanceRow) {
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用。
-// 排序由后端固定（创建时间降序），列不可排序；关键字只匹配实例名称（标题）
+// 照 4.x 五列可排序，一次一列（框架只有一个排序字段），不排序时创建时间降序；关键字匹配实例名称（标题）与关联 ID
 const asRow = (row: object) => row as WorkflowInstanceRow
 
 const fields = computed<ListFieldSchema[]>(() => [
@@ -68,6 +68,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('workflow.instances.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: statusOptions.value,
     searchPlaceholder: t('workflow.instances.status_placeholder'),
     width: 110,
@@ -78,14 +79,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     const outcome = asRow(row).outcome
     return outcome ? renderTag(outcomeLabel(outcome), outcomeTone(outcome)) : '-'
   } },
-  { key: 'definitionName', title: t('workflow.instances.definition_code'), dataType: 'string', searchable: true, minWidth: 150, order: 3 },
-  { key: 'title', title: t('workflow.instances.name'), dataType: 'string', minWidth: 180, order: 10 },
+  { key: 'definitionName', title: t('workflow.instances.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 3 },
+  { key: 'title', title: t('workflow.instances.name'), dataType: 'string', sortable: true, minWidth: 180, order: 10 },
   { key: 'definitionVersion', title: t('workflow.instances.version'), dataType: 'number', width: 80, order: 11, render: row => renderTag(`v${asRow(row).definitionVersion}`, 'neutral') },
   { key: 'correlationId', title: t('workflow.instances.correlation_id'), dataType: 'string', searchable: true, minWidth: 140, order: 12 },
   { key: 'starterName', title: t('workflow.instances.starter'), dataType: 'string', minWidth: 110, order: 13, render: row => asRow(row).starterName || asRow(row).starterId || '-' },
   { key: 'faultMessage', title: t('workflow.instances.fault_message'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
-  { key: 'createdAt', title: t('workflow.instances.creation_time'), dataType: 'datetime', searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 15 },
-  { key: 'endedAt', title: t('workflow.instances.end_time'), dataType: 'datetime', minWidth: 170, order: 16, render: (row) => {
+  { key: 'createdAt', title: t('workflow.instances.creation_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 15 },
+  { key: 'endedAt', title: t('workflow.instances.end_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16, render: (row) => {
     const endedAt = asRow(row).endedAt
     return endedAt ? formatDate(endedAt) : '-'
   } },

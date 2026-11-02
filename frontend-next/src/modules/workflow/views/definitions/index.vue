@@ -62,7 +62,7 @@ onMounted(async () => {
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用。
-// 「流程编码」是定义名（name），「流程名称」是显示名（displayName）；排序由后端固定（名字升序、版本降序），列不可排序
+// 「流程编码」是定义名（name），「流程名称」是显示名（displayName）；照 4.x 六列可排序，一次一列（框架只有一个排序字段），不排序时名字升序、版本降序
 const asRow = (row: object) => row as WorkflowDefinitionRow
 
 const fields = computed<ListFieldSchema[]>(() => [
@@ -72,32 +72,33 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('workflow.definitions.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: statusOptions.value,
     searchPlaceholder: t('workflow.definitions.status_placeholder'),
     width: 110,
     order: 1,
     render: row => renderTag(statusLabel(asRow(row).status), statusTag(asRow(row).status)),
   },
-  { key: 'name', title: t('workflow.definitions.code'), dataType: 'string', minWidth: 160, order: 10 },
-  { key: 'displayName', title: t('workflow.definitions.name'), dataType: 'string', minWidth: 180, order: 11 },
+  { key: 'name', title: t('workflow.definitions.code'), dataType: 'string', sortable: true, minWidth: 160, order: 10 },
+  { key: 'displayName', title: t('workflow.definitions.name'), dataType: 'string', sortable: true, minWidth: 180, order: 11 },
   { key: 'business', title: t('workflow.definitions.business'), dataType: 'string', minWidth: 120, order: 11.5, render: (row) => {
     const key = asRow(row).businessNameKey
     return key ? renderTag(t(key), 'brand') : '-'
   } },
-  { key: 'version', title: t('workflow.definitions.version'), dataType: 'number', width: 90, order: 12, render: row => renderTag(`v${asRow(row).version}`, 'neutral') },
+  { key: 'version', title: t('workflow.definitions.version'), dataType: 'number', sortable: true, width: 90, order: 12, render: row => renderTag(`v${asRow(row).version}`, 'neutral') },
   { key: 'category', title: t('workflow.definitions.category'), dataType: 'string', searchable: true, minWidth: 120, order: 13 },
   { key: 'description', title: t('workflow.definitions.description'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
-  { key: 'publishedAt', title: t('workflow.definitions.publish_time'), dataType: 'datetime', minWidth: 170, order: 15, render: (row) => {
+  { key: 'publishedAt', title: t('workflow.definitions.publish_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15, render: (row) => {
     const publishedAt = asRow(row).publishedAt
     return publishedAt ? formatDate(publishedAt) : '-'
   } },
-  { key: 'createdAt', title: t('workflow.definitions.created_time'), dataType: 'datetime', minWidth: 170, order: 16 },
+  { key: 'createdAt', title: t('workflow.definitions.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 16 },
 ])
 
-/** 分页：关键字匹配名字、显示名与说明；状态与分类精确匹配（后端白名单） */
+/** 分页：关键字匹配名字、显示名与说明；状态与分类精确匹配、创建时间按区间（后端白名单） */
 const resource: SchemaResource<WorkflowDefinitionRow> = {
   page: async params => toSchemaPageResult(
-    await workflowDefinitions.list(toPageRequest(params, { filters: { status: 'eq', category: 'eq' } })),
+    await workflowDefinitions.list(toPageRequest(params, { filters: { status: 'eq', category: 'eq' }, ranges: ['createdAt'] })),
     params,
   ),
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Data.Common;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
@@ -63,8 +64,9 @@ public sealed class MultiDatabaseSmokeTests
             statisticsConnection = unitOfWork.ConnectionFor(typeof(SysUserStatistics)).CurrentConnectionConfig.ConnectionString;
             return Task.FromResult(Result.Success());
         }, acme)).ThrowIfFailure();
-        Assert.Equal(databases.Platform, userConnection);
-        Assert.Equal(databases.Tenant, statisticsConnection);
+        // 比库名：框架给 PostgreSQL 连接串追加启动参数（standard_conforming_strings，ADR-0100），连接串不再逐字相同
+        Assert.Equal(DatabaseOf(databases.Platform), DatabaseOf(userConnection));
+        Assert.Equal(DatabaseOf(databases.Tenant), DatabaseOf(statisticsConnection));
 
         // 失败的调用：先写平台库再写租户库，以失败结束，两边都不能留下行
         var userId = Guid.CreateVersion7();
@@ -122,6 +124,9 @@ public sealed class MultiDatabaseSmokeTests
         using var client = new SqlSugarClient(SqlSugarConventions.Apply(Configure(connectionString)));
         return client.Queryable<TEntity>().Where(predicate).Count();
     }
+
+    private static object? DatabaseOf(string? connectionString)
+        => new DbConnectionStringBuilder { ConnectionString = connectionString }["Database"];
 
     private static ConnectionConfig Configure(string connectionString)
     {

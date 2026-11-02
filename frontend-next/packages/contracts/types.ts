@@ -8128,7 +8128,7 @@ export interface paths {
         put?: never;
         /**
          * List workflow definitions
-         * @description Page through the workflow definitions of the caller's side, filtered by keyword (name, display name, description), name, category and status, ordered by name and then by version descending.
+         * @description Page through the workflow definitions of the caller's side, filtered by keyword (name, display name, description), name, category, status and creation time, sorted by one of status, name, display name, version, creation time or publish time (by default by name and then by version descending).
          *
          *     Requires permission workflow.workflow-definitions.read (Read workflow definitions).
          */
@@ -8216,7 +8216,7 @@ export interface paths {
         put?: never;
         /**
          * List workflow instances
-         * @description Page through the workflow instances of the caller's side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, newest first.
+         * @description Page through the workflow instances of the caller's side, filtered by keyword (title or correlation ID), status, definition name, correlation ID, starter and creation time, sorted by one of status, definition name, title, creation time or end time (newest first by default).
          *
          *     Requires permission workflow.workflow-instances.read (Read workflow instances).
          */

@@ -2,7 +2,7 @@
 
 本页说明工作流的引擎与存储、流程定义与实例的操作和权限、组织类受理人、待办与审批中心、审批业务的接入、通知、演示流程与模块开关，适用于设计流程、接入审批的后端与前端开发者。
 
-Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架 5 的工作流，本包只做管理操作、组织类受理人、待办与审批中心、审批业务接入、通知与页面；模型与规则沿用 5.x，写法换成 6.0 的。授权申请（Access）随 N3 第三批后一笔进来。
+Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架 5 的工作流，本包只做管理操作、组织类受理人、待办与审批中心、审批业务接入、通知与页面；模型与规则沿用 5.x，写法换成 6.0 的。授权申请（Access）是审批业务接入的参照实现，见[约束规则与审批](./approval#授权申请)。
 
 ## 引擎与存储
 
@@ -18,7 +18,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `workflow-definitions.list` / `get` | `workflow.workflow-definitions.read` | 列表在库里按关键字（名字、显示名、说明）、名字、分类与状态过滤分页，名字升序、版本降序；详情带整份 WorkflowJson |
+| `workflow-definitions.list` / `get` | `workflow.workflow-definitions.read` | 列表在库里按关键字（名字、显示名、说明）、名字、分类、状态与创建时间过滤分页，可按状态、名字、显示名、版本、创建时间或发布时间排序，缺省名字升序、版本降序；详情带整份 WorkflowJson |
 | `workflow-definitions.create` / `update` | `.create` / `.update` | 以 WorkflowJson 建草稿（版本按同名最大版本加一）、改草稿（名字与版本沿用已存的） |
 | `workflow-definitions.publish` | `.update` | 单条：关联了审批业务的先过业务校验，再由框架做结构校验，问题全部列在 `details.errors`（`WORKFLOW_VALIDATION_001`） |
 | `workflow-definitions.new-version` | `.create` | 以某个名字的最新版本为底复制出新草稿 |
@@ -31,7 +31,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，按创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
+| `workflow-instances.list` / `get` | `workflow.workflow-instances.read` | 列表按关键字（标题或关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤，可按状态、定义名、标题、创建时间或结束时间排序，缺省创建时间降序；详情带变量、节点执行历史、待恢复的等待与所用的定义 |
 | `workflow-instances.start` | `.execute` | 发起人是调用方；按名字取最新已发布的版本 |
 | `workflow-instances.cancel` / `terminate` / `retry` / `signal` | `.execute` | 取消（启用补偿时逆序补偿）、终止（不补偿）、故障重试、发信号 |
 | `workflow-instances.suspend` / `resume` | `.update` | 挂起与恢复 |
@@ -105,7 +105,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 前端
 
-`src/modules/workflow`：审批中心（待我审批、我已审批、抄送我的、我发起的四个页签与详情抽屉，深链 `?tab=` / `?instanceId=` / `?taskId=`）、流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图）。设计器是 `@xihan-flow/*`，`packages/designers` 把它的 4.x 定义格式与 WorkflowJson 互相映射，面板去掉 Script。
+`src/modules/workflow`：审批中心（待我审批、我已审批、抄送我的、我发起的四个页签与详情抽屉，深链 `?tab=` / `?instanceId=` / `?taskId=`）、流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图），两个列表照 5.x 可按列排序。设计器是 `@xihan-flow/*`，`packages/designers` 把它的 4.x 定义格式与 WorkflowJson 互相映射，面板去掉 Script。
 
 ## 下一步
 

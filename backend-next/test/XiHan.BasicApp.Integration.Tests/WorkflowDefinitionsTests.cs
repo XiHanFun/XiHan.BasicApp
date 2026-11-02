@@ -98,12 +98,26 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal([2, 1], listed.Select(static d => d.GetProperty("version").GetInt32()).ToList());
         Assert.Single(await ListAsync(server, "workflow-definitions", platform, """{"keyword":"renamed","filters":[{"field":"status","operator":"eq","value":"Published"}]}"""));
         Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:list", """{"filters":[{"field":"version","operator":"eq","value":"1"}]}""", platform)).Body.GetProperty("code").GetString());
+
+        // 排序一次一列、方向照请求，创建时间区间含两端；多列或不支持的列 WORKFLOW_VALIDATION_104
+        var ascending = await ListAsync(server, "workflow-definitions", platform, """{"filters":[{"field":"name","operator":"eq","value":"tests-approval"}],"sorts":[{"field":"version"}]}""");
+        Assert.Equal([1, 2], ascending.Select(static d => d.GetProperty("version").GetInt32()).ToList());
+        var all = await ListAsync(server, "workflow-definitions", platform);
+        Assert.Equal(all.Count, (await ListAsync(server, "workflow-definitions", platform, """{"page":{"index":1,"size":200},"filters":[{"field":"createdAt","operator":"ge","value":"2000-01-01T00:00:00Z"},{"field":"createdAt","operator":"le","value":"2999-01-01T00:00:00Z"}]}""")).Count);
+        Assert.Empty(await ListAsync(server, "workflow-definitions", platform, """{"filters":[{"field":"createdAt","operator":"ge","value":"2999-01-01T00:00:00Z"}]}"""));
+        Assert.Empty(await ListAsync(server, "workflow-definitions", platform, """{"filters":[{"field":"createdAt","operator":"le","value":"2000-01-01T00:00:00Z"}]}"""));
+        Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:list", """{"sorts":[{"field":"name"},{"field":"version"}]}""", platform)).Body.GetProperty("code").GetString());
+        Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:list", """{"sorts":[{"field":"category"}]}""", platform)).Body.GetProperty("code").GetString());
         var deleted = (await SendAsync(server, HttpMethod.Delete, $"/api/workflow-definitions?ids={id}&ids={second.GetProperty("id").GetString()}", null, platform)).Body;
         Assert.Equal([second.GetProperty("id").GetString()], deleted.GetProperty("succeeded").EnumerateArray().Select(static e => e.GetString()).ToList());
         Assert.Equal("WORKFLOW_CONFLICT_002", deleted.GetProperty("failed")[0].GetProperty("code").GetString());
         Assert.Empty((await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:disable", Json(new { ids = new[] { id } }), platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Empty((await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:archive", Json(new { ids = new[] { id } }), platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal("Archived", (await SendAsync(server, HttpMethod.Get, $"/api/workflow-definitions/{id}", null, platform)).Body.GetProperty("status").GetString());
+
+        // 状态按生命周期排（同 4.x）：草稿在前、已归档在后，按名字排正好相反
+        var byStatus = await ListAsync(server, "workflow-definitions", platform, """{"page":{"index":1,"size":200},"sorts":[{"field":"status"}]}""");
+        Assert.Equal(("Draft", "Archived"), (byStatus[0].GetProperty("status").GetString(), byStatus[^1].GetProperty("status").GetString()));
 
         // 分区：租户看不到平台的定义，平台看不到租户的
         Assert.Empty(await ListAsync(server, "workflow-definitions", tenant));
@@ -154,6 +168,16 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(("Canceled", "tests"), (after.GetProperty("instance").GetProperty("status").GetString(), after.GetProperty("cancellationReason").GetString()));
         Assert.Empty(after.GetProperty("waits").EnumerateArray());
         Assert.Equal("WORKFLOW_NOTFOUND_102", (await SendAsync(server, HttpMethod.Get, $"/api/workflow-instances/{missing}", null, platform)).Body.GetProperty("code").GetString());
+
+        // 排序一次一列、方向照请求（不给即创建时间降序），状态按生命周期（运行中在已取消之前）；多列或不支持的列 WORKFLOW_VALIDATION_104
+        await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:start", Json(new { name = "tests-approval", displayName = "Second", correlationId = "doc-2" }), platform);
+        Assert.Equal(["Second", "First"], Titles(await ListAsync(server, "workflow-instances", platform)));
+        Assert.Equal(["First", "Second"], Titles(await ListAsync(server, "workflow-instances", platform, """{"sorts":[{"field":"createdAt"}]}""")));
+        Assert.Equal(["First", "Second"], Titles(await ListAsync(server, "workflow-instances", platform, """{"sorts":[{"field":"title"}]}""")));
+        Assert.Equal(["Second", "First"], Titles(await ListAsync(server, "workflow-instances", platform, """{"sorts":[{"field":"title","descending":true}]}""")));
+        Assert.Equal(["Second", "First"], Titles(await ListAsync(server, "workflow-instances", platform, """{"sorts":[{"field":"status"}]}""")));
+        Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:list", """{"sorts":[{"field":"title"},{"field":"status"}]}""", platform)).Body.GetProperty("code").GetString());
+        Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:list", """{"sorts":[{"field":"correlationId"}]}""", platform)).Body.GetProperty("code").GetString());
 
         // 信号：没有在等的实例时恢复数为 0
         Assert.Equal(0, (await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:signal", Json(new { name = "go" }), platform)).Body.GetProperty("resumed").GetInt32());
@@ -245,6 +269,8 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return json.GetProperty("items").EnumerateArray().ToList();
     }
+
+    private static List<string?> Titles(List<JsonElement> instances) => instances.Select(static i => i.GetProperty("title").GetString()).ToList();
 
     /// <summary>
     /// 测试用的审批业务。
