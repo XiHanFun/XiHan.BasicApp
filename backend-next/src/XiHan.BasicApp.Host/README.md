@@ -9,7 +9,7 @@
 | `/openapi.json`、`/scalar` | `BasicApp:ApiDocs:Enabled`（缺省只在 Development 打开）；一份文档、一个生成器 |
 | `/mcp` | `MapXiHanMcp`：`Expose.Mcp` 的操作 |
 | `/xihan.basicapp.<Service>/<Method>`、`/operations.proto` | `MapXiHanGrpc` / `MapXiHanProto`：`Expose.Grpc` 的操作，Kestrel 的 `Grpc` 端点（HTTP/2，只监听 127.0.0.1） |
-| `/events` | `MapXiHanCloudEvents`：内部服务投递的 CloudEvents，`BasicApp:CloudEvents:Enabled`（缺省关），只收登录过的调用方 |
+| `/events` | `MapXiHanCloudEvents`：内部服务投递的 CloudEvents，`BasicApp:CloudEvents:Enabled`（缺省关），只收持有 `runtime.cloud-events.deliver` 的调用方（平台的服务账号或服务角色，码登记在 Runtime） |
 | `/` | 应用名、版本与环境 |
 
 ## 运行

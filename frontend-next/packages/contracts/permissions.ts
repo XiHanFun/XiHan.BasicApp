@@ -145,6 +145,7 @@ export const permissionDefinitions = {
   'printing.print-templates.status': { code: 'printing.print-templates.status', displayName: 'Enable or disable print templates', description: 'Enable or disable templates on the caller\'s side.' },
   'printing.print-templates.update': { code: 'printing.print-templates.update', displayName: 'Update print templates', description: 'Edit the metadata and the design of templates on the caller\'s side.' },
   'printing.print-templates.use': { code: 'printing.print-templates.use', displayName: 'Use print templates', description: 'Resolve templates by code to preview and print them, and read the data source catalog.' },
+  'runtime.cloud-events.deliver': { code: 'runtime.cloud-events.deliver', displayName: 'Deliver CloudEvents', description: 'Deliver events to the CloudEvents inbound endpoint; grant it only to platform service accounts or service roles.' },
   'settings.configs.create': { code: 'settings.configs.create', displayName: 'Create configuration', description: 'Create configuration entries on the caller\'s side, including tenant overrides of platform entries.' },
   'settings.configs.delete': { code: 'settings.configs.delete', displayName: 'Delete configuration', description: 'Delete configuration entries on the caller\'s side that are not built in.' },
   'settings.configs.read': { code: 'settings.configs.read', displayName: 'Read configuration', description: 'View platform configuration entries and the caller\'s own; encrypted values are never shown.' },

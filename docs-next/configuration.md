@@ -207,7 +207,7 @@
 | --- | --- | --- |
 | `Enabled` | `false` | 是否映射 CloudEvents 入站端点 `POST /events`（框架 `MapXiHanCloudEvents`），供内部服务投递事件 |
 
-端点只收登录过的调用方（同一套 JWT），与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。登记了处理器的主题只有 Realtime 的断开连接与 Chat 订阅的部门归属变更，都是 BasicApp 内部的事件，其余主题在派发模式下都是 404 `PROTOCOLS_NOTFOUND_003`；入站目前只要求登录，专门的权限码还没定；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
+端点只收持有入站权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，平台侧）的调用方（同一套 JWT）：入站事件直接进各包的处理器，这个码只授给平台的服务账号或服务角色——在角色管理里给平台侧的服务角色授予它，再把服务账号指派进去；只登录的普通用户投递即 403 `SECURITY_DENIED_004`。端点与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。登记了处理器的主题只有 Realtime 的断开连接与 Chat 订阅的部门归属变更，都是 BasicApp 内部的事件，其余主题在派发模式下都是 404 `PROTOCOLS_NOTFOUND_003`；主题映射、入站方式与出站 Webhook 见上面的 `XiHan:Protocols:CloudEvents`。
 
 ## `BasicApp:Schema`
 

@@ -142,7 +142,7 @@ server {
 
 gRPC 端点（`Kestrel:Endpoints:Grpc`，HTTP/2）只供内部服务调用，只发布显式 `Expose.Grpc` 的操作。保持只监听内网地址，不要经反向代理暴露到公网；`.proto` 从 `GET /operations.proto` 取。
 
-CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺省关）同理：只收登录过的调用方，只开放给内网，上面的 Nginx 示例不代理它。
+CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺省关）同理：只收持有 `runtime.cloud-events.deliver` 的调用方（平台的服务账号或服务角色，见[配置参考](./configuration#basicapp-cloudevents)），只开放给内网，上面的 Nginx 示例不代理它。
 
 ## 多实例部署
 

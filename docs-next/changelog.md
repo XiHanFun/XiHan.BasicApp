@@ -4,6 +4,10 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### CloudEvents 入站权限码（2026-11-02）
+
+- `/events` 改为要求权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，平台侧，只授给服务账号或服务角色），只登录的普通用户投递即 403 `SECURITY_DENIED_004`。原先靠「登录即可」投递的服务账号要补这项授权。见[配置参考](./configuration#basicapp-cloudevents)。
+
 ### 流程演示数据与目录契约（2026-11-02）
 
 - 演示租户 `demo` 多三个成员账号 `manager`、`lead`、`hr`（密码同管理员，首次登录须改密）、人事部 `hr`、岗位 `gm` 与 `specialist`、部门负责人，以及演示角色 `employee` 与 `hr_specialist`；`admin` 改为总经理、任总部负责人。已经播过演示数据的开发库不会补，重建库再 `seed`。

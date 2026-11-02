@@ -205,8 +205,8 @@ public static class BasicAppHost
         app.MapXiHanBlobs();
         if (CloudEventsSettings.FromConfiguration(app.Configuration).Enabled)
         {
-            // 内部服务投递事件：入站的信封带着租户等扩展属性进处理器，只收登录过的调用方
-            app.MapXiHanCloudEvents(CloudEventsSettings.Path).RequireXiHanAuthentication();
+            // 内部服务投递事件：入站的信封带着租户等扩展属性直接进各包的处理器，只收持有入站权限码的调用方（平台的服务账号或服务角色）
+            app.MapXiHanCloudEvents(CloudEventsSettings.Path).RequireXiHanPermission(RuntimePermissions.CloudEventsDeliver);
         }
 
         app.MapBasicAppEndpoints();

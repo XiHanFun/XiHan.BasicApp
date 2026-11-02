@@ -118,7 +118,7 @@ builder.AddXiHan(xihan =>
 | `MapXiHanMcp()` | `/mcp` |
 | `MapXiHanGrpc()` / `MapXiHanProto()` | gRPC 服务与 `/operations.proto` |
 | `MapXiHanBlobs()` | `/blobs`：本地存储的签名地址 |
-| `MapXiHanCloudEvents()` | `/events`：内部服务投递的 CloudEvents（`BasicApp:CloudEvents:Enabled`，缺省关，只收登录过的调用方） |
+| `MapXiHanCloudEvents()` | `/events`：内部服务投递的 CloudEvents（`BasicApp:CloudEvents:Enabled`，缺省关，只收持有 `runtime.cloud-events.deliver` 的调用方） |
 | `MapBasicAppEndpoints()` | 文件上传与内容、头像、`/hubs/notification`、Telegram Webhook、OAuth 2.0 / OIDC 服务端、第三方登录回调 |
 
 ## 协议暴露

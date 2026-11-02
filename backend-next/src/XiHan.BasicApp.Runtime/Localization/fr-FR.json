@@ -1,0 +1,3 @@
+{
+  "permissions.runtime.cloud_events.deliver.name": "Livrer des CloudEvents"
+}

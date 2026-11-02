@@ -10,6 +10,7 @@ using StackExchange.Redis;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
 using XiHan.Framework.Caching.Hybrid;
@@ -24,6 +25,7 @@ using XiHan.Framework.Messaging.Abstractions.Publishing;
 using XiHan.Framework.Messaging.InMemory;
 using XiHan.Framework.Messaging.RabbitMQ;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -31,7 +33,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证宿主按配置装配的分布式 Provider。
 /// </summary>
 /// <remarks>
-/// 没配连接时是内存实现、不映射 CloudEvents 入站端点；数据库里的译文覆盖嵌入的语言文件；入站端点打开后只收登录过的调用方。
+/// 没配连接时是内存实现、不映射 CloudEvents 入站端点；数据库里的译文覆盖嵌入的语言文件；入站端点打开后只收持有入站权限码的调用方。
 /// 配了 Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，如 <c>localhost:6379</c>）与 RabbitMQ（<c>XIHAN_TEST_RABBITMQ</c>，如 <c>amqp://guest:guest@localhost:5672</c>）时，
 /// 两个宿主实例共享缓存、互相失效本机的 L1，一个实例发布的消息由另一个实例消费；没设环境变量即跳过。
 /// </remarks>
@@ -91,7 +93,7 @@ public sealed class DistributedProvidersTests : IDisposable
     }
 
     [Fact]
-    public async Task CloudEvents_WhenEnabled_AcceptsOnlyAuthenticatedCallers_AndDispatchesToHandlers()
+    public async Task CloudEvents_WhenEnabled_AcceptsOnlyCallersHoldingTheInboundPermission_AndDispatchesToHandlers()
     {
         var received = new ConcurrentQueue<MessageDelivery>();
         await using var server = await BasicAppTestServer.StartAsync(
@@ -99,12 +101,20 @@ public sealed class DistributedProvidersTests : IDisposable
             settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true")],
             configure: builder => builder.Services.AddSingleton(received).AddMessageHandler<RecordingHandler>(Topic));
 
+        // 入站权限码只授给平台的服务角色
+        await server.SeedAsync([], [new PermissionGrant(GrantSubject.ForRole("event-relay"), RuntimePermissions.CloudEventsDeliver)]);
+
         var (anonymous, anonymousBody) = await server.SendAsync(CloudEvent(token: null));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
         Assert.Equal("SECURITY_DENIED_001", anonymousBody.GetProperty("code").GetString());
         Assert.Empty(received);
 
-        var (accepted, _) = await server.SendAsync(CloudEvent(TestTokens.Issue("svc", null)));
+        // 登录过的普通用户：没有入站权限码即 403，事件不进处理器
+        var (denied, deniedBody) = await server.SendAsync(CloudEvent(TestTokens.Issue("alice", null)));
+        Assert.Equal((HttpStatusCode.Forbidden, "SECURITY_DENIED_004"), (denied.StatusCode, deniedBody.GetProperty("code").GetString()));
+        Assert.Empty(received);
+
+        var (accepted, _) = await server.SendAsync(CloudEvent(TestTokens.Issue("svc", null, "event-relay")));
         Assert.Equal(HttpStatusCode.Accepted, accepted.StatusCode);
         Assert.Equal(Topic, Assert.Single(received).Topic);
     }

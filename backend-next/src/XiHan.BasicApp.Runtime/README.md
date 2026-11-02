@@ -12,6 +12,7 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 | `ActiveUniqueIndexes` | 软删除实体的部分唯一索引（实体上的 `[ActiveUniqueIndex]`，`… WHERE is_deleted = false`）：`RuntimeFeature` 在框架建表之后、`TenantSchemas` 初始化独立库时补建 |
 | `DatabaseProviders` / `SnakeCaseNaming` | 库类型名映射；命名约定 |
 | `ISecretProtector` | 可逆加密（ASP.NET Core Data Protection）：按用途隔离，密文带 `dp:` 前缀，解不开即失败、不回退明文；多实例共享密钥时配 `BasicApp:DataProtection:KeysDirectory` |
+| `RuntimePermissions` + `RuntimeMessages` | 宿主普通端点用到、不归哪个能力包的权限码，进权限目录：`runtime.cloud-events.deliver`（CloudEvents 入站端点 `/events`，平台侧，只授给服务账号或服务角色）；显示名在 `Localization/<区域>.json` |
 
 ## 配置
 

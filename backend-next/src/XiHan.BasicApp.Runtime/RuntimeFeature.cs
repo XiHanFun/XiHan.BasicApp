@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Contracts.MultiTenancy;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Runtime.Schema;
@@ -15,6 +16,7 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -58,6 +60,7 @@ public sealed class RuntimeFeature : IHostedFeature
                 new PipelineContribution(typeof(CacheInvalidationMiddleware).FullName!, PipelineStage.Transaction, Before: [typeof(UnitOfWorkMiddleware).FullName!]),
                 new PipelineContribution(typeof(AuditorStampMiddleware).FullName!, PipelineStage.Transaction),
             ],
+            Permissions = RuntimePermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(RuntimeFeature).FullName,
     };
@@ -83,6 +86,13 @@ public sealed class RuntimeFeature : IHostedFeature
         context.Services.AddScoped<DiffLogBuffer>();
         context.Services.AddScoped<SideRows>();
         context.Services.AddSecretProtection(context.Configuration);
+        context.Services.AddMessageCatalog(RuntimeMessages.Catalog);
+        context.Services.AddPermissionCatalog("runtime", RuntimePermissions.All);
+        foreach (var permission in RuntimePermissions.All)
+        {
+            context.AddPermission(permission.ToDefinition());
+        }
+
         // 租户目录里的连接串是密文：框架的解析器之外包一层解密（框架用 TryAdd 登记，先后都以这里为准）
         context.Services.TryAddSingleton<TenantStoreShardResolver>();
         context.Services.RemoveAll<ITenantShardResolver>();

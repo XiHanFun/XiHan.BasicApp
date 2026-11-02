@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Host;
 /// CloudEvents 入站端点开关 <c>BasicApp:CloudEvents:Enabled</c>。
 /// </summary>
 /// <remarks>
-/// 缺省关。打开时映射 <c>POST /events</c>（框架 <c>MapXiHanCloudEvents</c>），只收登录过的调用方，供内部服务投递事件；
+/// 缺省关。打开时映射 <c>POST /events</c>（框架 <c>MapXiHanCloudEvents</c>），供内部服务投递事件：调用方须持有 <c>runtime.cloud-events.deliver</c>（只授给平台的服务账号或服务角色），没有即 403；
 /// 主题映射、入站方式与出站 Webhook 在框架节 <c>XiHan:Protocols:CloudEvents</c>。
 /// </remarks>
 public sealed record CloudEventsSettings
