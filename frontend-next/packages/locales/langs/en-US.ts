@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: 'Verification code resent',
       load_config_failed: 'Failed to load login configuration',
+      load_config_retry: 'Retry',
       login_subtitle: 'Enter your credentials to access the panel',
       no_account: 'Don\'t have an account?',
       oauth_bind_failed: 'Binding failed',

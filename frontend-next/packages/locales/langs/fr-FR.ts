@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: 'Code de vérification renvoyé',
       load_config_failed: 'Échec du chargement de la configuration de connexion',
+      load_config_retry: 'Réessayer',
       login_subtitle: 'Saisissez vos identifiants pour accéder au panneau',
       no_account: 'Vous n’avez pas de compte ?',
       oauth_bind_failed: 'Échec de l’association',

@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: 'Código de verificação reenviado',
       load_config_failed: 'Falha ao carregar a configuração de login',
+      load_config_retry: 'Tentar novamente',
       login_subtitle: 'Informe suas credenciais para acessar o painel',
       no_account: 'Não tem uma conta?',
       oauth_bind_failed: 'Falha ao vincular',

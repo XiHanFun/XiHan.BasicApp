@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: '인증 코드를 다시 발송했어요',
       load_config_failed: '로그인 설정을 불러오지 못했어요',
+      load_config_retry: '다시 시도',
       login_subtitle: '계정과 비밀번호를 입력하여 시스템에 로그인하세요',
       no_account: '아직 계정이 없으신가요?',
       oauth_bind_failed: '연결하지 못했어요',

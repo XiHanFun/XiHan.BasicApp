@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
+import type { ComponentPublicInstance } from 'vue'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
 import { useElementSize } from '@vueuse/core'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhAlertAction, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -159,8 +160,51 @@ function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
   authStore.startOAuthLogin(provider, { tenant: formData.value.tenant, redirect: redirect.value })
 }
 
+/**
+ * 登录配置的状态：是否要验证码、有哪些登录方式都由它定，取到之前不能提交账号密码。
+ * 取不到（后端没起来、断网）时停在 failed，表单上方常驻提示并可重试，不按缺省值放出一张没有验证码的表单。
+ */
+const configState = ref<'failed' | 'pending' | 'ready'>('pending')
+/** 取配置失败的原因（请求层给的本地化说明） */
+const configError = ref<null | string>(null)
+/** 正在取配置：重试期间提示不撤、「重试」钮转圈，焦点留在钮上 */
+const configLoading = ref(false)
+
 async function loadLoginConfig() {
-  loginConfig.value = await apis.getLoginConfigApi()
+  configLoading.value = true
+  try {
+    loginConfig.value = await apis.getLoginConfigApi()
+    configError.value = null
+    configState.value = 'ready'
+  }
+  catch (error) {
+    configError.value = messageOf(error) ?? null
+    configState.value = 'failed'
+  }
+  finally {
+    configLoading.value = false
+  }
+}
+
+/** 取登录配置，要验证码就换一张 */
+async function prepareLogin() {
+  await loadLoginConfig()
+  if (configState.value === 'ready')
+    await refreshCaptcha()
+}
+
+const credentialsFormRef = useTemplateRef<ComponentPublicInstance>('credentialsForm')
+
+/** 「重试」：取到后提示撤下，焦点移到第一个输入框（不让它随「重试」钮一起掉回页面） */
+async function retryLoginConfig() {
+  if (configLoading.value)
+    return
+  await prepareLogin()
+  if (configState.value === 'ready') {
+    await nextTick()
+    const firstInput = (credentialsFormRef.value?.$el as HTMLElement | undefined)?.querySelector('input')
+    firstInput?.focus()
+  }
 }
 
 const cachedDeviceId = ref('')
@@ -250,6 +294,9 @@ async function applyTwoFactorChallenge(result: LoginResponse) {
  */
 async function onSubmit() {
   if (authStore.loginLoading)
+    return
+  // 账号密码阶段要先有登录配置（提交钮此时也是禁用的；回车的隐式提交照样到这里）
+  if (tfStage.value === 'credentials' && configState.value !== 'ready')
     return
   try {
     if (tfStage.value === 'credentials') {
@@ -378,17 +425,7 @@ function goTo(path: string) {
   router.push(path)
 }
 
-onMounted(async () => {
-  try {
-    await loadLoginConfig()
-    if (loginConfig.value.captchaEnabled) {
-      await refreshCaptcha()
-    }
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
-  }
-})
+onMounted(prepareLogin)
 const onAuthInvalid = useAuthFormInvalid()
 </script>
 
@@ -549,10 +586,32 @@ const onAuthInvalid = useAuthFormInvalid()
           </p>
         </div>
 
+        <!-- 登录配置取不到：常驻提示并可重试；取到之前提交钮禁用（是否要验证码由它定） -->
+        <XhAlertRoot v-if="configState === 'failed'" tone="danger" variant="subtle" class="mb-6" data-testid="login-config-failed">
+          <XhAlertIndicator>
+            <Icon icon="lucide:circle-alert" width="16" />
+          </XhAlertIndicator>
+          <XhAlertContent>
+            <XhAlertTitle>{{ t('page.auth.load_config_failed') }}</XhAlertTitle>
+            <XhAlertDescription v-if="configError">
+              {{ configError }}
+            </XhAlertDescription>
+          </XhAlertContent>
+          <XhAlertAction>
+            <XhButton variant="ghost" size="sm" :loading="configLoading" @click="retryLoginConfig">
+              <XhButtonIndicator>
+                <Icon icon="lucide:refresh-cw" width="14" />
+              </XhButtonIndicator>
+              <XhButtonLabel>{{ t('page.auth.load_config_retry') }}</XhButtonLabel>
+            </XhButton>
+          </XhAlertAction>
+        </XhAlertRoot>
+
         <!-- Enter 只走原生隐式提交这一条：字段里按 Enter 触发表单提交，经规则校验后才到 @submit。
              原先另挂的 keydown 直接调 onSubmit 绕过了校验（用户名为空也发请求），且它一置 loading
              就把提交钮禁掉，浏览器随后的隐式提交被压下，Enter 发出的恰是那次没校验的请求 -->
         <XhFormRoot
+          ref="credentialsForm"
           v-model:values="formData"
           :rules="rules"
           validate-on="blur"
@@ -660,7 +719,8 @@ const onAuthInvalid = useAuthFormInvalid()
           </div>
 
           <!-- 在途由表单自己报：onSubmit 返回的 Promise 落定前提交钮带 data-loading、再按不重复提交 -->
-          <XhFormSubmitTrigger class="auth-submit">
+          <!-- 登录配置取到之前只锁提交钮（输入框照常可填）：原生 disabled 挡提交，data-disabled 让动作控件家族画禁用面 -->
+          <XhFormSubmitTrigger class="auth-submit" v-bind="configState === 'ready' ? {} : { 'disabled': true, 'data-disabled': '' }">
             {{ t('page.login.login_btn') }}
           </XhFormSubmitTrigger>
         </XhFormRoot>

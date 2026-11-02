@@ -1,7 +1,7 @@
 /**
  * 登录页（login.vue，4.x 原样搬入）与第三方登录的衔接：
  * 回调换票据时账号开了双因素，store 记下挑战、带着回跳地址回到登录页，登录页直接从验证阶段接着走（第二段凭挑战票据）；
- * 第三方登录按钮带上「租户」一栏与回跳地址整页跳去发起。
+ * 第三方登录按钮带上「租户」一栏与回跳地址整页跳去发起；登录配置取不到时表单上方常驻提示并可重试，取到之前不能提交。
  */
 import type { Router } from 'vue-router'
 import type { AppContextApis } from '~/types'
@@ -18,12 +18,14 @@ import LoginPage from './login.vue'
 vi.mock('~/utils/device-fingerprint', () => ({ generateDeviceFingerprint: async () => 'device-1' }))
 
 const getLoginConfigApi = vi.fn()
+const getCaptchaApi = vi.fn()
 
-async function open(path: string) {
+/** attachTo：要看焦点时挂进文档 */
+async function open(path: string, attachTo?: HTMLElement) {
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)*', component: { render: () => null } }] })
   await router.push(path)
-  registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi: vi.fn() } as unknown as AppContextApis })
-  const wrapper = mount(LoginPage, { global: { plugins: [i18n, router] } })
+  registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis })
+  const wrapper = mount(LoginPage, { attachTo, global: { plugins: [i18n, router] } })
   await flushPromises()
   return wrapper
 }
@@ -36,6 +38,8 @@ beforeEach(() => {
   sessionStorage.clear()
   i18n.global.locale.value = 'zh-CN'
   getLoginConfigApi.mockReset()
+  getCaptchaApi.mockReset()
+  getCaptchaApi.mockResolvedValue({ captchaId: 'c-1', image: 'data:image/svg+xml,%3Csvg%2F%3E', expiresInSeconds: 120 })
   getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }], captchaEnabled: false, registrationEnabled: false })
 })
 
@@ -82,7 +86,7 @@ describe('找回密码与注册入口', () => {
       ],
     })
     await router.push(LOGIN_PATH)
-    registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi: vi.fn() } as unknown as AppContextApis })
+    registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis })
     const wrapper = mount(LoginPage, { global: { plugins: [i18n, router] } })
     await flushPromises()
     return wrapper
@@ -97,5 +101,49 @@ describe('找回密码与注册入口', () => {
     const open = await mountWithAuthRoutes()
     expect(open.text()).toContain(t('page.auth.no_account'))
     expect(open.text()).toContain(t('page.login.register'))
+  })
+})
+
+describe('登录配置取不到', () => {
+  it('表单上方常驻提示并可重试；取到之前提交钮禁用，重试取到后照常要验证码', async () => {
+    getLoginConfigApi.mockRejectedValueOnce(new Error('网络不可用'))
+    const wrapper = await open(LOGIN_PATH)
+    const alert = wrapper.find('[data-testid="login-config-failed"]')
+    expect(alert.exists()).toBe(true)
+    expect(alert.text()).toContain(t('page.auth.load_config_failed'))
+    expect(alert.text()).toContain('网络不可用')
+    const submit = () => wrapper.findAll('button').find(button => button.text() === t('page.login.login_btn'))!
+    expect(submit().attributes('disabled')).toBeDefined()
+    expect(getCaptchaApi).not.toHaveBeenCalled()
+
+    getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: true, registrationEnabled: false })
+    await alert.findAll('button').find(button => button.text() === t('page.auth.load_config_retry'))!.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="login-config-failed"]').exists()).toBe(false)
+    expect(submit().attributes('disabled')).toBeUndefined()
+    expect(getCaptchaApi).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('img[src^="data:image/svg+xml"]').exists()).toBe(true)
+  })
+
+  it('重试在途时提示不撤、焦点留在「重试」钮上，取到后焦点移到第一个输入框', async () => {
+    getLoginConfigApi.mockRejectedValueOnce(new Error('网络不可用'))
+    const wrapper = await open(LOGIN_PATH, document.body.appendChild(document.createElement('div')))
+    const retry = wrapper.find('[data-testid="login-config-failed"]').findAll('button').find(button => button.text() === t('page.auth.load_config_retry'))!
+    let resolveConfig!: (config: unknown) => void
+    getLoginConfigApi.mockReturnValueOnce(new Promise((resolve) => {
+      resolveConfig = resolve
+    }))
+    const retryButton = retry.element as HTMLElement
+    retryButton.focus()
+    await retry.trigger('click')
+    expect(wrapper.find('[data-testid="login-config-failed"]').exists()).toBe(true)
+    expect(retry.attributes('aria-busy')).toBe('true')
+    expect(document.activeElement).toBe(retryButton)
+
+    resolveConfig({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: false })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="login-config-failed"]').exists()).toBe(false)
+    expect(document.activeElement).toBe(wrapper.find('input').element)
+    wrapper.unmount()
   })
 })

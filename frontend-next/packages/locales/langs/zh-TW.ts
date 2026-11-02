@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: '驗證碼已重新傳送',
       load_config_failed: '載入登入設定失敗',
+      load_config_retry: '重試',
       login_subtitle: '請輸入您的帳號密碼以登入系統',
       no_account: '還沒有帳號?',
       oauth_bind_failed: '綁定失敗',

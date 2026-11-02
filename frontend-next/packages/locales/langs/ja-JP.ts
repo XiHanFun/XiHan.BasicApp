@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: '認証コードを再送信しました',
       load_config_failed: 'ログイン設定の読み込みに失敗しました',
+      load_config_retry: '再試行',
       login_subtitle: 'アカウントとパスワードを入力してログインしてください',
       no_account: 'アカウントをお持ちでない方',
       oauth_bind_failed: '連携に失敗しました',

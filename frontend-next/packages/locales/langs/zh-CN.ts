@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: '验证码已重新发送',
       load_config_failed: '加载登录配置失败',
+      load_config_retry: '重试',
       login_subtitle: '请输入您的账号密码以登录系统',
       no_account: '还没有账号?',
       oauth_bind_failed: '绑定失败',

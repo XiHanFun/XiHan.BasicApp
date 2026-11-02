@@ -27,7 +27,7 @@
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（`password`、`email`、`phone`），`auth.login-config` 返回给登录页，连同可用的第三方提供方与是否要图形验证码。
+开放哪些方式由系统参数 `identity.login-methods` 决定（`password`、`email`、`phone`），`auth.login-config` 返回给登录页，连同可用的第三方提供方与是否要图形验证码。登录页取不到它（后端没起来、断网）时在表单上方常驻提示并可重试，取到之前「登录」不可点，不按缺省值放出一张没有验证码的表单。
 
 ### 密码登录 `auth.login`
 

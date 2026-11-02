@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: 'Bestätigungscode erneut gesendet',
       load_config_failed: 'Anmeldekonfiguration konnte nicht geladen werden',
+      load_config_retry: 'Erneut versuchen',
       login_subtitle: 'Geben Sie Ihre Anmeldedaten ein, um auf das Panel zuzugreifen',
       no_account: 'Noch kein Konto?',
       oauth_bind_failed: 'Verknüpfung fehlgeschlagen',

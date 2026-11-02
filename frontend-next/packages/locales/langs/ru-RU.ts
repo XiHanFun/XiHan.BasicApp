@@ -1000,6 +1000,7 @@ export default {
       },
       code_resent: 'Код подтверждения отправлен повторно',
       load_config_failed: 'Не удалось загрузить настройки входа',
+      load_config_retry: 'Повторить',
       login_subtitle: 'Введите учётные данные для доступа к панели',
       no_account: 'Нет учётной записи?',
       oauth_bind_failed: 'Не удалось привязать',
