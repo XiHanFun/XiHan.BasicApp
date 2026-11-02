@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Print data sources",
   "openapi.tags.print_data_sources.description": "The catalog of print data sources registered by the modules: field contracts and sample data.",
   "permissions.printing.print_templates.read.name": "Read print templates",
+  "permissions.printing.print_templates.read.description": "View the caller's own templates and the global templates open to tenants; the platform sees every global template.",
   "permissions.printing.print_templates.create.name": "Create print templates",
+  "permissions.printing.print_templates.create.description": "Create templates on the caller's side; global templates also need global management.",
   "permissions.printing.print_templates.update.name": "Update print templates",
+  "permissions.printing.print_templates.update.description": "Edit the metadata and the design of templates on the caller's side.",
   "permissions.printing.print_templates.status.name": "Enable or disable print templates",
+  "permissions.printing.print_templates.status.description": "Enable or disable templates on the caller's side.",
   "permissions.printing.print_templates.delete.name": "Delete print templates",
+  "permissions.printing.print_templates.delete.description": "Delete disabled templates on the caller's side.",
   "permissions.printing.print_templates.use.name": "Use print templates",
-  "permissions.printing.print_templates.global_manage.name": "Manage global print templates"
+  "permissions.printing.print_templates.use.description": "Resolve templates by code to preview and print them, and read the data source catalog.",
+  "permissions.printing.print_templates.global_manage.name": "Manage global print templates",
+  "permissions.printing.print_templates.global_manage.description": "Maintain the platform's global templates, together with the matching create, update, status or delete permission."
 }

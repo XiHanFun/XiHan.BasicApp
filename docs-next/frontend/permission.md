@@ -46,7 +46,9 @@ SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`�
 
 ## 权限定义表
 
-`permissionDefinitions` 带每个权限码的显示名与说明（按后端消息目录本地化），授权界面（角色的权限分配抽屉、用户直授、套餐白名单、委托）直接用它生成，不再手写权限树。
+`permissionDefinitions` 是导出契约时生成的权限码表（码与英文的显示名、说明），用来核对权限码，不用来显示。界面上的权限名与说明一律取权限目录 `permissions.list`：后端按请求的 `Accept-Language` 从各包语言文件的 `permissions.<码>.name` / `.description` 取文案。
+
+授权界面（角色的权限分配抽屉、用户直授、套餐白名单、委托与约束规则的候选）直接用目录生成条目，不再手写权限树；只拿到权限码的地方（角色详情里的已授与继承权限、委托列表、授权条件）用 access 模块的 `usePermissionNames()` 换名字（同一界面语言只取一次目录），不在本侧目录里的码与没有 `access.permissions.read` 时原样显示权限码。
 
 ## 字段安全与脱敏
 

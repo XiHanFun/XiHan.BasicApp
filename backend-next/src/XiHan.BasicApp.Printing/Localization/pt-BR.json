@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Fontes de dados de impressão",
   "openapi.tags.print_data_sources.description": "O catálogo de fontes de dados de impressão registradas pelos módulos: contratos de campos e dados de exemplo.",
   "permissions.printing.print_templates.read.name": "Ver modelos de impressão",
+  "permissions.printing.print_templates.read.description": "Ver os modelos próprios de quem chama e os modelos globais abertos aos locatários; a plataforma vê todos os modelos globais.",
   "permissions.printing.print_templates.create.name": "Criar modelos de impressão",
+  "permissions.printing.print_templates.create.description": "Criar modelos do lado de quem chama; modelos globais também exigem gestão global.",
   "permissions.printing.print_templates.update.name": "Alterar modelos de impressão",
+  "permissions.printing.print_templates.update.description": "Alterar os metadados e o design dos modelos do lado de quem chama.",
   "permissions.printing.print_templates.status.name": "Ativar ou desativar modelos de impressão",
+  "permissions.printing.print_templates.status.description": "Ativar ou desativar modelos do lado de quem chama.",
   "permissions.printing.print_templates.delete.name": "Excluir modelos de impressão",
+  "permissions.printing.print_templates.delete.description": "Excluir modelos desativados do lado de quem chama.",
   "permissions.printing.print_templates.use.name": "Usar modelos de impressão",
-  "permissions.printing.print_templates.global_manage.name": "Gerenciar modelos de impressão globais"
+  "permissions.printing.print_templates.use.description": "Resolver modelos por código para pré-visualizá-los e imprimi-los, e ler o catálogo de fontes de dados.",
+  "permissions.printing.print_templates.global_manage.name": "Gerenciar modelos de impressão globais",
+  "permissions.printing.print_templates.global_manage.description": "Manter os modelos globais da plataforma, junto com a permissão correspondente de criação, alteração, status ou exclusão."
 }

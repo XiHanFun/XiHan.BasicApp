@@ -4,6 +4,7 @@
 using System.Text.Json;
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -221,9 +222,13 @@ public sealed class ConstraintRuleService(
     /// 取规则项目标的显示名与编码。
     /// </summary>
     /// <remarks>
-    /// 角色取名称与编码，权限码取目录里的显示名，用户取显示名与登录名。
+    /// 角色取名称与编码，权限码取目录里的显示名（区域文案由调用方给，见 <c>PermissionTexts</c>），用户取显示名与登录名。
     /// </remarks>
-    public async Task<IReadOnlyDictionary<(ConstraintTargetType Type, string TargetId), (string Name, string? Code)>> TargetNamesAsync(string owner, IEnumerable<(ConstraintTargetType Type, string TargetId)> targets, CancellationToken cancellationToken)
+    /// <param name="owner">所属侧。</param>
+    /// <param name="targets">规则项目标。</param>
+    /// <param name="permissionName">权限的显示名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task<IReadOnlyDictionary<(ConstraintTargetType Type, string TargetId), (string Name, string? Code)>> TargetNamesAsync(string owner, IEnumerable<(ConstraintTargetType Type, string TargetId)> targets, Func<PermissionDescriptor, string> permissionName, CancellationToken cancellationToken)
     {
         var list = targets.Distinct().ToList();
         var names = new Dictionary<(ConstraintTargetType, string), (string, string?)>();
@@ -243,7 +248,7 @@ public sealed class ConstraintRuleService(
         {
             if (catalog.Find(code) is { } descriptor)
             {
-                names[(ConstraintTargetType.Permission, code)] = (descriptor.DisplayName, code);
+                names[(ConstraintTargetType.Permission, code)] = (permissionName(descriptor), code);
             }
         }
 

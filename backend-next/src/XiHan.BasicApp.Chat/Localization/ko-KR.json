@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "채팅 감사",
   "openapi.tags.chat_audit.description": "멤버가 아니어도 현재 측의 메시지, 메시지 상세와 대화 멤버를 조회합니다.",
   "permissions.chat.chat_conversations.read.name": "채팅 대화 사용",
+  "permissions.chat.chat_conversations.read.description": "호출자의 대화를 나열하고 열며, 구성원과 읽음 위치를 조회하고, 나가기, 고정, 알림 끄기, 읽음 표시를 합니다.",
   "permissions.chat.chat_conversations.manage.name": "그룹 채팅 관리",
+  "permissions.chat.chat_conversations.manage.description": "그룹 채팅을 만들고 방장 또는 관리자로서 관리합니다: 구성원, 정보, 공지, 방장, 역할, 발언 금지.",
   "permissions.chat.chat_messages.read.name": "채팅 메시지 조회",
+  "permissions.chat.chat_messages.read.description": "호출자가 속한 대화의 기록, 검색 결과, 고정 메시지를 조회하고 첨부 파일의 접근 주소를 발급합니다.",
   "permissions.chat.chat_messages.send.name": "채팅 메시지 보내기",
-  "permissions.chat.chat_audit.read.name": "채팅 감사"
+  "permissions.chat.chat_messages.send.description": "호출자가 속한 대화에서 메시지를 보내기, 회수, 편집, 반응, 고정, 전달하고 첨부 파일을 업로드합니다.",
+  "permissions.chat.chat_audit.read.name": "채팅 감사",
+  "permissions.chat.chat_audit.read.description": "호출자 측의 모든 메시지를 검색하고, 대화 구성원이 아니어도 메시지 상세와 대화 구성원을 조회합니다."
 }

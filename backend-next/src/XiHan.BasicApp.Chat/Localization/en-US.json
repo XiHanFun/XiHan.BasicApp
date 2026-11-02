@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "Chat audit",
   "openapi.tags.chat_audit.description": "Messages, message details and conversation members on the caller's side without membership.",
   "permissions.chat.chat_conversations.read.name": "Use chat conversations",
+  "permissions.chat.chat_conversations.read.description": "List and open the caller's conversations, read members and read positions, leave, pin, mute and mark conversations as read.",
   "permissions.chat.chat_conversations.manage.name": "Manage group chats",
+  "permissions.chat.chat_conversations.manage.description": "Create group chats and govern them as owner or administrator: members, info, announcement, owner, roles and silencing.",
   "permissions.chat.chat_messages.read.name": "Read chat messages",
+  "permissions.chat.chat_messages.read.description": "Read the history, search and pinned messages of conversations the caller belongs to, and sign their attachments.",
   "permissions.chat.chat_messages.send.name": "Send chat messages",
-  "permissions.chat.chat_audit.read.name": "Audit chat messages"
+  "permissions.chat.chat_messages.send.description": "Send, recall, edit, react to, pin, forward messages and upload attachments in conversations the caller belongs to.",
+  "permissions.chat.chat_audit.read.name": "Audit chat messages",
+  "permissions.chat.chat_audit.read.description": "Search every message on the caller's side, view message details and conversation members without being a member."
 }

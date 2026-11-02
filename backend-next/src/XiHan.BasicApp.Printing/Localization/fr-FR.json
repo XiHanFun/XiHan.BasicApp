@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Sources de données d'impression",
   "openapi.tags.print_data_sources.description": "Le catalogue des sources de données d'impression enregistrées par les modules : contrats de champs et données d'exemple.",
   "permissions.printing.print_templates.read.name": "Consulter les modèles d'impression",
+  "permissions.printing.print_templates.read.description": "Consulter ses propres modèles et les modèles globaux ouverts aux locataires ; la plateforme voit tous les modèles globaux.",
   "permissions.printing.print_templates.create.name": "Créer des modèles d'impression",
+  "permissions.printing.print_templates.create.description": "Créer des modèles du côté de l’appelant ; les modèles globaux exigent aussi la gestion globale.",
   "permissions.printing.print_templates.update.name": "Modifier les modèles d'impression",
+  "permissions.printing.print_templates.update.description": "Modifier les métadonnées et la conception des modèles du côté de l’appelant.",
   "permissions.printing.print_templates.status.name": "Activer ou désactiver les modèles d'impression",
+  "permissions.printing.print_templates.status.description": "Activer ou désactiver des modèles du côté de l’appelant.",
   "permissions.printing.print_templates.delete.name": "Supprimer les modèles d'impression",
+  "permissions.printing.print_templates.delete.description": "Supprimer les modèles désactivés du côté de l’appelant.",
   "permissions.printing.print_templates.use.name": "Utiliser les modèles d'impression",
-  "permissions.printing.print_templates.global_manage.name": "Gérer les modèles d'impression globaux"
+  "permissions.printing.print_templates.use.description": "Résoudre des modèles par code pour les prévisualiser et les imprimer, et lire le catalogue des sources de données d’impression.",
+  "permissions.printing.print_templates.global_manage.name": "Gérer les modèles d'impression globaux",
+  "permissions.printing.print_templates.global_manage.description": "Gérer les modèles globaux de la plateforme, en plus de la permission correspondante de création, de modification, d’état ou de suppression."
 }

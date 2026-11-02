@@ -21,6 +21,8 @@ Authorize 阶段之后
 
 每个包在 `<包>Permissions.cs` 中用 `PermissionDescriptor` 声明权限码（码、显示名、作用侧、是否审计、说明），并在 `Configure` 时登记到框架。权限目录、菜单门控、套餐白名单与前端的 `permissions.ts` 都来自这份登记。页面上的一个写动作对应一个操作，前端直接用该操作的权限码控制按钮，6.0 不再有单独的按钮码。
 
+显示名与说明另写在所属包语言文件的 `permissions.<码>.name` / `.description`（权限码的 `-` 换 `_`，10 种区域齐全，`PackageStructureTests` 守着）：权限目录 `permissions.list`、约束规则的目标名与接口文档都按调用方的区域取，描述表里的英文只在回退链用尽时用。
+
 | 属性 | 说明 |
 | --- | --- |
 | 作用侧 | `Platform` / `Tenant` / `Both`，平台主体与租户主体只能命中各自作用侧的权限。任务调度、缓存管理、租户管理为 `Platform`，用户级数据范围为 `Tenant`，多数目录类为 `Both` |

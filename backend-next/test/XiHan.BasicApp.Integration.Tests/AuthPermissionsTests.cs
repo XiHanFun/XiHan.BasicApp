@@ -61,6 +61,14 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal("access", roleRead.GetProperty("package").GetString());
         Assert.Equal("roles", roleRead.GetProperty("resource").GetString());
         Assert.Equal("Both", roleRead.GetProperty("scope").GetString());
+
+        // 显示名与说明按调用方的区域取（各包语言文件里的 permissions.<码>.name / .description），不是描述表里的英文
+        foreach (var (locale, name, description) in new[] { ("zh-CN", "读取存储配置", "查看当前一侧的存储配置；访问密钥不回显。"), ("en-US", "Read storage configurations", "View the caller's side's storage configurations; access keys are never shown.") })
+        {
+            var (_, localized) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: admin, acceptLanguage: locale));
+            var storageRead = localized.GetProperty("items").EnumerateArray().Single(static i => i.GetProperty("code").GetString() == "files.storage-configs.read");
+            Assert.Equal((name, description), (storageRead.GetProperty("displayName").GetString(), storageRead.GetProperty("description").GetString()));
+        }
     }
 
     [Fact]

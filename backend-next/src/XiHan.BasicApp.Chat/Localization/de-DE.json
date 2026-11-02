@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "Chat-Audit",
   "openapi.tags.chat_audit.description": "Nachrichten, Nachrichtendetails und Mitglieder von Unterhaltungen auf der Seite des Aufrufers, ohne Mitgliedschaft.",
   "permissions.chat.chat_conversations.read.name": "Chat-Unterhaltungen nutzen",
+  "permissions.chat.chat_conversations.read.description": "Die eigenen Unterhaltungen auflisten und öffnen, Mitglieder und Lesepositionen ansehen, Unterhaltungen verlassen, anheften, stummschalten und als gelesen markieren.",
   "permissions.chat.chat_conversations.manage.name": "Gruppenchats verwalten",
+  "permissions.chat.chat_conversations.manage.description": "Gruppenchats anlegen und als Besitzer oder Administrator verwalten: Mitglieder, Infos, Ankündigung, Besitzer, Rollen und Stummschaltung.",
   "permissions.chat.chat_messages.read.name": "Chat-Nachrichten lesen",
+  "permissions.chat.chat_messages.read.description": "Verlauf, Suche und angeheftete Nachrichten der eigenen Unterhaltungen lesen und Zugriffsadressen für ihre Anhänge ausstellen.",
   "permissions.chat.chat_messages.send.name": "Chat-Nachrichten senden",
-  "permissions.chat.chat_audit.read.name": "Chat-Nachrichten prüfen"
+  "permissions.chat.chat_messages.send.description": "In den eigenen Unterhaltungen Nachrichten senden, zurückrufen, bearbeiten, darauf reagieren, anheften, weiterleiten und Anhänge hochladen.",
+  "permissions.chat.chat_audit.read.name": "Chat-Nachrichten prüfen",
+  "permissions.chat.chat_audit.read.description": "Alle Nachrichten der eigenen Seite durchsuchen und Nachrichtendetails sowie Gesprächsmitglieder ansehen, ohne Mitglied zu sein."
 }

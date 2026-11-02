@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "Plataforma abierta",
   "openapi.groups.openplatform.description": "Llamadas firmadas a la API abierta, aplicaciones OAuth y consentimiento de autorización.",
   "permissions.openplatform.oauth_apps.read.name": "Ver aplicaciones OAuth",
+  "permissions.openplatform.oauth_apps.read.description": "Ver las aplicaciones OAuth creadas por la plataforma y por los usuarios; los secretos de cliente nunca se muestran.",
   "permissions.openplatform.oauth_apps.create.name": "Crear aplicaciones OAuth",
+  "permissions.openplatform.oauth_apps.create.description": "Crear aplicaciones OAuth para el inicio de sesión único.",
   "permissions.openplatform.oauth_apps.update.name": "Editar aplicaciones OAuth",
+  "permissions.openplatform.oauth_apps.update.description": "Editar, activar y desactivar aplicaciones OAuth y restablecer sus secretos de cliente.",
   "permissions.openplatform.oauth_apps.delete.name": "Eliminar aplicaciones OAuth",
+  "permissions.openplatform.oauth_apps.delete.description": "Eliminar aplicaciones OAuth; los tokens emitidos para ellas dejan de funcionar.",
   "jobs.openplatform.oauth_cleanup.title": "Limpiar autorizaciones OAuth caducadas",
   "jobs.openplatform.oauth_cleanup.description": "Eliminar los códigos de autorización caducados hace un día y los tokens caducados hace siete días."
 }

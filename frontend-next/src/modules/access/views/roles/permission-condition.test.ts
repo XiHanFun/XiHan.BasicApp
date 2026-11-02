@@ -17,6 +17,10 @@ const result = {
   conditions: [condition('c-1', 'identity.users.read', 'Grant', 0), condition('c-2', 'identity.users.read', 'Grant', 2), condition('c-3', 'identity.users.read', 'Deny', 0)],
 }
 
+/** 当前界面语言的权限显示名（权限目录给的） */
+const names = new Map([['identity.users.read', '读取用户']])
+const nameOf = (code: string) => names.get(code) ?? code
+
 const catalog = [
   { name: 'subject.roleCodes', aliases: ['subject.role'], isFamily: false },
   { name: 'resource.route.*', aliases: [], isFamily: true },
@@ -24,18 +28,18 @@ const catalog = [
 
 describe('授权条件的条目', () => {
   it('按权限码排、同码先授予后拒绝，带上每条绑定的子句数与显示名', () => {
-    const targets = toGrantConditionTargets(result)
+    const targets = toGrantConditionTargets(result, nameOf)
     expect(targets.map(t => [t.permission, t.action, t.conditionCount])).toEqual([
       ['identity.users.read', 'Grant', 2],
       ['identity.users.read', 'Deny', 1],
       ['identity.users.update', 'Grant', 0],
     ])
-    expect(targets[0]!.permissionName).toBe('Read users')
+    expect(targets.map(t => t.permissionName)).toEqual(['读取用户', '读取用户', 'identity.users.update'])
     expect(conditionsOf(result, targets[1]!).map(c => c.id)).toEqual(['c-3'])
   })
 
   it('子句按组号分组；新组号接在最大的后面', () => {
-    const conditions = conditionsOf(result, toGrantConditionTargets(result)[0]!)
+    const conditions = conditionsOf(result, toGrantConditionTargets(result, nameOf)[0]!)
     expect(groupConditions(conditions).map(g => [g.group, g.items.length])).toEqual([[0, 1], [2, 1]])
     expect(nextGroupNumber(conditions)).toBe(3)
     expect(nextGroupNumber([])).toBe(0)

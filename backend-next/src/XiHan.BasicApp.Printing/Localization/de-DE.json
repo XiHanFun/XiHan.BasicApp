@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Druckdatenquellen",
   "openapi.tags.print_data_sources.description": "Der Katalog der von den Modulen registrierten Druckdatenquellen: Feldverträge und Beispieldaten.",
   "permissions.printing.print_templates.read.name": "Druckvorlagen lesen",
+  "permissions.printing.print_templates.read.description": "Die eigenen Vorlagen und die für Mandanten freigegebenen globalen Vorlagen ansehen; die Plattform sieht jede globale Vorlage.",
   "permissions.printing.print_templates.create.name": "Druckvorlagen anlegen",
+  "permissions.printing.print_templates.create.description": "Vorlagen auf der Seite des Aufrufers anlegen; für globale Vorlagen ist zusätzlich die globale Verwaltung nötig.",
   "permissions.printing.print_templates.update.name": "Druckvorlagen ändern",
+  "permissions.printing.print_templates.update.description": "Metadaten und Design von Vorlagen auf der Seite des Aufrufers bearbeiten.",
   "permissions.printing.print_templates.status.name": "Druckvorlagen aktivieren oder deaktivieren",
+  "permissions.printing.print_templates.status.description": "Vorlagen auf der Seite des Aufrufers aktivieren oder deaktivieren.",
   "permissions.printing.print_templates.delete.name": "Druckvorlagen löschen",
+  "permissions.printing.print_templates.delete.description": "Deaktivierte Vorlagen auf der Seite des Aufrufers löschen.",
   "permissions.printing.print_templates.use.name": "Druckvorlagen verwenden",
-  "permissions.printing.print_templates.global_manage.name": "Globale Druckvorlagen verwalten"
+  "permissions.printing.print_templates.use.description": "Vorlagen per Code auflösen, um sie in der Vorschau anzuzeigen und zu drucken, und den Katalog der Druckdatenquellen lesen.",
+  "permissions.printing.print_templates.global_manage.name": "Globale Druckvorlagen verwalten",
+  "permissions.printing.print_templates.global_manage.description": "Die globalen Vorlagen der Plattform pflegen, zusammen mit der passenden Berechtigung zum Anlegen, Bearbeiten, zur Statusänderung oder zum Löschen."
 }

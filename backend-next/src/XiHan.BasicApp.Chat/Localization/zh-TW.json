@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "聊天稽核",
   "openapi.tags.chat_audit.description": "無須是成員即可查看目前一側的訊息、訊息詳情與對話成員。",
   "permissions.chat.chat_conversations.read.name": "使用聊天對話",
+  "permissions.chat.chat_conversations.read.description": "列出並開啟呼叫者的對話，查看成員與已讀位置，退出、置頂、靜音並標記已讀。",
   "permissions.chat.chat_conversations.manage.name": "管理群組聊天",
+  "permissions.chat.chat_conversations.manage.description": "建立群組聊天，並以群主或管理員身分管理：成員、群組資料、群組公告、群主、角色與禁言。",
   "permissions.chat.chat_messages.read.name": "查看聊天訊息",
+  "permissions.chat.chat_messages.read.description": "查看呼叫者所在對話的歷史訊息、搜尋與置頂訊息，並簽發其中附件的存取網址。",
   "permissions.chat.chat_messages.send.name": "傳送聊天訊息",
-  "permissions.chat.chat_audit.read.name": "聊天稽核"
+  "permissions.chat.chat_messages.send.description": "在呼叫者所在的對話中傳送、收回、編輯、回應、置頂、轉寄訊息與上傳附件。",
+  "permissions.chat.chat_audit.read.name": "聊天稽核",
+  "permissions.chat.chat_audit.read.description": "查看目前一側的全部訊息，不必是對話成員也能查看訊息詳情與對話成員。"
 }

@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "打印数据源",
   "openapi.tags.print_data_sources.description": "各模块登记的打印数据源目录：字段契约与样例数据。",
   "permissions.printing.print_templates.read.name": "查看打印模板",
+  "permissions.printing.print_templates.read.description": "查看本侧自己的打印模板与向租户开放的全局打印模板；平台可看到全部全局打印模板。",
   "permissions.printing.print_templates.create.name": "新建打印模板",
+  "permissions.printing.print_templates.create.description": "在本侧新建打印模板；全局打印模板另需全局管理权限。",
   "permissions.printing.print_templates.update.name": "修改打印模板",
+  "permissions.printing.print_templates.update.description": "修改本侧打印模板的元数据与设计。",
   "permissions.printing.print_templates.status.name": "启停打印模板",
+  "permissions.printing.print_templates.status.description": "启用或停用本侧的打印模板。",
   "permissions.printing.print_templates.delete.name": "删除打印模板",
+  "permissions.printing.print_templates.delete.description": "删除本侧已停用的打印模板。",
   "permissions.printing.print_templates.use.name": "使用打印模板",
-  "permissions.printing.print_templates.global_manage.name": "管理全局打印模板"
+  "permissions.printing.print_templates.use.description": "按编码解析打印模板以预览和打印，并读取数据源目录。",
+  "permissions.printing.print_templates.global_manage.name": "管理全局打印模板",
+  "permissions.printing.print_templates.global_manage.description": "维护平台的全局打印模板，同时须持有对应的新建、修改、启停或删除权限。"
 }

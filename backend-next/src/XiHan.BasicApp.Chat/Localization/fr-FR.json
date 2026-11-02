@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "Audit du chat",
   "openapi.tags.chat_audit.description": "Messages, détails des messages et membres des conversations du côté de l’appelant, sans être membre.",
   "permissions.chat.chat_conversations.read.name": "Utiliser les conversations de chat",
+  "permissions.chat.chat_conversations.read.description": "Lister et ouvrir les conversations de l’appelant, consulter les membres et les positions de lecture, quitter, épingler, mettre en sourdine et marquer comme lues.",
   "permissions.chat.chat_conversations.manage.name": "Gérer les discussions de groupe",
+  "permissions.chat.chat_conversations.manage.description": "Créer des discussions de groupe et les gérer en tant que propriétaire ou administrateur : membres, informations, annonce, propriétaire, rôles et mise en silence.",
   "permissions.chat.chat_messages.read.name": "Consulter les messages de chat",
+  "permissions.chat.chat_messages.read.description": "Consulter l’historique, la recherche et les messages épinglés des conversations de l’appelant, et émettre les adresses d’accès à leurs pièces jointes.",
   "permissions.chat.chat_messages.send.name": "Envoyer des messages de chat",
-  "permissions.chat.chat_audit.read.name": "Auditer les messages de chat"
+  "permissions.chat.chat_messages.send.description": "Envoyer, rappeler, modifier, épingler et transférer des messages, y réagir et téléverser des pièces jointes dans les conversations de l’appelant.",
+  "permissions.chat.chat_audit.read.name": "Auditer les messages de chat",
+  "permissions.chat.chat_audit.read.description": "Rechercher tous les messages de son côté et consulter le détail des messages et les membres des conversations sans en être membre."
 }

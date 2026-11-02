@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "开放平台",
   "openapi.groups.openplatform.description": "开放接口的签名调用、OAuth 应用与授权同意。",
   "permissions.openplatform.oauth_apps.read.name": "读取 OAuth 应用",
+  "permissions.openplatform.oauth_apps.read.description": "查看平台与用户创建的 OAuth 应用；客户端密钥不回显。",
   "permissions.openplatform.oauth_apps.create.name": "新建 OAuth 应用",
+  "permissions.openplatform.oauth_apps.create.description": "新建用于单点登录的 OAuth 应用。",
   "permissions.openplatform.oauth_apps.update.name": "修改 OAuth 应用",
+  "permissions.openplatform.oauth_apps.update.description": "修改、启用与停用 OAuth 应用，并重置其客户端密钥。",
   "permissions.openplatform.oauth_apps.delete.name": "删除 OAuth 应用",
+  "permissions.openplatform.oauth_apps.delete.description": "删除 OAuth 应用；已发给它们的令牌随之失效。",
   "jobs.openplatform.oauth_cleanup.title": "清理过期授权",
   "jobs.openplatform.oauth_cleanup.description": "物理删除过期一天的授权码与过期七天的令牌。"
 }

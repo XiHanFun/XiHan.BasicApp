@@ -7,6 +7,7 @@ import { Icon, XInput } from '~/components'
 import { toast } from '~/composables'
 import { permissionConditions as conditionsApi } from '~/contracts'
 import { useAuthStore } from '~/stores'
+import { usePermissionNames } from '../../permissions/permission-names'
 import { conditionsOf, toGrantConditionTargets } from '../permission-condition'
 import PermissionConditionPanel from './PermissionConditionPanel.vue'
 
@@ -44,7 +45,8 @@ const catalog = ref<ConditionAttribute[]>([])
 const keyword = ref('')
 const selectedKey = ref<null | string>(null)
 
-const grants = computed(() => result.value ? toGrantConditionTargets(result.value) : [])
+const permissionNames = usePermissionNames()
+const grants = computed(() => result.value ? toGrantConditionTargets(result.value, permissionNames.nameOf) : [])
 const filtered = computed(() => {
   const value = keyword.value.trim().toLowerCase()
   return value
@@ -62,6 +64,7 @@ async function load() {
     const [list, attributes] = await Promise.all([
       conditionsApi.list({ subjectKind: props.subjectKind, subjectId: props.subjectId }),
       catalog.value.length > 0 ? Promise.resolve(null) : conditionsApi.attributes({}),
+      permissionNames.load(),
     ])
     result.value = list
     if (attributes)

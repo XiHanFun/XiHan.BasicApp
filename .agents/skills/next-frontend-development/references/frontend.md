@@ -20,7 +20,7 @@ frontend-next/
 
 ## 契约层
 
-- 操作客户端、请求 / 响应类型、枚举值集、权限码表（`permissionDefinitions`）、推送方法名（`realtime.ts`）都从 `~/contracts` 取，不手写路由、字段或枚举。
+- 操作客户端、请求 / 响应类型、枚举值集、权限码表（`permissionDefinitions`，显示名与说明是英文、不拿来显示；界面上的权限名取 `permissions.list`，只有权限码时用 access 的 `usePermissionNames()`）、推送方法名（`realtime.ts`）都从 `~/contracts` 取，不手写路由、字段或枚举。
 - 路由由框架 HTTP 约定决定：`list` 走 `GET /<资源>`（带 `PageRequest` 的是 `POST /<资源>:list`），`get` / `delete` 走资源路径或查询串，`create` → `POST`、`update` → `PUT` 资源根，其余写动词 `POST /<资源>:<动词>`，声明了 `ReadOnly` 的查询在没有嵌套对象时走 `GET`。没有请求体的操作照样调 `xxx({})`。
 - 写页面前先 `pnpm gen:contracts` 看 `operations.ts` 里的模板，再写调用与测试。
 - 请求层（`~/request`）统一处理认证、刷新、区域与 Problem Details：`SECURITY_DENIED_001` / `003` 先单飞刷新再重放，`IDENTITY_DENIED_001` 回登录页，`IDENTITY_DENIED_002` 进锁屏，`RUNTIME_UNAVAILABLE_003` 与 `KERNEL_UNAVAILABLE_001` 走维护提示；页面不重复实现。登录与刷新以 `anonymous: true` 调用。

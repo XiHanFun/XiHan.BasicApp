@@ -83,7 +83,7 @@ public sealed class ConstraintRuleQueries(SqlSugarUnitOfWork unitOfWork, Constra
 
         var total = new RefAsync<int>();
         var rows = await query.ToPageListAsync(request.Page.Index, request.Page.Size, total, context.CancellationToken).ConfigureAwait(false);
-        return new PageResult<ConstraintRuleResponse>(await projection.ToAsync(rows, context.CancellationToken).ConfigureAwait(false), total.Value, request.Page);
+        return new PageResult<ConstraintRuleResponse>(await projection.ToAsync(rows, context).ConfigureAwait(false), total.Value, request.Page);
     }
 
     private static Result<ISugarQueryable<SysConstraintRule>> Apply(ISugarQueryable<SysConstraintRule> query, PageFilter filter)

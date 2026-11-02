@@ -22,7 +22,7 @@
 | --- | --- |
 | `types.ts` | `openapi-typescript` 生成的 `paths` / `components` / `operations` 类型；DataAnnotations 折进 Schema 的约束（`minLength`、`maximum` …）随之进入类型 |
 | `operations.ts` | 路由表 `routes`（方法、模板、路由字段、查询串字段、成功码）与按资源分组的调用函数 |
-| `permissions.ts` | 权限码字面量联合 `Permission`、操作 → 权限 / 策略映射 `operationPermission` / `operationPolicy`、权限定义表 `permissionDefinitions`（码、显示名、说明） |
+| `permissions.ts` | 权限码字面量联合 `Permission`、操作 → 权限 / 策略映射 `operationPermission` / `operationPolicy`、权限定义表 `permissionDefinitions`（码与英文的显示名、说明；界面显示取 `permissions.list`） |
 | `enums.ts` | 字符串枚举的成员数组与类型（如 `UserStatus = ['Active', 'Disabled', 'Locked']`） |
 | `realtime.ts` | Hub 路径与推送方法名 |
 

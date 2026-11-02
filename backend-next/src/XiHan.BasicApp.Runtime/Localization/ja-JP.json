@@ -1,3 +1,4 @@
 {
-  "permissions.runtime.cloud_events.deliver.name": "CloudEvents イベントを配信"
+  "permissions.runtime.cloud_events.deliver.name": "CloudEvents イベントを配信",
+  "permissions.runtime.cloud_events.deliver.description": "CloudEvents の受信エンドポイントにイベントを配信します。プラットフォームのサービスアカウントまたはサービスロールにのみ付与してください。"
 }

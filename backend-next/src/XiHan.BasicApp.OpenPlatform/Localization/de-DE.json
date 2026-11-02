@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "Offene Plattform",
   "openapi.groups.openplatform.description": "Signierte Open-API-Aufrufe, OAuth-Apps und Autorisierungszustimmung.",
   "permissions.openplatform.oauth_apps.read.name": "OAuth-Apps lesen",
+  "permissions.openplatform.oauth_apps.read.description": "Die von der Plattform und von Benutzern angelegten OAuth-Apps ansehen; Client-Geheimnisse werden nie angezeigt.",
   "permissions.openplatform.oauth_apps.create.name": "OAuth-Apps anlegen",
+  "permissions.openplatform.oauth_apps.create.description": "OAuth-Apps für Single Sign-on anlegen.",
   "permissions.openplatform.oauth_apps.update.name": "OAuth-Apps bearbeiten",
+  "permissions.openplatform.oauth_apps.update.description": "OAuth-Apps bearbeiten, aktivieren und deaktivieren sowie ihre Client-Geheimnisse zurücksetzen.",
   "permissions.openplatform.oauth_apps.delete.name": "OAuth-Apps löschen",
+  "permissions.openplatform.oauth_apps.delete.description": "OAuth-Apps löschen; an sie ausgestellte Token werden ungültig.",
   "jobs.openplatform.oauth_cleanup.title": "Abgelaufene OAuth-Berechtigungen bereinigen",
   "jobs.openplatform.oauth_cleanup.description": "Autorisierungscodes, die seit einem Tag, und Tokens, die seit sieben Tagen abgelaufen sind, endgültig löschen."
 }

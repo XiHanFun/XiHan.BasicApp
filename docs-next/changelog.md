@@ -4,6 +4,11 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 权限名按界面语言显示（2026-11-02）
+
+- 权限目录 `permissions.list` 按请求的语言返回权限的显示名与说明（原来一律是英文），角色的权限分配与详情、用户直授、套餐白名单、委托、授权条件与约束规则跟着显示当前界面语言。
+- 177 个权限的说明在 10 种语言里补齐。
+
 ### CloudEvents 入站权限码（2026-11-02）
 
 - `/events` 改为要求权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，平台侧，只授给服务账号或服务角色），只登录的普通用户投递即 403 `SECURITY_DENIED_004`。原先靠「登录即可」投递的服务账号要补这项授权。见[配置参考](./configuration#basicapp-cloudevents)。

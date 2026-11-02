@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "開放平台",
   "openapi.groups.openplatform.description": "開放介面的簽章呼叫、OAuth 應用與授權同意。",
   "permissions.openplatform.oauth_apps.read.name": "讀取 OAuth 應用",
+  "permissions.openplatform.oauth_apps.read.description": "檢視平台與使用者建立的 OAuth 應用；用戶端密鑰不回顯。",
   "permissions.openplatform.oauth_apps.create.name": "新增 OAuth 應用",
+  "permissions.openplatform.oauth_apps.create.description": "建立用於單一登入的 OAuth 應用。",
   "permissions.openplatform.oauth_apps.update.name": "修改 OAuth 應用",
+  "permissions.openplatform.oauth_apps.update.description": "修改、啟用與停用 OAuth 應用，並重設其用戶端密鑰。",
   "permissions.openplatform.oauth_apps.delete.name": "刪除 OAuth 應用",
+  "permissions.openplatform.oauth_apps.delete.description": "刪除 OAuth 應用；發給它們的權杖隨之失效。",
   "jobs.openplatform.oauth_cleanup.title": "清理過期授權",
   "jobs.openplatform.oauth_cleanup.description": "實體刪除過期一天的授權碼與過期七天的權杖。"
 }

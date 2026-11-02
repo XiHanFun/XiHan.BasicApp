@@ -1,5 +1,5 @@
+import type { PermissionNameOf } from '../permissions/permission-names'
 import type { ResponseOf } from '~/contracts'
-import { permissionDefinitions } from '~/contracts'
 
 export type PermissionConditionsResult = ResponseOf<'permission-conditions.list'>
 export type PermissionConditionItem = PermissionConditionsResult['conditions'][number]
@@ -12,9 +12,6 @@ export type ConditionAction = ConditionBinding['action']
 
 /** 全部运算符（还没选属性时列出，4.x 同；选了属性只列它可用的） */
 export const CONDITION_OPERATORS: readonly ConditionOperator[] = ['Equals', 'NotEquals', 'GreaterThan', 'GreaterThanOrEquals', 'LessThan', 'LessThanOrEquals', 'Contains', 'NotContains', 'In', 'NotIn', 'Between', 'StartsWith', 'EndsWith', 'IsNull', 'IsNotNull']
-
-/** 权限定义表（生成物）：授权的显示名按它取，不在表里的原样显示权限码 */
-const definitions: Readonly<Record<string, { displayName: string } | undefined>> = permissionDefinitions
 
 /** 一条可配置条件的授权：主体在一个权限码上的授予或拒绝 */
 export interface GrantConditionTarget {
@@ -29,7 +26,7 @@ export interface GrantConditionTarget {
 }
 
 /** 主体的绑定转成条件抽屉的条目（按权限码排，同码先授予后拒绝），带上每条绑定上的子句数 */
-export function toGrantConditionTargets(result: PermissionConditionsResult): GrantConditionTarget[] {
+export function toGrantConditionTargets(result: PermissionConditionsResult, nameOf: PermissionNameOf): GrantConditionTarget[] {
   const counts = new Map<string, number>()
   for (const condition of result.conditions) {
     const key = `${condition.permission}:${condition.action}`
@@ -41,7 +38,7 @@ export function toGrantConditionTargets(result: PermissionConditionsResult): Gra
       subjectKind: result.subjectKind,
       subjectId: result.subjectId,
       permission: binding.permission,
-      permissionName: definitions[binding.permission]?.displayName ?? binding.permission,
+      permissionName: nameOf(binding.permission),
       action: binding.action,
       conditionCount: counts.get(`${binding.permission}:${binding.action}`) ?? 0,
     }))

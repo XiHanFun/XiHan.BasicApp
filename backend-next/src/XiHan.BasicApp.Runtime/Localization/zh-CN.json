@@ -1,3 +1,4 @@
 {
-  "permissions.runtime.cloud_events.deliver.name": "投递 CloudEvents 事件"
+  "permissions.runtime.cloud_events.deliver.name": "投递 CloudEvents 事件",
+  "permissions.runtime.cloud_events.deliver.description": "向 CloudEvents 入站端点投递事件；只授给平台的服务账号或服务角色。"
 }

@@ -46,6 +46,6 @@ public sealed class ListPermissions(PermissionCatalog catalog, EffectivePermissi
             items = items.Where(p => allowed.Contains(p.Code)).ToList();
         }
 
-        return new PermissionCatalogResponse(items.Select(PermissionResponse.From).ToList());
+        return new PermissionCatalogResponse(items.Select(p => PermissionResponse.From(p, context)).ToList());
     }
 }

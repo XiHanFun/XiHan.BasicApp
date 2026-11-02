@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "인쇄 데이터 소스",
   "openapi.tags.print_data_sources.description": "각 모듈이 등록한 인쇄 데이터 소스 목록: 필드 계약과 샘플 데이터.",
   "permissions.printing.print_templates.read.name": "인쇄 템플릿 조회",
+  "permissions.printing.print_templates.read.description": "호출자 자신의 템플릿과 테넌트에 공개된 전역 템플릿을 조회합니다. 플랫폼은 모든 전역 템플릿을 봅니다.",
   "permissions.printing.print_templates.create.name": "인쇄 템플릿 생성",
+  "permissions.printing.print_templates.create.description": "호출자 측에 템플릿을 생성합니다. 전역 템플릿은 전역 관리 권한도 필요합니다.",
   "permissions.printing.print_templates.update.name": "인쇄 템플릿 수정",
+  "permissions.printing.print_templates.update.description": "호출자 측 템플릿의 메타데이터와 디자인을 수정합니다.",
   "permissions.printing.print_templates.status.name": "인쇄 템플릿 활성화/비활성화",
+  "permissions.printing.print_templates.status.description": "호출자 측 템플릿을 활성화하거나 비활성화합니다.",
   "permissions.printing.print_templates.delete.name": "인쇄 템플릿 삭제",
+  "permissions.printing.print_templates.delete.description": "호출자 측의 비활성화된 템플릿을 삭제합니다.",
   "permissions.printing.print_templates.use.name": "인쇄 템플릿 사용",
-  "permissions.printing.print_templates.global_manage.name": "전역 인쇄 템플릿 관리"
+  "permissions.printing.print_templates.use.description": "코드로 템플릿을 확인해 미리 보기와 인쇄를 하고, 데이터 소스 카탈로그를 조회합니다.",
+  "permissions.printing.print_templates.global_manage.name": "전역 인쇄 템플릿 관리",
+  "permissions.printing.print_templates.global_manage.description": "해당하는 생성, 수정, 활성화/비활성화 또는 삭제 권한과 함께 플랫폼의 전역 템플릿을 관리합니다."
 }

@@ -8,12 +8,14 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, XCombobox, XDatePicker, XEditModal, XInput, XSegmented } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
+import { usePermissionNames } from '../permissions/permission-names'
 import { canRevoke, DELEGATION_STATUSES, delegationName, delegationsResource, delegationTarget, revokeDelegation, useDelegationEditor } from './use-delegations'
 
 defineOptions({ name: 'AccessDelegationsView' })
 
 const { t } = useI18n()
-const resource = delegationsResource()
+const permissionNames = usePermissionNames()
+const resource = delegationsResource(permissionNames.load)
 const editor = useDelegationEditor()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
@@ -59,7 +61,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('access.delegations.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.delegations.keyword_placeholder'), width: 240, order: 0 },
   { key: 'delegatorName', title: t('access.delegations.fields.delegator'), dataType: 'string', minWidth: 160, order: 1, render: row => asRow(row).delegatorName ?? asRow(row).delegatorId },
   { key: 'delegateeName', title: t('access.delegations.fields.delegatee'), dataType: 'string', minWidth: 160, order: 2, render: row => asRow(row).delegateeName ?? asRow(row).delegateeId },
-  { key: 'target', title: t('access.delegations.fields.target'), dataType: 'string', minWidth: 170, order: 3, render: row => delegationTarget(asRow(row)) },
+  { key: 'target', title: t('access.delegations.fields.target'), dataType: 'string', minWidth: 170, order: 3, render: row => delegationTarget(asRow(row), permissionNames.nameOf) },
   { key: 'status', title: t('access.delegations.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('access.delegations.status_placeholder'), width: 100, order: 4, render: row => renderTag(statusLabel(asRow(row).status), STATUS_TONE[asRow(row).status]) },
   { key: 'expiresAt', title: t('access.delegations.fields.validity'), dataType: 'string', sortable: true, minWidth: 300, order: 5, render: row => validityRange(asRow(row)) },
   { key: 'reason', title: t('access.delegations.fields.reason'), dataType: 'text', ellipsis: true, minWidth: 160, order: 6 },
@@ -77,8 +79,8 @@ const schema = computed<PageSchema>(() => ({
   resource: resource as unknown as PageSchema['resource'],
   actions: [
     { key: 'create', title: t('access.delegations.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.delegations.create' },
-    { key: 'revoke', title: t('access.delegations.actions.revoke'), scope: 'row', icon: 'lucide:undo-2', tone: 'danger', confirm: true, confirmText: row => actionConfirmText(t, t('access.delegations.actions.revoke'), delegationName(asRow(row))), visible: row => canRevoke(asRow(row)), permission: 'access.delegations.revoke' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(asRow(row))), permission: 'access.delegations.delete' },
+    { key: 'revoke', title: t('access.delegations.actions.revoke'), scope: 'row', icon: 'lucide:undo-2', tone: 'danger', confirm: true, confirmText: row => actionConfirmText(t, t('access.delegations.actions.revoke'), delegationName(asRow(row), permissionNames.nameOf)), visible: row => canRevoke(asRow(row)), permission: 'access.delegations.revoke' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(asRow(row), permissionNames.nameOf)), permission: 'access.delegations.delete' },
   ],
 }))
 

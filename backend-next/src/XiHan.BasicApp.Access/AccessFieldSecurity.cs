@@ -37,7 +37,7 @@ public static class AccessFieldSecurity
             .Entity<ConstraintRuleResponse>("access.constraint-rules", "access.constraint_rules.title", "access.constraint_rules.fields.")
                 .Reads(ListConstraintRules.Id, GetConstraintRule.Id)
                 .Creates(CreateConstraintRule.Id)
-                .Updates<UpdateConstraintRuleRequest>(UpdateConstraintRule.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysConstraintRule>(context, request.Id, static async (rule, ctx) => await ctx.Services.GetRequiredService<ConstraintRuleProjection>().ToAsync(rule, ctx.CancellationToken).ConfigureAwait(false)))
+                .Updates<UpdateConstraintRuleRequest>(UpdateConstraintRule.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysConstraintRule>(context, request.Id, static async (rule, ctx) => await ctx.Services.GetRequiredService<ConstraintRuleProjection>().ToAsync(rule, ctx).ConfigureAwait(false)))
                 .Keyword("code", "name", "description", "remark")
             .Entity<AccessPolicyResponse>("access.policies", "access.policies.title", "access.policies.fields.")
                 .Reads(ListAccessPolicies.Id, GetAccessPolicy.Id)

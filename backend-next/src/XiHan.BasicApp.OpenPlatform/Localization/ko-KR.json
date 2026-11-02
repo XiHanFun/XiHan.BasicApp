@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "오픈 플랫폼",
   "openapi.groups.openplatform.description": "오픈 API 서명 호출, OAuth 앱, 인가 동의.",
   "permissions.openplatform.oauth_apps.read.name": "OAuth 앱 조회",
+  "permissions.openplatform.oauth_apps.read.description": "플랫폼과 사용자가 만든 OAuth 앱을 조회합니다. 클라이언트 시크릿은 표시하지 않습니다.",
   "permissions.openplatform.oauth_apps.create.name": "OAuth 앱 생성",
+  "permissions.openplatform.oauth_apps.create.description": "싱글 사인온(SSO)용 OAuth 앱을 생성합니다.",
   "permissions.openplatform.oauth_apps.update.name": "OAuth 앱 수정",
+  "permissions.openplatform.oauth_apps.update.description": "OAuth 앱을 수정하고, 사용 또는 사용 안 함으로 바꾸며, 클라이언트 시크릿을 재설정합니다.",
   "permissions.openplatform.oauth_apps.delete.name": "OAuth 앱 삭제",
+  "permissions.openplatform.oauth_apps.delete.description": "OAuth 앱을 삭제합니다. 앱에 발급된 토큰은 더 이상 쓸 수 없게 됩니다.",
   "jobs.openplatform.oauth_cleanup.title": "만료된 OAuth 권한 정리",
   "jobs.openplatform.oauth_cleanup.description": "만료 후 하루 지난 인증 코드와 7일 지난 토큰을 삭제합니다."
 }

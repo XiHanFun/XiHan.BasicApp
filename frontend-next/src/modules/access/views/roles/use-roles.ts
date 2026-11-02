@@ -1,10 +1,13 @@
+import type { PermissionNameOf } from '../permissions/permission-names'
 import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
 import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } from './role-parents'
 import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { departments as departmentsApi, permissionDefinitions, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { useAppStore } from '~/stores'
+import { usePermissionNames } from '../permissions/permission-names'
 import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
 import { summarizeInheritedPermissions } from './role-parents'
 
@@ -20,9 +23,6 @@ export const ROLE_STATUSES: readonly RoleStatus[] = ['Active', 'Disabled']
 
 /** 候选用户一次取的上限（后端 PageInfo 的页大小上限，与 4.x 的成员目录同为 500） */
 const CANDIDATE_LIMIT = 500
-
-/** 权限定义表（生成物）：详情与目录外的已授权限按它取显示名 */
-const definitions: Readonly<Record<string, { displayName: string, description: string } | undefined>> = permissionDefinitions
 
 function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
@@ -162,7 +162,7 @@ function groupOf(code: string): string {
 }
 
 /**
- * 权限目录 → 穿梭框条目（按「包.资源」分段）。已授予却不在目录里的（例如套餐收窄后目录不再列出）补进来：
+ * 权限目录 → 穿梭框条目（按「包.资源」分段，显示名是目录按当前界面语言给的）。已授予却不在目录里的（例如套餐收窄后目录不再列出）补进来、原样显示权限码：
  * 穿梭框只认条目里有的键，不补进来，一动穿梭框这些授权就从草稿里掉出去，保存时被当成收回
  */
 export function toPermissionItems(catalog: readonly PermissionItem[], granted: readonly string[]): RolePermissionItem[] {
@@ -176,7 +176,7 @@ export function toPermissionItems(catalog: readonly PermissionItem[], granted: r
   const known = new Set(items.map(item => item.basicId))
   for (const code of granted) {
     if (!known.has(code))
-      items.push({ basicId: code, permissionCode: code, permissionName: definitions[code]?.displayName ?? code, groupCode: groupOf(code), groupName: groupOf(code) })
+      items.push({ basicId: code, permissionCode: code, permissionName: code, groupCode: groupOf(code), groupName: groupOf(code) })
   }
   return items
 }
@@ -203,6 +203,8 @@ export function useRolePermissionEditor() {
   const open = ref(false)
   const role = ref<RoleRow | null>(null)
   const catalog = ref<PermissionItem[]>([])
+  /** 目录是按哪种界面语言取的：显示名随语言变，换了语言再取 */
+  let catalogLocale: null | string = null
   const granted = ref<string[]>([])
   const draft = ref<string[]>([])
   /** 从上级继承来的授予与拒绝（按权限码）：穿梭框里标「继承」与「上级拒绝」 */
@@ -228,13 +230,16 @@ export function useRolePermissionEditor() {
     open.value = true
     loading.value = true
     try {
+      const locale = useAppStore().locale
       const [list, detail, hierarchy] = await Promise.all([
-        catalog.value.length > 0 ? Promise.resolve(null) : permissionsApi.list({}),
+        catalogLocale === locale ? Promise.resolve(null) : permissionsApi.list({}),
         rolesApi.get({ id: row.id }),
         rolesApi.hierarchy({ id: row.id }),
       ])
-      if (list)
+      if (list) {
         catalog.value = list.items
+        catalogLocale = locale
+      }
       applyGranted(detail.permissions)
       inherited.value = summarizeInheritedPermissions(hierarchy.inherited)
     }
@@ -453,7 +458,7 @@ export function useRoleDataScopeEditor() {
 
 export type PermissionRule = RoleDetail['rules'][number]
 
-/** 详情里的一条权限分配（4.x 的「动作 / 有效期」两列）：显示名取生成的权限定义表，不在表里的原样显示权限码 */
+/** 详情里的一条权限分配（4.x 的「动作 / 有效期」两列）：显示名取当前界面语言的权限目录，不在目录里的原样显示权限码 */
 export interface RolePermissionEntry {
   code: string
   displayName: string
@@ -467,11 +472,11 @@ export interface RolePermissionEntry {
  * 授予取 `permissions`（带有效期或原因的另有同码的 Grant 规则补上这两项），拒绝只在 `rules` 里；
  * 两者按权限码互斥（后端写拒绝即撤掉同码授予），先列授予再列拒绝。
  */
-export function rolePermissionEntries(permissions: readonly string[], rules: readonly PermissionRule[]): RolePermissionEntry[] {
+export function rolePermissionEntries(permissions: readonly string[], rules: readonly PermissionRule[], nameOf: PermissionNameOf): RolePermissionEntry[] {
   const grantRules = new Map(rules.filter(rule => rule.action === 'Grant').map(rule => [rule.permission, rule] as const))
   const entry = (code: string, action: PermissionRule['action'], rule?: PermissionRule): RolePermissionEntry => ({
     code,
-    displayName: definitions[code]?.displayName ?? code,
+    displayName: nameOf(code),
     action,
     effectiveAt: rule?.effectiveAt ?? null,
     expiresAt: rule?.expiresAt ?? null,
@@ -483,7 +488,7 @@ export function rolePermissionEntries(permissions: readonly string[], rules: rea
   ]
 }
 
-/** 详情里一条继承来的授予或拒绝：显示名取生成的权限定义表 */
+/** 详情里一条继承来的授予或拒绝：显示名取当前界面语言的权限目录 */
 export interface InheritedPermissionEntry extends InheritedPermission {
   displayName: string
 }
@@ -496,9 +501,10 @@ export function useRoleDetail() {
   const members = ref<RoleMember[]>([])
   const hierarchy = ref<RoleHierarchy | null>(null)
   const departmentNames = ref<Map<string, string>>(new Map())
+  const permissionNames = usePermissionNames()
 
-  const permissions = computed<RolePermissionEntry[]>(() => detail.value ? rolePermissionEntries(detail.value.permissions, detail.value.rules) : [])
-  const inherited = computed<InheritedPermissionEntry[]>(() => (hierarchy.value?.inherited ?? []).map(item => ({ ...item, displayName: definitions[item.permission]?.displayName ?? item.permission })))
+  const permissions = computed<RolePermissionEntry[]>(() => detail.value ? rolePermissionEntries(detail.value.permissions, detail.value.rules, permissionNames.nameOf) : [])
+  const inherited = computed<InheritedPermissionEntry[]>(() => (hierarchy.value?.inherited ?? []).map(item => ({ ...item, displayName: permissionNames.nameOf(item.permission) })))
   const ancestors = computed(() => hierarchy.value?.ancestors ?? [])
   const descendants = computed(() => hierarchy.value?.descendants ?? [])
 
@@ -514,6 +520,7 @@ export function useRoleDetail() {
         rolesApi.members({ id: row.id }),
         rolesApi.hierarchy({ id: row.id }),
         canReadDepartments && row.dataScope === 'Custom' ? departmentsApi.tree({}) : Promise.resolve(null),
+        permissionNames.load(),
       ])
       detail.value = current
       members.value = list.items

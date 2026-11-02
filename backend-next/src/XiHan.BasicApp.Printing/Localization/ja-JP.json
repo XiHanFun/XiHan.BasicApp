@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "印刷データソース",
   "openapi.tags.print_data_sources.description": "各モジュールが登録した印刷データソースの一覧（フィールド定義とサンプルデータ）。",
   "permissions.printing.print_templates.read.name": "印刷テンプレートの参照",
+  "permissions.printing.print_templates.read.description": "呼び出し側の印刷テンプレートと、テナントに公開されたグローバル印刷テンプレートを参照します。プラットフォームはすべてのグローバル印刷テンプレートを参照できます。",
   "permissions.printing.print_templates.create.name": "印刷テンプレートの作成",
+  "permissions.printing.print_templates.create.description": "呼び出し側に印刷テンプレートを作成します。グローバル印刷テンプレートにはグローバル管理の権限も必要です。",
   "permissions.printing.print_templates.update.name": "印刷テンプレートの変更",
+  "permissions.printing.print_templates.update.description": "呼び出し側の印刷テンプレートのメタデータとデザインを変更します。",
   "permissions.printing.print_templates.status.name": "印刷テンプレートの有効化／無効化",
+  "permissions.printing.print_templates.status.description": "呼び出し側の印刷テンプレートを有効化・無効化します。",
   "permissions.printing.print_templates.delete.name": "印刷テンプレートの削除",
+  "permissions.printing.print_templates.delete.description": "呼び出し側の無効化済みの印刷テンプレートを削除します。",
   "permissions.printing.print_templates.use.name": "印刷テンプレートの使用",
-  "permissions.printing.print_templates.global_manage.name": "グローバル印刷テンプレートの管理"
+  "permissions.printing.print_templates.use.description": "コードで印刷テンプレートを解決してプレビュー・印刷し、データソースのカタログを参照します。",
+  "permissions.printing.print_templates.global_manage.name": "グローバル印刷テンプレートの管理",
+  "permissions.printing.print_templates.global_manage.description": "プラットフォームのグローバル印刷テンプレートを保守します。対応する作成、更新、有効化／無効化、削除の権限も併せて必要です。"
 }

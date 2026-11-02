@@ -1,3 +1,4 @@
 {
-  "permissions.runtime.cloud_events.deliver.name": "CloudEvents zustellen"
+  "permissions.runtime.cloud_events.deliver.name": "CloudEvents zustellen",
+  "permissions.runtime.cloud_events.deliver.description": "Ereignisse an den eingehenden CloudEvents-Endpunkt zustellen; nur an Dienstkonten oder Dienstrollen der Plattform erteilen."
 }

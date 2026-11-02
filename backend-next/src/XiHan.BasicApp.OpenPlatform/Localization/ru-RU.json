@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "Открытая платформа",
   "openapi.groups.openplatform.description": "Подписанные вызовы открытого API, приложения OAuth и согласие на авторизацию.",
   "permissions.openplatform.oauth_apps.read.name": "Просмотр приложений OAuth",
+  "permissions.openplatform.oauth_apps.read.description": "Просмотреть приложения OAuth, созданные платформой и пользователями; секреты клиентов не показываются.",
   "permissions.openplatform.oauth_apps.create.name": "Создание приложений OAuth",
+  "permissions.openplatform.oauth_apps.create.description": "Создать приложения OAuth для единого входа.",
   "permissions.openplatform.oauth_apps.update.name": "Изменение приложений OAuth",
+  "permissions.openplatform.oauth_apps.update.description": "Изменить, включить и отключить приложения OAuth и сбросить секреты их клиентов.",
   "permissions.openplatform.oauth_apps.delete.name": "Удаление приложений OAuth",
+  "permissions.openplatform.oauth_apps.delete.description": "Удалить приложения OAuth; выданные им токены перестают действовать.",
   "jobs.openplatform.oauth_cleanup.title": "Очистка просроченных разрешений OAuth",
   "jobs.openplatform.oauth_cleanup.description": "Удалять коды авторизации, просроченные на сутки, и токены, просроченные на семь дней."
 }

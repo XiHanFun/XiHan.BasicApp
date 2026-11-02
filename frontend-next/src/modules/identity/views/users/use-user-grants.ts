@@ -3,6 +3,7 @@ import type { ResponseOf } from '~/contracts'
 import { computed, ref } from 'vue'
 import { permissions as permissionsApi, userGrants as userGrantsApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { useAppStore } from '~/stores'
 
 export type GrantAction = ResponseOf<'user-grants.list'>['grants'][number]['action']
 type CatalogItem = ResponseOf<'permissions.list'>['items'][number]
@@ -85,6 +86,8 @@ export function useUserGrants(outsideGroup: () => string) {
   const loading = ref(false)
   const error = ref<null | string>(null)
   const catalog = ref<CatalogItem[]>([])
+  /** 目录是按哪种界面语言取的：显示名随语言变，换了语言再取 */
+  let catalogLocale: null | string = null
   const current = ref(new Map<string, GrantAction>())
   const actions = ref(new Map<string, GrantAction>())
   const dirty = ref(false)
@@ -109,9 +112,12 @@ export function useUserGrants(outsideGroup: () => string) {
     actions.value = new Map()
     loading.value = true
     try {
-      const [, list] = await Promise.all([reloadGrants(row.id), catalog.value.length > 0 ? Promise.resolve(null) : permissionsApi.list({})])
-      if (list)
+      const locale = useAppStore().locale
+      const [, list] = await Promise.all([reloadGrants(row.id), catalogLocale === locale ? Promise.resolve(null) : permissionsApi.list({})])
+      if (list) {
         catalog.value = [...list.items]
+        catalogLocale = locale
+      }
     }
     catch (e) {
       error.value = describe(e)

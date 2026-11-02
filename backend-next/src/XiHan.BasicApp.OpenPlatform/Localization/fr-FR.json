@@ -76,9 +76,13 @@
   "openapi.groups.openplatform.name": "Plateforme ouverte",
   "openapi.groups.openplatform.description": "Appels signés à l’API ouverte, applications OAuth et consentement d’autorisation.",
   "permissions.openplatform.oauth_apps.read.name": "Consulter les applications OAuth",
+  "permissions.openplatform.oauth_apps.read.description": "Consulter les applications OAuth créées par la plateforme et par des utilisateurs ; les secrets client ne sont jamais affichés.",
   "permissions.openplatform.oauth_apps.create.name": "Créer des applications OAuth",
+  "permissions.openplatform.oauth_apps.create.description": "Créer des applications OAuth pour l’authentification unique.",
   "permissions.openplatform.oauth_apps.update.name": "Modifier les applications OAuth",
+  "permissions.openplatform.oauth_apps.update.description": "Modifier, activer et désactiver des applications OAuth, et réinitialiser leurs secrets client.",
   "permissions.openplatform.oauth_apps.delete.name": "Supprimer les applications OAuth",
+  "permissions.openplatform.oauth_apps.delete.description": "Supprimer des applications OAuth ; les jetons qui leur ont été émis cessent de fonctionner.",
   "jobs.openplatform.oauth_cleanup.title": "Nettoyer les autorisations OAuth expirées",
   "jobs.openplatform.oauth_cleanup.description": "Supprimer les codes d'autorisation expirés depuis un jour et les jetons expirés depuis sept jours."
 }

@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Источники данных печати",
   "openapi.tags.print_data_sources.description": "Каталог источников данных печати, зарегистрированных модулями: контракты полей и примеры данных.",
   "permissions.printing.print_templates.read.name": "Просмотр шаблонов печати",
+  "permissions.printing.print_templates.read.description": "Просмотреть собственные шаблоны вызывающего и глобальные шаблоны, открытые арендаторам; платформа видит все глобальные шаблоны.",
   "permissions.printing.print_templates.create.name": "Создание шаблонов печати",
+  "permissions.printing.print_templates.create.description": "Создать шаблоны на стороне вызывающего; для глобальных шаблонов нужно и глобальное управление.",
   "permissions.printing.print_templates.update.name": "Изменение шаблонов печати",
+  "permissions.printing.print_templates.update.description": "Изменить метаданные и макет шаблонов на стороне вызывающего.",
   "permissions.printing.print_templates.status.name": "Включение и отключение шаблонов печати",
+  "permissions.printing.print_templates.status.description": "Включить или отключить шаблоны на стороне вызывающего.",
   "permissions.printing.print_templates.delete.name": "Удаление шаблонов печати",
+  "permissions.printing.print_templates.delete.description": "Удалить отключённые шаблоны на стороне вызывающего.",
   "permissions.printing.print_templates.use.name": "Использование шаблонов печати",
-  "permissions.printing.print_templates.global_manage.name": "Управление глобальными шаблонами печати"
+  "permissions.printing.print_templates.use.description": "Найти шаблоны по коду для предпросмотра и печати и прочитать каталог источников данных печати.",
+  "permissions.printing.print_templates.global_manage.name": "Управление глобальными шаблонами печати",
+  "permissions.printing.print_templates.global_manage.description": "Вести глобальные шаблоны платформы вместе с соответствующим разрешением на создание, изменение, включение или отключение либо удаление."
 }

@@ -23,6 +23,10 @@ function record(respond: (call: Call) => Response): Call[] {
   return calls
 }
 
+/** 当前界面语言的权限显示名（权限目录给的） */
+const names = new Map([['identity.users.read', '读取用户']])
+const nameOf = (code: string) => names.get(code) ?? code
+
 function delegation(extra: Record<string, unknown> = {}) {
   return { id: 'd-1', delegatorId: 'u-1', delegatorName: 'Alice (@alice)', delegateeId: 'u-2', delegateeName: 'Bob (@bob)', permission: null, roleId: 'r-1', roleName: 'Approver', effectiveAt: null, expiresAt: '2026-11-01T00:00:00Z', reason: null, status: 'Active', revokedAt: null, createdAt: '2026-10-29T00:00:00Z', ...extra }
 }
@@ -34,20 +38,20 @@ describe('delegationsResource', () => {
         return json(200, { succeeded: [], failed: [{ id: 'd-9', code: 'ACCESS_NOTFOUND_006' }] })
       return json(200, { items: [delegation()], total: 1, page: { index: 1, size: 20 } })
     })
-    const result = await delegationsResource().page!({ page: 1, pageSize: 20, filters: { keyword: ' vac ' }, conditionFilters: [{ field: 'status', operator: QueryOperator.In, values: ['Active', 'Pending'] }] })
+    const result = await delegationsResource(async () => {}).page!({ page: 1, pageSize: 20, filters: { keyword: ' vac ' }, conditionFilters: [{ field: 'status', operator: QueryOperator.In, values: ['Active', 'Pending'] }] })
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/delegations:list' })
     expect(calls[0]!.body).toMatchObject({ keyword: 'vac', filters: [{ field: 'status', operator: 'in', value: 'Active,Pending' }] })
     expect(result.items.map(r => r.id)).toEqual(['d-1'])
-    await expect(delegationsResource().remove!('d-9')).rejects.toThrow('ACCESS_NOTFOUND_006')
+    await expect(delegationsResource(async () => {}).remove!('d-9')).rejects.toThrow('ACCESS_NOTFOUND_006')
   })
 })
 
 describe('委托的显示与请求', () => {
-  it('委托对象取角色名或权限显示名；只有待生效与生效中的能撤销', () => {
-    expect(delegationTarget(delegation())).toBe('Approver')
-    expect(delegationTarget(delegation({ permission: 'identity.users.read', roleId: null, roleName: null }))).toBe('Read users')
-    expect(delegationTarget(delegation({ permission: 'custom.thing', roleId: null, roleName: null }))).toBe('custom.thing')
-    expect(delegationName(delegation() as never)).toBe('Alice (@alice) → Bob (@bob) · Approver')
+  it('委托对象取角色名或权限在当前界面语言的显示名（目录里没有的原样显示权限码）；只有待生效与生效中的能撤销', () => {
+    expect(delegationTarget(delegation(), nameOf)).toBe('Approver')
+    expect(delegationTarget(delegation({ permission: 'identity.users.read', roleId: null, roleName: null }), nameOf)).toBe('读取用户')
+    expect(delegationTarget(delegation({ permission: 'custom.thing', roleId: null, roleName: null }), nameOf)).toBe('custom.thing')
+    expect(delegationName(delegation() as never, nameOf)).toBe('Alice (@alice) → Bob (@bob) · Approver')
     expect(canRevoke({ status: 'Pending' })).toBe(true)
     expect(canRevoke({ status: 'Active' })).toBe(true)
     expect(canRevoke({ status: 'Expired' })).toBe(false)

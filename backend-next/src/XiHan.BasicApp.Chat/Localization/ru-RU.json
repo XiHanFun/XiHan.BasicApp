@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "Аудит чата",
   "openapi.tags.chat_audit.description": "Сообщения, сведения о сообщениях и участники бесед на стороне вызывающего без членства в беседах.",
   "permissions.chat.chat_conversations.read.name": "Использование бесед чата",
+  "permissions.chat.chat_conversations.read.description": "Просматривать и открывать свои беседы, видеть участников и позиции прочтения, выходить, закреплять, отключать уведомления и отмечать прочитанными.",
   "permissions.chat.chat_conversations.manage.name": "Управление групповыми чатами",
+  "permissions.chat.chat_conversations.manage.description": "Создавать групповые чаты и управлять ими как владелец или администратор: участники, сведения, объявление, владелец, роли и запрет писать.",
   "permissions.chat.chat_messages.read.name": "Просмотр сообщений чата",
+  "permissions.chat.chat_messages.read.description": "Читать историю, поиск и закреплённые сообщения своих бесед и выдавать адреса доступа к их вложениям.",
   "permissions.chat.chat_messages.send.name": "Отправка сообщений чата",
-  "permissions.chat.chat_audit.read.name": "Аудит сообщений чата"
+  "permissions.chat.chat_messages.send.description": "Отправлять, отзывать, редактировать, закреплять и пересылать сообщения, реагировать на них и загружать вложения в своих беседах.",
+  "permissions.chat.chat_audit.read.name": "Аудит сообщений чата",
+  "permissions.chat.chat_audit.read.description": "Искать все сообщения своей стороны и просматривать подробности сообщений и участников бесед, не будучи участником."
 }

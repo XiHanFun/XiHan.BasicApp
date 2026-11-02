@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
+import { useAppStore, useAuthStore } from '~/stores'
 import { findCoveredDepartments, isDataScopeDirty, syncPickedDepartments } from './data-scope'
 import { diffGrants, mergeMemberCandidates, rolePermissionEntries, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
@@ -29,6 +31,15 @@ function department(id: string, name: string, children: unknown[] = []) {
 }
 
 interface Call { method: string, url: string, body: unknown }
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+})
+
+/** 当前主体持有的权限码（只用于前端可见性判定） */
+function grant(permissions: string[]) {
+  useAuthStore().permissions = { permissions, roles: [], menus: [], pages: [], isPlatform: true } as never
+}
 
 function record(respond: (call: Call) => Response): Call[] {
   const calls: Call[] = []
@@ -119,7 +130,7 @@ describe('useRoleEditor', () => {
 })
 
 describe('useRolePermissionEditor', () => {
-  it('目录按「包.资源」分段，目录外的已授权限补进条目；保存按差量授予 / 撤销，逐项失败带权限码返回，目录只取一次', async () => {
+  it('目录按「包.资源」分段，目录外的已授权限补进条目；保存按差量授予 / 撤销，逐项失败带权限码返回，同一界面语言目录只取一次', async () => {
     let granted = ['identity.users.read', 'tenancy.tenants.read']
     const calls = record((call) => {
       if (call.url === '/api/permissions')
@@ -147,7 +158,8 @@ describe('useRolePermissionEditor', () => {
       ['access.roles.read', 'access.roles'],
       ['tenancy.tenants.read', 'tenancy.tenants'],
     ])
-    expect(editor.items.value[3]!.permissionName).toBe('Read tenants')
+    // 目录外的没有当前界面语言的显示名：原样显示权限码
+    expect(editor.items.value[3]!.permissionName).toBe('tenancy.tenants.read')
     // 继承来的授予与拒绝按权限码汇总来源上级：穿梭框据此标「继承」与「上级拒绝」
     expect(editor.inherited.value.get('identity.users.read')).toEqual({ grantedBy: ['Base', 'Root'], deniedBy: [] })
     expect(editor.inherited.value.get('access.roles.read')).toEqual({ grantedBy: [], deniedBy: ['Base'] })
@@ -164,6 +176,10 @@ describe('useRolePermissionEditor', () => {
 
     await editor.start(role('r-1', 'auditor') as never)
     expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(1)
+    // 换了界面语言：显示名跟着变，目录再取一次
+    useAppStore().locale = useAppStore().locale === 'en-US' ? 'zh-CN' : 'en-US'
+    await editor.start(role('r-1', 'auditor') as never)
+    expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(2)
   })
 
   it('差量只比集合：顺序不同不算改动', () => {
@@ -265,8 +281,11 @@ describe('useRoleDataScopeEditor', () => {
 })
 
 describe('useRoleDetail', () => {
-  it('详情带成员与上下级；已授与继承来的权限按权限定义表取显示名；自定义部门按部门树取名称', async () => {
+  it('详情带成员与上下级；已授与继承来的权限取当前界面语言的显示名（目录里没有的原样显示权限码）；自定义部门按部门树取名称', async () => {
+    grant(['access.permissions.read'])
     record((call) => {
+      if (call.url === '/api/permissions')
+        return json(200, { items: [permission('identity.users.read', '读取用户'), permission('identity.users.update', '修改用户')] })
       if (call.url === '/api/roles/r-1')
         return json(200, { role: role('r-1', 'auditor', { dataScope: 'Custom' }), permissions: ['identity.users.read', 'custom.unknown'], rules: [], memberCount: 1, customDepartments: [{ departmentId: 'd-2', includeChildren: false }] })
       if (call.url === '/api/roles/r-1:members')
@@ -278,11 +297,11 @@ describe('useRoleDetail', () => {
     const detail = useRoleDetail()
     await detail.start(role('r-1', 'auditor', { dataScope: 'Custom' }) as never, true)
     expect(detail.open.value).toBe(true)
-    expect(detail.permissions.value.map(p => p.displayName)).toEqual(['Read users', 'custom.unknown'])
+    expect(detail.permissions.value.map(p => p.displayName)).toEqual(['读取用户', 'custom.unknown'])
     expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])
     expect(detail.ancestors.value.map(a => [a.name, a.depth, a.isEffective])).toEqual([['Base', 1, true], ['Root', 2, false]])
     expect(detail.descendants.value.map(d => d.name)).toEqual(['Junior'])
-    expect(detail.inherited.value.map(i => [i.displayName, i.sourceRoleName])).toEqual([['Update users', 'Base']])
+    expect(detail.inherited.value.map(i => [i.displayName, i.sourceRoleName])).toEqual([['修改用户', 'Base']])
     expect(detail.departmentName('d-2')).toBe('Sales')
     expect(detail.departmentName('d-9')).toBe('d-9')
   })
@@ -293,11 +312,11 @@ describe('rolePermissionEntries', () => {
     const entries = rolePermissionEntries(['identity.users.read', 'identity.users.update'], [
       { permission: 'identity.users.update', action: 'Grant', effectiveAt: null, expiresAt: '2026-11-01T00:00:00Z', reason: 'on call' },
       { permission: 'identity.users.delete', action: 'Deny', effectiveAt: null, expiresAt: null, reason: 'freeze' },
-    ])
-    expect(entries.map(e => [e.code, e.action, e.expiresAt, e.reason])).toEqual([
-      ['identity.users.read', 'Grant', null, null],
-      ['identity.users.update', 'Grant', '2026-11-01T00:00:00Z', 'on call'],
-      ['identity.users.delete', 'Deny', null, 'freeze'],
+    ], code => code.toUpperCase())
+    expect(entries.map(e => [e.code, e.displayName, e.action, e.expiresAt, e.reason])).toEqual([
+      ['identity.users.read', 'IDENTITY.USERS.READ', 'Grant', null, null],
+      ['identity.users.update', 'IDENTITY.USERS.UPDATE', 'Grant', '2026-11-01T00:00:00Z', 'on call'],
+      ['identity.users.delete', 'IDENTITY.USERS.DELETE', 'Deny', null, 'freeze'],
     ])
   })
 })

@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "Fuentes de datos de impresión",
   "openapi.tags.print_data_sources.description": "El catálogo de fuentes de datos de impresión registradas por los módulos: contratos de campos y datos de ejemplo.",
   "permissions.printing.print_templates.read.name": "Ver plantillas de impresión",
+  "permissions.printing.print_templates.read.description": "Ver las plantillas propias del llamante y las plantillas globales abiertas a los inquilinos; la plataforma ve todas las plantillas globales.",
   "permissions.printing.print_templates.create.name": "Crear plantillas de impresión",
+  "permissions.printing.print_templates.create.description": "Crear plantillas en el lado del llamante; las plantillas globales requieren además la gestión global.",
   "permissions.printing.print_templates.update.name": "Modificar plantillas de impresión",
+  "permissions.printing.print_templates.update.description": "Modificar los metadatos y el diseño de las plantillas del lado del llamante.",
   "permissions.printing.print_templates.status.name": "Habilitar o deshabilitar plantillas de impresión",
+  "permissions.printing.print_templates.status.description": "Habilitar o deshabilitar plantillas del lado del llamante.",
   "permissions.printing.print_templates.delete.name": "Eliminar plantillas de impresión",
+  "permissions.printing.print_templates.delete.description": "Eliminar plantillas deshabilitadas del lado del llamante.",
   "permissions.printing.print_templates.use.name": "Usar plantillas de impresión",
-  "permissions.printing.print_templates.global_manage.name": "Gestionar plantillas de impresión globales"
+  "permissions.printing.print_templates.use.description": "Resolver plantillas por código para previsualizarlas e imprimirlas, y leer el catálogo de fuentes de datos.",
+  "permissions.printing.print_templates.global_manage.name": "Gestionar plantillas de impresión globales",
+  "permissions.printing.print_templates.global_manage.description": "Mantener las plantillas globales de la plataforma, junto con el permiso correspondiente de crear, modificar, cambiar el estado o eliminar."
 }

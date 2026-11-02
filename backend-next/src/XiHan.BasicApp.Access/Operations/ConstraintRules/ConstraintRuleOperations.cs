@@ -60,7 +60,7 @@ public sealed class GetConstraintRule(ConstraintRuleService service, ConstraintR
             return Error.NotFound(AccessErrors.ConstraintRuleNotFound, AccessMessages.ConstraintRuleNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        return await projection.ToAsync(rule, context.CancellationToken).ConfigureAwait(false);
+        return await projection.ToAsync(rule, context).ConfigureAwait(false);
     }
 }
 
@@ -91,7 +91,7 @@ public sealed class CreateConstraintRule(ConstraintRuleService service, Constrai
             return created.Error!;
         }
 
-        return await projection.ToAsync(rule, context.CancellationToken).ConfigureAwait(false);
+        return await projection.ToAsync(rule, context).ConfigureAwait(false);
     }
 }
 
@@ -127,7 +127,7 @@ public sealed class UpdateConstraintRule(ConstraintRuleService service, Constrai
             return updated.Error!;
         }
 
-        return await projection.ToAsync(rule, context.CancellationToken).ConfigureAwait(false);
+        return await projection.ToAsync(rule, context).ConfigureAwait(false);
     }
 }
 
@@ -163,7 +163,7 @@ public sealed class SetConstraintRuleStatus(ConstraintRuleService service, Const
             return updated.Error!;
         }
 
-        return await projection.ToAsync(rule, context.CancellationToken).ConfigureAwait(false);
+        return await projection.ToAsync(rule, context).ConfigureAwait(false);
     }
 }
 

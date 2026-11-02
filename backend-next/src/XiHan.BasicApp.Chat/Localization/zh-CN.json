@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "聊天审计",
   "openapi.tags.chat_audit.description": "不要求是成员地查看当前一侧的消息、消息详情与会话成员。",
   "permissions.chat.chat_conversations.read.name": "使用聊天会话",
+  "permissions.chat.chat_conversations.read.description": "列出并打开调用方的会话，查看成员与已读位置，退出、置顶、免打扰并标记已读。",
   "permissions.chat.chat_conversations.manage.name": "管理群聊",
+  "permissions.chat.chat_conversations.manage.description": "新建群聊，并以群主或管理员身份管理：成员、群资料、群公告、群主、角色与禁言。",
   "permissions.chat.chat_messages.read.name": "查看聊天消息",
+  "permissions.chat.chat_messages.read.description": "查看调用方所在会话的历史消息、搜索与置顶消息，并签发其中附件的访问地址。",
   "permissions.chat.chat_messages.send.name": "发送聊天消息",
-  "permissions.chat.chat_audit.read.name": "聊天审计"
+  "permissions.chat.chat_messages.send.description": "在调用方所在的会话里发送、撤回、编辑、回应、置顶、转发消息与上传附件。",
+  "permissions.chat.chat_audit.read.name": "聊天审计",
+  "permissions.chat.chat_audit.read.description": "查看当前一侧的全部消息，不必是会话成员也能看消息详情与会话成员。"
 }

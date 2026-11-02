@@ -1,7 +1,8 @@
+import type { PermissionNameOf } from '../permissions/permission-names'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { RequestOf, ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
-import { delegations as delegationsApi, permissionDefinitions, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { delegations as delegationsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type DelegationRow = ResponseOf<'delegations.list'>['items'][number]
@@ -36,26 +37,23 @@ function emptyForm(): DelegationForm {
 /** 候选一次取的上限（后端页大小上限） */
 const CANDIDATE_LIMIT = 500
 
-/** 权限定义表（生成物）：委托对象的显示名按它取，不在表里的原样显示权限码 */
-const definitions: Readonly<Record<string, { displayName: string } | undefined>> = permissionDefinitions
-
 /** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
 function failedCodes(result: { failed: { code: string }[] }): void {
   if (result.failed.length > 0)
     throw new Error(result.failed.map(f => f.code).join('; '))
 }
 
-/** 委托对象的显示名：角色名，或权限的显示名 */
-export function delegationTarget(row: Pick<DelegationRow, 'permission' | 'roleId' | 'roleName'>): string {
+/** 委托对象的显示名：角色名，或权限在当前界面语言的显示名 */
+export function delegationTarget(row: Pick<DelegationRow, 'permission' | 'roleId' | 'roleName'>, nameOf: PermissionNameOf): string {
   if (row.permission)
-    return definitions[row.permission]?.displayName ?? row.permission
+    return nameOf(row.permission)
   return row.roleName ?? row.roleId ?? '-'
 }
 
 /** 确认框里的委托名：委托人 → 接收人 · 委托对象 */
-export function delegationName(row: DelegationRow): string {
+export function delegationName(row: DelegationRow, nameOf: PermissionNameOf): string {
   const parties = [row.delegatorName ?? row.delegatorId, row.delegateeName ?? row.delegateeId].join(' → ')
-  return `${parties} · ${delegationTarget(row)}`
+  return `${parties} · ${delegationTarget(row, nameOf)}`
 }
 
 /** 只有待生效与生效中的能撤销 */
@@ -79,13 +77,14 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
 /**
  * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）与删除。
  * 搜索按后端白名单：关键字匹配权限码与原因，状态多选（合成 in）；排序只放生效、到期与创建时间。
+ * 委托对象里的权限按当前界面语言显示：权限目录随列表一起取（`loadNames`，同一语言只取一次）。
  */
-export function delegationsResource(): SchemaResource<DelegationRow> {
+export function delegationsResource(loadNames: () => Promise<void>): SchemaResource<DelegationRow> {
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await delegationsApi.list(toPageRequest(params, { multiples: ['status'] })),
-      params,
-    ),
+    page: async (params: SchemaQueryParams) => {
+      const [list] = await Promise.all([delegationsApi.list(toPageRequest(params, { multiples: ['status'] })), loadNames()])
+      return toSchemaPageResult(list, params)
+    },
     remove: async id => failedCodes(await delegationsApi.delete({ ids: [String(id)] })),
   }
 }

@@ -3,7 +3,9 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Policies;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Operations.ConstraintRules;
 
@@ -17,18 +19,20 @@ public sealed class ConstraintRuleProjection(ConstraintRuleService service, Time
     /// <summary>
     /// 投影一条。
     /// </summary>
-    public async Task<ConstraintRuleResponse> ToAsync(SysConstraintRule rule, CancellationToken cancellationToken)
+    public async Task<ConstraintRuleResponse> ToAsync(SysConstraintRule rule, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(rule);
-        return (await ToAsync([rule], cancellationToken).ConfigureAwait(false))[0];
+        return (await ToAsync([rule], context).ConfigureAwait(false))[0];
     }
 
     /// <summary>
     /// 投影一批（同一侧）。
     /// </summary>
-    public async Task<IReadOnlyList<ConstraintRuleResponse>> ToAsync(IReadOnlyList<SysConstraintRule> rules, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ConstraintRuleResponse>> ToAsync(IReadOnlyList<SysConstraintRule> rules, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         if (rules.Count == 0)
         {
             return [];
@@ -36,7 +40,7 @@ public sealed class ConstraintRuleProjection(ConstraintRuleService service, Time
 
         var owner = rules[0].OwnerTenantId;
         var items = await service.ItemsOfAsync(owner, [.. rules.Select(static r => r.Id)], cancellationToken).ConfigureAwait(false);
-        var names = await service.TargetNamesAsync(owner, rules.SelectMany(r => items[r.Id].Select(i => (r.TargetType, i.TargetId))), cancellationToken).ConfigureAwait(false);
+        var names = await service.TargetNamesAsync(owner, rules.SelectMany(r => items[r.Id].Select(i => (r.TargetType, i.TargetId))), p => PermissionTexts.NameOf(p, context), cancellationToken).ConfigureAwait(false);
         var now = clock.GetUtcNow();
         return [.. rules.Select(r => new ConstraintRuleResponse(
             r.Id, r.Code, r.Name, r.Type, r.TargetType, r.MaxAllowed,

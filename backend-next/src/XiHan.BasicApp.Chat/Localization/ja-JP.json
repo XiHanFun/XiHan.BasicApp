@@ -132,8 +132,13 @@
   "openapi.tags.chat_audit.name": "チャット監査",
   "openapi.tags.chat_audit.description": "メンバーでなくても、呼び出し側のメッセージ、メッセージ詳細、会話メンバーを参照します。",
   "permissions.chat.chat_conversations.read.name": "チャット会話の利用",
+  "permissions.chat.chat_conversations.read.description": "呼び出し元の会話を一覧表示して開き、メンバーと既読位置を参照し、退出、ピン留め、ミュート、既読化を行います。",
   "permissions.chat.chat_conversations.manage.name": "グループチャットの管理",
+  "permissions.chat.chat_conversations.manage.description": "グループチャットを作成し、オーナーまたは管理者として管理します：メンバー、情報、お知らせ、オーナー、ロール、発言禁止。",
   "permissions.chat.chat_messages.read.name": "チャットメッセージの参照",
+  "permissions.chat.chat_messages.read.description": "呼び出し元が参加している会話の履歴、検索結果、ピン留めメッセージを参照し、添付ファイルのアクセス URL を発行します。",
   "permissions.chat.chat_messages.send.name": "チャットメッセージの送信",
-  "permissions.chat.chat_audit.read.name": "チャット監査"
+  "permissions.chat.chat_messages.send.description": "呼び出し元が参加している会話で、メッセージの送信、取り消し、編集、リアクション、ピン留め、転送と添付ファイルのアップロードを行います。",
+  "permissions.chat.chat_audit.read.name": "チャット監査",
+  "permissions.chat.chat_audit.read.description": "現在の側のすべてのメッセージを検索し、会話のメンバーでなくてもメッセージの詳細と会話のメンバーを参照します。"
 }

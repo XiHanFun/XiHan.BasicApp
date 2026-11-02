@@ -1,7 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Operations.Permissions;
 
@@ -25,11 +27,11 @@ public sealed record PermissionCatalogResponse(IReadOnlyList<PermissionResponse>
 public sealed record PermissionResponse(string Code, string DisplayName, string? Description, string Package, string Resource, string Action, PermissionScope Scope, bool Audited)
 {
     /// <summary>
-    /// 由描述投影。
+    /// 由描述投影，显示名与说明取调用方区域的文案。
     /// </summary>
-    public static PermissionResponse From(PermissionDescriptor descriptor)
+    public static PermissionResponse From(PermissionDescriptor descriptor, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return new PermissionResponse(descriptor.Code, descriptor.DisplayName, descriptor.Description, descriptor.Package, descriptor.Resource, descriptor.Action, descriptor.Scope, descriptor.Audited);
+        return new PermissionResponse(descriptor.Code, PermissionTexts.NameOf(descriptor, context), PermissionTexts.DescriptionOf(descriptor, context), descriptor.Package, descriptor.Resource, descriptor.Action, descriptor.Scope, descriptor.Audited);
     }
 }

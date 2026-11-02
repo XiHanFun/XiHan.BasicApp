@@ -1,3 +1,4 @@
 {
-  "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents"
+  "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents",
+  "permissions.runtime.cloud_events.deliver.description": "Entregar eventos ao endpoint de entrada de CloudEvents; conceda-a apenas a contas de serviço da plataforma ou a papéis de serviço."
 }

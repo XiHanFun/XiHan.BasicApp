@@ -37,10 +37,17 @@
   "openapi.tags.print_data_sources.name": "列印資料來源",
   "openapi.tags.print_data_sources.description": "各模組登記的列印資料來源目錄：欄位契約與範例資料。",
   "permissions.printing.print_templates.read.name": "檢視列印範本",
+  "permissions.printing.print_templates.read.description": "檢視目前一側自己的範本與向租戶開放的全域範本；平台可看到所有全域範本。",
   "permissions.printing.print_templates.create.name": "新增列印範本",
+  "permissions.printing.print_templates.create.description": "在目前一側建立範本；全域範本另需全域管理權限。",
   "permissions.printing.print_templates.update.name": "修改列印範本",
+  "permissions.printing.print_templates.update.description": "修改目前一側範本的中繼資料與設計。",
   "permissions.printing.print_templates.status.name": "啟停列印範本",
+  "permissions.printing.print_templates.status.description": "啟用或停用目前一側的範本。",
   "permissions.printing.print_templates.delete.name": "刪除列印範本",
+  "permissions.printing.print_templates.delete.description": "刪除目前一側已停用的範本。",
   "permissions.printing.print_templates.use.name": "使用列印範本",
-  "permissions.printing.print_templates.global_manage.name": "管理全域列印範本"
+  "permissions.printing.print_templates.use.description": "依編碼解析範本以預覽與列印，並讀取資料來源目錄。",
+  "permissions.printing.print_templates.global_manage.name": "管理全域列印範本",
+  "permissions.printing.print_templates.global_manage.description": "維護平台的全域範本，須同時持有對應的新增、修改、啟停或刪除權限。"
 }
