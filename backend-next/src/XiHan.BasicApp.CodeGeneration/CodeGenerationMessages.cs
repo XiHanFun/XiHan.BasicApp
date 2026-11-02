@@ -213,6 +213,171 @@ public static class CodeGenerationMessages
     /// </summary>
     public const string SortUnsupported = "codegeneration.query.sort_unsupported";
 
+    /// <summary>
+    /// 操作 <c>codegen-tables.preview</c> 的说明。
+    /// </summary>
+    public const string PreviewCodegenTableDescription = "codegen_tables.preview.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.list</c> 的说明。
+    /// </summary>
+    public const string ListCodegenTemplatesDescription = "codegen_templates.list.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.get</c> 的说明。
+    /// </summary>
+    public const string GetCodegenTemplateDescription = "codegen_templates.get.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.validate</c> 的说明。
+    /// </summary>
+    public const string ValidateCodegenTemplateDescription = "codegen_templates.validate.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.create</c> 的说明。
+    /// </summary>
+    public const string CreateCodegenTemplateDescription = "codegen_templates.create.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.update</c> 的说明。
+    /// </summary>
+    public const string UpdateCodegenTemplateDescription = "codegen_templates.update.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.set-status</c> 的说明。
+    /// </summary>
+    public const string SetCodegenTemplateStatusDescription = "codegen_templates.set_status.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-templates.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteCodegenTemplatesDescription = "codegen_templates.delete.description";
+
+    /// <summary>
+    /// 模板不存在（参数 <c>id</c>）。
+    /// </summary>
+    public const string TemplateNotFound = "codegeneration.template.not_found";
+
+    /// <summary>
+    /// 模板编码已被占用（参数 <c>code</c>）。
+    /// </summary>
+    public const string TemplateCodeTaken = "codegeneration.template.code_taken";
+
+    /// <summary>
+    /// 内置模板不能修改或删除（参数 <c>code</c>）。
+    /// </summary>
+    public const string TemplateBuiltIn = "codegeneration.template.built_in";
+
+    /// <summary>
+    /// 表已有实体、表配置的类名与它不同（参数 <c>table</c>、<c>entity</c>、<c>expected</c>）。
+    /// </summary>
+    public const string GenerateClassMismatch = "codegeneration.generate.class_mismatch";
+
+    /// <summary>
+    /// 包名不合规（参数 <c>module</c>）。
+    /// </summary>
+    public const string GenerateModuleInvalid = "codegeneration.generate.module_invalid";
+
+    /// <summary>
+    /// 包的命名空间不合规（参数 <c>namespace</c>）。
+    /// </summary>
+    public const string GenerateNamespaceInvalid = "codegeneration.generate.namespace_invalid";
+
+    /// <summary>
+    /// 系统字典列没有字典码（参数 <c>column</c>）。
+    /// </summary>
+    public const string GenerateDictCodeMissing = "codegeneration.generate.dict_code_missing";
+
+    /// <summary>
+    /// 系统字典列不是文本（参数 <c>column</c>、<c>type</c>）。
+    /// </summary>
+    public const string GenerateDictNotString = "codegeneration.generate.dict_not_string";
+
+    /// <summary>
+    /// 关联列不是 Guid（参数 <c>column</c>、<c>type</c>）。
+    /// </summary>
+    public const string GenerateRelationNotGuid = "codegeneration.generate.relation_not_guid";
+
+    /// <summary>
+    /// 关联列没选关联的表或那张表配置不存在（参数 <c>column</c>）。
+    /// </summary>
+    public const string GenerateRelationTargetInvalid = "codegeneration.generate.relation_target_invalid";
+
+    /// <summary>
+    /// 关联树的目标不是配好父级列的树表（参数 <c>column</c>、<c>target</c>）。
+    /// </summary>
+    public const string GenerateRelationTreeInvalid = "codegeneration.generate.relation_tree_invalid";
+
+    /// <summary>
+    /// 关联的显示列没选、不在目标表或不是文本（参数 <c>column</c>、<c>label</c>）。
+    /// </summary>
+    public const string GenerateRelationLabelInvalid = "codegeneration.generate.relation_label_invalid";
+
+    /// <summary>
+    /// 布尔或二进制列勾了唯一（参数 <c>column</c>、<c>type</c>）。
+    /// </summary>
+    public const string GenerateUniqueUnsupported = "codegeneration.generate.unique_unsupported";
+
+    /// <summary>
+    /// 勾了状态切换却没有启停枚举的列（参数 <c>table</c>）。
+    /// </summary>
+    public const string GenerateStatusMissing = "codegeneration.generate.status_missing";
+
+    /// <summary>
+    /// 有多列启停枚举、又没有名为 Status 的（参数 <c>columns</c>）。
+    /// </summary>
+    public const string GenerateStatusAmbiguous = "codegeneration.generate.status_ambiguous";
+
+    /// <summary>
+    /// 状态列没进列表（参数 <c>column</c>）。
+    /// </summary>
+    public const string GenerateStatusNotListed = "codegeneration.generate.status_not_listed";
+
+    /// <summary>
+    /// 树表的父级列没配、不在列配置或不是 Guid（参数 <c>table</c>、<c>column</c>）。
+    /// </summary>
+    public const string GenerateTreeParentInvalid = "codegeneration.generate.tree_parent_invalid";
+
+    /// <summary>
+    /// 树表的名称列没配、不在列配置或没进列表（参数 <c>table</c>、<c>column</c>）。
+    /// </summary>
+    public const string GenerateTreeNameInvalid = "codegeneration.generate.tree_name_invalid";
+
+    /// <summary>
+    /// 主从表的主表或外键列没配好（参数 <c>table</c>）。
+    /// </summary>
+    public const string GenerateMasterInvalid = "codegeneration.generate.master_invalid";
+
+    /// <summary>
+    /// 没有可用的模板。
+    /// </summary>
+    public const string GenerateNoTemplates = "codegeneration.generate.no_templates";
+
+    /// <summary>
+    /// 模板渲染失败（参数 <c>template</c>、<c>reason</c>）。
+    /// </summary>
+    public const string GenerateRenderFailed = "codegeneration.generate.render_failed";
+
+    /// <summary>
+    /// 模板产出的路径越界（参数 <c>template</c>、<c>path</c>）。
+    /// </summary>
+    public const string GeneratePathInvalid = "codegeneration.generate.path_invalid";
+
+    /// <summary>
+    /// 常量选项列没有选项（参数 <c>column</c>）。
+    /// </summary>
+    public const string ConstOptionsMissing = "codegeneration.generate.const_options_missing";
+
+    /// <summary>
+    /// 常量选项的形状不对（参数 <c>column</c>、<c>value</c>）。
+    /// </summary>
+    public const string ConstOptionsInvalid = "codegeneration.generate.const_options_invalid";
+
+    /// <summary>
+    /// 常量选项的值与列的类型不符（参数 <c>column</c>、<c>type</c>、<c>valueType</c>）。
+    /// </summary>
+    public const string ConstOptionsTypeMismatch = "codegeneration.generate.const_options_type_mismatch";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(CodeGenerationMessages)));
 
     /// <summary>

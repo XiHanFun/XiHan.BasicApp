@@ -1,0 +1,27 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Text.Json.Serialization;
+using {{ Namespace }}.Operations.{{ ResourcePascal }};
+{{~ if CanDelete ~}}
+using XiHan.BasicApp.Contracts.Batch;
+{{~ end ~}}
+using XiHan.BasicApp.Contracts.Paging;
+
+namespace {{ Namespace }};
+
+/// <summary>
+/// {{ ModuleName }} 包的 JSON 序列化上下文（源生成）。
+/// </summary>
+/// <remarks>
+/// 加新的资源时把它的请求与响应类型补进来（见生成产物里的 <c>_registration</c>）。
+/// </remarks>
+[JsonSourceGenerationOptions(
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
+    NumberHandling = JsonNumberHandling.AllowReadingFromString,
+    UseStringEnumConverter = true)]
+{{~ for type in JsonTypes ~}}
+[JsonSerializable(typeof({{ type }}))]
+{{~ end ~}}
+public sealed partial class {{ ModuleName }}JsonContext : JsonSerializerContext;

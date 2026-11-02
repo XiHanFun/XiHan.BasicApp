@@ -1,0 +1,80 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using Microsoft.Extensions.DependencyInjection;
+{{~ if CanPrint ~}}
+using {{ Namespace }}.Operations.{{ ResourcePascal }};
+{{~ end ~}}
+using {{ Namespace }}.Queries;
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Pages;
+{{~ if CanPrint ~}}
+using XiHan.BasicApp.Contracts.Printing;
+{{~ end ~}}
+using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Runtime;
+using XiHan.Framework.Kernel;
+using XiHan.Framework.Kernel.Hosting;
+using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Persistence.Abstractions;
+using XiHan.Framework.Primitives;
+using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Security.Abstractions;
+
+namespace {{ Namespace }};
+
+/// <summary>
+/// {{ ModuleName }} 包（Tier 3）。
+/// </summary>
+/// <remarks>
+/// 由代码生成建出：业务数据是租户库实体，只在租户侧管理（权限码全在租户侧，平台主体的菜单与操作里都没有）。
+/// 加新的资源时在这里登记它的查询与打印数据源（见生成产物里的 <c>_registration</c>）。
+/// </remarks>
+public sealed class {{ ModuleName }}Feature : IFeature
+{
+    /// <inheritdoc />
+    public Manifest Manifest { get; } = new()
+    {
+        Id = AppInfo.ManifestIdPrefix + "{{ ModuleCode }}",
+        Package = "{{ Namespace }}",
+        Version = AppInfo.Version,
+        Primitives = 1,
+        Stability = Stability.Preview,
+        Kind = ManifestKind.Capability,
+        Provides = [new CapabilityDeclaration({{ ModuleName }}Capabilities.{{ ModuleName }}, {{ ModuleName }}Capabilities.Version)],
+        Requires =
+        [
+            new CapabilityRequirement(KernelCapabilities.Hosting, KernelCapabilities.Version),
+            new CapabilityRequirement(PersistenceCapabilities.Relational, PersistenceCapabilities.Version),
+            new CapabilityRequirement(SecurityCapabilities.Authorization, SecurityCapabilities.Version),
+            new CapabilityRequirement(MultiTenancyCapabilities.Context, MultiTenancyCapabilities.Version),
+            new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
+        ],
+        Contributes = new Contributions
+        {
+            Permissions = {{ ModuleName }}Permissions.All.Select(static p => p.Code).ToList(),
+        },
+        Entry = typeof({{ ModuleName }}Feature).FullName,
+    };
+
+    /// <inheritdoc />
+    public void Configure(FeatureContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        context.Services.AddMessageCatalog({{ ModuleName }}Messages.Catalog);
+        context.Services.AddGeneratedRepositories();
+        context.Services.AddScoped<{{ ClassName }}Queries>();
+{{~ if CanPrint ~}}
+        context.Services.AddPrintDataSource({{ ClassName }}PrintDataSource.Definition);
+{{~ end ~}}
+        context.Services.AddPermissionCatalog("{{ ModuleCode }}", {{ ModuleName }}Permissions.All);
+        context.Services.AddPageCatalog("{{ ModuleCode }}", {{ ModuleName }}Pages.All);
+        foreach (var permission in {{ ModuleName }}Permissions.All)
+        {
+            context.AddPermission(permission.ToDefinition());
+        }
+
+        context.AddGeneratedOperations();
+    }
+}

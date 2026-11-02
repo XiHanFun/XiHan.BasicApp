@@ -1771,6 +1771,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/codegen-tables/{id}:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview generated code
+         * @description Render the templates for a table configuration and return every file without packaging or recording history; also returns the localization files of a new package and the registration notes.
+         *
+         *     Requires permission codegeneration.codegen-tables.read (Read code generation tables).
+         */
+        get: operations["codegen-tables.preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/codegen-tables/{id}:set-status": {
         parameters: {
             query?: never;
@@ -1897,6 +1919,128 @@ export interface paths {
         get: operations["codegen-tables.options"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a code generation template
+         * @description Create a custom template; the code must be unique and cannot be changed later.
+         *
+         *     Requires permission codegeneration.codegen-templates.create (Create code generation templates).
+         */
+        post: operations["codegen-templates.create"];
+        /**
+         * Delete code generation templates
+         * @description Delete custom templates in batch; built-in templates are rejected item by item.
+         *
+         *     Requires permission codegeneration.codegen-templates.delete (Delete code generation templates).
+         */
+        delete: operations["codegen-templates.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a code generation template
+         * @description Get a template with its body and path expressions.
+         *
+         *     Requires permission codegeneration.codegen-templates.read (Read code generation templates).
+         */
+        get: operations["codegen-templates.get"];
+        /**
+         * Update a code generation template
+         * @description Update a custom template; built-in templates follow the application version and cannot be edited.
+         *
+         *     Requires permission codegeneration.codegen-templates.update (Update code generation templates).
+         */
+        put: operations["codegen-templates.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-templates/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable a code generation template
+         * @description Enable or disable a template, built-in ones included; disabled templates are skipped when generating.
+         *
+         *     Requires permission codegeneration.codegen-templates.update (Update code generation templates).
+         */
+        post: operations["codegen-templates.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-templates:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List code generation templates
+         * @description Page through the templates without their bodies; filter by group, template type, write mode, status and built-in flag, search by code, name and description.
+         *
+         *     Requires permission codegeneration.codegen-templates.read (Read code generation templates).
+         */
+        post: operations["codegen-templates.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-templates:validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check template syntax
+         * @description Parse a template body without rendering it and return the syntax errors with line and column.
+         *
+         *     Requires permission codegeneration.codegen-templates.read (Read code generation templates).
+         */
+        post: operations["codegen-templates.validate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9516,6 +9660,11 @@ export interface components {
          */
         CodeGenScope: "All" | "BackendOnly" | "FrontendOnly";
         /**
+         * @description 产物属于哪一侧。
+         * @enum {string}
+         */
+        CodeGenSide: "Backend" | "Frontend" | "Registration";
+        /**
          * @description 数据源、表配置、列配置与模板的启停状态。
          * @enum {string}
          */
@@ -9526,10 +9675,33 @@ export interface components {
          */
         CodeGenTarget: "NewPackage" | "ExistingPackage";
         /**
+         * @description 模板引擎。
+         * @enum {string}
+         */
+        CodeGenTemplateEngine: "Scriban";
+        /**
          * @description 生成模式。
          * @enum {string}
          */
         CodeGenTemplateType: "Single" | "Tree" | "MasterDetail" | "Universal";
+        /**
+         * @description 产物的写入方式。
+         * @enum {string}
+         */
+        CodeGenWriteMode: "AlwaysOverwrite" | "WriteOnce";
+        /** @description 一个生成的文件。 */
+        CodegenArtifactResponse: {
+            /** @description 产物包里的路径：backend/…（相对 backend-next）、frontend/…（相对 frontend-next）或 _registration/…。 */
+            path: string;
+            /** @description 属于哪一侧。 */
+            side: components["schemas"]["CodeGenSide"];
+            /** @description 来源模板编码；引擎拼出的（文案、登记片段）为空。 */
+            templateCode?: string | null;
+            /** @description 写入方式。 */
+            writeMode: components["schemas"]["CodeGenWriteMode"];
+            /** @description 内容。 */
+            content: string;
+        };
         /** @description 数据源的列表项。 */
         CodegenDatasourceResponse: {
             /**
@@ -9848,6 +10020,51 @@ export interface components {
             /**
              * Format: date-time
              * @description 修改时间（UTC）。
+             */
+            modifiedAt?: string | null;
+        };
+        /** @description 模板的列表项。 */
+        CodegenTemplateResponse: {
+            /**
+             * Format: uuid
+             * @description 模板 ID。
+             */
+            id: string;
+            /** @description 编码。 */
+            templateCode: string;
+            /** @description 名称。 */
+            templateName: string;
+            /** @description 描述。 */
+            templateDescription?: string | null;
+            /** @description 分组（含 backend / frontend 即属那一侧；*-package 只在新建包时产出）。 */
+            templateGroup?: string | null;
+            /** @description 适用的生成模式（通用即全部）。 */
+            templateType: components["schemas"]["CodeGenTemplateType"];
+            /** @description 模板引擎。 */
+            templateEngine: components["schemas"]["CodeGenTemplateEngine"];
+            /** @description 写入方式。 */
+            writeMode: components["schemas"]["CodeGenWriteMode"];
+            /** @description 扩展名。 */
+            fileExtension?: string | null;
+            /** @description 是否内置。 */
+            isBuiltIn: boolean;
+            /** @description 状态。 */
+            status: components["schemas"]["CodeGenStatus"];
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
+            order: number;
+            /** @description 并发戳：修改与启停时原样交回。 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间。
              */
             modifiedAt?: string | null;
         };
@@ -18975,6 +19192,44 @@ export interface operations {
             };
         };
     };
+    "codegen-tables.preview": {
+        parameters: {
+            query?: {
+                /** @description 只用这几份模板；不给按表的生成模式取启用的模板。 */
+                templateCodes?: string[] | null;
+            };
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description codegen-tables.preview 的响应。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 生成的文件，按模板的排序号，最后是引擎拼出的文案与登记片段。 */
+                        files: components["schemas"]["CodegenArtifactResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "codegen-tables.set-status": {
         parameters: {
             query?: never;
@@ -19321,6 +19576,391 @@ export interface operations {
                     "application/json": {
                         /** @description 全部表配置，按表名。 */
                         items: components["schemas"]["CodegenTableResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-templates.create 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 编码：唯一、不含空白，建好后不能改（照 4.x）。 */
+                    templateCode: string;
+                    /** @description 名称。 */
+                    templateName: string;
+                    /** @description 适用的生成模式。 */
+                    templateType: components["schemas"]["CodeGenTemplateType"];
+                    /** @description 模板引擎（只有 Scriban）。 */
+                    templateEngine: components["schemas"]["CodeGenTemplateEngine"];
+                    /** @description 写入方式。 */
+                    writeMode: components["schemas"]["CodeGenWriteMode"];
+                    /** @description 正文。 */
+                    templateContent?: string | null;
+                    /** @description 描述。 */
+                    templateDescription?: string | null;
+                    /** @description 分组。 */
+                    templateGroup?: string | null;
+                    /** @description 文件名表达式。 */
+                    fileNameExpression?: string | null;
+                    /** @description 目录表达式。 */
+                    filePathExpression?: string | null;
+                    /** @description 扩展名。 */
+                    fileExtension?: string | null;
+                    /** @description 状态。 */
+                    status?: components["schemas"]["CodeGenStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 模板详情：列表项加正文、路径表达式与备注。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列表项的内容。 */
+                        template: components["schemas"]["CodegenTemplateResponse"];
+                        /** @description 正文（Scriban）。 */
+                        templateContent?: string | null;
+                        /** @description 文件名表达式。 */
+                        fileNameExpression?: string | null;
+                        /** @description 目录表达式（相对那一侧的根目录）。 */
+                        filePathExpression?: string | null;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.delete": {
+        parameters: {
+            query: {
+                /** @description 模板 ID，1 到 100 个。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 模板详情：列表项加正文、路径表达式与备注。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列表项的内容。 */
+                        template: components["schemas"]["CodegenTemplateResponse"];
+                        /** @description 正文（Scriban）。 */
+                        templateContent?: string | null;
+                        /** @description 文件名表达式。 */
+                        fileNameExpression?: string | null;
+                        /** @description 目录表达式（相对那一侧的根目录）。 */
+                        filePathExpression?: string | null;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-templates.update 的请求：编码不在这里改。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 模板 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 名称。 */
+                    templateName: string;
+                    /** @description 适用的生成模式。 */
+                    templateType: components["schemas"]["CodeGenTemplateType"];
+                    /** @description 模板引擎（只有 Scriban）。 */
+                    templateEngine: components["schemas"]["CodeGenTemplateEngine"];
+                    /** @description 写入方式。 */
+                    writeMode: components["schemas"]["CodeGenWriteMode"];
+                    /** @description 正文。 */
+                    templateContent?: string | null;
+                    /** @description 描述。 */
+                    templateDescription?: string | null;
+                    /** @description 分组。 */
+                    templateGroup?: string | null;
+                    /** @description 文件名表达式。 */
+                    fileNameExpression?: string | null;
+                    /** @description 目录表达式。 */
+                    filePathExpression?: string | null;
+                    /** @description 扩展名。 */
+                    fileExtension?: string | null;
+                    /** @description 状态。 */
+                    status?: components["schemas"]["CodeGenStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 模板详情：列表项加正文、路径表达式与备注。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列表项的内容。 */
+                        template: components["schemas"]["CodegenTemplateResponse"];
+                        /** @description 正文（Scriban）。 */
+                        templateContent?: string | null;
+                        /** @description 文件名表达式。 */
+                        fileNameExpression?: string | null;
+                        /** @description 目录表达式（相对那一侧的根目录）。 */
+                        filePathExpression?: string | null;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 模板 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-templates.set-status 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 模板 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态。 */
+                    status: components["schemas"]["CodeGenStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 模板详情：列表项加正文、路径表达式与备注。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 列表项的内容。 */
+                        template: components["schemas"]["CodegenTemplateResponse"];
+                        /** @description 正文（Scriban）。 */
+                        templateContent?: string | null;
+                        /** @description 文件名表达式。 */
+                        fileNameExpression?: string | null;
+                        /** @description 目录表达式（相对那一侧的根目录）。 */
+                        filePathExpression?: string | null;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CodegenTemplateResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-templates.validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-templates.validate 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 要检查的正文。 */
+                    templateContent: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 模板语法检查的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 是否没有语法错误。 */
+                        valid: boolean;
+                        /** @description 错误（Scriban 给的原文，带行列）。 */
+                        errors: string[];
                     };
                 };
             };

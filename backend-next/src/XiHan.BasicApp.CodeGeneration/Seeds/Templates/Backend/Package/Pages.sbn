@@ -1,0 +1,25 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Contracts.Pages;
+
+namespace {{ Namespace }};
+
+/// <summary>
+/// {{ ModuleName }} 包的页面登记。
+/// </summary>
+/// <remarks>
+/// 权限只在租户侧，平台主体的菜单树里自然没有。前端页面在 <c>frontend-next/src/modules/{{ ModuleCode }}</c>。
+/// </remarks>
+public static class {{ ModuleName }}Pages
+{
+    /// <summary>
+    /// {{ DisplayName | xml_doc }}页。
+    /// </summary>
+    public static PageDescriptor {{ ResourcePascal }} { get; } = new("{{ PageCode }}", "{{ PageRoute }}", "{{ PageTitleKey }}", "{{ PageIcon }}", {{ PageOrder }}, {{ ModuleName }}Permissions.{{ ResourcePascal }}Read);
+
+    /// <summary>
+    /// 全部顶层页面。
+    /// </summary>
+    public static IReadOnlyList<PageDescriptor> All { get; } = [{{ ResourcePascal }}];
+}

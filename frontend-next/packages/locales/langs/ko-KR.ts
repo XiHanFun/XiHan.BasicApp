@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: '선택지를 불러오지 못했습니다: {reason}',
     },
+    code_editor: {
+      copy: '복사',
+      copy_success: '복사했어요',
+    },
     dict_options: {
       load_failed: '사전 "{code}"의 선택지를 불러오지 못했습니다: {reason}',
     },

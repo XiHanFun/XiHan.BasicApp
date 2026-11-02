@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: 'Не удалось загрузить варианты: {reason}',
     },
+    code_editor: {
+      copy: 'Копировать',
+      copy_success: 'Скопировано',
+    },
     dict_options: {
       load_failed: 'Не удалось загрузить варианты словаря «{code}»: {reason}',
     },

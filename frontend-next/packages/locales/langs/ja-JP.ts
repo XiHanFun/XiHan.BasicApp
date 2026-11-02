@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: '選択肢を読み込めませんでした：{reason}',
     },
+    code_editor: {
+      copy: 'コピー',
+      copy_success: 'コピーしました',
+    },
     dict_options: {
       load_failed: '辞書「{code}」の選択肢を読み込めませんでした：{reason}',
     },

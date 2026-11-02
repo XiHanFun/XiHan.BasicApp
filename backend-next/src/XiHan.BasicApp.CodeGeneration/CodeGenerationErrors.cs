@@ -23,6 +23,11 @@ public static class CodeGenerationErrors
     public const string TableNotFound = "CODEGENERATION_NOTFOUND_002";
 
     /// <summary>
+    /// 模板不存在。
+    /// </summary>
+    public const string TemplateNotFound = "CODEGENERATION_NOTFOUND_003";
+
+    /// <summary>
     /// 已有同名的数据源。
     /// </summary>
     public const string DataSourceNameTaken = "CODEGENERATION_CONFLICT_001";
@@ -41,6 +46,16 @@ public static class CodeGenerationErrors
     /// 这张库表已经导入过。
     /// </summary>
     public const string TableAlreadyImported = "CODEGENERATION_CONFLICT_004";
+
+    /// <summary>
+    /// 模板编码已被占用。
+    /// </summary>
+    public const string TemplateCodeTaken = "CODEGENERATION_CONFLICT_005";
+
+    /// <summary>
+    /// 内置模板不能修改或删除。
+    /// </summary>
+    public const string TemplateBuiltIn = "CODEGENERATION_CONFLICT_006";
 
     /// <summary>
     /// 列表不支持该筛选或排序。
@@ -71,6 +86,21 @@ public static class CodeGenerationErrors
     /// 列的选项来源缺少它要的配置。
     /// </summary>
     public const string SelectorInvalid = "CODEGENERATION_VALIDATION_006";
+
+    /// <summary>
+    /// 生成前的配置检查不通过（树表、主从、关联、状态列、选项来源等）。
+    /// </summary>
+    public const string GenerationInvalid = "CODEGENERATION_VALIDATION_007";
+
+    /// <summary>
+    /// 模板渲染失败（语法或运行时错误、产物路径越界）。
+    /// </summary>
+    public const string TemplateRenderFailed = "CODEGENERATION_VALIDATION_008";
+
+    /// <summary>
+    /// 没有可用的模板。
+    /// </summary>
+    public const string NoTemplates = "CODEGENERATION_VALIDATION_009";
 
     /// <summary>
     /// 数据源的口令或连接串解不开。

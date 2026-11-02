@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Services;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 using XiHan.BasicApp.CodeGeneration.Queries;
@@ -372,5 +373,30 @@ public sealed class DeleteCodegenTables(IRepository<SysCodeGenTable, Guid> table
         }
 
         return new BatchResult(succeeded, failed);
+    }
+}
+
+/// <summary>
+/// 预览一张表生成的代码。
+/// </summary>
+/// <remarks>
+/// <c>GET /api/codegen-tables/{id}:preview</c>。只渲染、不打包、不写历史（照 4.x），要读权限；配置检查不过 <c>CODEGENERATION_VALIDATION_007</c>，模板渲染失败 <c>CODEGENERATION_VALIDATION_008</c>（带模板编码），没有可用模板 <c>CODEGENERATION_VALIDATION_009</c>。
+/// </remarks>
+/// <param name="engine">生成管线。</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
+public sealed class PreviewCodegenTable(CodeGenEngine engine) : IOperation<PreviewCodegenTableRequest, CodegenPreviewResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "codegen-tables.preview";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<CodegenPreviewResponse>> HandleAsync(PreviewCodegenTableRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var rendered = await engine.RenderAsync(request.Id, request.TemplateCodes, context.CancellationToken).ConfigureAwait(false);
+        return rendered.TryGetValue(out var artifacts) ? new CodegenPreviewResponse([.. artifacts.Select(CodegenArtifactResponse.From)]) : rendered.Error!;
     }
 }

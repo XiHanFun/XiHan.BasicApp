@@ -3,12 +3,15 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Services;
 using XiHan.BasicApp.CodeGeneration.Queries;
+using XiHan.BasicApp.CodeGeneration.Seeds;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Runtime;
+using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
@@ -65,6 +68,12 @@ public sealed class CodeGenerationFeature : IFeature
         context.Services.AddScoped<CodeGenInference>();
         context.Services.AddScoped<CodeGenTableService>();
         context.Services.AddScoped<CodegenTableQueries>();
+        context.Services.AddSingleton<CodeGenEnumCatalog>();
+        context.Services.AddScoped<CodeGenContextBuilder>();
+        context.Services.AddScoped<CodeGenEngine>();
+        context.Services.AddScoped<CodeGenTemplateService>();
+        context.Services.AddScoped<CodegenTemplateQueries>();
+        context.Services.AddSeeder<CodeGenTemplateSeeder>();
         context.Services.AddPermissionCatalog("codegeneration", CodeGenerationPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用（照 4.x 的登记范围）
         CodeGenerationFieldSecurity.Register(context.Services);

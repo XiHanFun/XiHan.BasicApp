@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: 'No se pudieron cargar las opciones: {reason}',
     },
+    code_editor: {
+      copy: 'Copiar',
+      copy_success: 'Copiado',
+    },
     dict_options: {
       load_failed: 'No se pudieron cargar las opciones del diccionario "{code}": {reason}',
     },

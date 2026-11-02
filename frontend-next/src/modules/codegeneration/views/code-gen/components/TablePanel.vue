@@ -1,6 +1,6 @@
 <!--
   代码生成 / 表配置页签（照 4.x table-panel）。
-  接口取自后端契约（codegen-tables.*、codegen-table-columns.*）：导入库表、编辑表配置、列配置、同步表结构与删除；预览、生成与运行时数据随后续几笔补上。
+  接口取自后端契约（codegen-tables.*、codegen-table-columns.*）：导入库表、编辑表配置、列配置、预览产物、同步表结构与删除；生成与运行时数据随后续几笔补上。
 -->
 <script setup lang="ts">
 import type { GenerationStatus, TableRow } from './use-tables'
@@ -13,6 +13,7 @@ import { toast } from '~/composables'
 import { codegenTables } from '~/contracts'
 import ColumnConfigModal from './ColumnConfigModal.vue'
 import ImportTableModal from './ImportTableModal.vue'
+import PreviewModal from './PreviewModal.vue'
 import TableEditModal from './TableEditModal.vue'
 import { DELIVERY_TYPES, enumKey, GENERATION_STATUSES, tablesResource, TEMPLATE_TYPES } from './use-tables'
 
@@ -29,6 +30,8 @@ function reload() {
 const importVisible = ref(false)
 const editVisible = ref(false)
 const columnVisible = ref(false)
+const previewVisible = ref(false)
+const currentTableName = ref<string | undefined>()
 const currentTableId = ref<null | string>(null)
 
 const asRow = (row: object) => row as TableRow
@@ -120,6 +123,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'import', title: t('codegeneration.code_gen.table.import'), scope: 'page', tone: 'brand', icon: 'lucide:database', permission: 'codegeneration.codegen-tables.import' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'codegeneration.codegen-tables.update' },
     { key: 'columns', title: t('codegeneration.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'codegeneration.codegen-table-columns.update' },
+    { key: 'preview', title: t('codegeneration.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye', permission: 'codegeneration.codegen-tables.read' },
     { key: 'sync', title: t('codegeneration.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', confirm: true, confirmText: () => t('codegeneration.code_gen.table.sync_confirm'), permission: 'codegeneration.codegen-tables.import' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).tableName), permission: 'codegeneration.codegen-tables.delete' },
   ],
@@ -141,6 +145,13 @@ function onAction(payload: SchemaActionPayload) {
       if (row) {
         currentTableId.value = row.id
         columnVisible.value = true
+      }
+      break
+    case 'preview':
+      if (row) {
+        currentTableId.value = row.id
+        currentTableName.value = row.tableName
+        previewVisible.value = true
       }
       break
     case 'sync':
@@ -184,5 +195,6 @@ async function handleDelete(row: TableRow) {
     <ImportTableModal v-model:show="importVisible" @imported="reload" />
     <TableEditModal v-model:show="editVisible" :table-id="currentTableId" @saved="reload" />
     <ColumnConfigModal v-model:show="columnVisible" :table-id="currentTableId" @saved="reload" />
+    <PreviewModal v-model:show="previewVisible" :table-id="currentTableId" :table-name="currentTableName" />
   </SchemaPage>
 </template>

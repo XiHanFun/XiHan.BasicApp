@@ -1,0 +1,14 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
+
+/// <summary>
+/// {{ DisplayName | xml_doc }}的网络契约（手写部分）。
+/// </summary>
+/// <remarks>
+/// 只在第一次生成时写出，重新生成不碰它；按表结构推出的请求、响应与映射在 {{ ClassName }}Contracts.Generated.cs，都是 partial，可以在这里补计算属性与方法。
+/// </remarks>
+public sealed partial record {{ ClassName }}Response
+{
+}

@@ -1,0 +1,14 @@
+# {{ Namespace }}
+
+{{ ModuleName }} 包：由代码生成按表 `{{ TableName }}`（{{ DisplayName }}）建出，Tier 3，只依赖 Contracts 与 Runtime，业务数据是租户库实体、只在租户侧管理。
+
+## 目录
+
+- `Domain/Entities`：实体。`*.Generated.cs` 每次重新生成都会覆盖，自定义的写在同名的手写文件里（partial）。
+- `Operations/<资源>`：操作（列表、详情、新建、修改、删除……），每个操作一个文件，只在第一次生成时写出；请求与响应在 `*Contracts.Generated.cs`。
+- `Queries`：列表查询，筛选与排序的白名单按列配置生成，缺省条件写在手写部分的 `Customize` 里。
+- `Localization`：10 种区域的文案，固定用语按区域内置，表与列的注释原样使用，生成之后按需改写。
+
+## 登记
+
+包级文件（本文件、工程文件、Feature、权限码、页面、错误码、消息键、JSON 序列化上下文）只在第一次生成时写出。加进解决方案、宿主与架构测试的步骤见生成产物里的 `_registration/{{ Resource }}.md`；之后再往这个包里加资源，生成目标选「加入已有包」，按片段把登记行合进这些文件。

@@ -61,6 +61,11 @@
       "description": "Table configurations imported from database schemas: listing, import, schema synchronization, editing and deletion."
     },
     {
+      "name": "codegen-templates",
+      "x-displayName": "Code generation templates",
+      "description": "Scriban templates that turn table configurations into a 6.0 package and frontend module: built-in templates follow the application version, custom ones can be added."
+    },
+    {
       "name": "condition-hits",
       "x-displayName": "Condition hits",
       "description": "Query condition hits: hits of access policies and permission conditions."
@@ -9547,6 +9552,83 @@
         }
       }
     },
+    "/api/codegen-tables/{id}:preview": {
+      "get": {
+        "operationId": "codegen-tables.preview",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Preview generated code",
+        "description": "Render the templates for a table configuration and return every file without packaging or recording history; also returns the localization files of a new package and the registration notes.\n\nRequires permission codegeneration.codegen-tables.read (Read code generation tables).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "templateCodes",
+            "in": "query",
+            "description": "\u53EA\u7528\u8FD9\u51E0\u4EFD\u6A21\u677F\uFF1B\u4E0D\u7ED9\u6309\u8868\u7684\u751F\u6210\u6A21\u5F0F\u53D6\u542F\u7528\u7684\u6A21\u677F\u3002",
+            "required": false,
+            "schema": {
+              "description": "\u53EA\u7528\u8FD9\u51E0\u4EFD\u6A21\u677F\uFF1B\u4E0D\u7ED9\u6309\u8868\u7684\u751F\u6210\u6A21\u5F0F\u53D6\u542F\u7528\u7684\u6A21\u677F\u3002",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "codegen-tables.preview \u7684\u54CD\u5E94\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenPreviewResponse",
+                  "description": "codegen-tables.preview \u7684\u54CD\u5E94\u3002",
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "description": "\u751F\u6210\u7684\u6587\u4EF6\uFF0C\u6309\u6A21\u677F\u7684\u6392\u5E8F\u53F7\uFF0C\u6700\u540E\u662F\u5F15\u64CE\u62FC\u51FA\u7684\u6587\u6848\u4E0E\u767B\u8BB0\u7247\u6BB5\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenArtifactResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "files"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/codegen-tables/{id}:set-status": {
       "post": {
         "operationId": "codegen-tables.set-status",
@@ -10248,6 +10330,850 @@
                   },
                   "required": [
                     "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-templates": {
+      "delete": {
+        "operationId": "codegen-templates.delete",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Delete code generation templates",
+        "description": "Delete custom templates in batch; built-in templates are rejected item by item.\n\nRequires permission codegeneration.codegen-templates.delete (Delete code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u6A21\u677F ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "codegen-templates.create",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Create a code generation template",
+        "description": "Create a custom template; the code must be unique and cannot be changed later.\n\nRequires permission codegeneration.codegen-templates.create (Create code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-templates.create \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateCodegenTemplateRequest",
+                "description": "codegen-templates.create \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "templateCode": {
+                    "description": "\u7F16\u7801\uFF1A\u552F\u4E00\u3001\u4E0D\u542B\u7A7A\u767D\uFF0C\u5EFA\u597D\u540E\u4E0D\u80FD\u6539\uFF08\u7167 4.x\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^\\S\u002B$"
+                  },
+                  "templateName": {
+                    "description": "\u540D\u79F0\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "templateType": {
+                    "description": "\u9002\u7528\u7684\u751F\u6210\u6A21\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenTemplateType"
+                  },
+                  "templateEngine": {
+                    "description": "\u6A21\u677F\u5F15\u64CE\uFF08\u53EA\u6709 Scriban\uFF09\u3002",
+                    "$ref": "#/components/schemas/CodeGenTemplateEngine"
+                  },
+                  "writeMode": {
+                    "description": "\u5199\u5165\u65B9\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenWriteMode"
+                  },
+                  "templateContent": {
+                    "description": "\u6B63\u6587\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "templateDescription": {
+                    "description": "\u63CF\u8FF0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "templateGroup": {
+                    "description": "\u5206\u7EC4\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "fileNameExpression": {
+                    "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "filePathExpression": {
+                    "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "fileExtension": {
+                    "description": "\u6269\u5C55\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20
+                  },
+                  "status": {
+                    "description": "\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "templateCode",
+                  "templateName",
+                  "templateType",
+                  "templateEngine",
+                  "writeMode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTemplateDetailResponse",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+                  "type": "object",
+                  "properties": {
+                    "template": {
+                      "description": "\u5217\u8868\u9879\u7684\u5185\u5BB9\u3002",
+                      "$ref": "#/components/schemas/CodegenTemplateResponse"
+                    },
+                    "templateContent": {
+                      "description": "\u6B63\u6587\uFF08Scriban\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileNameExpression": {
+                      "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "filePathExpression": {
+                      "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\uFF08\u76F8\u5BF9\u90A3\u4E00\u4FA7\u7684\u6839\u76EE\u5F55\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-templates/{id}": {
+      "get": {
+        "operationId": "codegen-templates.get",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Get a code generation template",
+        "description": "Get a template with its body and path expressions.\n\nRequires permission codegeneration.codegen-templates.read (Read code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTemplateDetailResponse",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+                  "type": "object",
+                  "properties": {
+                    "template": {
+                      "description": "\u5217\u8868\u9879\u7684\u5185\u5BB9\u3002",
+                      "$ref": "#/components/schemas/CodegenTemplateResponse"
+                    },
+                    "templateContent": {
+                      "description": "\u6B63\u6587\uFF08Scriban\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileNameExpression": {
+                      "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "filePathExpression": {
+                      "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\uFF08\u76F8\u5BF9\u90A3\u4E00\u4FA7\u7684\u6839\u76EE\u5F55\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "codegen-templates.update",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Update a code generation template",
+        "description": "Update a custom template; built-in templates follow the application version and cannot be edited.\n\nRequires permission codegeneration.codegen-templates.update (Update code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-templates.update \u7684\u8BF7\u6C42\uFF1A\u7F16\u7801\u4E0D\u5728\u8FD9\u91CC\u6539\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateCodegenTemplateRequest",
+                "description": "codegen-templates.update \u7684\u8BF7\u6C42\uFF1A\u7F16\u7801\u4E0D\u5728\u8FD9\u91CC\u6539\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6A21\u677F ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "templateName": {
+                    "description": "\u540D\u79F0\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "templateType": {
+                    "description": "\u9002\u7528\u7684\u751F\u6210\u6A21\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenTemplateType"
+                  },
+                  "templateEngine": {
+                    "description": "\u6A21\u677F\u5F15\u64CE\uFF08\u53EA\u6709 Scriban\uFF09\u3002",
+                    "$ref": "#/components/schemas/CodeGenTemplateEngine"
+                  },
+                  "writeMode": {
+                    "description": "\u5199\u5165\u65B9\u5F0F\u3002",
+                    "$ref": "#/components/schemas/CodeGenWriteMode"
+                  },
+                  "templateContent": {
+                    "description": "\u6B63\u6587\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "templateDescription": {
+                    "description": "\u63CF\u8FF0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "templateGroup": {
+                    "description": "\u5206\u7EC4\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "fileNameExpression": {
+                    "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "filePathExpression": {
+                    "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "fileExtension": {
+                    "description": "\u6269\u5C55\u540D\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20
+                  },
+                  "status": {
+                    "description": "\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "templateName",
+                  "templateType",
+                  "templateEngine",
+                  "writeMode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTemplateDetailResponse",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+                  "type": "object",
+                  "properties": {
+                    "template": {
+                      "description": "\u5217\u8868\u9879\u7684\u5185\u5BB9\u3002",
+                      "$ref": "#/components/schemas/CodegenTemplateResponse"
+                    },
+                    "templateContent": {
+                      "description": "\u6B63\u6587\uFF08Scriban\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileNameExpression": {
+                      "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "filePathExpression": {
+                      "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\uFF08\u76F8\u5BF9\u90A3\u4E00\u4FA7\u7684\u6839\u76EE\u5F55\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-templates/{id}:set-status": {
+      "post": {
+        "operationId": "codegen-templates.set-status",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Enable or disable a code generation template",
+        "description": "Enable or disable a template, built-in ones included; disabled templates are skipped when generating.\n\nRequires permission codegeneration.codegen-templates.update (Update code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6A21\u677F ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6A21\u677F ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-templates.set-status \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetCodegenTemplateStatusRequest",
+                "description": "codegen-templates.set-status \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6A21\u677F ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTemplateDetailResponse",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8\u3002",
+                  "type": "object",
+                  "properties": {
+                    "template": {
+                      "description": "\u5217\u8868\u9879\u7684\u5185\u5BB9\u3002",
+                      "$ref": "#/components/schemas/CodegenTemplateResponse"
+                    },
+                    "templateContent": {
+                      "description": "\u6B63\u6587\uFF08Scriban\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "fileNameExpression": {
+                      "description": "\u6587\u4EF6\u540D\u8868\u8FBE\u5F0F\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "filePathExpression": {
+                      "description": "\u76EE\u5F55\u8868\u8FBE\u5F0F\uFF08\u76F8\u5BF9\u90A3\u4E00\u4FA7\u7684\u6839\u76EE\u5F55\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-templates:list": {
+      "post": {
+        "operationId": "codegen-templates.list",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "List code generation templates",
+        "description": "Page through the templates without their bodies; filter by group, template type, write mode, status and built-in flag, search by code, name and description.\n\nRequires permission codegeneration.codegen-templates.read (Read code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfCodegenTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenTemplateResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-templates:validate": {
+      "post": {
+        "operationId": "codegen-templates.validate",
+        "tags": [
+          "codegen-templates"
+        ],
+        "summary": "Check template syntax",
+        "description": "Parse a template body without rendering it and return the syntax errors with line and column.\n\nRequires permission codegeneration.codegen-templates.read (Read code generation templates).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-templates.read",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-templates.validate \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ValidateCodegenTemplateRequest",
+                "description": "codegen-templates.validate \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "templateContent": {
+                    "description": "\u8981\u68C0\u67E5\u7684\u6B63\u6587\u3002",
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "templateContent"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6A21\u677F\u8BED\u6CD5\u68C0\u67E5\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenTemplateValidationResponse",
+                  "description": "\u6A21\u677F\u8BED\u6CD5\u68C0\u67E5\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "valid": {
+                      "description": "\u662F\u5426\u6CA1\u6709\u8BED\u6CD5\u9519\u8BEF\u3002",
+                      "type": "boolean"
+                    },
+                    "errors": {
+                      "description": "\u9519\u8BEF\uFF08Scriban \u7ED9\u7684\u539F\u6587\uFF0C\u5E26\u884C\u5217\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "valid",
+                    "errors"
                   ]
                 }
               }
@@ -55939,6 +56865,15 @@
           "FrontendOnly"
         ]
       },
+      "CodeGenSide": {
+        "description": "\u4EA7\u7269\u5C5E\u4E8E\u54EA\u4E00\u4FA7\u3002",
+        "type": "string",
+        "enum": [
+          "Backend",
+          "Frontend",
+          "Registration"
+        ]
+      },
       "CodeGenStatus": {
         "description": "\u6570\u636E\u6E90\u3001\u8868\u914D\u7F6E\u3001\u5217\u914D\u7F6E\u4E0E\u6A21\u677F\u7684\u542F\u505C\u72B6\u6001\u3002",
         "type": "string",
@@ -55955,6 +56890,13 @@
           "ExistingPackage"
         ]
       },
+      "CodeGenTemplateEngine": {
+        "description": "\u6A21\u677F\u5F15\u64CE\u3002",
+        "type": "string",
+        "enum": [
+          "Scriban"
+        ]
+      },
       "CodeGenTemplateType": {
         "description": "\u751F\u6210\u6A21\u5F0F\u3002",
         "type": "string",
@@ -55963,6 +56905,49 @@
           "Tree",
           "MasterDetail",
           "Universal"
+        ]
+      },
+      "CodeGenWriteMode": {
+        "description": "\u4EA7\u7269\u7684\u5199\u5165\u65B9\u5F0F\u3002",
+        "type": "string",
+        "enum": [
+          "AlwaysOverwrite",
+          "WriteOnce"
+        ]
+      },
+      "CodegenArtifactResponse": {
+        "description": "\u4E00\u4E2A\u751F\u6210\u7684\u6587\u4EF6\u3002",
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "\u4EA7\u7269\u5305\u91CC\u7684\u8DEF\u5F84\uFF1Abackend/\u2026\uFF08\u76F8\u5BF9 backend-next\uFF09\u3001frontend/\u2026\uFF08\u76F8\u5BF9 frontend-next\uFF09\u6216 _registration/\u2026\u3002",
+            "type": "string"
+          },
+          "side": {
+            "description": "\u5C5E\u4E8E\u54EA\u4E00\u4FA7\u3002",
+            "$ref": "#/components/schemas/CodeGenSide"
+          },
+          "templateCode": {
+            "description": "\u6765\u6E90\u6A21\u677F\u7F16\u7801\uFF1B\u5F15\u64CE\u62FC\u51FA\u7684\uFF08\u6587\u6848\u3001\u767B\u8BB0\u7247\u6BB5\uFF09\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "writeMode": {
+            "description": "\u5199\u5165\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenWriteMode"
+          },
+          "content": {
+            "description": "\u5185\u5BB9\u3002",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "side",
+          "writeMode",
+          "content"
         ]
       },
       "CodegenDatasourceResponse": {
@@ -56735,6 +57720,101 @@
           "databaseType",
           "generationStatus",
           "status",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "CodegenTemplateResponse": {
+        "description": "\u6A21\u677F\u7684\u5217\u8868\u9879\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u6A21\u677F ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "templateCode": {
+            "description": "\u7F16\u7801\u3002",
+            "type": "string"
+          },
+          "templateName": {
+            "description": "\u540D\u79F0\u3002",
+            "type": "string"
+          },
+          "templateDescription": {
+            "description": "\u63CF\u8FF0\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateGroup": {
+            "description": "\u5206\u7EC4\uFF08\u542B backend / frontend \u5373\u5C5E\u90A3\u4E00\u4FA7\uFF1B*-package \u53EA\u5728\u65B0\u5EFA\u5305\u65F6\u4EA7\u51FA\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateType": {
+            "description": "\u9002\u7528\u7684\u751F\u6210\u6A21\u5F0F\uFF08\u901A\u7528\u5373\u5168\u90E8\uFF09\u3002",
+            "$ref": "#/components/schemas/CodeGenTemplateType"
+          },
+          "templateEngine": {
+            "description": "\u6A21\u677F\u5F15\u64CE\u3002",
+            "$ref": "#/components/schemas/CodeGenTemplateEngine"
+          },
+          "writeMode": {
+            "description": "\u5199\u5165\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenWriteMode"
+          },
+          "fileExtension": {
+            "description": "\u6269\u5C55\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isBuiltIn": {
+            "description": "\u662F\u5426\u5185\u7F6E\u3002",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/CodeGenStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "templateCode",
+          "templateName",
+          "templateType",
+          "templateEngine",
+          "writeMode",
+          "isBuiltIn",
+          "status",
+          "order",
           "concurrencyStamp",
           "createdAt"
         ]
@@ -66774,6 +67854,26 @@
         "displayName": "Update code generation tables",
         "description": "Edit, enable or disable table configurations."
       },
+      "codegeneration.codegen-templates.create": {
+        "code": "codegeneration.codegen-templates.create",
+        "displayName": "Create code generation templates",
+        "description": "Create custom code generation templates."
+      },
+      "codegeneration.codegen-templates.delete": {
+        "code": "codegeneration.codegen-templates.delete",
+        "displayName": "Delete code generation templates",
+        "description": "Delete custom templates; built-in templates cannot be deleted."
+      },
+      "codegeneration.codegen-templates.read": {
+        "code": "codegeneration.codegen-templates.read",
+        "displayName": "Read code generation templates",
+        "description": "View the code generation templates and check their syntax."
+      },
+      "codegeneration.codegen-templates.update": {
+        "code": "codegeneration.codegen-templates.update",
+        "displayName": "Update code generation templates",
+        "description": "Edit custom templates and enable or disable any template; built-in templates cannot be edited."
+      },
       "files.files.create": {
         "code": "files.files.create",
         "displayName": "Upload files",
@@ -67577,7 +68677,8 @@
       "tags": [
         "codegen-datasources",
         "codegen-table-columns",
-        "codegen-tables"
+        "codegen-tables",
+        "codegen-templates"
       ]
     },
     {

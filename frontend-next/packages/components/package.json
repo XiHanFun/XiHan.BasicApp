@@ -15,6 +15,7 @@
     "@xihan/stores": "workspace:*",
     "@xihan/types": "workspace:*",
     "@xihan/utils": "workspace:*",
-    "md-editor-v3": "catalog:"
+    "md-editor-v3": "catalog:",
+    "monaco-editor": "catalog:"
   }
 }

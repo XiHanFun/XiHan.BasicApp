@@ -1,0 +1,20 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using SqlSugar;
+using {{ EntityNamespace }};
+using XiHan.Framework.Primitives;
+
+namespace {{ Namespace }}.Queries;
+
+/// <summary>
+/// {{ DisplayName | xml_doc }}的列表查询（手写部分）。
+/// </summary>
+/// <remarks>
+/// 只在第一次生成时写出，重新生成不碰它；按列配置推出的筛选与排序白名单在 {{ ClassName }}Queries.Generated.cs。
+/// </remarks>
+public sealed partial class {{ ClassName }}Queries
+{
+    // 列表与树共用的缺省条件（如只看某种状态），不加即原样返回；要用服务从 context.Services 取
+    private static partial ISugarQueryable<{{ ClassName }}> Customize(ISugarQueryable<{{ ClassName }}> query, InvocationContext context) => query;
+}

@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: 'Optionen konnten nicht geladen werden: {reason}',
     },
+    code_editor: {
+      copy: 'Kopieren',
+      copy_success: 'Kopiert',
+    },
     dict_options: {
       load_failed: 'Optionen des Wörterbuchs „{code}" konnten nicht geladen werden: {reason}',
     },

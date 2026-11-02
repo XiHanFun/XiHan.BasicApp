@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 using XiHan.BasicApp.Contracts.Paging;
 
@@ -279,3 +280,37 @@ public sealed record SetCodegenTableStatusRequest(
 /// </summary>
 /// <param name="Ids">表配置 ID，1 到 100 个。</param>
 public sealed record CodegenTableIdsRequest([Required, MinLength(1), MaxLength(100)] IReadOnlyList<Guid> Ids);
+
+/// <summary>
+/// <c>codegen-tables.preview</c> 的请求。
+/// </summary>
+/// <param name="Id">表配置 ID。</param>
+/// <param name="TemplateCodes">只用这几份模板；不给按表的生成模式取启用的模板。</param>
+public sealed record PreviewCodegenTableRequest(Guid Id, IReadOnlyList<string>? TemplateCodes = null);
+
+/// <summary>
+/// 一个生成的文件。
+/// </summary>
+/// <param name="Path">产物包里的路径：<c>backend/…</c>（相对 <c>backend-next</c>）、<c>frontend/…</c>（相对 <c>frontend-next</c>）或 <c>_registration/…</c>。</param>
+/// <param name="Side">属于哪一侧。</param>
+/// <param name="TemplateCode">来源模板编码；引擎拼出的（文案、登记片段）为空。</param>
+/// <param name="WriteMode">写入方式。</param>
+/// <param name="Content">内容。</param>
+public sealed record CodegenArtifactResponse(string Path, CodeGenSide Side, string? TemplateCode, CodeGenWriteMode WriteMode, string Content)
+{
+    /// <summary>
+    /// 从产物投影。
+    /// </summary>
+    /// <param name="artifact">产物。</param>
+    public static CodegenArtifactResponse From(CodeGenArtifact artifact)
+    {
+        ArgumentNullException.ThrowIfNull(artifact);
+        return new CodegenArtifactResponse(artifact.PackagePath, artifact.Side, artifact.TemplateCode, artifact.WriteMode, artifact.Content);
+    }
+}
+
+/// <summary>
+/// <c>codegen-tables.preview</c> 的响应。
+/// </summary>
+/// <param name="Files">生成的文件，按模板的排序号，最后是引擎拼出的文案与登记片段。</param>
+public sealed record CodegenPreviewResponse(IReadOnlyList<CodegenArtifactResponse> Files);

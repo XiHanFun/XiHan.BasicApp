@@ -1,0 +1,57 @@
+{{~ if IsTree ~}}
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using {{ EntityNamespace }};
+using {{ Namespace }}.Queries;
+using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Primitives;
+
+namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
+
+/// <summary>
+/// {{ DisplayName | xml_doc }}树。
+/// </summary>
+/// <remarks>
+/// <c>GET /api/{{ Resource }}:tree</c>。取当前租户的全部行在内存里组树（照 4.x，不按关键字裁，裁了会截断上级链）；上级不在的当作顶层，不丢行。
+/// </remarks>
+/// <param name="queries">列表查询。</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = {{ ModuleName }}Permissions.{{ ResourcePascal }}Read)]
+public sealed class Get{{ ClassName }}Tree({{ ClassName }}Queries queries) : IOperation<{{ ClassName }}TreeRequest, {{ ClassName }}TreeResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "{{ Resource }}.tree";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<{{ ClassName }}TreeResponse>> HandleAsync({{ ClassName }}TreeRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var all = await queries.AllAsync(context).ConfigureAwait(false);
+        var known = all.Select(static e => e.Id).ToHashSet();
+        var byParent = all.GroupBy(static e => ParentOf(e)).ToDictionary(static g => g.Key, static g => g.ToList());
+
+        // 每个节点只挂一次：自己挂自己、成环的数据也不会无限展开
+        var visited = new HashSet<Guid>();
+        List<{{ ClassName }}Node> Build(Guid parent)
+            => byParent.TryGetValue(parent, out var children)
+                ? [.. children.Where(e => visited.Add(e.Id)).Select(e => new {{ ClassName }}Node({{ ClassName }}Response.From(e), Build(e.Id)))]
+                : [];
+
+        var items = Build(Guid.Empty);
+        foreach (var entity in all.Where(e => !known.Contains(ParentOf(e))).Concat(all))
+        {
+            if (visited.Add(entity.Id))
+            {
+                items.Add(new {{ ClassName }}Node({{ ClassName }}Response.From(entity), Build(entity.Id)));
+            }
+        }
+
+        return new {{ ClassName }}TreeResponse(items, all.Count);
+    }
+
+    private static Guid ParentOf({{ ClassName }} entity) => entity.{{ TreeParentColumn.CSharpProperty }}{{ if TreeParentColumn.IsNullableType }} ?? Guid.Empty{{ end }};
+}
+{{~ end ~}}

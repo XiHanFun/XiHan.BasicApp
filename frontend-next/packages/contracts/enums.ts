@@ -50,14 +50,23 @@ export type CodeGenQueryType = (typeof CodeGenQueryType)[number]
 export const CodeGenScope = ['All', 'BackendOnly', 'FrontendOnly'] as const
 export type CodeGenScope = (typeof CodeGenScope)[number]
 
+export const CodeGenSide = ['Backend', 'Frontend', 'Registration'] as const
+export type CodeGenSide = (typeof CodeGenSide)[number]
+
 export const CodeGenStatus = ['Active', 'Disabled'] as const
 export type CodeGenStatus = (typeof CodeGenStatus)[number]
 
 export const CodeGenTarget = ['NewPackage', 'ExistingPackage'] as const
 export type CodeGenTarget = (typeof CodeGenTarget)[number]
 
+export const CodeGenTemplateEngine = ['Scriban'] as const
+export type CodeGenTemplateEngine = (typeof CodeGenTemplateEngine)[number]
+
 export const CodeGenTemplateType = ['Single', 'Tree', 'MasterDetail', 'Universal'] as const
 export type CodeGenTemplateType = (typeof CodeGenTemplateType)[number]
+
+export const CodeGenWriteMode = ['AlwaysOverwrite', 'WriteOnce'] as const
+export type CodeGenWriteMode = (typeof CodeGenWriteMode)[number]
 
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
@@ -341,9 +350,12 @@ export const enums = {
   CodeGenHtmlType,
   CodeGenQueryType,
   CodeGenScope,
+  CodeGenSide,
   CodeGenStatus,
   CodeGenTarget,
+  CodeGenTemplateEngine,
   CodeGenTemplateType,
+  CodeGenWriteMode,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,

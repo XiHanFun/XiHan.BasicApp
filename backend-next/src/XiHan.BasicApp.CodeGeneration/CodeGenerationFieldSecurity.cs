@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenTemplates;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Runtime.Queries;
 
@@ -35,5 +36,12 @@ public static class CodeGenerationFieldSecurity
                 .ReadsAt(GetCodegenTable.Id, "table")
                 .Updates<UpdateCodegenTableRequest>(UpdateCodegenTable.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTable>(context, request.Id, CodegenTableResponse.From))
                 .Updates<SetCodegenTableStatusRequest>(SetCodegenTableStatus.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTable>(context, request.Id, CodegenTableResponse.From))
-                .Keyword("tableName", "className", "tableComment"));
+                .Keyword("tableName", "className", "tableComment")
+            .Entity<CodegenTemplateResponse>("codegeneration.codegen-templates", "codegeneration.code_gen.template.title", "codegeneration.code_gen.template.fields.")
+                .Reads(ListCodegenTemplates.Id)
+                .ReadsAt(GetCodegenTemplate.Id, "template")
+                .CreatesAt(CreateCodegenTemplate.Id, "template")
+                .Updates<UpdateCodegenTemplateRequest>(UpdateCodegenTemplate.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTemplate>(context, request.Id, CodegenTemplateResponse.From), "template")
+                .Updates<SetCodegenTemplateStatusRequest>(SetCodegenTemplateStatus.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysCodeGenTemplate>(context, request.Id, CodegenTemplateResponse.From), "template")
+                .Keyword("templateCode", "templateName", "templateDescription"));
 }

@@ -72,6 +72,10 @@ export default {
     async_options: {
       load_failed: '选项加载失败：{reason}',
     },
+    code_editor: {
+      copy: '复制',
+      copy_success: '已复制',
+    },
     dict_options: {
       load_failed: '字典「{code}」的选项加载失败：{reason}',
     },

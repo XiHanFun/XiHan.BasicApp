@@ -1,0 +1,32 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Contracts.Security;
+
+namespace {{ Namespace }};
+
+/// <summary>
+/// {{ ModuleName }} 包的权限码。
+/// </summary>
+/// <remarks>
+/// 全部只在租户侧：业务数据是租户库实体，平台没有。写操作记审计。
+/// </remarks>
+public static class {{ ModuleName }}Permissions
+{
+{{~ for permission in Permissions ~}}
+    /// <summary>
+    /// {{ permission.Summary | xml_doc }}
+    /// </summary>
+    public const string {{ permission.ConstName }} = "{{ permission.Code }}";
+
+{{~ end ~}}
+    /// <summary>
+    /// 全部权限描述。
+    /// </summary>
+    public static IReadOnlyList<PermissionDescriptor> All { get; } =
+    [
+{{~ for permission in Permissions ~}}
+        new({{ permission.ConstName }}, "{{ permission.Name | cs_string }}", PermissionScope.Tenant{{ if permission.Audited }}, audited: true{{ end }}, description: "{{ permission.Description | cs_string }}"),
+{{~ end ~}}
+    ];
+}

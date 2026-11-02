@@ -68,6 +68,26 @@ public static class CodeGenerationPermissions
     public const string TableColumnsUpdate = "codegeneration.codegen-table-columns.update";
 
     /// <summary>
+    /// 查看模板与检查模板语法。
+    /// </summary>
+    public const string TemplatesRead = "codegeneration.codegen-templates.read";
+
+    /// <summary>
+    /// 新建模板。
+    /// </summary>
+    public const string TemplatesCreate = "codegeneration.codegen-templates.create";
+
+    /// <summary>
+    /// 修改与启停模板。
+    /// </summary>
+    public const string TemplatesUpdate = "codegeneration.codegen-templates.update";
+
+    /// <summary>
+    /// 删除模板。
+    /// </summary>
+    public const string TemplatesDelete = "codegeneration.codegen-templates.delete";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -82,5 +102,9 @@ public static class CodeGenerationPermissions
         new(TablesImport, "Import code generation tables", PermissionScope.Platform, audited: true, description: "Import database tables as table configurations and synchronize them with the latest schema."),
         new(TableColumnsRead, "Read code generation columns", PermissionScope.Platform, description: "View the column configurations of a table."),
         new(TableColumnsUpdate, "Update code generation columns", PermissionScope.Platform, audited: true, description: "Save the column configurations of a table."),
+        new(TemplatesRead, "Read code generation templates", PermissionScope.Platform, description: "View the code generation templates and check their syntax."),
+        new(TemplatesCreate, "Create code generation templates", PermissionScope.Platform, audited: true, description: "Create custom code generation templates."),
+        new(TemplatesUpdate, "Update code generation templates", PermissionScope.Platform, audited: true, description: "Edit custom templates and enable or disable any template; built-in templates cannot be edited."),
+        new(TemplatesDelete, "Delete code generation templates", PermissionScope.Platform, audited: true, description: "Delete custom templates; built-in templates cannot be deleted."),
     ];
 }

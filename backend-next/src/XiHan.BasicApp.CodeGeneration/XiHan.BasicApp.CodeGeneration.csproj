@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Scriban" />
+  </ItemGroup>
+
+  <ItemGroup>
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
     <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
@@ -23,5 +27,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+    <!-- 内置模板：种子按 Templates/<相对路径> 读出写进模板表（RecursiveDir 在 Windows 上是反斜杠，读的时候统一成正斜杠） -->
+    <EmbeddedResource Include="Seeds/Templates/**/*.sbn" LogicalName="Templates/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

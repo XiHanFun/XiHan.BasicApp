@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenTemplates;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 
@@ -49,6 +50,18 @@ namespace XiHan.BasicApp.CodeGeneration;
 [JsonSerializable(typeof(ListCodegenTableColumnsRequest))]
 [JsonSerializable(typeof(SaveCodegenTableColumnsRequest))]
 [JsonSerializable(typeof(CodegenTableColumnsResponse))]
+[JsonSerializable(typeof(PreviewCodegenTableRequest))]
+[JsonSerializable(typeof(CodegenPreviewResponse))]
+[JsonSerializable(typeof(CodegenTemplateResponse))]
+[JsonSerializable(typeof(CodegenTemplateDetailResponse))]
+[JsonSerializable(typeof(PageResult<CodegenTemplateResponse>))]
+[JsonSerializable(typeof(CodegenTemplateIdRequest))]
+[JsonSerializable(typeof(CreateCodegenTemplateRequest))]
+[JsonSerializable(typeof(UpdateCodegenTemplateRequest))]
+[JsonSerializable(typeof(SetCodegenTemplateStatusRequest))]
+[JsonSerializable(typeof(CodegenTemplateIdsRequest))]
+[JsonSerializable(typeof(ValidateCodegenTemplateRequest))]
+[JsonSerializable(typeof(CodegenTemplateValidationResponse))]
 [JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
