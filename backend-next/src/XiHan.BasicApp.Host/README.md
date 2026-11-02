@@ -1,6 +1,6 @@
 # XiHan.BasicApp.Host
 
-6.0 宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` / `DatabaseSchedulingFeature` / `DatabaseLocalizationFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包；配了连接时另装 `RedisCachingFeature` + `HybridCachingFeature`（绑定 `cache`）与 `RabbitMQMessagingFeature`（绑定 `queue`），由 `HostProviders` 判定，没配即 Full Profile 的内存实现。
+6.0 宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` / `DatabaseSchedulingFeature` / `DatabaseWorkflowFeature` / `DatabaseLocalizationFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包；配了连接时另装 `RedisCachingFeature` + `HybridCachingFeature`（绑定 `cache`）与 `RabbitMQMessagingFeature`（绑定 `queue`），由 `HostProviders` 判定，没配即 Full Profile 的内存实现。
 
 | 端点 | 来源 |
 | --- | --- |

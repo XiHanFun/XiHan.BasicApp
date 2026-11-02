@@ -18,9 +18,9 @@ Workflow 是 Tier 3 可选模块，计划在 N3 与 Printing、CodeGeneration、
 
 | 部分 | 方案 |
 | --- | --- |
-| 存储 | SqlSugar 实现的三个存储（定义、实例、书签），或框架 `Workflow.Database`（四张表，基线已规划） |
-| 并发 | `ICacheStore` 租约锁 |
-| 多租户 | 逐库轮询书签：平台扫租户库按租户绑定分片，不在一个上下文里切换租户 |
+| 存储 | 宿主已装框架的 `Workflow.Database`：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），在调用方的工作单元里随业务提交或回滚；九张表进 6.0.0 基线，配置见[配置参考](../configuration#xihan-workflow) |
+| 并发 | 租约表 `workflow_lock_record` 上的实例锁；到期书签的轮询由持有 `workflow.poller` 领导权的节点做 |
+| 多租户 | 分区取自当前调用：平台调用只看平台分区，租户调用只看本租户；轮询器逐个分区自己开调用 |
 | 定义格式 | 直接是 5.0 的 `WorkflowJson`（节点 `properties`、`transitions`、`variables`、`outputMappings`、超时与补偿） |
 
 ### 业务接入

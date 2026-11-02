@@ -4,6 +4,12 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 数据库工作流（2026-11-02）
+
+- 宿主装上框架的数据库工作流，顶替内存实现：流程数据按平台与租户分区落表，在业务的事务里随业务提交或回滚。为 N3 第三批 Workflow 打底，页面与操作随后进来。
+- 6.0.0 基线新增 9 张表：`workflow_definition_record`、`workflow_instance_record`、`workflow_node_instance_record`、`workflow_bookmark_record`、对应的四张 `platform_workflow_*` 与租约表 `workflow_lock_record`。
+- 新配置 `XiHan:Workflow`；跑在 SQLite 上时必须把租约表放进另一个库文件（`Database:LockConnection`），见[配置参考](./configuration#xihan-workflow)。
+
 ### 框架升锁 c8636a7a（2026-11-02）
 
 - S3 兼容存储配置连不上时，实例照样建出并在后台重试，探明条件写入之前上传返回 503 `OBJECTSTORAGE_UNAVAILABLE_004`，服务恢复后自动可用（原来建不出实例、返回 `OBJECTSTORAGE_UNAVAILABLE_001`）；凭据被拒与桶不存在照旧建不出实例。见[文件与存储](./backend/file#存储配置)。

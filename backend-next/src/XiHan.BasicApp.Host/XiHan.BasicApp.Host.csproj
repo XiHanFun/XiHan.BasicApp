@@ -30,7 +30,7 @@
   <ItemGroup>
     <!-- Full 组合：Standard + 对象存储 / 调度 / 审计 / 工作流 / AI 工具的默认实现 + OpenTelemetry + 四种协议适配器 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Profiles.Full" />
-    <!-- 显式 Provider：SqlSugar、JWT、租户目录 / 授权 / 审计的数据库实现、发件箱 -->
+    <!-- 显式 Provider：SqlSugar、JWT、租户目录 / 授权 / 审计 / 调度 / 工作流的数据库实现、发件箱 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Ip2Region" />
@@ -38,6 +38,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Workflow.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
     <!-- 分布式 Provider：配了连接才装配（HostProviders），没配即 Full Profile 的内存实现 -->

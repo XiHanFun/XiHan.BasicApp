@@ -103,6 +103,68 @@ CREATE TABLE IF NOT EXISTS "permission_grant_record" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_permission_grant_record_suki_suid_pe_teid ON public.permission_grant_record USING btree (subject_kind, subject_id, permission, tenant_id);
 
+CREATE TABLE IF NOT EXISTS "platform_workflow_bookmark_record" (
+    "id" character varying(128) NOT NULL,
+    "instance_id" character varying(128) NOT NULL,
+    "node_instance_id" character varying(128) NOT NULL,
+    "node_id" character varying(128) DEFAULT NULL::character varying NULL,
+    "definition_name" character varying(256) DEFAULT NULL::character varying NULL,
+    "instance_status" character varying(32) DEFAULT NULL::character varying NULL,
+    "kind" character varying(64) NOT NULL,
+    "key" character varying(256) DEFAULT NULL::character varying NULL,
+    "correlation_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "due_at" timestamp with time zone NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "platform_workflow_bookmark_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_bookmark_record_duat ON public.platform_workflow_bookmark_record USING btree (due_at);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_bookmark_record_inid ON public.platform_workflow_bookmark_record USING btree (instance_id);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_bookmark_record_ki_ke ON public.platform_workflow_bookmark_record USING btree (kind, key);
+
+CREATE TABLE IF NOT EXISTS "platform_workflow_definition_record" (
+    "id" character varying(128) NOT NULL,
+    "name" character varying(256) NOT NULL,
+    "version" integer DEFAULT 0 NOT NULL,
+    "status" character varying(32) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "published_at" timestamp with time zone NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "platform_workflow_definition_record_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_platform_workflow_definition_record_na_ve ON public.platform_workflow_definition_record USING btree (name, version);
+
+CREATE TABLE IF NOT EXISTS "platform_workflow_instance_record" (
+    "id" character varying(128) NOT NULL,
+    "definition_id" character varying(128) NOT NULL,
+    "definition_name" character varying(256) NOT NULL,
+    "definition_version" integer DEFAULT 0 NOT NULL,
+    "status" character varying(32) NOT NULL,
+    "correlation_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "starter_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "parent_instance_id" character varying(128) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "ended_at" timestamp with time zone NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "platform_workflow_instance_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_instance_record_coid ON public.platform_workflow_instance_record USING btree (correlation_id);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_instance_record_crat ON public.platform_workflow_instance_record USING btree (created_at);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_instance_record_enat ON public.platform_workflow_instance_record USING btree (ended_at);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_instance_record_painid ON public.platform_workflow_instance_record USING btree (parent_instance_id);
+
+CREATE TABLE IF NOT EXISTS "platform_workflow_node_instance_record" (
+    "id" character varying(128) NOT NULL,
+    "instance_id" character varying(128) NOT NULL,
+    "started_at" timestamp with time zone NOT NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "platform_workflow_node_instance_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_platform_workflow_node_instance_record_inid ON public.platform_workflow_node_instance_record USING btree (instance_id);
+
 CREATE TABLE IF NOT EXISTS "scheduler_lease_entity" (
     "id" character varying(128) NOT NULL,
     "holder" character varying(256) NOT NULL,
@@ -1735,3 +1797,77 @@ CREATE TABLE IF NOT EXISTS "trigger_entity" (
 );
 CREATE INDEX IF NOT EXISTS ix_trigger_entity_st_lo_nefiat ON public.trigger_entity USING btree (state, local, next_fire_at);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_trigger_entity_jo_na ON public.trigger_entity USING btree (job, name);
+
+CREATE TABLE IF NOT EXISTS "workflow_bookmark_record" (
+    "id" character varying(128) NOT NULL,
+    "tenant_id" character varying(128) NOT NULL,
+    "instance_id" character varying(128) NOT NULL,
+    "node_instance_id" character varying(128) NOT NULL,
+    "node_id" character varying(128) DEFAULT NULL::character varying NULL,
+    "definition_name" character varying(256) DEFAULT NULL::character varying NULL,
+    "instance_status" character varying(32) DEFAULT NULL::character varying NULL,
+    "kind" character varying(64) NOT NULL,
+    "key" character varying(256) DEFAULT NULL::character varying NULL,
+    "correlation_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "due_at" timestamp with time zone NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "workflow_bookmark_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_workflow_bookmark_record_inid ON public.workflow_bookmark_record USING btree (instance_id);
+CREATE INDEX IF NOT EXISTS ix_workflow_bookmark_record_ki_ke ON public.workflow_bookmark_record USING btree (kind, key);
+CREATE INDEX IF NOT EXISTS ix_workflow_bookmark_record_teid_duat ON public.workflow_bookmark_record USING btree (tenant_id, due_at);
+
+CREATE TABLE IF NOT EXISTS "workflow_definition_record" (
+    "id" character varying(128) NOT NULL,
+    "tenant_id" character varying(128) NOT NULL,
+    "name" character varying(256) NOT NULL,
+    "version" integer DEFAULT 0 NOT NULL,
+    "status" character varying(32) NOT NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "published_at" timestamp with time zone NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "workflow_definition_record_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_workflow_definition_record_na_teid_ve ON public.workflow_definition_record USING btree (name, tenant_id, version);
+
+CREATE TABLE IF NOT EXISTS "workflow_instance_record" (
+    "id" character varying(128) NOT NULL,
+    "tenant_id" character varying(128) NOT NULL,
+    "definition_id" character varying(128) NOT NULL,
+    "definition_name" character varying(256) NOT NULL,
+    "definition_version" integer DEFAULT 0 NOT NULL,
+    "status" character varying(32) NOT NULL,
+    "correlation_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "starter_id" character varying(256) DEFAULT NULL::character varying NULL,
+    "parent_instance_id" character varying(128) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "ended_at" timestamp with time zone NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "workflow_instance_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_workflow_instance_record_coid ON public.workflow_instance_record USING btree (correlation_id);
+CREATE INDEX IF NOT EXISTS ix_workflow_instance_record_painid ON public.workflow_instance_record USING btree (parent_instance_id);
+CREATE INDEX IF NOT EXISTS ix_workflow_instance_record_teid_crat ON public.workflow_instance_record USING btree (tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_workflow_instance_record_teid_enat ON public.workflow_instance_record USING btree (tenant_id, ended_at);
+
+CREATE TABLE IF NOT EXISTS "workflow_lock_record" (
+    "id" character varying(128) NOT NULL,
+    "holder" character varying(256) NOT NULL,
+    "expires_at" timestamp with time zone NOT NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "workflow_lock_record_pkey" PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS "workflow_node_instance_record" (
+    "id" character varying(128) NOT NULL,
+    "tenant_id" character varying(128) NOT NULL,
+    "instance_id" character varying(128) NOT NULL,
+    "started_at" timestamp with time zone NOT NULL,
+    "sequence" bigint DEFAULT '0'::bigint NOT NULL,
+    "document" text NOT NULL,
+    CONSTRAINT "workflow_node_instance_record_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_workflow_node_instance_record_inid ON public.workflow_node_instance_record USING btree (instance_id);

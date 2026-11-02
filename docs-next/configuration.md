@@ -131,6 +131,20 @@
 - 各包与框架的语言文件嵌在程序集里，是消息目录。同名目录合并为一份（框架 ADR-0070）：区域与键取并集，同一键同一区域的模板不同即启动失败（`LOCALIZATION_CONFLICT_001`）。
 - 平台库表 `message_translation`（键、区域、模板）是运营覆盖的译文：每个回退区域先查数据库再查嵌入目录，所以同键同区域时数据库优先，没有的键照旧走嵌入目录与回退链。快照在宿主进入服务状态后加载、按刷新间隔重载，多实例各自刷新；健康项 `localization.database.translations`（加载失败为 Degraded，保留上一份快照）。维护译文的后台页面还没有。
 
+## `XiHan:Workflow`
+
+宿主恒装框架的数据库工作流（`DatabaseWorkflowFeature`，顶替 Full Profile 的内存实现）：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），另有一张租约表做实例锁与轮询领导权。全部键都有缺省值，写错值启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `LockTimeoutSeconds` | `10` | 等实例锁的上限，超过即 `WORKFLOW_TIMEOUT_001` |
+| `RetentionDays` | `0` | 已结束实例的保留天数，`0` 不自动清理 |
+| `Database:PollIntervalSeconds` | `1` | 到期书签（延时、超时、重试）的轮询周期 |
+| `Database:BatchSize` | `100` | 每个周期每个分区最多恢复的书签数 |
+| `Database:LockLeaseSeconds` | `60` | 租约时长，每三分之一续约一次 |
+| `Database:HolderId` | 机器名:进程 ID:随机 | 本节点在租约表里的标识 |
+| `Database:LockConnection` | 空（租约表在平台库） | 租约表所在的命名连接。**SQLite 必须配**：在 `XiHan:Persistence:SqlSugar:Connections:<名>` 声明另一个库文件，再把这里写成 `<名>`，否则业务事务与租约互相等到 `WORKFLOW_TIMEOUT_001`；PostgreSQL 不用配 |
+
 ## `XiHan:Auditing`
 
 | 键 | 值 | 说明 |

@@ -80,6 +80,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
 
     public static IEnumerable<KeyValuePair<string, string?>> Settings(string connectionString, string provider) =>
     [
+        .. WorkflowLeases(connectionString, provider),
         new("Logging:LogLevel:Default", "Warning"),
         new("XiHan:Bindings:db:type", "connection:relational"),
         new("XiHan:Bindings:db:value", connectionString),
@@ -87,6 +88,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Persistence:SqlSugar:InitTables", "true"),
         // 宿主用数据库调度：测试库是 SQLite，引擎每秒轮询会和用例的写入抢锁；拉长到 5 秒，作业相关的用例自己等同步
         new("XiHan:Scheduling:PollIntervalSeconds", "5"),
+        // 工作流的到期书签轮询同理拉长；用例要推进流程时自己调轮询器
+        new("XiHan:Workflow:Database:PollIntervalSeconds", "5"),
         new("XiHan:Security:Jwt:Secret", TestTokens.Secret),
         new("XiHan:Security:Jwt:Issuer", TestTokens.Issuer),
         new("XiHan:Security:Jwt:Audience", TestTokens.Audience),
@@ -102,6 +105,28 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         // 图形验证码缺省关：需要它的用例自己打开并换上固定码源
         new("BasicApp:Auth:CaptchaEnabled", "false"),
     ];
+
+    /// <summary>
+    /// SQLite 上工作流租约表的库。
+    /// </summary>
+    /// <remarks>
+    /// 租约的每一步自己提交，与业务事务不在一起：SQLite 只有一个写者，租约表与业务表同库时自己等自己直到 <c>WORKFLOW_TIMEOUT_001</c>。
+    /// 照框架的选项把租约表放进同目录的另一个库文件（<see cref="SqliteDatabase"/> 清理时一并删掉）；PostgreSQL 不用配。
+    /// </remarks>
+    internal static IEnumerable<KeyValuePair<string, string?>> WorkflowLeases(string connectionString, string provider)
+    {
+        const string prefix = "Data Source=";
+        if (!string.Equals(provider, "sqlite", StringComparison.OrdinalIgnoreCase) || !connectionString.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return [];
+        }
+
+        return
+        [
+            new("XiHan:Persistence:SqlSugar:Connections:leases", connectionString + SqliteDatabase.LeasesSuffix),
+            new("XiHan:Workflow:Database:LockConnection", "leases"),
+        ];
+    }
 
     /// <summary>
     /// 在一次独立调用（完整内核管道）里执行。

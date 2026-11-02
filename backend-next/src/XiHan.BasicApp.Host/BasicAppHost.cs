@@ -43,6 +43,7 @@ using XiHan.Framework.Protocols.Http.OpenApi;
 using XiHan.Framework.Protocols.Http.Routing;
 using XiHan.Framework.Protocols.Mcp.Transports;
 using XiHan.Framework.Scheduling.Database;
+using XiHan.Framework.Workflow.Database;
 using XiHan.Framework.Security.Database;
 using XiHan.Framework.Security.Ip2Region;
 using XiHan.Framework.Security.Jwt;
@@ -99,6 +100,8 @@ public static class BasicAppHost
             .UseFeature<DatabaseSecurityFeature>()
             .UseFeature<DatabaseAuditingFeature>()
             .UseFeature<DatabaseSchedulingFeature>()
+            // 工作流的数据库实现恒装，顶替 Full Profile 的内存实现：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），另有一张租约表
+            .UseFeature<DatabaseWorkflowFeature>()
             // 运营覆盖的译文存平台库：同键同区域时数据库的翻译优先，其余照旧走各包嵌入的语言文件与回退链；同名消息目录按框架 ADR-0070 合并
             .UseFeature<DatabaseLocalizationFeature>()
             // 本地存储的签名地址由宿主代收发（Files 的存储配置用框架的命名存储实例，S3 兼容存储自己签名）

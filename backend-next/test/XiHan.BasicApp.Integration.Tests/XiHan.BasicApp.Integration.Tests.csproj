@@ -21,6 +21,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Conformance" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Conformance" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Conformance" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Workflow.Conformance" />
   </ItemGroup>
 
   <ItemGroup>

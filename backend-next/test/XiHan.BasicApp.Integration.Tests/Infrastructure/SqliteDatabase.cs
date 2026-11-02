@@ -17,12 +17,20 @@ public sealed class SqliteDatabase : IDisposable
 
     public string ConnectionString => $"Data Source={Path}";
 
+    /// <summary>
+    /// 工作流租约表所在库文件的后缀（见 <see cref="BasicAppTestServer"/>）。
+    /// </summary>
+    public const string LeasesSuffix = ".leases";
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
-        foreach (var suffix in new[] { "", "-journal", "-wal", "-shm" })
+        foreach (var file in new[] { Path, Path + LeasesSuffix })
         {
-            DeleteWithRetry(Path + suffix);
+            foreach (var suffix in new[] { "", "-journal", "-wal", "-shm" })
+            {
+                DeleteWithRetry(file + suffix);
+            }
         }
     }
 
