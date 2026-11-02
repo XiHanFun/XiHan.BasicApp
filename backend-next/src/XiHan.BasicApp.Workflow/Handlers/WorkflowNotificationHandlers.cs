@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Contracts.Notification;
+using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Services;
@@ -21,12 +22,16 @@ namespace XiHan.BasicApp.Workflow.Handlers;
 /// <remarks>
 /// 照 4.x 的 <c>WorkflowNotificationDispatcher</c>：经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心；Notification 没装时不发，投递返回失败只记日志、不阻断流程（4.x 同）。
 /// 去重照设计稿 D7：第一次处理一条消息时在同一个事务里写回执，再投递时看到回执即跳过。
+/// 文案按收件人的界面语言出（<see cref="IUserLocales"/>，偏好里同步的语言），收件人按语言分组各投一条；没存语言的按这次调用的区域，
+/// 后台恢复流程时调用没有区域，落到缺省区域。
 /// </remarks>
 /// <param name="rows">按侧读写。</param>
 /// <param name="ids">ID 生成。</param>
 /// <param name="deliveries">站内待办投递（Notification 实现）。</param>
+/// <param name="locales">用户的界面语言。</param>
+/// <param name="texts">文案。</param>
 /// <param name="logger">日志。</param>
-public sealed partial class WorkflowNotifier(SideRows rows, IIdGenerator<Guid> ids, IEnumerable<IInboxDelivery> deliveries, ILogger<WorkflowNotifier> logger)
+public sealed partial class WorkflowNotifier(SideRows rows, IIdGenerator<Guid> ids, IEnumerable<IInboxDelivery> deliveries, IUserLocales locales, WorkflowTexts texts, ILogger<WorkflowNotifier> logger)
 {
     /// <summary>
     /// 审批中心「待我审批」。
@@ -72,26 +77,37 @@ public sealed partial class WorkflowNotifier(SideRows rows, IIdGenerator<Guid> i
     /// <summary>
     /// 给一组用户投一条待办类站内信。
     /// </summary>
+    /// <remarks>
+    /// 收件人按界面语言分组，每组按自己的区域出一次文案、投一条。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="users">收件人。</param>
-    /// <param name="title">标题。</param>
-    /// <param name="content">正文。</param>
+    /// <param name="render">按区域出标题与正文。</param>
     /// <param name="link">审批中心的链接。</param>
     /// <param name="businessId">业务 ID（任务或实例）。</param>
-    public async Task DeliverAsync(InvocationContext context, IReadOnlyCollection<Guid> users, string title, string content, string link, Guid businessId)
+    public async Task DeliverAsync(InvocationContext context, IReadOnlyCollection<Guid> users, Func<string, (string Title, string Content)> render, string link, Guid businessId)
     {
+        ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(users);
-        if (users.Count == 0)
+        ArgumentNullException.ThrowIfNull(render);
+        if (users.Count == 0 || !deliveries.Any())
         {
             return;
         }
 
-        foreach (var delivery in deliveries)
+        var preferred = await locales.PreferredAsync(users, context.CancellationToken).ConfigureAwait(false);
+        var fallback = texts.LocaleOf(context);
+        foreach (var group in users.Distinct().GroupBy(u => preferred.TryGetValue(u, out var locale) ? texts.Negotiate(locale) : fallback, StringComparer.Ordinal))
         {
-            var delivered = await delivery.DeliverAsync(context, new InboxMessage(users, title, content, link, BusinessType, businessId.ToString())).ConfigureAwait(false);
-            if (delivered.IsFailure)
+            var (title, content) = render(group.Key);
+            var recipients = group.ToList();
+            foreach (var delivery in deliveries)
             {
-                LogDeliveryFailed(logger, delivered.Error!.Code, businessId);
+                var delivered = await delivery.DeliverAsync(context, new InboxMessage(recipients, title, content, link, BusinessType, businessId.ToString())).ConfigureAwait(false);
+                if (delivered.IsFailure)
+                {
+                    LogDeliveryFailed(logger, delivered.Error!.Code, businessId);
+                }
             }
         }
     }
@@ -134,7 +150,7 @@ public sealed class TaskCreatedHandler(WorkflowNotifier notifier, WorkflowTaskRe
         var title = WorkflowPayload.Text(data.Payload, UserTaskPayloadKeys.Title) ?? instanceTitle;
         if (WorkflowIds.UserOf(data.AssigneeId) is { } assignee)
         {
-            await notifier.DeliverAsync(context, [assignee], texts.Render(context, WorkflowMessages.NotifyTodoTitle, ("title", title)), texts.Render(context, WorkflowMessages.NotifyTodoContent, ("instance", instanceTitle)), WorkflowNotifier.TodoLink, taskId).ConfigureAwait(false);
+            await notifier.DeliverAsync(context, [assignee], locale => (texts.Render(locale, WorkflowMessages.NotifyTodoTitle, ("title", title)), texts.Render(locale, WorkflowMessages.NotifyTodoContent, ("instance", instanceTitle))), WorkflowNotifier.TodoLink, taskId).ConfigureAwait(false);
         }
 
         var cc = (data.CcUserIds ?? []).Select(WorkflowIds.UserOf).OfType<Guid>().Distinct().ToList();
@@ -154,7 +170,7 @@ public sealed class TaskCreatedHandler(WorkflowNotifier notifier, WorkflowTaskRe
 
         var snapshot = new WorkflowTaskSnapshot(taskId, instanceId, data.DefinitionId, data.DefinitionName, instanceTitle, data.NodeId, title, data.CorrelationId);
         await records.AppendAsync(side, snapshot, recipients, WorkflowTaskRecordAction.CarbonCopied, null, null, null, cancellationToken).ConfigureAwait(false);
-        await notifier.DeliverAsync(context, recipients, texts.Render(context, WorkflowMessages.NotifyCcTitle, ("title", title)), texts.Render(context, WorkflowMessages.NotifyCcContent, ("instance", instanceTitle)), WorkflowNotifier.CcLink, taskId).ConfigureAwait(false);
+        await notifier.DeliverAsync(context, recipients, locale => (texts.Render(locale, WorkflowMessages.NotifyCcTitle, ("title", title)), texts.Render(locale, WorkflowMessages.NotifyCcContent, ("instance", instanceTitle))), WorkflowNotifier.CcLink, taskId).ConfigureAwait(false);
         return Result.Success();
     }
 }
@@ -185,10 +201,17 @@ public sealed class TaskTransferredHandler(WorkflowNotifier notifier, WorkflowTe
             return Result.Success();
         }
 
-        var content = string.IsNullOrWhiteSpace(data.Reason)
-            ? texts.Render(context, WorkflowMessages.NotifyTransferContent)
-            : texts.Render(context, WorkflowMessages.NotifyTransferContentWithComment, ("comment", data.Reason));
-        await notifier.DeliverAsync(context, [target], texts.Render(context, WorkflowMessages.NotifyTransferTitle), content, WorkflowNotifier.TodoLink, WorkflowIds.ToContract(data.TaskId)).ConfigureAwait(false);
+        var reason = data.Reason;
+        await notifier.DeliverAsync(
+            context,
+            [target],
+            locale => (
+                texts.Render(locale, WorkflowMessages.NotifyTransferTitle),
+                string.IsNullOrWhiteSpace(reason)
+                    ? texts.Render(locale, WorkflowMessages.NotifyTransferContent)
+                    : texts.Render(locale, WorkflowMessages.NotifyTransferContentWithComment, ("comment", reason))),
+            WorkflowNotifier.TodoLink,
+            WorkflowIds.ToContract(data.TaskId)).ConfigureAwait(false);
         return Result.Success();
     }
 }
@@ -223,8 +246,9 @@ public sealed class InstanceFaultedHandler(WorkflowNotifier notifier, WorkflowTe
         await notifier.DeliverAsync(
             context,
             [starter],
-            texts.Render(context, WorkflowMessages.NotifyFaultTitle, ("instance", instance)),
-            texts.Render(context, WorkflowMessages.NotifyFaultContent, ("instance", instance), ("reason", data.Fault?.Message ?? string.Empty)),
+            locale => (
+                texts.Render(locale, WorkflowMessages.NotifyFaultTitle, ("instance", instance)),
+                texts.Render(locale, WorkflowMessages.NotifyFaultContent, ("instance", instance), ("reason", data.Fault?.Message ?? string.Empty))),
             WorkflowNotifier.StartedLink,
             WorkflowIds.ToContract(data.InstanceId)).ConfigureAwait(false);
         return Result.Success();

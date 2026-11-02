@@ -17,18 +17,41 @@ namespace XiHan.BasicApp.Workflow.Domain.Services;
 /// 发出去的通知与写进库里的文案（作用域）。
 /// </summary>
 /// <remarks>
-/// 按发起调用的区域取消息目录里的文案（4.x 写死中文）；键都在 10 种区域里，取不到是缺陷，直接抛出。
+/// 按区域取消息目录里的文案（4.x 写死中文）：写进库里的按这次调用的区域，发给人的通知按收件人的界面语言（见 <see cref="Handlers.WorkflowNotifier"/>）；
+/// 键都在 10 种区域里，取不到是缺陷，直接抛出。
 /// </remarks>
 /// <param name="localizer">消息本地化。</param>
 public sealed class WorkflowTexts(IMessageLocalizer localizer)
 {
     /// <summary>
-    /// 取一条文案。
+    /// 按这次调用的区域取一条文案。
     /// </summary>
     public string Render(InvocationContext context, string key, params (string Name, object? Value)[] arguments)
+        => Render(LocaleOf(context), key, arguments);
+
+    /// <summary>
+    /// 这次调用的区域。
+    /// </summary>
+    /// <remarks>
+    /// 调用没带区域（如后台恢复流程）时为缺省区域。
+    /// </remarks>
+    public string LocaleOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        var locale = localizer.Options.Resolve(context);
+        return localizer.Options.Resolve(context);
+    }
+
+    /// <summary>
+    /// 把存下的语言与支持的区域协商。
+    /// </summary>
+    public string Negotiate(string locale) => localizer.Options.Negotiate([locale]);
+
+    /// <summary>
+    /// 按指定区域取一条文案。
+    /// </summary>
+    public string Render(string locale, string key, params (string Name, object? Value)[] arguments)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(locale);
         var values = arguments.ToDictionary(static a => a.Name, static a => a.Value, StringComparer.Ordinal);
         return localizer.Resolve(key, locale, values).TryGetValue(out var text)
             ? text.Text

@@ -84,6 +84,9 @@ public sealed class WorkflowApprovalsTests : IDisposable
             return instance.GetProperty("id").GetString()!;
         }
 
+        // 提醒按收件人偏好里的界面语言出文案：alice 存了日文，carol 没存，按这次调用的区域（没带即缺省英文）
+        var (savedLocale, _) = await SendAsync(server, HttpMethod.Put, "/api/user-settings", Json(new { scene = "Preference", key = "global", value = """{"xihan_locale":"ja-JP","theme":"dark"}""", clientId = "tests" }), tokens["alice"]);
+        Assert.Equal(HttpStatusCode.OK, savedLocale);
         var first = await StartAsync("doc-1");
 
         // 我的待办：受理人锁定为调用方，带节点、发起人与审批业务；关键字也匹配关联 ID
@@ -97,6 +100,8 @@ public sealed class WorkflowApprovalsTests : IDisposable
         await EventuallyAsync(async () => (await ListAsync(server, "approvals", tokens["carol"], suffix: "list-cc")).Count == 1);
         await EventuallyAsync(async () => (await InboxAsync(server, tokens["alice"])).Any(static i => i.GetProperty("link").GetString()!.StartsWith("/workflow/approvals?tab=todo", StringComparison.Ordinal)));
         await EventuallyAsync(async () => (await InboxAsync(server, tokens["carol"])).Any(static i => i.GetProperty("link").GetString() == "/workflow/approvals?tab=cc"));
+        Assert.Equal("承認待ち：Review request", (await InboxAsync(server, tokens["alice"])).Single(static i => i.GetProperty("link").GetString()!.StartsWith("/workflow/approvals?tab=todo", StringComparison.Ordinal)).GetProperty("title").GetString());
+        Assert.StartsWith("CC: ", (await InboxAsync(server, tokens["carol"])).Single(static i => i.GetProperty("link").GetString() == "/workflow/approvals?tab=cc").GetProperty("title").GetString(), StringComparison.Ordinal);
 
         // 详情按参与关系：受理人、被抄送人、发起人能看，别人 403
         Assert.Equal((HttpStatusCode.Forbidden, "WORKFLOW_DENIED_101"), Code(await SendAsync(server, HttpMethod.Get, $"/api/approvals/{first}", null, tokens["bob"])));

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ApprovalIntent } from './approval-intent'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, SchemaResource } from '~/components'
 import type { ResponseOf, WorkflowInstanceStatus } from '~/contracts'
 import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
@@ -10,6 +11,7 @@ import { approvals, WorkflowInstanceStatus as INSTANCE_STATUSES, tasks, toPageRe
 import { useTabs } from '~/hooks'
 import { formatDate } from '~/utils'
 import { instanceStatusTone, outcomeTone } from '../instances/instance-labels'
+import { stashApprovalIntent, takeApprovalIntent } from './approval-intent'
 import { instanceStatusLabel, outcomeLabel, recordActionLabel } from './approval-labels'
 import ApprovalDetailDrawer from './ApprovalDetailDrawer.vue'
 
@@ -66,16 +68,26 @@ function openDetail(instanceId: string, taskId: string | null = null) {
   drawerOpen.value = true
 }
 
+function applyIntent(intent: ApprovalIntent) {
+  if (intent.tab !== undefined)
+    activeTab.value = readTab(intent.tab)
+  if (intent.instanceId)
+    openDetail(intent.instanceId, intent.taskId ?? null)
+}
+
+// 去掉参数后页面按新地址重建：重建出来的实例先取走上一个实例记下的意图
+const carried = takeApprovalIntent()
+if (carried)
+  applyIntent(carried)
+
 // 深链参数只用一次：tab 选中页签（通知里的「去审批」），instanceId 打开该流程的详情（业务页的「查看审批」、工作台待办），
 // taskId 指明办哪一条待办。用完就从地址里去掉，标签停在 /workflow/approvals 上，切回来或刷新不会再弹出详情
 watch(() => [route.path, route.query.tab, route.query.instanceId, route.query.taskId] as const, ([path, tab, instanceId, taskId]) => {
   if (path !== ownPath || (tab === undefined && instanceId === undefined && taskId === undefined))
     return
-  if (tab !== undefined)
-    activeTab.value = readTab(tab)
-  const id = toStr(instanceId)
-  if (id)
-    openDetail(id, toStr(taskId) ?? null)
+  const intent: ApprovalIntent = { tab: tab === undefined ? undefined : readTab(tab), instanceId: toStr(instanceId), taskId: toStr(taskId) ?? null }
+  applyIntent(intent)
+  stashApprovalIntent(intent)
   void consumeQuery(['tab', 'instanceId', 'taskId'])
 }, { immediate: true })
 

@@ -98,6 +98,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<IRecipientSource, AllUsersRecipientSource>();
         context.Services.AddScoped<IRecipientSource, UserRecipientSource>();
         context.Services.AddScoped<IUserDirectory, UserDirectory>();
+        context.Services.AddScoped<IUserLocales, UserLocales>();
         // 通知偏好：Notification 发布与扇出时按它过滤接收人
         context.Services.AddScoped<INotificationPreferences, NotificationPreferences>();
         context.Services.AddScoped<ApiCredentialService>();
