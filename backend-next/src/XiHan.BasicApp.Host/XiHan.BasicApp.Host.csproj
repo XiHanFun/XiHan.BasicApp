@@ -26,6 +26,7 @@
     <ProjectReference Include="../XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.CodeGeneration/XiHan.BasicApp.CodeGeneration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

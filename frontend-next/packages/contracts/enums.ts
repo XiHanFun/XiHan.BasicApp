@@ -29,6 +29,12 @@ export type ChatMemberRole = (typeof ChatMemberRole)[number]
 export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'System'] as const
 export type ChatMessageType = (typeof ChatMessageType)[number]
 
+export const CodeGenDatabaseType = ['MySql', 'SqlServer', 'PostgreSql', 'Oracle', 'Sqlite'] as const
+export type CodeGenDatabaseType = (typeof CodeGenDatabaseType)[number]
+
+export const CodeGenStatus = ['Active', 'Disabled'] as const
+export type CodeGenStatus = (typeof CodeGenStatus)[number]
+
 export const ConditionDiagnostic = ['UnregisteredAttribute', 'LegacyName', 'InvalidCondition', 'BindingInactive'] as const
 export type ConditionDiagnostic = (typeof ConditionDiagnostic)[number]
 
@@ -304,6 +310,8 @@ export const enums = {
   ChatConversationType,
   ChatMemberRole,
   ChatMessageType,
+  CodeGenDatabaseType,
+  CodeGenStatus,
   ConditionDiagnostic,
   ConditionGroupConclusion,
   ConditionHitAction,

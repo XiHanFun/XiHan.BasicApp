@@ -46,6 +46,11 @@
       "description": "Message history and search; sending, recalling, editing, reacting, pinning, forwarding and attachments."
     },
     {
+      "name": "codegen-datasources",
+      "x-displayName": "Code generation data sources",
+      "description": "External databases to import table schemas from and to query in the no-code runtime; credentials are stored encrypted."
+    },
+    {
       "name": "condition-hits",
       "x-displayName": "Condition hits",
       "description": "Query condition hits: hits of access policies and permission conditions."
@@ -7456,6 +7461,1354 @@
                   },
                   "required": [
                     "messageId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources": {
+      "delete": {
+        "operationId": "codegen-datasources.delete",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Delete code generation data sources",
+        "description": "Delete data sources in a batch; sources still referenced by a table configuration are refused one by one.\n\nRequires permission codegeneration.codegen-datasources.delete (Delete code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u6570\u636E\u6E90 ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6570\u636E\u6E90 ID\uFF0C1 \u5230 100 \u4E2A\u3002",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "codegen-datasources.create",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Create a code generation data source",
+        "description": "Create an external data source: the name is unique, the password and the explicit connection string are stored encrypted, and making it the default clears the others.\n\nRequires permission codegeneration.codegen-datasources.create (Create code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-datasources.create \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateCodegenDatasourceRequest",
+                "description": "codegen-datasources.create \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "sourceName": {
+                    "description": "\u540D\u79F0\uFF08\u552F\u4E00\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "databaseType": {
+                    "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                    "$ref": "#/components/schemas/CodeGenDatabaseType"
+                  },
+                  "host": {
+                    "description": "\u4E3B\u673A\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "port": {
+                    "description": "\u7AEF\u53E3\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 65535
+                  },
+                  "databaseName": {
+                    "description": "\u5E93\u540D\uFF08SQLite \u662F\u5E93\u6587\u4EF6\u7684\u8DEF\u5F84\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "userName": {
+                    "description": "\u8D26\u53F7\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "password": {
+                    "description": "\u53E3\u4EE4\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "connectionString": {
+                    "description": "\u663E\u5F0F\u8FDE\u63A5\u4E32\uFF0C\u7ED9\u4E86\u5373\u4F18\u5148\u7528\u5B83\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "sourceDescription": {
+                    "description": "\u63CF\u8FF0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "extraParams": {
+                    "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "connectionTimeout": {
+                    "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 3600
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u521D\u59CB\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "sourceName",
+                  "databaseType",
+                  "host",
+                  "port",
+                  "databaseName",
+                  "userName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceDetailResponse",
+                  "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "sourceName": {
+                      "description": "\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "sourceDescription": {
+                      "description": "\u63CF\u8FF0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "host": {
+                      "description": "\u4E3B\u673A\u3002",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "\u7AEF\u53E3\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "databaseName": {
+                      "description": "\u5E93\u540D\u3002",
+                      "type": "string"
+                    },
+                    "userName": {
+                      "description": "\u8D26\u53F7\u3002",
+                      "type": "string"
+                    },
+                    "hasConnectionString": {
+                      "description": "\u662F\u5426\u8BBE\u4E86\u663E\u5F0F\u8FDE\u63A5\u4E32\u3002",
+                      "type": "boolean"
+                    },
+                    "extraParams": {
+                      "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "connectionTimeout": {
+                      "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastTestResult": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u662F\u5426\u6210\u529F\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "description": "\u521B\u5EFA\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "modifiedBy": {
+                      "description": "\u4FEE\u6539\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sourceName",
+                    "databaseType",
+                    "host",
+                    "port",
+                    "databaseName",
+                    "userName",
+                    "hasConnectionString",
+                    "connectionTimeout",
+                    "isDefault",
+                    "lastTestResult",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources/{id}": {
+      "get": {
+        "operationId": "codegen-datasources.get",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Get a code generation data source",
+        "description": "Get a data source with its account and connection settings; the password and the connection string are never returned, only whether an explicit connection string is set.\n\nRequires permission codegeneration.codegen-datasources.read (Read code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6570\u636E\u6E90 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6570\u636E\u6E90 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceDetailResponse",
+                  "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "sourceName": {
+                      "description": "\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "sourceDescription": {
+                      "description": "\u63CF\u8FF0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "host": {
+                      "description": "\u4E3B\u673A\u3002",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "\u7AEF\u53E3\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "databaseName": {
+                      "description": "\u5E93\u540D\u3002",
+                      "type": "string"
+                    },
+                    "userName": {
+                      "description": "\u8D26\u53F7\u3002",
+                      "type": "string"
+                    },
+                    "hasConnectionString": {
+                      "description": "\u662F\u5426\u8BBE\u4E86\u663E\u5F0F\u8FDE\u63A5\u4E32\u3002",
+                      "type": "boolean"
+                    },
+                    "extraParams": {
+                      "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "connectionTimeout": {
+                      "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastTestResult": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u662F\u5426\u6210\u529F\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "description": "\u521B\u5EFA\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "modifiedBy": {
+                      "description": "\u4FEE\u6539\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sourceName",
+                    "databaseType",
+                    "host",
+                    "port",
+                    "databaseName",
+                    "userName",
+                    "hasConnectionString",
+                    "connectionTimeout",
+                    "isDefault",
+                    "lastTestResult",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "codegen-datasources.update",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Update a code generation data source",
+        "description": "Update a data source; leave the password or the connection string empty to keep it, and send back the concurrency stamp you read. The cached connection is dropped and rebuilt on next use.\n\nRequires permission codegeneration.codegen-datasources.update (Update code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6570\u636E\u6E90 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6570\u636E\u6E90 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-datasources.update \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateCodegenDatasourceRequest",
+                "description": "codegen-datasources.update \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6570\u636E\u6E90 ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "sourceName": {
+                    "description": "\u540D\u79F0\uFF08\u552F\u4E00\uFF09\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "databaseType": {
+                    "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                    "$ref": "#/components/schemas/CodeGenDatabaseType"
+                  },
+                  "host": {
+                    "description": "\u4E3B\u673A\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "port": {
+                    "description": "\u7AEF\u53E3\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 65535
+                  },
+                  "databaseName": {
+                    "description": "\u5E93\u540D\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "userName": {
+                    "description": "\u8D26\u53F7\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "password": {
+                    "description": "\u53E3\u4EE4\uFF0C\u7559\u7A7A\u5373\u4E0D\u6539\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "connectionString": {
+                    "description": "\u663E\u5F0F\u8FDE\u63A5\u4E32\uFF0C\u7559\u7A7A\u5373\u4E0D\u6539\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "sourceDescription": {
+                    "description": "\u63CF\u8FF0\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "extraParams": {
+                    "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "connectionTimeout": {
+                    "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 3600
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7\u3002",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "sourceName",
+                  "databaseType",
+                  "host",
+                  "port",
+                  "databaseName",
+                  "userName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceDetailResponse",
+                  "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "sourceName": {
+                      "description": "\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "sourceDescription": {
+                      "description": "\u63CF\u8FF0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "host": {
+                      "description": "\u4E3B\u673A\u3002",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "\u7AEF\u53E3\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "databaseName": {
+                      "description": "\u5E93\u540D\u3002",
+                      "type": "string"
+                    },
+                    "userName": {
+                      "description": "\u8D26\u53F7\u3002",
+                      "type": "string"
+                    },
+                    "hasConnectionString": {
+                      "description": "\u662F\u5426\u8BBE\u4E86\u663E\u5F0F\u8FDE\u63A5\u4E32\u3002",
+                      "type": "boolean"
+                    },
+                    "extraParams": {
+                      "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "connectionTimeout": {
+                      "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastTestResult": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u662F\u5426\u6210\u529F\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "description": "\u521B\u5EFA\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "modifiedBy": {
+                      "description": "\u4FEE\u6539\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sourceName",
+                    "databaseType",
+                    "host",
+                    "port",
+                    "databaseName",
+                    "userName",
+                    "hasConnectionString",
+                    "connectionTimeout",
+                    "isDefault",
+                    "lastTestResult",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources/{id}:set-status": {
+      "post": {
+        "operationId": "codegen-datasources.set-status",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Enable or disable a code generation data source",
+        "description": "Enable or disable a data source; disabled sources cannot be used to read schemas or query data. Send back the concurrency stamp you read; a remark, when given, replaces the current one.\n\nRequires permission codegeneration.codegen-datasources.update (Update code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6570\u636E\u6E90 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6570\u636E\u6E90 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-datasources.set-status \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetCodegenDatasourceStatusRequest",
+                "description": "codegen-datasources.set-status \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6570\u636E\u6E90 ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233\u3002",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001\u3002",
+                    "$ref": "#/components/schemas/CodeGenStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8\u3002",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceDetailResponse",
+                  "description": "\u6570\u636E\u6E90\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "sourceName": {
+                      "description": "\u540D\u79F0\u3002",
+                      "type": "string"
+                    },
+                    "sourceDescription": {
+                      "description": "\u63CF\u8FF0\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "databaseType": {
+                      "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+                      "$ref": "#/components/schemas/CodeGenDatabaseType"
+                    },
+                    "host": {
+                      "description": "\u4E3B\u673A\u3002",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "\u7AEF\u53E3\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "databaseName": {
+                      "description": "\u5E93\u540D\u3002",
+                      "type": "string"
+                    },
+                    "userName": {
+                      "description": "\u8D26\u53F7\u3002",
+                      "type": "string"
+                    },
+                    "hasConnectionString": {
+                      "description": "\u662F\u5426\u8BBE\u4E86\u663E\u5F0F\u8FDE\u63A5\u4E32\u3002",
+                      "type": "boolean"
+                    },
+                    "extraParams": {
+                      "description": "\u62FC\u8FDE\u63A5\u4E32\u65F6\u9644\u52A0\u7684\u53C2\u6570\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "connectionTimeout": {
+                      "description": "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastTestResult": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u662F\u5426\u6210\u529F\u3002",
+                      "type": "boolean"
+                    },
+                    "lastTestMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u8BF4\u660E\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001\u3002",
+                      "$ref": "#/components/schemas/CodeGenStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "description": "\u521B\u5EFA\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "modifiedBy": {
+                      "description": "\u4FEE\u6539\u4EBA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "sourceName",
+                    "databaseType",
+                    "host",
+                    "port",
+                    "databaseName",
+                    "userName",
+                    "hasConnectionString",
+                    "connectionTimeout",
+                    "isDefault",
+                    "lastTestResult",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources/{id}:test-connection": {
+      "post": {
+        "operationId": "codegen-datasources.test-connection",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "Test a code generation data source connection",
+        "description": "Open and close one temporary connection with the current settings (disabled sources too) and record the time, result and message of this test; a failed connection is reported in the result, not as an error.\n\nRequires permission codegeneration.codegen-datasources.update (Update code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6570\u636E\u6E90 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u6570\u636E\u6E90 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-datasources.get \u4E0E test-connection \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CodegenDatasourceIdRequest",
+                "description": "codegen-datasources.get \u4E0E test-connection \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6570\u636E\u6E90 ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceTestResponse",
+                  "description": "\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u3002",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "description": "\u662F\u5426\u8FDE\u5F97\u4E0A\u3002",
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "description": "\u7ED3\u679C\u8BF4\u660E\uFF08\u6309\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "elapsedMilliseconds": {
+                      "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "elapsedMilliseconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources:list": {
+      "post": {
+        "operationId": "codegen-datasources.list",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "List code generation data sources",
+        "description": "Page through the external data sources used by code generation; filter by database type and status, search by name and description.\n\nRequires permission codegeneration.codegen-datasources.read (Read code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfCodegenDatasourceResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenDatasourceResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-datasources:options": {
+      "get": {
+        "operationId": "codegen-datasources.options",
+        "tags": [
+          "codegen-datasources"
+        ],
+        "summary": "List code generation data source options",
+        "description": "List every data source, disabled ones included, ordered by sort number and name, for drop-downs.\n\nRequires permission codegeneration.codegen-datasources.read (Read code generation data sources).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-datasources.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u6570\u636E\u6E90\u4E0B\u62C9\u9009\u9879\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenDatasourceOptionsResponse",
+                  "description": "\u6570\u636E\u6E90\u4E0B\u62C9\u9009\u9879\u3002",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5168\u90E8\u6570\u636E\u6E90\uFF0C\u6309\u6392\u5E8F\u53F7\u4E0E\u540D\u79F0\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenDatasourceResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -53061,6 +54414,134 @@
           "displayName"
         ]
       },
+      "CodeGenDatabaseType": {
+        "description": "\u6570\u636E\u6E90\u7684\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+        "type": "string",
+        "enum": [
+          "MySql",
+          "SqlServer",
+          "PostgreSql",
+          "Oracle",
+          "Sqlite"
+        ]
+      },
+      "CodeGenStatus": {
+        "description": "\u6570\u636E\u6E90\u3001\u8868\u914D\u7F6E\u3001\u5217\u914D\u7F6E\u4E0E\u6A21\u677F\u7684\u542F\u505C\u72B6\u6001\u3002",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
+      "CodegenDatasourceResponse": {
+        "description": "\u6570\u636E\u6E90\u7684\u5217\u8868\u9879\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceName": {
+            "description": "\u540D\u79F0\u3002",
+            "type": "string"
+          },
+          "sourceDescription": {
+            "description": "\u63CF\u8FF0\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "databaseType": {
+            "description": "\u6570\u636E\u5E93\u7C7B\u578B\u3002",
+            "$ref": "#/components/schemas/CodeGenDatabaseType"
+          },
+          "host": {
+            "description": "\u4E3B\u673A\u3002",
+            "type": "string"
+          },
+          "port": {
+            "description": "\u7AEF\u53E3\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "databaseName": {
+            "description": "\u5E93\u540D\u3002",
+            "type": "string"
+          },
+          "isDefault": {
+            "description": "\u662F\u5426\u7F3A\u7701\u6570\u636E\u6E90\u3002",
+            "type": "boolean"
+          },
+          "lastTestAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastTestResult": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u662F\u5426\u6210\u529F\u3002",
+            "type": "boolean"
+          },
+          "lastTestMessage": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C\u8BF4\u660E\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u72B6\u6001\u3002",
+            "$ref": "#/components/schemas/CodeGenStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE\u3002",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "sourceName",
+          "databaseType",
+          "host",
+          "port",
+          "databaseName",
+          "isDefault",
+          "lastTestResult",
+          "status",
+          "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
       "ConditionAttributeResponse": {
         "description": "\u6761\u4EF6\u5C5E\u6027\u76EE\u5F55\u91CC\u7684\u4E00\u9879\u3002",
         "type": "object",
@@ -63046,6 +64527,31 @@
         "displayName": "Send chat messages",
         "description": "Send, recall, edit, react to, pin, forward messages and upload attachments in conversations the caller belongs to."
       },
+      "codegeneration.codegen-datasources.create": {
+        "code": "codegeneration.codegen-datasources.create",
+        "displayName": "Create code generation data sources",
+        "description": "Create external data sources; the password and the connection string are stored encrypted."
+      },
+      "codegeneration.codegen-datasources.delete": {
+        "code": "codegeneration.codegen-datasources.delete",
+        "displayName": "Delete code generation data sources",
+        "description": "Delete data sources that no table configuration references."
+      },
+      "codegeneration.codegen-datasources.read": {
+        "code": "codegeneration.codegen-datasources.read",
+        "displayName": "Read code generation data sources",
+        "description": "View the external data sources used to import table schemas; passwords and connection strings are never returned."
+      },
+      "codegeneration.codegen-datasources.update": {
+        "code": "codegeneration.codegen-datasources.update",
+        "displayName": "Update code generation data sources",
+        "description": "Edit, enable or disable data sources and test their connections."
+      },
+      "codegeneration.codegen-tables.read": {
+        "code": "codegeneration.codegen-tables.read",
+        "displayName": "Read code generation tables",
+        "description": "Open the code generation page and view the imported table configurations."
+      },
       "files.files.create": {
         "code": "files.files.create",
         "displayName": "Upload files",
@@ -63842,6 +65348,12 @@
         "workflow-assignees",
         "workflow-definitions",
         "workflow-instances"
+      ]
+    },
+    {
+      "name": "Code generation",
+      "tags": [
+        "codegen-datasources"
       ]
     },
     {

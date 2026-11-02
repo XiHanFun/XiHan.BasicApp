@@ -4,6 +4,13 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### 代码生成：数据源（2026-11-03）
+
+- 新的可选模块 CodeGeneration（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开，只在平台一侧）：代码生成页（`/codegeneration/code-gen`）先有「数据源」页签，表配置、模板、生成历史随后补上。见[代码生成](./backend/code-generation)。
+- 外部数据源：新增、编辑、启停、删除与测试连接，与 5.x 相同；口令与连接串加密存储、不回显，编辑时留空即不改。与 5.x 不同：仍被表配置引用的数据源不能删除；测试连接要修改权限（5.x 只要查看权限）；编辑时连接串不再回填占位符（5.x 原样保存会把占位符存成连接串）；编辑弹窗里可以改状态。
+- 权限码 `codegeneration.codegen-datasources.{read,create,update,delete}` 与页面读权限 `codegeneration.codegen-tables.read`，只在平台一侧。
+- 6.0.0 基线多五张代码生成的表；已有的开发库重建即可。
+
 ### 框架升锁 7e556055（2026-11-03）
 
 - 流程定义发布不通过时，提示与问题都按看的人的语言显示，并直接打开设计器把问题标在对应的节点与连线上。

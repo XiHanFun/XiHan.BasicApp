@@ -5,6 +5,7 @@ using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Chat;
+using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host.Endpoints;
@@ -152,6 +153,11 @@ public static class BasicAppHost
             if (modules.Workflow)
             {
                 xihan.UseFeature<WorkflowFeature>();
+            }
+
+            if (modules.CodeGeneration)
+            {
+                xihan.UseFeature<CodeGenerationFeature>();
             }
         });
 

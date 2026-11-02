@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Chat;
+using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files;
 using XiHan.BasicApp.Host;
@@ -104,6 +105,7 @@ public static class Packages
         typeof(PrintingFeature).Assembly,
         typeof(ChatFeature).Assembly,
         typeof(WorkflowFeature).Assembly,
+        typeof(CodeGenerationFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

@@ -78,6 +78,14 @@ export const routes = {
   'chat-messages.search': { method: 'GET', template: '/api/chat-messages:search', path: [], query: ['conversationId', 'keyword', 'beforeMessageId', 'take'], success: 200 },
   'chat-messages.send': { method: 'POST', template: '/api/chat-messages:send', path: [], query: [], success: 200 },
   'chat-messages.unpin': { method: 'POST', template: '/api/chat-messages:unpin', path: [], query: [], success: 200 },
+  'codegen-datasources.create': { method: 'POST', template: '/api/codegen-datasources', path: [], query: [], success: 201 },
+  'codegen-datasources.delete': { method: 'DELETE', template: '/api/codegen-datasources', path: [], query: ['ids'], success: 200 },
+  'codegen-datasources.get': { method: 'GET', template: '/api/codegen-datasources/{id}', path: ['id'], query: [], success: 200 },
+  'codegen-datasources.list': { method: 'POST', template: '/api/codegen-datasources:list', path: [], query: [], success: 200 },
+  'codegen-datasources.options': { method: 'GET', template: '/api/codegen-datasources:options', path: [], query: [], success: 200 },
+  'codegen-datasources.set-status': { method: 'POST', template: '/api/codegen-datasources/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'codegen-datasources.test-connection': { method: 'POST', template: '/api/codegen-datasources/{id}:test-connection', path: ['id'], query: [], success: 200 },
+  'codegen-datasources.update': { method: 'PUT', template: '/api/codegen-datasources/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
@@ -548,6 +556,18 @@ export const chatMessages = {
   search: (request: RequestOf<'chat-messages.search'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.search'>, ResponseOf<'chat-messages.search'>>('chat-messages.search', routes['chat-messages.search'], request, options),
   send: (request: RequestOf<'chat-messages.send'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.send'>, ResponseOf<'chat-messages.send'>>('chat-messages.send', routes['chat-messages.send'], request, options),
   unpin: (request: RequestOf<'chat-messages.unpin'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.unpin'>, ResponseOf<'chat-messages.unpin'>>('chat-messages.unpin', routes['chat-messages.unpin'], request, options),
+}
+
+/** 资源 `codegen-datasources` 的操作。 */
+export const codegenDatasources = {
+  create: (request: RequestOf<'codegen-datasources.create'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.create'>, ResponseOf<'codegen-datasources.create'>>('codegen-datasources.create', routes['codegen-datasources.create'], request, options),
+  delete: (request: RequestOf<'codegen-datasources.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.delete'>, ResponseOf<'codegen-datasources.delete'>>('codegen-datasources.delete', routes['codegen-datasources.delete'], request, options),
+  get: (request: RequestOf<'codegen-datasources.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.get'>, ResponseOf<'codegen-datasources.get'>>('codegen-datasources.get', routes['codegen-datasources.get'], request, options),
+  list: (request: RequestOf<'codegen-datasources.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.list'>, ResponseOf<'codegen-datasources.list'>>('codegen-datasources.list', routes['codegen-datasources.list'], request, options),
+  options: (request: RequestOf<'codegen-datasources.options'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.options'>, ResponseOf<'codegen-datasources.options'>>('codegen-datasources.options', routes['codegen-datasources.options'], request, options),
+  setStatus: (request: RequestOf<'codegen-datasources.set-status'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.set-status'>, ResponseOf<'codegen-datasources.set-status'>>('codegen-datasources.set-status', routes['codegen-datasources.set-status'], request, options),
+  testConnection: (request: RequestOf<'codegen-datasources.test-connection'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.test-connection'>, ResponseOf<'codegen-datasources.test-connection'>>('codegen-datasources.test-connection', routes['codegen-datasources.test-connection'], request, options),
+  update: (request: RequestOf<'codegen-datasources.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.update'>, ResponseOf<'codegen-datasources.update'>>('codegen-datasources.update', routes['codegen-datasources.update'], request, options),
 }
 
 /** 资源 `condition-hits` 的操作。 */

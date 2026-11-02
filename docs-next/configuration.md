@@ -234,6 +234,7 @@
 | `Printing` | 打印模板 | 其他包登记的打印数据源没有消费方，见[打印模板](./backend/printing#开关) |
 | `Chat` | 在线聊天与聊天审计 | 聊天 Hub 与附件上传端点不映射，Organization 的部门归属事件没有订阅方，见[在线聊天](./backend/chat#开关) |
 | `Workflow` | 流程定义、流程实例与审批中心 | 引擎与九张表照旧（宿主恒装数据库工作流）；其他包登记的审批业务没有消费方，见[工作流](./backend/workflow#模块开关) |
+| `CodeGeneration` | 代码生成（只在平台一侧） | 五张表照样建；已登记的外部数据源连接不再建立，见[代码生成](./backend/code-generation#模块开关) |
 
 ## `BasicApp:Auth`
 

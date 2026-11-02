@@ -1533,6 +1533,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/codegen-datasources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a code generation data source
+         * @description Create an external data source: the name is unique, the password and the explicit connection string are stored encrypted, and making it the default clears the others.
+         *
+         *     Requires permission codegeneration.codegen-datasources.create (Create code generation data sources).
+         */
+        post: operations["codegen-datasources.create"];
+        /**
+         * Delete code generation data sources
+         * @description Delete data sources in a batch; sources still referenced by a table configuration are refused one by one.
+         *
+         *     Requires permission codegeneration.codegen-datasources.delete (Delete code generation data sources).
+         */
+        delete: operations["codegen-datasources.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-datasources/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a code generation data source
+         * @description Get a data source with its account and connection settings; the password and the connection string are never returned, only whether an explicit connection string is set.
+         *
+         *     Requires permission codegeneration.codegen-datasources.read (Read code generation data sources).
+         */
+        get: operations["codegen-datasources.get"];
+        /**
+         * Update a code generation data source
+         * @description Update a data source; leave the password or the connection string empty to keep it, and send back the concurrency stamp you read. The cached connection is dropped and rebuilt on next use.
+         *
+         *     Requires permission codegeneration.codegen-datasources.update (Update code generation data sources).
+         */
+        put: operations["codegen-datasources.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-datasources/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable a code generation data source
+         * @description Enable or disable a data source; disabled sources cannot be used to read schemas or query data. Send back the concurrency stamp you read; a remark, when given, replaces the current one.
+         *
+         *     Requires permission codegeneration.codegen-datasources.update (Update code generation data sources).
+         */
+        post: operations["codegen-datasources.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-datasources/{id}:test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test a code generation data source connection
+         * @description Open and close one temporary connection with the current settings (disabled sources too) and record the time, result and message of this test; a failed connection is reported in the result, not as an error.
+         *
+         *     Requires permission codegeneration.codegen-datasources.update (Update code generation data sources).
+         */
+        post: operations["codegen-datasources.test-connection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-datasources:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List code generation data sources
+         * @description Page through the external data sources used by code generation; filter by database type and status, search by name and description.
+         *
+         *     Requires permission codegeneration.codegen-datasources.read (Read code generation data sources).
+         */
+        post: operations["codegen-datasources.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-datasources:options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List code generation data source options
+         * @description List every data source, disabled ones included, ordered by sort number and name, for drop-downs.
+         *
+         *     Requires permission codegeneration.codegen-datasources.read (Read code generation data sources).
+         */
+        get: operations["codegen-datasources.options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/condition-hits/{id}": {
         parameters: {
             query?: never;
@@ -9109,6 +9253,71 @@ export interface components {
              * @description 头像文件（前端按它换签名地址显示）。
              */
             avatarFileId?: string | null;
+        };
+        /**
+         * @description 数据源的数据库类型。
+         * @enum {string}
+         */
+        CodeGenDatabaseType: "MySql" | "SqlServer" | "PostgreSql" | "Oracle" | "Sqlite";
+        /**
+         * @description 数据源、表配置、列配置与模板的启停状态。
+         * @enum {string}
+         */
+        CodeGenStatus: "Active" | "Disabled";
+        /** @description 数据源的列表项。 */
+        CodegenDatasourceResponse: {
+            /**
+             * Format: uuid
+             * @description 主键。
+             */
+            id: string;
+            /** @description 名称。 */
+            sourceName: string;
+            /** @description 描述。 */
+            sourceDescription?: string | null;
+            /** @description 数据库类型。 */
+            databaseType: components["schemas"]["CodeGenDatabaseType"];
+            /** @description 主机。 */
+            host: string;
+            /**
+             * Format: int32
+             * @description 端口。
+             */
+            port: number;
+            /** @description 库名。 */
+            databaseName: string;
+            /** @description 是否缺省数据源。 */
+            isDefault: boolean;
+            /**
+             * Format: date-time
+             * @description 最近一次测试连接的时间（UTC）。
+             */
+            lastTestAt?: string | null;
+            /** @description 最近一次测试连接是否成功。 */
+            lastTestResult: boolean;
+            /** @description 最近一次测试连接的结果说明。 */
+            lastTestMessage?: string | null;
+            /** @description 状态。 */
+            status: components["schemas"]["CodeGenStatus"];
+            /**
+             * Format: int32
+             * @description 排序号。
+             */
+            order: number;
+            /** @description 备注。 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回。 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）。
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）。
+             */
+            modifiedAt?: string | null;
         };
         /** @description 条件属性目录里的一项。 */
         ConditionAttributeResponse: {
@@ -17222,6 +17431,678 @@ export interface operations {
                          * @description 消息。
                          */
                         messageId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-datasources.create 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 名称（唯一）。 */
+                    sourceName: string;
+                    /** @description 数据库类型。 */
+                    databaseType: components["schemas"]["CodeGenDatabaseType"];
+                    /** @description 主机。 */
+                    host: string;
+                    /**
+                     * Format: int32
+                     * @description 端口。
+                     */
+                    port: number;
+                    /** @description 库名（SQLite 是库文件的路径）。 */
+                    databaseName: string;
+                    /** @description 账号。 */
+                    userName: string;
+                    /** @description 口令。 */
+                    password?: string | null;
+                    /** @description 显式连接串，给了即优先用它。 */
+                    connectionString?: string | null;
+                    /** @description 描述。 */
+                    sourceDescription?: string | null;
+                    /** @description 拼连接串时附加的参数。 */
+                    extraParams?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 连接超时（秒）。
+                     */
+                    connectionTimeout?: number;
+                    /** @description 是否缺省数据源。 */
+                    isDefault?: boolean;
+                    /** @description 初始状态。 */
+                    status?: components["schemas"]["CodeGenStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 数据源的详情。 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 名称。 */
+                        sourceName: string;
+                        /** @description 描述。 */
+                        sourceDescription?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /** @description 主机。 */
+                        host: string;
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
+                        port: number;
+                        /** @description 库名。 */
+                        databaseName: string;
+                        /** @description 账号。 */
+                        userName: string;
+                        /** @description 是否设了显式连接串。 */
+                        hasConnectionString: boolean;
+                        /** @description 拼连接串时附加的参数。 */
+                        extraParams?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 连接超时（秒）。
+                         */
+                        connectionTimeout: number;
+                        /** @description 是否缺省数据源。 */
+                        isDefault: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次测试连接的时间（UTC）。
+                         */
+                        lastTestAt?: string | null;
+                        /** @description 最近一次测试连接是否成功。 */
+                        lastTestResult: boolean;
+                        /** @description 最近一次测试连接的结果说明。 */
+                        lastTestMessage?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /** @description 创建人。 */
+                        createdBy?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                        /** @description 修改人。 */
+                        modifiedBy?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.delete": {
+        parameters: {
+            query: {
+                /** @description 数据源 ID，1 到 100 个。 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 数据源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 数据源的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 名称。 */
+                        sourceName: string;
+                        /** @description 描述。 */
+                        sourceDescription?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /** @description 主机。 */
+                        host: string;
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
+                        port: number;
+                        /** @description 库名。 */
+                        databaseName: string;
+                        /** @description 账号。 */
+                        userName: string;
+                        /** @description 是否设了显式连接串。 */
+                        hasConnectionString: boolean;
+                        /** @description 拼连接串时附加的参数。 */
+                        extraParams?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 连接超时（秒）。
+                         */
+                        connectionTimeout: number;
+                        /** @description 是否缺省数据源。 */
+                        isDefault: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次测试连接的时间（UTC）。
+                         */
+                        lastTestAt?: string | null;
+                        /** @description 最近一次测试连接是否成功。 */
+                        lastTestResult: boolean;
+                        /** @description 最近一次测试连接的结果说明。 */
+                        lastTestMessage?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /** @description 创建人。 */
+                        createdBy?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                        /** @description 修改人。 */
+                        modifiedBy?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 数据源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-datasources.update 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 名称（唯一）。 */
+                    sourceName: string;
+                    /** @description 数据库类型。 */
+                    databaseType: components["schemas"]["CodeGenDatabaseType"];
+                    /** @description 主机。 */
+                    host: string;
+                    /**
+                     * Format: int32
+                     * @description 端口。
+                     */
+                    port: number;
+                    /** @description 库名。 */
+                    databaseName: string;
+                    /** @description 账号。 */
+                    userName: string;
+                    /** @description 口令，留空即不改。 */
+                    password?: string | null;
+                    /** @description 显式连接串，留空即不改。 */
+                    connectionString?: string | null;
+                    /** @description 描述。 */
+                    sourceDescription?: string | null;
+                    /** @description 拼连接串时附加的参数。 */
+                    extraParams?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 连接超时（秒）。
+                     */
+                    connectionTimeout?: number;
+                    /** @description 是否缺省数据源。 */
+                    isDefault?: boolean;
+                    /**
+                     * Format: int32
+                     * @description 排序号。
+                     */
+                    order?: number;
+                    /** @description 备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 数据源的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 名称。 */
+                        sourceName: string;
+                        /** @description 描述。 */
+                        sourceDescription?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /** @description 主机。 */
+                        host: string;
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
+                        port: number;
+                        /** @description 库名。 */
+                        databaseName: string;
+                        /** @description 账号。 */
+                        userName: string;
+                        /** @description 是否设了显式连接串。 */
+                        hasConnectionString: boolean;
+                        /** @description 拼连接串时附加的参数。 */
+                        extraParams?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 连接超时（秒）。
+                         */
+                        connectionTimeout: number;
+                        /** @description 是否缺省数据源。 */
+                        isDefault: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次测试连接的时间（UTC）。
+                         */
+                        lastTestAt?: string | null;
+                        /** @description 最近一次测试连接是否成功。 */
+                        lastTestResult: boolean;
+                        /** @description 最近一次测试连接的结果说明。 */
+                        lastTestMessage?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /** @description 创建人。 */
+                        createdBy?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                        /** @description 修改人。 */
+                        modifiedBy?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 数据源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-datasources.set-status 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID。
+                     */
+                    id: string;
+                    /** @description 读到的并发戳。 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态。 */
+                    status: components["schemas"]["CodeGenStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注。 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 数据源的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键。
+                         */
+                        id: string;
+                        /** @description 名称。 */
+                        sourceName: string;
+                        /** @description 描述。 */
+                        sourceDescription?: string | null;
+                        /** @description 数据库类型。 */
+                        databaseType: components["schemas"]["CodeGenDatabaseType"];
+                        /** @description 主机。 */
+                        host: string;
+                        /**
+                         * Format: int32
+                         * @description 端口。
+                         */
+                        port: number;
+                        /** @description 库名。 */
+                        databaseName: string;
+                        /** @description 账号。 */
+                        userName: string;
+                        /** @description 是否设了显式连接串。 */
+                        hasConnectionString: boolean;
+                        /** @description 拼连接串时附加的参数。 */
+                        extraParams?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 连接超时（秒）。
+                         */
+                        connectionTimeout: number;
+                        /** @description 是否缺省数据源。 */
+                        isDefault: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次测试连接的时间（UTC）。
+                         */
+                        lastTestAt?: string | null;
+                        /** @description 最近一次测试连接是否成功。 */
+                        lastTestResult: boolean;
+                        /** @description 最近一次测试连接的结果说明。 */
+                        lastTestMessage?: string | null;
+                        /** @description 状态。 */
+                        status: components["schemas"]["CodeGenStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号。
+                         */
+                        order: number;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回。 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）。
+                         */
+                        createdAt: string;
+                        /** @description 创建人。 */
+                        createdBy?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）。
+                         */
+                        modifiedAt?: string | null;
+                        /** @description 修改人。 */
+                        modifiedBy?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 数据源 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-datasources.get 与 test-connection 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 数据源 ID。
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 测试连接的结果。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 是否连得上。 */
+                        success: boolean;
+                        /** @description 结果说明（按调用方的区域）。 */
+                        message?: string | null;
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
+                        elapsedMilliseconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CodegenDatasourceResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-datasources.options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 数据源下拉选项。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 全部数据源，按排序号与名称。 */
+                        items: components["schemas"]["CodegenDatasourceResponse"][];
                     };
                 };
             };

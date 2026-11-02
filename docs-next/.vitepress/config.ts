@@ -91,7 +91,7 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["系统设置", "settings"],
       ["表结构升级（不做 5.x 迁移）", "upgrade"],
       ["开放平台", "open-api"],
-      ["代码生成（规划中 · N3）", "code-generation"],
+      ["代码生成", "code-generation"],
       ["AI 能力（规划中 · N4）", "ai"],
       ["工作台（6.0 新增）", "workbench"],
     ]),

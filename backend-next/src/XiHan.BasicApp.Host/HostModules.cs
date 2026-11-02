@@ -41,12 +41,20 @@ public sealed record HostModules
     public bool Workflow { get; init; } = true;
 
     /// <summary>
+    /// 代码生成模块。
+    /// </summary>
+    /// <remarks>
+    /// 只在平台一侧：数据源、表与列配置、模板、生成与零代码只读运行时。
+    /// </remarks>
+    public bool CodeGeneration { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取。
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow"), CodeGeneration = Enabled(configuration, "CodeGeneration") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)
