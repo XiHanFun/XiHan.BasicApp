@@ -8,7 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '~/request'
 import { setDisplayTimeZone } from '~/utils'
-import { chatErrorText, formatConversationTime, formatFileSize, formatMessageTime, messageBodyLabel } from './components/chat-helpers'
+import { chatErrorText, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, messageBodyLabel } from './components/chat-helpers'
 
 /** 测试用翻译器：直接回显 key，便于断言走到了 i18n 分支 */
 function echoTranslate(key: string): string {
@@ -264,6 +264,19 @@ describe('formatFileSize 文件大小', () => {
   it('小数位按四舍五入保留一位', () => {
     expect(formatFileSize(1280)).toBe('1.3 KB')
     expect(formatFileSize(1074)).toBe('1.0 KB')
+  })
+})
+
+describe('hasReadReceipt', () => {
+  it('助手会话不显示已读回执（助手不读消息）', () => {
+    expect(hasReadReceipt('Assistant')).toBe(false)
+  })
+
+  it('单聊、群聊、部门群照常显示；会话还没加载时不拦', () => {
+    expect(hasReadReceipt('Single')).toBe(true)
+    expect(hasReadReceipt('Group')).toBe(true)
+    expect(hasReadReceipt('Department')).toBe(true)
+    expect(hasReadReceipt(undefined)).toBe(true)
   })
 })
 

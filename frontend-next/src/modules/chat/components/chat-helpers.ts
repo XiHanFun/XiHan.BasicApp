@@ -3,7 +3,7 @@
 import type {
   ChatMessageAttachment,
 } from '../types'
-import type { ChatMessageType } from '~/contracts'
+import type { ChatConversationType, ChatMessageType } from '~/contracts'
 import { ApiError } from '~/request'
 import { formatDateTime, getDisplayTimeZone } from '~/utils'
 
@@ -17,6 +17,11 @@ export function chatErrorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
   return error instanceof Error ? error.message : ''
+}
+
+/** 这类会话显示不显示已读回执：助手不读消息，助手会话不显示（否则永远是「未读」），其余照常 */
+export function hasReadReceipt(conversationType: ChatConversationType | undefined): boolean {
+  return conversationType !== 'Assistant'
 }
 
 /** 消息正文/附件的简短标签（回复引用、搜索命中、置顶预览用）：多图/多文件带数量 */

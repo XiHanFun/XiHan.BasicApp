@@ -23,7 +23,7 @@ import {
   CHAT_EDIT_WINDOW_MINUTES,
   CHAT_RECALL_WINDOW_MINUTES,
 } from '../types'
-import { chatErrorText, formatMessageTime, messageBodyLabel } from './chat-helpers'
+import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
@@ -150,10 +150,10 @@ const pinnedList = computed(() =>
 const announcementFirstLine = computed(() =>
   (conversation.value?.announcement ?? '').split('\n')[0] ?? '')
 
-/** 本人消息已读回执：已读位加载前为 null（不显示） */
+/** 本人消息已读回执：已读位加载前为 null（不显示），助手会话也是 null */
 function readCountOf(item: ChatLocalMessage): null | number {
   const id = conversationId.value
-  if (!id || item.senderUserId !== currentUserId.value) {
+  if (!id || item.senderUserId !== currentUserId.value || !hasReadReceipt(conversation.value?.conversationType)) {
     return null
   }
   if (!chatStore.readPositions[id]) {
