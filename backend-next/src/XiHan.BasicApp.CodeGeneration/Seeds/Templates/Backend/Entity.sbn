@@ -47,3 +47,22 @@ public sealed partial class {{ ClassName }} : TenantScopedAuditedEntity
     public {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.IsString && !col.IsNullableType }} = string.Empty;{{ end }}{{ if col.IsBinary && !col.IsNullableType }} = [];{{ end }}
 {{~ end ~}}
 }
+{{~ if StatusEnum ~}}
+
+/// <summary>
+/// {{ DisplayName | xml_doc }}的启停状态。
+/// </summary>
+[GeneratedCode("XiHan.CodeGen", "6.0")]
+public enum {{ StatusEnum }}
+{
+    /// <summary>
+    /// 启用。
+    /// </summary>
+    Active = 0,
+
+    /// <summary>
+    /// 停用。
+    /// </summary>
+    Disabled = 1,
+}
+{{~ end ~}}

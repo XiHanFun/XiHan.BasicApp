@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "列「{column}」选了关联树，但「{target}」不是配好 Guid 父级列的树表。",
   "codegeneration.generate.relation_label_invalid": "关联列「{column}」的显示列「{label}」没选、不在关联的表里或不是文本。",
   "codegeneration.generate.unique_unsupported": "列「{column}」勾了唯一，但 {type} 类型做不了唯一校验。",
-  "codegeneration.generate.status_missing": "表「{table}」勾了状态切换，但没有选了启停枚举（有 Active 与 Disabled）的列。",
+  "codegeneration.generate.status_missing": "表「{table}」勾了状态切换，但没有选了启停枚举（有 Active 与 Disabled）的列。新建实体时，属性名为 Status、没选枚举的整数列也可以，启停枚举由生成器出。",
   "codegeneration.generate.status_ambiguous": "有多列启停枚举（{columns}），定不下状态切换用哪一列：把状态列的属性名定为 Status。",
   "codegeneration.generate.status_not_listed": "状态列「{column}」要进列表：行内启停按列表里的状态值切换。",
   "codegeneration.generate.tree_parent_invalid": "树表「{table}」的父级列「{column}」没配、不在列配置里或不是 Guid。",

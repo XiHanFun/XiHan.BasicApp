@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "La columna '{column}' es una relación de árbol pero '{target}' no es una tabla de árbol con columna padre Guid.",
   "codegeneration.generate.relation_label_invalid": "La columna de visualización '{label}' de la relación '{column}' no está definida, no existe en la tabla o no es texto.",
   "codegeneration.generate.unique_unsupported": "La columna '{column}' está marcada como única pero el tipo {type} no admite esa comprobación.",
-  "codegeneration.generate.status_missing": "La tabla '{table}' tiene el cambio de estado activado pero ninguna columna usa un enum con Active y Disabled.",
+  "codegeneration.generate.status_missing": "La tabla '{table}' tiene el cambio de estado activado pero ninguna columna usa un enum con Active y Disabled. En una entidad nueva también sirve una columna entera llamada Status sin enum; el generador crea entonces el enum.",
   "codegeneration.generate.status_ambiguous": "Varias columnas usan un enum con Active y Disabled ({columns}); llame Status a la propiedad de estado.",
   "codegeneration.generate.status_not_listed": "La columna de estado '{column}' debe mostrarse en la lista: el interruptor de fila cambia según ese valor.",
   "codegeneration.generate.tree_parent_invalid": "Tabla de árbol '{table}': la columna padre '{column}' no está definida, no está configurada o no es Guid.",

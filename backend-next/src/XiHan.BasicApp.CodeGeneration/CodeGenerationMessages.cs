@@ -319,7 +319,7 @@ public static class CodeGenerationMessages
     public const string GenerateUniqueUnsupported = "codegeneration.generate.unique_unsupported";
 
     /// <summary>
-    /// 勾了状态切换却没有启停枚举的列（参数 <c>table</c>）。
+    /// 勾了状态切换却没有可用的状态列（参数 <c>table</c>）。
     /// </summary>
     public const string GenerateStatusMissing = "codegeneration.generate.status_missing";
 

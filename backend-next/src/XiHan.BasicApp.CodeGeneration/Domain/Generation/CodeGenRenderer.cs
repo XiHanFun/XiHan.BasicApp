@@ -111,6 +111,8 @@ public static class CodeGenRenderer
             ["IsTree"] = context.TreeParentColumn is not null,
             ["PrimaryKey"] = context.PrimaryKey is null ? null : byName[context.PrimaryKey],
             ["StatusColumn"] = context.StatusColumn is null ? null : byName[context.StatusColumn],
+            // 生成器在实体里出的启停枚举名（整数状态列没选枚举时），没有为空
+            ["StatusEnum"] = context.StatusColumn?.Enum is { IsGenerated: true } statusEnum ? statusEnum.ShortName : null,
             ["TreeParentColumn"] = context.TreeParentColumn is null ? null : byName[context.TreeParentColumn],
             ["TreeNameColumn"] = context.TreeNameColumn is null ? null : byName[context.TreeNameColumn],
             ["Columns"] = columns,

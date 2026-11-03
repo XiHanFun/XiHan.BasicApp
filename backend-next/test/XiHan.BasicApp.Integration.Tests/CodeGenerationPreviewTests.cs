@@ -116,13 +116,13 @@ public sealed class CodeGenerationPreviewTests : IDisposable
     private async Task<(JsonElement Product, JsonElement Category)> PrepareShopAsync(BasicAppTestServer server, string admin, string target)
     {
         Execute(
-            "CREATE TABLE biz_category (id TEXT PRIMARY KEY NOT NULL, parent_id TEXT NULL, name VARCHAR(50) NOT NULL, tenant_id VARCHAR(64) NOT NULL, created_at DATETIME NOT NULL, is_deleted INTEGER NOT NULL)",
+            "CREATE TABLE biz_category (id TEXT PRIMARY KEY NOT NULL, parent_id TEXT NULL, name VARCHAR(50) NOT NULL, status INTEGER NOT NULL, tenant_id VARCHAR(64) NOT NULL, created_at DATETIME NOT NULL, is_deleted INTEGER NOT NULL)",
             "CREATE TABLE biz_product (id TEXT PRIMARY KEY NOT NULL, product_code VARCHAR(30) NOT NULL, product_name VARCHAR(100) NOT NULL, price DECIMAL(18,2) NULL, on_sale BOOLEAN NOT NULL, category_id TEXT NULL, remark TEXT NULL, tenant_id VARCHAR(64) NOT NULL, created_at DATETIME NOT NULL, is_deleted INTEGER NOT NULL)");
         var (imported, _) = await SendAsync(server, HttpMethod.Post, "/api/codegen-tables:import", """{"tableNames":["biz_category","biz_product"]}""", admin);
         Assert.Equal(HttpStatusCode.OK, imported.StatusCode);
 
         var category = await DetailOfAsync(server, admin, "biz_category");
-        await UpdateTableAsync(server, admin, category, ("className", "Category"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("templateType", "Tree"), ("treeParentColumn", "parent_id"), ("treeNameColumn", "name"));
+        await UpdateTableAsync(server, admin, category, ("className", "Category"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("templateType", "Tree"), ("treeParentColumn", "parent_id"), ("treeNameColumn", "name"), ("enabledActions", "create,update,delete,status"));
         category = await DetailOfAsync(server, admin, "biz_category");
         await SaveColumnsAsync(server, admin, category, InputOf(Column(category, "parent_id"), ("cSharpType", "Guid?")));
         category = await DetailOfAsync(server, admin, "biz_category");
@@ -249,6 +249,15 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("\"categories.tree\"", tree[Package + "Operations/Categories/GetCategoryTree.cs"], StringComparison.Ordinal);
         Assert.Contains("ParentAllowedAsync", tree[Package + "Operations/Categories/UpdateCategory.cs"], StringComparison.Ordinal);
         Assert.Contains("ShopErrors.CategoryHasChildren", tree[Package + "Operations/Categories/DeleteCategories.cs"], StringComparison.Ordinal);
+
+        // 整数状态列没选枚举：生成器在实体里出 <类>Status（Active 0、Disabled 1），状态列与启停请求都用它
+        var categoryEntity = tree[Package + "Domain/Entities/Category.Generated.cs"];
+        Assert.Contains("public enum CategoryStatus", categoryEntity, StringComparison.Ordinal);
+        Assert.Contains("public XiHan.BasicApp.Shop.Domain.Entities.CategoryStatus Status { get; set; }", categoryEntity, StringComparison.Ordinal);
+        Assert.EndsWith("}\n", categoryEntity.ReplaceLineEndings("\n"), StringComparison.Ordinal);
+        Assert.Contains("XiHan.BasicApp.Shop.Domain.Entities.CategoryStatus Status)", tree[Package + "Operations/Categories/CategoryContracts.Generated.cs"], StringComparison.Ordinal);
+        Assert.True(tree.ContainsKey(Package + "Operations/Categories/SetCategoryStatus.cs"));
+        Assert.DoesNotContain("public enum", files[Package + "Domain/Entities/Product.Generated.cs"], StringComparison.Ordinal);
     }
 
     [Fact]

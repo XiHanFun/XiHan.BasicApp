@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "欄位「{column}」選了關聯樹，但「{target}」不是設好 Guid 父級欄位的樹表。",
   "codegeneration.generate.relation_label_invalid": "關聯欄位「{column}」的顯示欄位「{label}」沒選、不在關聯的表裡或不是文字。",
   "codegeneration.generate.unique_unsupported": "欄位「{column}」勾了唯一，但 {type} 型別做不了唯一校驗。",
-  "codegeneration.generate.status_missing": "表「{table}」勾了狀態切換，但沒有選了啟停列舉（有 Active 與 Disabled）的欄位。",
+  "codegeneration.generate.status_missing": "表「{table}」勾了狀態切換，但沒有選了啟停列舉（有 Active 與 Disabled）的欄位。新建實體時，屬性名為 Status、沒選列舉的整數欄位也可以，啟停列舉由產生器輸出。",
   "codegeneration.generate.status_ambiguous": "有多個欄位是啟停列舉（{columns}），定不下狀態切換用哪一欄：把狀態欄的屬性名定為 Status。",
   "codegeneration.generate.status_not_listed": "狀態欄「{column}」要進列表：列內啟停按列表裡的狀態值切換。",
   "codegeneration.generate.tree_parent_invalid": "樹表「{table}」的父級欄位「{column}」沒設、不在欄位設定裡或不是 Guid。",

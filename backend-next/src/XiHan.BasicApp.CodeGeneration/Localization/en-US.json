@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "Column '{column}' is a tree relation but '{target}' is not a tree table with a Guid parent column.",
   "codegeneration.generate.relation_label_invalid": "The display column '{label}' of relation column '{column}' is not set, not in the related table, or not text.",
   "codegeneration.generate.unique_unsupported": "Column '{column}' is marked unique but its type {type} cannot be checked for uniqueness.",
-  "codegeneration.generate.status_missing": "Table '{table}' has the status toggle enabled but no column uses an enum with Active and Disabled.",
+  "codegeneration.generate.status_missing": "Table '{table}' has the status toggle enabled but no column uses an enum with Active and Disabled. For a new entity an integer column named Status with no enum also works; the generator then emits the enum.",
   "codegeneration.generate.status_ambiguous": "Several columns use an enum with Active and Disabled ({columns}); name the status property Status.",
   "codegeneration.generate.status_not_listed": "Status column '{column}' must be shown in the list: the row toggle switches by the listed value.",
   "codegeneration.generate.tree_parent_invalid": "Tree table '{table}': the parent column '{column}' is not set, not in the column configuration, or not Guid.",

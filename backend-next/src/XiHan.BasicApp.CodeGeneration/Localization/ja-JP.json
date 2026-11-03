@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "列「{column}」はツリー関連ですが、「{target}」は Guid の親列を持つツリーテーブルではありません。",
   "codegeneration.generate.relation_label_invalid": "関連列「{column}」の表示列「{label}」が未設定、関連テーブルにない、または文字列ではありません。",
   "codegeneration.generate.unique_unsupported": "列「{column}」は一意ですが、型 {type} では一意性を検査できません。",
-  "codegeneration.generate.status_missing": "テーブル「{table}」は状態切り替えが有効ですが、Active と Disabled を持つ列挙の列がありません。",
+  "codegeneration.generate.status_missing": "テーブル「{table}」は状態切り替えが有効ですが、Active と Disabled を持つ列挙の列がありません。新しいエンティティなら、列挙を選んでいない Status という名前の整数列でもよく、列挙はジェネレーターが出力します。",
   "codegeneration.generate.status_ambiguous": "Active と Disabled を持つ列挙の列が複数あります（{columns}）。状態の列のプロパティ名を Status にしてください。",
   "codegeneration.generate.status_not_listed": "状態列「{column}」は一覧に表示してください。行内の切り替えは一覧の値で行います。",
   "codegeneration.generate.tree_parent_invalid": "ツリーテーブル「{table}」の親列「{column}」が未設定、列設定にない、または Guid ではありません。",

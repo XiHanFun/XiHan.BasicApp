@@ -23,6 +23,11 @@ public sealed record CodeGenEnumFacts(string ShortName, string Namespace, string
     /// 是否启停枚举：有 <c>Active</c> 与 <c>Disabled</c> 两个成员（6.0 各包状态枚举的写法）。
     /// </summary>
     public bool IsActiveDisabled => Members.Contains("Active", StringComparer.Ordinal) && Members.Contains("Disabled", StringComparer.Ordinal);
+
+    /// <summary>
+    /// 是否由生成器在实体里产出（整数状态列没选枚举时）。
+    /// </summary>
+    public bool IsGenerated { get; init; }
 }
 
 /// <summary>

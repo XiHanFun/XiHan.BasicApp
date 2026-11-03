@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "La colonne « {column} » est une relation d’arbre mais « {target} » n’est pas une table arborescente avec une colonne parent Guid.",
   "codegeneration.generate.relation_label_invalid": "La colonne d’affichage « {label} » de la relation « {column} » est absente, hors de la table liée ou non textuelle.",
   "codegeneration.generate.unique_unsupported": "La colonne « {column} » est marquée unique mais le type {type} ne permet pas ce contrôle.",
-  "codegeneration.generate.status_missing": "La table « {table} » active le changement de statut mais aucune colonne n’utilise une énumération avec Active et Disabled.",
+  "codegeneration.generate.status_missing": "La table « {table} » active le changement de statut mais aucune colonne n’utilise une énumération avec Active et Disabled. Pour une nouvelle entité, une colonne entière nommée Status sans énumération convient aussi ; le générateur crée alors l’énumération.",
   "codegeneration.generate.status_ambiguous": "Plusieurs colonnes utilisent une énumération avec Active et Disabled ({columns}) ; nommez la propriété de statut Status.",
   "codegeneration.generate.status_not_listed": "La colonne de statut « {column} » doit figurer dans la liste : la bascule de ligne se fait selon cette valeur.",
   "codegeneration.generate.tree_parent_invalid": "Table arborescente « {table} » : la colonne parent « {column} » est absente, non configurée ou pas un Guid.",

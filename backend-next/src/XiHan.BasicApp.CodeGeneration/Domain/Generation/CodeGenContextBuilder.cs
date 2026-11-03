@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>BuildContextAsync</c>：树表、主从与关联的结构字段在这里解析成列模型，解析不出来即报错、不静默降级（否则模板渲染出引用了不存在属性的代码，要到编译时才暴露）。
-/// 与 4.x 不同（6.0 的写法）：主键是 Guid，树表的父级列与关联列要 <c>Guid</c>（4.x 要 long）；状态切换要一列启停枚举（有 <c>Active</c> 与 <c>Disabled</c>，4.x 是全局的 <c>EnableStatus</c>）；
+/// 与 4.x 不同（6.0 的写法）：主键是 Guid，树表的父级列与关联列要 <c>Guid</c>（4.x 要 long）；状态切换要一列启停枚举（有 <c>Active</c> 与 <c>Disabled</c>，4.x 是全局的 <c>EnableStatus</c>），新建实体时属性名为 <c>Status</c>、没选枚举的整数列由生成器在实体里出 <c>&lt;类&gt;Status</c>；
 /// 包名、资源名、权限码与页面码由包的命名空间与类名推出；父菜单去掉（页面登记在包的 <c>Pages</c> 里）。
 /// </remarks>
 /// <param name="tableService">表配置服务。</param>
@@ -333,10 +333,20 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return column is null ? null : Invalid(CodeGenerationMessages.GenerateUniqueUnsupported, ("column", column.ColumnName), ("type", column.CSharpType));
     }
 
-    // 状态列：启停枚举的业务列，有属性名 Status 的取它，否则要恰好一列；行内启停按列表里的值切换，要进列表
+    // 状态列：启停枚举的业务列，有属性名 Status 的取它，否则要恰好一列；行内启停按列表里的值切换，要进列表。
+    // 一列也没有时，属性名为 Status、没选枚举的整数列由生成器在实体里出 <类>Status（Active 0、Disabled 1，同各包的状态枚举）；沿用已有实体时实体是手写的，不出
     private static Error? ResolveStatus(SysCodeGenTable table, CodeGenContext context)
     {
         var candidates = context.Columns.Where(static c => c.IsBusiness && c.Enum is { IsActiveDisabled: true }).ToList();
+        if (candidates.Count == 0
+            && context.ExistingEntity is null
+            && context.Columns.FirstOrDefault(static c => c.IsBusiness && c.CSharpProperty == "Status" && string.IsNullOrWhiteSpace(c.EnumTypeName) && c.CSharpType.TrimEnd('?') is "int" or "long" or "short" or "byte") is { } integer)
+        {
+            integer.Enum = new CodeGenEnumFacts(table.ClassName + "Status", context.EntityNamespace, context.Namespace, ["Active", "Disabled"]) { IsGenerated = true };
+            integer.CSharpType = integer.Enum.ShortName + (integer.CSharpType.EndsWith('?') ? "?" : string.Empty);
+            candidates.Add(integer);
+        }
+
         var status = candidates.FirstOrDefault(static c => c.CSharpProperty == "Status") ?? (candidates.Count == 1 ? candidates[0] : null);
         if (status is null)
         {

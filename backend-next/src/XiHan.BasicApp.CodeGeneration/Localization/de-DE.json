@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "Spalte '{column}' ist eine Baumverknüpfung, aber '{target}' ist keine Baumtabelle mit Guid-Elternspalte.",
   "codegeneration.generate.relation_label_invalid": "Die Anzeigespalte '{label}' der Verknüpfung '{column}' fehlt, ist nicht in der verknüpften Tabelle oder kein Text.",
   "codegeneration.generate.unique_unsupported": "Spalte '{column}' ist als eindeutig markiert, aber der Typ {type} lässt sich nicht auf Eindeutigkeit prüfen.",
-  "codegeneration.generate.status_missing": "Tabelle '{table}' hat den Statuswechsel aktiviert, aber keine Spalte nutzt eine Aufzählung mit Active und Disabled.",
+  "codegeneration.generate.status_missing": "Tabelle '{table}' hat den Statuswechsel aktiviert, aber keine Spalte nutzt eine Aufzählung mit Active und Disabled. Bei einer neuen Entität genügt auch eine Ganzzahlspalte namens Status ohne Aufzählung; die Aufzählung erzeugt dann der Generator.",
   "codegeneration.generate.status_ambiguous": "Mehrere Spalten nutzen eine Aufzählung mit Active und Disabled ({columns}); nennen Sie die Statuseigenschaft Status.",
   "codegeneration.generate.status_not_listed": "Die Statusspalte '{column}' muss in der Liste stehen: der Zeilenschalter wechselt nach dem angezeigten Wert.",
   "codegeneration.generate.tree_parent_invalid": "Baumtabelle '{table}': die Elternspalte '{column}' fehlt, ist nicht konfiguriert oder kein Guid.",

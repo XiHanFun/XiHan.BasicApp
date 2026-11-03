@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "Столбец «{column}» — древовидная связь, но «{target}» не является деревом со столбцом родителя Guid.",
   "codegeneration.generate.relation_label_invalid": "Столбец отображения «{label}» связи «{column}» не задан, отсутствует в связанной таблице или не текстовый.",
   "codegeneration.generate.unique_unsupported": "Столбец «{column}» помечен уникальным, но тип {type} не поддерживает такую проверку.",
-  "codegeneration.generate.status_missing": "В таблице «{table}» включено переключение статуса, но нет столбца с перечислением, содержащим Active и Disabled.",
+  "codegeneration.generate.status_missing": "В таблице «{table}» включено переключение статуса, но нет столбца с перечислением, содержащим Active и Disabled. Для новой сущности подойдёт и целочисленный столбец Status без перечисления — перечисление создаст генератор.",
   "codegeneration.generate.status_ambiguous": "Несколько столбцов используют перечисление с Active и Disabled ({columns}); назовите свойство статуса Status.",
   "codegeneration.generate.status_not_listed": "Столбец статуса «{column}» должен быть в списке: переключатель строки работает по этому значению.",
   "codegeneration.generate.tree_parent_invalid": "Дерево «{table}»: столбец родителя «{column}» не задан, отсутствует в конфигурации или не Guid.",

@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "A coluna '{column}' é uma relação de árvore mas '{target}' não é uma tabela de árvore com coluna pai Guid.",
   "codegeneration.generate.relation_label_invalid": "A coluna de exibição '{label}' da relação '{column}' não foi definida, não está na tabela ou não é texto.",
   "codegeneration.generate.unique_unsupported": "A coluna '{column}' está marcada como única mas o tipo {type} não permite essa verificação.",
-  "codegeneration.generate.status_missing": "A tabela '{table}' ativa a troca de status mas nenhuma coluna usa um enum com Active e Disabled.",
+  "codegeneration.generate.status_missing": "A tabela '{table}' ativa a troca de status mas nenhuma coluna usa um enum com Active e Disabled. Numa entidade nova, uma coluna inteira chamada Status sem enum também serve; o gerador cria então o enum.",
   "codegeneration.generate.status_ambiguous": "Várias colunas usam um enum com Active e Disabled ({columns}); nomeie a propriedade de status como Status.",
   "codegeneration.generate.status_not_listed": "A coluna de status '{column}' deve aparecer na lista: a alternância por linha usa esse valor.",
   "codegeneration.generate.tree_parent_invalid": "Tabela de árvore '{table}': a coluna pai '{column}' não foi definida, não está configurada ou não é Guid.",

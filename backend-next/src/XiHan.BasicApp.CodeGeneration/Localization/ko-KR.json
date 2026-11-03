@@ -114,7 +114,7 @@
   "codegeneration.generate.relation_tree_invalid": "열 '{column}'은(는) 트리 관계이지만 '{target}'은(는) Guid 상위 열이 있는 트리 테이블이 아닙니다.",
   "codegeneration.generate.relation_label_invalid": "관계 열 '{column}'의 표시 열 '{label}'이(가) 없거나 관련 테이블에 없거나 텍스트가 아닙니다.",
   "codegeneration.generate.unique_unsupported": "열 '{column}'은(는) 고유로 지정되었지만 {type} 형식은 고유성을 검사할 수 없습니다.",
-  "codegeneration.generate.status_missing": "테이블 '{table}'은(는) 상태 전환이 켜져 있지만 Active와 Disabled가 있는 열거형 열이 없습니다.",
+  "codegeneration.generate.status_missing": "테이블 '{table}'은(는) 상태 전환이 켜져 있지만 Active와 Disabled가 있는 열거형 열이 없습니다. 새 엔터티라면 열거형을 고르지 않은 Status라는 정수 열도 되며, 열거형은 생성기가 만듭니다.",
   "codegeneration.generate.status_ambiguous": "Active와 Disabled가 있는 열거형 열이 여러 개입니다({columns}). 상태 속성 이름을 Status로 지정하세요.",
   "codegeneration.generate.status_not_listed": "상태 열 '{column}'은(는) 목록에 표시해야 합니다. 행 전환은 목록의 값으로 합니다.",
   "codegeneration.generate.tree_parent_invalid": "트리 테이블 '{table}'의 상위 열 '{column}'이(가) 없거나 열 설정에 없거나 Guid가 아닙니다.",
