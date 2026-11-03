@@ -1,0 +1,493 @@
+{{~ # 预计算控件需求标志（只引用到的组件才 import，免得 eslint 报未使用） ~}}
+{{~ has_form_field = false ~}}
+{{~ has_text_input = false ~}}
+{{~ has_number = false ~}}
+{{~ has_switch = false ~}}
+{{~ has_select = false ~}}
+{{~ has_typed_select = false ~}}
+{{~ has_dict_select = false ~}}
+{{~ has_upload = false ~}}
+{{~ has_relation_select = false ~}}
+{{~ has_relation_tree = false ~}}
+{{~ has_parent = false ~}}
+{{~ has_date_picker = false ~}}
+{{~ has_time_input = false ~}}
+{{~ # 控件由渲染器的 col.ControlKind 单点决定（switch / select / treeselect / date / datetime / time / image / file / number / binary / textarea / text） ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ if col.ControlKind == "switch" ~}}
+{{~ has_switch = true ~}}
+{{~ else if col.ControlKind == "select" ~}}
+{{~ # 关联表的候选随目标表增长，用可输入筛选的 XCombobox；其余下拉选项有限，仍用 XSelect ~}}
+{{~ if col.Relation ~}}
+{{~ has_relation_select = true ~}}
+{{~ else ~}}
+{{~ has_select = true ~}}
+{{~ end ~}}
+{{~ if col.OptionsKind == "dict" ~}}
+{{~ has_dict_select = true ~}}
+{{~ end ~}}
+{{~ if col.OptionsKind == "const" || col.OptionsKind == "enum" ~}}
+{{~ has_typed_select = true ~}}
+{{~ end ~}}
+{{~ else if col.ControlKind == "treeselect" ~}}
+{{~ has_relation_tree = true ~}}
+{{~ else if col.ControlKind == "treeparent" ~}}
+{{~ has_parent = true ~}}
+{{~ else if col.ControlKind == "date" || col.ControlKind == "datetime" ~}}
+{{~ has_date_picker = true ~}}
+{{~ else if col.ControlKind == "image" || col.ControlKind == "file" ~}}
+{{~ has_upload = true ~}}
+{{~ else if col.ControlKind == "number" ~}}
+{{~ has_number = true ~}}
+{{~ else ~}}
+{{~ has_text_input = true ~}}
+{{~ if col.ControlKind == "time" ~}}
+{{~ has_time_input = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ has_required = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm && col.FormEmptyCheck ~}}
+{{~ has_required = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ has_validation = has_required || has_time_input ~}}
+{{~ # 操作裁剪（勾选的操作门控；一列都不进表单时不产弹窗与增改按钮：空表单没有意义，且会留下未被引用的 import） ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
+{{~ can_update = CanUpdate && has_form_field ~}}
+{{~ has_modal = can_create || can_update ~}}
+{{~ has_row_action = can_update || CanDelete || CanStatus || CanPrint ~}}
+{{~ has_actions = can_create || has_row_action ~}}
+{{~ # 保存、删除、启停后刷新列表；只开打印时不需要 ~}}
+{{~ has_reload = has_modal || CanDelete || CanStatus ~}}
+{{~ need_toast = has_actions ~}}
+{{~ ui_imports = [] ~}}
+{{~ if has_modal ~}}
+{{~ ui_imports = ["XhFieldControl", "XhFieldErrorText", "XhFieldLabel", "XhFieldRoot", "XhFormRoot"] ~}}
+{{~ if has_switch ~}}
+{{~ ui_imports = ui_imports | array.add "XhSwitch" ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ component_imports = ["SchemaPage"] ~}}
+{{~ if has_modal ~}}
+{{~ component_imports = component_imports | array.add "XEditModal" ~}}
+{{~ if has_relation_select ~}}
+{{~ component_imports = component_imports | array.add "XCombobox" ~}}
+{{~ end ~}}
+{{~ if has_date_picker ~}}
+{{~ component_imports = component_imports | array.add "XDatePicker" ~}}
+{{~ end ~}}
+{{~ if has_upload ~}}
+{{~ component_imports = component_imports | array.add "XFileRefUpload" ~}}
+{{~ end ~}}
+{{~ if has_text_input ~}}
+{{~ component_imports = component_imports | array.add "XInput" ~}}
+{{~ end ~}}
+{{~ if has_number ~}}
+{{~ component_imports = component_imports | array.add "XNumberInput" ~}}
+{{~ end ~}}
+{{~ if has_select ~}}
+{{~ component_imports = component_imports | array.add "XSelect" ~}}
+{{~ end ~}}
+{{~ if has_relation_tree || has_parent ~}}
+{{~ component_imports = component_imports | array.add "XTreeSelect" ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ composable_imports = [] ~}}
+{{~ if need_toast ~}}
+{{~ composable_imports = composable_imports | array.add "toast" ~}}
+{{~ end ~}}
+{{~ if has_modal && (has_relation_select || has_relation_tree) ~}}
+{{~ composable_imports = composable_imports | array.add "useAsyncOptions" ~}}
+{{~ end ~}}
+{{~ if has_modal && has_dict_select ~}}
+{{~ composable_imports = composable_imports | array.add "useDictOptions" ~}}
+{{~ end ~}}
+{{~ schema_imports = ["actions", "fields", "pageMeta", "resource"] ~}}
+{{~ if has_modal ~}}
+{{~ schema_imports = schema_imports | array.add "createDefaultForm" ~}}
+{{~ end ~}}
+{{~ if can_create ~}}
+{{~ schema_imports = schema_imports | array.add "toCreateRequest" ~}}
+{{~ end ~}}
+{{~ if can_update ~}}
+{{~ schema_imports = schema_imports | array.add "toFormModel" ~}}
+{{~ schema_imports = schema_imports | array.add "toUpdateRequest" ~}}
+{{~ end ~}}
+{{~ if has_parent ~}}
+{{~ schema_imports = schema_imports | array.add "toParentOptions" ~}}
+{{~ end ~}}
+{{~ for col in Columns ~}}
+{{~ if has_modal && col.InForm && (col.OptionsKind == "relation" || col.OptionsKind == "tree") ~}}
+{{~ schema_imports = schema_imports | array.add ("load" + col.CSharpProperty + "Options") ~}}
+{{~ else if has_modal && col.InForm && col.OptionsKind == "enum" ~}}
+{{~ schema_imports = schema_imports | array.add (col.Field + "Options") ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ api_imports = [] ~}}
+{{~ if has_modal ~}}
+{{~ api_imports = api_imports | array.add (ResourceCamel + " as " + ResourceCamel + "Api") ~}}
+{{~ end ~}}
+<!--
+  {{ DisplayName | html_comment }}管理页（树形）
+
+  本文件只在首次生成时创建，重新生成时不会覆盖：页面结构与表单标记可以放心改。
+  列定义与表单缺省值来自 ./{{ Resource }}.schema.ts（它在生成的 base* 之上做 transform，随表结构变化更新）；
+  要增删列或改渲染，改那个文件而不是这里。树形取数走 resource.tree（嵌套、不分页），上级候选复用同一份树。文案键在 {{ I18nPrefix }} 下。
+-->
+<script lang="ts" setup>
+{{~ if has_modal || has_row_action ~}}
+import type { {{ if has_modal }}{{ ClassName }}FormModel, {{ end }}{{ ClassName }}Row } from './{{ Resource }}.schema'
+{{~ end ~}}
+import type { PageSchema{{ if has_actions }}, SchemaActionPayload, SchemaPageInstance{{ end }} } from '~/components'
+{{~ if has_modal && (has_typed_select || has_parent) ~}}
+import type { {{ if has_typed_select }}SelectOption{{ end }}{{ if has_typed_select && has_parent }}, {{ end }}{{ if has_parent }}TreeSelectOption{{ end }} } from '~/types'
+{{~ end ~}}
+{{~ if (ui_imports | array.size) > 0 ~}}
+import { {{ ui_imports | sort_names | array.join ", " }} } from '@xihan-ui/vue'
+{{~ end ~}}
+import { computed{{ if has_modal }}, reactive{{ end }}, ref{{ if has_modal }}, useId{{ end }} } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { {{ component_imports | sort_names | array.join ", " }} } from '~/components'
+{{~ if (composable_imports | array.size) > 0 ~}}
+import { {{ composable_imports | sort_names | array.join ", " }} } from '~/composables'
+{{~ end ~}}
+{{~ if (api_imports | array.size) > 0 ~}}
+import { {{ api_imports | sort_names | array.join ", " }} } from '~/contracts'
+{{~ end ~}}
+{{~ if CanPrint ~}}
+import { previewPrintByCode } from '~/printing'
+{{~ end ~}}
+{{~ if has_modal ~}}
+import { ApiError } from '~/request'
+{{~ end ~}}
+{{~ if has_modal && has_relation_tree ~}}
+import { relationOptionsToTree } from '~/utils'
+{{~ end ~}}
+import { {{ schema_imports | sort_names | array.join ", " }} } from './{{ Resource }}.schema'
+
+defineOptions({ name: '{{ ModuleName }}{{ ResourcePascal }}View' })
+
+const { t } = useI18n()
+{{~ if has_actions ~}}
+
+const schemaPageRef = ref<SchemaPageInstance | null>(null)
+{{~ end ~}}
+{{~ if has_reload ~}}
+
+function reload() {
+  void schemaPageRef.value?.reload()
+}
+{{~ end ~}}
+
+/** 上级候选的数据源：与表格共用同一次树查询 */
+const treeRows = ref<{{ ClassName }}Row[]>([])
+const pageResource = resource(rows => (treeRows.value = rows))
+
+const schema = computed<PageSchema>(() => ({
+  ...pageMeta,
+  pageName: t('{{ I18nPrefix }}.title'),
+  fields: fields(t),
+{{~ if has_actions ~}}
+  actions: actions(t),
+{{~ end ~}}
+  resource: pageResource as unknown as PageSchema['resource'],
+}))
+{{~ if has_actions ~}}
+
+// ── 行 / 页面操作分发 ──
+// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
+function onAction(payload: SchemaActionPayload) {
+{{~ if has_row_action ~}}
+  const row = payload.row as {{ ClassName }}Row | undefined
+{{~ end ~}}
+  switch (payload.key) {
+{{~ if can_create ~}}
+    case 'create':
+      startCreate()
+      break
+{{~ end ~}}
+{{~ if can_update ~}}
+    case 'edit':
+      if (row)
+        startEdit(row)
+      break
+{{~ end ~}}
+{{~ if CanStatus ~}}
+    case 'toggle':
+      if (row)
+        void toggleStatus(row)
+      break
+{{~ end ~}}
+{{~ if CanPrint ~}}
+    case 'print':
+      if (row)
+        void printRow(row)
+      break
+{{~ end ~}}
+{{~ if CanDelete ~}}
+    case 'delete':
+      if (row)
+        void removeRow(row)
+      break
+{{~ end ~}}
+  }
+}
+{{~ end ~}}
+{{~ if CanDelete ~}}
+
+async function removeRow(row: {{ ClassName }}Row) {
+  try {
+    await pageResource.remove?.(row.id)
+    toast.success(t('common.messages.delete_success'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.delete_failed'))
+  }
+}
+{{~ end ~}}
+{{~ if CanStatus ~}}
+
+async function toggleStatus(row: {{ ClassName }}Row) {
+  try {
+    await pageResource.updateStatus?.(row.id, row.{{ StatusColumn.Field }} !== 'Active')
+    toast.success(t('common.messages.status_updated'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.status_failed'))
+  }
+}
+{{~ end ~}}
+{{~ if CanPrint ~}}
+
+/**
+ * 打印：选项列换成显示名称，按页面码取打印模板预览。
+ * 模板在「打印模板」页新建，编码同为页面码、数据源选本页。
+ */
+async function printRow(row: {{ ClassName }}Row) {
+  try {
+    const data: Record<string, unknown> = { ...row, ...schemaPageRef.value?.formatRow(row) }
+    await previewPrintByCode(pageMeta.pageCode, data)
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('{{ I18nPrefix }}.print_failed'))
+  }
+}
+{{~ end ~}}
+{{~ if has_modal ~}}
+
+// ── 编辑弹窗：新建与编辑共用；字段级错误挂回对应字段，其余错误给整条提示 ──
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
+const editFormId = useId()
+const editorOpen = ref(false)
+const editing = ref<{{ ClassName }}Row | null>(null)
+const form = reactive<{{ ClassName }}FormModel>(createDefaultForm())
+const fieldErrors = ref<Record<string, string[]>>({})
+const submitError = ref<string | null>(null)
+const submitting = ref(false)
+const isEdit = computed(() => editing.value !== null)
+const modalTitle = computed(() => (isEdit.value ? t('{{ I18nPrefix }}.edit_title') : t('{{ I18nPrefix }}.create_title')))
+{{~ if has_parent ~}}
+
+/** 上级候选：编辑时去掉节点自己连同整棵子树，免得挂到自己的子树下成环 */
+const parentOptions = computed<TreeSelectOption[]>(() => toParentOptions(treeRows.value, editing.value?.id))
+{{~ end ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm && col.ControlKind == "select" && col.OptionsKind == "const" ~}}
+
+/** {{ col.Label | block_comment }}的常量选项 */
+const {{ col.Field }}ConstOptions: SelectOption[] = {{ col.ConstValues | select_options col.Label col.TsType }}
+{{~ else if col.InForm && col.ControlKind == "select" && col.OptionsKind == "enum" ~}}
+
+/** {{ col.Label | block_comment }}的选项（枚举 {{ col.EnumShortName }}） */
+const {{ col.Field }}SelectOptions = computed<SelectOption[]>(() => {{ col.Field }}Options(t))
+{{~ else if col.InForm && col.ControlKind == "select" && col.OptionsKind == "relation" ~}}
+
+/** {{ col.Label | block_comment }}的选项（关联{{ col.Relation.Label | block_comment }}，选中值为其主键） */
+const {{ col.Field }}Options = useAsyncOptions(load{{ col.CSharpProperty }}Options)
+{{~ else if col.InForm && col.ControlKind == "treeselect" ~}}
+
+/** {{ col.Label | block_comment }}的树形选项（关联{{ col.Relation.Label | block_comment }}，按上级组树，选中值为其主键） */
+const {{ col.Field }}Relation = useAsyncOptions(load{{ col.CSharpProperty }}Options)
+const {{ col.Field }}TreeOptions = computed(() => relationOptionsToTree({{ col.Field }}Relation.value))
+{{~ else if col.InForm && col.ControlKind == "select" && col.OptionsKind == "dict" ~}}
+
+/** {{ col.Label | block_comment }}的字典选项（字典 {{ col.DictCode | block_comment }}，选中值为字典项编码；停用项只回显不能选） */
+const {{ col.Field }}Options = useDictOptions('{{ col.DictCode | ts_string }}')
+{{~ end ~}}
+{{~ end ~}}
+
+function resetForm(next: {{ ClassName }}FormModel) {
+  Object.assign(form, next)
+  fieldErrors.value = {}
+  submitError.value = null
+}
+{{~ if can_create ~}}
+
+function startCreate() {
+  editing.value = null
+  resetForm(createDefaultForm())
+  editorOpen.value = true
+}
+{{~ end ~}}
+{{~ if can_update ~}}
+
+/** 列表行就是完整的资源，不必再取详情 */
+function startEdit(row: {{ ClassName }}Row) {
+  editing.value = row
+  resetForm(toFormModel(row))
+  editorOpen.value = true
+}
+{{~ end ~}}
+
+function fieldError(field: keyof {{ ClassName }}FormModel): string | undefined {
+  return fieldErrors.value[field]?.[0]
+}
+{{~ if has_validation ~}}
+{{~ if has_time_input ~}}
+
+/** 时间列用文本框承载，提交前按 HH:mm(:ss) 校验 */
+const TIME_PATTERN = /^\d{1,2}:\d{2}(?::\d{2})?$/
+{{~ end ~}}
+
+{{~ # 只勾单侧新建 / 编辑的列在另一侧被 v-if 藏起来，校验也跟着分侧，否则新建弹窗会被一个根本不存在的输入框卡住 ~}}
+/** 提交前校验：必填项不得为空{{ if has_time_input }}、时间要是 HH:mm(:ss){{ end }}；不过的挂到对应字段 */
+function validate(): boolean {
+  const errors: Record<string, string[]> = {}
+{{~ for col in Columns ~}}
+{{~ side_guard = "" ~}}
+{{~ if col.InCreate && !col.InUpdate ~}}
+{{~ side_guard = "!isEdit.value && " ~}}
+{{~ else if col.InUpdate && !col.InCreate ~}}
+{{~ side_guard = "isEdit.value && " ~}}
+{{~ end ~}}
+{{~ if col.InForm && col.FormEmptyCheck ~}}
+{{~ empty_check = col.FormEmptyCheck | string.replace "$v" ("form." + col.Field) ~}}
+  if ({{ if side_guard == "" }}{{ empty_check }}{{ else }}{{ side_guard }}({{ empty_check }}){{ end }})
+    errors.{{ col.Field }} = [t('{{ I18nPrefix }}.required_{{ col.FormRequiredKind }}', { label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}') })]
+{{~ end ~}}
+{{~ if col.InForm && col.ControlKind == "time" ~}}
+  if ({{ side_guard }}form.{{ col.Field }} && !TIME_PATTERN.test(form.{{ col.Field }}))
+    errors.{{ col.Field }} = [t('{{ I18nPrefix }}.time_invalid', { label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}') })]
+{{~ end ~}}
+{{~ end ~}}
+  fieldErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+{{~ end ~}}
+
+async function onSubmit() {
+{{~ if has_validation ~}}
+  if (!validate())
+    return
+{{~ end ~}}
+  submitting.value = true
+  submitError.value = null
+  try {
+{{~ if can_create && can_update ~}}
+    if (editing.value)
+      await {{ ResourceCamel }}Api.update(toUpdateRequest(editing.value.id, form))
+    else
+      await {{ ResourceCamel }}Api.create(toCreateRequest(form))
+{{~ else if can_update ~}}
+    if (!editing.value)
+      return
+    await {{ ResourceCamel }}Api.update(toUpdateRequest(editing.value.id, form))
+{{~ else ~}}
+    await {{ ResourceCamel }}Api.create(toCreateRequest(form))
+{{~ end ~}}
+    editorOpen.value = false
+    toast.success(t('common.messages.save_success'))
+    reload()
+  }
+  catch (error) {
+    if (error instanceof ApiError) {
+      fieldErrors.value = error.errors ?? {}
+      if (!error.hasFieldErrors)
+        submitError.value = error.detail
+    }
+    else {
+      submitError.value = String(error)
+    }
+  }
+  finally {
+    submitting.value = false
+  }
+}
+{{~ end ~}}
+</script>
+
+<template>
+{{~ if has_modal ~}}
+  <SchemaPage{{ if has_actions }} ref="schemaPageRef"{{ end }} :schema="schema"{{ if has_actions }} @action="onAction"{{ end }}>
+{{~ if has_modal ~}}
+    <XEditModal
+      v-model:show="editorOpen"
+      :title="modalTitle"
+      :loading="submitting"
+      :form-id="editFormId"
+    >
+      <XhFormRoot :id="editFormId" class="xh-edit-form-grid" @submit="onSubmit">
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ # 控件按 col.ControlKind 分派，与表单模型、回填、提交同源；只勾了单侧新建 / 编辑的列按状态显隐 ~}}
+        <XhFieldRoot{{ if col.InCreate && !col.InUpdate }} v-if="!isEdit"{{ else if col.InUpdate && !col.InCreate }} v-if="isEdit"{{ end }}{{ if col.ControlKind == "textarea" || col.ControlKind == "image" || col.ControlKind == "file" }} class="xh-span-2"{{ end }} :invalid="!!fieldError('{{ col.Field }}')"{{ if col.IsFormRequired }} required{{ end }}>
+          <XhFieldLabel>{{ "{{" }} t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}') {{ "}}" }}</XhFieldLabel>
+          <XhFieldControl>
+{{~ if col.ControlKind == "switch" ~}}
+            <XhSwitch v-model:checked="form.{{ col.Field }}" name="{{ col.Field }}" />
+{{~ else if col.ControlKind == "select" && col.OptionsKind == "const" ~}}
+            <XSelect v-model:value="form.{{ col.Field }}" name="{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} :options="{{ col.Field }}ConstOptions" />
+{{~ else if col.ControlKind == "select" && col.OptionsKind == "enum" ~}}
+            <XSelect v-model:value="form.{{ col.Field }}" name="{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} :options="{{ col.Field }}SelectOptions" />
+{{~ else if col.ControlKind == "select" && col.OptionsKind == "relation" ~}}
+            <XCombobox v-model:value="form.{{ col.Field }}" name="{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} :options="{{ col.Field }}Options" />
+{{~ else if col.ControlKind == "select" ~}}
+            <XSelect v-model:value="form.{{ col.Field }}" name="{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} :options="{{ col.Field }}Options" />
+{{~ else if col.ControlKind == "treeparent" ~}}
+            <XTreeSelect v-model:value="form.{{ col.Field }}" clearable :options="parentOptions" />
+{{~ else if col.ControlKind == "treeselect" ~}}
+            <XTreeSelect v-model:value="form.{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} :options="{{ col.Field }}TreeOptions" />
+{{~ else if col.ControlKind == "date" ~}}
+            <XDatePicker v-model:value="form.{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} />
+{{~ else if col.ControlKind == "datetime" ~}}
+            <XDatePicker v-model:value="form.{{ col.Field }}"{{ if !col.IsFormRequired }} clearable{{ end }} show-time />
+{{~ else if col.ControlKind == "time" ~}}
+            <XInput v-model:value="form.{{ col.Field }}" name="{{ col.Field }}" clearable placeholder="HH:mm:ss" />
+{{~ else if col.ControlKind == "image" || col.ControlKind == "file" ~}}
+            <!-- 上传到文件库，字段只存文件 ID；使用者要有文件的上传与查看权限 -->
+            <XFileRefUpload v-model:value="form.{{ col.Field }}" kind="{{ col.ControlKind }}" />
+{{~ else if col.ControlKind == "number" ~}}
+            <XNumberInput v-model:value="form.{{ col.Field }}" name="{{ col.Field }}"{{ if col.NumberPrecision != null }} :precision="{{ col.NumberPrecision }}"{{ end }} />
+{{~ else if col.ControlKind == "binary" ~}}
+            <!-- 二进制列：脚手架用文本框承载 Base64，接真实上传请换成上传组件 -->
+            <XInput v-model:value="form.{{ col.Field }}" name="{{ col.Field }}" clearable placeholder="Base64" />
+{{~ else if col.ControlKind == "textarea" ~}}
+            <XInput v-model:value="form.{{ col.Field }}" name="{{ col.Field }}" type="textarea" :rows="3" clearable{{ if col.InputMaxLength }} :max-length="{{ col.InputMaxLength }}" show-count{{ end }} />
+{{~ else ~}}
+            <XInput v-model:value="form.{{ col.Field }}" name="{{ col.Field }}" clearable{{ if col.InputMaxLength }} :max-length="{{ col.InputMaxLength }}"{{ end }} />
+{{~ end ~}}
+          </XhFieldControl>
+          <XhFieldErrorText v-if="fieldError('{{ col.Field }}')">
+            {{ "{{" }} fieldError('{{ col.Field }}') {{ "}}" }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+{{~ end ~}}
+{{~ end ~}}
+        <p v-if="submitError" class="xh-span-2 text-caption text-fg-danger" role="alert">
+          {{ "{{" }} submitError {{ "}}" }}
+        </p>
+      </XhFormRoot>
+    </XEditModal>
+{{~ end ~}}
+  </SchemaPage>
+{{~ else ~}}
+  <SchemaPage{{ if has_actions }} ref="schemaPageRef"{{ end }} :schema="schema"{{ if has_actions }} @action="onAction"{{ end }} />
+{{~ end ~}}
+</template>

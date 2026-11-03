@@ -21,6 +21,7 @@ public static class CodeGenRenderer
     private const int LoopLimit = 10_000;
     private const int RecursiveLimit = 50;
     private const int MaxStringLength = 65_535;
+    private const int DetailPageSize = 100;
 
     /// <summary>
     /// 检查模板语法。
@@ -68,7 +69,7 @@ public static class CodeGenRenderer
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(items);
         var table = context.Table;
-        var columns = context.Columns.Select(Column).ToList();
+        var columns = context.Columns.Select(c => Column(c, ReferenceEquals(c, context.TreeParentColumn))).ToList();
         var byName = context.Columns.Zip(columns).ToDictionary(static p => p.First, static p => p.Second);
         var model = Object(new Dictionary<string, object?>
         {
@@ -100,6 +101,18 @@ public static class CodeGenRenderer
             ["PageCode"] = $"{context.ModuleCode}.{context.Resource}",
             ["PageRoute"] = $"/{context.ModuleCode}/{context.Resource}",
             ["PageTitleKey"] = $"{context.ModuleCode}.{context.Resource.Replace('-', '_')}.title",
+            // 前端：契约客户端名、文案键前缀与权限码
+            ["ResourceCamel"] = CodeGenNaming.Camelize(context.ResourcePascal),
+            ["I18nPrefix"] = $"{context.ModuleCode}.{context.Resource.Replace('-', '_')}",
+            ["PermRead"] = PermissionOf(items, "read"),
+            ["PermCreate"] = PermissionOf(items, "create"),
+            ["PermUpdate"] = PermissionOf(items, "update"),
+            ["PermDelete"] = PermissionOf(items, "delete"),
+            ["HasKeyword"] = context.Columns.Any(static c => IsQueryable(c) && c.QueryType is CodeGenQueryType.Like or CodeGenQueryType.LikeLeft or CodeGenQueryType.LikeRight && Base(c) == "string"),
+            // 确认提示里写明操作对象的列：树表的名称列，否则第一列进列表的短文本
+            ["TitleField"] = (context.TreeNameColumn ?? context.Columns.FirstOrDefault(static c => c.IsBusiness && c.IsList && Base(c) == "string" && c.Enum is null && c.Relation is null && c.DictSelectorType is null && c.Length is > 0 and <= 200)) is { } title ? CodeGenNaming.Camelize(title.CSharpProperty) : null,
+            // 主表行展开时每张明细表取的条数
+            ["DetailPageSize"] = DetailPageSize,
             ["EnabledActions"] = context.Actions.ToList(),
             ["CanCreate"] = context.Can(CodeGenActions.Create),
             ["CanUpdate"] = context.Can(CodeGenActions.Update),
@@ -196,9 +209,13 @@ public static class CodeGenRenderer
         model.Import("kebab", new Func<string?, string>(static v => CodeGenNaming.Kebabize(v ?? string.Empty)));
         model.Import("snake", new Func<string?, string>(static v => CodeGenNaming.Snakeize(v ?? string.Empty)));
         model.Import("camel", new Func<string?, string>(static v => CodeGenNaming.Camelize(v ?? string.Empty)));
+        // 按名字排序（不分大小写，同前端 lint 的导入排序）
+        model.Import("sort_names", new Func<IEnumerable<object>?, List<string>>(static v => [.. (v ?? []).Select(static o => o?.ToString() ?? string.Empty).Order(StringComparer.OrdinalIgnoreCase)]));
     }
 
     private static string Base(CodeGenColumnModel column) => column.CSharpType.TrimEnd('?');
+
+    private static string PermissionOf(CodeGenItems items, string action) => items.Permissions.FirstOrDefault(p => p.Action == action)?.Code ?? string.Empty;
 
     private static bool IsQueryable(CodeGenColumnModel column) => column.IsBusiness && column.IsQuery && Base(column) != "byte[]";
 
@@ -207,6 +224,8 @@ public static class CodeGenRenderer
 
     private static ScriptObject Related(CodeGenRelatedTable table) => Object(new Dictionary<string, object?>
     {
+        ["I18nPrefix"] = $"{table.ModuleCode}.{table.Resource.Replace('-', '_')}",
+        ["Columns"] = table.Columns.Select(c => Column(c)).ToList(),
         ["TableName"] = table.TableName,
         ["DisplayName"] = table.DisplayName,
         ["ClassName"] = table.ClassName,
@@ -221,7 +240,7 @@ public static class CodeGenRenderer
     });
 
     // 列 → 模板变量。判据收在这里，几份模板共用，不各写一套（照 4.x）
-    private static ScriptObject Column(CodeGenColumnModel column)
+    private static ScriptObject Column(CodeGenColumnModel column, bool isTreeParent = false)
     {
         var type = Base(column);
         var isString = type == "string";
@@ -231,7 +250,7 @@ public static class CodeGenRenderer
         var queryable = IsQueryable(column);
         var isDate = IsDate(column);
         var isLongText = isString && column.Length is not (> 0 and <= MaxStringLength);
-        return Object(new Dictionary<string, object?>
+        var values = new Dictionary<string, object?>
         {
             ["ColumnName"] = column.ColumnName,
             ["ColumnComment"] = column.ColumnComment,
@@ -300,8 +319,18 @@ public static class CodeGenRenderer
                 ["LabelProperty"] = relation.LabelProperty,
                 ["ParentProperty"] = relation.ParentProperty,
                 ["IsTree"] = relation.IsTree,
+                // 契约客户端上的选项方法（<资源>.<列>-options）
+                ["OptionsMethod"] = CodeGenNaming.Camelize(column.CSharpProperty) + "Options",
             }),
-        });
+        };
+
+        // 前端模板用的判据（控件、表单取值、搜索方式）
+        foreach (var (key, value) in CodeGenFrontendFacts.Of(column, queryable ? Operators(column) : [], isTreeParent))
+        {
+            values[key] = value;
+        }
+
+        return Object(values);
     }
 
     private static List<string> Operators(CodeGenColumnModel column)

@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: '字典「{code}」的选项加载失败：{reason}',
     },
+    file_ref_upload: {
+      preview: '查看图片',
+      select: '上传',
+      change: '更换',
+      remove: '移除',
+      open: '打开',
+      hint_image: '支持常见图片格式，大小不超过 {size}MB',
+      hint_file: '大小不超过 {size}MB',
+      success: '上传成功',
+      failed: '上传失败',
+      too_large: '文件大小不能超过 {size}MB',
+      unavailable: '文件不可用（已删除或无查看权限）',
+      open_failed: '打开文件失败',
+    },
     lock_screen: {
       setup_password_hint: '设置本次锁屏密码（4-64 位）',
       new_password_placeholder: '锁屏密码（4-64 位）',

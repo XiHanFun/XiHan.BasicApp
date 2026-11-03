@@ -24,8 +24,9 @@ public sealed record BuiltInTemplate(string Code, string Name, string Group, str
 /// </summary>
 /// <remarks>
 /// 用户已定的写入方式（照 4.x 成对）：每次覆盖的是实体的生成部分、请求与响应和映射、查询白名单；只首次写的是实体的手写部分、各个操作与查询的手写部分。
-/// 分组 <c>backend-crud</c> 两种目标都出，<c>backend-package</c> 只在新建包时出（包级文件只首次）。
-/// 路径相对后端根目录（<c>backend-next</c>）；按勾选的操作一份模板一个文件，没勾的渲染为空、不产出。
+/// 分组 <c>backend-crud</c> / <c>frontend-crud</c> 两种目标都出，<c>backend-package</c> / <c>frontend-package</c> 只在新建包时出（包级文件只首次）。
+/// 路径相对那一侧的根目录（<c>backend-next</c> 或 <c>frontend-next</c>）；按勾选的操作一份模板一个文件，没勾的渲染为空、不产出。
+/// 前端照 4.x 按生成模式分单表、主从与树表三组（单表与主从共用一份模板），页面与 schema 的手写部分只首次、schema 的生成部分每次覆盖。
 /// </remarks>
 public static class BuiltInTemplates
 {
@@ -39,10 +40,24 @@ public static class BuiltInTemplates
     /// </summary>
     public const string BackendPackage = "backend-package";
 
+    /// <summary>
+    /// 两种目标都出的前端模板分组。
+    /// </summary>
+    public const string FrontendCrud = "frontend-crud";
+
+    /// <summary>
+    /// 只在新建包时出的前端包级模板分组。
+    /// </summary>
+    public const string FrontendPackage = "frontend-package";
+
     private const string PackageDir = "src/{{ Namespace }}";
     private const string EntityDir = PackageDir + "/Domain/Entities";
     private const string OperationDir = PackageDir + "/Operations/{{ ResourcePascal }}";
     private const string QueryDir = PackageDir + "/Queries";
+    private const string ModuleDir = "src/modules/{{ ModuleCode }}";
+    private const string ViewDir = ModuleDir + "/views/{{ Resource }}";
+    private const string SchemaFile = "{{ Resource }}.schema.generated.ts";
+    private const string SchemaManualFile = "{{ Resource }}.schema.ts";
 
     /// <summary>
     /// 全部内置模板，按排序。
@@ -73,5 +88,15 @@ public static class BuiltInTemplates
         new("backend.package.messages", "后端包：消息键", BackendPackage, "Backend/Package/Messages.sbn", "{{ ModuleName }}Messages.cs", PackageDir, ".cs", CodeGenWriteMode.WriteOnce),
         new("backend.package.json", "后端包：JSON 序列化", BackendPackage, "Backend/Package/JsonContext.sbn", "{{ ModuleName }}JsonContext.cs", PackageDir, ".cs", CodeGenWriteMode.WriteOnce),
         new("backend.package.readme", "后端包：说明", BackendPackage, "Backend/Package/Readme.sbn", "README.md", PackageDir, ".md", CodeGenWriteMode.WriteOnce),
+        new("frontend.schema", "前端页面 schema（单表）", FrontendCrud, "Frontend/Schema.sbn", SchemaFile, ViewDir, ".ts", CodeGenWriteMode.AlwaysOverwrite, CodeGenTemplateType.Single),
+        new("frontend.schema.manual", "前端页面 schema（单表·自定义）", FrontendCrud, "Frontend/Schema.Manual.sbn", SchemaManualFile, ViewDir, ".ts", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.Single),
+        new("frontend.page", "前端列表页（单表）", FrontendCrud, "Frontend/Page.sbn", "index.vue", ViewDir, ".vue", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.Single),
+        new("frontend.schema.masterdetail", "前端页面 schema（主从）", FrontendCrud, "Frontend/Schema.sbn", SchemaFile, ViewDir, ".ts", CodeGenWriteMode.AlwaysOverwrite, CodeGenTemplateType.MasterDetail),
+        new("frontend.schema.masterdetail.manual", "前端页面 schema（主从·自定义）", FrontendCrud, "Frontend/Schema.Manual.sbn", SchemaManualFile, ViewDir, ".ts", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.MasterDetail),
+        new("frontend.page.masterdetail", "前端列表页（主从）", FrontendCrud, "Frontend/Page.sbn", "index.vue", ViewDir, ".vue", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.MasterDetail),
+        new("frontend.schema.tree", "前端页面 schema（树表）", FrontendCrud, "Frontend/TreeSchema.sbn", SchemaFile, ViewDir, ".ts", CodeGenWriteMode.AlwaysOverwrite, CodeGenTemplateType.Tree),
+        new("frontend.schema.tree.manual", "前端页面 schema（树表·自定义）", FrontendCrud, "Frontend/TreeSchema.Manual.sbn", SchemaManualFile, ViewDir, ".ts", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.Tree),
+        new("frontend.page.tree", "前端列表页（树表）", FrontendCrud, "Frontend/TreePage.sbn", "index.vue", ViewDir, ".vue", CodeGenWriteMode.WriteOnce, CodeGenTemplateType.Tree),
+        new("frontend.package.setup", "前端包：启动钩子", FrontendPackage, "Frontend/Package/Setup.sbn", "setup.ts", ModuleDir, ".ts", CodeGenWriteMode.WriteOnce),
     ];
 }

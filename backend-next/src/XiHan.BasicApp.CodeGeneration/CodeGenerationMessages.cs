@@ -294,6 +294,11 @@ public static class CodeGenerationMessages
     public const string GenerateDictNotString = "codegeneration.generate.dict_not_string";
 
     /// <summary>
+    /// 列选了枚举却解析不到，或 C# 类型不是它（参数 <c>column</c>、<c>enum</c>）。
+    /// </summary>
+    public const string GenerateEnumUnresolved = "codegeneration.generate.enum_unresolved";
+
+    /// <summary>
     /// 关联列不是 Guid（参数 <c>column</c>、<c>type</c>）。
     /// </summary>
     public const string GenerateRelationNotGuid = "codegeneration.generate.relation_not_guid";

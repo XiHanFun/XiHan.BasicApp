@@ -1,0 +1,67 @@
+{{~ # 与 .schema.generated.ts 同一判据：一列都不进表单时不产新建与修改，也就没有表单换算可转出 ~}}
+{{~ has_form_field = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
+{{~ can_update = CanUpdate && has_form_field ~}}
+{{~ can_import = CanImport && can_create ~}}
+/**
+ * {{ DisplayName | block_comment }}页面 schema（树形·自定义部分）
+ *
+ * 本文件只在首次生成时创建，重新生成时不会覆盖，自定义写在这里是安全的。
+ * 由表结构推导的 base* 在 {{ Resource }}.schema.generated.ts，随表结构变化重新生成；
+ * 本文件在其之上做 transform 后导出最终结果，index.vue 只从这里导入。例如
+ *   export function fields(t: Translate) {
+ *     return baseFields(t).filter(field => field.key !== 'internalCode')
+ *   }
+ */
+import type { {{ ClassName }}Row } from './{{ Resource }}.schema.generated'
+import type { ListFieldSchema, PageSchema, SchemaResource } from '~/components'
+import { baseActions, baseFields, basePageMeta, baseResource{{ if has_form_field }}, createDefaultFormModel{{ end }} } from './{{ Resource }}.schema.generated'
+
+type Translate = (key: string, params?: Record<string, unknown>) => string
+
+export type { {{ ClassName }}{{ if has_form_field }}FormModel, {{ ClassName }}{{ end }}Row } from './{{ Resource }}.schema.generated'
+
+export const pageMeta = { ...basePageMeta }
+
+export function fields(t: Translate): ListFieldSchema[] {
+  return baseFields(t)
+}
+
+export function actions(t: Translate): NonNullable<PageSchema['actions']> {
+  return baseActions(t)
+}
+
+/** 取回的树经 onTree 交给页面，供上级候选复用 */
+export function resource(onTree?: (rows: {{ ClassName }}Row[]) => void): SchemaResource<{{ ClassName }}Row> {
+  return baseResource(onTree)
+}
+{{~ if has_form_field ~}}
+
+export const createDefaultForm = createDefaultFormModel
+{{~ end ~}}
+{{~ reexports = ["toParentOptions"] ~}}
+{{~ for col in Columns ~}}
+{{~ if col.OptionsKind == "relation" || col.OptionsKind == "tree" ~}}
+{{~ reexports = reexports | array.add ("load" + col.CSharpProperty + "Options") ~}}
+{{~ else if col.OptionsKind == "enum" ~}}
+{{~ reexports = reexports | array.add (col.Field + "Options") ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ if can_create ~}}
+{{~ reexports = reexports | array.add "toCreateRequest" ~}}
+{{~ end ~}}
+{{~ if has_form_field ~}}
+{{~ reexports = reexports | array.add "toFormModel" ~}}
+{{~ end ~}}
+{{~ if can_update ~}}
+{{~ reexports = reexports | array.add "toUpdateRequest" ~}}
+{{~ end ~}}
+{{~ if (reexports | array.size) > 0 ~}}
+
+export { {{ reexports | array.sort | array.join ", " }} } from './{{ Resource }}.schema.generated'
+{{~ end ~}}

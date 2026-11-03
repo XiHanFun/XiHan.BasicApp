@@ -88,6 +88,17 @@ public sealed class CodeGenEngine(CodeGenContextBuilder builder, IRepository<Sys
                 CodeGenWriteMode.WriteOnce)));
         }
 
+        // 新建包的前端文案也由引擎拼（同后端的 Localization），加入已有包写进登记片段
+        if (table.Scope != CodeGenScope.BackendOnly && table.Target == CodeGenTarget.NewPackage)
+        {
+            artifacts.AddRange(CodeGenPhrases.Locales.Select(locale => new CodeGenArtifact(
+                CodeGenSide.Frontend,
+                $"src/modules/{context.ModuleCode}/locales/{locale}.ts",
+                CodeGenFrontendLocalization.File(context, locale),
+                TemplateCode: null,
+                CodeGenWriteMode.WriteOnce)));
+        }
+
         var taken = items.Operations.Select(static o => o.Id).Where(id => operations.Find(id).HasValue).ToList();
         artifacts.Add(new CodeGenArtifact(CodeGenSide.Registration, CodeGenRegistration.PathOf(context), CodeGenRegistration.Build(context, items, taken), TemplateCode: null, CodeGenWriteMode.AlwaysOverwrite));
         return artifacts;

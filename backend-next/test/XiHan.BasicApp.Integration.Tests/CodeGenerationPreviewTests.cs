@@ -16,7 +16,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 照 4.x：内置模板随程序版本种下、不能改不能删、可以启停，自有模板可增删改；预览只渲染不写历史。
-/// 6.0 的产物：新建包出包级文件与 10 个文案文件，加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件。
+/// 6.0 的产物：新建包出包级文件与 10 个文案文件（后端 JSON、前端 TS 各一套），加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件。
+/// 前端照 4.x 按生成模式出页面与 schema（生成部分、手写部分），取数走生成的契约客户端，文案按键写、键在包的 locales 里。
 /// </remarks>
 public sealed class CodeGenerationPreviewTests : IDisposable
 {
@@ -250,6 +251,33 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("ParentAllowedAsync", tree[Package + "Operations/Categories/UpdateCategory.cs"], StringComparison.Ordinal);
         Assert.Contains("ShopErrors.CategoryHasChildren", tree[Package + "Operations/Categories/DeleteCategories.cs"], StringComparison.Ordinal);
 
+        // 前端：单表页与 schema（生成部分每次覆盖、手写部分只首次）、包的启动钩子与 10 种区域的文案
+        const string View = "frontend/src/modules/shop/views/products/";
+        var schema = files[View + "products.schema.generated.ts"];
+        Assert.Contains("export type ProductRow = ResponseOf<'products.list'>['items'][number]", schema, StringComparison.Ordinal);
+        Assert.Contains("await productsApi.categoryIdOptions({})", schema, StringComparison.Ordinal);
+        Assert.Contains("export: { businessType: 'products.list', buildQuery: buildPageQuery }", schema, StringComparison.Ordinal);
+        Assert.Contains("title: t('shop.products.fields.product_code')", schema, StringComparison.Ordinal);
+        Assert.Contains("  return baseFields(t)", files[View + "products.schema.ts"], StringComparison.Ordinal);
+        var page = files[View + "index.vue"];
+        Assert.Contains("<XTreeSelect v-model:value=\"form.categoryId\"", page, StringComparison.Ordinal);
+        Assert.Contains("await productsApi.create(toCreateRequest(form))", page, StringComparison.Ordinal);
+        Assert.Contains("registerModuleLocales", files["frontend/src/modules/shop/setup.ts"], StringComparison.Ordinal);
+        var frontendLocales = files.Keys.Where(static k => k.StartsWith("frontend/src/modules/shop/locales/", StringComparison.Ordinal)).ToList();
+        Assert.Equal(10, frontendLocales.Count);
+        Assert.Contains("      title: '商品',", files["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
+        Assert.Contains("      create_title: '新增商品',", files["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
+        Assert.Contains("      create_title: 'New 商品',", files["frontend/src/modules/shop/locales/en-US.ts"], StringComparison.Ordinal);
+
+        // 树表：树页按树操作取数、上级候选取同一棵树，生成的启停枚举出下拉与 10 种区域的选项文案
+        var treeSchema = tree["frontend/src/modules/shop/views/categories/categories.schema.generated.ts"];
+        Assert.Contains("toTreeRows((await categoriesApi.tree({})).items)", treeSchema, StringComparison.Ordinal);
+        Assert.Contains("treeColumn: true", treeSchema, StringComparison.Ordinal);
+        Assert.Contains("value: 'Disabled' as const", treeSchema, StringComparison.Ordinal);
+        Assert.Contains(":options=\"parentOptions\"", tree["frontend/src/modules/shop/views/categories/index.vue"], StringComparison.Ordinal);
+        Assert.Contains(":options=\"statusSelectOptions\"", tree["frontend/src/modules/shop/views/categories/index.vue"], StringComparison.Ordinal);
+        Assert.Contains("          disabled: '停用',", tree["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
+
         // 整数状态列没选枚举：生成器在实体里出 <类>Status（Active 0、Disabled 1），状态列与启停请求都用它
         var categoryEntity = tree[Package + "Domain/Entities/Category.Generated.cs"];
         Assert.Contains("public enum CategoryStatus", categoryEntity, StringComparison.Ordinal);
@@ -277,6 +305,12 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("[JsonSerializable(typeof(CreateProductRequest))]", registration, StringComparison.Ordinal);
         Assert.Contains("context.Services.AddScoped<ProductQueries>();", registration, StringComparison.Ordinal);
         Assert.Contains("### `Localization/ru-RU.json`", registration, StringComparison.Ordinal);
+
+        // 前端：只出资源的页面与 schema，包的启动钩子与文案文件不出，文案按区域写进登记片段
+        Assert.True(files.ContainsKey("frontend/src/modules/shop/views/products/index.vue"));
+        Assert.DoesNotContain(files.Keys, static k => k.StartsWith("frontend/src/modules/shop/locales/", StringComparison.Ordinal) || k == "frontend/src/modules/shop/setup.ts");
+        Assert.Contains("### `frontend-next/src/modules/shop/locales/zh-CN.ts` 的 `shop` 对象里", registration, StringComparison.Ordinal);
+        Assert.Contains("    title: '商品',", registration, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -300,9 +334,19 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var (status, statusBody) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-tables/{id}:preview", null, admin);
         Assert.Equal((HttpStatusCode.BadRequest, CodeGenerationErrors.GenerationInvalid), (status.StatusCode, statusBody.GetProperty("code").GetString()));
 
-        // 指定的模板：运行时出错与产物越出根目录都报 VALIDATION_008，带模板编码
+        // 选了枚举却解析不到（4.x 出禁用的占位选项，6.0 生成前拦下）
         node = await DetailOfAsync(server, admin, "demo_node");
         await UpdateTableAsync(server, admin, node, ("enabledActions", "create,update"));
+        node = await DetailOfAsync(server, admin, "demo_node");
+        var state = Column(node, "state");
+        await SaveColumnsAsync(server, admin, node, InputOf(state, ("dictSelectorType", "EnumSelector"), ("enumTypeName", "NoSuchEnum")));
+        var (unresolved, unresolvedBody) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-tables/{id}:preview", null, admin);
+        Assert.Equal((HttpStatusCode.BadRequest, CodeGenerationErrors.GenerationInvalid), (unresolved.StatusCode, unresolvedBody.GetProperty("code").GetString()));
+        Assert.Contains("NoSuchEnum", unresolvedBody.GetProperty("detail").GetString(), StringComparison.Ordinal);
+        node = await DetailOfAsync(server, admin, "demo_node");
+        await SaveColumnsAsync(server, admin, node, InputOf(Column(node, "state"), ("dictSelectorType", null), ("enumTypeName", null)));
+
+        // 指定的模板：运行时出错与产物越出根目录都报 VALIDATION_008，带模板编码
         var looping = new { templateCode = "custom.loop", templateName = "循环", templateType = "Universal", templateEngine = "Scriban", writeMode = "WriteOnce", templateContent = "{{ for i in 1..100000 }}x{{ end }}", templateGroup = "backend-crud" };
         await SendAsync(server, HttpMethod.Post, "/api/codegen-templates", looping, admin);
         var (loop, loopBody) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-tables/{id}:preview?templateCodes=custom.loop", null, admin);

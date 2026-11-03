@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: '辞書「{code}」の選択肢を読み込めませんでした：{reason}',
     },
+    file_ref_upload: {
+      preview: '画像を表示',
+      select: 'アップロード',
+      change: '差し替え',
+      remove: '削除',
+      open: '開く',
+      hint_image: '一般的な画像形式に対応、{size}MB 以内',
+      hint_file: '{size}MB 以内',
+      success: 'アップロードしました',
+      failed: 'アップロードに失敗しました',
+      too_large: 'ファイルサイズは {size}MB を超えられません',
+      unavailable: 'ファイルを利用できません（削除済みまたは閲覧権限なし）',
+      open_failed: 'ファイルを開けませんでした',
+    },
     lock_screen: {
       setup_password_hint: '今回のロック画面パスワードを設定（4-64 文字）',
       new_password_placeholder: 'ロック画面パスワード（4-64 文字）',

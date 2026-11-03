@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "Der Namespace '{namespace}' ist kein gültiger C#-Namespace.",
   "codegeneration.generate.dict_code_missing": "Spalte '{column}' nutzt ein Wörterbuch, hat aber keinen Wörterbuchcode.",
   "codegeneration.generate.dict_not_string": "Spalte '{column}' nutzt ein Wörterbuch, ist aber vom Typ {type}; Einträge werden per Code gespeichert, die Spalte muss Text sein.",
+  "codegeneration.generate.enum_unresolved": "Spalte '{column}' verwendet die Aufzählung '{enum}', die nicht aufgelöst werden kann oder nicht der C#-Typ der Spalte ist: Tabellenstruktur neu synchronisieren oder den Aufzählungsnamen korrigieren.",
   "codegeneration.generate.relation_not_guid": "Spalte '{column}' ist eine Verknüpfung vom Typ {type}; sie speichert die ID des verknüpften Datensatzes und muss Guid sein.",
   "codegeneration.generate.relation_target_invalid": "Spalte '{column}' ist eine Verknüpfung, aber die verknüpfte Tabelle fehlt oder existiert nicht mehr.",
   "codegeneration.generate.relation_tree_invalid": "Spalte '{column}' ist eine Baumverknüpfung, aber '{target}' ist keine Baumtabelle mit Guid-Elternspalte.",

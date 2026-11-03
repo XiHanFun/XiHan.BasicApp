@@ -1,0 +1,317 @@
+{{~ # 一列都不进表单就没有可编辑内容，页面不产弹窗，这里也不产增改按钮（与 index.vue 的裁剪同源） ~}}
+{{~ has_form_field = false ~}}
+{{~ has_import_date = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
+{{~ can_update = CanUpdate && has_form_field ~}}
+{{~ can_import = CanImport && can_create ~}}
+{{~ for col in Columns ~}}
+{{~ if can_import && col.IsImportable && (col.ControlKind == "date" || col.ControlKind == "datetime") ~}}
+{{~ has_import_date = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ value_imports = [ResourceCamel + " as " + ResourceCamel + "Api"] ~}}
+{{~ if CanExport ~}}
+{{~ value_imports = value_imports | array.add "toPageRequest" ~}}
+{{~ end ~}}
+/**
+ * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手改。
+ * 列定义与表单缺省值的微调写在 {{ Resource }}.schema.ts（在那里对下列 base* 做 transform）。
+ */
+import type { ListFieldSchema, PageSchema, {{ if CanExport }}SchemaQueryParams, {{ end }}SchemaResource } from '~/components'
+import type { {{ if can_create || can_update }}RequestOf, {{ end }}ResponseOf } from '~/contracts'
+import type { TreeSelectOption } from '~/types'
+{{~ if CanDelete || CanStatus ~}}
+import { {{ if CanDelete }}deleteConfirmText{{ end }}{{ if CanDelete && CanStatus }}, {{ end }}{{ if CanStatus }}statusConfirmText{{ end }} } from '~/components'
+{{~ end ~}}
+import { {{ value_imports | sort_names | array.join ", " }} } from '~/contracts'
+
+type Translate = (key: string, params?: Record<string, unknown>) => string
+
+/** 树的一个节点：{{ DisplayName | block_comment }}的字段平铺，带子行（children） */
+export type {{ ClassName }}Row = ResponseOf<'{{ Resource }}.list'>['items'][number] & { children: {{ ClassName }}Row[] }
+
+type {{ ClassName }}Node = ResponseOf<'{{ Resource }}.tree'>['items'][number]
+{{~ if can_create ~}}
+
+/** 新建请求 */
+export type {{ ClassName }}CreateRequest = RequestOf<'{{ Resource }}.create'>
+{{~ end ~}}
+{{~ if can_update ~}}
+
+/** 修改请求 */
+export type {{ ClassName }}UpdateRequest = RequestOf<'{{ Resource }}.update'>
+{{~ end ~}}
+{{~ if has_form_field ~}}
+
+/**
+ * {{ DisplayName | block_comment }}表单模型
+ */
+export interface {{ ClassName }}FormModel {
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ if col.ControlKind == "switch" ~}}
+  {{ col.Field }}: boolean
+{{~ else if col.FormTsType == "enum" ~}}
+  {{ col.Field }}: NonNullable<{{ ClassName }}Row['{{ col.Field }}']> | null
+{{~ else ~}}
+  {{ col.Field }}: {{ col.FormTsType }} | null
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+{{~ end ~}}
+
+/**
+ * 页面元信息（树形模式：走 resource.tree 取数、不分页、按 children 展开）
+ *
+ * 导出、导入、批量删除与批量启停按权限码门控：取消勾选后重新生成，按钮随之消失，页面不必改。
+ */
+export const basePageMeta = {
+  pageCode: '{{ PageCode }}',
+{{~ if CanExport ~}}
+  exportPermission: '{{ PermRead }}',
+{{~ end ~}}
+{{~ if can_import ~}}
+  importPermission: '{{ PermCreate }}',
+{{~ end ~}}
+  batchRemovable: {{ CanDelete }},
+{{~ if CanDelete ~}}
+  removePermission: '{{ PermDelete }}',
+{{~ end ~}}
+{{~ if CanStatus ~}}
+  statusPermission: '{{ PermUpdate }}',
+{{~ end ~}}
+  rowKey: 'id',
+  tree: {
+    childrenKey: 'children',
+    // 树操作不收查询参数、页面也没有搜索框与「展开全部」，收起来就只能逐级点开
+    defaultExpandAll: true,
+  },
+} satisfies Pick<PageSchema, 'pageCode' | 'exportPermission' | 'importPermission' | 'batchRemovable' | 'removePermission' | 'statusPermission' | 'rowKey' | 'tree'>
+{{~ for col in Columns ~}}
+{{~ if col.Relation ~}}
+
+/** {{ col.Label | block_comment }}的选项（关联{{ col.Relation.Label | block_comment }}，取 {{ Resource }}.{{ col.CSharpProperty | kebab }}-options；同一加载器与表单下拉共用一次请求） */
+export async function load{{ col.CSharpProperty }}Options(): Promise<Array<{ label: string, value: string, parentValue: null | string }>> {
+  const { items } = await {{ ResourceCamel }}Api.{{ col.Relation.OptionsMethod }}({})
+  return items.map(item => ({ label: item.label, value: item.id, parentValue: item.parentId ?? null }))
+}
+{{~ end ~}}
+{{~ end ~}}
+{{~ for col in Columns ~}}
+{{~ if col.OptionsKind == "enum" ~}}
+
+/** {{ col.Label | block_comment }}的选项（枚举 {{ col.EnumShortName }}） */
+export function {{ col.Field }}Options(t: Translate) {
+  return [
+{{~ for member in col.EnumMembers ~}}
+    { label: t('{{ I18nPrefix }}.options.{{ col.PropertySnake }}.{{ member.Snake }}'), value: '{{ member.Name }}' as const },
+{{~ end ~}}
+  ]
+}
+{{~ end ~}}
+{{~ end ~}}
+
+/**
+ * 列定义（{{ TreeNameColumn.Field }} 承载展开箭头；树不分页、不搜索、不排序）
+ *
+ * 不进列表但要参与导入的列以 visible: false 声明：表格与列设置里都不出现，导入模板照常带上它这一列。
+ */
+export function baseFields(t: Translate): ListFieldSchema[] {
+  return [
+{{~ for col in Columns ~}}
+{{~ importable = can_import && col.IsImportable ~}}
+{{~ if col.InList || importable ~}}
+{{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
+    { key: '{{ col.Field }}', title: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'), dataType: 'string',{{ if col.InList }} treeColumn: true,{{ else }} visible: false,{{ end }}{{ if importable }} importable: true,{{ if col.IsFormRequired }} required: true,{{ end }}{{ end }} exportable: true, minWidth: 220, order: {{ for.index + 1 }} },
+{{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
+    { key: '{{ col.Field }}', title: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'), dataType: 'string', visible: false,{{ if importable }} importable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+{{~ else ~}}
+    { key: '{{ col.Field }}', title: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'), dataType: '{{ col.FieldDataType }}',{{ if col.OptionsKind == "relation" || col.OptionsKind == "tree" }} optionsLoader: load{{ col.CSharpProperty }}Options,{{ else if col.OptionsKind == "enum" }} options: {{ col.Field }}Options(t),{{ else if col.OptionsKind == "dict" }} dictCode: '{{ col.DictCode | ts_string }}',{{ else if col.OptionsKind == "const" }} options: {{ col.ConstValues | select_options col.Label col.TsType }},{{ end }}{{ if !col.InList }} visible: false,{{ end }}{{ if importable }} importable: true,{{ if col.IsFormRequired }} required: true,{{ end }}{{ end }}{{ if col.InList }} exportable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+    { key: 'createdAt', title: t('{{ I18nPrefix }}.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 99 },
+  ]
+}
+
+/**
+ * 页面与行操作（permission 是后端的权限码，导出用读、导入用新建、启停用修改，与各包的页面同一口径）
+ */
+export function baseActions(t: Translate): NonNullable<PageSchema['actions']> {
+{{~ if CanDelete || CanStatus ~}}
+  // 确认提示写明操作对象
+  const nameOf = (row: object) => String((row as {{ ClassName }}Row).{{ TreeNameColumn.Field }} ?? '')
+{{~ end ~}}
+  return [
+{{~ if can_create ~}}
+    { key: 'create', title: t('{{ I18nPrefix }}.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: '{{ PermCreate }}' },
+{{~ end ~}}
+{{~ if can_update ~}}
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: '{{ PermUpdate }}' },
+{{~ end ~}}
+{{~ if CanStatus ~}}
+    { key: 'toggle', title: t('{{ I18nPrefix }}.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as {{ ClassName }}Row).{{ StatusColumn.Field }} === 'Active', nameOf(row)), permission: '{{ PermUpdate }}' },
+{{~ end ~}}
+{{~ if CanPrint ~}}
+    { key: 'print', title: t('{{ I18nPrefix }}.actions.print'), scope: 'row', icon: 'lucide:printer', permission: '{{ PermRead }}' },
+{{~ end ~}}
+{{~ if CanDelete ~}}
+    // 还有下级的由后端逐项拒绝
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, nameOf(row)), permission: '{{ PermDelete }}' },
+{{~ end ~}}
+  ]
+}
+
+/** 树操作的节点（实体 + 子节点）→ SchemaPage 树表的行 */
+export function toTreeRows(nodes: {{ ClassName }}Node[]): {{ ClassName }}Row[] {
+  return nodes.map(node => ({ ...node.item, children: toTreeRows(node.children) }))
+}
+
+/** 上级的候选树：编辑时去掉节点自己连同整棵子树（后端也拒绝成环，这里只是少给错误的选项） */
+export function toParentOptions(rows: {{ ClassName }}Row[], excludeId?: string): TreeSelectOption[] {
+  return rows.filter(row => row.id !== excludeId).map((row) => {
+    const children = toParentOptions(row.children, excludeId)
+    const label = String(row.{{ TreeNameColumn.Field }} ?? '')
+    return children.length > 0 ? { label, value: row.id, children } : { label, value: row.id }
+  })
+}
+{{~ if has_form_field ~}}
+
+/**
+ * 表单缺省值
+ */
+export function createDefaultFormModel(): {{ ClassName }}FormModel {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+    {{ col.Field }}: {{ col.FormDefault }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+
+/**
+ * 一行 → 表单（编辑回填；回填表达式与表单模型同源）
+ */
+export function toFormModel(row: {{ ClassName }}Row): {{ ClassName }}FormModel {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+    {{ col.Field }}: {{ col.FormFromSource | string.replace "$s" ("row." + col.Field) }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}
+{{~ if can_create ~}}
+
+/**
+ * 表单 → 新建请求（上级留空即作为根节点）
+ */
+export function toCreateRequest(form: {{ ClassName }}FormModel): {{ ClassName }}CreateRequest {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InCreate ~}}
+    {{ col.Field }}: {{ col.FormToWire | string.replace "$v" ("form." + col.Field) }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}
+{{~ if can_update ~}}
+
+/**
+ * 表单 → 修改请求（修改请求只带进编辑表单的列）
+ */
+export function toUpdateRequest(id: string, form: {{ ClassName }}FormModel): {{ ClassName }}UpdateRequest {
+  return {
+    id,
+{{~ for col in Columns ~}}
+{{~ if col.InUpdate ~}}
+    {{ col.Field }}: {{ col.FormToWire | string.replace "$v" ("form." + col.Field) }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}
+{{~ if can_import ~}}
+{{~ if has_import_date ~}}
+
+/** 认得的日期写法：2026-09-30、2026/9/30、2026.9.30，可带 8:30 或 08:30:00 */
+const IMPORT_DATE_PATTERN = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+
+/**
+ * 导入的日期单元格按本地时间换成时刻（ISO 8601）。
+ *
+ * 表格软件另存的 CSV 常写成 2026/9/30，原样交给 Date 解析不了；纯 yyyy-MM-dd 交给 Date
+ * 又会被当成 UTC 零点，西半球会退一天。所以认得的写法按字面取年月日时分秒，
+ * 其余写法已过导入的日期校验，交给 Date 按本地时间解析。
+ */
+function toImportInstant(value: unknown) {
+  const text = String(value).trim()
+  const matched = IMPORT_DATE_PATTERN.exec(text)
+  const date = matched
+    ? new Date(Number(matched[1]), Number(matched[2]) - 1, Number(matched[3]), Number(matched[4] ?? 0), Number(matched[5] ?? 0), Number(matched[6] ?? 0))
+    : new Date(text)
+  return date.toISOString()
+}
+{{~ end ~}}
+
+/**
+ * 导入记录 → 新建请求（导入逐行调用新建操作）
+ *
+ * 记录里只有表格填了值的列，值已按字段类型换算好；必填列没填过不了导入校验，其余没填的列与新建表单留空同口径补齐，上级留空即作为根节点。
+ * 同一批导入并发新建，上级只能填库里已有节点的 ID，不能引用同一文件里的新行。
+ */
+export function toCreateInputFromImport(record: Record<string, unknown>): {{ ClassName }}CreateRequest {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InCreate ~}}
+    {{ col.Field }}: {{ col.ImportFromRecord | string.replace "$r" ("record." + col.Field) | string.replace "$t" (ClassName + "CreateRequest['" + col.Field + "']") }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}
+{{~ if CanDelete ~}}
+
+/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
+}
+{{~ end ~}}
+
+/**
+ * SchemaPage 的资源（树形模式）：整棵树（{{ Resource }}.tree 一次取回、不分页）{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}。
+ * 取回的树经 onTree 交给页面，供上级候选复用。
+ */
+export function baseResource(onTree?: (rows: {{ ClassName }}Row[]) => void): SchemaResource<{{ ClassName }}Row> {
+  return {
+    tree: async () => {
+      const rows = toTreeRows((await {{ ResourceCamel }}Api.tree({})).items)
+      onTree?.(rows)
+      return rows
+    },
+{{~ if CanDelete ~}}
+    remove: async id => failedCodes(await {{ ResourceCamel }}Api.delete({ ids: [String(id)] })),
+{{~ end ~}}
+{{~ if CanStatus ~}}
+    updateStatus: (id, enabled) => {{ ResourceCamel }}Api.setStatus({ id: String(id), {{ StatusColumn.Field }}: enabled ? 'Active' : 'Disabled' }),
+{{~ end ~}}
+{{~ if can_import ~}}
+    // 导入完成后框架会重取整棵树
+    create: record => {{ ResourceCamel }}Api.create(toCreateInputFromImport(record)),
+{{~ end ~}}
+{{~ if CanExport ~}}
+    // 导出中心按列表操作接单、在服务端翻页拉全量；树页没有搜索与排序，只带分页
+    export: { businessType: '{{ Resource }}.list', buildQuery: (params: SchemaQueryParams) => toPageRequest(params) },
+{{~ end ~}}
+  }
+}

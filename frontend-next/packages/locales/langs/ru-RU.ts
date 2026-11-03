@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'Не удалось загрузить варианты словаря «{code}»: {reason}',
     },
+    file_ref_upload: {
+      preview: 'Просмотреть изображение',
+      select: 'Загрузить',
+      change: 'Заменить',
+      remove: 'Удалить',
+      open: 'Открыть',
+      hint_image: 'Распространённые форматы изображений, до {size}MB',
+      hint_file: 'До {size}MB',
+      success: 'Загружено',
+      failed: 'Не удалось загрузить',
+      too_large: 'Файл не должен превышать {size}MB',
+      unavailable: 'Файл недоступен (удалён или нет прав на просмотр)',
+      open_failed: 'Не удалось открыть файл',
+    },
     lock_screen: {
       setup_password_hint: 'Задайте пароль блокировки экрана (4–64 символа)',
       new_password_placeholder: 'Пароль блокировки (4–64 символа)',

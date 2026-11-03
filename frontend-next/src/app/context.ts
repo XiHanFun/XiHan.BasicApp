@@ -463,6 +463,14 @@ export function registerApplicationContext(router: Router): void {
     },
     // 文件引用（头像、表格里的文件列）：files.presign 签发的签名地址补上接口前缀，图片标签不带令牌也能取
     getFilePresignedUrlApi: async fileId => endpointUrl((await fileOps.presign({ id: fileId })).url),
+    // 文件引用上传（代码生成的页面里的上传控件）：普通端点 POST /api/files/upload（multipart 字段 file）；回填时按 ID 取原始文件名
+    uploadFileApi: async (file) => {
+      const form = new FormData()
+      form.append('file', file, file.name)
+      const uploaded = await uploadForm<ResponseOf<'files.get'>>('/api/files/upload', form)
+      return { id: uploaded.id, originalName: uploaded.originalName }
+    },
+    getFileApi: async fileId => ({ originalName: (await fileOps.get({ id: fileId })).originalName }),
     timeZoneApi: { options: timeZoneOptions },
     // 导入历史：import-histories.create / recent（只看自己的）；壳层沿用 4.x 的 basicId / createdTime 字段名
     importHistoryApi: {

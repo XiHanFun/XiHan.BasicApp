@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: '사전 "{code}"의 선택지를 불러오지 못했습니다: {reason}',
     },
+    file_ref_upload: {
+      preview: '이미지 보기',
+      select: '업로드',
+      change: '교체',
+      remove: '제거',
+      open: '열기',
+      hint_image: '일반 이미지 형식 지원, 최대 {size}MB',
+      hint_file: '최대 {size}MB',
+      success: '업로드했습니다',
+      failed: '업로드에 실패했습니다',
+      too_large: '파일 크기는 {size}MB를 넘을 수 없습니다',
+      unavailable: '파일을 사용할 수 없습니다(삭제되었거나 조회 권한 없음)',
+      open_failed: '파일을 열지 못했습니다',
+    },
     lock_screen: {
       setup_password_hint: '이번 화면 잠금 비밀번호를 설정하세요(4-64자)',
       new_password_placeholder: '화면 잠금 비밀번호(4-64자)',

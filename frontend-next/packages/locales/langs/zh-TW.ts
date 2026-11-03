@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: '字典「{code}」的選項載入失敗：{reason}',
     },
+    file_ref_upload: {
+      preview: '檢視圖片',
+      select: '上傳',
+      change: '更換',
+      remove: '移除',
+      open: '開啟',
+      hint_image: '支援常見圖片格式，大小不超過 {size}MB',
+      hint_file: '大小不超過 {size}MB',
+      success: '上傳成功',
+      failed: '上傳失敗',
+      too_large: '檔案大小不能超過 {size}MB',
+      unavailable: '檔案無法使用（已刪除或無檢視權限）',
+      open_failed: '開啟檔案失敗',
+    },
     lock_screen: {
       setup_password_hint: '設定本次鎖定螢幕的密碼（4-64 字元）',
       new_password_placeholder: '鎖定螢幕密碼（4-64 字元）',

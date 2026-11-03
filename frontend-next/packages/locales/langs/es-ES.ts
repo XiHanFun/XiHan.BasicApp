@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'No se pudieron cargar las opciones del diccionario "{code}": {reason}',
     },
+    file_ref_upload: {
+      preview: 'Ver imagen',
+      select: 'Subir',
+      change: 'Reemplazar',
+      remove: 'Quitar',
+      open: 'Abrir',
+      hint_image: 'Formatos de imagen habituales, hasta {size}MB',
+      hint_file: 'Hasta {size}MB',
+      success: 'Subido',
+      failed: 'Error al subir',
+      too_large: 'El archivo no puede superar {size}MB',
+      unavailable: 'Archivo no disponible (eliminado o sin permiso de lectura)',
+      open_failed: 'No se pudo abrir el archivo',
+    },
     lock_screen: {
       setup_password_hint: 'Defina la contraseña de bloqueo de pantalla (4-64 caracteres)',
       new_password_placeholder: 'Contraseña de bloqueo (4-64 caracteres)',

@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'Optionen des Wörterbuchs „{code}" konnten nicht geladen werden: {reason}',
     },
+    file_ref_upload: {
+      preview: 'Bild anzeigen',
+      select: 'Hochladen',
+      change: 'Ersetzen',
+      remove: 'Entfernen',
+      open: 'Öffnen',
+      hint_image: 'Gängige Bildformate, höchstens {size}MB',
+      hint_file: 'Höchstens {size}MB',
+      success: 'Hochgeladen',
+      failed: 'Hochladen fehlgeschlagen',
+      too_large: 'Die Datei darf höchstens {size}MB groß sein',
+      unavailable: 'Datei nicht verfügbar (gelöscht oder keine Leseberechtigung)',
+      open_failed: 'Datei konnte nicht geöffnet werden',
+    },
     lock_screen: {
       setup_password_hint: 'Sperrbildschirm-Passwort festlegen (4-64 Zeichen)',
       new_password_placeholder: 'Sperrbildschirm-Passwort (4-64 Zeichen)',

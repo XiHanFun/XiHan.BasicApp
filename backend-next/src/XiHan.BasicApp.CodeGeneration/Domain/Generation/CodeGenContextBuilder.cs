@@ -240,9 +240,16 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return model;
     }
 
-    // 系统字典按字典项编码存储，列要是文本、要有字典码（照 4.x）
+    // 系统字典按字典项编码存储，列要是文本、要有字典码（照 4.x）；选了枚举的要解析得到、C# 类型就是它
+    // （4.x 出一个禁用的占位选项再告警，6.0 生成前就拦下：没有告警的通道，占位选项要到页面上才看得出）
     private static Error? ValidateSelectors(IReadOnlyList<CodeGenColumnModel> columns)
     {
+        var unresolved = columns.FirstOrDefault(static c => c.IsBusiness && c.DictSelectorType == CodeGenDictSelectorType.EnumSelector && c.Enum is null);
+        if (unresolved is not null)
+        {
+            return Invalid(CodeGenerationMessages.GenerateEnumUnresolved, ("column", unresolved.ColumnName), ("enum", unresolved.EnumTypeName ?? string.Empty));
+        }
+
         foreach (var column in columns.Where(static c => c.IsBusiness && c.DictSelectorType == CodeGenDictSelectorType.DictSelector))
         {
             if (string.IsNullOrWhiteSpace(column.DictCode))

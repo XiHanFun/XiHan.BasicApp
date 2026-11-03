@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'Falha ao carregar as opções do dicionário "{code}": {reason}',
     },
+    file_ref_upload: {
+      preview: 'Ver imagem',
+      select: 'Enviar',
+      change: 'Substituir',
+      remove: 'Remover',
+      open: 'Abrir',
+      hint_image: 'Formatos de imagem comuns, até {size}MB',
+      hint_file: 'Até {size}MB',
+      success: 'Enviado',
+      failed: 'Falha no envio',
+      too_large: 'O arquivo não pode passar de {size}MB',
+      unavailable: 'Arquivo indisponível (excluído ou sem permissão de leitura)',
+      open_failed: 'Não foi possível abrir o arquivo',
+    },
     lock_screen: {
       setup_password_hint: 'Defina a senha de bloqueio de tela (4-64 caracteres)',
       new_password_placeholder: 'Senha de bloqueio (4-64 caracteres)',

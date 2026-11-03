@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "Пространство имён «{namespace}» не является допустимым для C#.",
   "codegeneration.generate.dict_code_missing": "Столбец «{column}» использует словарь, но код словаря не указан.",
   "codegeneration.generate.dict_not_string": "Столбец «{column}» использует словарь, но имеет тип {type}; элементы хранятся по коду, столбец должен быть текстовым.",
+  "codegeneration.generate.enum_unresolved": "Столбец «{column}» использует перечисление «{enum}», которое не удаётся найти или которое не совпадает с C#-типом столбца: заново синхронизируйте структуру таблицы или исправьте имя перечисления.",
   "codegeneration.generate.relation_not_guid": "Столбец «{column}» — связь типа {type}; он хранит ID связанной записи и должен быть Guid.",
   "codegeneration.generate.relation_target_invalid": "Столбец «{column}» — связь, но связанная таблица не задана или больше не существует.",
   "codegeneration.generate.relation_tree_invalid": "Столбец «{column}» — древовидная связь, но «{target}» не является деревом со столбцом родителя Guid.",

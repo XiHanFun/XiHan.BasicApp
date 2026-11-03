@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "네임스페이스 '{namespace}'은(는) 올바른 C# 네임스페이스가 아닙니다.",
   "codegeneration.generate.dict_code_missing": "열 '{column}'은(는) 사전을 사용하지만 사전 코드가 없습니다.",
   "codegeneration.generate.dict_not_string": "열 '{column}'은(는) 사전을 사용하지만 형식이 {type}입니다. 사전 항목은 코드로 저장되므로 텍스트여야 합니다.",
+  "codegeneration.generate.enum_unresolved": "열 '{column}'이(가) 열거형 '{enum}'을(를) 선택했지만 확인할 수 없거나 열의 C# 형식이 아닙니다. 테이블 구조를 다시 동기화하거나 열거형 이름을 고치세요.",
   "codegeneration.generate.relation_not_guid": "열 '{column}'은(는) 관계이지만 형식이 {type}입니다. 관련 레코드의 ID를 저장하므로 Guid여야 합니다.",
   "codegeneration.generate.relation_target_invalid": "열 '{column}'은(는) 관계이지만 관련 테이블이 없거나 더 이상 존재하지 않습니다.",
   "codegeneration.generate.relation_tree_invalid": "열 '{column}'은(는) 트리 관계이지만 '{target}'은(는) Guid 상위 열이 있는 트리 테이블이 아닙니다.",

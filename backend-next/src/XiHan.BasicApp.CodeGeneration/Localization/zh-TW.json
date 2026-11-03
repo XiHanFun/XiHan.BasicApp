@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "命名空間「{namespace}」不是合法的 C# 命名空間。",
   "codegeneration.generate.dict_code_missing": "欄位「{column}」選了系統字典但沒填字典碼。",
   "codegeneration.generate.dict_not_string": "欄位「{column}」選了系統字典，但型別是 {type}：字典項按編碼儲存，欄位要是文字。",
+  "codegeneration.generate.enum_unresolved": "欄位「{column}」選了列舉「{enum}」，但解析不到，或欄位的 C# 型別不是它：重新同步表結構或改正列舉型別名稱。",
   "codegeneration.generate.relation_not_guid": "欄位「{column}」選了關聯，但型別是 {type}：關聯存被關聯記錄的主鍵，要是 Guid。",
   "codegeneration.generate.relation_target_invalid": "欄位「{column}」選了關聯，但沒選關聯的表或那張表設定已不存在。",
   "codegeneration.generate.relation_tree_invalid": "欄位「{column}」選了關聯樹，但「{target}」不是設好 Guid 父級欄位的樹表。",

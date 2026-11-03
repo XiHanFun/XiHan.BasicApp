@@ -28,7 +28,7 @@ namespace {{ Namespace }}.Queries;
 /// {{ DisplayName | xml_doc }}的列表查询（SqlSugar 直查，租户库）。
 /// </summary>
 /// <remarks>
-/// 按白名单接受筛选与排序，别的是 <c>{{ ErrorPrefix }}_VALIDATION</c>；没给排序即创建时间倒序（照 4.x）。
+/// 按白名单接受筛选与排序，别的是 <c>{{ ErrorPrefix }}_VALIDATION</c>；没给排序即创建时间倒序，创建时间可按区间筛选（照 4.x）。
 /// </remarks>
 /// <param name="unitOfWork">工作单元。</param>
 public sealed partial class {{ ClassName }}Queries(SqlSugarUnitOfWork unitOfWork)
@@ -144,6 +144,8 @@ public sealed partial class {{ ClassName }}Queries(SqlSugarUnitOfWork unitOfWork
 {{~ if MasterFilterColumn ~}}
             (Field{{ MasterFilterColumn.CSharpProperty }}, "eq") when Parse{{ MasterFilterColumn.CSharpProperty }}(value, out var masterId) => Result.Success(query.Where(e => e.{{ MasterFilterColumn.CSharpProperty }} == masterId)),
 {{~ end ~}}
+            (FieldCreatedAt, "ge") when ParseCreatedAt(value, out var createdAtGe) => Result.Success(query.Where(e => e.CreatedAt >= createdAtGe)),
+            (FieldCreatedAt, "le") when ParseCreatedAt(value, out var createdAtLe) => Result.Success(query.Where(e => e.CreatedAt <= createdAtLe)),
             _ => Error.Validation({{ ModuleName }}Errors.{{ ClassName }}QueryUnsupported, {{ ModuleName }}Messages.{{ ClassName }}FilterUnsupported, MessageArguments.Of(("field", filter.Field), ("operator", filter.Operator))),
         };
     }
@@ -153,6 +155,8 @@ public sealed partial class {{ ClassName }}Queries(SqlSugarUnitOfWork unitOfWork
     private static bool Parse{{ col.CSharpProperty }}(string text, out {{ col.CSharpTypeQualifiedBase }} value) => {{ col.Parser }};
 {{~ end ~}}
 {{~ end ~}}
+
+    private static bool ParseCreatedAt(string text, out DateTimeOffset value) => DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out value);
 {{~ if MasterFilterColumn && !MasterFilterColumn.IsQueryable ~}}
 
     private static bool Parse{{ MasterFilterColumn.CSharpProperty }}(string text, out Guid value) => Guid.TryParse(text, out value);

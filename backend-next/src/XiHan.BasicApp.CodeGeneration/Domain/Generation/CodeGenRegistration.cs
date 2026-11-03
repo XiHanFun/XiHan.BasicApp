@@ -90,6 +90,11 @@ public static class CodeGenRegistration
         md.AppendLine("5. 架构测试 `test/XiHan.BasicApp.Architecture.Tests`：工程引用这个包，`Model/Packages.cs` 的 `Ranks` 与 `Assemblies`：").AppendLine();
         Code(md, "csharp", $"[\"{module}\"] = 30,", $"typeof({ns}.{module}Feature).Assembly,");
         md.AppendLine("6. 导出契约（`contracts export`）后在 `frontend-next` 运行 `pnpm gen:contracts`。").AppendLine();
+        if (context.Table.Scope != CodeGenScope.BackendOnly)
+        {
+            md.AppendLine("7. 前端 `frontend-next/scripts/check-modules.mjs` 的 `KNOWN` 加上模块名（模块目录与后端包短名一致）；视图键 `" + context.Resource + "/index` 要全局唯一：").AppendLine();
+            Code(md, "js", $"'{context.ModuleCode}',");
+        }
     }
 
     private static void ExistingPackage(StringBuilder md, CodeGenContext context, CodeGenItems items)
@@ -131,6 +136,15 @@ public static class CodeGenRegistration
         {
             md.Append("### `").Append(context.Namespace).AppendLine(".csproj`").AppendLine();
             Code(md, "xml", [.. context.ReferencedPackages.Select(static p => $"<ProjectReference Include=\"../{p}/{p}.csproj\" />")]);
+        }
+
+        if (context.Table.Scope != CodeGenScope.BackendOnly)
+        {
+            foreach (var locale in CodeGenPhrases.Locales)
+            {
+                md.Append("### `frontend-next/src/modules/").Append(context.ModuleCode).Append("/locales/").Append(locale).Append(".ts` 的 `").Append(context.ModuleCode).AppendLine("` 对象里").AppendLine();
+                Code(md, "ts", CodeGenFrontendLocalization.Block(context, locale));
+            }
         }
 
         foreach (var locale in CodeGenPhrases.Locales)

@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "Namespace '{namespace}' is not a valid C# namespace.",
   "codegeneration.generate.dict_code_missing": "Column '{column}' uses a dictionary but has no dictionary code.",
   "codegeneration.generate.dict_not_string": "Column '{column}' uses a dictionary but its type is {type}; dictionary items are stored by code, so the column must be text.",
+  "codegeneration.generate.enum_unresolved": "Column '{column}' uses enum '{enum}', which cannot be resolved or is not the column's C# type: resync the table schema or fix the enum type name.",
   "codegeneration.generate.relation_not_guid": "Column '{column}' is a relation but its type is {type}; it stores the related record's ID and must be Guid.",
   "codegeneration.generate.relation_target_invalid": "Column '{column}' is a relation but its related table is not set or no longer exists.",
   "codegeneration.generate.relation_tree_invalid": "Column '{column}' is a tree relation but '{target}' is not a tree table with a Guid parent column.",

@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "名前空間「{namespace}」は有効な C# 名前空間ではありません。",
   "codegeneration.generate.dict_code_missing": "列「{column}」は辞書を使いますが辞書コードがありません。",
   "codegeneration.generate.dict_not_string": "列「{column}」は辞書を使いますが型が {type} です。辞書項目はコードで保存するため、列は文字列にしてください。",
+  "codegeneration.generate.enum_unresolved": "列「{column}」は列挙「{enum}」を選んでいますが、解決できないか、列の C# 型ではありません。テーブル構造を再同期するか、列挙型名を修正してください。",
   "codegeneration.generate.relation_not_guid": "列「{column}」は関連ですが型が {type} です。関連先の主キーを保存するため Guid にしてください。",
   "codegeneration.generate.relation_target_invalid": "列「{column}」は関連ですが、関連テーブルが未設定か存在しません。",
   "codegeneration.generate.relation_tree_invalid": "列「{column}」はツリー関連ですが、「{target}」は Guid の親列を持つツリーテーブルではありません。",

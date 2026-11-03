@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'Failed to load options of dictionary "{code}": {reason}',
     },
+    file_ref_upload: {
+      preview: 'View image',
+      select: 'Upload',
+      change: 'Replace',
+      remove: 'Remove',
+      open: 'Open',
+      hint_image: 'Common image formats, up to {size}MB',
+      hint_file: 'Up to {size}MB',
+      success: 'Uploaded',
+      failed: 'Upload failed',
+      too_large: 'File must not exceed {size}MB',
+      unavailable: 'File unavailable (deleted or no permission to view)',
+      open_failed: 'Failed to open the file',
+    },
     lock_screen: {
       setup_password_hint: 'Set lock screen password (4-64 characters)',
       new_password_placeholder: 'Lock screen password (4-64 characters)',

@@ -79,6 +79,20 @@ export default {
     dict_options: {
       load_failed: 'Impossible de charger les options du dictionnaire « {code} » : {reason}',
     },
+    file_ref_upload: {
+      preview: 'Voir l’image',
+      select: 'Téléverser',
+      change: 'Remplacer',
+      remove: 'Retirer',
+      open: 'Ouvrir',
+      hint_image: 'Formats d’image courants, {size}MB maximum',
+      hint_file: '{size}MB maximum',
+      success: 'Téléversé',
+      failed: 'Échec du téléversement',
+      too_large: 'Le fichier ne doit pas dépasser {size}MB',
+      unavailable: 'Fichier indisponible (supprimé ou sans droit de lecture)',
+      open_failed: 'Impossible d’ouvrir le fichier',
+    },
     lock_screen: {
       setup_password_hint: 'Définissez le mot de passe de verrouillage (4 à 64 caractères)',
       new_password_placeholder: 'Mot de passe de verrouillage (4 à 64 caractères)',

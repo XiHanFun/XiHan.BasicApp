@@ -109,6 +109,7 @@
   "codegeneration.generate.namespace_invalid": "El espacio de nombres '{namespace}' no es válido en C#.",
   "codegeneration.generate.dict_code_missing": "La columna '{column}' usa un diccionario pero no tiene código.",
   "codegeneration.generate.dict_not_string": "La columna '{column}' usa un diccionario pero es de tipo {type}; los elementos se guardan por código, debe ser texto.",
+  "codegeneration.generate.enum_unresolved": "La columna '{column}' usa el enum '{enum}', que no se puede resolver o no es el tipo C# de la columna: vuelve a sincronizar la estructura de la tabla o corrige el nombre del enum.",
   "codegeneration.generate.relation_not_guid": "La columna '{column}' es una relación de tipo {type}; guarda el ID relacionado y debe ser Guid.",
   "codegeneration.generate.relation_target_invalid": "La columna '{column}' es una relación pero su tabla relacionada no está definida o ya no existe.",
   "codegeneration.generate.relation_tree_invalid": "La columna '{column}' es una relación de árbol pero '{target}' no es una tabla de árbol con columna padre Guid.",
