@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "KI-Assistenten ändern",
   "permissions.ai.ai_assistants.update.description": "Bearbeitet, aktiviert und deaktiviert Assistenten und legt den Standard fest.",
   "permissions.ai.ai_assistants.delete.name": "KI-Assistenten löschen",
-  "permissions.ai.ai_assistants.delete.description": "Löscht Assistenten."
+  "permissions.ai.ai_assistants.delete.description": "Löscht Assistenten.",
+  "ai.providers.references_unavailable": "Es konnte nicht geprüft werden, ob der Anbieter verwendet wird: Das Lesen der Seite '{side}' ist fehlgeschlagen, daher wurde nichts gelöscht."
 }

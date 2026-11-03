@@ -85,6 +85,7 @@ public sealed class RuntimeFeature : IHostedFeature
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
         context.Services.AddScoped<DiffLogBuffer>();
         context.Services.AddScoped<SideRows>();
+        context.Services.AddScoped<TenantSides>();
         context.Services.AddSecretProtection(context.Configuration);
         context.Services.AddMessageCatalog(RuntimeMessages.Catalog);
         context.Services.AddPermissionCatalog("runtime", RuntimePermissions.All);

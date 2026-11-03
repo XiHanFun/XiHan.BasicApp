@@ -1,4 +1,5 @@
 {
   "permissions.runtime.cloud_events.deliver.name": "CloudEvents 이벤트 전달",
-  "permissions.runtime.cloud_events.deliver.description": "CloudEvents 인바운드 엔드포인트로 이벤트를 전달합니다. 플랫폼 서비스 계정이나 서비스 역할에만 부여해야 합니다."
+  "permissions.runtime.cloud_events.deliver.description": "CloudEvents 인바운드 엔드포인트로 이벤트를 전달합니다. 플랫폼 서비스 계정이나 서비스 역할에만 부여해야 합니다.",
+  "runtime.sweep.incomplete": "백그라운드 작업 '{job}'이(가) {failures}곳에서 처리되지 못했습니다. 자세한 내용은 로그를 확인하세요."
 }

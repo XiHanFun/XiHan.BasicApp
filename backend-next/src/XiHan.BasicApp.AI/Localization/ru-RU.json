@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "Изменение ассистентов ИИ",
   "permissions.ai.ai_assistants.update.description": "Изменение, включение, отключение и назначение ассистента по умолчанию.",
   "permissions.ai.ai_assistants.delete.name": "Удаление ассистентов ИИ",
-  "permissions.ai.ai_assistants.delete.description": "Удаление ассистентов."
+  "permissions.ai.ai_assistants.delete.description": "Удаление ассистентов.",
+  "ai.providers.references_unavailable": "Не удалось проверить, используется ли поставщик: чтение стороны '{side}' не удалось, поэтому ничего не удалено."
 }

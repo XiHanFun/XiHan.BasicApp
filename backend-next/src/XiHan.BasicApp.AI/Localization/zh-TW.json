@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "修改助手",
   "permissions.ai.ai_assistants.update.description": "修改、啟停助手與設為預設。",
   "permissions.ai.ai_assistants.delete.name": "刪除助手",
-  "permissions.ai.ai_assistants.delete.description": "刪除助手。"
+  "permissions.ai.ai_assistants.delete.description": "刪除助手。",
+  "ai.providers.references_unavailable": "無法確認提供商是否被引用：'{side}' 這一側讀取失敗，這次沒有刪除。"
 }

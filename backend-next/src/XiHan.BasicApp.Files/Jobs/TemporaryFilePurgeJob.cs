@@ -3,9 +3,9 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
+using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Scheduling.Abstractions.Jobs;
@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.Files.Jobs;
 /// 一侧一次至多 <see cref="MaxBatchesPerSide"/> 批，积压的留给下一次。代码生成的产物包与导出中心的结果文件都在其列
 /// 一个作用域失败只记日志、计入失败，不影响其他。读取侧本来就按到期拒绝，不等这个作业
 /// </remarks>
-/// <param name="tenants">租户目录</param>
+/// <param name="sides">要处理的各侧</param>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="logger">日志</param>
-public sealed partial class TemporaryFilePurgeJob(ITenantStore tenants, IServiceScopeFactory scopes, ILogger<TemporaryFilePurgeJob> logger) : IJob
+public sealed partial class TemporaryFilePurgeJob(TenantSides sides, IServiceScopeFactory scopes, ILogger<TemporaryFilePurgeJob> logger) : IJob
 {
     /// <summary>
     /// 作业名
@@ -47,12 +47,10 @@ public sealed partial class TemporaryFilePurgeJob(ITenantStore tenants, IService
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
-        var sides = new List<string> { TenantIds.Platform };
-        sides.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Select(static t => t.Id));
         var purged = 0;
         var failures = 0;
         var deferred = 0;
-        foreach (var side in sides)
+        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
         {
             try
             {
@@ -79,7 +77,7 @@ public sealed partial class TemporaryFilePurgeJob(ITenantStore tenants, IService
         }
 
         LogPurged(logger, purged, deferred, failures);
-        return Result.Success();
+        return TenantSides.Outcome(Name, failures);
     }
 
     /// <summary>
@@ -91,6 +89,8 @@ public sealed partial class TemporaryFilePurgeJob(ITenantStore tenants, IService
     private async Task<int> InScopeAsync(string side, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
+        // 独立库的租户：先按租户目录绑定分片，处理的是它自己的库
+        (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: side), cancellationToken).ConfigureAwait(false);
         try

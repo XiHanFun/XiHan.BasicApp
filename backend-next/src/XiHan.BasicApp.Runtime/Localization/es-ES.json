@@ -1,4 +1,5 @@
 {
   "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents",
-  "permissions.runtime.cloud_events.deliver.description": "Entregar eventos al punto de conexión de entrada de CloudEvents; concederlo solo a cuentas de servicio de la plataforma o a roles de servicio."
+  "permissions.runtime.cloud_events.deliver.description": "Entregar eventos al punto de conexión de entrada de CloudEvents; concederlo solo a cuentas de servicio de la plataforma o a roles de servicio.",
+  "runtime.sweep.incomplete": "El trabajo en segundo plano '{job}' falló en {failures} lugares; consulte los registros para ver los detalles."
 }

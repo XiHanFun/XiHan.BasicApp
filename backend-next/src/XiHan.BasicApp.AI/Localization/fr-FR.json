@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "Modifier les assistants IA",
   "permissions.ai.ai_assistants.update.description": "Modifier, activer, désactiver et définir l'assistant par défaut.",
   "permissions.ai.ai_assistants.delete.name": "Supprimer des assistants IA",
-  "permissions.ai.ai_assistants.delete.description": "Supprimer des assistants."
+  "permissions.ai.ai_assistants.delete.description": "Supprimer des assistants.",
+  "ai.providers.references_unavailable": "Impossible de vérifier si le fournisseur est utilisé : la lecture du côté '{side}' a échoué, rien n'a été supprimé."
 }

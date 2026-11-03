@@ -210,6 +210,11 @@ public static class AIMessages
     public const string ProviderInUse = "ai.providers.in_use";
 
     /// <summary>
+    /// 有一侧读不出提供商的引用（参数 <c>side</c>）
+    /// </summary>
+    public const string ProviderReferencesUnavailable = "ai.providers.references_unavailable";
+
+    /// <summary>
     /// 知识文档不存在（参数 <c>id</c>）
     /// </summary>
     public const string KnowledgeDocumentNotFound = "ai.knowledge_documents.not_found";

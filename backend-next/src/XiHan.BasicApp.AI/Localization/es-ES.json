@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "Actualizar asistentes de IA",
   "permissions.ai.ai_assistants.update.description": "Editar, habilitar, deshabilitar y establecer el asistente predeterminado.",
   "permissions.ai.ai_assistants.delete.name": "Eliminar asistentes de IA",
-  "permissions.ai.ai_assistants.delete.description": "Eliminar asistentes."
+  "permissions.ai.ai_assistants.delete.description": "Eliminar asistentes.",
+  "ai.providers.references_unavailable": "No se pudo comprobar si el proveedor está en uso: falló la lectura del lado '{side}', por lo que no se eliminó nada."
 }

@@ -66,4 +66,9 @@ public static class RuntimeErrors
     /// 初始化或读取租户独立库失败
     /// </summary>
     public const string TenantDatabaseFailed = "RUNTIME_UNAVAILABLE_005";
+
+    /// <summary>
+    /// 后台逐侧遍历有一处没有处理成功
+    /// </summary>
+    public const string SweepIncomplete = "RUNTIME_UNAVAILABLE_006";
 }

@@ -1,4 +1,5 @@
 {
   "permissions.runtime.cloud_events.deliver.name": "Доставка CloudEvents",
-  "permissions.runtime.cloud_events.deliver.description": "Доставить события на входящую конечную точку CloudEvents; выдавать только служебным учётным записям платформы или служебным ролям."
+  "permissions.runtime.cloud_events.deliver.description": "Доставить события на входящую конечную точку CloudEvents; выдавать только служебным учётным записям платформы или служебным ролям.",
+  "runtime.sweep.incomplete": "Фоновое задание '{job}' не выполнено в {failures} местах; подробности в журнале."
 }

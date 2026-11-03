@@ -1,4 +1,5 @@
 {
   "permissions.runtime.cloud_events.deliver.name": "Deliver CloudEvents",
-  "permissions.runtime.cloud_events.deliver.description": "Deliver events to the CloudEvents inbound endpoint; grant it only to platform service accounts or service roles."
+  "permissions.runtime.cloud_events.deliver.description": "Deliver events to the CloudEvents inbound endpoint; grant it only to platform service accounts or service roles.",
+  "runtime.sweep.incomplete": "Background job '{job}' failed in {failures} places; see the logs for details."
 }

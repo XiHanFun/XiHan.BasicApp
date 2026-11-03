@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "修改助手",
   "permissions.ai.ai_assistants.update.description": "修改、启停助手与设为缺省。",
   "permissions.ai.ai_assistants.delete.name": "删除助手",
-  "permissions.ai.ai_assistants.delete.description": "删除助手。"
+  "permissions.ai.ai_assistants.delete.description": "删除助手。",
+  "ai.providers.references_unavailable": "无法确认提供商有没有被引用：'{side}' 这一侧读取失败，这次没有删除。"
 }

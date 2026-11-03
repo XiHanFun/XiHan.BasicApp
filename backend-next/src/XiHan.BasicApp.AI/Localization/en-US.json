@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "Update AI assistants",
   "permissions.ai.ai_assistants.update.description": "Edit, enable, disable and set the default assistant.",
   "permissions.ai.ai_assistants.delete.name": "Delete AI assistants",
-  "permissions.ai.ai_assistants.delete.description": "Delete assistants."
+  "permissions.ai.ai_assistants.delete.description": "Delete assistants.",
+  "ai.providers.references_unavailable": "Could not check whether the provider is in use: reading side '{side}' failed, so nothing was deleted."
 }

@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "Atualizar assistentes de IA",
   "permissions.ai.ai_assistants.update.description": "Editar, ativar, desativar e definir o assistente padrão.",
   "permissions.ai.ai_assistants.delete.name": "Excluir assistentes de IA",
-  "permissions.ai.ai_assistants.delete.description": "Excluir assistentes."
+  "permissions.ai.ai_assistants.delete.description": "Excluir assistentes.",
+  "ai.providers.references_unavailable": "Não foi possível verificar se o provedor está em uso: a leitura do lado '{side}' falhou, portanto nada foi excluído."
 }

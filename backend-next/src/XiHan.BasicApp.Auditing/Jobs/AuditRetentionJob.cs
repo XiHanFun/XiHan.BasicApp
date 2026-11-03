@@ -5,12 +5,11 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Auditing.Domain.Entities;
-using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Settings;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
@@ -29,11 +28,11 @@ namespace XiHan.BasicApp.Auditing.Jobs;
 /// </remarks>
 /// <param name="configs">参数读取</param>
 /// <param name="options">日志选项</param>
-/// <param name="tenants">租户目录</param>
+/// <param name="sides">要清理的各侧</param>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="clock">时间源</param>
 /// <param name="logger">日志</param>
-public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditLogOptions options, ITenantStore tenants, IServiceScopeFactory scopes, TimeProvider clock, ILogger<AuditRetentionJob> logger) : IJob
+public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditLogOptions options, TenantSides sides, IServiceScopeFactory scopes, TimeProvider clock, ILogger<AuditRetentionJob> logger) : IJob
 {
     /// <summary>
     /// 作业名
@@ -80,9 +79,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
         var cutoff = clock.GetUtcNow().AddDays(-retention);
         var removed = 0L;
         var failures = 0;
-        var scopesToClean = new List<string> { TenantIds.Platform };
-        scopesToClean.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Select(static t => t.Id));
-        foreach (var tenant in scopesToClean)
+        foreach (var tenant in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
         {
             foreach (var purge in _purges)
             {
@@ -109,7 +106,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
         }
 
         LogPurged(logger, retention, cutoff, removed, failures);
-        return Result.Success();
+        return TenantSides.Outcome(Name, failures);
     }
 
     /// <summary>

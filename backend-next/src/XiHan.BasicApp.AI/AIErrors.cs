@@ -111,4 +111,9 @@ public static class AIErrors
     /// 助手引用的提示词不存在或已停用，回复不了
     /// </summary>
     public const string AssistantPromptDisabled = "AI_UNAVAILABLE_103";
+
+    /// <summary>
+    /// 有一侧读不出提供商的引用，这次不删除
+    /// </summary>
+    public const string ProviderReferencesUnavailable = "AI_UNAVAILABLE_104";
 }

@@ -1,13 +1,15 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Data.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SqlSugar;
 using XiHan.BasicApp.AI.Domain.Entities;
-using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
@@ -23,9 +25,10 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 删提供商是少见的平台操作，这个开销可以接受。任何一侧查不了即失败，不当作没有引用
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
-/// <param name="tenants">租户目录</param>
+/// <param name="sides">要查的各侧</param>
 /// <param name="scopes">作用域工厂</param>
-public sealed class AiProviderReferences(IRepository<SysAiAssistant, Guid> assistants, ITenantStore tenants, IServiceScopeFactory scopes)
+/// <param name="logger">日志</param>
+public sealed partial class AiProviderReferences(IRepository<SysAiAssistant, Guid> assistants, TenantSides sides, IServiceScopeFactory scopes, ILogger<AiProviderReferences> logger)
 {
     /// <summary>
     /// 这些编码里被引用的那些
@@ -48,9 +51,7 @@ public sealed class AiProviderReferences(IRepository<SysAiAssistant, Guid> assis
             referenced.UnionWith(new[] { assistant.ProviderCode, assistant.KnowledgeProviderCode }.OfType<string>().Where(codes.Contains));
         }
 
-        var sides = new List<string> { TenantIds.Platform };
-        sides.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Select(static t => t.Id));
-        foreach (var side in sides)
+        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
         {
             var found = await FindInAsync(side, codes, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var items))
@@ -85,14 +86,27 @@ public sealed class AiProviderReferences(IRepository<SysAiAssistant, Guid> assis
             (await unitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false)).ThrowIfFailure();
             return found;
         }
+        catch (Exception exception) when (exception is DbException or SqlSugarException)
+        {
+            await RollbackAsync(unitOfWork).ConfigureAwait(false);
+            LogSideUnreadable(logger, exception, side);
+            return Error.Unavailable(AIErrors.ProviderReferencesUnavailable, AIMessages.ProviderReferencesUnavailable, MessageArguments.Of(("side", side)));
+        }
         catch
         {
-            if (unitOfWork.State == UnitOfWorkState.Active)
-            {
-                await unitOfWork.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
-            }
-
+            await RollbackAsync(unitOfWork).ConfigureAwait(false);
             throw;
         }
     }
+
+    private static async Task RollbackAsync(IUnitOfWork unitOfWork)
+    {
+        if (unitOfWork.State == UnitOfWorkState.Active)
+        {
+            await unitOfWork.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Reading the provider references of side '{Side}' failed.")]
+    private static partial void LogSideUnreadable(ILogger logger, Exception exception, string side);
 }

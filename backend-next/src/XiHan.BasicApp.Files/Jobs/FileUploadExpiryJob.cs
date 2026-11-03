@@ -3,9 +3,9 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Files.Domain.Services;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
+using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Scheduling.Abstractions.Jobs;
@@ -20,10 +20,10 @@ namespace XiHan.BasicApp.Files.Jobs;
 /// 内建作业，每小时一次：平台与目录里的每个租户逐个作用域、逐批（一批一个工作单元）把过了时限的分片上传记为过期，放弃存储里的分片
 /// 一个作用域失败只记日志、计入失败，不影响其他。操作里遇到过时限的上传也按过期回答，不等这个作业
 /// </remarks>
-/// <param name="tenants">租户目录</param>
+/// <param name="sides">要处理的各侧</param>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="logger">日志</param>
-public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceScopeFactory scopes, ILogger<FileUploadExpiryJob> logger) : IJob
+public sealed partial class FileUploadExpiryJob(TenantSides sides, IServiceScopeFactory scopes, ILogger<FileUploadExpiryJob> logger) : IJob
 {
     /// <summary>
     /// 作业名
@@ -40,11 +40,9 @@ public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceSc
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
-        var sides = new List<string> { TenantIds.Platform };
-        sides.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Select(static t => t.Id));
         var expired = 0;
         var failures = 0;
-        foreach (var side in sides)
+        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
         {
             try
             {
@@ -64,7 +62,7 @@ public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceSc
         }
 
         LogExpired(logger, expired, failures);
-        return Result.Success();
+        return TenantSides.Outcome(Name, failures);
     }
 
     /// <summary>
@@ -76,6 +74,8 @@ public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceSc
     private async Task<int> InScopeAsync(string side, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
+        // 独立库的租户：先按租户目录绑定分片，处理的是它自己的库
+        (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: side), cancellationToken).ConfigureAwait(false);
         try

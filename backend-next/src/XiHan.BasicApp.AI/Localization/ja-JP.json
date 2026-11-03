@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "AI アシスタントの更新",
   "permissions.ai.ai_assistants.update.description": "アシスタントの編集、有効化、無効化、デフォルト設定を行います。",
   "permissions.ai.ai_assistants.delete.name": "AI アシスタントの削除",
-  "permissions.ai.ai_assistants.delete.description": "アシスタントを削除します。"
+  "permissions.ai.ai_assistants.delete.description": "アシスタントを削除します。",
+  "ai.providers.references_unavailable": "プロバイダーの参照を確認できませんでした。'{side}' 側の読み取りに失敗したため、削除していません。"
 }

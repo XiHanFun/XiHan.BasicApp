@@ -127,5 +127,6 @@
   "permissions.ai.ai_assistants.update.name": "AI 어시스턴트 수정",
   "permissions.ai.ai_assistants.update.description": "어시스턴트를 수정, 활성화, 비활성화하고 기본으로 설정합니다.",
   "permissions.ai.ai_assistants.delete.name": "AI 어시스턴트 삭제",
-  "permissions.ai.ai_assistants.delete.description": "어시스턴트를 삭제합니다."
+  "permissions.ai.ai_assistants.delete.description": "어시스턴트를 삭제합니다.",
+  "ai.providers.references_unavailable": "제공자 참조 여부를 확인할 수 없습니다. '{side}' 쪽 읽기에 실패하여 삭제하지 않았습니다."
 }

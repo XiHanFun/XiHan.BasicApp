@@ -6,9 +6,8 @@ using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Domain.Services;
-using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
-using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
@@ -26,11 +25,11 @@ namespace XiHan.BasicApp.Chat.Jobs;
 /// 不删会话、成员，也不删附件文件（照 4.x）。一个作用域失败只记日志、计入失败，不影响其他
 /// </remarks>
 /// <param name="policy">聊天策略</param>
-/// <param name="tenants">租户目录</param>
+/// <param name="sides">要清理的各侧</param>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="clock">时间源</param>
 /// <param name="logger">日志</param>
-public sealed partial class ChatRetentionJob(ChatPolicy policy, ITenantStore tenants, IServiceScopeFactory scopes, TimeProvider clock, ILogger<ChatRetentionJob> logger) : IJob
+public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides sides, IServiceScopeFactory scopes, TimeProvider clock, ILogger<ChatRetentionJob> logger) : IJob
 {
     /// <summary>
     /// 作业名
@@ -60,9 +59,7 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, ITenantStore ten
         var removedMessages = 0L;
         var removedReactions = 0L;
         var failures = 0;
-        var sides = new List<string> { TenantIds.Platform };
-        sides.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Select(static t => t.Id));
-        foreach (var side in sides)
+        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
         {
             try
             {
@@ -78,7 +75,7 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, ITenantStore ten
         }
 
         LogPurged(logger, configured.RetentionDays, cutoff, removedMessages, removedReactions, failures);
-        return Result.Success();
+        return TenantSides.Outcome(Name, failures);
     }
 
     /// <summary>
