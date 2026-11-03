@@ -49,7 +49,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 - 重载只丢掉配置变了或没了的提供商缓存的客户端。解不开密钥的提供商记 Warning 后不进目录，按未配置处理，不当明文用。
 - 目录以框架的 `AIProviderConformance` 一致性套件自证。
 
-BasicApp 调用框架的聊天、嵌入与知识库时一律显式传提供商的编码（为空即用目录的缺省提供商）：框架在没传名字时按配置 `XiHan:AI:DefaultProvider` 找缺省名，不问目录。
+没写提供商的编码时，聊天、嵌入与知识库都向目录要缺省提供商。不要配 `XiHan:AI:Knowledge:EmbeddingProvider`：它排在目录的缺省之前，缺省提供商改了也不跟着变。
 
 ## 提示词
 

@@ -33,14 +33,19 @@ public sealed class AIProviderCatalogConformanceTests : AIProviderConformance, I
     }
 
     /// <inheritdoc />
-    protected override async Task<AIProviderHost> StartAsync()
+    protected override Task<AIProviderHost> StartAsync() => StartAsync(isDefault: true);
+
+    /// <inheritdoc />
+    protected override Task<AIProviderHost> StartWithoutDefaultAsync() => StartAsync(isDefault: false);
+
+    private async Task<AIProviderHost> StartAsync(bool isDefault)
     {
         var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, configure: _model.Attach);
         await using (var scope = server.Services.CreateAsyncScope())
         {
             var secrets = scope.ServiceProvider.GetRequiredService<ISecretProtector>();
             var added = await server.InvokeAsync(async ctx => await ctx.Services.GetRequiredService<IRepository<SysAiProvider, Guid>>().AddAsync(
-                new SysAiProvider { Id = Guid.NewGuid(), Code = ProviderName, Name = "Conformance", Vendor = "OpenAI", ChatModel = "chat-model", EmbeddingModel = "embedding-model", Endpoint = FakeOpenAIHandler.Endpoint, ApiKey = secrets.Protect(AiProviderService.ApiKeyPurpose, "sk-test") },
+                new SysAiProvider { Id = Guid.NewGuid(), Code = ProviderName, IsDefault = isDefault, Name = "Conformance", Vendor = "OpenAI", ChatModel = "chat-model", EmbeddingModel = "embedding-model", Endpoint = FakeOpenAIHandler.Endpoint, ApiKey = secrets.Protect(AiProviderService.ApiKeyPurpose, "sk-test") },
                 ctx.CancellationToken));
             Assert.True(added.IsSuccess);
         }

@@ -41,7 +41,7 @@ internal sealed partial class RealtimeOutbox(RealtimeHubCatalog hubs, Connection
     /// <inheritdoc />
     public async ValueTask SendNowAsync<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
     {
-        if (services.GetService<IUnitOfWork>() is { State: UnitOfWorkState.Active })
+        if (services.GetService<IUnitOfWork>() is { HasTransaction: true })
         {
             throw new InvalidOperationException($"Realtime push '{method}' is sent immediately and cannot be used inside a transaction; use SendAsync so it follows the commit.");
         }

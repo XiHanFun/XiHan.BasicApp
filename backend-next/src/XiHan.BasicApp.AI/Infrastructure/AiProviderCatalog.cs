@@ -81,13 +81,17 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     /// <inheritdoc />
     public IReadOnlyCollection<string> Providers => [.. Volatile.Read(ref _snapshot).Options.Keys];
 
-    /// <summary>
-    /// 缺省提供商的编码
-    /// </summary>
+    /// <inheritdoc />
     /// <remarks>
     /// 启用中且标为缺省的那一个；没有为 <see langword="null"/>（照 4.x，不在只有一个时自动取它）
     /// </remarks>
     public string? DefaultProvider => Volatile.Read(ref _snapshot).Default;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// 照 4.x 只有一个缺省：与 <see cref="DefaultProvider"/> 是同一个提供商
+    /// </remarks>
+    public string? DefaultEmbeddingProvider => DefaultProvider;
 
     /// <inheritdoc />
     public Maybe<AIProviderOptions> Find(string name)
@@ -101,7 +105,12 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     {
         var snapshot = Volatile.Read(ref _snapshot);
         var resolved = name ?? snapshot.Default;
-        if (resolved is null || !snapshot.Options.TryGetValue(resolved, out var options))
+        if (resolved is null)
+        {
+            return Error.NotFound(FrameworkAIErrors.ProviderNotFound, FrameworkAIMessages.DefaultProviderMissing);
+        }
+
+        if (!snapshot.Options.TryGetValue(resolved, out var options))
         {
             return NotFound(resolved);
         }
@@ -134,7 +143,12 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     {
         var snapshot = Volatile.Read(ref _snapshot);
         var resolved = name ?? snapshot.Default;
-        if (resolved is null || !snapshot.Options.TryGetValue(resolved, out var options))
+        if (resolved is null)
+        {
+            return Error.NotFound(FrameworkAIErrors.ProviderNotFound, FrameworkAIMessages.DefaultEmbeddingProviderMissing);
+        }
+
+        if (!snapshot.Options.TryGetValue(resolved, out var options))
         {
             return NotFound(resolved);
         }
@@ -292,8 +306,8 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     /// <summary>
     /// 提供商未配置或未启用
     /// </summary>
-    private static Error NotFound(string? name)
-        => Error.NotFound(FrameworkAIErrors.ProviderNotFound, FrameworkAIMessages.ProviderNotFound, MessageArguments.Of(("name", name ?? string.Empty)));
+    private static Error NotFound(string name)
+        => Error.NotFound(FrameworkAIErrors.ProviderNotFound, FrameworkAIMessages.ProviderNotFound, MessageArguments.Of(("name", name)));
 
     /// <summary>
     /// 种类没有工厂

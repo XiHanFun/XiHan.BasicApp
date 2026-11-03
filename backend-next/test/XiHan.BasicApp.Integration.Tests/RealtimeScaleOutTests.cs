@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -102,6 +103,10 @@ public sealed class RealtimeScaleOutTests : IDisposable
         var refused = await server.InvokeAsync(async ctx =>
         {
             var push = ctx.Services.GetRequiredService<IRealtimePush>();
+
+            // 操作都有工作单元，事务到第一次写入才开：开之前可以立即推送，开之后拒绝（方案 D10）
+            await push.SendNowAsync(RealtimeHubs.Notification, RealtimeAudience.Users([Guid.NewGuid()]), "Ping", "now", TestJsonContext.Default.String, ctx.CancellationToken);
+            await ctx.Services.GetRequiredService<SqlSugarUnitOfWork>().EnsureTransactionAsync(ctx.CancellationToken);
             await Assert.ThrowsAsync<InvalidOperationException>(() => push.SendNowAsync(RealtimeHubs.Notification, RealtimeAudience.Users([Guid.NewGuid()]), "Ping", "now", TestJsonContext.Default.String, ctx.CancellationToken).AsTask());
             return Result.Success();
         });
