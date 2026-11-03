@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "저장소 설정 삭제",
   "permissions.files.storage_configs.delete.description": "호출자 측의 저장소 설정 중 기본 설정이 아니고 파일 사본이 없는 것을 삭제합니다.",
   "jobs.files.uploads.expire.title": "분할 업로드 만료 처리",
-  "jobs.files.uploads.expire.description": "기한이 지난 분할 업로드를 만료로 표시하고 저장소의 조각을 버립니다. 플랫폼과 각 테넌트별로 처리합니다."
+  "jobs.files.uploads.expire.description": "기한이 지난 분할 업로드를 만료로 표시하고 저장소의 조각을 버립니다. 플랫폼과 각 테넌트별로 처리합니다.",
+  "jobs.files.temporary.purge.title": "만료된 임시 파일 정리",
+  "jobs.files.temporary.purge.description": "만료 시간이 지난 임시 파일(코드 생성 패키지, 내보내기 결과 등)을 삭제하고 더 이상 참조되지 않는 스토리지 객체도 함께 삭제합니다. 플랫폼과 각 테넌트별로 처리합니다."
 }

@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "Delete storage configurations",
   "permissions.files.storage_configs.delete.description": "Delete storage configurations on the caller's side that are not the default and hold no file copies.",
   "jobs.files.uploads.expire.title": "Expire multipart uploads",
-  "jobs.files.uploads.expire.description": "Mark multipart uploads past their deadline as expired and abort their parts in storage, for the platform and each tenant."
+  "jobs.files.uploads.expire.description": "Mark multipart uploads past their deadline as expired and abort their parts in storage, for the platform and each tenant.",
+  "jobs.files.temporary.purge.title": "Purge expired temporary files",
+  "jobs.files.temporary.purge.description": "Delete temporary files past their expiry, such as code generation packages and export results, together with stored objects no longer referenced, for the platform and each tenant."
 }

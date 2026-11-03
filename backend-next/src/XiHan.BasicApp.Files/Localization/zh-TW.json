@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "刪除儲存設定",
   "permissions.files.storage_configs.delete.description": "刪除目前一側非預設且沒有檔案副本的儲存設定。",
   "jobs.files.uploads.expire.title": "分片上傳過期處理",
-  "jobs.files.uploads.expire.description": "把過了時限的分片上傳記為過期，捨棄儲存裡已上傳的分片；平台與每個租戶分別處理。"
+  "jobs.files.uploads.expire.description": "把過了時限的分片上傳記為過期，捨棄儲存裡已上傳的分片；平台與每個租戶分別處理。",
+  "jobs.files.temporary.purge.title": "到期暫存檔案清理",
+  "jobs.files.temporary.purge.description": "刪除過了到期時間的暫存檔案（如程式碼產生的產物包與匯出結果），儲存體裡不再被參照的物件一併刪除；平台與每個租戶分別處理。"
 }

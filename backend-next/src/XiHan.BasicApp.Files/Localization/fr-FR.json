@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "Supprimer les configurations de stockage",
   "permissions.files.storage_configs.delete.description": "Supprimer les configurations de stockage de son côté qui ne sont pas celle par défaut et ne contiennent aucune copie de fichier.",
   "jobs.files.uploads.expire.title": "Expirer les envois en plusieurs parties",
-  "jobs.files.uploads.expire.description": "Marquer comme expirés les envois en plusieurs parties hors délai et abandonner leurs parties stockées, pour la plateforme et chaque locataire."
+  "jobs.files.uploads.expire.description": "Marquer comme expirés les envois en plusieurs parties hors délai et abandonner leurs parties stockées, pour la plateforme et chaque locataire.",
+  "jobs.files.temporary.purge.title": "Purger les fichiers temporaires expirés",
+  "jobs.files.temporary.purge.description": "Supprimer les fichiers temporaires expirés (paquets de génération de code, résultats d’export…) ainsi que les objets stockés qui ne sont plus référencés, pour la plateforme et chaque locataire."
 }

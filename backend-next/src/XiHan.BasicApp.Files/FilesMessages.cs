@@ -373,6 +373,16 @@ public static class FilesMessages
     /// </summary>
     public const string UploadExpiryJobDescription = "jobs.files.uploads.expire.description";
 
+    /// <summary>
+    /// 作业 <c>files.temporary.purge</c> 的显示名
+    /// </summary>
+    public const string TemporaryPurgeJobTitle = "jobs.files.temporary.purge.title";
+
+    /// <summary>
+    /// 作业 <c>files.temporary.purge</c> 的说明
+    /// </summary>
+    public const string TemporaryPurgeJobDescription = "jobs.files.temporary.purge.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(FilesMessages)));
 
     /// <summary>

@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "Excluir configurações de armazenamento",
   "permissions.files.storage_configs.delete.description": "Excluir configurações de armazenamento do seu lado que não sejam a padrão e não tenham cópias de arquivos.",
   "jobs.files.uploads.expire.title": "Expirar envios em partes",
-  "jobs.files.uploads.expire.description": "Marcar como expirados os envios em partes vencidos e descartar suas partes no armazenamento, para a plataforma e cada locatário."
+  "jobs.files.uploads.expire.description": "Marcar como expirados os envios em partes vencidos e descartar suas partes no armazenamento, para a plataforma e cada locatário.",
+  "jobs.files.temporary.purge.title": "Limpar arquivos temporários expirados",
+  "jobs.files.temporary.purge.description": "Excluir arquivos temporários expirados (como pacotes de geração de código e resultados de exportação) e os objetos armazenados que não são mais referenciados, para a plataforma e cada locatário."
 }

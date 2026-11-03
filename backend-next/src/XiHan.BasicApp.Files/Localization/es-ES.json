@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "Eliminar configuraciones de almacenamiento",
   "permissions.files.storage_configs.delete.description": "Eliminar configuraciones de almacenamiento del lado del llamante que no sean la predeterminada y no tengan copias de archivos.",
   "jobs.files.uploads.expire.title": "Caducar cargas multiparte",
-  "jobs.files.uploads.expire.description": "Marcar como caducadas las cargas multiparte que superaron su plazo y descartar sus partes en el almacenamiento, para la plataforma y cada inquilino."
+  "jobs.files.uploads.expire.description": "Marcar como caducadas las cargas multiparte que superaron su plazo y descartar sus partes en el almacenamiento, para la plataforma y cada inquilino.",
+  "jobs.files.temporary.purge.title": "Purgar archivos temporales caducados",
+  "jobs.files.temporary.purge.description": "Eliminar los archivos temporales caducados (como paquetes de generación de código y resultados de exportación) junto con los objetos almacenados que ya no se referencian, para la plataforma y cada inquilino."
 }

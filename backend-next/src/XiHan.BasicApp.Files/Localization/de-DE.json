@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "Speicherkonfigurationen löschen",
   "permissions.files.storage_configs.delete.description": "Speicherkonfigurationen auf der eigenen Seite löschen, die nicht die Standardkonfiguration sind und keine Dateikopien enthalten.",
   "jobs.files.uploads.expire.title": "Mehrteilige Uploads ablaufen lassen",
-  "jobs.files.uploads.expire.description": "Mehrteilige Uploads nach Fristablauf als abgelaufen markieren und ihre Teile im Speicher verwerfen, für die Plattform und jeden Mandanten."
+  "jobs.files.uploads.expire.description": "Mehrteilige Uploads nach Fristablauf als abgelaufen markieren und ihre Teile im Speicher verwerfen, für die Plattform und jeden Mandanten.",
+  "jobs.files.temporary.purge.title": "Abgelaufene temporäre Dateien entfernen",
+  "jobs.files.temporary.purge.description": "Temporäre Dateien nach Ablauf (etwa Pakete der Codegenerierung und Exportergebnisse) löschen, samt nicht mehr referenzierter Objekte im Speicher, für die Plattform und jeden Mandanten."
 }

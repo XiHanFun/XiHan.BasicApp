@@ -71,6 +71,11 @@ public sealed partial class FileService(
     /// </summary>
     public const string SourceFastUpload = "fast-upload";
 
+    /// <summary>
+    /// 一次清理的到期临时文件条数
+    /// </summary>
+    public const int PurgeBatchSize = 100;
+
     private const int BufferSize = 81920;
 
     /// <summary>
@@ -391,6 +396,35 @@ public sealed partial class FileService(
         }
 
         return new BatchResult(succeeded, failed);
+    }
+
+    /// <summary>
+    /// 删除一批到期的临时文件
+    /// </summary>
+    /// <remarks>
+    /// 取这一侧标为临时、到期时间已过的文件（不论状态，先到期的先删），至多 <see cref="PurgeBatchSize"/> 条，照 <see cref="DeleteAsync"/> 删：
+    /// 文件与副本软删除，不再被这一侧其他副本引用的对象随之删除（对象删不掉只记警告，记录照删）。代码生成的产物包与导出中心的结果文件都是这样存的；
+    /// 没标为临时的文件即使写了到期时间也不删
+    /// </remarks>
+    /// <param name="side">侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>这一批删除的条数</returns>
+    public async Task<int> PurgeExpiredAsync(string side, CancellationToken cancellationToken)
+    {
+        var now = clock.GetUtcNow();
+        var due = await rows.Query<SysFile>(side)
+            .Where(f => f.IsTemporary && f.ExpiresAt.HasValue && f.ExpiresAt.Value <= now)
+            .OrderBy(f => f.ExpiresAt)
+            .Take(PurgeBatchSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (due.Count == 0)
+        {
+            return 0;
+        }
+
+        var deleted = await DeleteAsync(side, [.. due.Select(static f => f.Id)], cancellationToken).ConfigureAwait(false);
+        return deleted.Succeeded.Count;
     }
 
     /// <summary>

@@ -125,5 +125,7 @@
   "permissions.files.storage_configs.delete.name": "删除存储配置",
   "permissions.files.storage_configs.delete.description": "删除当前一侧不是缺省配置、且没有文件副本的存储配置。",
   "jobs.files.uploads.expire.title": "分片上传过期处理",
-  "jobs.files.uploads.expire.description": "把过了时限的分片上传记为过期，放弃存储里已上传的分片；平台与每个租户分别处理。"
+  "jobs.files.uploads.expire.description": "把过了时限的分片上传记为过期，放弃存储里已上传的分片；平台与每个租户分别处理。",
+  "jobs.files.temporary.purge.title": "到期临时文件清理",
+  "jobs.files.temporary.purge.description": "删掉过了到期时间的临时文件（如代码生成的产物包与导出结果），存储里不再被引用的对象一起删；平台与每个租户分别处理。"
 }

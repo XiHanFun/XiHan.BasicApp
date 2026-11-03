@@ -144,7 +144,7 @@ builder.AddXiHan(xihan =>
 | Organization | `basicapp.organization@1` | 部门、岗位 | — |
 | Access | `basicapp.access@1` | 角色、权限目录、委托、字段安全、访问策略、约束规则、菜单 | `AccessPolicyMiddleware`（Tenant）、`PermissionConditionMiddleware`（Authorize）、权限过滤器与授予来源 |
 | Settings | `basicapp.settings@1` | 参数、字典、业务编号 | — |
-| Files | `basicapp.files@1` | 文件库、存储配置、导出中心 | `files.uploads.expire` |
+| Files | `basicapp.files@1` | 文件库、存储配置、导出中心 | `files.uploads.expire`、`files.temporary.purge` |
 | Notification | `basicapp.notification@1` | 通知公告、发送记录、模板、邮件 / 短信 / 机器人 / Telegram 配置、收件箱 | 发件箱发送循环、Telegram 接收 |
 | Auditing | `basicapp.auditing@1` | 链路追踪与八类日志 | `AuditLogMiddleware`（Observe）、`auditing.retention` |
 | Maintenance | `basicapp.maintenance@1` | 作业、缓存、服务监控、版本、升级记录 | — |

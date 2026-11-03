@@ -90,6 +90,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileUploadService>();
         context.Services.AddJob<FileUploadExpiryJob>(FileUploadExpiryJob.Name, FileUploadExpiryJob.Schedule);
+        context.Services.AddJob<TemporaryFilePurgeJob>(TemporaryFilePurgeJob.Name, TemporaryFilePurgeJob.Schedule);
         context.Services.AddScoped<FileQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, FilesWidgets>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
