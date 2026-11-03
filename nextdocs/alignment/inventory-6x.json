@@ -1,0 +1,5621 @@
+{
+ "operations": [
+  {
+   "id": "access-logs.get",
+   "http": "GET /api/access-logs/{id}",
+   "permission": "auditing.access-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/AccessLogs/GetAccessLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "access-logs.list",
+   "http": "POST /api/access-logs:list",
+   "permission": "auditing.access-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/AccessLogs/ListAccessLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.create",
+   "http": "POST /api/ai-assistants",
+   "permission": "ai.ai-assistants.create",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.delete",
+   "http": "DELETE /api/ai-assistants",
+   "permission": "ai.ai-assistants.delete",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.get",
+   "http": "GET /api/ai-assistants/{id}",
+   "permission": "ai.ai-assistants.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.list",
+   "http": "POST /api/ai-assistants:list",
+   "permission": "ai.ai-assistants.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.set-default",
+   "http": "POST /api/ai-assistants/{id}:set-default",
+   "permission": "ai.ai-assistants.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.set-status",
+   "http": "POST /api/ai-assistants/{id}:set-status",
+   "permission": "ai.ai-assistants.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-assistants.tools",
+   "http": "GET /api/ai-assistants:tools",
+   "permission": "ai.ai-assistants.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "ai-assistants.update",
+   "http": "PUT /api/ai-assistants/{id}",
+   "permission": "ai.ai-assistants.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiAssistants/AiAssistantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.create",
+   "http": "POST /api/ai-prompts",
+   "permission": "ai.ai-prompts.create",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.delete",
+   "http": "DELETE /api/ai-prompts",
+   "permission": "ai.ai-prompts.delete",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.get",
+   "http": "GET /api/ai-prompts/{id}",
+   "permission": "ai.ai-prompts.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.list",
+   "http": "POST /api/ai-prompts:list",
+   "permission": "ai.ai-prompts.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.set-status",
+   "http": "POST /api/ai-prompts/{id}:set-status",
+   "permission": "ai.ai-prompts.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-prompts.update",
+   "http": "PUT /api/ai-prompts/{id}",
+   "permission": "ai.ai-prompts.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiPrompts/AiPromptOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.create",
+   "http": "POST /api/ai-providers",
+   "permission": "ai.ai-providers.create",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.delete",
+   "http": "DELETE /api/ai-providers",
+   "permission": "ai.ai-providers.delete",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.get",
+   "http": "GET /api/ai-providers/{id}",
+   "permission": "ai.ai-providers.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.list",
+   "http": "POST /api/ai-providers:list",
+   "permission": "ai.ai-providers.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.set-default",
+   "http": "POST /api/ai-providers/{id}:set-default",
+   "permission": "ai.ai-providers.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.set-status",
+   "http": "POST /api/ai-providers/{id}:set-status",
+   "permission": "ai.ai-providers.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.test",
+   "http": "POST /api/ai-providers/{id}:test",
+   "permission": "ai.ai-providers.execute",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "ai-providers.update",
+   "http": "PUT /api/ai-providers/{id}",
+   "permission": "ai.ai-providers.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/AiProviders/AiProviderOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "approvals.get",
+   "http": "GET /api/approvals/{id}",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Approvals/ApprovalOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "approvals.list-cc",
+   "http": "POST /api/approvals:list-cc",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Approvals/ApprovalOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "approvals.list-done",
+   "http": "POST /api/approvals:list-done",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Approvals/ApprovalOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "approvals.list-started",
+   "http": "POST /api/approvals:list-started",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Approvals/ApprovalOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "approvals.withdraw",
+   "http": "POST /api/approvals/{id}:withdraw",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Approvals/ApprovalOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.activate-roles",
+   "http": "POST /api/auth:activate-roles",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/ActivateRoles.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.captcha",
+   "http": "POST /api/auth:captcha",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/IssueCaptcha.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.external-login",
+   "http": "POST /api/auth:external-login",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/ExternalLogin.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.lock",
+   "http": "POST /api/auth:lock",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/LockSession.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.login",
+   "http": "POST /api/auth:login",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/Login.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.login-by-code",
+   "http": "POST /api/auth:login-by-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/LoginCodeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.login-config",
+   "http": "GET /api/auth:login-config",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/LoginConfig.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "auth.logout",
+   "http": "POST /api/auth:logout",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/Logout.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.me",
+   "http": "GET /api/auth:me",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/CurrentUser.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "auth.permissions",
+   "http": "GET /api/auth:permissions",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Auth/CurrentPermissions.cs",
+   "expose": "Expose.Http",
+   "policy": "SecurityPolicies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "auth.refresh",
+   "http": "POST /api/auth:refresh",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/Refresh.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.register",
+   "http": "POST /api/auth:register",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/SelfServiceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.request-password-reset",
+   "http": "POST /api/auth:request-password-reset",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/SelfServiceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.reset-password",
+   "http": "POST /api/auth:reset-password",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/SelfServiceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.send-login-code",
+   "http": "POST /api/auth:send-login-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/LoginCodeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.send-two-factor-code",
+   "http": "POST /api/auth:send-two-factor-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/SendTwoFactorCode.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "auth.session-roles",
+   "http": "GET /api/auth:session-roles",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Auth/CurrentSessionRoles.cs",
+   "expose": "Expose.Http",
+   "policy": "SecurityPolicies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "auth.switch-tenant",
+   "http": "POST /api/auth:switch-tenant",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/SwitchTenant.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.unlock",
+   "http": "POST /api/auth:unlock",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/LockSession.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "auth.verify-two-factor",
+   "http": "POST /api/auth:verify-two-factor",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Auth/VerifyTwoFactor.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.create",
+   "http": "POST /api/bot-configs",
+   "permission": "notification.bot-configs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.delete",
+   "http": "DELETE /api/bot-configs",
+   "permission": "notification.bot-configs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.get",
+   "http": "GET /api/bot-configs/{id}",
+   "permission": "notification.bot-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.list",
+   "http": "POST /api/bot-configs:list",
+   "permission": "notification.bot-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.set-default",
+   "http": "POST /api/bot-configs/{id}:set-default",
+   "permission": "notification.bot-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "bot-configs.update",
+   "http": "PUT /api/bot-configs/{id}",
+   "permission": "notification.bot-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/BotConfigs/BotConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "caches.delete",
+   "http": "DELETE /api/caches",
+   "permission": "maintenance.caches.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "caches.delete-by-prefix",
+   "http": "POST /api/caches:delete-by-prefix",
+   "permission": "maintenance.caches.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "caches.inspect",
+   "http": "GET /api/caches:inspect",
+   "permission": "maintenance.caches.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "caches.keys",
+   "http": "GET /api/caches:keys",
+   "permission": "maintenance.caches.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "caches.namespaces",
+   "http": "GET /api/caches:namespaces",
+   "permission": "maintenance.caches.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "caches.update",
+   "http": "PUT /api/caches",
+   "permission": "maintenance.caches.update",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Caches/CacheOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-audit.get",
+   "http": "GET /api/chat-audit/{id}",
+   "permission": "chat.chat-audit.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatAudit/ChatAuditOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-audit.list",
+   "http": "POST /api/chat-audit:list",
+   "permission": "chat.chat-audit.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatAudit/ChatAuditOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-audit.members",
+   "http": "GET /api/chat-audit:members",
+   "permission": "chat.chat-audit.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatAudit/ChatAuditOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.add-members",
+   "http": "POST /api/chat-conversations:add-members",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.assistants",
+   "http": "GET /api/chat-conversations:assistants",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.create-group",
+   "http": "POST /api/chat-conversations:create-group",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.department-tree",
+   "http": "GET /api/chat-conversations:department-tree",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.leave",
+   "http": "POST /api/chat-conversations:leave",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.mark-read",
+   "http": "POST /api/chat-conversations:mark-read",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.members",
+   "http": "GET /api/chat-conversations:members",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.mine",
+   "http": "GET /api/chat-conversations:mine",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.mute",
+   "http": "POST /api/chat-conversations:mute",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.open-assistant",
+   "http": "POST /api/chat-conversations:open-assistant",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.open-department",
+   "http": "POST /api/chat-conversations:open-department",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.open-single",
+   "http": "POST /api/chat-conversations:open-single",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.pin",
+   "http": "POST /api/chat-conversations:pin",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.read-positions",
+   "http": "GET /api/chat-conversations:read-positions",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-conversations.remove-members",
+   "http": "POST /api/chat-conversations:remove-members",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.set-member-role",
+   "http": "POST /api/chat-conversations:set-member-role",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.silence-members",
+   "http": "POST /api/chat-conversations:silence-members",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.transfer-owner",
+   "http": "POST /api/chat-conversations:transfer-owner",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.update-info",
+   "http": "POST /api/chat-conversations:update-info",
+   "permission": "chat.chat-conversations.manage",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-conversations.user-options",
+   "http": "GET /api/chat-conversations:user-options",
+   "permission": "chat.chat-conversations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatConversations/ChatConversationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-messages.edit",
+   "http": "POST /api/chat-messages:edit",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.fast-upload",
+   "http": "POST /api/chat-messages:fast-upload",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.forward",
+   "http": "POST /api/chat-messages:forward",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.history",
+   "http": "GET /api/chat-messages:history",
+   "permission": "chat.chat-messages.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-messages.pin",
+   "http": "POST /api/chat-messages:pin",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.pinned",
+   "http": "GET /api/chat-messages:pinned",
+   "permission": "chat.chat-messages.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-messages.presign",
+   "http": "GET /api/chat-messages:presign",
+   "permission": "chat.chat-messages.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-messages.react",
+   "http": "POST /api/chat-messages:react",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.recall",
+   "http": "POST /api/chat-messages:recall",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.reply-assistant",
+   "http": "POST /api/chat-messages:reply-assistant",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.search",
+   "http": "GET /api/chat-messages:search",
+   "permission": "chat.chat-messages.read",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "chat-messages.send",
+   "http": "POST /api/chat-messages:send",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.unpin",
+   "http": "POST /api/chat-messages:unpin",
+   "permission": "chat.chat-messages.send",
+   "file": "backend-next/src/XiHan.BasicApp.Chat/Operations/ChatMessages/ChatMessageOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "chat-messages.upload",
+   "http": "POST /api/chat-messages/attachments",
+   "permission": "chat.chat-messages.send"
+  },
+  {
+   "id": "codegen-datasources.create",
+   "http": "POST /api/codegen-datasources",
+   "permission": "codegeneration.codegen-datasources.create",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.delete",
+   "http": "DELETE /api/codegen-datasources",
+   "permission": "codegeneration.codegen-datasources.delete",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.get",
+   "http": "GET /api/codegen-datasources/{id}",
+   "permission": "codegeneration.codegen-datasources.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.list",
+   "http": "POST /api/codegen-datasources:list",
+   "permission": "codegeneration.codegen-datasources.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.options",
+   "http": "GET /api/codegen-datasources:options",
+   "permission": "codegeneration.codegen-datasources.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "codegen-datasources.set-status",
+   "http": "POST /api/codegen-datasources/{id}:set-status",
+   "permission": "codegeneration.codegen-datasources.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.test-connection",
+   "http": "POST /api/codegen-datasources/{id}:test-connection",
+   "permission": "codegeneration.codegen-datasources.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-datasources.update",
+   "http": "PUT /api/codegen-datasources/{id}",
+   "permission": "codegeneration.codegen-datasources.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenDatasources/CodegenDatasourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-histories.get",
+   "http": "GET /api/codegen-histories/{id}",
+   "permission": "codegeneration.codegen-histories.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenHistories/CodegenHistoryOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-histories.list",
+   "http": "POST /api/codegen-histories:list",
+   "permission": "codegeneration.codegen-histories.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenHistories/CodegenHistoryOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-histories.package",
+   "http": "GET /api/codegen-histories/{id}/package",
+   "permission": "codegeneration.codegen-histories.read"
+  },
+  {
+   "id": "codegen-runtime.get-schema",
+   "http": "GET /api/codegen-runtime/{id}:get-schema",
+   "permission": "codegeneration.codegen-runtime.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenRuntime/CodegenRuntimeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "codegen-runtime.list",
+   "http": "POST /api/codegen-runtime:list",
+   "permission": "codegeneration.codegen-runtime.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenRuntime/CodegenRuntimeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-table-columns.list",
+   "http": "GET /api/codegen-table-columns",
+   "permission": "codegeneration.codegen-table-columns.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTableColumns/CodegenTableColumnOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-table-columns.save",
+   "http": "POST /api/codegen-table-columns:save",
+   "permission": "codegeneration.codegen-table-columns.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTableColumns/CodegenTableColumnOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.db-tables",
+   "http": "POST /api/codegen-tables:db-tables",
+   "permission": "codegeneration.codegen-tables.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "codegen-tables.delete",
+   "http": "DELETE /api/codegen-tables",
+   "permission": "codegeneration.codegen-tables.delete",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.generate",
+   "http": "POST /api/codegen-tables/{id}:generate",
+   "permission": "codegeneration.codegen-tables.execute",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.get",
+   "http": "GET /api/codegen-tables/{id}",
+   "permission": "codegeneration.codegen-tables.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.import",
+   "http": "POST /api/codegen-tables:import",
+   "permission": "codegeneration.codegen-tables.import",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.list",
+   "http": "POST /api/codegen-tables:list",
+   "permission": "codegeneration.codegen-tables.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.options",
+   "http": "GET /api/codegen-tables:options",
+   "permission": "codegeneration.codegen-tables.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "codegen-tables.preview",
+   "http": "GET /api/codegen-tables/{id}:preview",
+   "permission": "codegeneration.codegen-tables.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "codegen-tables.set-status",
+   "http": "POST /api/codegen-tables/{id}:set-status",
+   "permission": "codegeneration.codegen-tables.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.sync-schema",
+   "http": "POST /api/codegen-tables/{id}:sync-schema",
+   "permission": "codegeneration.codegen-tables.import",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-tables.update",
+   "http": "PUT /api/codegen-tables/{id}",
+   "permission": "codegeneration.codegen-tables.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTables/CodegenTableOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.create",
+   "http": "POST /api/codegen-templates",
+   "permission": "codegeneration.codegen-templates.create",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.delete",
+   "http": "DELETE /api/codegen-templates",
+   "permission": "codegeneration.codegen-templates.delete",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.get",
+   "http": "GET /api/codegen-templates/{id}",
+   "permission": "codegeneration.codegen-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.list",
+   "http": "POST /api/codegen-templates:list",
+   "permission": "codegeneration.codegen-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.set-status",
+   "http": "POST /api/codegen-templates/{id}:set-status",
+   "permission": "codegeneration.codegen-templates.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.update",
+   "http": "PUT /api/codegen-templates/{id}",
+   "permission": "codegeneration.codegen-templates.update",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "codegen-templates.validate",
+   "http": "POST /api/codegen-templates:validate",
+   "permission": "codegeneration.codegen-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.CodeGeneration/Operations/CodegenTemplates/CodegenTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "condition-hits.get",
+   "http": "GET /api/condition-hits/{id}",
+   "permission": "auditing.condition-hits.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/ConditionHits/GetConditionHit.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "condition-hits.list",
+   "http": "POST /api/condition-hits:list",
+   "permission": "auditing.condition-hits.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/ConditionHits/ListConditionHits.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "configs.create",
+   "http": "POST /api/configs",
+   "permission": "settings.configs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Configs/CreateConfig.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "configs.delete",
+   "http": "DELETE /api/configs",
+   "permission": "settings.configs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Configs/DeleteConfigs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "configs.get",
+   "http": "GET /api/configs/{id}",
+   "permission": "settings.configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Configs/GetConfig.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "configs.list",
+   "http": "POST /api/configs:list",
+   "permission": "settings.configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Configs/ListConfigs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "configs.update",
+   "http": "PUT /api/configs/{id}",
+   "permission": "settings.configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Configs/UpdateConfig.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.create",
+   "http": "POST /api/constraint-rules",
+   "permission": "access.constraint-rules.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.delete",
+   "http": "DELETE /api/constraint-rules",
+   "permission": "access.constraint-rules.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.get",
+   "http": "GET /api/constraint-rules/{id}",
+   "permission": "access.constraint-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.list",
+   "http": "POST /api/constraint-rules:list",
+   "permission": "access.constraint-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.set-status",
+   "http": "POST /api/constraint-rules/{id}:set-status",
+   "permission": "access.constraint-rules.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "constraint-rules.update",
+   "http": "PUT /api/constraint-rules/{id}",
+   "permission": "access.constraint-rules.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/ConstraintRules/ConstraintRuleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "delegations.create",
+   "http": "POST /api/delegations",
+   "permission": "access.delegations.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Delegations/DelegationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "delegations.delete",
+   "http": "DELETE /api/delegations",
+   "permission": "access.delegations.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Delegations/DelegationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "delegations.list",
+   "http": "POST /api/delegations:list",
+   "permission": "access.delegations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Delegations/DelegationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "delegations.revoke",
+   "http": "POST /api/delegations/{id}:revoke",
+   "permission": "access.delegations.revoke",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Delegations/DelegationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "departments.create",
+   "http": "POST /api/departments",
+   "permission": "organization.departments.create",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/CreateDepartment.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "departments.delete",
+   "http": "DELETE /api/departments",
+   "permission": "organization.departments.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/DeleteDepartments.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "departments.get",
+   "http": "GET /api/departments/{id}",
+   "permission": "organization.departments.read",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/GetDepartment.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "departments.move",
+   "http": "POST /api/departments/{id}:move",
+   "permission": "organization.departments.update",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/MoveDepartment.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "departments.tree",
+   "http": "GET /api/departments:tree",
+   "permission": "organization.departments.read",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/DepartmentTree.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "departments.update",
+   "http": "PUT /api/departments/{id}",
+   "permission": "organization.departments.update",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Departments/UpdateDepartment.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dict-items.create",
+   "http": "POST /api/dict-items",
+   "permission": "settings.dict-items.create",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/DictItems/CreateDictItem.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dict-items.delete",
+   "http": "DELETE /api/dict-items",
+   "permission": "settings.dict-items.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/DictItems/DeleteDictItems.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dict-items.get",
+   "http": "GET /api/dict-items/{id}",
+   "permission": "settings.dict-items.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/DictItems/GetDictItem.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dict-items.list",
+   "http": "GET /api/dict-items",
+   "permission": "settings.dict-items.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/DictItems/ListDictItems.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dict-items.update",
+   "http": "PUT /api/dict-items/{id}",
+   "permission": "settings.dict-items.update",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/DictItems/UpdateDictItem.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dicts.create",
+   "http": "POST /api/dicts",
+   "permission": "settings.dicts.create",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/CreateDict.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dicts.delete",
+   "http": "DELETE /api/dicts",
+   "permission": "settings.dicts.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/DeleteDicts.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dicts.get",
+   "http": "GET /api/dicts/{id}",
+   "permission": "settings.dicts.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/GetDict.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dicts.list",
+   "http": "POST /api/dicts:list",
+   "permission": "settings.dicts.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/ListDicts.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "dicts.options",
+   "http": "GET /api/dicts:options",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/DictOptions.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "dicts.update",
+   "http": "PUT /api/dicts/{id}",
+   "permission": "settings.dicts.update",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/Dicts/UpdateDict.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "diff-logs.get",
+   "http": "GET /api/diff-logs/{id}",
+   "permission": "auditing.diff-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/DiffLogs/GetDiffLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "diff-logs.list",
+   "http": "POST /api/diff-logs:list",
+   "permission": "auditing.diff-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/DiffLogs/ListDiffLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.create",
+   "http": "POST /api/editions",
+   "permission": "tenancy.editions.create",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/CreateEdition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.delete",
+   "http": "DELETE /api/editions",
+   "permission": "tenancy.editions.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/DeleteEditions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.get",
+   "http": "GET /api/editions/{id}",
+   "permission": "tenancy.editions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/GetEdition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.list",
+   "http": "GET /api/editions",
+   "permission": "tenancy.editions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/ListEditions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.set-permissions",
+   "http": "POST /api/editions/{id}:set-permissions",
+   "permission": "tenancy.editions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/SetEditionPermissions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "editions.update",
+   "http": "PUT /api/editions/{id}",
+   "permission": "tenancy.editions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Editions/UpdateEdition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.create",
+   "http": "POST /api/email-configs",
+   "permission": "notification.email-configs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.delete",
+   "http": "DELETE /api/email-configs",
+   "permission": "notification.email-configs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.get",
+   "http": "GET /api/email-configs/{id}",
+   "permission": "notification.email-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.list",
+   "http": "POST /api/email-configs:list",
+   "permission": "notification.email-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.set-default",
+   "http": "POST /api/email-configs/{id}:set-default",
+   "permission": "notification.email-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "email-configs.update",
+   "http": "PUT /api/email-configs/{id}",
+   "permission": "notification.email-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/EmailConfigs/EmailConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "emails.cancel",
+   "http": "POST /api/emails:cancel",
+   "permission": "notification.emails.resend",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Emails/EmailOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "emails.delete",
+   "http": "DELETE /api/emails",
+   "permission": "notification.emails.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Emails/EmailOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "emails.get",
+   "http": "GET /api/emails/{id}",
+   "permission": "notification.emails.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Emails/EmailOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "emails.list",
+   "http": "POST /api/emails:list",
+   "permission": "notification.emails.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Emails/EmailOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "emails.resend",
+   "http": "POST /api/emails:resend",
+   "permission": "notification.emails.resend",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Emails/EmailOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "exception-logs.get",
+   "http": "GET /api/exception-logs/{id}",
+   "permission": "auditing.exception-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/ExceptionLogs/GetExceptionLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "exception-logs.list",
+   "http": "POST /api/exception-logs:list",
+   "permission": "auditing.exception-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/ExceptionLogs/ListExceptionLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "export-tasks.cancel",
+   "http": "POST /api/export-tasks/{id}:cancel",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ExportTasks/ExportTaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "export-tasks.delete",
+   "http": "DELETE /api/export-tasks",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ExportTasks/ExportTaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "export-tasks.get",
+   "http": "GET /api/export-tasks/{id}",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ExportTasks/ExportTaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "export-tasks.list",
+   "http": "POST /api/export-tasks:list",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ExportTasks/ExportTaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "export-tasks.submit",
+   "http": "POST /api/export-tasks:submit",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ExportTasks/ExportTaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "field-security.create",
+   "http": "POST /api/field-security",
+   "permission": "access.field-security.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "field-security.delete",
+   "http": "DELETE /api/field-security",
+   "permission": "access.field-security.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "field-security.entities",
+   "http": "GET /api/field-security:entities",
+   "permission": "access.field-security.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "field-security.get",
+   "http": "GET /api/field-security/{id}",
+   "permission": "access.field-security.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "field-security.list",
+   "http": "POST /api/field-security:list",
+   "permission": "access.field-security.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "field-security.update",
+   "http": "PUT /api/field-security/{id}",
+   "permission": "access.field-security.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/FieldSecurity/FieldSecurityOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.abort-upload",
+   "http": "POST /api/files:abort-upload",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileUploadOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.complete-upload",
+   "http": "POST /api/files:complete-upload",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileUploadOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.content",
+   "http": "GET /api/files/{id}/content",
+   "permission": null
+  },
+  {
+   "id": "files.delete",
+   "http": "DELETE /api/files",
+   "permission": "files.files.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.fast-upload",
+   "http": "POST /api/files:fast-upload",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.get",
+   "http": "GET /api/files/{id}",
+   "permission": "files.files.read",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.list",
+   "http": "POST /api/files:list",
+   "permission": "files.files.read",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.presign",
+   "http": "GET /api/files/{id}:presign",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "files.set-primary-storage",
+   "http": "POST /api/files/{id}:set-primary-storage",
+   "permission": "files.files.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.set-status",
+   "http": "POST /api/files:set-status",
+   "permission": "files.files.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.set-storage-status",
+   "http": "POST /api/files/{id}:set-storage-status",
+   "permission": "files.files.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.sign-upload-parts",
+   "http": "POST /api/files:sign-upload-parts",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileUploadOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.start-upload",
+   "http": "POST /api/files:start-upload",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileUploadOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.storages",
+   "http": "GET /api/files/{id}:storages",
+   "permission": "files.files.read",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "files.update",
+   "http": "PUT /api/files/{id}",
+   "permission": "files.files.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "files.upload",
+   "http": "POST /api/files/upload",
+   "permission": "files.files.create"
+  },
+  {
+   "id": "files.upload-session",
+   "http": "GET /api/files:upload-session",
+   "permission": "files.files.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileUploadOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "files.verify-storage",
+   "http": "POST /api/files/{id}:verify-storage",
+   "permission": "files.files.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/Files/FileOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "impersonation.candidates",
+   "http": "GET /api/impersonation:candidates",
+   "permission": "identity.impersonation.start",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Impersonation/ListImpersonationCandidates.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "impersonation.start",
+   "http": "POST /api/impersonation:start",
+   "permission": "identity.impersonation.start",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Impersonation/StartImpersonation.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "impersonation.stop",
+   "http": "POST /api/impersonation:stop",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Impersonation/StopImpersonation.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "import-histories.create",
+   "http": "POST /api/import-histories",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ImportHistories/ImportHistoryOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "import-histories.recent",
+   "http": "GET /api/import-histories:recent",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/ImportHistories/ImportHistoryOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "inbox.banners",
+   "http": "GET /api/inbox:banners",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "inbox.confirm",
+   "http": "POST /api/inbox/{id}:confirm",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.delete",
+   "http": "DELETE /api/inbox",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.list",
+   "http": "POST /api/inbox:list",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.mandatory",
+   "http": "GET /api/inbox:mandatory",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "inbox.mark-all-read",
+   "http": "POST /api/inbox:mark-all-read",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.mark-popup-shown",
+   "http": "POST /api/inbox/{id}:mark-popup-shown",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.mark-read",
+   "http": "POST /api/inbox:mark-read",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "inbox.popups",
+   "http": "GET /api/inbox:popups",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Inbox/InboxOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "job-runs.list",
+   "http": "POST /api/job-runs:list",
+   "permission": "maintenance.job-runs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/JobRuns/JobRunOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.create",
+   "http": "POST /api/jobs",
+   "permission": "maintenance.jobs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobRegistrationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.delete",
+   "http": "DELETE /api/jobs",
+   "permission": "maintenance.jobs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobRegistrationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.get",
+   "http": "GET /api/jobs/{id}",
+   "permission": "maintenance.jobs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.list",
+   "http": "POST /api/jobs:list",
+   "permission": "maintenance.jobs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.pause",
+   "http": "POST /api/jobs:pause",
+   "permission": "maintenance.jobs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.reschedule",
+   "http": "POST /api/jobs/{id}:reschedule",
+   "permission": "maintenance.jobs.reschedule",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobScheduleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.restore",
+   "http": "POST /api/jobs:restore",
+   "permission": "maintenance.jobs.reschedule",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobScheduleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.resume",
+   "http": "POST /api/jobs:resume",
+   "permission": "maintenance.jobs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.trigger",
+   "http": "POST /api/jobs/{id}:trigger",
+   "permission": "maintenance.jobs.trigger",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "jobs.types",
+   "http": "GET /api/jobs:types",
+   "permission": "maintenance.jobs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobScheduleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "jobs.validate-schedule",
+   "http": "GET /api/jobs:validate-schedule",
+   "permission": "maintenance.jobs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Jobs/JobOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "knowledge-documents.delete",
+   "http": "DELETE /api/knowledge-documents",
+   "permission": "ai.knowledge-documents.delete",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "knowledge-documents.get",
+   "http": "GET /api/knowledge-documents/{id}",
+   "permission": "ai.knowledge-documents.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "knowledge-documents.ingest",
+   "http": "POST /api/knowledge-documents:ingest",
+   "permission": "ai.knowledge-documents.create",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "knowledge-documents.list",
+   "http": "POST /api/knowledge-documents:list",
+   "permission": "ai.knowledge-documents.read",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "knowledge-documents.query",
+   "http": "GET /api/knowledge-documents:query",
+   "permission": "ai.knowledge-documents.execute",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "knowledge-documents.reindex",
+   "http": "POST /api/knowledge-documents/{id}:reindex",
+   "permission": "ai.knowledge-documents.update",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "knowledge-documents.search",
+   "http": "GET /api/knowledge-documents:search",
+   "permission": "ai.knowledge-documents.execute",
+   "file": "backend-next/src/XiHan.BasicApp.AI/Operations/KnowledgeDocuments/KnowledgeDocumentOperations.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "login-bans.lift",
+   "http": "POST /api/login-bans:lift",
+   "permission": "access.login-bans.lift",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/LoginBans/LoginBanOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "login-bans.list",
+   "http": "GET /api/login-bans",
+   "permission": "access.login-bans.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/LoginBans/LoginBanOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "login-logs.get",
+   "http": "GET /api/login-logs/{id}",
+   "permission": "auditing.login-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/LoginLogs/GetLoginLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "login-logs.list",
+   "http": "POST /api/login-logs:list",
+   "permission": "auditing.login-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/LoginLogs/ListLoginLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "memberships.create",
+   "http": "POST /api/memberships",
+   "permission": "organization.memberships.create",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Memberships/CreateMembership.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "memberships.delete",
+   "http": "DELETE /api/memberships",
+   "permission": "organization.memberships.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Memberships/DeleteMemberships.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "memberships.list",
+   "http": "POST /api/memberships:list",
+   "permission": "organization.memberships.read",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Memberships/ListMemberships.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "memberships.update",
+   "http": "PUT /api/memberships/{id}",
+   "permission": "organization.memberships.update",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Memberships/UpdateMembership.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.create",
+   "http": "POST /api/menus",
+   "permission": "access.menus.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/CreateMenu.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.delete",
+   "http": "DELETE /api/menus",
+   "permission": "access.menus.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/DeleteMenus.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.get",
+   "http": "GET /api/menus/{id}",
+   "permission": "access.menus.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/GetMenu.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.list",
+   "http": "GET /api/menus",
+   "permission": "access.menus.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/ListMenus.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.reset",
+   "http": "POST /api/menus/{id}:reset",
+   "permission": "access.menus.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/ResetMenu.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "menus.update",
+   "http": "PUT /api/menus/{id}",
+   "permission": "access.menus.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/UpdateMenu.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "message-templates.create",
+   "http": "POST /api/message-templates",
+   "permission": "notification.message-templates.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/MessageTemplates/MessageTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "message-templates.delete",
+   "http": "DELETE /api/message-templates",
+   "permission": "notification.message-templates.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/MessageTemplates/MessageTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "message-templates.get",
+   "http": "GET /api/message-templates/{id}",
+   "permission": "notification.message-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/MessageTemplates/MessageTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "message-templates.list",
+   "http": "POST /api/message-templates:list",
+   "permission": "notification.message-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/MessageTemplates/MessageTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "message-templates.update",
+   "http": "PUT /api/message-templates/{id}",
+   "permission": "notification.message-templates.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/MessageTemplates/MessageTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "migrations.get",
+   "http": "GET /api/migrations/{id}",
+   "permission": "maintenance.migrations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Migrations/MigrationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "migrations.list",
+   "http": "POST /api/migrations:list",
+   "permission": "maintenance.migrations.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Migrations/MigrationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "my-activity.summary",
+   "http": "GET /api/my-activity:summary",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/MyActivity/GetMyActivity.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-api-credentials.create",
+   "http": "POST /api/my-api-credentials",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-api-credentials.delete",
+   "http": "DELETE /api/my-api-credentials",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-api-credentials.list",
+   "http": "GET /api/my-api-credentials",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-api-credentials.rotate-secret",
+   "http": "POST /api/my-api-credentials/{id}:rotate-secret",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-api-credentials.settings",
+   "http": "GET /api/my-api-credentials:settings",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-api-credentials.update",
+   "http": "PUT /api/my-api-credentials/{id}",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-api-credentials.update-settings",
+   "http": "POST /api/my-api-credentials:update-settings",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/MyApiCredentials/MyApiCredentialOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-login-logs.list",
+   "http": "GET /api/my-login-logs",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/MyLoginLogs/ListMyLoginLogs.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-oauth-apps.create",
+   "http": "POST /api/my-oauth-apps",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-oauth-apps.delete",
+   "http": "DELETE /api/my-oauth-apps",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-oauth-apps.get",
+   "http": "GET /api/my-oauth-apps/{id}",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-oauth-apps.list",
+   "http": "GET /api/my-oauth-apps",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "my-oauth-apps.reset-secret",
+   "http": "POST /api/my-oauth-apps/{id}:reset-secret",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "my-oauth-apps.update",
+   "http": "PUT /api/my-oauth-apps/{id}",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/MyOauthApps/MyOAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "notifications.create",
+   "http": "POST /api/notifications",
+   "permission": "notification.notifications.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.delete",
+   "http": "DELETE /api/notifications",
+   "permission": "notification.notifications.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.get",
+   "http": "GET /api/notifications/{id}",
+   "permission": "notification.notifications.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.list",
+   "http": "POST /api/notifications:list",
+   "permission": "notification.notifications.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.publish",
+   "http": "POST /api/notifications/{id}:publish",
+   "permission": "notification.notifications.publish",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.read-stats",
+   "http": "GET /api/notifications/{id}:read-stats",
+   "permission": "notification.notifications.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "notifications.recipients",
+   "http": "POST /api/notifications/{id}:recipients",
+   "permission": "notification.notifications.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.remind",
+   "http": "POST /api/notifications/{id}:remind",
+   "permission": "notification.notifications.publish",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "notifications.update",
+   "http": "PUT /api/notifications/{id}",
+   "permission": "notification.notifications.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Notifications/NotificationOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.allocations",
+   "http": "POST /api/numbering-rules/{id}:allocations",
+   "permission": "settings.numbering-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/ListNumberingAllocations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "numbering-rules.create",
+   "http": "POST /api/numbering-rules",
+   "permission": "settings.numbering-rules.create",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/CreateNumberingRule.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.delete",
+   "http": "DELETE /api/numbering-rules",
+   "permission": "settings.numbering-rules.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/DeleteNumberingRules.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.generate",
+   "http": "POST /api/numbering-rules:generate",
+   "permission": "settings.numbering-rules.generate",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/GenerateNumbers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.get",
+   "http": "GET /api/numbering-rules/{id}",
+   "permission": "settings.numbering-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/GetNumberingRule.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.list",
+   "http": "POST /api/numbering-rules:list",
+   "permission": "settings.numbering-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/ListNumberingRules.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.preview",
+   "http": "GET /api/numbering-rules:preview",
+   "permission": "settings.numbering-rules.read",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/PreviewNumbering.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "numbering-rules.reset",
+   "http": "POST /api/numbering-rules/{id}:reset",
+   "permission": "settings.numbering-rules.reset",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/ResetNumberingRule.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "numbering-rules.update",
+   "http": "PUT /api/numbering-rules/{id}",
+   "permission": "settings.numbering-rules.update",
+   "file": "backend-next/src/XiHan.BasicApp.Settings/Operations/NumberingRules/UpdateNumberingRule.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.create",
+   "http": "POST /api/oauth-apps",
+   "permission": "openplatform.oauth-apps.create",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.delete",
+   "http": "DELETE /api/oauth-apps",
+   "permission": "openplatform.oauth-apps.delete",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.get",
+   "http": "GET /api/oauth-apps/{id}",
+   "permission": "openplatform.oauth-apps.read",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.list",
+   "http": "POST /api/oauth-apps:list",
+   "permission": "openplatform.oauth-apps.read",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.reset-secret",
+   "http": "POST /api/oauth-apps/{id}:reset-secret",
+   "permission": "openplatform.oauth-apps.update",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-apps.update",
+   "http": "PUT /api/oauth-apps/{id}",
+   "permission": "openplatform.oauth-apps.update",
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthApps/OAuthAppOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "oauth-consents.approve",
+   "http": "POST /api/oauth-consents:approve",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthConsents/OAuthConsentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "oauth-consents.deny",
+   "http": "POST /api/oauth-consents:deny",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthConsents/OAuthConsentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "oauth-consents.list",
+   "http": "GET /api/oauth-consents",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthConsents/OAuthConsentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "oauth-consents.resolve",
+   "http": "GET /api/oauth-consents:resolve",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthConsents/OAuthConsentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "oauth-consents.revoke",
+   "http": "POST /api/oauth-consents:revoke",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/OauthConsents/OAuthConsentOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "open-api-logs.get",
+   "http": "GET /api/open-api-logs/{id}",
+   "permission": "auditing.open-api-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/OpenApiLogs/GetOpenApiLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "open-api-logs.list",
+   "http": "POST /api/open-api-logs:list",
+   "permission": "auditing.open-api-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/OpenApiLogs/ListOpenApiLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "open.echo",
+   "http": "POST /api/open:echo",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/Open/OpenOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "open.ping",
+   "http": "GET /api/open:ping",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Operations/Open/OpenOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "operation-logs.get",
+   "http": "GET /api/operation-logs/{id}",
+   "permission": "auditing.operation-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/OperationLogs/GetOperationLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "operation-logs.list",
+   "http": "POST /api/operation-logs:list",
+   "permission": "auditing.operation-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/OperationLogs/ListOperationLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-change-logs.get",
+   "http": "GET /api/permission-change-logs/{id}",
+   "permission": "auditing.permission-change-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/PermissionChangeLogs/GetPermissionChangeLog.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-change-logs.list",
+   "http": "POST /api/permission-change-logs:list",
+   "permission": "auditing.permission-change-logs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/PermissionChangeLogs/ListPermissionChangeLogs.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-conditions.attributes",
+   "http": "GET /api/permission-conditions:attributes",
+   "permission": "access.permission-conditions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "permission-conditions.batch-trial",
+   "http": "GET /api/permission-conditions:batch-trial",
+   "permission": "access.permission-conditions.trial",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "permission-conditions.create",
+   "http": "POST /api/permission-conditions",
+   "permission": "access.permission-conditions.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-conditions.delete",
+   "http": "DELETE /api/permission-conditions",
+   "permission": "access.permission-conditions.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-conditions.inventory",
+   "http": "GET /api/permission-conditions:inventory",
+   "permission": "access.permission-conditions.trial",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "permission-conditions.list",
+   "http": "GET /api/permission-conditions",
+   "permission": "access.permission-conditions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "permission-conditions.trial",
+   "http": "GET /api/permission-conditions:trial",
+   "permission": "access.permission-conditions.trial",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "permission-conditions.update",
+   "http": "PUT /api/permission-conditions/{id}",
+   "permission": "access.permission-conditions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionConditions/PermissionConditionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.create",
+   "http": "POST /api/permission-requests",
+   "permission": "access.permission-requests.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.get",
+   "http": "GET /api/permission-requests/{id}",
+   "permission": "access.permission-requests.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.list",
+   "http": "POST /api/permission-requests:list",
+   "permission": "access.permission-requests.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.set-status",
+   "http": "POST /api/permission-requests:set-status",
+   "permission": "access.permission-requests.status",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.update",
+   "http": "PUT /api/permission-requests/{id}",
+   "permission": "access.permission-requests.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permission-requests.withdraw",
+   "http": "POST /api/permission-requests:withdraw",
+   "permission": "access.permission-requests.withdraw",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/PermissionRequests/PermissionRequestOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "permissions.list",
+   "http": "GET /api/permissions",
+   "permission": "access.permissions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Permissions/ListPermissions.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.attributes",
+   "http": "GET /api/policies:attributes",
+   "permission": "access.policies.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "policies.create",
+   "http": "POST /api/policies",
+   "permission": "access.policies.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.delete",
+   "http": "DELETE /api/policies",
+   "permission": "access.policies.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.get",
+   "http": "GET /api/policies/{id}",
+   "permission": "access.policies.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.list",
+   "http": "POST /api/policies:list",
+   "permission": "access.policies.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.set-action",
+   "http": "POST /api/policies/{id}:set-action",
+   "permission": "access.policies.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.set-status",
+   "http": "POST /api/policies/{id}:set-status",
+   "permission": "access.policies.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "policies.templates",
+   "http": "GET /api/policies:templates",
+   "permission": "access.policies.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "policies.trial",
+   "http": "POST /api/policies:trial",
+   "permission": "access.policies.trial",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "policies.update",
+   "http": "PUT /api/policies/{id}",
+   "permission": "access.policies.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Policies/AccessPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "positions.create",
+   "http": "POST /api/positions",
+   "permission": "organization.positions.create",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Positions/CreatePosition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "positions.delete",
+   "http": "DELETE /api/positions",
+   "permission": "organization.positions.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Positions/DeletePositions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "positions.get",
+   "http": "GET /api/positions/{id}",
+   "permission": "organization.positions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Positions/GetPosition.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "positions.list",
+   "http": "POST /api/positions:list",
+   "permission": "organization.positions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Positions/ListPositions.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "positions.update",
+   "http": "PUT /api/positions/{id}",
+   "permission": "organization.positions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Organization/Operations/Positions/UpdatePosition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-data-sources.list",
+   "http": "GET /api/print-data-sources",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintDataSources/PrintDataSourceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "PrintingPolicies.DataSourceCatalog",
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.create",
+   "http": "POST /api/print-templates",
+   "permission": "printing.print-templates.create",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.delete",
+   "http": "DELETE /api/print-templates",
+   "permission": "printing.print-templates.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.get",
+   "http": "GET /api/print-templates/{id}",
+   "permission": "printing.print-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.list",
+   "http": "POST /api/print-templates:list",
+   "permission": "printing.print-templates.read",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.resolve",
+   "http": "GET /api/print-templates:resolve",
+   "permission": "printing.print-templates.use",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "print-templates.set-status",
+   "http": "POST /api/print-templates/{id}:set-status",
+   "permission": "printing.print-templates.status",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "print-templates.update",
+   "http": "PUT /api/print-templates/{id}",
+   "permission": "printing.print-templates.update",
+   "file": "backend-next/src/XiHan.BasicApp.Printing/Operations/PrintTemplates/PrintTemplateOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "profile.begin-external-bind",
+   "http": "POST /api/profile:begin-external-bind",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ExternalLoginOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.change-contact",
+   "http": "POST /api/profile:change-contact",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ContactOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.change-password",
+   "http": "POST /api/profile:change-password",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ChangePassword.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.change-username",
+   "http": "POST /api/profile:change-username",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ProfileInfoOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.deactivate-account",
+   "http": "POST /api/profile:deactivate-account",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/AccountClosureOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.delete-account",
+   "http": "POST /api/profile:delete-account",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/AccountClosureOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.disable-two-factor",
+   "http": "POST /api/profile:disable-two-factor",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/DisableTwoFactor.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.enable-two-factor",
+   "http": "POST /api/profile:enable-two-factor",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/EnableTwoFactor.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.external-logins",
+   "http": "GET /api/profile:external-logins",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ExternalLoginOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "profile.get",
+   "http": "GET /api/profile",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/GetProfile.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "profile.link-external",
+   "http": "POST /api/profile:link-external",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ExternalLoginOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.notification-preference",
+   "http": "GET /api/profile:notification-preference",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/NotificationPreferenceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "profile.remove-avatar",
+   "http": "POST /api/profile:remove-avatar",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ProfileInfoOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.revoke-other-sessions",
+   "http": "POST /api/profile:revoke-other-sessions",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/MySessionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.revoke-session",
+   "http": "POST /api/profile:revoke-session",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/MySessionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.send-change-contact-code",
+   "http": "POST /api/profile:send-change-contact-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ContactOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.send-two-factor-code",
+   "http": "POST /api/profile:send-two-factor-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/SendTwoFactorSetupCode.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.send-verification-code",
+   "http": "POST /api/profile:send-verification-code",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ContactOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.sessions",
+   "http": "GET /api/profile:sessions",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/MySessionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "profile.setup-totp",
+   "http": "POST /api/profile:setup-totp",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/SetupTotp.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.unlink-external",
+   "http": "POST /api/profile:unlink-external",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ExternalLoginOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.update",
+   "http": "PUT /api/profile",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ProfileInfoOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.update-notification-preference",
+   "http": "POST /api/profile:update-notification-preference",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/NotificationPreferenceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "profile.upload-avatar",
+   "http": "POST /api/profile/avatar",
+   "permission": null
+  },
+  {
+   "id": "profile.verify-contact",
+   "http": "POST /api/profile:verify-contact",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Profile/ContactOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "roles.assign",
+   "http": "POST /api/roles/{id}:assign",
+   "permission": "access.roles.assign",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/AssignRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.by-user",
+   "http": "GET /api/roles:by-user",
+   "permission": "access.roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/RolesByUser.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "roles.create",
+   "http": "POST /api/roles",
+   "permission": "access.roles.create",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/CreateRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.delete",
+   "http": "DELETE /api/roles",
+   "permission": "access.roles.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/DeleteRoles.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.deny",
+   "http": "POST /api/roles/{id}:deny",
+   "permission": "access.roles.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/DenyRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.get",
+   "http": "GET /api/roles/{id}",
+   "permission": "access.roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/GetRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.grant",
+   "http": "POST /api/roles/{id}:grant",
+   "permission": "access.roles.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/GrantRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.hierarchy",
+   "http": "GET /api/roles/{id}:hierarchy",
+   "permission": "access.roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/RoleHierarchyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "roles.list",
+   "http": "POST /api/roles:list",
+   "permission": "access.roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/ListRoles.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.members",
+   "http": "GET /api/roles/{id}:members",
+   "permission": "access.roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/RoleMembers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "roles.revoke",
+   "http": "POST /api/roles/{id}:revoke",
+   "permission": "access.roles.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/RevokeRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.set-parents",
+   "http": "POST /api/roles/{id}:set-parents",
+   "permission": "access.roles.set-parents",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/RoleHierarchyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.unassign",
+   "http": "POST /api/roles/{id}:unassign",
+   "permission": "access.roles.assign",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/UnassignRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.update",
+   "http": "PUT /api/roles/{id}",
+   "permission": "access.roles.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/UpdateRole.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "roles.update-member",
+   "http": "POST /api/roles/{id}:update-member",
+   "permission": "access.roles.assign",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Roles/UpdateRoleMember.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "server.get",
+   "http": "GET /api/server",
+   "permission": "maintenance.server.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Server/ServerOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "session-roles.get",
+   "http": "GET /api/session-roles/{id}",
+   "permission": "access.session-roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/SessionRoles/SessionRoleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "session-roles.list",
+   "http": "POST /api/session-roles:list",
+   "permission": "access.session-roles.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/SessionRoles/SessionRoleOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sessions.list",
+   "http": "POST /api/sessions:list",
+   "permission": "identity.sessions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Sessions/ListSessions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sessions.revoke",
+   "http": "POST /api/sessions:revoke",
+   "permission": "identity.sessions.revoke",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Sessions/RevokeSessions.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sessions.summary",
+   "http": "GET /api/sessions:summary",
+   "permission": "identity.sessions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Sessions/GetSessionSummary.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "sms-configs.create",
+   "http": "POST /api/sms-configs",
+   "permission": "notification.sms-configs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms-configs.delete",
+   "http": "DELETE /api/sms-configs",
+   "permission": "notification.sms-configs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms-configs.get",
+   "http": "GET /api/sms-configs/{id}",
+   "permission": "notification.sms-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms-configs.list",
+   "http": "POST /api/sms-configs:list",
+   "permission": "notification.sms-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms-configs.set-default",
+   "http": "POST /api/sms-configs/{id}:set-default",
+   "permission": "notification.sms-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms-configs.update",
+   "http": "PUT /api/sms-configs/{id}",
+   "permission": "notification.sms-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/SmsConfigs/SmsConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms.cancel",
+   "http": "POST /api/sms:cancel",
+   "permission": "notification.sms.resend",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Sms/SmsOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms.delete",
+   "http": "DELETE /api/sms",
+   "permission": "notification.sms.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Sms/SmsOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms.get",
+   "http": "GET /api/sms/{id}",
+   "permission": "notification.sms.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Sms/SmsOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms.list",
+   "http": "POST /api/sms:list",
+   "permission": "notification.sms.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Sms/SmsOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "sms.resend",
+   "http": "POST /api/sms:resend",
+   "permission": "notification.sms.resend",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/Sms/SmsOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.create",
+   "http": "POST /api/storage-configs",
+   "permission": "files.storage-configs.create",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.delete",
+   "http": "DELETE /api/storage-configs",
+   "permission": "files.storage-configs.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.get",
+   "http": "GET /api/storage-configs/{id}",
+   "permission": "files.storage-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.list",
+   "http": "POST /api/storage-configs:list",
+   "permission": "files.storage-configs.read",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.set-default",
+   "http": "POST /api/storage-configs/{id}:set-default",
+   "permission": "files.storage-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.set-status",
+   "http": "POST /api/storage-configs/{id}:set-status",
+   "permission": "files.storage-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "storage-configs.update",
+   "http": "PUT /api/storage-configs/{id}",
+   "permission": "files.storage-configs.update",
+   "file": "backend-next/src/XiHan.BasicApp.Files/Operations/StorageConfigs/StorageConfigOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "subscription.get",
+   "http": "GET /api/subscription",
+   "permission": "tenancy.subscription.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Subscription/GetSubscription.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tasks.add-assignees",
+   "http": "POST /api/tasks/{id}:add-assignees",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Tasks/TaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "tasks.complete",
+   "http": "POST /api/tasks/{id}:complete",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Tasks/TaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "tasks.list",
+   "http": "POST /api/tasks:list",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Tasks/TaskOperations.cs",
+   "expose": "Expose.Http | Expose.Mcp | Expose.Ai",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "tasks.transfer",
+   "http": "POST /api/tasks/{id}:transfer",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/Tasks/TaskOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "telegram-bots.create",
+   "http": "POST /api/telegram-bots",
+   "permission": "notification.telegram-bots.create",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/TelegramBots/TelegramBotOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "telegram-bots.delete",
+   "http": "DELETE /api/telegram-bots",
+   "permission": "notification.telegram-bots.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/TelegramBots/TelegramBotOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "telegram-bots.get",
+   "http": "GET /api/telegram-bots/{id}",
+   "permission": "notification.telegram-bots.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/TelegramBots/TelegramBotOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "telegram-bots.list",
+   "http": "POST /api/telegram-bots:list",
+   "permission": "notification.telegram-bots.read",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/TelegramBots/TelegramBotOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "telegram-bots.update",
+   "http": "PUT /api/telegram-bots/{id}",
+   "permission": "notification.telegram-bots.update",
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Operations/TelegramBots/TelegramBotOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenant-members.create",
+   "http": "POST /api/tenant-members",
+   "permission": "tenancy.tenant-members.create",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/TenantMembers/AddTenantMember.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenant-members.delete",
+   "http": "DELETE /api/tenant-members",
+   "permission": "tenancy.tenant-members.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/TenantMembers/RemoveTenantMembers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenant-members.list",
+   "http": "GET /api/tenant-members",
+   "permission": "tenancy.tenant-members.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/TenantMembers/ListTenantMembers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.change-edition",
+   "http": "POST /api/tenants/{id}:change-edition",
+   "permission": "tenancy.tenants.update",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/ChangeTenantEdition.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.configure-database",
+   "http": "POST /api/tenants/{id}:configure-database",
+   "permission": "tenancy.tenants.configure-database",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/TenantDatabaseOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.create",
+   "http": "POST /api/tenants",
+   "permission": "tenancy.tenants.create",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/CreateTenant.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.delete",
+   "http": "DELETE /api/tenants",
+   "permission": "tenancy.tenants.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/DeleteTenants.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.get",
+   "http": "GET /api/tenants/{id}",
+   "permission": "tenancy.tenants.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/GetTenant.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.initialize-admin",
+   "http": "POST /api/tenants/{id}:initialize-admin",
+   "permission": "tenancy.tenants.initialize-admin",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/InitializeAdmin.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.initialize-database",
+   "http": "POST /api/tenants/{id}:initialize-database",
+   "permission": "tenancy.tenants.initialize-database",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/TenantDatabaseOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.list",
+   "http": "POST /api/tenants:list",
+   "permission": "tenancy.tenants.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/ListTenants.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.mine",
+   "http": "GET /api/tenants:mine",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/MyTenants.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "tenants.quotas",
+   "http": "GET /api/tenants:quotas",
+   "permission": "tenancy.tenants.read",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/ListTenantQuotas.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "tenants.resume",
+   "http": "POST /api/tenants:resume",
+   "permission": "tenancy.tenants.suspend",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/ResumeTenants.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.suspend",
+   "http": "POST /api/tenants:suspend",
+   "permission": "tenancy.tenants.suspend",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/SuspendTenants.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.transfer-owner",
+   "http": "POST /api/tenants/{id}:transfer-owner",
+   "permission": "tenancy.tenants.transfer-owner",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/TransferOwner.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "tenants.update",
+   "http": "PUT /api/tenants/{id}",
+   "permission": "tenancy.tenants.update",
+   "file": "backend-next/src/XiHan.BasicApp.Tenancy/Operations/Tenants/UpdateTenant.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "traces.timeline",
+   "http": "GET /api/traces:timeline",
+   "permission": "auditing.traces.read",
+   "file": "backend-next/src/XiHan.BasicApp.Auditing/Operations/Traces/TraceTimeline.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "user-data-scopes.get",
+   "http": "GET /api/user-data-scopes",
+   "permission": "access.user-data-scopes.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserDataScopes/UserDataScopeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "user-data-scopes.set",
+   "http": "POST /api/user-data-scopes:set",
+   "permission": "access.user-data-scopes.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserDataScopes/UserDataScopeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "user-grants.deny",
+   "http": "POST /api/user-grants:deny",
+   "permission": "access.user-grants.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserGrants/UserGrantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "user-grants.grant",
+   "http": "POST /api/user-grants:grant",
+   "permission": "access.user-grants.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserGrants/UserGrantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "user-grants.list",
+   "http": "GET /api/user-grants",
+   "permission": "access.user-grants.read",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserGrants/UserGrantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "user-grants.revoke",
+   "http": "POST /api/user-grants:revoke",
+   "permission": "access.user-grants.grant",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/UserGrants/UserGrantOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "user-settings.get",
+   "http": "GET /api/user-settings",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/UserSettings/GetUserSetting.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "user-settings.update",
+   "http": "PUT /api/user-settings",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/UserSettings/UpdateUserSetting.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": false
+  },
+  {
+   "id": "users.create",
+   "http": "POST /api/users",
+   "permission": "identity.users.create",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/CreateUser.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.delete",
+   "http": "DELETE /api/users",
+   "permission": "identity.users.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/DeleteUsers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.disable",
+   "http": "POST /api/users:disable",
+   "permission": "identity.users.disable",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/DisableUsers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.enable",
+   "http": "POST /api/users:enable",
+   "permission": "identity.users.disable",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/DisableUsers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.get",
+   "http": "GET /api/users/{id}",
+   "permission": "identity.users.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/GetUser.cs",
+   "expose": "Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.list",
+   "http": "POST /api/users:list",
+   "permission": "identity.users.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/ListUsers.cs",
+   "expose": "Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.lock",
+   "http": "POST /api/users:lock",
+   "permission": "identity.users.lock",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/LockUsers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.login-policy",
+   "http": "GET /api/users/{id}:login-policy",
+   "permission": "identity.users.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/UserLoginPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "users.reset-password",
+   "http": "POST /api/users/{id}:reset-password",
+   "permission": "identity.users.reset-password",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/ResetPassword.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.reset-two-factor",
+   "http": "POST /api/users:reset-two-factor",
+   "permission": "identity.users.reset-two-factor",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/ResetTwoFactor.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.set-login-policy",
+   "http": "POST /api/users/{id}:set-login-policy",
+   "permission": "identity.users.login-policy",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/UserLoginPolicyOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.unlock",
+   "http": "POST /api/users:unlock",
+   "permission": "identity.users.lock",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/UnlockUsers.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "users.update",
+   "http": "PUT /api/users/{id}",
+   "permission": "identity.users.update",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/UpdateUser.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "versions.get",
+   "http": "GET /api/versions/{id}",
+   "permission": "maintenance.versions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Versions/VersionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "versions.list",
+   "http": "POST /api/versions:list",
+   "permission": "maintenance.versions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Versions/VersionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workbench.widget-data",
+   "http": "GET /api/workbench:widget-data",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workbench/Operations/Workbench/WidgetOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "SecurityPolicies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "workbench.widgets",
+   "http": "GET /api/workbench:widgets",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workbench/Operations/Workbench/WidgetOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "SecurityPolicies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "workflow-assignees.departments",
+   "http": "GET /api/workflow-assignees:departments",
+   "permission": "workflow.workflow-assignees.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowAssignees/WorkflowAssigneeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "workflow-assignees.positions",
+   "http": "GET /api/workflow-assignees:positions",
+   "permission": "workflow.workflow-assignees.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowAssignees/WorkflowAssigneeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "workflow-assignees.roles",
+   "http": "GET /api/workflow-assignees:roles",
+   "permission": "workflow.workflow-assignees.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowAssignees/WorkflowAssigneeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "workflow-assignees.users",
+   "http": "GET /api/workflow-assignees:users",
+   "permission": null,
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowAssignees/WorkflowAssigneeOperations.cs",
+   "expose": "Expose.Http",
+   "policy": "Policies.Authenticated",
+   "readOnly": true
+  },
+  {
+   "id": "workflow-definitions.activity-types",
+   "http": "GET /api/workflow-definitions:activity-types",
+   "permission": "workflow.workflow-definitions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "workflow-definitions.archive",
+   "http": "POST /api/workflow-definitions:archive",
+   "permission": "workflow.workflow-definitions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.business-types",
+   "http": "GET /api/workflow-definitions:business-types",
+   "permission": "workflow.workflow-definitions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
+   "id": "workflow-definitions.create",
+   "http": "POST /api/workflow-definitions",
+   "permission": "workflow.workflow-definitions.create",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.delete",
+   "http": "DELETE /api/workflow-definitions",
+   "permission": "workflow.workflow-definitions.delete",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.disable",
+   "http": "POST /api/workflow-definitions:disable",
+   "permission": "workflow.workflow-definitions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.get",
+   "http": "GET /api/workflow-definitions/{id}",
+   "permission": "workflow.workflow-definitions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.list",
+   "http": "POST /api/workflow-definitions:list",
+   "permission": "workflow.workflow-definitions.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.new-version",
+   "http": "POST /api/workflow-definitions:new-version",
+   "permission": "workflow.workflow-definitions.create",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.publish",
+   "http": "POST /api/workflow-definitions/{id}:publish",
+   "permission": "workflow.workflow-definitions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-definitions.update",
+   "http": "PUT /api/workflow-definitions/{id}",
+   "permission": "workflow.workflow-definitions.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowDefinitions/WorkflowDefinitionOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.cancel",
+   "http": "POST /api/workflow-instances:cancel",
+   "permission": "workflow.workflow-instances.execute",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.get",
+   "http": "GET /api/workflow-instances/{id}",
+   "permission": "workflow.workflow-instances.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.list",
+   "http": "POST /api/workflow-instances:list",
+   "permission": "workflow.workflow-instances.read",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.resume",
+   "http": "POST /api/workflow-instances:resume",
+   "permission": "workflow.workflow-instances.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.retry",
+   "http": "POST /api/workflow-instances:retry",
+   "permission": "workflow.workflow-instances.execute",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.signal",
+   "http": "POST /api/workflow-instances:signal",
+   "permission": "workflow.workflow-instances.execute",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.start",
+   "http": "POST /api/workflow-instances:start",
+   "permission": "workflow.workflow-instances.execute",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.suspend",
+   "http": "POST /api/workflow-instances:suspend",
+   "permission": "workflow.workflow-instances.update",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
+   "id": "workflow-instances.terminate",
+   "http": "POST /api/workflow-instances:terminate",
+   "permission": "workflow.workflow-instances.execute",
+   "file": "backend-next/src/XiHan.BasicApp.Workflow/Operations/WorkflowInstances/WorkflowInstanceOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  }
+ ],
+ "pages": [
+  {
+   "code": "access.roles",
+   "route": "/access/roles",
+   "titleKey": "access.roles.title"
+  },
+  {
+   "code": "access.menus",
+   "route": "/access/menus",
+   "titleKey": "access.menus.title"
+  },
+  {
+   "code": "access.permissions",
+   "route": "/access/permissions",
+   "titleKey": "access.permissions.title"
+  },
+  {
+   "code": "access.field-security",
+   "route": "/access/field-security",
+   "titleKey": "access.field_security.title"
+  },
+  {
+   "code": "access.delegations",
+   "route": "/access/delegations",
+   "titleKey": "access.delegations.title"
+  },
+  {
+   "code": "access.policies",
+   "route": "/access/policies",
+   "titleKey": "access.policies.title"
+  },
+  {
+   "code": "access.constraint-rules",
+   "route": "/access/constraint-rules",
+   "titleKey": "access.constraint_rules.title"
+  },
+  {
+   "code": "ai.assistants",
+   "route": "/ai/assistants",
+   "titleKey": "ai.assistants.title"
+  },
+  {
+   "code": "ai.prompts",
+   "route": "/ai/prompts",
+   "titleKey": "ai.prompts.title"
+  },
+  {
+   "code": "ai.knowledge-documents",
+   "route": "/ai/knowledge-documents",
+   "titleKey": "ai.knowledge_documents.title"
+  },
+  {
+   "code": "ai.providers",
+   "route": "/ai/providers",
+   "titleKey": "ai.providers.title"
+  },
+  {
+   "code": "auditing.traces",
+   "route": "/auditing/traces",
+   "titleKey": "auditing.traces.title"
+  },
+  {
+   "code": "auditing.operation-logs",
+   "route": "/auditing/operation-logs",
+   "titleKey": "auditing.operation_logs.title"
+  },
+  {
+   "code": "auditing.login-logs",
+   "route": "/auditing/login-logs",
+   "titleKey": "auditing.login_logs.title"
+  },
+  {
+   "code": "auditing.access-logs",
+   "route": "/auditing/access-logs",
+   "titleKey": "auditing.access_logs.title"
+  },
+  {
+   "code": "auditing.exception-logs",
+   "route": "/auditing/exception-logs",
+   "titleKey": "auditing.exception_logs.title"
+  },
+  {
+   "code": "auditing.diff-logs",
+   "route": "/auditing/diff-logs",
+   "titleKey": "auditing.diff_logs.title"
+  },
+  {
+   "code": "auditing.permission-change-logs",
+   "route": "/auditing/permission-change-logs",
+   "titleKey": "auditing.permission_change_logs.title"
+  },
+  {
+   "code": "auditing.condition-hits",
+   "route": "/auditing/condition-hits",
+   "titleKey": "auditing.condition_hits.title"
+  },
+  {
+   "code": "auditing.open-api-logs",
+   "route": "/auditing/open-api-logs",
+   "titleKey": "auditing.open_api_logs.title"
+  },
+  {
+   "code": "chat.conversations",
+   "route": "/chat/conversations",
+   "titleKey": "chat.conversations.title"
+  },
+  {
+   "code": "chat.audit",
+   "route": "/chat/audit",
+   "titleKey": "chat.audit.title"
+  },
+  {
+   "code": "codegeneration.code-gen",
+   "route": "/codegeneration/code-gen",
+   "titleKey": "codegeneration.code_gen.title"
+  },
+  {
+   "code": "files.library",
+   "route": "/files/library",
+   "titleKey": "files.library.title"
+  },
+  {
+   "code": "files.storage-configs",
+   "route": "/files/storage-configs",
+   "titleKey": "files.storage_configs.title"
+  },
+  {
+   "code": "files.export-center",
+   "route": "/files/export-center",
+   "titleKey": "files.export_center.title"
+  },
+  {
+   "code": "identity.users",
+   "route": "/identity/users",
+   "titleKey": "identity.users.title"
+  },
+  {
+   "code": "identity.online-users",
+   "route": "/identity/online-users",
+   "titleKey": "identity.online_users.title"
+  },
+  {
+   "code": "maintenance.jobs",
+   "route": "/maintenance/jobs",
+   "titleKey": "maintenance.jobs.title"
+  },
+  {
+   "code": "maintenance.caches",
+   "route": "/maintenance/caches",
+   "titleKey": "maintenance.caches.title"
+  },
+  {
+   "code": "maintenance.server",
+   "route": "/maintenance/server",
+   "titleKey": "maintenance.server.title"
+  },
+  {
+   "code": "maintenance.versions",
+   "route": "/maintenance/versions",
+   "titleKey": "maintenance.versions.title"
+  },
+  {
+   "code": "maintenance.migrations",
+   "route": "/maintenance/migrations",
+   "titleKey": "maintenance.migrations.title"
+  },
+  {
+   "code": "notification.notifications",
+   "route": "/notification/notifications",
+   "titleKey": "notification.notifications.title"
+  },
+  {
+   "code": "notification.messages",
+   "route": "/notification/messages",
+   "titleKey": "notification.messages.title"
+  },
+  {
+   "code": "notification.templates",
+   "route": "/notification/templates",
+   "titleKey": "notification.templates.title"
+  },
+  {
+   "code": "notification.email-configs",
+   "route": "/notification/email-configs",
+   "titleKey": "notification.email_configs.title"
+  },
+  {
+   "code": "notification.sms-configs",
+   "route": "/notification/sms-configs",
+   "titleKey": "notification.sms_configs.title"
+  },
+  {
+   "code": "notification.bot-configs",
+   "route": "/notification/bot-configs",
+   "titleKey": "notification.bot_configs.title"
+  },
+  {
+   "code": "notification.telegram-bots",
+   "route": "/notification/telegram-bots",
+   "titleKey": "notification.telegram_bots.title"
+  },
+  {
+   "code": "notification.inbox",
+   "route": "/notification/inbox",
+   "titleKey": "notification.inbox.title"
+  },
+  {
+   "code": "openplatform.oauth-apps",
+   "route": "/openplatform/oauth-apps",
+   "titleKey": "openplatform.oauth_apps.title"
+  },
+  {
+   "code": "organization.departments",
+   "route": "/organization/departments",
+   "titleKey": "organization.departments.title"
+  },
+  {
+   "code": "organization.positions",
+   "route": "/organization/positions",
+   "titleKey": "organization.positions.title"
+  },
+  {
+   "code": "printing.print-templates",
+   "route": "/printing/print-templates",
+   "titleKey": "printing.print_templates.title"
+  },
+  {
+   "code": "settings.configs",
+   "route": "/settings/configs",
+   "titleKey": "settings.configs.title"
+  },
+  {
+   "code": "settings.dicts",
+   "route": "/settings/dicts",
+   "titleKey": "settings.dicts.title"
+  },
+  {
+   "code": "settings.numbering-rules",
+   "route": "/settings/numbering-rules",
+   "titleKey": "settings.numbering_rules.title"
+  },
+  {
+   "code": "tenancy.tenants",
+   "route": "/tenancy/tenants",
+   "titleKey": "tenancy.tenants.title"
+  },
+  {
+   "code": "tenancy.editions",
+   "route": "/tenancy/editions",
+   "titleKey": "tenancy.editions.title"
+  },
+  {
+   "code": "tenancy.subscription",
+   "route": "/tenancy/subscription",
+   "titleKey": "tenancy.subscription.title"
+  },
+  {
+   "code": "workbench.dashboard",
+   "route": "/workbench/dashboard",
+   "titleKey": "workbench.dashboard.title"
+  },
+  {
+   "code": "workflow.approvals",
+   "route": "/workflow/approvals",
+   "titleKey": "workflow.approvals.title"
+  },
+  {
+   "code": "workflow.definitions",
+   "route": "/workflow/definitions",
+   "titleKey": "workflow.definitions.title"
+  },
+  {
+   "code": "workflow.instances",
+   "route": "/workflow/instances",
+   "titleKey": "workflow.instances.title"
+  }
+ ],
+ "permissions": [
+  "access.constraint-rules.create",
+  "access.constraint-rules.delete",
+  "access.constraint-rules.read",
+  "access.constraint-rules.update",
+  "access.delegations.create",
+  "access.delegations.delete",
+  "access.delegations.read",
+  "access.delegations.revoke",
+  "access.field-security.create",
+  "access.field-security.delete",
+  "access.field-security.read",
+  "access.field-security.update",
+  "access.login-bans.lift",
+  "access.login-bans.read",
+  "access.menus.create",
+  "access.menus.delete",
+  "access.menus.read",
+  "access.menus.update",
+  "access.permission-conditions.create",
+  "access.permission-conditions.delete",
+  "access.permission-conditions.read",
+  "access.permission-conditions.trial",
+  "access.permission-conditions.update",
+  "access.permission-requests.create",
+  "access.permission-requests.read",
+  "access.permission-requests.status",
+  "access.permission-requests.update",
+  "access.permission-requests.withdraw",
+  "access.permissions.read",
+  "access.policies.create",
+  "access.policies.delete",
+  "access.policies.read",
+  "access.policies.trial",
+  "access.policies.update",
+  "access.roles.assign",
+  "access.roles.create",
+  "access.roles.delete",
+  "access.roles.grant",
+  "access.roles.read",
+  "access.roles.set-parents",
+  "access.roles.update",
+  "access.session-roles.read",
+  "access.user-data-scopes.read",
+  "access.user-data-scopes.update",
+  "access.user-grants.grant",
+  "access.user-grants.read",
+  "ai.ai-assistants.create",
+  "ai.ai-assistants.delete",
+  "ai.ai-assistants.read",
+  "ai.ai-assistants.update",
+  "ai.ai-prompts.create",
+  "ai.ai-prompts.delete",
+  "ai.ai-prompts.read",
+  "ai.ai-prompts.update",
+  "ai.ai-providers.create",
+  "ai.ai-providers.delete",
+  "ai.ai-providers.execute",
+  "ai.ai-providers.read",
+  "ai.ai-providers.update",
+  "ai.knowledge-documents.create",
+  "ai.knowledge-documents.delete",
+  "ai.knowledge-documents.execute",
+  "ai.knowledge-documents.read",
+  "ai.knowledge-documents.update",
+  "auditing.access-logs.read",
+  "auditing.condition-hits.read",
+  "auditing.diff-logs.read",
+  "auditing.exception-logs.read",
+  "auditing.login-logs.read",
+  "auditing.open-api-logs.read",
+  "auditing.operation-logs.read",
+  "auditing.permission-change-logs.read",
+  "auditing.traces.read",
+  "chat.chat-audit.read",
+  "chat.chat-conversations.manage",
+  "chat.chat-conversations.read",
+  "chat.chat-messages.read",
+  "chat.chat-messages.send",
+  "codegeneration.codegen-datasources.create",
+  "codegeneration.codegen-datasources.delete",
+  "codegeneration.codegen-datasources.read",
+  "codegeneration.codegen-datasources.update",
+  "codegeneration.codegen-histories.read",
+  "codegeneration.codegen-runtime.read",
+  "codegeneration.codegen-table-columns.read",
+  "codegeneration.codegen-table-columns.update",
+  "codegeneration.codegen-tables.delete",
+  "codegeneration.codegen-tables.execute",
+  "codegeneration.codegen-tables.import",
+  "codegeneration.codegen-tables.read",
+  "codegeneration.codegen-tables.update",
+  "codegeneration.codegen-templates.create",
+  "codegeneration.codegen-templates.delete",
+  "codegeneration.codegen-templates.read",
+  "codegeneration.codegen-templates.update",
+  "files.files.create",
+  "files.files.delete",
+  "files.files.read",
+  "files.files.update",
+  "files.storage-configs.create",
+  "files.storage-configs.delete",
+  "files.storage-configs.read",
+  "files.storage-configs.update",
+  "identity.impersonation.start",
+  "identity.sessions.read",
+  "identity.sessions.revoke",
+  "identity.users.create",
+  "identity.users.delete",
+  "identity.users.disable",
+  "identity.users.lock",
+  "identity.users.login-policy",
+  "identity.users.read",
+  "identity.users.reset-password",
+  "identity.users.reset-two-factor",
+  "identity.users.update",
+  "maintenance.caches.delete",
+  "maintenance.caches.read",
+  "maintenance.caches.update",
+  "maintenance.job-runs.read",
+  "maintenance.jobs.create",
+  "maintenance.jobs.delete",
+  "maintenance.jobs.read",
+  "maintenance.jobs.reschedule",
+  "maintenance.jobs.trigger",
+  "maintenance.jobs.update",
+  "maintenance.migrations.read",
+  "maintenance.server.read",
+  "maintenance.versions.read",
+  "notification.bot-configs.create",
+  "notification.bot-configs.delete",
+  "notification.bot-configs.read",
+  "notification.bot-configs.update",
+  "notification.email-configs.create",
+  "notification.email-configs.delete",
+  "notification.email-configs.read",
+  "notification.email-configs.update",
+  "notification.emails.delete",
+  "notification.emails.read",
+  "notification.emails.resend",
+  "notification.message-templates.create",
+  "notification.message-templates.delete",
+  "notification.message-templates.read",
+  "notification.message-templates.update",
+  "notification.notifications.create",
+  "notification.notifications.delete",
+  "notification.notifications.publish",
+  "notification.notifications.read",
+  "notification.notifications.update",
+  "notification.sms-configs.create",
+  "notification.sms-configs.delete",
+  "notification.sms-configs.read",
+  "notification.sms-configs.update",
+  "notification.sms.delete",
+  "notification.sms.read",
+  "notification.sms.resend",
+  "notification.telegram-bots.create",
+  "notification.telegram-bots.delete",
+  "notification.telegram-bots.read",
+  "notification.telegram-bots.update",
+  "openplatform.oauth-apps.create",
+  "openplatform.oauth-apps.delete",
+  "openplatform.oauth-apps.read",
+  "openplatform.oauth-apps.update",
+  "organization.departments.create",
+  "organization.departments.delete",
+  "organization.departments.read",
+  "organization.departments.update",
+  "organization.memberships.create",
+  "organization.memberships.delete",
+  "organization.memberships.read",
+  "organization.memberships.update",
+  "organization.positions.create",
+  "organization.positions.delete",
+  "organization.positions.read",
+  "organization.positions.update",
+  "printing.print-templates.create",
+  "printing.print-templates.delete",
+  "printing.print-templates.global-manage",
+  "printing.print-templates.read",
+  "printing.print-templates.status",
+  "printing.print-templates.update",
+  "printing.print-templates.use",
+  "runtime.cloud-events.deliver",
+  "settings.configs.create",
+  "settings.configs.delete",
+  "settings.configs.read",
+  "settings.configs.update",
+  "settings.dict-items.create",
+  "settings.dict-items.delete",
+  "settings.dict-items.read",
+  "settings.dict-items.update",
+  "settings.dicts.create",
+  "settings.dicts.delete",
+  "settings.dicts.read",
+  "settings.dicts.update",
+  "settings.numbering-rules.create",
+  "settings.numbering-rules.delete",
+  "settings.numbering-rules.generate",
+  "settings.numbering-rules.read",
+  "settings.numbering-rules.reset",
+  "settings.numbering-rules.update",
+  "tenancy.editions.create",
+  "tenancy.editions.delete",
+  "tenancy.editions.read",
+  "tenancy.editions.update",
+  "tenancy.subscription.read",
+  "tenancy.tenant-members.create",
+  "tenancy.tenant-members.delete",
+  "tenancy.tenant-members.read",
+  "tenancy.tenants.configure-database",
+  "tenancy.tenants.create",
+  "tenancy.tenants.delete",
+  "tenancy.tenants.initialize-admin",
+  "tenancy.tenants.initialize-database",
+  "tenancy.tenants.read",
+  "tenancy.tenants.suspend",
+  "tenancy.tenants.transfer-owner",
+  "tenancy.tenants.update",
+  "workflow.workflow-assignees.read",
+  "workflow.workflow-definitions.create",
+  "workflow.workflow-definitions.delete",
+  "workflow.workflow-definitions.read",
+  "workflow.workflow-definitions.update",
+  "workflow.workflow-instances.execute",
+  "workflow.workflow-instances.read",
+  "workflow.workflow-instances.update"
+ ],
+ "seeders": [
+  "access.demo",
+  "access.menus",
+  "access.platform",
+  "access.policies",
+  "codegeneration.templates",
+  "files.storage-configs",
+  "identity.platform",
+  "notification.templates",
+  "organization.demo",
+  "printing.demo",
+  "tenancy.demo",
+  "tenancy.editions",
+  "workflow.demo"
+ ],
+ "jobs": [
+  "auditing.retention",
+  "chat.messages.cleanup",
+  "files.temporary.purge",
+  "files.uploads.expire",
+  "openplatform.oauth-cleanup",
+  "tenancy.tenants.expire"
+ ],
+ "configurationSections": [
+  "BasicApp:AI:Qdrant",
+  "BasicApp:Access",
+  "BasicApp:ApiDocs",
+  "BasicApp:Auditing",
+  "BasicApp:Auth",
+  "BasicApp:Auth:OAuth",
+  "BasicApp:CloudEvents",
+  "BasicApp:CodeGeneration",
+  "BasicApp:Cors",
+  "BasicApp:Files",
+  "BasicApp:ForwardedHeaders",
+  "BasicApp:Modules",
+  "BasicApp:Notification",
+  "BasicApp:Notification:Telegram",
+  "BasicApp:OpenPlatform",
+  "BasicApp:Schema",
+  "BasicApp:Seed"
+ ],
+ "configuration": [
+  {
+   "section": "Kestrel",
+   "key": "Kestrel:Endpoints:Http:Url"
+  },
+  {
+   "section": "Kestrel",
+   "key": "Kestrel:Endpoints:Grpc:Url"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Caching",
+   "key": "Redis:KeyPrefix"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Caching",
+   "key": "Redis:DefaultTimeToLiveSeconds"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Caching",
+   "key": "Redis:PublishChanges"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Caching",
+   "key": "Redis:HealthProbeIntervalSeconds"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Caching",
+   "key": "Hybrid:LocalCapacity"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "RabbitMQ:Exchange"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "RabbitMQ:QueuePrefix"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "RabbitMQ:PrefetchCount"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "RabbitMQ:HealthProbeIntervalSeconds"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "InstanceId"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "MaxAttempts"
+  },
+  {
+   "section": "分布式缓存与消息 / XiHan:Messaging",
+   "key": "Outbox:PollIntervalSeconds"
+  },
+  {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "InitTables"
+  },
+  {
+   "section": "XiHan:Security",
+   "key": "RoleClaim"
+  },
+  {
+   "section": "XiHan:Security",
+   "key": "Jwt:Secret"
+  },
+  {
+   "section": "XiHan:Security",
+   "key": "Jwt:Issuer"
+  },
+  {
+   "section": "XiHan:Security",
+   "key": "Jwt:ClockSkewSeconds"
+  },
+  {
+   "section": "XiHan:MultiTenancy",
+   "key": "RequireTenant"
+  },
+  {
+   "section": "XiHan:MultiTenancy",
+   "key": "TenantClaim"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "DefaultLocale"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "Database:RefreshIntervalSeconds"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "Database:MaxTranslations"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "LockTimeoutSeconds"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "RetentionDays"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "Database:PollIntervalSeconds"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "Database:BatchSize"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "Database:LockLeaseSeconds"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "Database:HolderId"
+  },
+  {
+   "section": "XiHan:Workflow",
+   "key": "Database:LockConnection"
+  },
+  {
+   "section": "XiHan:Auditing",
+   "key": "Selection"
+  },
+  {
+   "section": "XiHan:Auditing",
+   "key": "IncludeSuccesses"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "Http:RoutePrefix"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "Grpc:Package"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "Mcp:ServerName"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "CloudEvents:Topics:<事件类型>"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "CloudEvents:Inbound"
+  },
+  {
+   "section": "XiHan:Protocols",
+   "key": "CloudEvents:Webhooks:<主题>"
+  },
+  {
+   "section": "XiHan:Kernel",
+   "key": "StartTimeoutSeconds"
+  },
+  {
+   "section": "XiHan:Kernel",
+   "key": "FailurePolicy"
+  },
+  {
+   "section": "XiHan:Kernel",
+   "key": "Resilience"
+  },
+  {
+   "section": "BasicApp:ApiDocs",
+   "key": "Enabled"
+  },
+  {
+   "section": "BasicApp:ForwardedHeaders",
+   "key": "KnownProxies"
+  },
+  {
+   "section": "BasicApp:ForwardedHeaders",
+   "key": "KnownNetworks"
+  },
+  {
+   "section": "BasicApp:ForwardedHeaders",
+   "key": "ForwardLimit"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "AllowedOrigins"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "AllowAnyOrigin"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "AllowAnyMethod"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "AllowAnyHeader"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "AllowCredentials"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "ExposedHeaders"
+  },
+  {
+   "section": "BasicApp:Cors",
+   "key": "PreflightMaxAgeSeconds"
+  },
+  {
+   "section": "BasicApp:CloudEvents",
+   "key": "Enabled"
+  },
+  {
+   "section": "BasicApp:Schema",
+   "key": "AutoUpgrade"
+  },
+  {
+   "section": "BasicApp:Schema",
+   "key": "Directory"
+  },
+  {
+   "section": "BasicApp:Schema",
+   "key": "LockExpiryMinutes"
+  },
+  {
+   "section": "BasicApp:Seed",
+   "key": "EnableDemoData"
+  },
+  {
+   "section": "BasicApp:Seed",
+   "key": "SuperAdminPassword"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "Workbench"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "Printing"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "Chat"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "Workflow"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "CodeGeneration"
+  },
+  {
+   "section": "BasicApp:Modules",
+   "key": "AI"
+  },
+  {
+   "section": "BasicApp:AI:Qdrant",
+   "key": "Host"
+  },
+  {
+   "section": "BasicApp:AI:Qdrant",
+   "key": "Port"
+  },
+  {
+   "section": "BasicApp:AI:Qdrant",
+   "key": "Https"
+  },
+  {
+   "section": "BasicApp:AI:Qdrant",
+   "key": "ApiKey"
+  },
+  {
+   "section": "BasicApp:CodeGeneration",
+   "key": "TablePrefixes"
+  },
+  {
+   "section": "BasicApp:CodeGeneration",
+   "key": "EnableGenerateToProject"
+  },
+  {
+   "section": "BasicApp:CodeGeneration",
+   "key": "BackendRootPath"
+  },
+  {
+   "section": "BasicApp:CodeGeneration",
+   "key": "FrontendRootPath"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "AccessTokenMinutes"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "RefreshTokenDays"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "MaxFailedAccessAttempts"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "PasswordMinLength"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "SessionCacheSeconds"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "CaptchaEnabled"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "LoginThrottleWindowSeconds"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "LoginThrottleAccountLimit"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "TwoFactorTicketMinutes"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "TotpIssuer"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "SelfRegistrationEnabled"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "VerificationCodeMinutes"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "VerificationCodeDailyPerTarget"
+  },
+  {
+   "section": "BasicApp:Auth",
+   "key": "VerificationCodeMaxFailures"
+  },
+  {
+   "section": "BasicApp:Access",
+   "key": "PermissionConditionMode"
+  },
+  {
+   "section": "BasicApp:Access",
+   "key": "AccessPolicyEnabled"
+  },
+  {
+   "section": "BasicApp:Access",
+   "key": "ConditionTimeZone"
+  },
+  {
+   "section": "BasicApp:Auditing",
+   "key": "QueueCapacity"
+  },
+  {
+   "section": "BasicApp:Auditing",
+   "key": "AccessLog:Enabled"
+  },
+  {
+   "section": "BasicApp:Auditing",
+   "key": "DefaultRetentionDays"
+  },
+  {
+   "section": "BasicApp:Auditing",
+   "key": "RetentionCron"
+  },
+  {
+   "section": "BasicApp:Files",
+   "key": "LocalRootPath"
+  },
+  {
+   "section": "BasicApp:Files",
+   "key": "MaxUploadBytes"
+  },
+  {
+   "section": "BasicApp:Files",
+   "key": "UploadPartBytes"
+  },
+  {
+   "section": "BasicApp:Files",
+   "key": "UploadLifetime"
+  },
+  {
+   "section": "BasicApp:Files",
+   "key": "LinkLifetime"
+  },
+  {
+   "section": "BasicApp:Notification",
+   "key": "Brand"
+  },
+  {
+   "section": "BasicApp:Notification",
+   "key": "DispatchInterval"
+  },
+  {
+   "section": "BasicApp:Notification",
+   "key": "Telegram:*"
+  },
+  {
+   "section": "BasicApp:OpenPlatform",
+   "key": "TimestampToleranceSeconds"
+  },
+  {
+   "section": "BasicApp:OpenPlatform",
+   "key": "MaxRequestBodyBytes"
+  },
+  {
+   "section": "BasicApp:OpenPlatform",
+   "key": "Issuer"
+  },
+  {
+   "section": "BasicApp:OpenPlatform",
+   "key": "ConsentPageUrl"
+  },
+  {
+   "section": "BasicApp:OpenPlatform",
+   "key": "IdTokenLifetimeSeconds"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_PORT"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_DEV_PROXY_TARGET"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_API_BASE_URL"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_HOME_PATH"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_ROUTER_HISTORY"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_BASE"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_REALTIME_HUB"
+  },
+  {
+   "section": "前端 .env",
+   "key": "VITE_APP_TITLE"
+  }
+ ],
+ "realtime": [
+  {
+   "path": "/hubs/chat",
+   "methods": [
+    "ChatAssistantCompleted",
+    "ChatAssistantDelta",
+    "ChatConversationChanged",
+    "ChatMessageEdited",
+    "ChatMessageRecalled",
+    "ChatReactionChanged",
+    "ChatReadPositionChanged",
+    "ChatTyping",
+    "ReceiveChatMessage"
+   ],
+   "invocations": [
+    "JoinConversation",
+    "LeaveConversation",
+    "Typing"
+   ]
+  },
+  {
+   "path": "/hubs/notification",
+   "methods": [
+    "ForceLogout",
+    "ReceiveNotification",
+    "TaskProgress",
+    "UserSettingChanged"
+   ]
+  }
+ ],
+ "endpoints": [
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/BasicAppHost.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/Endpoints/ChatEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "\"/api/chat-messages/attachments\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/Endpoints/CodeGenerationEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/api/codegen-histories/{id:guid}/package\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/Endpoints/FileEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "\"/api/files/upload\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/Endpoints/FileEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/api/files/{id:guid}/content\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Host/Endpoints/ProfileEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "\"/api/profile/avatar\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Infrastructure/External/ExternalLoginFlow.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "Prefix + \"/{provider}/challenge\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Infrastructure/External/ExternalLoginFlow.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "Prefix + \"/{provider}/callback\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Notification/Infrastructure/Telegram/TelegramWebhookEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "TelegramSettings.RoutePrefix + \"/{botName}\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "Prefix + \"/authorize\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "Prefix + \"/token\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "Prefix + \"/revoke\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Methods",
+   "hub": null,
+   "route": "Prefix + \"/userinfo\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "Prefix + \"/.well-known/openid-configuration\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.OpenPlatform/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "Prefix + \"/jwks\""
+  },
+  {
+   "file": "backend-next/src/XiHan.BasicApp.Realtime/Infrastructure/RealtimeHubCatalog.cs",
+   "verb": "Hub",
+   "hub": "THub",
+   "route": "path"
+  }
+ ]
+}

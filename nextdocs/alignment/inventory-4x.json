@@ -1,0 +1,8058 @@
+{
+ "features": [
+  {
+   "section": "工作台与身份权限",
+   "name": "工作台",
+   "text": "通过可定制小组件展示统计、图表、公告和待办，支持调整布局与保存个人看板。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "控制中心",
+   "text": "集中展示可进入的租户与平台管理入口，支持切换租户和选择工作上下文。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "登录认证",
+   "text": "支持账号密码、手机和邮箱验证码、第三方登录及双因素验证，提供验证码、登录节流、账号锁定和登录失败自动封禁防护。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "个人中心",
+   "text": "维护个人资料、密码、手机和邮箱，管理第三方绑定、登录设备、通知偏好、租户归属和个人使用统计。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "用户管理",
+   "text": "查询与维护用户，支持高级搜索、启用禁用、多角色与多部门配置、直接授权与授权条件、数据范围、账号锁定、密码重置、模拟登录和强制下线。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "在线用户",
+   "text": "查看活跃会话、客户端和实时连接状态，支持按用户检索并吊销指定会话。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "角色管理",
+   "text": "维护角色、继承关系和成员，批量添加或移除成员，配置菜单权限、操作权限、授权条件和数据范围。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "组织机构",
+   "text": "以树形列表管理部门层级，查看子部门和成员，维护部门负责人及成员岗位、工号、职级和入职信息。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "岗位管理",
+   "text": "维护岗位名称、编码、排序和启停状态，查看岗位详情并供部门成员配置使用。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "权限管理",
+   "text": "集中维护模块、资源和操作权限，配置权限编码、接口路径、请求方法、平台或租户作用域及审计要求；盘点全部授权条件，按模拟的时间、IP 等试算某人某权限的结论。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "菜单管理",
+   "text": "以树形结构维护目录、菜单与按钮，配置组件路径、图标、排序、可见性、缓存、外链和关联权限。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "字段安全",
+   "text": "按实体字段与授权对象配置字段读取、写入和脱敏策略，控制敏感字段的展示与修改。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "授权申请与委托",
+   "text": "提交权限申请即发起审批流，列表跟踪审批进度并跳转审批详情；支持限时委托角色或权限并随时撤销。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "审批中心",
+   "text": "待我审批、我已审批、我发起的、抄送我的四个视图；详情里查看业务单据与审批轨迹，办理同意、驳回、转办、加签，发起人可撤回。"
+  },
+  {
+   "section": "工作台与身份权限",
+   "name": "审批约束",
+   "text": "维护职责分离、互斥、基数和条件约束，配置适用对象、规则参数及违规处理方式。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "租户管理",
+   "text": "维护租户状态、版本、到期与配额，分步初始化租户数据库和管理员，管理成员、运维支持成员及所有权转移。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "版本套餐",
+   "text": "配置套餐价格、计费周期、用户与存储配额以及权限白名单，控制租户可用功能。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "我的订阅",
+   "text": "查看当前租户的版本、订阅期限和用户、存储用量，了解配额与可用权益。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "通知公告",
+   "text": "维护并发布通知，按用户、角色或部门定向投递，配置展示与强制阅读方式，查看阅读统计和未读人员。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "我的消息",
+   "text": "查看站内通知详情，筛选待处理消息，支持单条或全部标为已读及确认阅读。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "消息模板",
+   "text": "集中维护邮件、短信、站内通知和机器人模板，使用模板变量组织内容并支持租户覆盖。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "邮件短信",
+   "text": "查询邮件和短信发送记录、接收对象及发送结果，查看内容详情并重发失败消息。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "在线聊天",
+   "text": "支持单聊、群聊、部门会话与 AI 助手会话，通过实时推送展示消息、未读状态及会话信息。"
+  },
+  {
+   "section": "租户与消息协作",
+   "name": "聊天审计",
+   "text": "按会话与消息条件检索聊天记录，查看会话成员和消息详情，支持内容合规审查。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "文件管理",
+   "text": "查询、上传、下载和预览文件，维护元数据、归档与恢复状态，查看存储副本并管理主存储。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "存储配置",
+   "text": "配置本地、S3、OSS、COS 和 MinIO 等存储通道，支持启用禁用及默认存储设置。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "导出中心",
+   "text": "统一查看异步导出任务的状态与结果，支持 CSV、XLSX 文件下载、取消待执行任务和删除记录。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "字典管理",
+   "text": "联动维护字典分类与字典项，配置编码、值、默认项、排序和状态，为搜索与表单提供统一选项。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "参数配置",
+   "text": "维护平台与租户参数，按分组和状态查询配置，查看配置详情并管理参数值。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "访问策略",
+   "text": "按 IP、地区、时段、用户、角色、接口等条件放行、拒绝或只记录请求，从预置模板新建、试运行后再启用拦截；查看与解除登录失败自动封禁。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "业务编号",
+   "text": "配置编号前缀、日期、流水位数、重置周期和时区，预览格式，执行安全重置并查看永久发号记录。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "任务调度",
+   "text": "维护定时与间隔任务，支持 Cron 可视化配置、启用暂停、立即执行、重试策略及运行日志详情查看。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "缓存管理",
+   "text": "按键或匹配模式查询缓存，以树形分组查看键和内容，支持编辑缓存值、按键或批量清理。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "服务监控",
+   "text": "展示 CPU、内存、磁盘、网络、GPU、主板和运行时信息，辅助查看服务资源与运行状态。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "版本管理",
+   "text": "查看当前系统版本、版本说明与数据库迁移信息，集中核对升级状态。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "邮件配置",
+   "text": "维护邮件发送通道与服务器参数，管理启用状态及默认邮件配置。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "短信配置",
+   "text": "维护短信服务商与发送配置，管理启用状态及默认短信通道。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "机器人配置",
+   "text": "管理钉钉、飞书和企业微信 Webhook 机器人通道，配置状态及默认通知机器人。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "Telegram 机器人",
+   "text": "维护多个 Telegram Bot 实例的连接配置、启用状态和相关说明。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "应用管理",
+   "text": "注册与维护 OAuth2 / OIDC 应用，配置客户端类型、授权方式和回调地址，管理应用状态及密钥。"
+  },
+  {
+   "section": "文件与系统管理",
+   "name": "开放接口凭证",
+   "text": "在个人中心自助管理 OpenAPI 调用凭证，申请、查看和轮换签名调用所需的密钥。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "访问日志",
+   "text": "查询请求路径、请求方法、状态码、耗时和客户端信息，查看详情并跳转关联链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "开放接口日志",
+   "text": "查询开放接口调用与签名鉴权结果，查看请求响应详情及关联链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "操作日志",
+   "text": "记录业务操作、执行结果和耗时，查看操作描述、客户端信息及关联链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "登录日志",
+   "text": "查询登录成功、失败、退出及模拟登录等事件，查看客户端、IP 与登录详情。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "异常日志",
+   "text": "检索异常类型、错误信息与发生位置，查看堆栈和关联请求以定位问题。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "数据变更日志",
+   "text": "记录实体新增、修改、删除与恢复，展示字段变更前后差异并关联操作链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "权限变更日志",
+   "text": "记录角色、用户和权限授权变更，查询操作对象、变更内容与关联链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "条件命中",
+   "text": "查询访问策略与权限条件的命中，查看是否拦截、请求与客户端信息及关联链路。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "日志链路追踪",
+   "text": "按 TraceId、用户、会话或 IP 聚合多类日志，以时间线串联操作，并用流向图与时间分布分析定位异常。"
+  },
+  {
+   "section": "日志与审计",
+   "name": "升级记录",
+   "text": "查询数据库升级脚本执行台账，查看版本、执行状态、耗时与错误详情。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "代码生成",
+   "text": "管理数据源、表结构、字段和模板，支持单表、树形、主从全栈生成、代码预览、下载与生成历史查看。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "AI 提供商",
+   "text": "配置模型服务商、连接地址和模型，安全托管密钥，测试连接并设置默认提供商。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "AI 提示词",
+   "text": "集中维护提示词编码、内容和状态，为 AI 对话及业务场景复用提示词模板。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "知识库",
+   "text": "导入知识文档并建立向量索引，支持重建索引、检索问答和来源引用，按租户隔离知识数据。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "AI 助手",
+   "text": "配置助手身份、模型与提示词，设置默认助手并接入在线聊天会话。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "流程定义",
+   "text": "可视化设计流程节点与连线，按角色、部门、岗位、发起人主管等规则配置审批人，绑定审批业务并声明结束结果；维护草稿、发布、停用和归档状态，支持版本管理及启动流程。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "流程实例",
+   "text": "查看流程运行状态、节点与详情，支持挂起、恢复、取消、终止、故障重试及发送流程信号。"
+  },
+  {
+   "section": "开发与扩展模块",
+   "name": "打印模板",
+   "text": "拖拽设计文本、表格、图片和条码，配置纸张、数据源与样例数据，支持缩放排版、JSON 查看、预览和打印。"
+  },
+  {
+   "section": "通用使用体验",
+   "name": "偏好设置",
+   "text": "配置亮暗主题、主题色、布局、紧凑度、水印与交互偏好，支持个人偏好云端同步。"
+  },
+  {
+   "section": "通用使用体验",
+   "name": "高级列表",
+   "text": "统一提供组合搜索、个人视图、列设置、多列排序、密度切换、树形展示、速览与导出能力。"
+  },
+  {
+   "section": "通用使用体验",
+   "name": "内容编辑",
+   "text": "提供富文本、Markdown、代码与 JSON 编辑查看，以及 Cron 表达式可视化配置。"
+  },
+  {
+   "section": "通用使用体验",
+   "name": "全局导航",
+   "text": "提供多标签页、收藏夹、全局搜索、通知与任务反馈，支持多语言、时区切换和锁屏。"
+  }
+ ],
+ "pages": [
+  {
+   "module": "AI",
+   "code": "ai_app",
+   "title": "AI 应用",
+   "type": "Directory",
+   "route": "/ai",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "AI",
+   "code": "ai_assistant",
+   "title": "AI 助手",
+   "type": "Menu",
+   "route": "/develop/aiAssistant",
+   "component": "Develop/AiAssistant/Index",
+   "parent": "ai_app",
+   "permission": "ai_assistant:read"
+  },
+  {
+   "module": "AI",
+   "code": "ai_prompt",
+   "title": "AI 提示词",
+   "type": "Menu",
+   "route": "/develop/aiPrompt",
+   "component": "Develop/AiPrompt/Index",
+   "parent": "ai_app",
+   "permission": "ai_prompt:read"
+  },
+  {
+   "module": "AI",
+   "code": "knowledge_base",
+   "title": "AI 知识库",
+   "type": "Menu",
+   "route": "/develop/knowledge",
+   "component": "Develop/Knowledge/Index",
+   "parent": "ai_app",
+   "permission": "knowledge_base:read"
+  },
+  {
+   "module": "AI",
+   "code": "ai_provider",
+   "title": "AI 提供商",
+   "type": "Menu",
+   "route": "/develop/aiProvider",
+   "component": "Develop/AiProvider/Index",
+   "parent": "ai_app",
+   "permission": "ai:read"
+  },
+  {
+   "module": "Chat",
+   "code": "chat",
+   "title": "聊天",
+   "type": "Directory",
+   "route": "/chat",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Chat",
+   "code": "message.chat",
+   "title": "在线聊天",
+   "type": "Menu",
+   "route": "/message/chat",
+   "component": "message/chat/index",
+   "parent": "chat",
+   "permission": "chat:read"
+  },
+  {
+   "module": "Chat",
+   "code": "message.chat-audit",
+   "title": "聊天审计",
+   "type": "Menu",
+   "route": "/message/chat-audit",
+   "component": "message/chat-audit/index",
+   "parent": "chat",
+   "permission": "chat:audit"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "develop",
+   "title": "开发中心",
+   "type": "Directory",
+   "route": "/develop",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen",
+   "title": "代码生成",
+   "type": "Menu",
+   "route": "/develop/codeGen",
+   "component": "Develop/CodeGen/Index",
+   "parent": "develop",
+   "permission": "code_gen:read"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template",
+   "title": "打印模板",
+   "type": "Menu",
+   "route": "/setting/print-template",
+   "component": "setting/print-template/index",
+   "parent": "setting",
+   "permission": "print-template:read"
+  },
+  {
+   "module": "Saas",
+   "code": "workbench",
+   "title": "工作台",
+   "type": "Directory",
+   "route": "/workbench",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "workbench.dashboard",
+   "title": "仪表盘",
+   "type": "Menu",
+   "route": "/workbench/dashboard",
+   "component": "workbench/dashboard/index",
+   "parent": "workbench",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "workbench.inbox",
+   "title": "我的消息",
+   "type": "Menu",
+   "route": "/workbench/inbox",
+   "component": "workbench/inbox/index",
+   "parent": "workbench",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "workbench.profile",
+   "title": "个人中心",
+   "type": "Menu",
+   "route": "/workbench/profile",
+   "component": "_core/profile/index",
+   "parent": "workbench",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "identity",
+   "title": "身份权限",
+   "type": "Directory",
+   "route": "/identity",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user",
+   "title": "用户管理",
+   "type": "Menu",
+   "route": "/identity/user",
+   "component": "identity/user/index",
+   "parent": "identity",
+   "permission": "saas:user:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role",
+   "title": "角色管理",
+   "type": "Menu",
+   "route": "/identity/role",
+   "component": "identity/role/index",
+   "parent": "identity",
+   "permission": "saas:role:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org",
+   "title": "组织机构",
+   "type": "Menu",
+   "route": "/identity/org",
+   "component": "identity/org/index",
+   "parent": "identity",
+   "permission": "saas:department:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position",
+   "title": "岗位管理",
+   "type": "Menu",
+   "route": "/identity/position",
+   "component": "identity/position/index",
+   "parent": "identity",
+   "permission": "saas:position:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission",
+   "title": "权限管理",
+   "type": "Menu",
+   "route": "/identity/permission",
+   "component": "identity/permission/index",
+   "parent": "identity",
+   "permission": "saas:permission:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security",
+   "title": "字段安全",
+   "type": "Menu",
+   "route": "/identity/field-security",
+   "component": "identity/field-security/index",
+   "parent": "identity",
+   "permission": "saas:field-level-security:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization",
+   "title": "授权申请",
+   "type": "Menu",
+   "route": "/identity/authorization",
+   "component": "identity/authorization/index",
+   "parent": "identity",
+   "permission": "saas:permission-request:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.online-user",
+   "title": "在线用户",
+   "type": "Menu",
+   "route": "/identity/online-user",
+   "component": "identity/online-user/index",
+   "parent": "identity",
+   "permission": "saas:user-session:read"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant",
+   "title": "租户管理",
+   "type": "Directory",
+   "route": "/tenant",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list",
+   "title": "租户列表",
+   "type": "Menu",
+   "route": "/tenant/list",
+   "component": "tenant/list/index",
+   "parent": "tenant",
+   "permission": "saas:tenant:read"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition",
+   "title": "版本套餐",
+   "type": "Menu",
+   "route": "/tenant/edition",
+   "component": "tenant/edition/index",
+   "parent": "tenant",
+   "permission": "saas:tenant-edition:read"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.subscription",
+   "title": "我的订阅",
+   "type": "Menu",
+   "route": "/tenant/subscription",
+   "component": "tenant/subscription/index",
+   "parent": "tenant",
+   "permission": "saas:tenant-subscription:read"
+  },
+  {
+   "module": "Saas",
+   "code": "message",
+   "title": "消息中心",
+   "type": "Directory",
+   "route": "/message",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification",
+   "title": "通知公告",
+   "type": "Menu",
+   "route": "/message/notification",
+   "component": "message/notification/index",
+   "parent": "message",
+   "permission": "saas:notification:read"
+  },
+  {
+   "module": "Saas",
+   "code": "message.record",
+   "title": "邮件短信",
+   "type": "Menu",
+   "route": "/message/record",
+   "component": "message/record/index",
+   "parent": "message",
+   "permission": "saas:message:read"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template",
+   "title": "消息模板",
+   "type": "Menu",
+   "route": "/message/template",
+   "component": "message/template/index",
+   "parent": "message",
+   "permission": "saas:message-template:read"
+  },
+  {
+   "module": "Saas",
+   "code": "approval",
+   "title": "审批",
+   "type": "Directory",
+   "route": "/approval",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint",
+   "title": "审批约束",
+   "type": "Menu",
+   "route": "/approval/constraint",
+   "component": "approval/constraint/index",
+   "parent": "approval",
+   "permission": "saas:constraint-rule:read"
+  },
+  {
+   "module": "Saas",
+   "code": "file",
+   "title": "文件中心",
+   "type": "Directory",
+   "route": "/file",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "file.library",
+   "title": "文件管理",
+   "type": "Menu",
+   "route": "/file/library",
+   "component": "file/library/index",
+   "parent": "file",
+   "permission": "saas:file:read"
+  },
+  {
+   "module": "Saas",
+   "code": "file.export-center",
+   "title": "导出中心",
+   "type": "Menu",
+   "route": "/file/export-center",
+   "component": "file/export-center/index",
+   "parent": "file",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "setting",
+   "title": "系统管理",
+   "type": "Directory",
+   "route": "/setting",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu",
+   "title": "菜单管理",
+   "type": "Menu",
+   "route": "/setting/menu",
+   "component": "setting/menu/index",
+   "parent": "setting",
+   "permission": "saas:menu:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict",
+   "title": "字典管理",
+   "type": "Menu",
+   "route": "/setting/dict",
+   "component": "setting/dict/index",
+   "parent": "setting",
+   "permission": "saas:dict:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config",
+   "title": "参数配置",
+   "type": "Menu",
+   "route": "/setting/config",
+   "component": "setting/config/index",
+   "parent": "setting",
+   "permission": "saas:config:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy",
+   "title": "访问策略",
+   "type": "Menu",
+   "route": "/setting/access-policy",
+   "component": "setting/access-policy/index",
+   "parent": "setting",
+   "permission": "saas:access-policy:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering",
+   "title": "编号配置",
+   "type": "Menu",
+   "route": "/setting/numbering",
+   "component": "setting/numbering/index",
+   "parent": "setting",
+   "permission": "saas:numbering:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job",
+   "title": "任务调度",
+   "type": "Menu",
+   "route": "/setting/job",
+   "component": "setting/job/index",
+   "parent": "setting",
+   "permission": "saas:task:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.cache",
+   "title": "缓存管理",
+   "type": "Menu",
+   "route": "/setting/cache",
+   "component": "setting/cache/index",
+   "parent": "setting",
+   "permission": "saas:cache:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.server",
+   "title": "服务监控",
+   "type": "Menu",
+   "route": "/setting/server",
+   "component": "setting/server/index",
+   "parent": "setting",
+   "permission": "saas:server:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.version",
+   "title": "版本管理",
+   "type": "Menu",
+   "route": "/setting/version",
+   "component": "setting/version/index",
+   "parent": "setting",
+   "permission": "saas:version:read"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage",
+   "title": "存储配置",
+   "type": "Menu",
+   "route": "/file/storage",
+   "component": "file/storage/index",
+   "parent": "file",
+   "permission": "saas:storage-config:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config",
+   "title": "邮件配置",
+   "type": "Menu",
+   "route": "/setting/email-config",
+   "component": "setting/email-config/index",
+   "parent": "setting",
+   "permission": "saas:email-config:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config",
+   "title": "短信配置",
+   "type": "Menu",
+   "route": "/setting/sms-config",
+   "component": "setting/sms-config/index",
+   "parent": "setting",
+   "permission": "saas:sms-config:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config",
+   "title": "机器人配置",
+   "type": "Menu",
+   "route": "/setting/bot-config",
+   "component": "setting/bot-config/index",
+   "parent": "setting",
+   "permission": "saas:bot-config:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot",
+   "title": "Telegram机器人",
+   "type": "Menu",
+   "route": "/setting/telegram-bot",
+   "component": "setting/telegram-bot/index",
+   "parent": "setting",
+   "permission": "saas:telegram-bot:read"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi",
+   "title": "开放平台",
+   "type": "Directory",
+   "route": "/openapi",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app",
+   "title": "应用管理",
+   "type": "Menu",
+   "route": "/openapi/app",
+   "component": "openapi/app/index",
+   "parent": "openapi",
+   "permission": "saas:oauth-app:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log",
+   "title": "审计中心",
+   "type": "Directory",
+   "route": "/log",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "log.trace",
+   "title": "日志链路追踪",
+   "type": "Menu",
+   "route": "/log/trace",
+   "component": "log/trace/index",
+   "parent": "log",
+   "permission": "saas:log-trace:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.access",
+   "title": "访问日志",
+   "type": "Menu",
+   "route": "/log/access",
+   "component": "log/access/index",
+   "parent": "log",
+   "permission": "saas:access-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.access-policy",
+   "title": "条件命中",
+   "type": "Menu",
+   "route": "/log/access-policy",
+   "component": "log/access-policy/index",
+   "parent": "log",
+   "permission": "saas:access-policy-hit:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.api",
+   "title": "开放接口日志",
+   "type": "Menu",
+   "route": "/log/api",
+   "component": "log/api/index",
+   "parent": "log",
+   "permission": "saas:api-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.operation",
+   "title": "操作日志",
+   "type": "Menu",
+   "route": "/log/operation",
+   "component": "log/operation/index",
+   "parent": "log",
+   "permission": "saas:operation-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.login",
+   "title": "登录日志",
+   "type": "Menu",
+   "route": "/log/login",
+   "component": "log/login/index",
+   "parent": "log",
+   "permission": "saas:login-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.exception",
+   "title": "异常日志",
+   "type": "Menu",
+   "route": "/log/exception",
+   "component": "log/exception/index",
+   "parent": "log",
+   "permission": "saas:exception-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.diff",
+   "title": "数据变更日志",
+   "type": "Menu",
+   "route": "/log/diff",
+   "component": "log/diff/index",
+   "parent": "log",
+   "permission": "saas:diff-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.permission-change",
+   "title": "权限变更日志",
+   "type": "Menu",
+   "route": "/log/permission-change",
+   "component": "log/permission-change/index",
+   "parent": "log",
+   "permission": "saas:permission-change-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "log.migration",
+   "title": "升级记录",
+   "type": "Menu",
+   "route": "/log/migration",
+   "component": "log/migration/index",
+   "parent": "log",
+   "permission": "saas:version:read"
+  },
+  {
+   "module": "Saas",
+   "code": "about",
+   "title": "帮助中心",
+   "type": "Directory",
+   "route": "/about",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "about.project",
+   "title": "项目概览",
+   "type": "Menu",
+   "route": "/about/project",
+   "component": "_core/about/index",
+   "parent": "about",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "about.docs",
+   "title": "官方文档",
+   "type": "Menu",
+   "route": "/about/docs",
+   "component": null,
+   "parent": "about",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "about.github",
+   "title": "Github",
+   "type": "Menu",
+   "route": "/about/github",
+   "component": null,
+   "parent": "about",
+   "permission": null
+  },
+  {
+   "module": "Saas",
+   "code": "about.gitee",
+   "title": "Gitee",
+   "type": "Menu",
+   "route": "/about/gitee",
+   "component": null,
+   "parent": "about",
+   "permission": null
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow",
+   "title": "工作流",
+   "type": "Directory",
+   "route": "/workflow",
+   "component": null,
+   "parent": null,
+   "permission": null
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_approval",
+   "title": "审批中心",
+   "type": "Menu",
+   "route": "/approval/center",
+   "component": "workflow/approval/index",
+   "parent": "approval",
+   "permission": null
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_definition",
+   "title": "流程定义",
+   "type": "Menu",
+   "route": "/workflow/definition",
+   "component": "Workflow/Definition/Index",
+   "parent": "workflow",
+   "permission": "workflow:read"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_instance",
+   "title": "流程实例",
+   "type": "Menu",
+   "route": "/workflow/instance",
+   "component": "Workflow/Instance/Index",
+   "parent": "workflow",
+   "permission": "workflow:read"
+  }
+ ],
+ "buttons": [
+  {
+   "module": "AI",
+   "code": "ai_assistant.create",
+   "title": "新增",
+   "page": "ai_assistant",
+   "permission": "ai_assistant:create"
+  },
+  {
+   "module": "AI",
+   "code": "ai_assistant.update",
+   "title": "编辑",
+   "page": "ai_assistant",
+   "permission": "ai_assistant:update"
+  },
+  {
+   "module": "AI",
+   "code": "ai_assistant.delete",
+   "title": "删除",
+   "page": "ai_assistant",
+   "permission": "ai_assistant:delete"
+  },
+  {
+   "module": "AI",
+   "code": "ai_prompt.create",
+   "title": "新增",
+   "page": "ai_prompt",
+   "permission": "ai_prompt:create"
+  },
+  {
+   "module": "AI",
+   "code": "ai_prompt.update",
+   "title": "编辑",
+   "page": "ai_prompt",
+   "permission": "ai_prompt:update"
+  },
+  {
+   "module": "AI",
+   "code": "ai_prompt.delete",
+   "title": "删除",
+   "page": "ai_prompt",
+   "permission": "ai_prompt:delete"
+  },
+  {
+   "module": "AI",
+   "code": "knowledge_base.create",
+   "title": "新增",
+   "page": "knowledge_base",
+   "permission": "knowledge_base:create"
+  },
+  {
+   "module": "AI",
+   "code": "knowledge_base.update",
+   "title": "重建索引",
+   "page": "knowledge_base",
+   "permission": "knowledge_base:update"
+  },
+  {
+   "module": "AI",
+   "code": "knowledge_base.delete",
+   "title": "删除",
+   "page": "knowledge_base",
+   "permission": "knowledge_base:delete"
+  },
+  {
+   "module": "AI",
+   "code": "ai_provider.create",
+   "title": "新增",
+   "page": "ai_provider",
+   "permission": "ai:create"
+  },
+  {
+   "module": "AI",
+   "code": "ai_provider.update",
+   "title": "编辑",
+   "page": "ai_provider",
+   "permission": "ai:update"
+  },
+  {
+   "module": "AI",
+   "code": "ai_provider.delete",
+   "title": "删除",
+   "page": "ai_provider",
+   "permission": "ai:delete"
+  },
+  {
+   "module": "AI",
+   "code": "ai_provider.test",
+   "title": "连通性测试",
+   "page": "ai_provider",
+   "permission": "ai:execute"
+  },
+  {
+   "module": "Chat",
+   "code": "message.chat.send",
+   "title": "发送",
+   "page": "message.chat",
+   "permission": "chat:send"
+  },
+  {
+   "module": "Chat",
+   "code": "message.chat.manage",
+   "title": "会话管理",
+   "page": "message.chat",
+   "permission": "chat:manage"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen.create",
+   "title": "新增",
+   "page": "code_gen",
+   "permission": "code_gen:create"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen.update",
+   "title": "编辑",
+   "page": "code_gen",
+   "permission": "code_gen:update"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen.delete",
+   "title": "删除",
+   "page": "code_gen",
+   "permission": "code_gen:delete"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen.import",
+   "title": "导入与同步",
+   "page": "code_gen",
+   "permission": "code_gen:import"
+  },
+  {
+   "module": "CodeGeneration",
+   "code": "code_gen.execute",
+   "title": "生成代码",
+   "page": "code_gen",
+   "permission": "code_gen:execute"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.create",
+   "title": "新增",
+   "page": "setting.print-template",
+   "permission": "print-template:create"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.update",
+   "title": "设计编辑",
+   "page": "setting.print-template",
+   "permission": "print-template:update"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.status",
+   "title": "启停",
+   "page": "setting.print-template",
+   "permission": "print-template:status"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.delete",
+   "title": "删除",
+   "page": "setting.print-template",
+   "permission": "print-template:delete"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.use",
+   "title": "预览与打印",
+   "page": "setting.print-template",
+   "permission": "print-template:use"
+  },
+  {
+   "module": "Printing",
+   "code": "setting.print-template.global-manage",
+   "title": "全局管理",
+   "page": "setting.print-template",
+   "permission": "print-template:global-manage"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.create",
+   "title": "新增",
+   "page": "identity.user",
+   "permission": "saas:user:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.update",
+   "title": "编辑",
+   "page": "identity.user",
+   "permission": "saas:user:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.delete",
+   "title": "删除",
+   "page": "identity.user",
+   "permission": "saas:user:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.status",
+   "title": "启停",
+   "page": "identity.user",
+   "permission": "saas:user:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.reset-password",
+   "title": "重置密码",
+   "page": "identity.user",
+   "permission": "saas:user-security:reset-password"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.export",
+   "title": "导出",
+   "page": "identity.user",
+   "permission": "saas:user:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.impersonate",
+   "title": "模仿登录",
+   "page": "identity.user",
+   "permission": "saas:impersonation:start"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.grant-role",
+   "title": "分配角色",
+   "page": "identity.user",
+   "permission": "saas:user-role:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.grant-permission",
+   "title": "直授权限",
+   "page": "identity.user",
+   "permission": "saas:user-permission:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.data-scope",
+   "title": "数据范围",
+   "page": "identity.user",
+   "permission": "saas:user-data-scope:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.lock",
+   "title": "锁定解锁",
+   "page": "identity.user",
+   "permission": "saas:user-security:lock"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.reset-two-factor",
+   "title": "重置双因素",
+   "page": "identity.user",
+   "permission": "saas:user-security:reset-two-factor"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.revoke-sessions",
+   "title": "强制下线",
+   "page": "identity.user",
+   "permission": "saas:user-session:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.assign-department",
+   "title": "分配部门",
+   "page": "identity.user",
+   "permission": "saas:user-department:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.login-policy",
+   "title": "登录策略",
+   "page": "identity.user",
+   "permission": "saas:user-security:login-policy"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.revoke-role",
+   "title": "撤销角色",
+   "page": "identity.user",
+   "permission": "saas:user-role:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.revoke-permission",
+   "title": "撤销直授",
+   "page": "identity.user",
+   "permission": "saas:user-permission:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.revoke-department",
+   "title": "撤销部门",
+   "page": "identity.user",
+   "permission": "saas:user-department:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.grant-conditions",
+   "title": "直授条件",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.condition-create",
+   "title": "新增条件",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.condition-update",
+   "title": "编辑条件",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.condition-status",
+   "title": "启停条件",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.condition-delete",
+   "title": "删除条件",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.user.condition-trial",
+   "title": "条件试算",
+   "page": "identity.user",
+   "permission": "saas:permission-condition:trial"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.create",
+   "title": "新增",
+   "page": "identity.role",
+   "permission": "saas:role:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.update",
+   "title": "编辑",
+   "page": "identity.role",
+   "permission": "saas:role:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.delete",
+   "title": "删除",
+   "page": "identity.role",
+   "permission": "saas:role:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.status",
+   "title": "启停",
+   "page": "identity.role",
+   "permission": "saas:role:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.grant-permission",
+   "title": "分配权限",
+   "page": "identity.role",
+   "permission": "saas:role-permission:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.members",
+   "title": "角色成员",
+   "page": "identity.role",
+   "permission": "saas:user-role:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.data-scope",
+   "title": "数据范围",
+   "page": "identity.role",
+   "permission": "saas:role-data-scope:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.export",
+   "title": "导出",
+   "page": "identity.role",
+   "permission": "saas:role:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.revoke-permission",
+   "title": "收回权限",
+   "page": "identity.role",
+   "permission": "saas:role-permission:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.remove-members",
+   "title": "移出成员",
+   "page": "identity.role",
+   "permission": "saas:user-role:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.parents",
+   "title": "设置上级",
+   "page": "identity.role",
+   "permission": "saas:role-hierarchy:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.remove-parents",
+   "title": "解除上级",
+   "page": "identity.role",
+   "permission": "saas:role-hierarchy:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.grant-conditions",
+   "title": "授权条件",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:read"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.condition-create",
+   "title": "新增条件",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.condition-update",
+   "title": "编辑条件",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.condition-status",
+   "title": "启停条件",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.condition-delete",
+   "title": "删除条件",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.role.condition-trial",
+   "title": "条件试算",
+   "page": "identity.role",
+   "permission": "saas:permission-condition:trial"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.create",
+   "title": "新增",
+   "page": "identity.org",
+   "permission": "saas:department:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.update",
+   "title": "编辑",
+   "page": "identity.org",
+   "permission": "saas:department:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.delete",
+   "title": "删除",
+   "page": "identity.org",
+   "permission": "saas:department:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.status",
+   "title": "启停",
+   "page": "identity.org",
+   "permission": "saas:department:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.export",
+   "title": "导出",
+   "page": "identity.org",
+   "permission": "saas:department:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.org.edit-membership",
+   "title": "编辑归属",
+   "page": "identity.org",
+   "permission": "saas:user-department:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position.create",
+   "title": "新增",
+   "page": "identity.position",
+   "permission": "saas:position:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position.update",
+   "title": "编辑",
+   "page": "identity.position",
+   "permission": "saas:position:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position.delete",
+   "title": "删除",
+   "page": "identity.position",
+   "permission": "saas:position:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position.status",
+   "title": "启停",
+   "page": "identity.position",
+   "permission": "saas:position:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.position.export",
+   "title": "导出",
+   "page": "identity.position",
+   "permission": "saas:position:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.create",
+   "title": "新增",
+   "page": "identity.permission",
+   "permission": "saas:permission:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.update",
+   "title": "编辑",
+   "page": "identity.permission",
+   "permission": "saas:permission:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.delete",
+   "title": "删除",
+   "page": "identity.permission",
+   "permission": "saas:permission:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.status",
+   "title": "启停",
+   "page": "identity.permission",
+   "permission": "saas:permission:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.export",
+   "title": "导出",
+   "page": "identity.permission",
+   "permission": "saas:permission:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.condition-inventory",
+   "title": "条件盘点",
+   "page": "identity.permission",
+   "permission": "saas:permission-condition:trial"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.permission.condition-trial",
+   "title": "条件试算",
+   "page": "identity.permission",
+   "permission": "saas:permission-condition:trial"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security.create",
+   "title": "新增",
+   "page": "identity.field-security",
+   "permission": "saas:field-level-security:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security.update",
+   "title": "编辑",
+   "page": "identity.field-security",
+   "permission": "saas:field-level-security:update"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security.status",
+   "title": "启停",
+   "page": "identity.field-security",
+   "permission": "saas:field-level-security:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security.delete",
+   "title": "删除",
+   "page": "identity.field-security",
+   "permission": "saas:field-level-security:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.field-security.export",
+   "title": "导出",
+   "page": "identity.field-security",
+   "permission": "saas:field-level-security:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.create",
+   "title": "发起申请",
+   "page": "identity.authorization",
+   "permission": "saas:permission-request:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.audit",
+   "title": "审批",
+   "page": "identity.authorization",
+   "permission": "saas:permission-request:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.withdraw",
+   "title": "撤回",
+   "page": "identity.authorization",
+   "permission": "saas:permission-request:withdraw"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.delegation-create",
+   "title": "发起委托",
+   "page": "identity.authorization",
+   "permission": "saas:permission-delegation:create"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.delegation-revoke",
+   "title": "撤销委托",
+   "page": "identity.authorization",
+   "permission": "saas:permission-delegation:status"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.delegation-delete",
+   "title": "删除委托",
+   "page": "identity.authorization",
+   "permission": "saas:permission-delegation:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.authorization.export",
+   "title": "导出",
+   "page": "identity.authorization",
+   "permission": "saas:permission-request:export"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.online-user.revoke",
+   "title": "强制下线",
+   "page": "identity.online-user",
+   "permission": "saas:user-session:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "identity.online-user.export",
+   "title": "导出",
+   "page": "identity.online-user",
+   "permission": "saas:user-session:export"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.create",
+   "title": "新增",
+   "page": "tenant.list",
+   "permission": "saas:tenant:create"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.update",
+   "title": "编辑",
+   "page": "tenant.list",
+   "permission": "saas:tenant:update"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.status",
+   "title": "启停",
+   "page": "tenant.list",
+   "permission": "saas:tenant:status"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.initdb",
+   "title": "初始化数据库",
+   "page": "tenant.list",
+   "permission": "saas:tenant:initdb"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.delete",
+   "title": "删除",
+   "page": "tenant.list",
+   "permission": "saas:tenant:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.support-member",
+   "title": "支持人员入驻",
+   "page": "tenant.list",
+   "permission": "saas:tenant:support-member"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.init-admin",
+   "title": "初始化管理员",
+   "page": "tenant.list",
+   "permission": "saas:tenant:create"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.transfer-owner",
+   "title": "所有权转移",
+   "page": "tenant.list",
+   "permission": "saas:tenant:transfer-owner"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.list.export",
+   "title": "导出",
+   "page": "tenant.list",
+   "permission": "saas:tenant:export"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.create",
+   "title": "新增",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition:create"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.update",
+   "title": "编辑",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition:update"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.status",
+   "title": "启停",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition:status"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.default",
+   "title": "设为默认",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition:default"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.permission-read",
+   "title": "版本权限查看",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition-permission:read"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.permission-grant",
+   "title": "版本权限授予",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition-permission:grant"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.permission-update",
+   "title": "版本权限更新",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition-permission:update"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.permission-revoke",
+   "title": "版本权限撤销",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition-permission:revoke"
+  },
+  {
+   "module": "Saas",
+   "code": "tenant.edition.export",
+   "title": "导出",
+   "page": "tenant.edition",
+   "permission": "saas:tenant-edition:export"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.read",
+   "title": "查看",
+   "page": "message.notification",
+   "permission": "saas:notification:read"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.create",
+   "title": "新增",
+   "page": "message.notification",
+   "permission": "saas:notification:create"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.update",
+   "title": "编辑",
+   "page": "message.notification",
+   "permission": "saas:notification:update"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.publish",
+   "title": "发布",
+   "page": "message.notification",
+   "permission": "saas:notification:publish"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.delete",
+   "title": "删除",
+   "page": "message.notification",
+   "permission": "saas:notification:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "message.notification.export",
+   "title": "导出",
+   "page": "message.notification",
+   "permission": "saas:notification:export"
+  },
+  {
+   "module": "Saas",
+   "code": "message.record.delete",
+   "title": "删除",
+   "page": "message.record",
+   "permission": "saas:message:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "message.record.resend",
+   "title": "重发",
+   "page": "message.record",
+   "permission": "saas:message:status"
+  },
+  {
+   "module": "Saas",
+   "code": "message.record.export",
+   "title": "导出",
+   "page": "message.record",
+   "permission": "saas:message:export"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template.create",
+   "title": "新增",
+   "page": "message.template",
+   "permission": "saas:message-template:create"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template.update",
+   "title": "编辑",
+   "page": "message.template",
+   "permission": "saas:message-template:update"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template.status",
+   "title": "启停",
+   "page": "message.template",
+   "permission": "saas:message-template:status"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template.delete",
+   "title": "删除",
+   "page": "message.template",
+   "permission": "saas:message-template:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "message.template.export",
+   "title": "导出",
+   "page": "message.template",
+   "permission": "saas:message-template:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config.create",
+   "title": "新增",
+   "page": "setting.email-config",
+   "permission": "saas:email-config:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config.update",
+   "title": "编辑",
+   "page": "setting.email-config",
+   "permission": "saas:email-config:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config.status",
+   "title": "启停",
+   "page": "setting.email-config",
+   "permission": "saas:email-config:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config.delete",
+   "title": "删除",
+   "page": "setting.email-config",
+   "permission": "saas:email-config:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.email-config.export",
+   "title": "导出",
+   "page": "setting.email-config",
+   "permission": "saas:email-config:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config.create",
+   "title": "新增",
+   "page": "setting.sms-config",
+   "permission": "saas:sms-config:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config.update",
+   "title": "编辑",
+   "page": "setting.sms-config",
+   "permission": "saas:sms-config:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config.status",
+   "title": "启停",
+   "page": "setting.sms-config",
+   "permission": "saas:sms-config:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config.delete",
+   "title": "删除",
+   "page": "setting.sms-config",
+   "permission": "saas:sms-config:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.sms-config.export",
+   "title": "导出",
+   "page": "setting.sms-config",
+   "permission": "saas:sms-config:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config.create",
+   "title": "新增",
+   "page": "setting.bot-config",
+   "permission": "saas:bot-config:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config.update",
+   "title": "编辑",
+   "page": "setting.bot-config",
+   "permission": "saas:bot-config:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config.status",
+   "title": "启停",
+   "page": "setting.bot-config",
+   "permission": "saas:bot-config:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config.delete",
+   "title": "删除",
+   "page": "setting.bot-config",
+   "permission": "saas:bot-config:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.bot-config.export",
+   "title": "导出",
+   "page": "setting.bot-config",
+   "permission": "saas:bot-config:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot.create",
+   "title": "新增",
+   "page": "setting.telegram-bot",
+   "permission": "saas:telegram-bot:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot.update",
+   "title": "编辑",
+   "page": "setting.telegram-bot",
+   "permission": "saas:telegram-bot:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot.status",
+   "title": "启停",
+   "page": "setting.telegram-bot",
+   "permission": "saas:telegram-bot:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot.delete",
+   "title": "删除",
+   "page": "setting.telegram-bot",
+   "permission": "saas:telegram-bot:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.telegram-bot.export",
+   "title": "导出",
+   "page": "setting.telegram-bot",
+   "permission": "saas:telegram-bot:export"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.read",
+   "title": "查看",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:read"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.create",
+   "title": "新增",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:create"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.update",
+   "title": "编辑",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:update"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.delete",
+   "title": "删除",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.status",
+   "title": "启停",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:status"
+  },
+  {
+   "module": "Saas",
+   "code": "approval.constraint.export",
+   "title": "导出",
+   "page": "approval.constraint",
+   "permission": "saas:constraint-rule:export"
+  },
+  {
+   "module": "Saas",
+   "code": "file.library.create",
+   "title": "上传",
+   "page": "file.library",
+   "permission": "saas:file:create"
+  },
+  {
+   "module": "Saas",
+   "code": "file.library.update",
+   "title": "编辑",
+   "page": "file.library",
+   "permission": "saas:file:update"
+  },
+  {
+   "module": "Saas",
+   "code": "file.library.delete",
+   "title": "删除",
+   "page": "file.library",
+   "permission": "saas:file:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "file.library.status",
+   "title": "归档恢复",
+   "page": "file.library",
+   "permission": "saas:file:status"
+  },
+  {
+   "module": "Saas",
+   "code": "file.library.export",
+   "title": "导出",
+   "page": "file.library",
+   "permission": "saas:file:export"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage.create",
+   "title": "新增",
+   "page": "file.storage",
+   "permission": "saas:storage-config:create"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage.update",
+   "title": "编辑",
+   "page": "file.storage",
+   "permission": "saas:storage-config:update"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage.status",
+   "title": "启停",
+   "page": "file.storage",
+   "permission": "saas:storage-config:status"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage.delete",
+   "title": "删除",
+   "page": "file.storage",
+   "permission": "saas:storage-config:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "file.storage.export",
+   "title": "导出",
+   "page": "file.storage",
+   "permission": "saas:storage-config:export"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.create",
+   "title": "新增",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:create"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.update",
+   "title": "编辑",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:update"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.delete",
+   "title": "删除",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.status",
+   "title": "启停",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:status"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.secret",
+   "title": "重置密钥",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:secret"
+  },
+  {
+   "module": "Saas",
+   "code": "openapi.app.export",
+   "title": "导出",
+   "page": "openapi.app",
+   "permission": "saas:oauth-app:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu.create",
+   "title": "新增",
+   "page": "setting.menu",
+   "permission": "saas:menu:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu.update",
+   "title": "编辑",
+   "page": "setting.menu",
+   "permission": "saas:menu:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu.delete",
+   "title": "删除",
+   "page": "setting.menu",
+   "permission": "saas:menu:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu.status",
+   "title": "启停",
+   "page": "setting.menu",
+   "permission": "saas:menu:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.menu.export",
+   "title": "导出",
+   "page": "setting.menu",
+   "permission": "saas:menu:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict.create",
+   "title": "新增",
+   "page": "setting.dict",
+   "permission": "saas:dict:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict.update",
+   "title": "编辑",
+   "page": "setting.dict",
+   "permission": "saas:dict:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict.delete",
+   "title": "删除",
+   "page": "setting.dict",
+   "permission": "saas:dict:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict.status",
+   "title": "启停",
+   "page": "setting.dict",
+   "permission": "saas:dict:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.dict.export",
+   "title": "导出",
+   "page": "setting.dict",
+   "permission": "saas:dict:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.create",
+   "title": "新增",
+   "page": "setting.config",
+   "permission": "saas:config:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.update",
+   "title": "编辑",
+   "page": "setting.config",
+   "permission": "saas:config:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.delete",
+   "title": "删除",
+   "page": "setting.config",
+   "permission": "saas:config:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.status",
+   "title": "启停",
+   "page": "setting.config",
+   "permission": "saas:config:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.import",
+   "title": "导入",
+   "page": "setting.config",
+   "permission": "saas:config:import"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.config.export",
+   "title": "导出",
+   "page": "setting.config",
+   "permission": "saas:config:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.create",
+   "title": "新增",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.update",
+   "title": "编辑",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.delete",
+   "title": "删除",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.status",
+   "title": "启停",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.trial",
+   "title": "试运行",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:trial"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.ban",
+   "title": "解除封禁",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy:ban"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.access-policy.hits",
+   "title": "命中记录",
+   "page": "setting.access-policy",
+   "permission": "saas:access-policy-hit:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.read",
+   "title": "预览",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.create",
+   "title": "新增",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.update",
+   "title": "编辑",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.status",
+   "title": "启停",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.reset",
+   "title": "安全重置",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:reset"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.delete",
+   "title": "删除",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.allocations",
+   "title": "发号记录",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:allocation-read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.numbering.global-manage",
+   "title": "全局管理",
+   "page": "setting.numbering",
+   "permission": "saas:numbering:global-manage"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.create",
+   "title": "新增",
+   "page": "setting.job",
+   "permission": "saas:task:create"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.update",
+   "title": "编辑",
+   "page": "setting.job",
+   "permission": "saas:task:update"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.delete",
+   "title": "删除",
+   "page": "setting.job",
+   "permission": "saas:task:delete"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.status",
+   "title": "启停",
+   "page": "setting.job",
+   "permission": "saas:task:status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.run",
+   "title": "执行",
+   "page": "setting.job",
+   "permission": "saas:task:run-status"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.logs",
+   "title": "执行日志",
+   "page": "setting.job",
+   "permission": "saas:task-log:read"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.job.export",
+   "title": "导出",
+   "page": "setting.job",
+   "permission": "saas:task:export"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.cache.clear",
+   "title": "清理",
+   "page": "setting.cache",
+   "permission": "saas:cache:clear"
+  },
+  {
+   "module": "Saas",
+   "code": "setting.version.export",
+   "title": "导出",
+   "page": "setting.version",
+   "permission": "saas:version:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.access.export",
+   "title": "导出",
+   "page": "log.access",
+   "permission": "saas:access-log:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.api.export",
+   "title": "导出",
+   "page": "log.api",
+   "permission": "saas:api-log:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.operation.export",
+   "title": "导出",
+   "page": "log.operation",
+   "permission": "saas:operation-log:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.login.export",
+   "title": "导出",
+   "page": "log.login",
+   "permission": "saas:login-log:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.exception.export",
+   "title": "导出",
+   "page": "log.exception",
+   "permission": "saas:exception-log:export"
+  },
+  {
+   "module": "Saas",
+   "code": "log.diff.export",
+   "title": "导出",
+   "page": "log.diff",
+   "permission": "saas:diff-log:export"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_definition.create",
+   "title": "新增",
+   "page": "workflow_definition",
+   "permission": "workflow:create"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_definition.update",
+   "title": "编辑",
+   "page": "workflow_definition",
+   "permission": "workflow:update"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_definition.execute",
+   "title": "发起流程",
+   "page": "workflow_definition",
+   "permission": "workflow:execute"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_definition.delete",
+   "title": "删除",
+   "page": "workflow_definition",
+   "permission": "workflow:delete"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_instance.update",
+   "title": "挂起恢复",
+   "page": "workflow_instance",
+   "permission": "workflow:update"
+  },
+  {
+   "module": "Workflow",
+   "code": "workflow_instance.execute",
+   "title": "重试与终止",
+   "page": "workflow_instance",
+   "permission": "workflow:execute"
+  }
+ ],
+ "permissions": [
+  "ai:create",
+  "ai:delete",
+  "ai:execute",
+  "ai:read",
+  "ai:update",
+  "ai_assistant:create",
+  "ai_assistant:delete",
+  "ai_assistant:read",
+  "ai_assistant:update",
+  "ai_prompt:create",
+  "ai_prompt:delete",
+  "ai_prompt:read",
+  "ai_prompt:update",
+  "chat:audit",
+  "chat:manage",
+  "chat:read",
+  "chat:send",
+  "code_gen:create",
+  "code_gen:delete",
+  "code_gen:execute",
+  "code_gen:import",
+  "code_gen:read",
+  "code_gen:update",
+  "knowledge_base:create",
+  "knowledge_base:delete",
+  "knowledge_base:execute",
+  "knowledge_base:read",
+  "knowledge_base:update",
+  "print-template:create",
+  "print-template:delete",
+  "print-template:global-manage",
+  "print-template:read",
+  "print-template:status",
+  "print-template:update",
+  "print-template:use",
+  "saas:access-log:export",
+  "saas:access-log:read",
+  "saas:access-policy-hit:read",
+  "saas:access-policy:ban",
+  "saas:access-policy:create",
+  "saas:access-policy:delete",
+  "saas:access-policy:read",
+  "saas:access-policy:status",
+  "saas:access-policy:trial",
+  "saas:access-policy:update",
+  "saas:api-log:export",
+  "saas:api-log:read",
+  "saas:bot-config:create",
+  "saas:bot-config:delete",
+  "saas:bot-config:export",
+  "saas:bot-config:read",
+  "saas:bot-config:status",
+  "saas:bot-config:update",
+  "saas:cache:clear",
+  "saas:cache:read",
+  "saas:config:create",
+  "saas:config:delete",
+  "saas:config:export",
+  "saas:config:import",
+  "saas:config:read",
+  "saas:config:status",
+  "saas:config:update",
+  "saas:constraint-rule:create",
+  "saas:constraint-rule:delete",
+  "saas:constraint-rule:export",
+  "saas:constraint-rule:read",
+  "saas:constraint-rule:status",
+  "saas:constraint-rule:update",
+  "saas:department:create",
+  "saas:department:delete",
+  "saas:department:export",
+  "saas:department:read",
+  "saas:department:status",
+  "saas:department:update",
+  "saas:dict:create",
+  "saas:dict:delete",
+  "saas:dict:export",
+  "saas:dict:read",
+  "saas:dict:status",
+  "saas:dict:update",
+  "saas:diff-log:export",
+  "saas:diff-log:read",
+  "saas:email-config:create",
+  "saas:email-config:delete",
+  "saas:email-config:export",
+  "saas:email-config:read",
+  "saas:email-config:status",
+  "saas:email-config:update",
+  "saas:exception-log:export",
+  "saas:exception-log:read",
+  "saas:external-login:read",
+  "saas:field-level-security:create",
+  "saas:field-level-security:delete",
+  "saas:field-level-security:export",
+  "saas:field-level-security:read",
+  "saas:field-level-security:status",
+  "saas:field-level-security:update",
+  "saas:file:create",
+  "saas:file:delete",
+  "saas:file:export",
+  "saas:file:read",
+  "saas:file:status",
+  "saas:file:update",
+  "saas:impersonation:cross-tenant",
+  "saas:impersonation:start",
+  "saas:log-trace:read",
+  "saas:login-log:export",
+  "saas:login-log:read",
+  "saas:menu:create",
+  "saas:menu:delete",
+  "saas:menu:export",
+  "saas:menu:read",
+  "saas:menu:status",
+  "saas:menu:update",
+  "saas:message-template:create",
+  "saas:message-template:delete",
+  "saas:message-template:export",
+  "saas:message-template:read",
+  "saas:message-template:status",
+  "saas:message-template:update",
+  "saas:message:create",
+  "saas:message:delete",
+  "saas:message:export",
+  "saas:message:read",
+  "saas:message:status",
+  "saas:message:update",
+  "saas:notification:create",
+  "saas:notification:delete",
+  "saas:notification:export",
+  "saas:notification:publish",
+  "saas:notification:read",
+  "saas:notification:update",
+  "saas:numbering:allocation-read",
+  "saas:numbering:create",
+  "saas:numbering:delete",
+  "saas:numbering:generate",
+  "saas:numbering:global-manage",
+  "saas:numbering:read",
+  "saas:numbering:reset",
+  "saas:numbering:status",
+  "saas:numbering:update",
+  "saas:oauth-app:create",
+  "saas:oauth-app:delete",
+  "saas:oauth-app:export",
+  "saas:oauth-app:read",
+  "saas:oauth-app:secret",
+  "saas:oauth-app:status",
+  "saas:oauth-app:update",
+  "saas:oauth-code:read",
+  "saas:oauth-token:read",
+  "saas:operation-log:export",
+  "saas:operation-log:read",
+  "saas:operation:create",
+  "saas:operation:delete",
+  "saas:operation:read",
+  "saas:operation:status",
+  "saas:operation:update",
+  "saas:password-history:read",
+  "saas:permission-change-log:read",
+  "saas:permission-condition:create",
+  "saas:permission-condition:delete",
+  "saas:permission-condition:read",
+  "saas:permission-condition:status",
+  "saas:permission-condition:trial",
+  "saas:permission-condition:update",
+  "saas:permission-delegation:create",
+  "saas:permission-delegation:read",
+  "saas:permission-delegation:revoke",
+  "saas:permission-delegation:status",
+  "saas:permission-delegation:update",
+  "saas:permission-request:create",
+  "saas:permission-request:export",
+  "saas:permission-request:read",
+  "saas:permission-request:status",
+  "saas:permission-request:update",
+  "saas:permission-request:withdraw",
+  "saas:permission:create",
+  "saas:permission:delete",
+  "saas:permission:export",
+  "saas:permission:read",
+  "saas:permission:status",
+  "saas:permission:update",
+  "saas:position:create",
+  "saas:position:delete",
+  "saas:position:export",
+  "saas:position:read",
+  "saas:position:status",
+  "saas:position:update",
+  "saas:resource:create",
+  "saas:resource:delete",
+  "saas:resource:read",
+  "saas:resource:status",
+  "saas:resource:update",
+  "saas:role-data-scope:read",
+  "saas:role-data-scope:update",
+  "saas:role-hierarchy:create",
+  "saas:role-hierarchy:delete",
+  "saas:role-hierarchy:read",
+  "saas:role-permission:grant",
+  "saas:role-permission:read",
+  "saas:role-permission:revoke",
+  "saas:role-permission:status",
+  "saas:role-permission:update",
+  "saas:role:create",
+  "saas:role:delete",
+  "saas:role:export",
+  "saas:role:read",
+  "saas:role:status",
+  "saas:role:update",
+  "saas:server:read",
+  "saas:session-role:read",
+  "saas:sms-config:create",
+  "saas:sms-config:delete",
+  "saas:sms-config:export",
+  "saas:sms-config:read",
+  "saas:sms-config:status",
+  "saas:sms-config:update",
+  "saas:storage-config:create",
+  "saas:storage-config:delete",
+  "saas:storage-config:export",
+  "saas:storage-config:read",
+  "saas:storage-config:status",
+  "saas:storage-config:update",
+  "saas:task-log:read",
+  "saas:task:create",
+  "saas:task:delete",
+  "saas:task:export",
+  "saas:task:read",
+  "saas:task:run-status",
+  "saas:task:status",
+  "saas:task:update",
+  "saas:telegram-bot:create",
+  "saas:telegram-bot:delete",
+  "saas:telegram-bot:export",
+  "saas:telegram-bot:read",
+  "saas:telegram-bot:status",
+  "saas:telegram-bot:update",
+  "saas:tenant-edition-permission:grant",
+  "saas:tenant-edition-permission:read",
+  "saas:tenant-edition-permission:revoke",
+  "saas:tenant-edition-permission:update",
+  "saas:tenant-edition:create",
+  "saas:tenant-edition:default",
+  "saas:tenant-edition:export",
+  "saas:tenant-edition:read",
+  "saas:tenant-edition:status",
+  "saas:tenant-edition:update",
+  "saas:tenant-member:create",
+  "saas:tenant-member:invite",
+  "saas:tenant-member:invite-status",
+  "saas:tenant-member:read",
+  "saas:tenant-member:revoke",
+  "saas:tenant-member:status",
+  "saas:tenant-member:update",
+  "saas:tenant-subscription:read",
+  "saas:tenant:create",
+  "saas:tenant:delete",
+  "saas:tenant:export",
+  "saas:tenant:initdb",
+  "saas:tenant:read",
+  "saas:tenant:status",
+  "saas:tenant:support-member",
+  "saas:tenant:transfer-owner",
+  "saas:tenant:update",
+  "saas:user-data-scope:read",
+  "saas:user-data-scope:update",
+  "saas:user-department:grant",
+  "saas:user-department:read",
+  "saas:user-department:revoke",
+  "saas:user-department:status",
+  "saas:user-department:update",
+  "saas:user-permission:grant",
+  "saas:user-permission:read",
+  "saas:user-permission:revoke",
+  "saas:user-permission:status",
+  "saas:user-permission:update",
+  "saas:user-role:grant",
+  "saas:user-role:read",
+  "saas:user-role:revoke",
+  "saas:user-role:status",
+  "saas:user-role:update",
+  "saas:user-security:lock",
+  "saas:user-security:login-policy",
+  "saas:user-security:read",
+  "saas:user-security:reset-password",
+  "saas:user-security:reset-two-factor",
+  "saas:user-session:export",
+  "saas:user-session:read",
+  "saas:user-session:revoke",
+  "saas:user-statistics:read",
+  "saas:user:create",
+  "saas:user:delete",
+  "saas:user:export",
+  "saas:user:read",
+  "saas:user:status",
+  "saas:user:update",
+  "saas:version:export",
+  "saas:version:read",
+  "workflow:create",
+  "workflow:delete",
+  "workflow:execute",
+  "workflow:read",
+  "workflow:update"
+ ],
+ "api": [
+  {
+   "module": "AI",
+   "service": "AiAssistant",
+   "method": "Create",
+   "permission": "ai_assistant:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistant",
+   "method": "Update",
+   "permission": "ai_assistant:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistant",
+   "method": "UpdateStatus",
+   "permission": "ai_assistant:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistant",
+   "method": "SetDefault",
+   "permission": "ai_assistant:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistant",
+   "method": "Delete",
+   "permission": "ai_assistant:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPrompt",
+   "method": "Create",
+   "permission": "ai_prompt:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPrompt",
+   "method": "Update",
+   "permission": "ai_prompt:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPrompt",
+   "method": "UpdateStatus",
+   "permission": "ai_prompt:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPrompt",
+   "method": "Delete",
+   "permission": "ai_prompt:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "Create",
+   "permission": "ai:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "Update",
+   "permission": "ai:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "UpdateStatus",
+   "permission": "ai:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "SetDefault",
+   "permission": "ai:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "Delete",
+   "permission": "ai:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProvider",
+   "method": "TestConnection",
+   "permission": "ai:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "ChatAssistant",
+   "method": "OpenConversation",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "ChatAssistant",
+   "method": "Reply",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeDocument",
+   "method": "Ingest",
+   "permission": "knowledge_base:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeDocument",
+   "method": "Reindex",
+   "permission": "knowledge_base:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeDocument",
+   "method": "Delete",
+   "permission": "knowledge_base:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeQuery",
+   "method": "Query",
+   "permission": "knowledge_base:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistantQuery",
+   "method": "GetPage",
+   "permission": "ai_assistant:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistantQuery",
+   "method": "GetDetail",
+   "permission": "ai_assistant:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiAssistantQuery",
+   "method": "GetAvailable",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPromptQuery",
+   "method": "GetPage",
+   "permission": "ai_prompt:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiPromptQuery",
+   "method": "GetDetail",
+   "permission": "ai_prompt:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProviderQuery",
+   "method": "GetPage",
+   "permission": "ai:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "AiProviderQuery",
+   "method": "GetDetail",
+   "permission": "ai:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeDocumentQuery",
+   "method": "GetPage",
+   "permission": "knowledge_base:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "AI",
+   "service": "KnowledgeDocumentQuery",
+   "method": "GetDetail",
+   "permission": "knowledge_base:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "OpenSingleConversation",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "CreateGroupConversation",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "OpenDepartmentConversation",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "AddMembers",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "RemoveMember",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "LeaveConversation",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "SendMessage",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "RecallMessage",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "EditMessage",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "ToggleReaction",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "PinMessage",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "UnpinMessage",
+   "permission": "chat:send",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "TogglePinConversation",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "ToggleMuteConversation",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "MarkRead",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "UpdateConversationInfo",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "TransferOwner",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "SetMemberSilence",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "Chat",
+   "method": "SetMemberRole",
+   "permission": "chat:manage",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatAuditQuery",
+   "method": "GetChatMessagePage",
+   "permission": "chat:audit",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetMyConversations",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetMessageHistory",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetMessageSearch",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetReadPositions",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetPinnedMessages",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetMembers",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetDepartmentTree",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Chat",
+   "service": "ChatQuery",
+   "method": "GetUserOptions",
+   "permission": "chat:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSource",
+   "method": "Create",
+   "permission": "code_gen:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSource",
+   "method": "Update",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSource",
+   "method": "UpdateStatus",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSource",
+   "method": "Delete",
+   "permission": "code_gen:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSource",
+   "method": "TestConnection",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "ListDatabaseTables",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "ImportTable",
+   "permission": "code_gen:import",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "ImportTables",
+   "permission": "code_gen:import",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "SyncSchema",
+   "permission": "code_gen:import",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "Preview",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGeneration",
+   "method": "Generate",
+   "permission": "code_gen:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTable",
+   "method": "Update",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTable",
+   "method": "UpdateStatus",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTable",
+   "method": "Delete",
+   "permission": "code_gen:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableColumn",
+   "method": "BatchSave",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableColumn",
+   "method": "Update",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplate",
+   "method": "Create",
+   "permission": "code_gen:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplate",
+   "method": "Update",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplate",
+   "method": "UpdateStatus",
+   "permission": "code_gen:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplate",
+   "method": "Delete",
+   "permission": "code_gen:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplate",
+   "method": "Validate",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "DynamicRuntime",
+   "method": "GetSchema",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "DynamicRuntime",
+   "method": "GetPage",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSourceQuery",
+   "method": "GetOptions",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSourceQuery",
+   "method": "GetPage",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenDataSourceQuery",
+   "method": "GetDetail",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenHistoryQuery",
+   "method": "GetPage",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenHistoryQuery",
+   "method": "GetDetail",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenHistoryQuery",
+   "method": "GetByTable",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableColumnQuery",
+   "method": "GetByTable",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableQuery",
+   "method": "GetOptions",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableQuery",
+   "method": "GetPage",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableQuery",
+   "method": "GetDetail",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTableQuery",
+   "method": "GetParentMenuOptions",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplateQuery",
+   "method": "GetPage",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "CodeGeneration",
+   "service": "CodeGenTemplateQuery",
+   "method": "GetDetail",
+   "permission": "code_gen:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplate",
+   "method": "CreatePrintTemplate",
+   "permission": "print-template:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplate",
+   "method": "UpdatePrintTemplate",
+   "permission": "print-template:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplate",
+   "method": "UpdatePrintTemplateStatus",
+   "permission": "print-template:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplate",
+   "method": "DeletePrintTemplate",
+   "permission": "print-template:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintDataSourceQuery",
+   "method": "GetList",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplateQuery",
+   "method": "GetPrintTemplatePage",
+   "permission": "print-template:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplateQuery",
+   "method": "GetAvailableGlobalPrintTemplatePage",
+   "permission": "print-template:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplateQuery",
+   "method": "GetPrintTemplateDetail",
+   "permission": "print-template:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Printing",
+   "service": "PrintTemplateQuery",
+   "method": "GetResolvedPrintTemplateByCode",
+   "permission": "print-template:use",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "ExternalLogin",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "CreateOAuthBindTicket",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "GetLoginConfig",
+   "permission": null,
+   "anonymous": true,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "GetCaptcha",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "Register",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "PasswordResetRequest",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "ConsumePasswordResetToken",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "GetPermissions",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "GetUserInfo",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "Login",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "EmailLoginCode",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "EmailLogin",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "PhoneLoginCode",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "PhoneLogin",
+   "permission": null,
+   "anonymous": true,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "SwitchTenant",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "Logout",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "LockSession",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "UnlockSession",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Auth",
+   "method": "RefreshToken",
+   "permission": null,
+   "anonymous": true,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "CreateAccessPolicy",
+   "permission": "saas:access-policy:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "UpdateAccessPolicy",
+   "permission": "saas:access-policy:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "UpdateAccessPolicyAction",
+   "permission": "saas:access-policy:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "UpdateAccessPolicyStatus",
+   "permission": "saas:access-policy:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "DeleteAccessPolicy",
+   "permission": "saas:access-policy:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicy",
+   "method": "UnbanLogin",
+   "permission": "saas:access-policy:ban",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRule",
+   "method": "CreateConstraintRule",
+   "permission": "saas:constraint-rule:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRule",
+   "method": "DeleteConstraintRule",
+   "permission": "saas:constraint-rule:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRule",
+   "method": "UpdateConstraintRule",
+   "permission": "saas:constraint-rule:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRule",
+   "method": "UpdateConstraintRuleStatus",
+   "permission": "saas:constraint-rule:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurity",
+   "method": "CreateFieldLevelSecurity",
+   "permission": "saas:field-level-security:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurity",
+   "method": "DeleteFieldLevelSecurity",
+   "permission": "saas:field-level-security:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurity",
+   "method": "UpdateFieldLevelSecurity",
+   "permission": "saas:field-level-security:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurity",
+   "method": "UpdateFieldLevelSecurityStatus",
+   "permission": "saas:field-level-security:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Operation",
+   "method": "CreateOperation",
+   "permission": "saas:operation:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Operation",
+   "method": "DeleteOperation",
+   "permission": "saas:operation:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Operation",
+   "method": "UpdateOperation",
+   "permission": "saas:operation:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Operation",
+   "method": "UpdateOperationStatus",
+   "permission": "saas:operation:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Permission",
+   "method": "CreatePermission",
+   "permission": "saas:permission:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Permission",
+   "method": "DeletePermission",
+   "permission": "saas:permission:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Permission",
+   "method": "UpdatePermission",
+   "permission": "saas:permission:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Permission",
+   "method": "UpdatePermissionStatus",
+   "permission": "saas:permission:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionCondition",
+   "method": "CreatePermissionCondition",
+   "permission": "saas:permission-condition:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionCondition",
+   "method": "DeletePermissionCondition",
+   "permission": "saas:permission-condition:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionCondition",
+   "method": "UpdatePermissionCondition",
+   "permission": "saas:permission-condition:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionCondition",
+   "method": "UpdatePermissionConditionStatus",
+   "permission": "saas:permission-condition:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegation",
+   "method": "CreatePermissionDelegation",
+   "permission": "saas:permission-delegation:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegation",
+   "method": "DeletePermissionDelegation",
+   "permission": "saas:permission-delegation:revoke",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegation",
+   "method": "UpdatePermissionDelegation",
+   "permission": "saas:permission-delegation:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegation",
+   "method": "UpdatePermissionDelegationStatus",
+   "permission": "saas:permission-delegation:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequest",
+   "method": "CreatePermissionRequest",
+   "permission": "saas:permission-request:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequest",
+   "method": "DeletePermissionRequest",
+   "permission": "saas:permission-request:withdraw",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequest",
+   "method": "UpdatePermissionRequest",
+   "permission": "saas:permission-request:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequest",
+   "method": "UpdatePermissionRequestStatus",
+   "permission": "saas:permission-request:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Resource",
+   "method": "CreateResource",
+   "permission": "saas:resource:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Resource",
+   "method": "DeleteResource",
+   "permission": "saas:resource:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Resource",
+   "method": "UpdateResource",
+   "permission": "saas:resource:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Resource",
+   "method": "UpdateResourceStatus",
+   "permission": "saas:resource:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "CreateRole",
+   "permission": "saas:role:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "SetRoleDataScope",
+   "permission": "saas:role-data-scope:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "BatchUpdateRoleParents",
+   "permission": "saas:role-hierarchy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "BatchUpdateRolePermissions",
+   "permission": "saas:role-permission:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "DeleteRole",
+   "permission": "saas:role:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "UpdateRole",
+   "permission": "saas:role:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "UpdateRolePermission",
+   "permission": "saas:role-permission:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "UpdateRolePermissionStatus",
+   "permission": "saas:role-permission:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Role",
+   "method": "UpdateRoleStatus",
+   "permission": "saas:role:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDataScope",
+   "method": "SetUserDataScope",
+   "permission": "saas:user-data-scope:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserPermission",
+   "method": "BatchUpdateUserPermissions",
+   "permission": "saas:user-permission:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserPermission",
+   "method": "UpdateUserPermission",
+   "permission": "saas:user-permission:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserPermission",
+   "method": "UpdateUserPermissionStatus",
+   "permission": "saas:user-permission:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRole",
+   "method": "BatchUpdateUserRoles",
+   "permission": "saas:user-role:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRole",
+   "method": "BatchUpdateRoleMembers",
+   "permission": "saas:user-role:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRole",
+   "method": "UpdateUserRole",
+   "permission": "saas:user-role:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRole",
+   "method": "UpdateUserRoleStatus",
+   "permission": "saas:user-role:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Config",
+   "method": "CreateConfig",
+   "permission": "saas:config:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Config",
+   "method": "DeleteConfig",
+   "permission": "saas:config:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Config",
+   "method": "UpdateConfig",
+   "permission": "saas:config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Config",
+   "method": "UpdateConfigStatus",
+   "permission": "saas:config:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "CreateDict",
+   "permission": "saas:dict:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "CreateDictItem",
+   "permission": "saas:dict:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "DeleteDict",
+   "permission": "saas:dict:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "DeleteDictItem",
+   "permission": "saas:dict:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "UpdateDict",
+   "permission": "saas:dict:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "UpdateDictItem",
+   "permission": "saas:dict:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "UpdateDictItemStatus",
+   "permission": "saas:dict:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Dict",
+   "method": "UpdateDictStatus",
+   "permission": "saas:dict:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExportTask",
+   "method": "Submit",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExportTask",
+   "method": "Cancel",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExportTask",
+   "method": "Delete",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "DeleteFile",
+   "permission": "saas:file:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "DownloadFile",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "FastUploadFile",
+   "permission": "saas:file:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "GenerateFilePresignedUrl",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "SwitchPrimaryStorage",
+   "permission": "saas:file:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "UpdateFileMetadata",
+   "permission": "saas:file:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "UpdateFileStatus",
+   "permission": "saas:file:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "UpdateFileStorageStatus",
+   "permission": "saas:file:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "UploadFile",
+   "permission": "saas:file:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "File",
+   "method": "VerifyFileStorage",
+   "permission": "saas:file:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfig",
+   "method": "CreateStorageConfig",
+   "permission": "saas:storage-config:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfig",
+   "method": "UpdateStorageConfig",
+   "permission": "saas:storage-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfig",
+   "method": "UpdateStorageConfigStatus",
+   "permission": "saas:storage-config:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfig",
+   "method": "SetDefaultStorageConfig",
+   "permission": "saas:storage-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfig",
+   "method": "DeleteStorageConfig",
+   "permission": "saas:storage-config:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "User",
+   "method": "CreateUser",
+   "permission": "saas:user:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "User",
+   "method": "DeleteUser",
+   "permission": "saas:user:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "User",
+   "method": "UpdateUser",
+   "permission": "saas:user:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "User",
+   "method": "UpdateUserStatus",
+   "permission": "saas:user:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurity",
+   "method": "ResetUserPassword",
+   "permission": "saas:user-security:reset-password",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurity",
+   "method": "ResetUserTwoFactor",
+   "permission": "saas:user-security:reset-two-factor",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurity",
+   "method": "UpdateUserLock",
+   "permission": "saas:user-security:lock",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurity",
+   "method": "UpdateUserLoginPolicy",
+   "permission": "saas:user-security:login-policy",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSession",
+   "method": "RevokeUserSession",
+   "permission": "saas:user-session:revoke",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSession",
+   "method": "RevokeUserSessions",
+   "permission": "saas:user-session:revoke",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfig",
+   "method": "CreateBotConfig",
+   "permission": "saas:bot-config:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfig",
+   "method": "UpdateBotConfig",
+   "permission": "saas:bot-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfig",
+   "method": "UpdateBotConfigStatus",
+   "permission": "saas:bot-config:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfig",
+   "method": "SetDefaultBotConfig",
+   "permission": "saas:bot-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfig",
+   "method": "DeleteBotConfig",
+   "permission": "saas:bot-config:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfig",
+   "method": "CreateEmailConfig",
+   "permission": "saas:email-config:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfig",
+   "method": "UpdateEmailConfig",
+   "permission": "saas:email-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfig",
+   "method": "UpdateEmailConfigStatus",
+   "permission": "saas:email-config:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfig",
+   "method": "SetDefaultEmailConfig",
+   "permission": "saas:email-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfig",
+   "method": "DeleteEmailConfig",
+   "permission": "saas:email-config:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "CreateEmail",
+   "permission": "saas:message:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "DeleteEmail",
+   "permission": "saas:message:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "UpdateEmail",
+   "permission": "saas:message:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "UpdateEmailStatus",
+   "permission": "saas:message:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "CreateSms",
+   "permission": "saas:message:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "DeleteSms",
+   "permission": "saas:message:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "UpdateSms",
+   "permission": "saas:message:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Message",
+   "method": "UpdateSmsStatus",
+   "permission": "saas:message:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplate",
+   "method": "CreateMessageTemplate",
+   "permission": "saas:message-template:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplate",
+   "method": "UpdateMessageTemplate",
+   "permission": "saas:message-template:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplate",
+   "method": "UpdateMessageTemplateStatus",
+   "permission": "saas:message-template:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplate",
+   "method": "DeleteMessageTemplate",
+   "permission": "saas:message-template:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Notification",
+   "method": "CreateNotification",
+   "permission": "saas:notification:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Notification",
+   "method": "DeleteNotification",
+   "permission": "saas:notification:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Notification",
+   "method": "PublishNotification",
+   "permission": "saas:notification:publish",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Notification",
+   "method": "UpdateNotification",
+   "permission": "saas:notification:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Notification",
+   "method": "Remind",
+   "permission": "saas:notification:publish",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfig",
+   "method": "CreateSmsConfig",
+   "permission": "saas:sms-config:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfig",
+   "method": "UpdateSmsConfig",
+   "permission": "saas:sms-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfig",
+   "method": "UpdateSmsConfigStatus",
+   "permission": "saas:sms-config:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfig",
+   "method": "SetDefaultSmsConfig",
+   "permission": "saas:sms-config:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfig",
+   "method": "DeleteSmsConfig",
+   "permission": "saas:sms-config:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBot",
+   "method": "CreateTelegramBot",
+   "permission": "saas:telegram-bot:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBot",
+   "method": "UpdateTelegramBot",
+   "permission": "saas:telegram-bot:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBot",
+   "method": "UpdateTelegramBotStatus",
+   "permission": "saas:telegram-bot:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBot",
+   "method": "DeleteTelegramBot",
+   "permission": "saas:telegram-bot:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "Confirm",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "GetList",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "GetMandatoryUnread",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "GetBanner",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "GetPopup",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "MarkPopupShown",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "MarkAllRead",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserInbox",
+   "method": "MarkRead",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EnumMetadata",
+   "method": "GetAllEnums",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EnumMetadata",
+   "method": "GetEnum",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TimeZoneMetadata",
+   "method": "GetTimeZoneOptions",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetBoardInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetCpuInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetDiskInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetGpuInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetMemoryInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetNetworkInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetNuGetPackages",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetRuntimeInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Server",
+   "method": "GetServerInfo",
+   "permission": "saas:server:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Menu",
+   "method": "CreateMenu",
+   "permission": "saas:menu:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Menu",
+   "method": "DeleteMenu",
+   "permission": "saas:menu:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Menu",
+   "method": "UpdateMenu",
+   "permission": "saas:menu:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Menu",
+   "method": "UpdateMenuStatus",
+   "permission": "saas:menu:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Numbering",
+   "method": "GenerateNumber",
+   "permission": "saas:numbering:generate",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Numbering",
+   "method": "GenerateNumberBatch",
+   "permission": "saas:numbering:generate",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRule",
+   "method": "CreateNumberingRule",
+   "permission": "saas:numbering:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRule",
+   "method": "UpdateNumberingRule",
+   "permission": "saas:numbering:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRule",
+   "method": "UpdateNumberingRuleStatus",
+   "permission": "saas:numbering:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRule",
+   "method": "ResetNumberingRule",
+   "permission": "saas:numbering:reset",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRule",
+   "method": "DeleteNumberingRule",
+   "permission": "saas:numbering:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "GetMyOAuthApps",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "CreateMyOAuthApp",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "UpdateMyOAuthApp",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "RegenerateMyOAuthAppSecret",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "UpdateMyOAuthAppStatus",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MyOAuthApp",
+   "method": "DeleteMyOAuthApp",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthApp",
+   "method": "CreateOAuthApp",
+   "permission": "saas:oauth-app:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthApp",
+   "method": "DeleteOAuthApp",
+   "permission": "saas:oauth-app:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthApp",
+   "method": "RegenerateOAuthAppSecret",
+   "permission": "saas:oauth-app:secret",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthApp",
+   "method": "UpdateOAuthApp",
+   "permission": "saas:oauth-app:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthApp",
+   "method": "UpdateOAuthAppStatus",
+   "permission": "saas:oauth-app:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthConsent",
+   "method": "ResolveAuthorization",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthConsent",
+   "method": "Authorize",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Department",
+   "method": "CreateDepartment",
+   "permission": "saas:department:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Department",
+   "method": "DeleteDepartment",
+   "permission": "saas:department:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Department",
+   "method": "UpdateDepartment",
+   "permission": "saas:department:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Department",
+   "method": "UpdateDepartmentStatus",
+   "permission": "saas:department:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Position",
+   "method": "CreatePosition",
+   "permission": "saas:position:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Position",
+   "method": "DeletePosition",
+   "permission": "saas:position:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Position",
+   "method": "UpdatePosition",
+   "permission": "saas:position:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Position",
+   "method": "UpdatePositionStatus",
+   "permission": "saas:position:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartment",
+   "method": "BatchUpdateUserDepartments",
+   "permission": "saas:user-department:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartment",
+   "method": "UpdateUserDepartment",
+   "permission": "saas:user-department:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartment",
+   "method": "UpdateUserDepartmentStatus",
+   "permission": "saas:user-department:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ImportHistory",
+   "method": "Create",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "GetNotificationPreference",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "UpdateNotificationPreference",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "ChangeUserName",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "DeactivateAccount",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "DeleteAccount",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "GetActivity",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "GetLinkedAccounts",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "GetProfile",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "UnlinkAccount",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Profile",
+   "method": "UpdateProfile",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSetting",
+   "method": "Save",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "CreateTenant",
+   "permission": "saas:tenant:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "UpdateTenant",
+   "permission": "saas:tenant:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "UpdateTenantStatus",
+   "permission": "saas:tenant:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "InitializeDatabase",
+   "permission": "saas:tenant:initdb",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "InitializeTenantAdmin",
+   "permission": "saas:tenant:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "DeleteTenant",
+   "permission": "saas:tenant:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "AddTenantMember",
+   "permission": "saas:tenant-member:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "AddTenantSupportMember",
+   "permission": "saas:tenant:support-member",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "RemoveTenantSupportMember",
+   "permission": "saas:tenant:support-member",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "TransferTenantOwner",
+   "permission": "saas:tenant:transfer-owner",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "InviteTenantMember",
+   "permission": "saas:tenant-member:invite",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "DeleteTenantMember",
+   "permission": "saas:tenant-member:revoke",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "UpdateTenantMember",
+   "permission": "saas:tenant-member:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "UpdateTenantMemberInviteStatus",
+   "permission": "saas:tenant-member:invite-status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Tenant",
+   "method": "UpdateTenantMemberStatus",
+   "permission": "saas:tenant-member:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "CreateTenantEdition",
+   "permission": "saas:tenant-edition:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "UpdateDefaultTenantEdition",
+   "permission": "saas:tenant-edition:default",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "UpdateTenantEdition",
+   "permission": "saas:tenant-edition:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "UpdateTenantEditionStatus",
+   "permission": "saas:tenant-edition:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "GrantTenantEditionPermission",
+   "permission": "saas:tenant-edition-permission:grant",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "BatchUpdateTenantEditionPermissions",
+   "permission": "saas:tenant-edition-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "RevokeTenantEditionPermission",
+   "permission": "saas:tenant-edition-permission:revoke",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEdition",
+   "method": "UpdateTenantEditionPermissionStatus",
+   "permission": "saas:tenant-edition-permission:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "CreateTask",
+   "permission": "saas:task:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "DeleteTask",
+   "permission": "saas:task:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "UpdateTask",
+   "permission": "saas:task:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "UpdateTaskRunStatus",
+   "permission": "saas:task:run-status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "UpdateTaskStatus",
+   "permission": "saas:task:status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "Task",
+   "method": "RunTask",
+   "permission": "saas:task:run-status",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyHitQuery",
+   "method": "GetAccessPolicyHitPage",
+   "permission": "saas:access-policy-hit:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyHitQuery",
+   "method": "GetAccessPolicyHitDetail",
+   "permission": "saas:access-policy-hit:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetAccessPolicyPage",
+   "permission": "saas:access-policy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetAccessPolicyDetail",
+   "permission": "saas:access-policy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetAccessPolicyAttributes",
+   "permission": "saas:access-policy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetAccessPolicyTemplates",
+   "permission": "saas:access-policy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetAccessPolicyTrial",
+   "permission": "saas:access-policy:trial",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessPolicyQuery",
+   "method": "GetLoginBans",
+   "permission": "saas:access-policy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRuleQuery",
+   "method": "GetConstraintRulePage",
+   "permission": "saas:constraint-rule:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConstraintRuleQuery",
+   "method": "GetConstraintRuleDetail",
+   "permission": "saas:constraint-rule:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurityQuery",
+   "method": "GetFieldLevelSecurityPage",
+   "permission": "saas:field-level-security:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurityQuery",
+   "method": "GetFieldLevelSecurityDetail",
+   "permission": "saas:field-level-security:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FieldLevelSecurityQuery",
+   "method": "GetFieldSecurityEntities",
+   "permission": "saas:field-level-security:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OperationQuery",
+   "method": "GetOperationPage",
+   "permission": "saas:operation:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OperationQuery",
+   "method": "GetOperationDetail",
+   "permission": "saas:operation:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OperationQuery",
+   "method": "GetAvailableGlobalOperations",
+   "permission": "saas:operation:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionInsightQuery",
+   "method": "GetConditionAttributes",
+   "permission": "saas:permission-condition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionInsightQuery",
+   "method": "GetPermissionConditionInventory",
+   "permission": "saas:permission-condition:trial",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionInsightQuery",
+   "method": "GetPermissionConditionTrial",
+   "permission": "saas:permission-condition:trial",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionInsightQuery",
+   "method": "GetPermissionConditionBatchTrial",
+   "permission": "saas:permission-condition:trial",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionQuery",
+   "method": "GetRolePermissionConditions",
+   "permission": "saas:permission-condition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionQuery",
+   "method": "GetUserPermissionConditions",
+   "permission": "saas:permission-condition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionConditionQuery",
+   "method": "GetPermissionConditionDetail",
+   "permission": "saas:permission-condition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegationQuery",
+   "method": "GetPermissionDelegationPage",
+   "permission": "saas:permission-delegation:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionDelegationQuery",
+   "method": "GetPermissionDelegationDetail",
+   "permission": "saas:permission-delegation:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionQuery",
+   "method": "GetPermissionPage",
+   "permission": "saas:permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionQuery",
+   "method": "GetPermissionDetail",
+   "permission": "saas:permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionQuery",
+   "method": "GetAvailableGlobalPermissions",
+   "permission": "saas:permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionQuery",
+   "method": "GetPermissionCatalog",
+   "permission": "saas:permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequestQuery",
+   "method": "GetPermissionRequestPage",
+   "permission": "saas:permission-request:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionRequestQuery",
+   "method": "GetPermissionRequestDetail",
+   "permission": "saas:permission-request:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ResourceQuery",
+   "method": "GetResourcePage",
+   "permission": "saas:resource:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ResourceQuery",
+   "method": "GetResourceDetail",
+   "permission": "saas:resource:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ResourceQuery",
+   "method": "GetAvailableGlobalResources",
+   "permission": "saas:resource:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleDataScopeQuery",
+   "method": "GetRoleDataScopes",
+   "permission": "saas:role-data-scope:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleDataScopeQuery",
+   "method": "GetRoleDataScopeDetail",
+   "permission": "saas:role-data-scope:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleHierarchyQuery",
+   "method": "GetRoleAncestors",
+   "permission": "saas:role-hierarchy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleHierarchyQuery",
+   "method": "GetRoleDescendants",
+   "permission": "saas:role-hierarchy:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleHierarchyQuery",
+   "method": "GetRoleInheritedPermissions",
+   "permission": "saas:role-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RolePermissionQuery",
+   "method": "GetRolePermissions",
+   "permission": "saas:role-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RolePermissionQuery",
+   "method": "GetRolePermissionDetail",
+   "permission": "saas:role-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleQuery",
+   "method": "GetRolePage",
+   "permission": "saas:role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleQuery",
+   "method": "GetRoleDetail",
+   "permission": "saas:role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleQuery",
+   "method": "GetEnabledRoles",
+   "permission": "saas:role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDataScopeQuery",
+   "method": "GetUserDataScopeSetting",
+   "permission": "saas:user-data-scope:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDataScopeQuery",
+   "method": "GetUserDataScopes",
+   "permission": "saas:user-data-scope:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDataScopeQuery",
+   "method": "GetUserDataScopeDetail",
+   "permission": "saas:user-data-scope:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserPermissionQuery",
+   "method": "GetUserPermissions",
+   "permission": "saas:user-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserPermissionQuery",
+   "method": "GetUserPermissionDetail",
+   "permission": "saas:user-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRoleQuery",
+   "method": "GetRoleMembers",
+   "permission": "saas:user-role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRoleQuery",
+   "method": "GetUserRoles",
+   "permission": "saas:user-role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserRoleQuery",
+   "method": "GetUserRoleDetail",
+   "permission": "saas:user-role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConfigQuery",
+   "method": "GetConfigPage",
+   "permission": "saas:config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ConfigQuery",
+   "method": "GetConfigDetail",
+   "permission": "saas:config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictPage",
+   "permission": "saas:dict:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictDetail",
+   "permission": "saas:dict:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictItemPage",
+   "permission": "saas:dict:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictItemDetail",
+   "permission": "saas:dict:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictItemTree",
+   "permission": "saas:dict:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DictQuery",
+   "method": "GetDictOptions",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "VersionQuery",
+   "method": "GetVersionPage",
+   "permission": "saas:version:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "VersionQuery",
+   "method": "GetVersionDetail",
+   "permission": "saas:version:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "VersionQuery",
+   "method": "GetMigrationHistoryPage",
+   "permission": "saas:version:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "VersionQuery",
+   "method": "GetMigrationHistoryDetail",
+   "permission": "saas:version:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExportTaskQuery",
+   "method": "GetMine",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExportTaskQuery",
+   "method": "GetDetail",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FileQuery",
+   "method": "GetFilePage",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FileQuery",
+   "method": "GetFileDetail",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FileQuery",
+   "method": "GetFileStoragePage",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FileQuery",
+   "method": "GetFileStorages",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "FileQuery",
+   "method": "GetFileStorageDetail",
+   "permission": "saas:file:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfigQuery",
+   "method": "GetStorageConfigPage",
+   "permission": "saas:storage-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "StorageConfigQuery",
+   "method": "GetStorageConfigDetail",
+   "permission": "saas:storage-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExternalLoginQuery",
+   "method": "GetExternalLoginPage",
+   "permission": "saas:external-login:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "ExternalLoginQuery",
+   "method": "GetExternalLoginDetail",
+   "permission": "saas:external-login:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "OnlineUserQuery",
+   "method": "GetOnlineUserPage",
+   "permission": "saas:user-session:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OnlineUserQuery",
+   "method": "GetOnlineUserSummary",
+   "permission": "saas:user-session:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PasswordHistoryQuery",
+   "method": "GetPasswordHistoryPage",
+   "permission": "saas:password-history:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "PasswordHistoryQuery",
+   "method": "GetPasswordHistoryDetail",
+   "permission": "saas:password-history:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "SessionRoleQuery",
+   "method": "GetSessionRolePage",
+   "permission": "saas:session-role:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "SessionRoleQuery",
+   "method": "GetSessionRoleDetail",
+   "permission": "saas:session-role:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "UserQuery",
+   "method": "GetUserPage",
+   "permission": "saas:user:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserQuery",
+   "method": "GetUserDetail",
+   "permission": "saas:user:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserQuery",
+   "method": "GetEnabledUsers",
+   "permission": "saas:user:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurityQuery",
+   "method": "GetUserSecurityPage",
+   "permission": "saas:user-security:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "UserSecurityQuery",
+   "method": "GetUserSecurityDetail",
+   "permission": "saas:user-security:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "UserSessionQuery",
+   "method": "GetUserSessionPage",
+   "permission": "saas:user-session:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSessionQuery",
+   "method": "GetUserSessionDetail",
+   "permission": "saas:user-session:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserStatisticsQuery",
+   "method": "GetUserStatisticsPage",
+   "permission": "saas:user-statistics:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserStatisticsQuery",
+   "method": "GetUserStatisticsDetail",
+   "permission": "saas:user-statistics:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessLogQuery",
+   "method": "GetAccessLogPage",
+   "permission": "saas:access-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "AccessLogQuery",
+   "method": "GetAccessLogDetail",
+   "permission": "saas:access-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ApiLogQuery",
+   "method": "GetApiLogPage",
+   "permission": "saas:api-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ApiLogQuery",
+   "method": "GetApiLogDetail",
+   "permission": "saas:api-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DiffLogQuery",
+   "method": "GetDiffLogPage",
+   "permission": "saas:diff-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DiffLogQuery",
+   "method": "GetDiffLogDetail",
+   "permission": "saas:diff-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExceptionLogQuery",
+   "method": "GetExceptionLogPage",
+   "permission": "saas:exception-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "ExceptionLogQuery",
+   "method": "GetExceptionLogDetail",
+   "permission": "saas:exception-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "LoginLogQuery",
+   "method": "GetLoginLogPage",
+   "permission": "saas:login-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "LoginLogQuery",
+   "method": "GetLoginLogDetail",
+   "permission": "saas:login-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OperationLogQuery",
+   "method": "GetOperationLogPage",
+   "permission": "saas:operation-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OperationLogQuery",
+   "method": "GetOperationLogDetail",
+   "permission": "saas:operation-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionChangeLogQuery",
+   "method": "GetPermissionChangeLogPage",
+   "permission": "saas:permission-change-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionChangeLogQuery",
+   "method": "GetPermissionChangeLogDetail",
+   "permission": "saas:permission-change-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TraceQuery",
+   "method": "GetTraceTimeline",
+   "permission": "saas:log-trace:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfigQuery",
+   "method": "GetBotConfigPage",
+   "permission": "saas:bot-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "BotConfigQuery",
+   "method": "GetBotConfigDetail",
+   "permission": "saas:bot-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfigQuery",
+   "method": "GetEmailConfigPage",
+   "permission": "saas:email-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "EmailConfigQuery",
+   "method": "GetEmailConfigDetail",
+   "permission": "saas:email-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageQuery",
+   "method": "GetEmailPage",
+   "permission": "saas:message:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageQuery",
+   "method": "GetEmailDetail",
+   "permission": "saas:message:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageQuery",
+   "method": "GetSmsPage",
+   "permission": "saas:message:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageQuery",
+   "method": "GetSmsDetail",
+   "permission": "saas:message:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplateQuery",
+   "method": "GetMessageTemplatePage",
+   "permission": "saas:message-template:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MessageTemplateQuery",
+   "method": "GetMessageTemplateDetail",
+   "permission": "saas:message-template:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetNotificationPage",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetNotificationDetail",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetUserNotificationPage",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetUserNotificationDetail",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetNotificationReadStats",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NotificationQuery",
+   "method": "GetNotificationUnreadUserPage",
+   "permission": "saas:notification:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfigQuery",
+   "method": "GetSmsConfigPage",
+   "permission": "saas:sms-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "SmsConfigQuery",
+   "method": "GetSmsConfigDetail",
+   "permission": "saas:sms-config:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBotQuery",
+   "method": "GetTelegramBotPage",
+   "permission": "saas:telegram-bot:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TelegramBotQuery",
+   "method": "GetTelegramBotDetail",
+   "permission": "saas:telegram-bot:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MenuQuery",
+   "method": "GetMenuPage",
+   "permission": "saas:menu:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MenuQuery",
+   "method": "GetMenuList",
+   "permission": "saas:menu:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MenuQuery",
+   "method": "GetMenuDetail",
+   "permission": "saas:menu:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "MenuQuery",
+   "method": "GetMenuTree",
+   "permission": "saas:menu:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "GetNumberingRulePage",
+   "permission": "saas:numbering:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "GetAvailableGlobalNumberingRulePage",
+   "permission": "saas:numbering:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "GetNumberingRuleDetail",
+   "permission": "saas:numbering:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "GetNumberingAllocationPage",
+   "permission": "saas:numbering:allocation-read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "PreviewNumberingFormat",
+   "permission": "saas:numbering:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "NumberingRuleQuery",
+   "method": "PreviewNumberingBatch",
+   "permission": "saas:numbering:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthAppQuery",
+   "method": "GetOAuthAppPage",
+   "permission": "saas:oauth-app:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthAppQuery",
+   "method": "GetOAuthAppDetail",
+   "permission": "saas:oauth-app:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthCodeQuery",
+   "method": "GetOAuthCodePage",
+   "permission": "saas:oauth-code:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthCodeQuery",
+   "method": "GetOAuthCodeDetail",
+   "permission": "saas:oauth-code:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthTokenQuery",
+   "method": "GetOAuthTokenPage",
+   "permission": "saas:oauth-token:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "OAuthTokenQuery",
+   "method": "GetOAuthTokenDetail",
+   "permission": "saas:oauth-token:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "DepartmentQuery",
+   "method": "GetDepartmentPage",
+   "permission": "saas:department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DepartmentQuery",
+   "method": "GetDepartmentDetail",
+   "permission": "saas:department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DepartmentQuery",
+   "method": "GetDepartmentTree",
+   "permission": "saas:department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "DepartmentQuery",
+   "method": "GetEnabledDepartments",
+   "permission": "saas:department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PositionQuery",
+   "method": "GetPositionPage",
+   "permission": "saas:position:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PositionQuery",
+   "method": "GetEnabledPositions",
+   "permission": "saas:position:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PositionQuery",
+   "method": "GetPositionDetail",
+   "permission": "saas:position:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartmentQuery",
+   "method": "GetUserDepartments",
+   "permission": "saas:user-department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartmentQuery",
+   "method": "GetDepartmentUsers",
+   "permission": "saas:user-department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserDepartmentQuery",
+   "method": "GetUserDepartmentDetail",
+   "permission": "saas:user-department:read",
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "ImportHistoryQuery",
+   "method": "GetMine",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserSettingQuery",
+   "method": "Get",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "DepartmentManagementQuery",
+   "method": "GetDepartmentManagementDetail",
+   "permission": "saas:department:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "PermissionCenterQuery",
+   "method": "GetPermissionCenterDetail",
+   "permission": "saas:permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "RoleManagementQuery",
+   "method": "GetRoleManagementDetail",
+   "permission": "saas:role:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "UserManagementQuery",
+   "method": "GetUserManagementDetail",
+   "permission": "saas:user:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEditionPermissionQuery",
+   "method": "GetTenantEditionPermissions",
+   "permission": "saas:tenant-edition-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEditionPermissionQuery",
+   "method": "GetTenantEditionPermissionDetail",
+   "permission": "saas:tenant-edition-permission:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEditionQuery",
+   "method": "GetTenantEditionPage",
+   "permission": "saas:tenant-edition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEditionQuery",
+   "method": "GetTenantEditionDetail",
+   "permission": "saas:tenant-edition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantEditionQuery",
+   "method": "GetEnabledTenantEditions",
+   "permission": "saas:tenant-edition:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantMemberQuery",
+   "method": "GetTenantMemberPage",
+   "permission": "saas:tenant-member:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantMemberQuery",
+   "method": "GetTenantMemberDetail",
+   "permission": "saas:tenant-member:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantQuery",
+   "method": "GetTenantPage",
+   "permission": "saas:tenant:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantQuery",
+   "method": "GetTenantDetail",
+   "permission": "saas:tenant:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantQuery",
+   "method": "GetOverQuotaTenants",
+   "permission": "saas:tenant:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantQuery",
+   "method": "GetMySubscription",
+   "permission": "saas:tenant-subscription:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TenantQuery",
+   "method": "GetMyAvailableTenants",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TaskLogQuery",
+   "method": "GetTaskLogPage",
+   "permission": "saas:task-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TaskLogQuery",
+   "method": "GetTaskLogDetail",
+   "permission": "saas:task-log:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TaskQuery",
+   "method": "GetTaskPage",
+   "permission": "saas:task:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "TaskQuery",
+   "method": "GetTaskDetail",
+   "permission": "saas:task:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Saas",
+   "service": "OpenApi",
+   "method": "Ping",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Saas",
+   "service": "OpenApi",
+   "method": "Echo",
+   "permission": null,
+   "anonymous": false,
+   "frontend": false
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowApproval",
+   "method": "Withdraw",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "Create",
+   "permission": "workflow:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "UpdateDraft",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "Publish",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "NewVersion",
+   "permission": "workflow:create",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "Disable",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "Archive",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinition",
+   "method": "Delete",
+   "permission": "workflow:delete",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Start",
+   "permission": "workflow:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Cancel",
+   "permission": "workflow:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Terminate",
+   "permission": "workflow:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Retry",
+   "permission": "workflow:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Suspend",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "Resume",
+   "permission": "workflow:update",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstance",
+   "method": "PublishSignal",
+   "permission": "workflow:execute",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowTodo",
+   "method": "Complete",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowTodo",
+   "method": "Transfer",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowTodo",
+   "method": "AddAssignees",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowApprovalQuery",
+   "method": "GetDonePage",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowApprovalQuery",
+   "method": "GetCcPage",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowApprovalQuery",
+   "method": "GetStartedPage",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowApprovalQuery",
+   "method": "GetDetail",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinitionQuery",
+   "method": "GetPage",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinitionQuery",
+   "method": "GetDetail",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDefinitionQuery",
+   "method": "GetBusinessTypes",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDirectoryQuery",
+   "method": "GetUserOptions",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDirectoryQuery",
+   "method": "GetRoleOptions",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDirectoryQuery",
+   "method": "GetPositionOptions",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowDirectoryQuery",
+   "method": "GetDepartmentTree",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstanceQuery",
+   "method": "GetPage",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowInstanceQuery",
+   "method": "GetDetail",
+   "permission": "workflow:read",
+   "anonymous": false,
+   "frontend": true
+  },
+  {
+   "module": "Workflow",
+   "service": "WorkflowTodoQuery",
+   "method": "GetPage",
+   "permission": null,
+   "anonymous": false,
+   "frontend": true
+  }
+ ],
+ "seeders": [
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.AI/Infrastructure/Seeders/AiMenuSeeder.cs",
+   "name": "[AI]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.AI/Infrastructure/Seeders/AiPermissionCatalogSeeder.cs",
+   "name": "[AI]权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Chat/Infrastructure/Seeders/ChatMenuSeeder.cs",
+   "name": "[Chat]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Chat/Infrastructure/Seeders/ChatPermissionCatalogSeeder.cs",
+   "name": "[Chat]权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Chat/Infrastructure/Seeders/ChatSettingSeeder.cs",
+   "name": "[Chat]参数配置"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Chat/Infrastructure/Seeders/ChatTaskSeeder.cs",
+   "name": "[Chat]内建定时任务"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.CodeGeneration/Infrastructure/Seeders/CodeGenerationMenuSeeder.cs",
+   "name": "[CodeGeneration]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.CodeGeneration/Infrastructure/Seeders/CodeGenPermissionCatalogSeeder.cs",
+   "name": "[CodeGeneration]权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.CodeGeneration/Infrastructure/Seeders/SysCodeGenTemplateSeeder.cs",
+   "name": "[CodeGeneration]内置模板"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Printing/Infrastructure/Seeders/Demo/PrintingDemoTemplateSeeder.cs",
+   "name": "[Printing]演示模板"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Printing/Infrastructure/Seeders/PrintingMenuSeeder.cs",
+   "name": "[Printing]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Printing/Infrastructure/Seeders/PrintingPermissionCatalogSeeder.cs",
+   "name": "[Printing]权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Catalog/ContributedMenuSeeder.cs",
+   "name": "[SaaS]业务模块菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Catalog/ContributedPermissionCatalogSeeder.cs",
+   "name": "[SaaS]业务模块权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Catalog/SaasMenuSeeder.cs",
+   "name": "[SaaS]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Catalog/SaasOperationSeeder.cs",
+   "name": "[SaaS]操作字典"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Catalog/SaasPermissionCatalogSeeder.cs",
+   "name": "[SaaS]权限目录"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Demo/SaasDemoAccessPolicySeeder.cs",
+   "name": "[SaaS]演示访问策略"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Demo/SaasDemoDictSeeder.cs",
+   "name": "[SaaS]演示字典"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Demo/SaasDemoNotificationSeeder.cs",
+   "name": "[SaaS]演示通知"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Demo/SaasDemoSeeder.cs",
+   "name": "[SaaS]演示租户与账号"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasAccessPolicySeeder.cs",
+   "name": "[SaaS]预置访问策略"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasEditionSeeder.cs",
+   "name": "[SaaS]套餐"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasMessageTemplateSeeder.cs",
+   "name": "[SaaS]消息模板"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasOAuthAppSeeder.cs",
+   "name": "[SaaS]内建 OAuth 应用"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasSettingSeeder.cs",
+   "name": "[SaaS]参数配置"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasStorageSeeder.cs",
+   "name": "[SaaS]默认存储"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasSuperAdminSeeder.cs",
+   "name": "[SaaS]超级管理员"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/Seeders/Platform/SaasTaskSeeder.cs",
+   "name": "[SaaS]内建定时任务"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Workflow/Infrastructure/Seeders/Demo/WorkflowDemoDefinitionSeeder.cs",
+   "name": "[Workflow]演示流程"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Workflow/Infrastructure/Seeders/WorkflowMenuSeeder.cs",
+   "name": "[Workflow]菜单"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Workflow/Infrastructure/Seeders/WorkflowPermissionCatalogSeeder.cs",
+   "name": "[Workflow]权限目录"
+  }
+ ],
+ "hosted": [
+  "ExportTaskHostedService",
+  "MessageOutboxHostedService",
+  "AccessPolicyHitHostedService",
+  "TenantExpirationHostedService"
+ ],
+ "tasks": [
+  "chat-retention-cleanup",
+  "user-statistics-aggregation",
+  "log-retention-cleanup"
+ ],
+ "realtime": [
+  "ChatAssistantCompleted",
+  "ChatAssistantDelta",
+  "ChatConversationChanged",
+  "ChatMessageEdited",
+  "ChatMessageRecalled",
+  "ChatReactionChanged",
+  "ChatReadPositionChanged",
+  "ChatTyping",
+  "ReceiveChatMessage"
+ ],
+ "configuration": [
+  {
+   "section": "Hosting",
+   "key": "Urls"
+  },
+  {
+   "section": "XiHan:Observability",
+   "key": "Enabled"
+  },
+  {
+   "section": "XiHan:Observability",
+   "key": "ServiceName"
+  },
+  {
+   "section": "XiHan:Observability",
+   "key": "SamplingRatio"
+  },
+  {
+   "section": "XiHan:Observability",
+   "key": "ConsoleExporter"
+  },
+  {
+   "section": "XiHan:Observability",
+   "key": "OtlpEndpoint"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "WorkerId"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "DataCenterId"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "BaseTime"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "WorkerIdBitLength"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "SeqBitLength"
+  },
+  {
+   "section": "XiHan:DistributedIds:SnowflakeId",
+   "key": "SnowflakeIdType"
+  },
+  {
+   "section": "XiHan:Authentication / PasswordHasher（PBKDF2）",
+   "key": "Version"
+  },
+  {
+   "section": "XiHan:Authentication / PasswordHasher（PBKDF2）",
+   "key": "Iterations"
+  },
+  {
+   "section": "XiHan:Authentication / PasswordHasher（PBKDF2）",
+   "key": "SaltSize"
+  },
+  {
+   "section": "XiHan:Authentication / PasswordHasher（PBKDF2）",
+   "key": "HashAlgorithm"
+  },
+  {
+   "section": "XiHan:Authentication / Jwt",
+   "key": "SecretKey"
+  },
+  {
+   "section": "XiHan:Authentication / Jwt",
+   "key": "Issuer"
+  },
+  {
+   "section": "XiHan:Authentication / Jwt",
+   "key": "AccessTokenExpirationMinutes"
+  },
+  {
+   "section": "XiHan:Authentication / Jwt",
+   "key": "RefreshTokenExpirationDays"
+  },
+  {
+   "section": "XiHan:Authentication / Jwt",
+   "key": "ClockSkewMinutes"
+  },
+  {
+   "section": "XiHan:Authentication / OAuth（第三方登录）",
+   "key": "Enabled"
+  },
+  {
+   "section": "XiHan:Authentication / OAuth（第三方登录）",
+   "key": "FrontendCallbackUrl"
+  },
+  {
+   "section": "XiHan:Authentication / OAuth（第三方登录）",
+   "key": "Providers[]"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 连接",
+   "key": "ConfigId"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 连接",
+   "key": "ConnectionString"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 连接",
+   "key": "DbType"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 连接",
+   "key": "IsAutoCloseConnection"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 连接",
+   "key": "SlaveConnectionConfigs[]"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 日志与诊断",
+   "key": "EnableSqlLog"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 日志与诊断",
+   "key": "EnableSqlErrorLog"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 日志与诊断",
+   "key": "EnableSlowSqlLog"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 日志与诊断",
+   "key": "SlowSqlThresholdMilliseconds"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 日志与诊断",
+   "key": "CommandTimeoutSeconds"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 初始化",
+   "key": "EnableDbInitialization"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 初始化",
+   "key": "EnableTableInitialization"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 初始化",
+   "key": "EnableDataSeeding"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / EnableDiffLog",
+   "key": "EnableDiffLog"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 从库健康探针",
+   "key": "DefaultSlaveHitRate"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 从库健康探针",
+   "key": "EnableSlaveHealthCheck"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 从库健康探针",
+   "key": "SlaveHealthCheckIntervalSeconds"
+  },
+  {
+   "section": "XiHan:Data:SqlSugarCore / 从库健康探针",
+   "key": "SlaveFailureCooldownSeconds"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "IsEnabled"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "Configuration"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "InstanceName"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "ConnectTimeout"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "AllowAdmin"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "UseSsl"
+  },
+  {
+   "section": "XiHan:Caching:Redis",
+   "key": "AbortOnConnectFail"
+  },
+  {
+   "section": "XiHan:Web / Core:ClientInfo",
+   "key": "EnableIpRegion"
+  },
+  {
+   "section": "XiHan:Web / Core:ClientInfo",
+   "key": "Ip2RegionDbPath"
+  },
+  {
+   "section": "XiHan:Web / Core:ClientInfo",
+   "key": "Ip2RegionV6DbPath"
+  },
+  {
+   "section": "XiHan:Web / Api:ForwardedHeaders",
+   "key": "KnownProxies"
+  },
+  {
+   "section": "XiHan:Web / Api:ForwardedHeaders",
+   "key": "KnownNetworks"
+  },
+  {
+   "section": "XiHan:Web / Api:ForwardedHeaders",
+   "key": "ForwardLimit"
+  },
+  {
+   "section": "XiHan:Web / Api:Auth",
+   "key": "RequireAuthenticatedUser"
+  },
+  {
+   "section": "XiHan:Web / Api:Auth",
+   "key": "SignalRHubPathPrefix"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "AllowedOrigins[]"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "AllowAnyOrigin"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "AllowAnyMethod"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "AllowCredentials"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "ExposedHeaders[]"
+  },
+  {
+   "section": "XiHan:Web / Api:Cors",
+   "key": "PreflightMaxAgeSeconds"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "IsEnabled"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "IgnoredPathPrefixes"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "AllowUnsignedRequests"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "RequireContentSignature"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "EnableReplayProtection"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "TimestampToleranceSeconds"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "MaxRequestBodySize"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "EnableResponseEncryption"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "DefaultSignatureAlgorithm"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "DefaultContentSignatureAlgorithm"
+  },
+  {
+   "section": "XiHan:Web / Api:OpenApiSecurity",
+   "key": "Clients[]"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "EnableDetailedErrors"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "KeepAliveInterval"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "MaximumReceiveMessageSize"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "StreamBufferCapacity"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "MaximumParallelInvocationsPerClient"
+  },
+  {
+   "section": "XiHan:Web / RealTime:SignalR",
+   "key": "EnableConnectionMetrics"
+  },
+  {
+   "section": "XiHan:Web / Gateway / GrayRouting",
+   "key": "Gateway.EnableGrayRouting"
+  },
+  {
+   "section": "XiHan:Web / Gateway / GrayRouting",
+   "key": "Gateway.RequestTimeoutSeconds"
+  },
+  {
+   "section": "XiHan:Web / Gateway / GrayRouting",
+   "key": "Gateway.AllowedOrigins[]"
+  },
+  {
+   "section": "XiHan:Web / Gateway / GrayRouting",
+   "key": "GrayRouting.Rules[]"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "MinSupportVersion"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "MigrationsRootPath"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "LockResourceKey"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "EnableAutoCheckOnStartup"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "NodeName"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "EnableMultiTenantIsolation"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "ConnectionConfigId"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "EnableMaintenanceMode"
+  },
+  {
+   "section": "XiHan:Upgrade",
+   "key": "EnableFileUpdate"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "ResourcesPath"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "DefaultResourceName"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "DefaultCulture"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "EnumResourceName"
+  },
+  {
+   "section": "XiHan:Localization",
+   "key": "EnableDynamicJsonReload"
+  },
+  {
+   "section": "XiHan:ObjectStorage",
+   "key": "Local.RootPath"
+  },
+  {
+   "section": "XiHan:ObjectStorage",
+   "key": "Local.UrlPrefix"
+  },
+  {
+   "section": "XiHan:VirtualFileSystem",
+   "key": "IncludeCurrentDirectory"
+  },
+  {
+   "section": "Saas:Seed",
+   "key": "EnableDemoData"
+  },
+  {
+   "section": "Saas:Conditions",
+   "key": "TimeZone"
+  },
+  {
+   "section": "Saas:PermissionConditions",
+   "key": "Mode"
+  },
+  {
+   "section": "Saas:AccessPolicy",
+   "key": "Enabled"
+  },
+  {
+   "section": "Saas:AccessPolicy",
+   "key": "VersionCheckSeconds"
+  },
+  {
+   "section": "Saas:AccessPolicy",
+   "key": "BanCheckCacheSeconds"
+  },
+  {
+   "section": "Saas:AccessPolicy",
+   "key": "HitBufferCapacity"
+  },
+  {
+   "section": "CodeGeneration",
+   "key": "EnableGenerateToProject"
+  },
+  {
+   "section": "CodeGeneration",
+   "key": "BackendRootPath"
+  },
+  {
+   "section": "CodeGeneration",
+   "key": "FrontendRootPath"
+  },
+  {
+   "section": "CodeGeneration",
+   "key": "TablePrefixes"
+  }
+ ],
+ "endpoints": [
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OAuthConnectEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/Connect/Authorize\""
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OAuthConnectEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "\"/Connect/Token\""
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OAuthConnectEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "\"/Connect/Revoke\""
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/api/OAuth/ExternalLogin\""
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OAuthEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "\"/api/OAuth/Callback\""
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OidcEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "OidcConstants.Endpoints.Discovery"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OidcEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "OidcConstants.Endpoints.Jwks"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OidcEndpoints.cs",
+   "verb": "Get",
+   "hub": null,
+   "route": "OidcConstants.Endpoints.UserInfo"
+  },
+  {
+   "file": "backend/src/modules/XiHan.BasicApp.Saas/Infrastructure/OAuth/OidcEndpoints.cs",
+   "verb": "Post",
+   "hub": null,
+   "route": "OidcConstants.Endpoints.UserInfo"
+  }
+ ]
+}
