@@ -6,35 +6,35 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包的权限码。
+/// 开放平台包的权限码
 /// </summary>
 /// <remarks>
-/// OAuth 应用只在平台一侧管理（4.x 同）。签名开放接口不走权限（调用方不成为主体），我的应用是自助的、只要求已登录，都不在这里。
+/// OAuth 应用只在平台一侧管理（4.x 同）。签名开放接口不走权限（调用方不成为主体），我的应用是自助的、只要求已登录，都不在这里
 /// </remarks>
 public static class OpenPlatformPermissions
 {
     /// <summary>
-    /// 查看 OAuth 应用。
+    /// 查看 OAuth 应用
     /// </summary>
     public const string OAuthAppsRead = "openplatform.oauth-apps.read";
 
     /// <summary>
-    /// 新建 OAuth 应用。
+    /// 新建 OAuth 应用
     /// </summary>
     public const string OAuthAppsCreate = "openplatform.oauth-apps.create";
 
     /// <summary>
-    /// 修改 OAuth 应用（含启停与重置密钥）。
+    /// 修改 OAuth 应用（含启停与重置密钥）
     /// </summary>
     public const string OAuthAppsUpdate = "openplatform.oauth-apps.update";
 
     /// <summary>
-    /// 删除 OAuth 应用。
+    /// 删除 OAuth 应用
     /// </summary>
     public const string OAuthAppsDelete = "openplatform.oauth-apps.delete";
 
     /// <summary>
-    /// 本包全部权限码。
+    /// 本包全部权限码
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

@@ -13,35 +13,35 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Queries;
 
 /// <summary>
-/// 横幅、弹窗与强制阅读的取法。
+/// 横幅、弹窗与强制阅读的取法
 /// </summary>
 public enum InboxShowcase
 {
     /// <summary>
-    /// 未读的横幅。
+    /// 未读的横幅
     /// </summary>
     Banners = 0,
 
     /// <summary>
-    /// 还没弹过的弹窗。
+    /// 还没弹过的弹窗
     /// </summary>
     Popups = 1,
 
     /// <summary>
-    /// 未读的强制阅读。
+    /// 未读的强制阅读
     /// </summary>
     Mandatory = 2,
 }
 
 /// <summary>
-/// 本人收件箱的查询。
+/// 本人收件箱的查询
 /// </summary>
 /// <remarks>
-/// 只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期；4.x 不看开始时间）。
-/// 收件箱与通知在同一个租户库里，按通知 ID 联表。
+/// 只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期；4.x 不看开始时间）
+/// 收件箱与通知在同一个租户库里，按通知 ID 联表
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="clock">时钟</param>
 public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clock)
 {
     private const string FieldStatus = "status";
@@ -50,7 +50,7 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     private const string FieldPublishedAt = "publishedAt";
 
     /// <summary>
-    /// 横幅、弹窗与强制阅读一次至多取多少条。
+    /// 横幅、弹窗与强制阅读一次至多取多少条
     /// </summary>
     public const int MaxShowcase = 100;
 
@@ -58,15 +58,15 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     private static readonly DateTimeOffset _sentinel = DateTimeOffset.UnixEpoch;
 
     /// <summary>
-    /// 分页列出本人的收件箱。
+    /// 分页列出本人的收件箱
     /// </summary>
     /// <remarks>
     /// 关键字匹配标题与正文；筛选接受阅读状态与类型的 <c>eq / in</c>、<c>pending eq true</c>（未读或需要确认而未确认）；
-    /// 排序只接受发布时间，缺省倒序。
+    /// 排序只接受发布时间，缺省倒序
     /// </remarks>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页收件箱。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页收件箱</returns>
     public async ValueTask<Result<PageResult<InboxItemResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -115,11 +115,11 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     }
 
     /// <summary>
-    /// 横幅、弹窗或强制阅读（发布时间倒序，至多 <see cref="MaxShowcase"/> 条）。
+    /// 横幅、弹窗或强制阅读（发布时间倒序，至多 <see cref="MaxShowcase"/> 条）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="showcase">取法。</param>
-    /// <returns>条目。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="showcase">取法</param>
+    /// <returns>条目</returns>
     public async Task<IReadOnlyList<InboxItemResponse>> ShowcaseAsync(InvocationContext context, InboxShowcase showcase)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -136,13 +136,13 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     }
 
     /// <summary>
-    /// 此刻可见的未读条目 ID。
+    /// 此刻可见的未读条目 ID
     /// </summary>
     /// <remarks>
-    /// 全部已读只标这些：开始时间还没到的留着未读，到时再出现。
+    /// 全部已读只标这些：开始时间还没到的留着未读，到时再出现
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>条目 ID。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <returns>条目 ID</returns>
     public async Task<IReadOnlyList<Guid>> VisibleUnreadAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -186,7 +186,7 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     });
 
     /// <summary>
-    /// 联表的投影（SqlSugar 要可写属性）。
+    /// 联表的投影（SqlSugar 要可写属性）
     /// </summary>
     private sealed class InboxRow
     {

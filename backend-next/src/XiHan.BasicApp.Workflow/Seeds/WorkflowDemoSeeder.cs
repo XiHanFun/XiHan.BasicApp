@@ -16,26 +16,26 @@ using XiHan.Framework.Workflow.Abstractions.Serialization;
 namespace XiHan.BasicApp.Workflow.Seeds;
 
 /// <summary>
-/// 演示流程种子。
+/// 演示流程种子
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 30（照 4.x 的 Demo + 30），<c>BasicApp:Seed:EnableDemoData</c> 打开才写。在演示租户 <c>demo</c> 里建并发布 4.x 的四个演示流程：
 /// 费用报销（直属主管或签，超过 10000 再由总经理审批）、请假（两级主管依次审批，找不到人转管理员，抄送人事，超过 3 天再由人事部审批）、
 /// 采购（指定用户会签与总部负责人审核并行，汇聚后总经理审批，120 秒没办走超时）、入职（设置变量、人事准备抄送发起人、导师确认、等 60 秒、
 /// 逐件起采购子流程、差旅报销子流程）。定义是嵌入的 WorkflowJson，<c>$user:登录名$</c> 换成演示成员的用户 ID（缺了谁就不建那个流程）；
-/// 按名字只首写（这个名字已有任何版本即跳过）。流程数据在租户分区，经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入。
+/// 按名字只首写（这个名字已有任何版本即跳过）。流程数据在租户分区，经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入
 /// </remarks>
-/// <param name="runner">按租户发起调用的运行器。</param>
-/// <param name="options">种子配置。</param>
+/// <param name="runner">按租户发起调用的运行器</param>
+/// <param name="options">种子配置</param>
 public sealed class WorkflowDemoSeeder(ITenantScopeRunner runner, SeedOptions options) : ISeeder
 {
     /// <summary>
-    /// 演示租户（Tenancy 的演示租户种子写入）。
+    /// 演示租户（Tenancy 的演示租户种子写入）
     /// </summary>
     public const string DemoTenantId = "demo";
 
     /// <summary>
-    /// 四个演示流程的名字（子流程在前，发起时按名字取已发布的版本）。
+    /// 四个演示流程的名字（子流程在前，发起时按名字取已发布的版本）
     /// </summary>
     public static IReadOnlyList<string> Names { get; } = ["demo-expense", "demo-leave", "demo-procurement", "demo-onboarding"];
 
@@ -58,10 +58,10 @@ public sealed class WorkflowDemoSeeder(ITenantScopeRunner runner, SeedOptions op
     }
 
     /// <summary>
-    /// 读一个嵌入的演示定义。
+    /// 读一个嵌入的演示定义
     /// </summary>
-    /// <param name="name">流程名。</param>
-    /// <returns>WorkflowJson 文本（用户占位符未替换）。</returns>
+    /// <param name="name">流程名</param>
+    /// <returns>WorkflowJson 文本（用户占位符未替换）</returns>
     public static string Load(string name)
     {
         using var stream = typeof(WorkflowDemoSeeder).Assembly.GetManifestResourceStream($"Demo/{name}.json")

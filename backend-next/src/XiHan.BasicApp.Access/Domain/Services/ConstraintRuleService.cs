@@ -15,30 +15,30 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 约束规则的一个规则项（写入用）。
+/// 约束规则的一个规则项（写入用）
 /// </summary>
-/// <param name="TargetId">目标：角色 ID、权限码或用户 ID。</param>
-/// <param name="GroupNo">组号。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="TargetId">目标：角色 ID、权限码或用户 ID</param>
+/// <param name="GroupNo">组号</param>
+/// <param name="Remark">备注</param>
 public sealed record ConstraintItemDefinition(string TargetId, int GroupNo, string? Remark);
 
 /// <summary>
-/// 约束规则的内容（新建与修改共用）。
+/// 约束规则的内容（新建与修改共用）
 /// </summary>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Type">约束类型。</param>
-/// <param name="TargetType">目标类型。</param>
-/// <param name="MaxAllowed">数量上限。</param>
-/// <param name="Conditions">条件类的条件。</param>
-/// <param name="ViolationAction">违规处理方式。</param>
-/// <param name="Priority">优先级。</param>
-/// <param name="Status">状态。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">失效时间。</param>
-/// <param name="Description">说明。</param>
-/// <param name="Remark">备注。</param>
-/// <param name="Items">规则项（整组替换）。</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Type">约束类型</param>
+/// <param name="TargetType">目标类型</param>
+/// <param name="MaxAllowed">数量上限</param>
+/// <param name="Conditions">条件类的条件</param>
+/// <param name="ViolationAction">违规处理方式</param>
+/// <param name="Priority">优先级</param>
+/// <param name="Status">状态</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">失效时间</param>
+/// <param name="Description">说明</param>
+/// <param name="Remark">备注</param>
+/// <param name="Items">规则项（整组替换）</param>
 public sealed record ConstraintRuleDefinition(
     string Code,
     string Name,
@@ -56,22 +56,22 @@ public sealed record ConstraintRuleDefinition(
     IReadOnlyList<ConstraintItemDefinition> Items);
 
 /// <summary>
-/// 约束规则的写入规则。
+/// 约束规则的写入规则
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 ConstraintRuleDomainService。
+/// 对应 4.x 的 ConstraintRuleDomainService
 /// 编码同一侧唯一、不含空白；目标类型须是约束类型用得了的
 /// （职责分离与条件只约束角色，互斥只约束权限码，基数约束角色或用户）；至少一个规则项，职责分离与互斥至少两个，目标不能重复，
-/// 且须是这一侧可用的（启用中的角色、目录里作用侧相符的权限码、这一侧的用户）；条件类的条件按条件引擎编译。写入后这一侧的规则缓存失效。
+/// 且须是这一侧可用的（启用中的角色、目录里作用侧相符的权限码、这一侧的用户）；条件类的条件按条件引擎编译。写入后这一侧的规则缓存失效
 /// </remarks>
-/// <param name="rules">规则仓储。</param>
-/// <param name="items">规则项仓储。</param>
-/// <param name="roles">角色查找。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="policies">访问策略服务（条件的校验与编译共用）。</param>
-/// <param name="cache">规则缓存。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="rules">规则仓储</param>
+/// <param name="items">规则项仓储</param>
+/// <param name="roles">角色查找</param>
+/// <param name="users">用户仓储</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="policies">访问策略服务（条件的校验与编译共用）</param>
+/// <param name="cache">规则缓存</param>
+/// <param name="ids">标识生成器</param>
 public sealed class ConstraintRuleService(
     IRepository<SysConstraintRule, Guid> rules,
     IRepository<SysConstraintRuleItem, Guid> items,
@@ -83,7 +83,7 @@ public sealed class ConstraintRuleService(
     IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 按 ID 取这一侧的规则。
+    /// 按 ID 取这一侧的规则
     /// </summary>
     public async Task<Maybe<SysConstraintRule>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
@@ -92,7 +92,7 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 一批规则的规则项。
+    /// 一批规则的规则项
     /// </summary>
     public async Task<ILookup<Guid, SysConstraintRuleItem>> ItemsOfAsync(string owner, IReadOnlyCollection<Guid> ruleIds, CancellationToken cancellationToken)
     {
@@ -107,7 +107,7 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 新建。
+    /// 新建
     /// </summary>
     public async Task<Result<SysConstraintRule>> CreateAsync(string owner, ConstraintRuleDefinition definition, CancellationToken cancellationToken)
     {
@@ -136,7 +136,7 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 整体修改（含启停）。
+    /// 整体修改（含启停）
     /// </summary>
     public async Task<Result> UpdateAsync(SysConstraintRule rule, ConstraintRuleDefinition definition, CancellationToken cancellationToken)
     {
@@ -165,10 +165,10 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 启用或停用约束规则。
+    /// 启用或停用约束规则
     /// </summary>
     /// <remarks>
-    /// 启用时重新校验规则项（目标可能已停用或删除，4.x 同）。
+    /// 启用时重新校验规则项（目标可能已停用或删除，4.x 同）
     /// </remarks>
     public async Task<Result> SetStatusAsync(SysConstraintRule rule, ConstraintRuleStatus status, CancellationToken cancellationToken)
     {
@@ -197,7 +197,7 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 删除（连同规则项）。
+    /// 删除（连同规则项）
     /// </summary>
     public async Task<Result> DeleteAsync(SysConstraintRule rule, CancellationToken cancellationToken)
     {
@@ -219,15 +219,15 @@ public sealed class ConstraintRuleService(
     }
 
     /// <summary>
-    /// 取规则项目标的显示名与编码。
+    /// 取规则项目标的显示名与编码
     /// </summary>
     /// <remarks>
-    /// 角色取名称与编码，权限码取目录里的显示名（区域文案由调用方给，见 <c>PermissionTexts</c>），用户取显示名与登录名。
+    /// 角色取名称与编码，权限码取目录里的显示名（区域文案由调用方给，见 <c>PermissionTexts</c>），用户取显示名与登录名
     /// </remarks>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="targets">规则项目标。</param>
-    /// <param name="permissionName">权限的显示名。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="owner">所属侧</param>
+    /// <param name="targets">规则项目标</param>
+    /// <param name="permissionName">权限的显示名</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<IReadOnlyDictionary<(ConstraintTargetType Type, string TargetId), (string Name, string? Code)>> TargetNamesAsync(string owner, IEnumerable<(ConstraintTargetType Type, string TargetId)> targets, Func<PermissionDescriptor, string> permissionName, CancellationToken cancellationToken)
     {
         var list = targets.Distinct().ToList();

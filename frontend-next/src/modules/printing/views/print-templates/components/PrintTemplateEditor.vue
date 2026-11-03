@@ -1,8 +1,8 @@
 <!--
-  打印模板全屏编辑器。
-  职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
+  打印模板全屏编辑器
+  职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好
   编辑器的操作（样例预览、直接打印、打印机）挂进设计器的菜单栏，保存走设计器的 save 命令，回列表用设计器自带的关闭钮；
-  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端。名称、编码、数据源等在列表页的编辑弹窗里改。
+  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端。名称、编码、数据源等在列表页的编辑弹窗里改
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetail, PrintTemplateScope } from './models'
@@ -62,13 +62,13 @@ const {
 
 const canvasRef = shallowRef<InstanceType<typeof DesignerCanvas> | null>(null)
 
-/** 画布实例交给编辑会话（保存、预览要读设计），这里另留一份用来刷新菜单栏上的宿主命令。 */
+/** 画布实例交给编辑会话（保存、预览要读设计），这里另留一份用来刷新菜单栏上的宿主命令 */
 function bindCanvas(instance: unknown): void {
   setDesignerRef(instance)
   canvasRef.value = instance as InstanceType<typeof DesignerCanvas> | null
 }
 
-/** 编辑器的操作写成设计器的命令，挂进菜单栏「文件」与工具栏；建一次，命令执行时现读编辑会话的状态。 */
+/** 编辑器的操作写成设计器的命令，挂进菜单栏「文件」与工具栏；建一次，命令执行时现读编辑会话的状态 */
 const hostExtension = createPrintHostExtension({
   t: key => t(key),
   ready: () => designerReady.value,

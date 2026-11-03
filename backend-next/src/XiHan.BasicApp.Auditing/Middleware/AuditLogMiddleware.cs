@@ -27,20 +27,20 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Auditing.Middleware;
 
 /// <summary>
-/// Observe 阶段的审计日志中间件。
+/// Observe 阶段的审计日志中间件
 /// </summary>
 /// <remarks>
 /// 排在框架 <c>AuditMiddleware</c> 里面：
 /// 调用开始前对标了审计的操作显式声明审计动作（操作日志）；调用结束后补上耗时、登录名与会话，以及客户端地址、浏览器与系统、归属地等细节（框架随即把操作审计落库，4.x 的操作日志同样在写入时记），
-/// 再按最终结果写访问日志、异常日志、调用里登记的登录日志与权限变更日志（只在成功时记），以及仓储写入的数据变更（只在成功时记）。
-/// 客户端地址、User-Agent、协议与请求目标取调用来源（ADR-0043）。日志只进有界队列，不影响调用结果。
+/// 再按最终结果写访问日志、异常日志、调用里登记的登录日志与权限变更日志（只在成功时记），以及仓储写入的数据变更（只在成功时记）
+/// 客户端地址、User-Agent、协议与请求目标取调用来源（ADR-0043）。日志只进有界队列，不影响调用结果
 /// </remarks>
-/// <param name="queue">日志队列。</param>
-/// <param name="options">日志选项。</param>
-/// <param name="audited">进操作日志的操作。</param>
-/// <param name="ids">日志主键生成器。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="services">根服务（取宿主环境名）。</param>
+/// <param name="queue">日志队列</param>
+/// <param name="options">日志选项</param>
+/// <param name="audited">进操作日志的操作</param>
+/// <param name="ids">日志主键生成器</param>
+/// <param name="clock">时间源</param>
+/// <param name="services">根服务（取宿主环境名）</param>
 public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions options, AuditedOperations audited, IIdGenerator<Guid> ids, TimeProvider clock, IServiceProvider services) : IPipelineMiddleware
 {
     // 框架的协议传输端点名（xihan.protocols.mcp、xihan.protocols.cloudevents）
@@ -264,10 +264,10 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 客户端地址的归属地。
+    /// 客户端地址的归属地
     /// </summary>
     /// <remarks>
-    /// 经 <see cref="IIpRegionResolver"/>，宿主没装、内网地址与查不到都为空。
+    /// 经 <see cref="IIpRegionResolver"/>，宿主没装、内网地址与查不到都为空
     /// </remarks>
     private static string? LocationOf(string? address, InvocationContext context)
         => context.Services.GetService<IIpRegionResolver>() is { } regions && IPAddress.TryParse(address, out var ip) && regions.Resolve(ip).TryGetValue(out var region) && region.Location.Length > 0
@@ -275,10 +275,10 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             : null;
 
     /// <summary>
-    /// 取调用结果。
+    /// 取调用结果
     /// </summary>
     /// <remarks>
-    /// 管道里已写入的优先；抛出了异常而没写结果，按内核的转换记（取消是取消，其余是未处理异常）；正常返回却没写结果视为成功。
+    /// 管道里已写入的优先；抛出了异常而没写结果，按内核的转换记（取消是取消，其余是未处理异常）；正常返回却没写结果视为成功
     /// </remarks>
     private static Result OutcomeOf(InvocationContext context, Exception? thrown)
     {
@@ -296,10 +296,10 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 访问结果按错误类别归并。
+    /// 访问结果按错误类别归并
     /// </summary>
     /// <remarks>
-    /// 认证失败与越权分开，找不到单列，未处理异常与依赖不可用是服务端故障，其余是业务失败。
+    /// 认证失败与越权分开，找不到单列，未处理异常与依赖不可用是服务端故障，其余是业务失败
     /// </remarks>
     private static AccessResult ResultOf(Result outcome)
     {
@@ -320,10 +320,10 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 请求目标拆成方法与路径。
+    /// 请求目标拆成方法与路径
     /// </summary>
     /// <remarks>
-    /// HTTP 的目标是「方法 路径」，其他协议（gRPC 方法全名、MCP 工具名、作业名…）整段当路径。
+    /// HTTP 的目标是「方法 路径」，其他协议（gRPC 方法全名、MCP 工具名、作业名…）整段当路径
     /// </remarks>
     private static (string? Method, string? Path) TargetOf(InvocationOrigin? origin)
     {
@@ -341,11 +341,11 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     }
 
     /// <summary>
-    /// 取 HTTP 状态码。
+    /// 取 HTTP 状态码
     /// </summary>
     /// <remarks>
     /// 普通端点已经开始写响应的取它实际写出的状态码（端点自己写出的失败响应也是，如范围不可满足的 416）；
-    /// 其余按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则。
+    /// 其余按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则
     /// </remarks>
     private static int StatusCodeOf(OperationDescriptor? operation, AuditedEndpoint? endpoint, Result outcome)
         => endpoint?.StatusCode
@@ -357,7 +357,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         => outcome.IsFailure ? Clip(context.Localize(outcome.Error!), 1024) : null;
 
     /// <summary>
-    /// 抛出点：堆栈第一帧的「类型.方法」。
+    /// 抛出点：堆栈第一帧的「类型.方法」
     /// </summary>
     private static string? LocationOf(Exception exception)
     {

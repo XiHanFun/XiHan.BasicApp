@@ -16,17 +16,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Domain.Services;
 
 /// <summary>
-/// 租户域服务（作用域）。
+/// 租户域服务（作用域）
 /// </summary>
 /// <remarks>
-/// 平台侧校验、按 ID / 租户 ID 找租户、与框架租户目录（<c>TenantRecord</c>）同步。
+/// 平台侧校验、按 ID / 租户 ID 找租户、与框架租户目录（<c>TenantRecord</c>）同步
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="directory">框架租户目录存储。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="directory">框架租户目录存储</param>
 public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRecordStore directory)
 {
     /// <summary>
-    /// 租户管理只对平台主体开放：带租户声明的调用一律拒绝（权限码本身也只在平台侧）。
+    /// 租户管理只对平台主体开放：带租户声明的调用一律拒绝（权限码本身也只在平台侧）
     /// </summary>
     public static Error? RequirePlatform(InvocationContext context)
     {
@@ -35,12 +35,12 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 按主键找租户。
+    /// 按主键找租户
     /// </summary>
     public ValueTask<Maybe<SysTenant>> FindAsync(Guid id, CancellationToken cancellationToken) => tenants.FindAsync(id, cancellationToken);
 
     /// <summary>
-    /// 按租户 ID（目录键）找租户。
+    /// 按租户 ID（目录键）找租户
     /// </summary>
     public async Task<Maybe<SysTenant>> FindByTenantIdAsync(string tenantId, CancellationToken cancellationToken)
     {
@@ -49,10 +49,10 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 把租户的目录字段（ID、显示名、是否启用、到期时间）写进框架租户目录。
+    /// 把租户的目录字段（ID、显示名、是否启用、到期时间）写进框架租户目录
     /// </summary>
     /// <remarks>
-    /// 目录缓存随之失效。
+    /// 目录缓存随之失效
     /// </remarks>
     public async Task<Result> SyncDirectoryAsync(SysTenant tenant, CancellationToken cancellationToken)
     {
@@ -89,10 +89,10 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     }
 
     /// <summary>
-    /// 从框架租户目录移除（删除租户时）。
+    /// 从框架租户目录移除（删除租户时）
     /// </summary>
     /// <remarks>
-    /// 目录里本来没有也算成功。
+    /// 目录里本来没有也算成功
     /// </remarks>
     public async Task<Result> RemoveFromDirectoryAsync(string tenantId, CancellationToken cancellationToken)
     {

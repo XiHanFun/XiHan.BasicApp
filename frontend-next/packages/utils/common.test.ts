@@ -1,9 +1,9 @@
 /**
- * packages/utils/common.ts 单元测试。
+ * packages/utils/common.ts 单元测试
  *
  * 职责边界：只验证这一组通用纯函数（日期/体积格式化、防抖节流、深拷贝、空值判定、
  * 随机串、查询串解析、剪贴板、状态映射、选项取标签）的实际行为与边界，
- * 包括源码当前未做防护而产生的退化输出（用例锁定「当前真实行为」，不代表该行为正确）。
+ * 包括源码当前未做防护而产生的退化输出（用例锁定「当前真实行为」，不代表该行为正确）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -25,7 +25,7 @@ import {
   throttle,
 } from './common'
 
-/** 记录被临时覆盖的属性，afterEach 统一还原，避免污染同文件后续用例。 */
+/** 记录被临时覆盖的属性，afterEach 统一还原，避免污染同文件后续用例 */
 const propertyRestorers: Array<() => void> = []
 
 function overrideProperty(target: object, key: string, value: unknown): void {
@@ -54,9 +54,9 @@ describe('formatDate', () => {
   })
 
   it('时间戳 0（Unix 纪元）按正常时间格式化，不再落进占位分支', () => {
-    // 回归锚点：源码原本用 !date 判空，数字 0 与空串一起落入占位分支，纪元时刻格式化不出来。
+    // 回归锚点：源码原本用 !date 判空，数字 0 与空串一起落入占位分支，纪元时刻格式化不出来
     // 断言写成与等价 Date 实例比对而不是硬编码 '1970-01-01 08:00:00'，避免绑死运行时区；
-    // 修复前 formatDate(0) 是 '-' 而 formatDate(new Date(0)) 是正常时间串，两侧必然不等。
+    // 修复前 formatDate(0) 是 '-' 而 formatDate(new Date(0)) 是正常时间串，两侧必然不等
     expect(formatDate(0)).toBe(formatDate(new Date(0)))
     expect(formatDate(0)).not.toBe('-')
   })
@@ -179,8 +179,8 @@ describe('formatFileSize', () => {
   })
 
   it('负数与非有限数返回占位符 -，不再把 NaN undefined 渲染到界面上', () => {
-    // 回归锚点：Math.log(-1) 为 NaN → 下标 NaN → sizes[NaN] 为 undefined，原本输出 'NaN undefined'。
-    // 后端 fileSize 字段缺失被 Number() 化成 NaN 时，文件列表与配额统计会直接显示这串文案。
+    // 回归锚点：Math.log(-1) 为 NaN → 下标 NaN → sizes[NaN] 为 undefined，原本输出 'NaN undefined'
+    // 后端 fileSize 字段缺失被 Number() 化成 NaN 时，文件列表与配额统计会直接显示这串文案
     expect(formatFileSize(-1)).toBe('-')
     expect(formatFileSize(Number.NaN)).toBe('-')
     expect(formatFileSize(Number.POSITIVE_INFINITY)).toBe('-')
@@ -377,7 +377,7 @@ describe('isEmpty', () => {
 
   it('有效日期实例不判为空，无效日期才判为空', () => {
     // 回归锚点：Date 没有自有可枚举键，原本落到 Object.keys 分支被一律判空 ——
-    // 表单 / 查询条件用 isEmpty 裁参数时，用户选中的日期会被静默丢掉，请求少带条件。
+    // 表单 / 查询条件用 isEmpty 裁参数时，用户选中的日期会被静默丢掉，请求少带条件
     expect(isEmpty(new Date())).toBe(false)
     expect(isEmpty(new Date(0))).toBe(false)
     expect(isEmpty(new Date('不是日期'))).toBe(true)

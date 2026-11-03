@@ -9,16 +9,16 @@ using SqlSugar;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 一个 PostgreSQL 库 public 模式的表结构快照。
+/// 一个 PostgreSQL 库 public 模式的表结构快照
 /// </summary>
 /// <remarks>
-/// 表、列（类型、可空、缺省、自增）、约束（PostgreSQL 18 起列的 NOT NULL 也记成约束，已在列定义里，不重复）与不属于约束的索引；按月分表的表（名字以 <c>_yyyyMMdd</c> 结尾）不算，它们由写入时按需建出。
-/// 用来比对 InitTables 建的库与基线脚本建的库，也用来把前者渲染成基线脚本。
+/// 表、列（类型、可空、缺省、自增）、约束（PostgreSQL 18 起列的 NOT NULL 也记成约束，已在列定义里，不重复）与不属于约束的索引；按月分表的表（名字以 <c>_yyyyMMdd</c> 结尾）不算，它们由写入时按需建出
+/// 用来比对 InitTables 建的库与基线脚本建的库，也用来把前者渲染成基线脚本
 /// </remarks>
 public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable> Tables)
 {
     /// <summary>
-    /// 读一个库的快照。
+    /// 读一个库的快照
     /// </summary>
     public static async Task<PostgresSchemaSnapshot> ReadAsync(string connectionString)
     {
@@ -66,10 +66,10 @@ public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable>
     }
 
     /// <summary>
-    /// 渲染成可重复执行的建表脚本。
+    /// 渲染成可重复执行的建表脚本
     /// </summary>
     /// <remarks>
-    /// <c>CREATE TABLE IF NOT EXISTS</c>（列按原顺序，<c>serial</c> 列还原成 <c>serial</c> / <c>bigserial</c>，约束写在表内）与 <c>CREATE INDEX IF NOT EXISTS</c>。
+    /// <c>CREATE TABLE IF NOT EXISTS</c>（列按原顺序，<c>serial</c> 列还原成 <c>serial</c> / <c>bigserial</c>，约束写在表内）与 <c>CREATE INDEX IF NOT EXISTS</c>
     /// </remarks>
     public string ToSql(string header)
     {
@@ -92,10 +92,10 @@ public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable>
     }
 
     /// <summary>
-    /// 列出与另一个快照的差别。
+    /// 列出与另一个快照的差别
     /// </summary>
     /// <remarks>
-    /// 每条一行，前缀 <c>-</c> 是只在这一边的，<c>+</c> 是只在另一边的；没有差别为空。
+    /// 每条一行，前缀 <c>-</c> 是只在这一边的，<c>+</c> 是只在另一边的；没有差别为空
     /// </remarks>
     public IReadOnlyList<string> Differences(PostgresSchemaSnapshot other)
     {
@@ -122,17 +122,17 @@ public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable>
 }
 
 /// <summary>
-/// 一张表。
+/// 一张表
 /// </summary>
 public sealed record PostgresTable(string Name, IReadOnlyList<PostgresColumn> Columns, IReadOnlyList<PostgresConstraint> Constraints, IReadOnlyList<PostgresIndex> Indexes);
 
 /// <summary>
-/// 一列。
+/// 一列
 /// </summary>
 public sealed partial record PostgresColumn(string Name, string Type, bool NotNull, string? Default, string Identity)
 {
     /// <summary>
-    /// 建表语句里的列定义。
+    /// 建表语句里的列定义
     /// </summary>
     public string ToDefinition()
     {
@@ -163,11 +163,11 @@ public sealed partial record PostgresColumn(string Name, string Type, bool NotNu
 }
 
 /// <summary>
-/// 一个约束。
+/// 一个约束
 /// </summary>
 public sealed record PostgresConstraint(string Name, string Kind, string Definition);
 
 /// <summary>
-/// 一个不属于约束的索引。
+/// 一个不属于约束的索引
 /// </summary>
 public sealed record PostgresIndex(string Name, string Definition);

@@ -7,18 +7,18 @@ using XiHan.BasicApp.Tenancy.Domain.Entities;
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// 租户成员的响应形态：成员行加上用户的登录名与显示名（用户在平台库，按主键补）。
+/// 租户成员的响应形态：成员行加上用户的登录名与显示名（用户在平台库，按主键补）
 /// </summary>
-/// <param name="Id">成员行主键。</param>
-/// <param name="TenantId">租户 ID（目录键）。</param>
-/// <param name="UserId">用户 ID。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="DisplayName">显示名。</param>
-/// <param name="HomeTenantId">用户的注册地租户。</param>
-/// <param name="MemberType">成员类型。</param>
-/// <param name="EffectiveAt">生效时间（UTC）；为空即加入即生效。</param>
-/// <param name="ExpiresAt">到期时间（UTC）；为空即不到期。</param>
-/// <param name="CreatedAt">加入时间（UTC）。</param>
+/// <param name="Id">成员行主键</param>
+/// <param name="TenantId">租户 ID（目录键）</param>
+/// <param name="UserId">用户 ID</param>
+/// <param name="UserName">登录名</param>
+/// <param name="DisplayName">显示名</param>
+/// <param name="HomeTenantId">用户的注册地租户</param>
+/// <param name="MemberType">成员类型</param>
+/// <param name="EffectiveAt">生效时间（UTC）；为空即加入即生效</param>
+/// <param name="ExpiresAt">到期时间（UTC）；为空即不到期</param>
+/// <param name="CreatedAt">加入时间（UTC）</param>
 public sealed record TenantMemberResponse(
     Guid Id,
     string TenantId,
@@ -32,7 +32,7 @@ public sealed record TenantMemberResponse(
     DateTimeOffset CreatedAt)
 {
     /// <summary>
-    /// 由成员行与用户投影。
+    /// 由成员行与用户投影
     /// </summary>
     public static TenantMemberResponse From(SysTenantMember member, SysUser user)
     {

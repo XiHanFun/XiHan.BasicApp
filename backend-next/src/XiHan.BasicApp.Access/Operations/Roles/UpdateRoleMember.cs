@@ -17,35 +17,35 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.update-member</c> 的请求。
+/// <c>roles.update-member</c> 的请求
 /// </summary>
 /// <remarks>
-/// 改一条指派的有效期。角色标识由路由值 <c>{id}</c> 绑定。
+/// 改一条指派的有效期。角色标识由路由值 <c>{id}</c> 绑定
 /// </remarks>
-/// <param name="Id">角色 ID。</param>
-/// <param name="UserId">成员的用户 ID。</param>
-/// <param name="EffectiveAt">生效时间；为空即立即生效。</param>
-/// <param name="ExpiresAt">到期时间（不含）；为空即长期有效。</param>
+/// <param name="Id">角色 ID</param>
+/// <param name="UserId">成员的用户 ID</param>
+/// <param name="EffectiveAt">生效时间；为空即立即生效</param>
+/// <param name="ExpiresAt">到期时间（不含）；为空即长期有效</param>
 public sealed record RoleMemberWindowRequest(Guid Id, [Required] Guid UserId, DateTimeOffset? EffectiveAt = null, DateTimeOffset? ExpiresAt = null);
 
 /// <summary>
-/// 改成员指派的有效期。
+/// 改成员指派的有效期
 /// </summary>
 /// <remarks>
 /// <c>POST /api/roles/{id}:update-member</c>。到期或改到未来生效的指派立即从判定里拿掉（令牌里的角色声明由权限过滤器按指派求交）；
-/// 改成此刻有效的要等下次刷新令牌才进令牌。已到期的指派改回有效等于重新持有这个角色：过静态职责分离、基数与条件（4.x 的单条指派生效同样判定）。
+/// 改成此刻有效的要等下次刷新令牌才进令牌。已到期的指派改回有效等于重新持有这个角色：过静态职责分离、基数与条件（4.x 的单条指派生效同样判定）
 /// </remarks>
-/// <param name="service">角色域服务。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="assignments">指派缓存。</param>
-/// <param name="enforcer">约束规则求值。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="service">角色域服务</param>
+/// <param name="members">指派仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="assignments">指派缓存</param>
+/// <param name="enforcer">约束规则求值</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
 public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments, ConstraintEnforcer enforcer, TimeProvider clock) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.update-member";
 

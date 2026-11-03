@@ -4,7 +4,7 @@ import { QueryOperator } from '~/types/contracts'
 import { renderFieldCell } from './renderer'
 
 /**
- * 字段是否对当前用户可见（权限过滤）。
+ * 字段是否对当前用户可见（权限过滤）
  * @param field 字段
  * @param can 权限判定函数（来自 usePermission().hasPermission）
  */
@@ -13,14 +13,14 @@ function isFieldPermitted(field: { permission?: string }, can: (code: string) =>
 }
 
 /**
- * 按 order 升序稳定排序。
+ * 按 order 升序稳定排序
  */
 function byOrder<T extends { order?: number }>(list: T[]): T[] {
   return [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 }
 
 /**
- * 派生：常用搜索字段（searchable=true 且有权限）。
+ * 派生：常用搜索字段（searchable=true 且有权限）
  */
 export function toSearchFields<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -30,7 +30,7 @@ export function toSearchFields<TRow extends object>(
 }
 
 /**
- * 派生：高级搜索字段（advancedSearch=true 且有权限）。
+ * 派生：高级搜索字段（advancedSearch=true 且有权限）
  */
 export function toAdvancedFields<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -40,7 +40,7 @@ export function toAdvancedFields<TRow extends object>(
 }
 
 /**
- * 派生：导出字段（exportable=true 且有权限）。
+ * 派生：导出字段（exportable=true 且有权限）
  */
 export function toExportFields<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -50,7 +50,7 @@ export function toExportFields<TRow extends object>(
 }
 
 /**
- * 派生：导入字段（importable=true 且有权限）—— 导入模板列与解析校验的事实源。
+ * 派生：导入字段（importable=true 且有权限）—— 导入模板列与解析校验的事实源
  */
 export function toImportFields<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -60,9 +60,9 @@ export function toImportFields<TRow extends object>(
 }
 
 /**
- * 派生：由 searchRange/searchMultiple 字段的当前值生成后端通用过滤 conditions.filters。
- * 区间 → Between（值为 ISO 字符串；date 粒度末值补到当天 23:59:59.999 以含整日）；多选 → In。
- * 其余字段不在此处理（仍由各页 buildXxxQuery 映射为 DTO 顶层字段）。
+ * 派生：由 searchRange/searchMultiple 字段的当前值生成后端通用过滤 conditions.filters
+ * 区间 → Between（值为 ISO 字符串；date 粒度末值补到当天 23:59:59.999 以含整日）；多选 → In
+ * 其余字段不在此处理（仍由各页 buildXxxQuery 映射为 DTO 顶层字段）
  */
 export function queryFiltersFromSchema<TRow extends object>(
   fields: ReadonlyArray<ListFieldSchema<TRow>>,
@@ -95,7 +95,7 @@ function endOfDayTimestamp(timestamp: number): number {
 }
 
 /**
- * 派生：表格列（visible=true 且有权限），可叠加视图/列设置的列可见、顺序与固定。
+ * 派生：表格列（visible=true 且有权限），可叠加视图/列设置的列可见、顺序与固定
  * @param options.visibleKeys 覆盖的可见列；未提供则用 schema 默认
  * @param options.columnOrder 覆盖的列顺序
  * @param options.fixedMap 覆盖的列固定方向（key → left/right/undefined）

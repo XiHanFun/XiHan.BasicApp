@@ -1,8 +1,8 @@
 import type { PrintTemplateDetail, PrintTemplateScope } from './models'
 /**
- * 打印模板编辑器会话 Composable。
+ * 打印模板编辑器会话 Composable
  * 职责：集中管理已有模板的设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好；
- * 模板的名称、编码、数据源等元数据在列表页的新增、编辑弹窗里改，这里只沿用详情里的那份。
+ * 模板的名称、编码、数据源等元数据在列表页的新增、编辑弹窗里改，这里只沿用详情里的那份
  */
 import type PrintDesignerCanvas from './PrintDesignerCanvas.vue'
 import type { PrintDocument } from '~/printing/designer'
@@ -23,7 +23,7 @@ import {
 import { createEmptyPrintDocument } from '~/printing/designer'
 import { toPrintTemplateForm, toPrintTemplateUpdateInput } from './print-template-form'
 
-/** 编辑器父组件传入的响应式属性。 */
+/** 编辑器父组件传入的响应式属性 */
 interface PrintTemplateEditorProps {
   detail: PrintTemplateDetail | null
   globalMode: boolean
@@ -31,18 +31,18 @@ interface PrintTemplateEditorProps {
   show: boolean
 }
 
-/** 编辑器向父组件发出的事件。 */
+/** 编辑器向父组件发出的事件 */
 interface PrintTemplateEditorEmit {
   (event: 'saved', detail: PrintTemplateDetail): void
   (event: 'update:show', value: boolean): void
 }
 
 /**
- * 创建一个打印模板编辑会话。
- * @param props 编辑器详情、作用域和显示状态；必须直接传入 defineProps 返回的响应式对象。
- * @param emit 保存完成与可见性变更事件发送器。
- * @returns 供编辑器视图绑定的状态、计算属性和操作方法。
- * @throws 必须在 Vue setup 生命周期内调用。
+ * 创建一个打印模板编辑会话
+ * @param props 编辑器详情、作用域和显示状态；必须直接传入 defineProps 返回的响应式对象
+ * @param emit 保存完成与可见性变更事件发送器
+ * @returns 供编辑器视图绑定的状态、计算属性和操作方法
+ * @throws 必须在 Vue setup 生命周期内调用
  */
 export function usePrintTemplateEditor(
   props: Readonly<PrintTemplateEditorProps>,
@@ -97,7 +97,7 @@ export function usePrintTemplateEditor(
     samplePreviewVisible.value = false
   })
 
-  /** 重置本次编辑会话并重新装载设计器；只打开已有模板，新模板先在列表页的新增弹窗里建好。 */
+  /** 重置本次编辑会话并重新装载设计器；只打开已有模板，新模板先在列表页的新增弹窗里建好 */
   async function resetEditor(): Promise<void> {
     designerReady.value = false
     abortController.abort()
@@ -134,31 +134,31 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 设计器就绪后才接收其模板变化，装载过程中的变化不当作编辑。 */
+  /** 设计器就绪后才接收其模板变化，装载过程中的变化不当作编辑 */
   function onDesignerReady(): void {
     designerReady.value = true
   }
 
-  /** 接收设计变化，更新草稿；未保存与否以设计器的 dirty-change 为准。 */
+  /** 接收设计变化，更新草稿；未保存与否以设计器的 dirty-change 为准 */
   function onDesignerChanged(template: PrintDocument): void {
     if (!designerReady.value)
       return
     draftTemplate.value = template
   }
 
-  /** 设计器判定的未保存变了：改了又撤销回原样、存好后记为已保存时它报干净。 */
+  /** 设计器判定的未保存变了：改了又撤销回原样、存好后记为已保存时它报干净 */
   function onDesignerDirtyChange(value: boolean): void {
     designerDirty.value = value
   }
 
-  /** 接收 Vue 组件模板 ref，并把宽泛的运行时实例收窄为设计器公开句柄。 */
+  /** 接收 Vue 组件模板 ref，并把宽泛的运行时实例收窄为设计器公开句柄 */
   function setDesignerRef(instance: unknown): void {
     designerRef.value = instance as InstanceType<typeof PrintDesignerCanvas> | null
   }
 
   /**
-   * 保存设计；loading 锁阻止重复提交，并发戳用于拒绝覆盖并行编辑，模板有错误级问题时拦下。元数据沿用详情里的那份。
-   * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null。
+   * 保存设计；loading 锁阻止重复提交，并发戳用于拒绝覆盖并行编辑，模板有错误级问题时拦下。元数据沿用详情里的那份
+   * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null
    */
   async function save(): Promise<PrintTemplateDetail | null> {
     const detail = currentDetail.value
@@ -197,16 +197,16 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 打开数据源驱动的模拟数据表单。 */
+  /** 打开数据源驱动的模拟数据表单 */
   function openSamplePreview(): void {
     if (designerReady.value)
       samplePreviewVisible.value = true
   }
 
   /**
-   * 使用当前未保存设计和用户填写的内存模拟数据调起浏览器打印。
-   * @param sample 模拟数据弹窗输出的单对象或对象数组。
-   * @returns 打印调用完成信号。
+   * 使用当前未保存设计和用户填写的内存模拟数据调起浏览器打印
+   * @param sample 模拟数据弹窗输出的单对象或对象数组
+   * @returns 打印调用完成信号
    */
   async function preview(sample: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
     if (previewLoading.value)
@@ -224,7 +224,7 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 先保存最新设计，再通过公共 FIFO 直打服务交给本地打印客户端。 */
+  /** 先保存最新设计，再通过公共 FIFO 直打服务交给本地打印客户端 */
   async function directPrint(): Promise<void> {
     if (directLoading.value)
       return
@@ -253,7 +253,7 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 加载或刷新客户端打印机列表；客户端不可用时保留编辑能力。 */
+  /** 加载或刷新客户端打印机列表；客户端不可用时保留编辑能力 */
   async function loadPrinters(forceRefresh: boolean): Promise<void> {
     if (printerLoading.value)
       return
@@ -272,7 +272,7 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 更新本地偏好；空字符串表示交给客户端默认打印机。 */
+  /** 更新本地偏好；空字符串表示交给客户端默认打印机 */
   async function updatePrinterPreference(value: null | string): Promise<void> {
     selectedPrinter.value = value || null
     const templateCode = currentDetail.value?.templateCode
@@ -286,13 +286,13 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 拦截关闭并在存在未保存变更时请求确认。 */
+  /** 拦截关闭并在存在未保存变更时请求确认 */
   async function requestVisible(value: boolean): Promise<void> {
     if (value || await confirmDiscard())
       emit('update:show', value)
   }
 
-  /** 返回是否允许丢弃当前未保存更改，供路由离开守卫复用。 */
+  /** 返回是否允许丢弃当前未保存更改，供路由离开守卫复用 */
   function confirmDiscard(): Promise<boolean> {
     if (!dirty.value)
       return Promise.resolve(true)
@@ -306,7 +306,7 @@ export function usePrintTemplateEditor(
     })
   }
 
-  /** 浏览器刷新/关闭时使用原生未保存提示。 */
+  /** 浏览器刷新/关闭时使用原生未保存提示 */
   function preventUnload(event: BeforeUnloadEvent): void {
     if (!props.show || !dirty.value)
       return

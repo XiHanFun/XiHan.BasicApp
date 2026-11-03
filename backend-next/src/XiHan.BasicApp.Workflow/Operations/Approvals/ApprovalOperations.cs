@@ -24,18 +24,18 @@ using InstanceLookup = XiHan.BasicApp.Workflow.Operations.WorkflowInstances.Work
 namespace XiHan.BasicApp.Workflow.Operations.Approvals;
 
 /// <summary>
-/// 我已审批。
+/// 我已审批
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-done</c>。照 4.x 只要登录、主体锁定为调用方：办理、转办、加签的记录；关键字匹配任务标题、实例标题与关联 ID，按时间降序。每条带上实例现在的状态与结论。
+/// <c>POST /api/approvals:list-done</c>。照 4.x 只要登录、主体锁定为调用方：办理、转办、加签的记录；关键字匹配任务标题、实例标题与关联 ID，按时间降序。每条带上实例现在的状态与结论
 /// </remarks>
-/// <param name="queries">审批记录的分页。</param>
-/// <param name="approvals">审批中心共用的补全。</param>
+/// <param name="queries">审批记录的分页</param>
+/// <param name="approvals">审批中心共用的补全</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Policy = Policies.Authenticated)]
 public sealed class ListDoneApprovals(WorkflowRecordQueries queries, WorkflowApprovals approvals) : IOperation<PageRequest, PageResult<WorkflowApprovalRecordResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "approvals.list-done";
 
@@ -50,18 +50,18 @@ public sealed class ListDoneApprovals(WorkflowRecordQueries queries, WorkflowApp
 }
 
 /// <summary>
-/// 抄送我的。
+/// 抄送我的
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-cc</c>。照 4.x 只要登录、主体锁定为调用方：抄送给调用方的记录（同一实例同一节点对同一人只记一次）；关键字与顺序同我已审批。
+/// <c>POST /api/approvals:list-cc</c>。照 4.x 只要登录、主体锁定为调用方：抄送给调用方的记录（同一实例同一节点对同一人只记一次）；关键字与顺序同我已审批
 /// </remarks>
-/// <param name="queries">审批记录的分页。</param>
-/// <param name="approvals">审批中心共用的补全。</param>
+/// <param name="queries">审批记录的分页</param>
+/// <param name="approvals">审批中心共用的补全</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Policy = Policies.Authenticated)]
 public sealed class ListCcApprovals(WorkflowRecordQueries queries, WorkflowApprovals approvals) : IOperation<PageRequest, PageResult<WorkflowApprovalRecordResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "approvals.list-cc";
 
@@ -76,20 +76,20 @@ public sealed class ListCcApprovals(WorkflowRecordQueries queries, WorkflowAppro
 }
 
 /// <summary>
-/// 我发起的。
+/// 我发起的
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-started</c>。照 4.x 只要登录、发起人锁定为调用方、只取顶层实例；关键字匹配标题与关联 ID，筛选 <c>status</c>，按发起时间降序。运行中的带等着办的节点与人。
+/// <c>POST /api/approvals:list-started</c>。照 4.x 只要登录、发起人锁定为调用方、只取顶层实例；关键字匹配标题与关联 ID，筛选 <c>status</c>，按发起时间降序。运行中的带等着办的节点与人
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="tasks">任务服务。</param>
-/// <param name="lookup">人名与定义。</param>
-/// <param name="registry">审批业务登记表。</param>
+/// <param name="engine">引擎</param>
+/// <param name="tasks">任务服务</param>
+/// <param name="lookup">人名与定义</param>
+/// <param name="registry">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Policy = Policies.Authenticated)]
 public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskService tasks, WorkflowLookup lookup, WorkflowBusinessRegistry registry) : IOperation<PageRequest, PageResult<WorkflowApprovalInstanceResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "approvals.list-started";
 
@@ -165,23 +165,23 @@ public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskSe
 }
 
 /// <summary>
-/// 审批详情。
+/// 审批详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/approvals/{id}</c>。照 4.x 只要登录、按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 <c>workflow.workflow-instances.read</c>，其余 403（详情带着业务单据）。
-/// 返回概要、审批业务的单据（单据组件与数据）、调用方在这个实例里的待办（允许的结论取定义节点的 <c>AllowedOutcomes</c>）与审批轨迹。
+/// <c>GET /api/approvals/{id}</c>。照 4.x 只要登录、按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 <c>workflow.workflow-instances.read</c>，其余 403（详情带着业务单据）
+/// 返回概要、审批业务的单据（单据组件与数据）、调用方在这个实例里的待办（允许的结论取定义节点的 <c>AllowedOutcomes</c>）与审批轨迹
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="tasks">任务服务。</param>
-/// <param name="records">审批记录。</param>
-/// <param name="lookup">人名与定义。</param>
-/// <param name="registry">审批业务登记表。</param>
-/// <param name="permissions">权限判定。</param>
+/// <param name="engine">引擎</param>
+/// <param name="tasks">任务服务</param>
+/// <param name="records">审批记录</param>
+/// <param name="lookup">人名与定义</param>
+/// <param name="registry">审批业务登记表</param>
+/// <param name="permissions">权限判定</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tasks, WorkflowTaskRecords records, WorkflowLookup lookup, WorkflowBusinessRegistry registry, IPermissionChecker permissions) : IOperation<GetApprovalRequest, WorkflowApprovalDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "approvals.get";
 
@@ -271,7 +271,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
     }
 
     /// <summary>
-    /// 审批业务的单据（单据已不存在时数据为空）。
+    /// 审批业务的单据（单据已不存在时数据为空）
     /// </summary>
     private async Task<Result<Maybe<WorkflowApprovalBusinessResponse>>> BusinessAsync(WorkflowInstance instance, InvocationContext context)
     {
@@ -291,10 +291,10 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
     }
 
     /// <summary>
-    /// 调用方在这个实例里的待办。
+    /// 调用方在这个实例里的待办
     /// </summary>
     /// <remarks>
-    /// 给了任务 ID 取那一条，否则取第一条（照 4.x，从任何列表打开都能直接办）。
+    /// 给了任务 ID 取那一条，否则取第一条（照 4.x，从任何列表打开都能直接办）
     /// </remarks>
     private async Task<WorkflowApprovalTaskResponse?> TaskAsync(Guid? taskId, string? me, IReadOnlyList<UserTask> pending, Maybe<WorkflowDefinition> definition, WorkflowInstance instance, InvocationContext context)
     {
@@ -316,12 +316,12 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
     }
 
     /// <summary>
-    /// 审批轨迹。
+    /// 审批轨迹
     /// </summary>
     /// <remarks>
-    /// 发起 → 办理 / 转办 / 加签 / 抄送与无人时的自动处理（按时间）→ 结束或当前待办。
+    /// 发起 → 办理 / 转办 / 加签 / 抄送与无人时的自动处理（按时间）→ 结束或当前待办
     /// 找不到人时按策略自动通过或驳回：框架 5 不给这种节点写办理历史（4.x 写一条没有办理人的），以「已完成、没有历史的用户任务节点」认出，结论取节点的 <c>EmptyAssigneeStrategy</c>；
-    /// 超时完成的历史项没有办理人，同样算自动处理（结论 <c>timeout</c>）。
+    /// 超时完成的历史项没有办理人，同样算自动处理（结论 <c>timeout</c>）
     /// </remarks>
     private async Task<IReadOnlyList<WorkflowApprovalTimelineItem>> TimelineAsync(
         WorkflowInstance instance,
@@ -397,21 +397,21 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
 }
 
 /// <summary>
-/// 撤回。
+/// 撤回
 /// </summary>
 /// <remarks>
 /// <c>POST /api/approvals/{id}:withdraw</c>。照 4.x 只要登录：只有发起人能撤回自己运行中、挂起或故障的顶层实例（子流程随父流程结束），即取消实例，之后回调审批业务的中止回写；
-/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧（4.x 的实例已取消、只报回写失败）。撤回之前先问审批业务的改动前校验。
+/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧（4.x 的实例已取消、只报回写失败）。撤回之前先问审批业务的改动前校验
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="aborts">中止回写。</param>
-/// <param name="texts">文案。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="aborts">中止回写</param>
+/// <param name="texts">文案</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class WithdrawApproval(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowTexts texts, WorkflowBusinessChanges changes) : IOperation<WithdrawApprovalRequest, WithdrawApprovalResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "approvals.withdraw";
 
@@ -461,22 +461,22 @@ public sealed class WithdrawApproval(IWorkflowEngine engine, WorkflowBusinessAbo
 }
 
 /// <summary>
-/// 撤回之后的实例。
+/// 撤回之后的实例
 /// </summary>
-/// <param name="InstanceId">流程实例。</param>
-/// <param name="Status">实例状态。</param>
+/// <param name="InstanceId">流程实例</param>
+/// <param name="Status">实例状态</param>
 public sealed record WithdrawApprovalResponse(Guid InstanceId, WorkflowInstanceStatus Status);
 
 /// <summary>
-/// 审批中心的列表补全（作用域）。
+/// 审批中心的列表补全（作用域）
 /// </summary>
-/// <param name="engine">引擎。</param>
-/// <param name="lookup">人名与定义。</param>
-/// <param name="registry">审批业务登记表。</param>
+/// <param name="engine">引擎</param>
+/// <param name="lookup">人名与定义</param>
+/// <param name="registry">审批业务登记表</param>
 public sealed class WorkflowApprovals(IWorkflowEngine engine, WorkflowLookup lookup, WorkflowBusinessRegistry registry)
 {
     /// <summary>
-    /// 给一页审批记录补上实例的状态、结论、发起人与审批业务名。
+    /// 给一页审批记录补上实例的状态、结论、发起人与审批业务名
     /// </summary>
     public async Task<Result<PageResult<WorkflowApprovalRecordResponse>>> RecordsAsync(PageResult<SysWorkflowTaskRecord> page, InvocationContext context)
     {

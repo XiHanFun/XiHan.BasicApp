@@ -47,10 +47,10 @@ function widget(key: string, i18nKey: string, icon: string, defaultSpan: number,
 }
 
 /**
- * 小组件登记表：新增小组件只需在此追加一项。
+ * 小组件登记表：新增小组件只需在此追加一项
  * 数据小组件取后端 workbench.widget-data（各包经 IWorkbenchWidgetProvider 登记，方案 N2），不再用前端生成的示例数据（方案 6.6）；
  * 权限码与后端登记该小组件时声明的一致，前端据此决定显隐，后端取数时照样核对。今日统计与公告不限权限：
- * 前者只列调用方看得到的指标，后者是本人的收件箱。
+ * 前者只列调用方看得到的指标，后者是本人的收件箱
  */
 export const WIDGETS: WidgetDef[] = [
   widget('welcome', 'welcome', 'lucide:sparkles', 4, WelcomeWidget),
@@ -89,11 +89,11 @@ function registered(widget: WorkbenchListWidget): WidgetDef {
 WIDGETS.push(...useWorkbenchWidgets().map(registered))
 
 /**
- * 小组件对当前用户是否可见：声明了权限码按权限码门控，声明了所属页面按调用方可见的页面门控，都没声明人人可见。
- * @param widget 小组件定义。
- * @param hasPermission 权限判定。
- * @param pages 调用方可见的页面编码。
- * @returns 是否可见。
+ * 小组件对当前用户是否可见：声明了权限码按权限码门控，声明了所属页面按调用方可见的页面门控，都没声明人人可见
+ * @param widget 小组件定义
+ * @param hasPermission 权限判定
+ * @param pages 调用方可见的页面编码
+ * @returns 是否可见
  */
 export function canShowWidget(widget: WidgetDef | undefined, hasPermission: (code: string) => boolean, pages: ReadonlySet<string>): boolean {
   return !!widget && (!widget.permission || hasPermission(widget.permission)) && (!widget.page || pages.has(widget.page))
@@ -112,6 +112,6 @@ export interface BoardItem {
  * 欢迎(4) 时间(4) 收藏入口(4) / 便签待办(3) 公告轮播(9) /
  * 今日统计(2) 访问概况(4) 在线设备(3) 登录失败原因(3) / 登录趋势(8) 存储占用(4) /
  * 访问最多的操作(8) 访问时段(4) / 作业执行(4) 异常类型(4) 消息发送(4)
- * 模块登记的小组件接在最后（如工作流的「我的待办」），看不到的由 canShowWidget 滤掉。
+ * 模块登记的小组件接在最后（如工作流的「我的待办」），看不到的由 canShowWidget 滤掉
  */
 export const DEFAULT_BOARD: BoardItem[] = WIDGETS.map(widget => ({ key: widget.key, span: widget.defaultSpan }))

@@ -1,9 +1,9 @@
 /**
- * packages/constants/storage.ts 契约测试。
+ * packages/constants/storage.ts 契约测试
  *
  * 职责边界：存储 key 是跨版本的持久化契约——重复取值会让两项设置互相覆盖，
  * 漏前缀会污染同域下其它应用的 localStorage。这里逐条锁定前缀、唯一性与关键 key 的字面量，
- * 不涉及读写行为（那在 packages/utils/storage.test.ts）。
+ * 不涉及读写行为（那在 packages/utils/storage.test.ts）
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -18,7 +18,7 @@ import {
 } from './storage'
 import * as storageKeys from './storage'
 
-/** 除前缀本身外的全部导出 key。 */
+/** 除前缀本身外的全部导出 key */
 const allKeys = Object.entries(storageKeys)
   .filter(([name]) => name !== 'STORAGE_PREFIX')
   .map(([name, value]) => [name, value as string] as const)

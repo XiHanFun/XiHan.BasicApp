@@ -17,17 +17,17 @@ interface PersistedSplitView {
 /**
  * 分屏对照（Split View）：把「当前标签」与「另一个已打开标签」合并成一个分屏标签，
  * 内容区左右并排——锚定标签（主视图 = 真实路由）+ 副标签（应用内直接渲染该路由组件，
- * 无 iframe、零重启零闪烁），类似 HarmonyOS 多窗口 / iPad Split View。
+ * 无 iframe、零重启零闪烁），类似 HarmonyOS 多窗口 / iPad Split View
  *
- * 模型：active + leftPath（锚定）+ rightPath（副，从标签栏隐藏）+ reversed（视觉反转）。
- * 「左右互换」= 翻转 reversed（纯 CSS order 交换，两侧组件实例原地保留，不重挂载不刷新）。
- * 仅当当前路由 === leftPath 时显示分屏；状态持久化到 SessionStorage，刷新页面不消失。
+ * 模型：active + leftPath（锚定）+ rightPath（副，从标签栏隐藏）+ reversed（视觉反转）
+ * 「左右互换」= 翻转 reversed（纯 CSS order 交换，两侧组件实例原地保留，不重挂载不刷新）
+ * 仅当当前路由 === leftPath 时显示分屏；状态持久化到 SessionStorage，刷新页面不消失
  */
 export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   const saved = SessionStorage.get<PersistedSplitView>(SPLIT_VIEW_KEY)
 
   // 小屏两栏并排过窄、不符合使用，故禁用分屏。复用全站统一的小屏判定（useIsMobile），
-  // 不再自定义断点，避免各处阈值不一致。
+  // 不再自定义断点，避免各处阈值不一致
   const { isMobile } = useIsMobile()
   /** 当前视口是否允许开启分屏（小屏禁用） */
   const canSplit = computed(() => !isMobile.value)
@@ -87,8 +87,8 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   }
 
   /**
-   * 左右互换：翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新。
-   * ratio（视觉左侧占比）保持不变 → 分割线位置固定，互换前后左侧始终一样宽。
+   * 左右互换：翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新
+   * ratio（视觉左侧占比）保持不变 → 分割线位置固定，互换前后左侧始终一样宽
    */
   function toggleReversed(): void {
     if (!active.value) {
@@ -130,7 +130,7 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   }
 
   // 缩到小屏立即关闭分屏（右标签恢复可见）；immediate 兼顾启动即处于小屏且
-  // SessionStorage 恢复了分屏的情形，立即收敛为关闭态。
+  // SessionStorage 恢复了分屏的情形，立即收敛为关闭态
   watch(isMobile, (mobile) => {
     if (mobile && active.value) {
       close()

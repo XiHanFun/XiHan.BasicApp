@@ -8,10 +8,10 @@ using XiHan.Framework.Primitives;
 namespace {{ Namespace }}.Queries;
 
 /// <summary>
-/// {{ DisplayName | xml_doc }}的列表查询（手写部分）。
+/// {{ DisplayName | xml_doc }}的列表查询（手写部分）
 /// </summary>
 /// <remarks>
-/// 只在第一次生成时写出，重新生成不碰它；按列配置推出的筛选与排序白名单在 {{ ClassName }}Queries.Generated.cs。
+/// 只在第一次生成时写出，重新生成不碰它；按列配置推出的筛选与排序白名单在 {{ ClassName }}Queries.Generated.cs
 /// </remarks>
 public sealed partial class {{ ClassName }}Queries
 {

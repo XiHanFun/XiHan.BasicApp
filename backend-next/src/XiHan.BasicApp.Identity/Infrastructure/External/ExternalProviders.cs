@@ -11,54 +11,54 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace XiHan.BasicApp.Identity.Infrastructure.External;
 
 /// <summary>
-/// 第三方给出的身份。
+/// 第三方给出的身份
 /// </summary>
-/// <param name="ProviderKey">第三方的用户标识。</param>
-/// <param name="DisplayName">显示名。</param>
-/// <param name="Email">邮箱。</param>
-/// <param name="AvatarUrl">头像。</param>
+/// <param name="ProviderKey">第三方的用户标识</param>
+/// <param name="DisplayName">显示名</param>
+/// <param name="Email">邮箱</param>
+/// <param name="AvatarUrl">头像</param>
 public sealed record ExternalIdentity(string ProviderKey, string? DisplayName, string? Email, string? AvatarUrl);
 
 /// <summary>
-/// 一家第三方登录的协议。
+/// 一家第三方登录的协议
 /// </summary>
 /// <remarks>
-/// 照 4.x 的处理器逐家重写，不经 ASP.NET Core 的认证处理器。拼授权地址、用授权码换令牌、取用户资料。
+/// 照 4.x 的处理器逐家重写，不经 ASP.NET Core 的认证处理器。拼授权地址、用授权码换令牌、取用户资料
 /// </remarks>
 public interface IExternalLoginProvider
 {
     /// <summary>
-    /// 类型（<see cref="ExternalProviderTypes"/>）。
+    /// 类型（<see cref="ExternalProviderTypes"/>）
     /// </summary>
     string Type { get; }
 
     /// <summary>
-    /// 是否用 PKCE。
+    /// 是否用 PKCE
     /// </summary>
     /// <remarks>
-    /// 只有 Google，4.x 同。
+    /// 只有 Google，4.x 同
     /// </remarks>
     bool UsesPkce => false;
 
     /// <summary>
-    /// 授权地址。
+    /// 授权地址
     /// </summary>
     string AuthorizeUrl(ExternalProviderConfig config, string redirectUri, string state, string? codeChallenge);
 
     /// <summary>
-    /// 用授权码换身份。
+    /// 用授权码换身份
     /// </summary>
-    /// <exception cref="ExternalLoginException">失败时抛出。</exception>
+    /// <exception cref="ExternalLoginException">失败时抛出</exception>
     Task<ExternalIdentity> ExchangeAsync(ExternalProviderConfig config, HttpClient http, string code, string redirectUri, string? codeVerifier, CancellationToken cancellationToken);
 }
 
 /// <summary>
-/// 第三方返回了错误（说明进日志，不给用户看）。
+/// 第三方返回了错误（说明进日志，不给用户看）
 /// </summary>
 public sealed class ExternalLoginException(string message) : Exception(message);
 
 /// <summary>
-/// 各家共用的 HTTP 小工具。
+/// 各家共用的 HTTP 小工具
 /// </summary>
 internal static class ProviderHttp
 {
@@ -141,10 +141,10 @@ internal static class ProviderHttp
 }
 
 /// <summary>
-/// 标准协议几家提供商的公共部分。
+/// 标准协议几家提供商的公共部分
 /// </summary>
 /// <remarks>
-/// 授权地址用 client_id / scope / response_type / redirect_uri / state 这一组标准参数、换码用标准表单。
+/// 授权地址用 client_id / scope / response_type / redirect_uri / state 这一组标准参数、换码用标准表单
 /// </remarks>
 internal abstract class StandardProvider : IExternalLoginProvider
 {
@@ -188,10 +188,10 @@ internal abstract class StandardProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// Google 登录。
+/// Google 登录
 /// </summary>
 /// <remarks>
-/// PKCE，openid profile email；key sub。
+/// PKCE，openid profile email；key sub
 /// </remarks>
 internal sealed class GoogleProvider : StandardProvider
 {
@@ -213,10 +213,10 @@ internal sealed class GoogleProvider : StandardProvider
 }
 
 /// <summary>
-/// GitHub 登录。
+/// GitHub 登录
 /// </summary>
 /// <remarks>
-/// key id、名称取 login；邮箱为空且范围含 user:email 时取主邮箱。
+/// key id、名称取 login；邮箱为空且范围含 user:email 时取主邮箱
 /// </remarks>
 internal sealed class GitHubProvider : StandardProvider
 {
@@ -243,10 +243,10 @@ internal sealed class GitHubProvider : StandardProvider
 }
 
 /// <summary>
-/// Gitee 登录。
+/// Gitee 登录
 /// </summary>
 /// <remarks>
-/// user_info emails；key id、名称取 login；邮箱为空时取邮箱列表里第一个。
+/// user_info emails；key id、名称取 login；邮箱为空时取邮箱列表里第一个
 /// </remarks>
 internal sealed class GiteeProvider : StandardProvider
 {
@@ -273,10 +273,10 @@ internal sealed class GiteeProvider : StandardProvider
 }
 
 /// <summary>
-/// 飞书登录。
+/// 飞书登录
 /// </summary>
 /// <remarks>
-/// 扫码走 passport、账号走开放平台 v1 / v2，两套端点成套替换；key union_id ?? open_id。
+/// 扫码走 passport、账号走开放平台 v1 / v2，两套端点成套替换；key union_id ?? open_id
 /// </remarks>
 internal sealed class LarkProvider : StandardProvider
 {
@@ -330,10 +330,10 @@ internal sealed class LarkProvider : StandardProvider
 }
 
 /// <summary>
-/// QQ 登录。
+/// QQ 登录
 /// </summary>
 /// <remarks>
-/// 换码 GET + fmt=json，再取 openid 与资料；key openid、nickname、figureurl_qq_2，没有邮箱。
+/// 换码 GET + fmt=json，再取 openid 与资料；key openid、nickname、figureurl_qq_2，没有邮箱
 /// </remarks>
 internal sealed class QqProvider : IExternalLoginProvider
 {
@@ -371,10 +371,10 @@ internal sealed class QqProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 微信登录。
+/// 微信登录
 /// </summary>
 /// <remarks>
-/// 扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，不需要 4.x 的短 state 绕法；key unionid ?? openid。
+/// 扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，不需要 4.x 的短 state 绕法；key unionid ?? openid
 /// </remarks>
 internal sealed class WeChatProvider : IExternalLoginProvider
 {
@@ -417,10 +417,10 @@ internal sealed class WeChatProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 企业微信登录。
+/// 企业微信登录
 /// </summary>
 /// <remarks>
-/// 扫码 sso/login、账号走网页授权 snsapi_privateinfo；令牌是应用级的 gettoken、与授权码无关，授权码交给 getuserinfo；有 user_ticket 再取详情，开了 LoadMemberProfile 再补成员资料；key userid ?? openid。
+/// 扫码 sso/login、账号走网页授权 snsapi_privateinfo；令牌是应用级的 gettoken、与授权码无关，授权码交给 getuserinfo；有 user_ticket 再取详情，开了 LoadMemberProfile 再补成员资料；key userid ?? openid
 /// </remarks>
 internal sealed class WeComProvider : IExternalLoginProvider
 {
@@ -491,10 +491,10 @@ internal sealed class WeComProvider : IExternalLoginProvider
 }
 
 /// <summary>
-/// 钉钉登录。
+/// 钉钉登录
 /// </summary>
 /// <remarks>
-/// 扫码 challenge.htm、账号 auth，prompt=consent，可限定 corpId；换码走驼峰 JSON；资料用 <c>x-acs-dingtalk-access-token</c> 头；key unionId ?? openId。
+/// 扫码 challenge.htm、账号 auth，prompt=consent，可限定 corpId；换码走驼峰 JSON；资料用 <c>x-acs-dingtalk-access-token</c> 头；key unionId ?? openId
 /// </remarks>
 internal sealed class DingTalkProvider : IExternalLoginProvider
 {

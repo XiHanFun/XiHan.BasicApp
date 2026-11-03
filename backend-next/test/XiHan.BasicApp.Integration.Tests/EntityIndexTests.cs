@@ -14,11 +14,11 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 守护实体的索引声明。
+/// 守护实体的索引声明
 /// </summary>
 /// <remarks>
 /// 软删除实体的唯一约束只约束未删除的行（<see cref="ActiveUniqueIndexAttribute"/>，部分唯一索引），不写唯一的 <c>[SugarIndex]</c>（同一个键第二次删除会撞约束）；
-/// 部分唯一索引只用于软删除实体；索引列都是实体的属性；按实际表名算出的索引名不超过 PostgreSQL 的 63 字符且不重名。语义上：未删的行插重复被数据库拒绝，已删的行同键可以有多条。
+/// 部分唯一索引只用于软删除实体；索引列都是实体的属性；按实际表名算出的索引名不超过 PostgreSQL 的 63 字符且不重名。语义上：未删的行插重复被数据库拒绝，已删的行同键可以有多条
 /// </remarks>
 public sealed class EntityIndexTests : IDisposable
 {
@@ -27,7 +27,7 @@ public sealed class EntityIndexTests : IDisposable
     public void Dispose() => _database.Dispose();
 
     /// <summary>
-    /// 宿主装配的全部能力包里的实体类型。
+    /// 宿主装配的全部能力包里的实体类型
     /// </summary>
     private static List<Type> EntityTypes()
     {

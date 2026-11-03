@@ -4,6 +4,6 @@
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// <c>impersonation.stop</c> 的请求：没有输入。
+/// <c>impersonation.stop</c> 的请求：没有输入
 /// </summary>
 public sealed record StopImpersonationRequest;

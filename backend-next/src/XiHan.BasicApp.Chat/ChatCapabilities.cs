@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Chat;
 
 /// <summary>
-/// 聊天模块提供的能力。
+/// 聊天模块提供的能力
 /// </summary>
 public static class ChatCapabilities
 {
     /// <summary>
-    /// 在线聊天能力：会话、消息、聊天 Hub 与聊天审计。
+    /// 在线聊天能力：会话、消息、聊天 Hub 与聊天审计
     /// </summary>
     public const string Chat = AppInfo.CapabilityPrefix + "chat";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = 1;
 }

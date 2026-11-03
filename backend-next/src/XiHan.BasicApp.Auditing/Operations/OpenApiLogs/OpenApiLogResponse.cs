@@ -6,30 +6,30 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 namespace XiHan.BasicApp.Auditing.Operations.OpenApiLogs;
 
 /// <summary>
-/// 开放接口日志的列表项（不含正文摘要）。
+/// 开放接口日志的列表项（不含正文摘要）
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="OccurredAt">发生时间。</param>
-/// <param name="TraceId">trace-id。</param>
-/// <param name="UserId">用户。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="SessionId">会话。</param>
-/// <param name="ClientIp">客户端地址。</param>
-/// <param name="UserAgent">User-Agent。</param>
-/// <param name="ClientId">接入应用的客户端标识。</param>
-/// <param name="AppName">接入应用名称。</param>
-/// <param name="OperationId">操作 ID。</param>
-/// <param name="Method">请求方法。</param>
-/// <param name="Path">请求路径。</param>
-/// <param name="SignatureAlgorithm">签名算法。</param>
-/// <param name="SignatureValid">签名是否有效。</param>
-/// <param name="StatusCode">HTTP 状态码。</param>
-/// <param name="Succeeded">是否成功。</param>
-/// <param name="ErrorCode">失败的错误码。</param>
-/// <param name="ErrorMessage">失败的错误消息。</param>
-/// <param name="DurationMs">耗时（毫秒）。</param>
-/// <param name="RequestSize">请求大小（字节）。</param>
-/// <param name="ResponseSize">响应大小（字节）。</param>
+/// <param name="Id">主键</param>
+/// <param name="OccurredAt">发生时间</param>
+/// <param name="TraceId">trace-id</param>
+/// <param name="UserId">用户</param>
+/// <param name="UserName">登录名</param>
+/// <param name="SessionId">会话</param>
+/// <param name="ClientIp">客户端地址</param>
+/// <param name="UserAgent">User-Agent</param>
+/// <param name="ClientId">接入应用的客户端标识</param>
+/// <param name="AppName">接入应用名称</param>
+/// <param name="OperationId">操作 ID</param>
+/// <param name="Method">请求方法</param>
+/// <param name="Path">请求路径</param>
+/// <param name="SignatureAlgorithm">签名算法</param>
+/// <param name="SignatureValid">签名是否有效</param>
+/// <param name="StatusCode">HTTP 状态码</param>
+/// <param name="Succeeded">是否成功</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="ErrorMessage">失败的错误消息</param>
+/// <param name="DurationMs">耗时（毫秒）</param>
+/// <param name="RequestSize">请求大小（字节）</param>
+/// <param name="ResponseSize">响应大小（字节）</param>
 public sealed record OpenApiLogResponse(
     Guid Id,
     DateTimeOffset OccurredAt,
@@ -55,7 +55,7 @@ public sealed record OpenApiLogResponse(
     long ResponseSize)
 {
     /// <summary>
-    /// 从实体投影。
+    /// 从实体投影
     /// </summary>
     public static OpenApiLogResponse From(SysOpenApiLog log)
     {
@@ -87,32 +87,32 @@ public sealed record OpenApiLogResponse(
 }
 
 /// <summary>
-/// 开放接口日志详情：列表项的字段加正文摘要。
+/// 开放接口日志详情：列表项的字段加正文摘要
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="OccurredAt">发生时间。</param>
-/// <param name="TraceId">trace-id。</param>
-/// <param name="UserId">用户。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="SessionId">会话。</param>
-/// <param name="ClientIp">客户端地址。</param>
-/// <param name="UserAgent">User-Agent。</param>
-/// <param name="ClientId">接入应用的客户端标识。</param>
-/// <param name="AppName">接入应用名称。</param>
-/// <param name="OperationId">操作 ID。</param>
-/// <param name="Method">请求方法。</param>
-/// <param name="Path">请求路径。</param>
-/// <param name="SignatureAlgorithm">签名算法。</param>
-/// <param name="SignatureValid">签名是否有效。</param>
-/// <param name="StatusCode">HTTP 状态码。</param>
-/// <param name="Succeeded">是否成功。</param>
-/// <param name="ErrorCode">失败的错误码。</param>
-/// <param name="ErrorMessage">失败的错误消息。</param>
-/// <param name="DurationMs">耗时（毫秒）。</param>
-/// <param name="RequestSize">请求大小（字节）。</param>
-/// <param name="ResponseSize">响应大小（字节）。</param>
-/// <param name="RequestBody">请求正文摘要。</param>
-/// <param name="ResponseBody">响应正文摘要。</param>
+/// <param name="Id">主键</param>
+/// <param name="OccurredAt">发生时间</param>
+/// <param name="TraceId">trace-id</param>
+/// <param name="UserId">用户</param>
+/// <param name="UserName">登录名</param>
+/// <param name="SessionId">会话</param>
+/// <param name="ClientIp">客户端地址</param>
+/// <param name="UserAgent">User-Agent</param>
+/// <param name="ClientId">接入应用的客户端标识</param>
+/// <param name="AppName">接入应用名称</param>
+/// <param name="OperationId">操作 ID</param>
+/// <param name="Method">请求方法</param>
+/// <param name="Path">请求路径</param>
+/// <param name="SignatureAlgorithm">签名算法</param>
+/// <param name="SignatureValid">签名是否有效</param>
+/// <param name="StatusCode">HTTP 状态码</param>
+/// <param name="Succeeded">是否成功</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="ErrorMessage">失败的错误消息</param>
+/// <param name="DurationMs">耗时（毫秒）</param>
+/// <param name="RequestSize">请求大小（字节）</param>
+/// <param name="ResponseSize">响应大小（字节）</param>
+/// <param name="RequestBody">请求正文摘要</param>
+/// <param name="ResponseBody">响应正文摘要</param>
 public sealed record OpenApiLogDetailResponse(
     Guid Id,
     DateTimeOffset OccurredAt,
@@ -140,7 +140,7 @@ public sealed record OpenApiLogDetailResponse(
     string? ResponseBody)
 {
     /// <summary>
-    /// 从实体投影。
+    /// 从实体投影
     /// </summary>
     public static OpenApiLogDetailResponse From(SysOpenApiLog log)
     {
@@ -174,7 +174,7 @@ public sealed record OpenApiLogDetailResponse(
 }
 
 /// <summary>
-/// <c>open-api-logs.get</c> 的请求。
+/// <c>open-api-logs.get</c> 的请求
 /// </summary>
-/// <param name="Id">日志主键。</param>
+/// <param name="Id">日志主键</param>
 public sealed record GetOpenApiLogRequest(Guid Id);

@@ -14,12 +14,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证实时推送的跨实例。
+/// 验证实时推送的跨实例
 /// </summary>
 /// <remarks>
 /// 两个宿主共用一个库：配了 Redis 时一个实例发出的推送经背板送到另一个实例上的连接，在线列表汇总两个实例的连接，
-/// 吊销会话时别的实例上的连接收到 <c>ForceLogout</c> 并被移出全部组；再配了 RabbitMQ 时它还被所在的实例断开。
-/// 立即推送只能在事务之外用。
+/// 吊销会话时别的实例上的连接收到 <c>ForceLogout</c> 并被移出全部组；再配了 RabbitMQ 时它还被所在的实例断开
+/// 立即推送只能在事务之外用
 /// </remarks>
 public sealed class RealtimeScaleOutTests : IDisposable
 {
@@ -122,7 +122,7 @@ public sealed class RealtimeScaleOutTests : IDisposable
     }
 
     /// <summary>
-    /// 起两个共用一个库、一个 Redis 键前缀的实例。
+    /// 起两个共用一个库、一个 Redis 键前缀的实例
     /// </summary>
     private async Task<(BasicAppTestServer First, BasicAppTestServer Second, string Platform)> StartPairAsync(KeyValuePair<string, string?>[] providers)
     {
@@ -187,7 +187,7 @@ public sealed class RealtimeScaleOutTests : IDisposable
 }
 
 /// <summary>
-/// 用例载荷的源生成序列化上下文。
+/// 用例载荷的源生成序列化上下文
 /// </summary>
 [System.Text.Json.Serialization.JsonSerializable(typeof(string))]
 internal sealed partial class TestJsonContext : System.Text.Json.Serialization.JsonSerializerContext;

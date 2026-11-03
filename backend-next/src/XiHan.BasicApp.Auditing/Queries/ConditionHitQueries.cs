@@ -11,13 +11,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 条件命中查询。
+/// 条件命中查询
 /// </summary>
 /// <remarks>
 /// 关键字匹配策略编码、策略名称与路径；另有筛选 <c>source</c>、<c>action</c>（eq / in）、<c>phase</c>、<c>isBlocked</c>、<c>policyId</c>、<c>policyCode</c>（eq / contains）、
-/// <c>path</c>（contains）；另有排序 <c>hitCount</c>、<c>policyCode</c>。
+/// <c>path</c>（contains）；另有排序 <c>hitCount</c>、<c>policyCode</c>
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class ConditionHitQueries(SqlSugarUnitOfWork unitOfWork) : AuditLogQueries<SysConditionHit, ConditionHitResponse, ConditionHitResponse>(unitOfWork)
 {
     /// <inheritdoc />

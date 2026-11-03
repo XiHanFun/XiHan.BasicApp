@@ -10,24 +10,24 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 发送记录的人工处理（邮件与短信同一套）。
+/// 发送记录的人工处理（邮件与短信同一套）
 /// </summary>
 /// <remarks>
-/// 重发即改回排队中、清零尝试次数（排队中与发送中的逐项拒绝）；取消只对排队中的；删除是软删除（发送中的逐项拒绝）。
+/// 重发即改回排队中、清零尝试次数（排队中与发送中的逐项拒绝）；取消只对排队中的；删除是软删除（发送中的逐项拒绝）
 /// </remarks>
-/// <param name="signal">唤醒信号（重发后立即发）。</param>
+/// <param name="signal">唤醒信号（重发后立即发）</param>
 public sealed class MessageRecordService(MessageDispatchSignal signal)
 {
     /// <summary>
-    /// 批量重发。
+    /// 批量重发
     /// </summary>
-    /// <typeparam name="T">记录类型。</typeparam>
-    /// <param name="records">记录仓储。</param>
-    /// <param name="owner">侧。</param>
-    /// <param name="ids">记录 ID。</param>
-    /// <param name="notFound">不存在时的错误码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <typeparam name="T">记录类型</typeparam>
+    /// <param name="records">记录仓储</param>
+    /// <param name="owner">侧</param>
+    /// <param name="ids">记录 ID</param>
+    /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> ResendAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {
@@ -47,29 +47,29 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
     }
 
     /// <summary>
-    /// 批量取消（只对排队中的）。
+    /// 批量取消（只对排队中的）
     /// </summary>
-    /// <typeparam name="T">记录类型。</typeparam>
-    /// <param name="records">记录仓储。</param>
-    /// <param name="owner">侧。</param>
-    /// <param name="ids">记录 ID。</param>
-    /// <param name="notFound">不存在时的错误码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <typeparam name="T">记录类型</typeparam>
+    /// <param name="records">记录仓储</param>
+    /// <param name="owner">侧</param>
+    /// <param name="ids">记录 ID</param>
+    /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public static Task<BatchResult> CancelAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
         => ApplyAsync(records, owner, ids, notFound, static r => r.Status == MessageSendStatus.Pending ? null : NotificationErrors.RecordNotPending, static r => r.Status = MessageSendStatus.Cancelled, cancellationToken);
 
     /// <summary>
-    /// 批量删除（发送中的逐项拒绝）。
+    /// 批量删除（发送中的逐项拒绝）
     /// </summary>
-    /// <typeparam name="T">记录类型。</typeparam>
-    /// <param name="records">记录仓储。</param>
-    /// <param name="owner">侧。</param>
-    /// <param name="ids">记录 ID。</param>
-    /// <param name="notFound">不存在时的错误码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <typeparam name="T">记录类型</typeparam>
+    /// <param name="records">记录仓储</param>
+    /// <param name="owner">侧</param>
+    /// <param name="ids">记录 ID</param>
+    /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public static async Task<BatchResult> DeleteAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {

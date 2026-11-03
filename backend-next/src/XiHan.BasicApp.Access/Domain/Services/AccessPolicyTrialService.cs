@@ -18,21 +18,21 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 访问策略的试运行。
+/// 访问策略的试运行
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 AccessPolicyTrialService。
+/// 对应 4.x 的 AccessPolicyTrialService
 /// 已有策略或草稿条件，按给定的请求情形只求这一条、不看有效期，逐组逐条件说明；
-/// 给了用户即按他此刻的有效指派取角色（不看令牌），没给即按未登录。编译不过的条件写进 <c>errors</c>，不求值。
+/// 给了用户即按他此刻的有效指派取角色（不看令牌），没给即按未登录。编译不过的条件写进 <c>errors</c>，不求值
 /// </remarks>
-/// <param name="service">策略服务。</param>
-/// <param name="grants">授予全貌（用户此刻的角色）。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="policyEvaluator">策略求值（编译与时机）。</param>
-/// <param name="conditionEvaluator">条件求值器（说明模式）。</param>
-/// <param name="options">授权包配置。</param>
-/// <param name="services">服务提供器（属性来源查库、归属地）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="service">策略服务</param>
+/// <param name="grants">授予全貌（用户此刻的角色）</param>
+/// <param name="users">用户仓储</param>
+/// <param name="policyEvaluator">策略求值（编译与时机）</param>
+/// <param name="conditionEvaluator">条件求值器（说明模式）</param>
+/// <param name="options">授权包配置</param>
+/// <param name="services">服务提供器（属性来源查库、归属地）</param>
+/// <param name="clock">时间源</param>
 public sealed class AccessPolicyTrialService(
     AccessPolicyService service,
     GrantEvaluator grants,
@@ -44,7 +44,7 @@ public sealed class AccessPolicyTrialService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 试运行。
+    /// 试运行
     /// </summary>
     public async Task<Result<AccessPolicyTrialResponse>> TrialAsync(string owner, TrialAccessPolicyRequest request, Func<Error, string> localize, CancellationToken cancellationToken)
     {

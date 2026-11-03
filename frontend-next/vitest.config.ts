@@ -3,7 +3,7 @@ import { defineConfig, mergeConfig } from 'vitest/config'
 import viteConfig from './vite.config.ts'
 
 /**
- * 单元测试复用 vite.config.ts：别名、去重与 Xh* 解析在测试里同样生效。
+ * 单元测试复用 vite.config.ts：别名、去重与 Xh* 解析在测试里同样生效
  */
 export default defineConfig(async (env) => {
   const base = typeof viteConfig === 'function' ? await viteConfig(env) : viteConfig

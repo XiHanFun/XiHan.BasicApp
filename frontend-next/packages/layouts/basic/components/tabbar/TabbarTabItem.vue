@@ -75,7 +75,7 @@ function onAuxClick(event: MouseEvent) {
 
 /**
  * 悬停提示：首行是标签名（标题会被 120px 截断，悬停第一眼要看得到全名），
- * 次行逐条列出这枚标签当前真正可用的鼠标手势。
+ * 次行逐条列出这枚标签当前真正可用的鼠标手势
  */
 const tabHint = computed(() => {
   const parts: string[] = []
@@ -93,10 +93,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 <template>
   <!--
-    单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格。
+    单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格
     TransitionGroup 始终看到同一 DOM 节点类型，切换风格时只做原地 patch，
-    不触发 leave/enter 动画，彻底消除切换闪烁。
-    data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传。
+    不触发 leave/enter 动画，彻底消除切换闪烁
+    data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传
   -->
   <XhSortableItem
     :item-id="item.path"

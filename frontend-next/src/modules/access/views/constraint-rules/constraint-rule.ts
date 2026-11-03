@@ -96,8 +96,8 @@ function failedCodes(result: { failed: { code: string }[] }): void {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停。
- * 搜索按后端白名单：关键字匹配编码、名称、说明与备注；类型、目标类型、处理方式、状态多选（合成 in）。
+ * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停
+ * 搜索按后端白名单：关键字匹配编码、名称、说明与备注；类型、目标类型、处理方式、状态多选（合成 in）
  */
 export function constraintRuleResource(): SchemaResource<ConstraintRuleRow> {
   return {

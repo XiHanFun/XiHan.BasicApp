@@ -13,7 +13,7 @@ using XiHan.BasicApp.Maintenance.Operations.Versions;
 namespace XiHan.BasicApp.Maintenance;
 
 /// <summary>
-/// 运维包操作请求与响应的 JSON 源生成上下文。
+/// 运维包操作请求与响应的 JSON 源生成上下文
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

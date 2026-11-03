@@ -12,46 +12,46 @@ using SecurityPolicies = XiHan.BasicApp.Contracts.Security.Policies;
 namespace XiHan.BasicApp.Workbench.Operations.Workbench;
 
 /// <summary>
-/// <c>workbench.widgets</c> 的请求（没有参数）。
+/// <c>workbench.widgets</c> 的请求（没有参数）
 /// </summary>
 public sealed record WorkbenchWidgetsRequest;
 
 /// <summary>
-/// 调用方看得到的一个小组件。
+/// 调用方看得到的一个小组件
 /// </summary>
-/// <param name="Key">键。</param>
-/// <param name="Kind">取数形态。</param>
+/// <param name="Key">键</param>
+/// <param name="Kind">取数形态</param>
 public sealed record WorkbenchWidgetResponse(string Key, WorkbenchWidgetKind Kind);
 
 /// <summary>
-/// 调用方看得到的小组件。
+/// 调用方看得到的小组件
 /// </summary>
-/// <param name="Items">小组件，按键排序。</param>
+/// <param name="Items">小组件，按键排序</param>
 public sealed record WorkbenchWidgetsResponse(IReadOnlyList<WorkbenchWidgetResponse> Items);
 
 /// <summary>
-/// <c>workbench.widget-data</c> 的请求。
+/// <c>workbench.widget-data</c> 的请求
 /// </summary>
-/// <param name="Key">小组件的键。</param>
-/// <param name="Days">统计最近几天，含今天（趋势、构成类用，缺省 30）。</param>
-/// <param name="Offset">查看者所在时区相对 UTC 的分钟数（东八区为 480），「今天」与按日分桶据此算。</param>
+/// <param name="Key">小组件的键</param>
+/// <param name="Days">统计最近几天，含今天（趋势、构成类用，缺省 30）</param>
+/// <param name="Offset">查看者所在时区相对 UTC 的分钟数（东八区为 480），「今天」与按日分桶据此算</param>
 public sealed record WorkbenchWidgetDataRequest(
     [Required, StringLength(100, MinimumLength = 1)] string Key,
     [Range(1, 366)] int Days = 30,
     [Range(-840, 840)] int Offset = 0);
 
 /// <summary>
-/// 各包登记的小组件与权限判定。
+/// 各包登记的小组件与权限判定
 /// </summary>
-/// <param name="providers">各包的小组件提供者。</param>
-/// <param name="permissions">权限判定。</param>
+/// <param name="providers">各包的小组件提供者</param>
+/// <param name="permissions">权限判定</param>
 public sealed class WidgetCatalog(IEnumerable<IWorkbenchWidgetProvider> providers, IPermissionChecker permissions)
 {
     /// <summary>
-    /// 调用方看得到的小组件。
+    /// 调用方看得到的小组件
     /// </summary>
     /// <remarks>
-    /// 权限判定本身失败（授予存储读不到）时整个列表失败，不把部件悄悄隐藏掉。
+    /// 权限判定本身失败（授予存储读不到）时整个列表失败，不把部件悄悄隐藏掉
     /// </remarks>
     public async ValueTask<Result<IReadOnlyList<WorkbenchWidget>>> VisibleAsync(InvocationContext context)
     {
@@ -80,7 +80,7 @@ public sealed class WidgetCatalog(IEnumerable<IWorkbenchWidgetProvider> provider
     }
 
     /// <summary>
-    /// 按键找到小组件与登记它的提供者，并核对权限。
+    /// 按键找到小组件与登记它的提供者，并核对权限
     /// </summary>
     public async ValueTask<Result<IWorkbenchWidgetProvider>> ResolveAsync(string key, InvocationContext context)
     {
@@ -113,17 +113,17 @@ public sealed class WidgetCatalog(IEnumerable<IWorkbenchWidgetProvider> provider
 }
 
 /// <summary>
-/// 列出调用方看得到的工作台小组件。
+/// 列出调用方看得到的工作台小组件
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workbench:widgets</c>（自助操作，只要求已认证）。汇总各包登记的小组件，没声明权限的人人可见，声明了的按调用方的权限筛。
+/// <c>GET /api/workbench:widgets</c>（自助操作，只要求已认证）。汇总各包登记的小组件，没声明权限的人人可见，声明了的按调用方的权限筛
 /// </remarks>
-/// <param name="catalog">小组件目录。</param>
+/// <param name="catalog">小组件目录</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
 public sealed class ListWidgets(WidgetCatalog catalog) : IOperation<WorkbenchWidgetsRequest, WorkbenchWidgetsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workbench.widgets";
 
@@ -138,18 +138,18 @@ public sealed class ListWidgets(WidgetCatalog catalog) : IOperation<WorkbenchWid
 }
 
 /// <summary>
-/// 取一个工作台小组件的数据。
+/// 取一个工作台小组件的数据
 /// </summary>
 /// <remarks>
 /// <c>GET /api/workbench:widget-data</c>（自助操作，只要求已认证）。先核对小组件声明的权限，再交给登记它的包取当前一侧的数据；
-/// 没有这个键 <c>WORKBENCH_NOTFOUND_001</c>，没有权限 <c>WORKBENCH_DENIED_001</c>。
+/// 没有这个键 <c>WORKBENCH_NOTFOUND_001</c>，没有权限 <c>WORKBENCH_DENIED_001</c>
 /// </remarks>
-/// <param name="catalog">小组件目录。</param>
+/// <param name="catalog">小组件目录</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
 public sealed class GetWidgetData(WidgetCatalog catalog) : IOperation<WorkbenchWidgetDataRequest, WorkbenchWidgetData>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workbench.widget-data";
 

@@ -1,7 +1,7 @@
 /**
- * 公共打印服务。
- * 职责：按编码解析模板、按需校验可选代码数据源、调起浏览器打印，以及通过当前会话 FIFO 队列交给本地打印客户端直打。
- * 直打连不上客户端时明确报错，不退回浏览器打印。
+ * 公共打印服务
+ * 职责：按编码解析模板、按需校验可选代码数据源、调起浏览器打印，以及通过当前会话 FIFO 队列交给本地打印客户端直打
+ * 直打连不上客户端时明确报错，不退回浏览器打印
  */
 import type { PrintDocument } from '@xihan-print/core'
 import type { PrintClientError } from '@xihan-print/runtime/client'
@@ -21,11 +21,11 @@ import { ensureRemotePrintDataSourcesLoaded } from './remote-data-sources'
 import { loadPrintRuntime } from './runtime'
 
 /**
- * 模拟数据表单打开后，服务端模板版本已经发生变化。
- * 调用方可据此展示本地化提示，而无需依赖错误文本进行脆弱判断。
+ * 模拟数据表单打开后，服务端模板版本已经发生变化
+ * 调用方可据此展示本地化提示，而无需依赖错误文本进行脆弱判断
  */
 export class PrintTemplateVersionChangedError extends Error {
-  /** 创建一个模板版本冲突错误。 */
+  /** 创建一个模板版本冲突错误 */
   constructor() {
     super('打印模板已被更新，请关闭模拟数据表单后重新打开。')
     this.name = 'PrintTemplateVersionChangedError'
@@ -37,7 +37,7 @@ const DEFAULT_DIRECT_TIMEOUT_MS = 30_000
 const MIN_COPIES = 1
 const MAX_COPIES = 99
 
-/** 客户端错误码 → 提示；没列出的按「直接打印失败」加错误码提示。 */
+/** 客户端错误码 → 提示；没列出的按「直接打印失败」加错误码提示 */
 const CLIENT_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CLIENT_UNAVAILABLE: '没有连上本地打印客户端，请确认已安装并运行 XiHan 打印客户端。',
   PROTOCOL_UNSUPPORTED: '本地打印客户端版本过旧，请升级 XiHan 打印客户端。',
@@ -52,16 +52,16 @@ const CLIENT_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CONNECTION_LOST: '与打印客户端的连接中断。',
 }
 
-// Promise 链只保存任务完成信号，不保存打印数据；成功或失败都吞入下一环，确保后续任务不会被前一个失败永久阻塞。
+// Promise 链只保存任务完成信号，不保存打印数据；成功或失败都吞入下一环，确保后续任务不会被前一个失败永久阻塞
 let directQueueTail: Promise<void> = Promise.resolve()
 
 /**
- * 按模板编码调起浏览器打印（输出页在看不见的 iframe 里排好，再打开打印对话框）。
- * @param templateCode 后端打印模板编码。
- * @param data 单对象或对象数组打印数据；数组时各自分页后一次打印，仅保存在当前浏览器内存。
- * @param options 作用域、标题与预期行版本。
- * @returns 打印对话框已调起的完成信号；不表示用户最终确认打印。
- * @throws 模板不可用、不是当前格式、数据源未注册或排版失败。
+ * 按模板编码调起浏览器打印（输出页在看不见的 iframe 里排好，再打开打印对话框）
+ * @param templateCode 后端打印模板编码
+ * @param data 单对象或对象数组打印数据；数组时各自分页后一次打印，仅保存在当前浏览器内存
+ * @param options 作用域、标题与预期行版本
+ * @returns 打印对话框已调起的完成信号；不表示用户最终确认打印
+ * @throws 模板不可用、不是当前格式、数据源未注册或排版失败
  */
 export async function previewPrintByCode<T>(
   templateCode: string,
@@ -76,13 +76,13 @@ export async function previewPrintByCode<T>(
 }
 
 /**
- * 用一份模板（如编辑器里还没保存的设计）调起浏览器打印。
- * @param document 打印模板。
- * @param data 单对象或对象数组打印数据；数组时各自分页后一次打印。
- * @param options 打印选项。
- * @param options.title 打印对话框与另存 PDF 时的缺省文件名。
- * @returns 打印对话框已调起的完成信号。
- * @throws 模板有错误级问题或排版失败。
+ * 用一份模板（如编辑器里还没保存的设计）调起浏览器打印
+ * @param document 打印模板
+ * @param data 单对象或对象数组打印数据；数组时各自分页后一次打印
+ * @param options 打印选项
+ * @param options.title 打印对话框与另存 PDF 时的缺省文件名
+ * @returns 打印对话框已调起的完成信号
+ * @throws 模板有错误级问题或排版失败
  */
 export async function previewPrintDocument<T>(
   document: PrintDocument,
@@ -94,10 +94,10 @@ export async function previewPrintDocument<T>(
 }
 
 /**
- * 确认模拟数据表单对应的模板版本仍是本次即将打印的版本。
- * @param resolved 后端刚解析出的最新模板。
- * @param expectedRowVersion 打开模拟数据表单时读取的字符串行版本。
- * @throws 预期版本为空白或模板已被并行更新。
+ * 确认模拟数据表单对应的模板版本仍是本次即将打印的版本
+ * @param resolved 后端刚解析出的最新模板
+ * @param expectedRowVersion 打开模拟数据表单时读取的字符串行版本
+ * @throws 预期版本为空白或模板已被并行更新
  */
 function ensureExpectedRowVersion(
   resolved: ResolvedPrintTemplate,
@@ -113,12 +113,12 @@ function ensureExpectedRowVersion(
 }
 
 /**
- * 按模板编码加入当前会话 FIFO 直打队列，交给本地打印客户端静默打印。
- * @param templateCode 后端打印模板编码。
- * @param data 单对象或对象数组打印数据；任务完成后即可由调用方释放。
- * @param options 打印机、份数、作用域、超时和取消信号。
- * @returns 客户端把任务交给系统打印队列后的结果。
- * @throws 客户端不可用、未授权、无打印机、打印机不存在、超时、取消或客户端报告失败。
+ * 按模板编码加入当前会话 FIFO 直打队列，交给本地打印客户端静默打印
+ * @param templateCode 后端打印模板编码
+ * @param data 单对象或对象数组打印数据；任务完成后即可由调用方释放
+ * @param options 打印机、份数、作用域、超时和取消信号
+ * @returns 客户端把任务交给系统打印队列后的结果
+ * @throws 客户端不可用、未授权、无打印机、打印机不存在、超时、取消或客户端报告失败
  */
 export function directPrintByCode<T>(
   templateCode: string,
@@ -134,9 +134,9 @@ export function directPrintByCode<T>(
 }
 
 /**
- * 读取本地打印客户端的打印机列表。
- * @returns 打印机列表。
- * @throws 客户端不可用或未授权。
+ * 读取本地打印客户端的打印机列表
+ * @returns 打印机列表
+ * @throws 客户端不可用或未授权
  */
 export async function listPrinters(): Promise<PrintDevice[]> {
   const runtime = await loadPrintRuntime()
@@ -150,20 +150,20 @@ export async function listPrinters(): Promise<PrintDevice[]> {
 }
 
 /**
- * 重新向本地打印客户端查询打印机列表。
- * @returns 客户端最新打印机列表。
- * @throws 客户端不可用或未授权。
+ * 重新向本地打印客户端查询打印机列表
+ * @returns 客户端最新打印机列表
+ * @throws 客户端不可用或未授权
  */
 export function refreshPrinters(): Promise<PrintDevice[]> {
   return listPrinters()
 }
 
 /**
- * 设置当前用户、租户和模板的本地打印机偏好。
- * @param templateCode 模板编码。
- * @param printerName 打印机名称；null 表示清除偏好。
- * @returns 完成信号。
- * @throws 指定打印机不在当前客户端列表中或客户端不可用。
+ * 设置当前用户、租户和模板的本地打印机偏好
+ * @param templateCode 模板编码
+ * @param printerName 打印机名称；null 表示清除偏好
+ * @returns 完成信号
+ * @throws 指定打印机不在当前客户端列表中或客户端不可用
  */
 export async function setPreferredPrinter(
   templateCode: string,
@@ -178,7 +178,7 @@ export async function setPreferredPrinter(
   savePreferredPrinter(templateCode, normalized || null)
 }
 
-/** 执行队首直打任务：选打印机、交给客户端、等它交给系统打印队列。 */
+/** 执行队首直打任务：选打印机、交给客户端、等它交给系统打印队列 */
 async function executeDirectPrint<T>(
   templateCode: string,
   data: T | T[],
@@ -233,7 +233,7 @@ async function executeDirectPrint<T>(
   }
 }
 
-/** 按显式指定、本地偏好、客户端默认的固定优先级选择打印机；空字符串交给客户端的默认打印机。 */
+/** 按显式指定、本地偏好、客户端默认的固定优先级选择打印机；空字符串交给客户端的默认打印机 */
 function choosePrinter(
   templateCode: string,
   printers: PrintDevice[],
@@ -253,7 +253,7 @@ function choosePrinter(
   return printers.find(printer => printer.isDefault)?.name ?? ''
 }
 
-/** 解析后端模板；绑定了数据源的模板确认数据源已注册，自由模板直接按模板里的字段接收数据。 */
+/** 解析后端模板；绑定了数据源的模板确认数据源已注册，自由模板直接按模板里的字段接收数据 */
 async function resolveTemplate(
   templateCode: string,
   scope: PrintTemplateScope,
@@ -270,7 +270,7 @@ async function resolveTemplate(
   return resolved
 }
 
-/** 单对象包成一条记录，数组原样；空数组拒绝。 */
+/** 单对象包成一条记录，数组原样；空数组拒绝 */
 function toRecords<T>(data: T | T[]): unknown[] {
   const records = Array.isArray(data) ? data : [data]
   if (records.length === 0)
@@ -278,21 +278,21 @@ function toRecords<T>(data: T | T[]): unknown[] {
   return records
 }
 
-/** 归一 1～99 的打印份数。 */
+/** 归一 1～99 的打印份数 */
 function normalizeCopies(copies = 1): number {
   if (!Number.isInteger(copies) || copies < MIN_COPIES || copies > MAX_COPIES)
     throw new RangeError(`打印份数必须是 ${MIN_COPIES}～${MAX_COPIES} 的整数。`)
   return copies
 }
 
-/** 归一直打超时。 */
+/** 归一直打超时 */
 function normalizeTimeout(timeoutMs = DEFAULT_DIRECT_TIMEOUT_MS): number {
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
     throw new RangeError('直接打印超时时间必须大于 0。')
   return timeoutMs
 }
 
-/** 客户端错误换成按错误码的提示；别的错误原样抛出。 */
+/** 客户端错误换成按错误码的提示；别的错误原样抛出 */
 function toClientError(error: unknown): Error {
   if (error instanceof Error && error.name === 'PrintClientError') {
     const code = (error as PrintClientError).code

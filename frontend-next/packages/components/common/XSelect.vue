@@ -25,15 +25,15 @@ import { useI18n } from 'vue-i18n'
 import { useControlAttrs } from './control-attrs'
 
 /**
- * 下拉选择。
+ * 下拉选择
  *
  * 存在的理由是两件组件库不管、而全站每个下拉都要做的事：
  * 1. 值类型。组件库的选中值一律是 `string[]`（单选也是长度 1 的数组），而业务里的选项值
- *    大量是数字（枚举）。这里按 String(value) 建映射，收上来再还原成原类型。
- * 2. 清除钮。它是一个要自己摆的部件，不是 prop。
+ *    大量是数字（枚举）。这里按 String(value) 建映射，收上来再还原成原类型
+ * 2. 清除钮。它是一个要自己摆的部件，不是 prop
  *
- * 其余能力（collection 铺开条目、placeholder、多选标签折叠、加载与空态的收放）都由组件库给。
- * 只能从已知清单里挑；要打字筛选或远程检索的用 XCombobox。
+ * 其余能力（collection 铺开条目、placeholder、多选标签折叠、加载与空态的收放）都由组件库给
+ * 只能从已知清单里挑；要打字筛选或远程检索的用 XCombobox
  */
 defineOptions({ name: 'XSelect', inheritAttrs: false })
 
@@ -77,8 +77,8 @@ const { t } = useI18n()
 const { attrs, controlAttrs } = useControlAttrs()
 
 /**
- * 触发器的名字由 aria-labelledby（label 部件 + 值文本）给出，写在它身上的 aria-label 会被盖掉。
- * 调用方给了 aria-label 就改放进一个视觉隐藏的 label 部件，名字才念得出来。
+ * 触发器的名字由 aria-labelledby（label 部件 + 值文本）给出，写在它身上的 aria-label 会被盖掉
+ * 调用方给了 aria-label 就改放进一个视觉隐藏的 label 部件，名字才念得出来
  */
 const ariaLabel = computed(() => {
   const label = attrs['aria-label']

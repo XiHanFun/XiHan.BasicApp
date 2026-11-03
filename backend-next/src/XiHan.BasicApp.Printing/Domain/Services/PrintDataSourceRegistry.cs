@@ -7,19 +7,19 @@ using XiHan.BasicApp.Contracts.Printing;
 namespace XiHan.BasicApp.Printing.Domain.Services;
 
 /// <summary>
-/// 打印数据源的注册表。
+/// 打印数据源的注册表
 /// </summary>
 /// <remarks>
 /// 单例：构造时收下各包经 <see cref="PrintDataSourceServiceCollectionExtensions.AddPrintDataSource"/> 投进来的全部登记并逐个校验，
-/// 编码重复或字段契约不合法即抛出（Feature 把构造登记为启动核对，应用在启动阶段就失败，照 4.x）。
+/// 编码重复或字段契约不合法即抛出（Feature 把构造登记为启动核对，应用在启动阶段就失败，照 4.x）
 /// 规则照 4.x：编码不超过 100 个字符、不含空白；样例是根为对象或数组的 JSON；至少一个字段、键不重复；
-/// 字段种类只有 text / image / barcode / qrcode / table，样例控件只有 boolean / date / datetime / number / text / textarea；明细表至少一列、列不重复，别的种类不能带列。
-/// 设计器经 <c>print-data-sources.list</c> 读目录，模板写入时据此校验数据源编码；解析时不查（前端打印时数据源没登记即报错）。
+/// 字段种类只有 text / image / barcode / qrcode / table，样例控件只有 boolean / date / datetime / number / text / textarea；明细表至少一列、列不重复，别的种类不能带列
+/// 设计器经 <c>print-data-sources.list</c> 读目录，模板写入时据此校验数据源编码；解析时不查（前端打印时数据源没登记即报错）
 /// </remarks>
 public sealed class PrintDataSourceRegistry
 {
     /// <summary>
-    /// 编码与字段键的最大长度。
+    /// 编码与字段键的最大长度
     /// </summary>
     public const int MaxCodeLength = 100;
 
@@ -36,11 +36,11 @@ public sealed class PrintDataSourceRegistry
     private readonly SortedDictionary<string, PrintDataSourceDefinition> _sources = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// 收下全部登记并校验。
+    /// 收下全部登记并校验
     /// </summary>
-    /// <param name="registrations">各包的登记。</param>
-    /// <exception cref="ArgumentException">编码、样例或字段契约不合法。</exception>
-    /// <exception cref="InvalidOperationException">编码重复（后登记的不能静默覆盖已有的字段契约）。</exception>
+    /// <param name="registrations">各包的登记</param>
+    /// <exception cref="ArgumentException">编码、样例或字段契约不合法</exception>
+    /// <exception cref="InvalidOperationException">编码重复（后登记的不能静默覆盖已有的字段契约）</exception>
     public PrintDataSourceRegistry(IEnumerable<PrintDataSourceRegistration> registrations)
     {
         ArgumentNullException.ThrowIfNull(registrations);
@@ -51,22 +51,22 @@ public sealed class PrintDataSourceRegistry
     }
 
     /// <summary>
-    /// 全部数据源，按编码排序。
+    /// 全部数据源，按编码排序
     /// </summary>
     public IReadOnlyList<PrintDataSourceDefinition> All => [.. _sources.Values];
 
     /// <summary>
-    /// 按编码查找数据源。
+    /// 按编码查找数据源
     /// </summary>
-    /// <param name="code">数据源编码。</param>
-    /// <returns>没登记为 <see langword="null"/>。</returns>
+    /// <param name="code">数据源编码</param>
+    /// <returns>没登记为 <see langword="null"/></returns>
     public PrintDataSourceDefinition? Find(string? code)
         => string.IsNullOrWhiteSpace(code) ? null : _sources.GetValueOrDefault(code.Trim());
 
     /// <summary>
-    /// 数据源是否已登记。
+    /// 数据源是否已登记
     /// </summary>
-    /// <param name="code">数据源编码。</param>
+    /// <param name="code">数据源编码</param>
     public bool IsRegistered(string? code) => Find(code) is not null;
 
     private void Register(PrintDataSourceDefinition definition)

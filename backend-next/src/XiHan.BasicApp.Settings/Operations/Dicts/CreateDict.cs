@@ -11,19 +11,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 新建字典。
+/// 新建字典
 /// </summary>
 /// <remarks>
-/// <c>POST /api/dicts</c>。写在调用方这一侧；字典不覆盖，平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码。
+/// <c>POST /api/dicts</c>。写在调用方这一侧；字典不覆盖，平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码
 /// </remarks>
-/// <param name="dicts">字典仓储。</param>
-/// <param name="service">字典域服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="dicts">字典仓储</param>
+/// <param name="service">字典域服务</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsCreate)]
 public sealed class CreateDict(IRepository<SysDict, Guid> dicts, DictService service, IIdGenerator<Guid> ids) : IOperation<CreateDictRequest, DictResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "dicts.create";
 

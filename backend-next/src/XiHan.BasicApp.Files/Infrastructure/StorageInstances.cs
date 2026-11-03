@@ -15,28 +15,28 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 存储配置对应的框架命名存储实例。
+/// 存储配置对应的框架命名存储实例
 /// </summary>
 /// <remarks>
 /// 实例由框架的注册表 <see cref="BlobStores"/> 建、按名缓存与释放（ADR-0050），这里只把存储配置译成定义：
 /// 本地存储共用一个实例 <see cref="LocalName"/>（以 <see cref="FilesOptions.LocalRootPath"/> 为根，桶是根下的子目录，启动时登记）；
-/// S3 兼容存储每条配置一个实例 <c>storage-&lt;配置 ID&gt;</c>，配置改了（地址、区域、桶、密钥、条件写入）注册表建新实例替换旧的，删配置时移除。
-/// 容量由租户配额管，本地实例不设目录存储自己的总量上限。
-/// 签名地址（ADR-0049）：S3 兼容存储的实例自己签名、客户端直连存储；本地实例由宿主的签名端点（<c>MapXiHanBlobs()</c>）代收发。
+/// S3 兼容存储每条配置一个实例 <c>storage-&lt;配置 ID&gt;</c>，配置改了（地址、区域、桶、密钥、条件写入）注册表建新实例替换旧的，删配置时移除
+/// 容量由租户配额管，本地实例不设目录存储自己的总量上限
+/// 签名地址（ADR-0049）：S3 兼容存储的实例自己签名、客户端直连存储；本地实例由宿主的签名端点（<c>MapXiHanBlobs()</c>）代收发
 /// </remarks>
-/// <param name="stores">框架的命名存储实例注册表。</param>
-/// <param name="hosted">宿主代收发的签名器。</param>
-/// <param name="options">文件包配置。</param>
-/// <param name="secrets">密钥保护（解开访问密钥）。</param>
+/// <param name="stores">框架的命名存储实例注册表</param>
+/// <param name="hosted">宿主代收发的签名器</param>
+/// <param name="options">文件包配置</param>
+/// <param name="secrets">密钥保护（解开访问密钥）</param>
 public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner hosted, FilesOptions options, ISecretProtector secrets)
 {
     /// <summary>
-    /// 访问密钥的保护用途。
+    /// 访问密钥的保护用途
     /// </summary>
     public const string SecretPurpose = "XiHan.BasicApp.Files.StorageSecret";
 
     /// <summary>
-    /// 本地存储的实例名。
+    /// 本地存储的实例名
     /// </summary>
     public const string LocalName = "local";
 
@@ -45,10 +45,10 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
     private readonly HostedBlobUrlSigner _localSigner = hosted.ForStore(LocalName);
 
     /// <summary>
-    /// 配置对应的实例名。
+    /// 配置对应的实例名
     /// </summary>
-    /// <param name="config">存储配置。</param>
-    /// <returns>实例名。</returns>
+    /// <param name="config">存储配置</param>
+    /// <returns>实例名</returns>
     public static string NameOf(SysStorageConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -56,13 +56,13 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
     }
 
     /// <summary>
-    /// 取本地存储的实例。
+    /// 取本地存储的实例
     /// </summary>
     /// <remarks>
-    /// 启动时调一次：签名地址在进程重启后仍有效，宿主的签名端点按实例名到注册表里取，实例要先登记上。
+    /// 启动时调一次：签名地址在进程重启后仍有效，宿主的签名端点按实例名到注册表里取，实例要先登记上
     /// </remarks>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>实例；根目录建不出来时失败。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>实例；根目录建不出来时失败</returns>
     public ValueTask<Result<IBlobStore>> LocalAsync(CancellationToken cancellationToken)
         => stores.GetOrAddAsync(new BlobStoreDefinition(LocalName, FileSystemBlobStoreProvider.ProviderName, new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -72,11 +72,11 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
         }), cancellationToken);
 
     /// <summary>
-    /// 取这条配置的实例。
+    /// 取这条配置的实例
     /// </summary>
-    /// <param name="config">存储配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>实例；访问密钥解不开或设置不合法时失败。</returns>
+    /// <param name="config">存储配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>实例；访问密钥解不开或设置不合法时失败</returns>
     public async ValueTask<Result<IBlobStore>> GetAsync(SysStorageConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -107,14 +107,14 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
     }
 
     /// <summary>
-    /// 上传这条配置时是否覆盖写入。
+    /// 上传这条配置时是否覆盖写入
     /// </summary>
     /// <remarks>
-    /// 对象键带新文件的 ID，从不重复：开着条件写入时仍以不覆盖写入落盘（由存储保证原子）；关掉的 S3 兼容配置框架拒绝不覆盖写入，只能直接写入。
-    /// 本地存储不看这一项（恒为开）。
+    /// 对象键带新文件的 ID，从不重复：开着条件写入时仍以不覆盖写入落盘（由存储保证原子）；关掉的 S3 兼容配置框架拒绝不覆盖写入，只能直接写入
+    /// 本地存储不看这一项（恒为开）
     /// </remarks>
-    /// <param name="config">存储配置。</param>
-    /// <returns>S3 兼容配置关掉了条件写入时为 <see langword="true"/>。</returns>
+    /// <param name="config">存储配置</param>
+    /// <returns>S3 兼容配置关掉了条件写入时为 <see langword="true"/></returns>
     public static bool UploadOverwrites(SysStorageConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -122,11 +122,11 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
     }
 
     /// <summary>
-    /// 这条配置的实例用的签名器。
+    /// 这条配置的实例用的签名器
     /// </summary>
-    /// <param name="config">存储配置。</param>
-    /// <param name="store">它的实例。</param>
-    /// <returns>签名器。</returns>
+    /// <param name="config">存储配置</param>
+    /// <param name="store">它的实例</param>
+    /// <returns>签名器</returns>
     public IBlobUrlSigner SignerOf(SysStorageConfig config, IBlobStore store)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -137,14 +137,14 @@ public sealed class StorageInstances(BlobStores stores, HostedBlobUrlSigner host
     }
 
     /// <summary>
-    /// 删配置后移除它的实例。
+    /// 删配置后移除它的实例
     /// </summary>
     /// <remarks>
-    /// 本地实例为全部本地配置共用，不移除。之后再取用会按当时的配置重建，事务回滚了也不影响。
+    /// 本地实例为全部本地配置共用，不移除。之后再取用会按当时的配置重建，事务回滚了也不影响
     /// </remarks>
-    /// <param name="config">存储配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示异步操作的任务。</returns>
+    /// <param name="config">存储配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>表示异步操作的任务</returns>
     public async ValueTask RemoveAsync(SysStorageConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);

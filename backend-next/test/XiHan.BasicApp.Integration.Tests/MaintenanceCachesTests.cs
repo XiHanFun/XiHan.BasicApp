@@ -15,22 +15,22 @@ using XiHan.Framework.Caching.Redis;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证缓存管理。
+/// 验证缓存管理
 /// </summary>
 /// <remarks>
 /// 只开放各包登记的命名空间；按前缀分页列键（进程内的对象缓存与字节存储两层合起来、标出所在的层）、查看大小或类型与过期、按 UTF-8 或 JSON 看文本；
-/// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝。
-/// Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，没设即跳过）下只有字节存储一层，前缀稀疏时 SCAN 一段可能一个都没有，列键在操作里攒满一页再返回。
+/// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝
+/// Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，没设即跳过）下只有字节存储一层，前缀稀疏时 SCAN 一段可能一个都没有，列键在操作里攒满一页再返回
 /// </remarks>
 public sealed class MaintenanceCachesTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();
 
     /// <summary>
-    /// 写进对象缓存的值。
+    /// 写进对象缓存的值
     /// </summary>
-    /// <param name="Name">名称。</param>
-    /// <param name="Count">个数。</param>
+    /// <param name="Name">名称</param>
+    /// <param name="Count">个数</param>
     private sealed record Snapshot(string Name, int Count);
 
     public void Dispose() => _database.Dispose();

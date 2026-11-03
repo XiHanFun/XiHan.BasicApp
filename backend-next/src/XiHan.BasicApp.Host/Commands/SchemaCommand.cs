@@ -11,16 +11,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Commands;
 
 /// <summary>
-/// 结构升级命令。
+/// 结构升级命令
 /// </summary>
 /// <remarks>
-/// <c>schema upgrade</c>：按版本台账执行平台库还没执行的升级脚本（新库从基线建起），完成后输出报告；失败即非零退出。
-/// 关掉启动自动升级（<c>BasicApp:Schema:AutoUpgrade=false</c>）时由运维先跑它再启动。
+/// <c>schema upgrade</c>：按版本台账执行平台库还没执行的升级脚本（新库从基线建起），完成后输出报告；失败即非零退出
+/// 关掉启动自动升级（<c>BasicApp:Schema:AutoUpgrade=false</c>）时由运维先跑它再启动
 /// </remarks>
 public sealed class SchemaCommand : ICommand
 {
     /// <summary>
-    /// 命令名。
+    /// 命令名
     /// </summary>
     public const string CommandName = "schema";
 

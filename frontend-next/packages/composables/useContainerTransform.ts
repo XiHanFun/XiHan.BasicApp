@@ -1,15 +1,15 @@
 /**
- * 容器变形转场（Material Container Transform）—— 全局零侵入。
+ * 容器变形转场（Material Container Transform）—— 全局零侵入
  *
  * 机制：
  * - 全局捕获 pointerdown，记录最近点击的「容器元素」（按钮 / 表格行 / 链接）矩形；
  * - MutationObserver 监听弹窗内容挂载：若弹窗在点击后短窗口内出现，则生成一枚
  *   「幽灵容器」从点击源矩形飞向弹窗矩形（FLIP + WAAPI），末段淡出露出真实弹窗——
  *   视觉上点击的行/按钮「长大」成了弹窗；
- * - 弹窗卸载时反向播放：幽灵从弹窗矩形收回点击源位置。
+ * - 弹窗卸载时反向播放：幽灵从弹窗矩形收回点击源位置
  *
  * 弹窗在 弹窗的进场缩放动画中测量会失真：用 offsetWidth/offsetHeight（布局尺寸，
- * 不受 transform 影响）+ 按计算样式的 transform 矩阵与 transform-origin 反解出布局位置。
+ * 不受 transform 影响）+ 按计算样式的 transform 矩阵与 transform-origin 反解出布局位置
  */
 
 import { onScopeDispose } from 'vue'
@@ -112,11 +112,11 @@ function noop(): void {}
 let teardown: (() => void) | null = null
 
 /**
- * 安装容器变形转场（幂等，应用内调用一次）。
- * options.enabled 为动态开关（如跟随「页面切换动画」偏好）。
+ * 安装容器变形转场（幂等，应用内调用一次）
+ * options.enabled 为动态开关（如跟随「页面切换动画」偏好）
  *
- * @returns 卸载函数：摘掉 pointerdown 监听、断开 MutationObserver 并释放点击源矩形。
- *   在 effect 作用域（组件 setup）内调用时会自动随作用域销毁，无需手动调用。
+ * @returns 卸载函数：摘掉 pointerdown 监听、断开 MutationObserver 并释放点击源矩形
+ *   在 effect 作用域（组件 setup）内调用时会自动随作用域销毁，无需手动调用
  */
 export function setupContainerTransform(options?: { enabled?: () => boolean }): () => void {
   if (typeof document === 'undefined') {

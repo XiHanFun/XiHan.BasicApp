@@ -7,26 +7,26 @@ using XiHan.BasicApp.Contracts.Auditing;
 namespace XiHan.BasicApp.Auditing.Operations.LoginLogs;
 
 /// <summary>
-/// 一条登录日志。
+/// 一条登录日志
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="OccurredAt">发生时间。</param>
-/// <param name="TraceId">trace-id。</param>
-/// <param name="UserId">用户。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="SessionId">会话。</param>
-/// <param name="ClientIp">客户端地址。</param>
-/// <param name="UserAgent">User-Agent。</param>
-/// <param name="Event">事件。</param>
-/// <param name="Succeeded">是否成功。</param>
-/// <param name="ErrorCode">失败的错误码。</param>
-/// <param name="ErrorMessage">失败的错误消息。</param>
-/// <param name="AccountTenantId">账号所在的租户。</param>
-/// <param name="ImpersonatorUserId">模仿事件的发起人。</param>
-/// <param name="Detail">补充说明。</param>
-/// <param name="Browser">浏览器。</param>
-/// <param name="Os">操作系统。</param>
-/// <param name="Device">设备类型。</param>
+/// <param name="Id">主键</param>
+/// <param name="OccurredAt">发生时间</param>
+/// <param name="TraceId">trace-id</param>
+/// <param name="UserId">用户</param>
+/// <param name="UserName">登录名</param>
+/// <param name="SessionId">会话</param>
+/// <param name="ClientIp">客户端地址</param>
+/// <param name="UserAgent">User-Agent</param>
+/// <param name="Event">事件</param>
+/// <param name="Succeeded">是否成功</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="ErrorMessage">失败的错误消息</param>
+/// <param name="AccountTenantId">账号所在的租户</param>
+/// <param name="ImpersonatorUserId">模仿事件的发起人</param>
+/// <param name="Detail">补充说明</param>
+/// <param name="Browser">浏览器</param>
+/// <param name="Os">操作系统</param>
+/// <param name="Device">设备类型</param>
 public sealed record LoginLogResponse(
     Guid Id,
     DateTimeOffset OccurredAt,
@@ -48,7 +48,7 @@ public sealed record LoginLogResponse(
     string? Device)
 {
     /// <summary>
-    /// 从实体投影。
+    /// 从实体投影
     /// </summary>
     public static LoginLogResponse From(SysLoginLog log)
     {
@@ -76,7 +76,7 @@ public sealed record LoginLogResponse(
 }
 
 /// <summary>
-/// <c>login-logs.get</c> 的请求。
+/// <c>login-logs.get</c> 的请求
 /// </summary>
-/// <param name="Id">日志主键。</param>
+/// <param name="Id">日志主键</param>
 public sealed record GetLoginLogRequest(Guid Id);

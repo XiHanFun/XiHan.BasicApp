@@ -12,19 +12,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 各包登记的字段安全操作绑定（单例）。
+/// 各包登记的字段安全操作绑定（单例）
 /// </summary>
 /// <remarks>
-/// 按操作 ID 查绑定，并按接口的 JSON 字段名给响应套掩码：同一操作只能绑定一个实体，绑定两次即装配失败。
+/// 按操作 ID 查绑定，并按接口的 JSON 字段名给响应套掩码：同一操作只能绑定一个实体，绑定两次即装配失败
 /// </remarks>
 public sealed class FieldSecurityBindings
 {
     private readonly Dictionary<string, FieldSecurityBinding> _byOperation;
 
     /// <summary>
-    /// 由各包的绑定构造。
+    /// 由各包的绑定构造
     /// </summary>
-    /// <param name="bindings">绑定。</param>
+    /// <param name="bindings">绑定</param>
     public FieldSecurityBindings(IEnumerable<FieldSecurityBinding> bindings)
     {
         ArgumentNullException.ThrowIfNull(bindings);
@@ -39,22 +39,22 @@ public sealed class FieldSecurityBindings
     }
 
     /// <summary>
-    /// 按操作 ID 找绑定。
+    /// 按操作 ID 找绑定
     /// </summary>
-    /// <param name="operationId">操作 ID。</param>
-    /// <returns>绑定；没绑定为空。</returns>
+    /// <param name="operationId">操作 ID</param>
+    /// <returns>绑定；没绑定为空</returns>
     public FieldSecurityBinding? Find(string operationId) => _byOperation.GetValueOrDefault(operationId);
 
     /// <summary>
-    /// 给一次调用的响应套掩码。
+    /// 给一次调用的响应套掩码
     /// </summary>
     /// <remarks>
-    /// 操作没绑定、没有字段安全或没有规则即原样返回。
+    /// 操作没绑定、没有字段安全或没有规则即原样返回
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="operation">操作。</param>
-    /// <param name="response">响应对象。</param>
-    /// <returns>套过掩码的响应。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="operation">操作</param>
+    /// <param name="response">响应对象</param>
+    /// <returns>套过掩码的响应</returns>
     public async ValueTask<object> MaskAsync(InvocationContext context, OperationDescriptor operation, object response)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -70,16 +70,16 @@ public sealed class FieldSecurityBindings
     }
 
     /// <summary>
-    /// 响应里每条记录套掩码。
+    /// 响应里每条记录套掩码
     /// </summary>
     /// <remarks>
-    /// 记录是单条响应、分页的 <c>items</c> 或绑定声明的属性；文本按规则打码（隐藏为空），非文本受保护即为空；没动到即原样返回。
+    /// 记录是单条响应、分页的 <c>items</c> 或绑定声明的属性；文本按规则打码（隐藏为空），非文本受保护即为空；没动到即原样返回
     /// </remarks>
-    /// <param name="operation">操作。</param>
-    /// <param name="binding">绑定。</param>
-    /// <param name="rules">有效规则。</param>
-    /// <param name="response">响应对象。</param>
-    /// <returns>套过掩码的响应（同一类型）。</returns>
+    /// <param name="operation">操作</param>
+    /// <param name="binding">绑定</param>
+    /// <param name="rules">有效规则</param>
+    /// <param name="response">响应对象</param>
+    /// <returns>套过掩码的响应（同一类型）</returns>
     public static object Mask(OperationDescriptor operation, FieldSecurityBinding binding, FieldRules rules, object response)
     {
         var protectedRules = rules.All.Where(static r => r.IsReadProtected).ToList();
@@ -118,7 +118,7 @@ public sealed class FieldSecurityBindings
         => binding.Json.GetTypeInfo(type) ?? throw new InvalidOperationException($"{type.Name} of '{binding.OperationId}' is not in {binding.Json.GetType().Name}.");
 
     /// <summary>
-    /// 规则比较用的文本：字符串取原文，空为空，其余取 JSON 表示。
+    /// 规则比较用的文本：字符串取原文，空为空，其余取 JSON 表示
     /// </summary>
     internal static string? TextOf(JsonNode? node)
         => node switch

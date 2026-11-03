@@ -6,23 +6,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Schema;
 
 /// <summary>
-/// 一个版本目录里的升级脚本。
+/// 一个版本目录里的升级脚本
 /// </summary>
-/// <param name="Version">版本。</param>
-/// <param name="Name">目录名（台账里记的版本写法）。</param>
-/// <param name="Files">脚本文件的完整路径，按文件名顺序。</param>
+/// <param name="Version">版本</param>
+/// <param name="Name">目录名（台账里记的版本写法）</param>
+/// <param name="Files">脚本文件的完整路径，按文件名顺序</param>
 public sealed record SchemaVersionScripts(Version Version, string Name, IReadOnlyList<string> Files);
 
 /// <summary>
-/// 找出脚本目录里的版本与脚本。
+/// 找出脚本目录里的版本与脚本
 /// </summary>
 /// <remarks>
-/// 每个子目录是一个版本（<c>主.次.修订</c>），按版本排序；最低的那个是基线（空库从它建起）。目录名不是版本号即报错，不跳过。
+/// 每个子目录是一个版本（<c>主.次.修订</c>），按版本排序；最低的那个是基线（空库从它建起）。目录名不是版本号即报错，不跳过
 /// </remarks>
 public static class SchemaScripts
 {
     /// <summary>
-    /// 列出脚本目录里的全部版本。
+    /// 列出脚本目录里的全部版本
     /// </summary>
     public static Result<IReadOnlyList<SchemaVersionScripts>> Discover(string directory)
     {

@@ -22,76 +22,76 @@ using XiHan.Framework.Security.Abstractions.Authentication;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 一个待执行的导出：任务、所在的侧与发起人这次调用的凭据（只在内存里，不落库）。
+/// 一个待执行的导出：任务、所在的侧与发起人这次调用的凭据（只在内存里，不落库）
 /// </summary>
-/// <param name="TaskId">任务 ID。</param>
-/// <param name="Side">任务所在的侧。</param>
-/// <param name="Credential">发起人的凭据。</param>
+/// <param name="TaskId">任务 ID</param>
+/// <param name="Side">任务所在的侧</param>
+/// <param name="Credential">发起人的凭据</param>
 public sealed record ExportJob(Guid TaskId, string Side, AuthenticationCredential Credential);
 
 /// <summary>
-/// 导出队列（进程内）：提交时入队，后台循环取出执行。
+/// 导出队列（进程内）：提交时入队，后台循环取出执行
 /// </summary>
 /// <remarks>
-/// 进程重启时队列里的作业随之丢失，对应任务在启动时记为中断。
+/// 进程重启时队列里的作业随之丢失，对应任务在启动时记为中断
 /// </remarks>
 public sealed class ExportJobs
 {
     private readonly Channel<ExportJob> _channel = Channel.CreateUnbounded<ExportJob>(new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
 
     /// <summary>
-    /// 入队。
+    /// 入队
     /// </summary>
-    /// <param name="job">作业。</param>
-    /// <returns>入队成功为 <see langword="true"/>（队列已关闭为 <see langword="false"/>）。</returns>
+    /// <param name="job">作业</param>
+    /// <returns>入队成功为 <see langword="true"/>（队列已关闭为 <see langword="false"/>）</returns>
     public bool Enqueue(ExportJob job) => _channel.Writer.TryWrite(job);
 
     /// <summary>
-    /// 依次取出作业，直到取消。
+    /// 依次取出作业，直到取消
     /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>作业。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>作业</returns>
     public IAsyncEnumerable<ExportJob> ReadAllAsync(CancellationToken cancellationToken) => _channel.Reader.ReadAllAsync(cancellationToken);
 }
 
 /// <summary>
-/// 导出执行：以发起人的身份在后台逐页调列表操作并写出结果文件。
+/// 导出执行：以发起人的身份在后台逐页调列表操作并写出结果文件
 /// </summary>
 /// <remarks>
 /// 4.x 同至多并发 2。以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
-/// 行随到随写进临时文件，写完经 <see cref="FileService"/> 存成临时文件（7 天到期，访问级别「已登录」），任务记下结果文件。
-/// 凭据过期或会话吊销即失败；失败与中断经独立的短事务记到任务上（那时发起人的凭据可能已经用不了）。
+/// 行随到随写进临时文件，写完经 <see cref="FileService"/> 存成临时文件（7 天到期，访问级别「已登录」），任务记下结果文件
+/// 凭据过期或会话吊销即失败；失败与中断经独立的短事务记到任务上（那时发起人的凭据可能已经用不了）
 /// </remarks>
-/// <param name="queue">导出队列。</param>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="app">应用（执行管道）。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="logger">日志。</param>
+/// <param name="queue">导出队列</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="app">应用（执行管道）</param>
+/// <param name="clock">时钟</param>
+/// <param name="logger">日志</param>
 public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory scopes, App app, TimeProvider clock, ILogger<ExportRunner> logger)
 {
     /// <summary>
-    /// 一次取多少行（列表操作的页大小上限）。
+    /// 一次取多少行（列表操作的页大小上限）
     /// </summary>
     public const int PageSize = 500;
 
     /// <summary>
-    /// 一次导出至多多少行。
+    /// 一次导出至多多少行
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const long MaxRows = 1_000_000;
 
     /// <summary>
-    /// 结果文件保留多久。
+    /// 结果文件保留多久
     /// </summary>
     public static readonly TimeSpan ResultLifetime = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 后台循环：并发执行队列里的作业，直到取消。
+    /// 后台循环：并发执行队列里的作业，直到取消
     /// </summary>
-    /// <param name="cancellationToken">取消令牌（应用停止）。</param>
-    /// <returns>循环结束。</returns>
+    /// <param name="cancellationToken">取消令牌（应用停止）</param>
+    /// <returns>循环结束</returns>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         try
@@ -116,13 +116,13 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 启动时把上次没执行完的任务记为中断。
+    /// 启动时把上次没执行完的任务记为中断
     /// </summary>
     /// <remarks>
-    /// 没执行完即排队中、执行中：它们的凭据只在上个进程的内存里。
+    /// 没执行完即排队中、执行中：它们的凭据只在上个进程的内存里
     /// </remarks>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<Result> InterruptLeftoversAsync(CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
@@ -173,10 +173,10 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 领取一个排队中的任务。
+    /// 领取一个排队中的任务
     /// </summary>
     /// <remarks>
-    /// 任务可能还没随提交调用一起提交，读不到时稍等再读；只领排队中的（取消的不再执行）。
+    /// 任务可能还没随提交调用一起提交，读不到时稍等再读；只领排队中的（取消的不再执行）
     /// </remarks>
     private async Task<(SysExportTask Task, IReadOnlyList<ExportColumn> Columns)?> ClaimAsync(ExportJob job, CancellationToken cancellationToken)
     {
@@ -330,7 +330,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 以发起人的身份调一页列表操作（全管道），取出 <c>items</c> 与 <c>total</c>。
+    /// 以发起人的身份调一页列表操作（全管道），取出 <c>items</c> 与 <c>total</c>
     /// </summary>
     private async Task<Result<(IReadOnlyList<JsonElement> Items, long Total)>> PageAsync(ExportJob job, string operationId, JsonObject query, CancellationToken cancellationToken)
     {
@@ -352,10 +352,10 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 以发起人的身份开一次调用执行 <paramref name="action"/>。
+    /// 以发起人的身份开一次调用执行 <paramref name="action"/>
     /// </summary>
     /// <remarks>
-    /// 全管道、自带工作单元；失败时错误信息按默认区域翻译。
+    /// 全管道、自带工作单元；失败时错误信息按默认区域翻译
     /// </remarks>
     private async Task<Result> InCallAsync(ExportJob job, Func<InvocationContext, Task<Result>> action, CancellationToken cancellationToken)
     {
@@ -372,7 +372,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 记失败（独立的短事务，按 ID 改，不依赖发起人的凭据）。
+    /// 记失败（独立的短事务，按 ID 改，不依赖发起人的凭据）
     /// </summary>
     private async Task FailAsync(Guid taskId, string message, CancellationToken cancellationToken)
     {

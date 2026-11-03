@@ -44,7 +44,7 @@ const emit = defineEmits<{
 }>()
 
 // 行类型在框架边界放宽：页面侧以 PageSchema<ConcreteDto> 定义时保有完整类型安全；
-// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）。
+// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
@@ -60,7 +60,7 @@ const { loading, rows, total, page, pageSize, filters, sorts, search, reset, cha
 
 /**
  * 字典/枚举异步取值：按字段 dictionaryCode（枚举）或 dictCode（系统字典）拉取选项并注入 field.options，
- * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options。
+ * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options
  */
 const dictionaries = useSchemaDictionaries(() => props.schema.fields)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
@@ -93,8 +93,8 @@ const columnFields = computed<ListFieldSchema[]>(() =>
 )
 
 /**
- * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地。
- * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为。
+ * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地
+ * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为
  */
 const peekFields = computed<ListFieldSchema[]>(() =>
   appStore.tableRowPeek
@@ -125,7 +125,7 @@ function onCycleSort(key: string) {
 
 /**
  * 表格重挂载令牌：拖拽列宽会写进表格面板自己的 draggedWidths（它盖住 column.width），
- * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效。
+ * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效
  */
 const tableRemountKey = ref(0)
 /** 本会话被拖拽过的列（宽度已被面板内的 draggedWidths 接管，需重挂载才能被输入框覆盖） */
@@ -173,9 +173,9 @@ function toggleFullscreen() {
 }
 
 /**
- * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI。
- * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存。
- * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口。
+ * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI
+ * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存
+ * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口
  */
 const viewManager = useViewManager(props.schema.pageCode)
 
@@ -285,8 +285,8 @@ function renderRowActions(row: Row) {
 }
 
 /**
- * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面。
- * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog。
+ * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面
+ * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog
  */
 function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
   const action = (props.schema.actions ?? []).find(item => item.key === key && item.scope === payload.scope)
@@ -563,8 +563,8 @@ onMounted(async () => {
 })
 
 /**
- * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串。
- * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化。
+ * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串
+ * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化
  */
 function formatRow(row: object): Record<string, string> {
   const result: Record<string, string> = {}
@@ -627,7 +627,7 @@ const skeletonColumns = computed(() => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉。
+    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉
          开着搜索设置同步时等后端那份回来再出，免得先按本地旧的常用 / 高级划分摆出来再换 -->
     <XhCardRoot
       v-if="searchSettings.ready.value && (searchFields.length || advancedFields.length)"
@@ -736,7 +736,7 @@ const skeletonColumns = computed(() => {
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
     <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0">
       <XhCardContent class="xh-schema-card__body--table">
-        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据。
+        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据
              开着表格设置同步时也等后端那份回来，免得先按本地旧的列顺序、显隐与宽度摆出表格再换 -->
         <XhSkeletonRoot v-if="!firstLoaded || !settings.ready.value" class="xh-table-skeleton" aria-hidden="true">
           <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
@@ -871,8 +871,8 @@ const skeletonColumns = computed(() => {
 </template>
 
 <style scoped>
-/* 卡片内边距：Card 皮肤把内边距放在根上（--xh-card-p，缺省 surface-pad-lg），管理页三块卡片走更紧的档。
- * 只改这一个公开槽，随密度轴换档（紧凑 8/12、宽松 12/16）；不要再给 content 叠一层内边距，会双倍。 */
+/* 卡片内边距：Card 皮肤把内边距放在根上（--xh-card-p，缺省 surface-pad-lg），管理页三块卡片走更紧的档
+ * 只改这一个公开槽，随密度轴换档（紧凑 8/12、宽松 12/16）；不要再给 content 叠一层内边距，会双倍 */
 .xh-schema-card {
   --xh-card-p: var(--xh-surface-pad-md) var(--xh-surface-pad-lg);
 }

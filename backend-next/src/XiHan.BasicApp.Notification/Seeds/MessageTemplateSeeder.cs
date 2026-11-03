@@ -11,43 +11,43 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Seeds;
 
 /// <summary>
-/// 平台 9 个全局消息模板的种子。
+/// 平台 9 个全局消息模板的种子
 /// </summary>
 /// <remarks>
 /// 4.x 的 8 个：登录验证码、验证码、重置密码、注册欢迎四封邮件，登录验证码、验证码两条短信，系统通知的邮件与短信；
-/// 另有系统通知的机器人消息（4.x 的通知广播直接发标题与正文，6.0 照样的文本做成模板，租户可以覆盖）。
-/// 同一渠道、同一编码不存在才写入，之后由运营维护；租户可以建同编码的模板覆盖平台的。
+/// 另有系统通知的机器人消息（4.x 的通知广播直接发标题与正文，6.0 照样的文本做成模板，租户可以覆盖）
+/// 同一渠道、同一编码不存在才写入，之后由运营维护；租户可以建同编码的模板覆盖平台的
 /// </remarks>
-/// <param name="templates">模板服务。</param>
+/// <param name="templates">模板服务</param>
 public sealed class MessageTemplateSeeder(MessageTemplateService templates) : ISeeder
 {
     /// <summary>
-    /// 邮箱登录验证码。
+    /// 邮箱登录验证码
     /// </summary>
     public const string EmailLoginCode = MessageTemplateCodes.EmailLoginCode;
 
     /// <summary>
-    /// 邮箱验证码（绑定、换绑、双因素）。
+    /// 邮箱验证码（绑定、换绑、双因素）
     /// </summary>
     public const string EmailVerificationCode = MessageTemplateCodes.EmailVerificationCode;
 
     /// <summary>
-    /// 重置密码邮件。
+    /// 重置密码邮件
     /// </summary>
     public const string PasswordReset = "auth-password-reset";
 
     /// <summary>
-    /// 注册欢迎邮件。
+    /// 注册欢迎邮件
     /// </summary>
     public const string Welcome = MessageTemplateCodes.Welcome;
 
     /// <summary>
-    /// 短信登录验证码。
+    /// 短信登录验证码
     /// </summary>
     public const string SmsLoginCode = MessageTemplateCodes.SmsLoginCode;
 
     /// <summary>
-    /// 短信验证码（绑定、换绑、双因素）。
+    /// 短信验证码（绑定、换绑、双因素）
     /// </summary>
     public const string SmsVerificationCode = MessageTemplateCodes.SmsVerificationCode;
 
@@ -107,7 +107,7 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
     }
 
     /// <summary>
-    /// 验证码类邮件（全内联样式，兼容主流邮件客户端）。
+    /// 验证码类邮件（全内联样式，兼容主流邮件客户端）
     /// </summary>
     private static string CodeEmail(string heading, string lead) => Shell(heading, $$$"""
       <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>{{{lead}}}</p>
@@ -119,10 +119,10 @@ public sealed class MessageTemplateSeeder(MessageTemplateService templates) : IS
 """);
 
     /// <summary>
-    /// 邮件外框：品牌头、标题、正文与页脚。
+    /// 邮件外框：品牌头、标题、正文与页脚
     /// </summary>
     /// <remarks>
-    /// 4.x 同一套样式。
+    /// 4.x 同一套样式
     /// </remarks>
     private static string Shell(string heading, string body) => $$$"""
 <div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>

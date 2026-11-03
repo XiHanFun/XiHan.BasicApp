@@ -13,10 +13,10 @@ using XiHan.BasicApp.Contracts.Paging;
 namespace XiHan.BasicApp.Chat;
 
 /// <summary>
-/// 聊天模块的源生成序列化上下文。
+/// 聊天模块的源生成序列化上下文
 /// </summary>
 /// <remarks>
-/// 操作的请求与响应、推送载荷、附件与策略参数的 JSON，以及订阅的部门归属事件；枚举按名称。
+/// 操作的请求与响应、推送载荷、附件与策略参数的 JSON，以及订阅的部门归属事件；枚举按名称
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

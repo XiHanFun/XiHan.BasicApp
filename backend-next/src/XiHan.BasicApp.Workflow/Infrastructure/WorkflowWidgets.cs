@@ -9,21 +9,21 @@ using XiHan.Framework.Workflow.Abstractions.Tasks;
 namespace XiHan.BasicApp.Workflow.Infrastructure;
 
 /// <summary>
-/// 工作流的工作台小组件。
+/// 工作流的工作台小组件
 /// </summary>
 /// <remarks>
-/// 方案 W7（4.x 没有）：「我的待办」，值是调用方的待办数，条目是最近到达的几条，点开到审批中心直接办理。只要登录，Workflow 关掉时不登记。
+/// 方案 W7（4.x 没有）：「我的待办」，值是调用方的待办数，条目是最近到达的几条，点开到审批中心直接办理。只要登录，Workflow 关掉时不登记
 /// </remarks>
-/// <param name="tasks">任务服务。</param>
+/// <param name="tasks">任务服务</param>
 public sealed class WorkflowWidgets(IWorkflowTaskService tasks) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 我的待办。
+    /// 我的待办
     /// </summary>
     public const string Todo = "workflow.todo";
 
     /// <summary>
-    /// 条目最多几条。
+    /// 条目最多几条
     /// </summary>
     private const int TodoLimit = 5;
 

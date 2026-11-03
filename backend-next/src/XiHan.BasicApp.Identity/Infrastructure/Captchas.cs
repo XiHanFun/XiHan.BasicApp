@@ -10,24 +10,24 @@ using XiHan.Framework.Caching.Abstractions.Stores;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 图形验证码的签发与校验。
+/// 图形验证码的签发与校验
 /// </summary>
 /// <remarks>
-/// 单例服务。4 位数字，共享缓存里只存码的 SHA-256，有效期 <see cref="IdentityOptions.CaptchaLifetime"/>。
-/// 一次性：校验先删再比，删除失败（已被别的请求拿走或已过期）即不通过，无论对错都不能再用；比较用常数时间。
+/// 单例服务。4 位数字，共享缓存里只存码的 SHA-256，有效期 <see cref="IdentityOptions.CaptchaLifetime"/>
+/// 一次性：校验先删再比，删除失败（已被别的请求拿走或已过期）即不通过，无论对错都不能再用；比较用常数时间
 /// </remarks>
-/// <param name="cache">共享缓存（多实例共用）。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="codes">码源。</param>
+/// <param name="cache">共享缓存（多实例共用）</param>
+/// <param name="options">身份配置</param>
+/// <param name="codes">码源</param>
 public sealed class Captchas(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes)
 {
     /// <summary>
-    /// 码的长度。
+    /// 码的长度
     /// </summary>
     public const int CodeLength = 4;
 
     /// <summary>
-    /// 发一个新验证码：返回标识、图片与有效秒数。
+    /// 发一个新验证码：返回标识、图片与有效秒数
     /// </summary>
     public async Task<(string Id, string Image, int ExpiresInSeconds)> IssueAsync(CancellationToken cancellationToken)
     {
@@ -38,7 +38,7 @@ public sealed class Captchas(ISharedCache cache, IdentityOptions options, ICaptc
     }
 
     /// <summary>
-    /// 校验并作废：标识或码为空、标识不是本服务发的、已过期或已用过，都不通过。
+    /// 校验并作废：标识或码为空、标识不是本服务发的、已过期或已用过，都不通过
     /// </summary>
     public async Task<bool> ConsumeAsync(string? id, string? code, CancellationToken cancellationToken)
     {

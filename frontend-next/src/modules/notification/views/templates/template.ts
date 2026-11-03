@@ -120,7 +120,7 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改。
+ * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
  */
 export function templateResource(t: Translate): SchemaResource<TemplateRow> {
   return {

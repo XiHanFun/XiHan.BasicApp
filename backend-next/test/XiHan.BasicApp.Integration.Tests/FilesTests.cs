@@ -17,11 +17,11 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证文件的上传、下载、隔离、去重与存储配置。
+/// 验证文件的上传、下载、隔离、去重与存储配置
 /// </summary>
 /// <remarks>
 /// 上传（multipart 普通端点）、签名下载地址与按身份读取、访问级别、两侧隔离、相同内容共用对象（删到最后一条才删对象）、秒传、归档、副本校验与主副本，
-/// 普通端点的访问日志与操作审计；存储配置的校验、缺省配置的保护、还有副本的配置不能删、租户自己的缺省配置优先于平台的。
+/// 普通端点的访问日志与操作审计；存储配置的校验、缺省配置的保护、还有副本的配置不能删、租户自己的缺省配置优先于平台的
 /// </remarks>
 public sealed class FilesTests : IDisposable
 {
@@ -99,7 +99,7 @@ public sealed class FilesTests : IDisposable
     }
 
     /// <summary>
-    /// 本地存储里对象的内容文件（目录存储把内容放在 <c>data</c>、元数据放在 <c>meta</c>）。
+    /// 本地存储里对象的内容文件（目录存储把内容放在 <c>data</c>、元数据放在 <c>meta</c>）
     /// </summary>
     private string BlobPathOf(string key) => Directory.EnumerateFiles(_root, "*", SearchOption.AllDirectories).Single(f => f.Contains(Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar, StringComparison.Ordinal) && Path.GetFileName(f).Contains(Path.GetFileNameWithoutExtension(key), StringComparison.Ordinal));
 
@@ -279,11 +279,11 @@ public sealed class FilesTests : IDisposable
     }
 
     /// <summary>
-    /// S3 兼容存储的条件写入开关（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）。
+    /// S3 兼容存储的条件写入开关（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）
     /// </summary>
     /// <remarks>
     /// 开着时框架建实例前探测服务是否认 <c>If-None-Match: *</c>：认的服务照常上传，不认的（<see cref="IgnoringConditionsS3Proxy"/> 把 412 改成 200）建不出实例；
-    /// 关掉时不探测，上传直接写入同一个服务。
+    /// 关掉时不探测，上传直接写入同一个服务
     /// </remarks>
     [Fact]
     public async Task StorageConfigs_ConditionalWrites_ProbeTheServiceOrWriteDirectly()
@@ -352,11 +352,11 @@ public sealed class FilesTests : IDisposable
     }
 
     /// <summary>
-    /// S3 兼容存储建实例时的失败语义（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）。
+    /// S3 兼容存储建实例时的失败语义（真实服务，<see cref="S3TestService.Variable"/> 没设即跳过）
     /// </summary>
     /// <remarks>
     /// 框架在建命名实例时探测条件写入：凭据被拒与桶不存在时实例不建，这条配置上的上传返回对应的错误；
-    /// 连不上时实例照建、后台重试，探明之前不覆盖写入返回 503；探测通过后桶里留下保留前缀下的探测键。
+    /// 连不上时实例照建、后台重试，探明之前不覆盖写入返回 503；探测通过后桶里留下保留前缀下的探测键
     /// </remarks>
     [Fact]
     public async Task StorageConfigs_S3Probe_RejectsDeniedMissingAndDefersUnreachable()

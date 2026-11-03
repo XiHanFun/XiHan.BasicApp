@@ -8,18 +8,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Dicts;
 
 /// <summary>
-/// 字典详情。
+/// 字典详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/dicts/{id}</c>。平台字典谁都能看，租户字典只有它自己。
-/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// <c>GET /api/dicts/{id}</c>。平台字典谁都能看，租户字典只有它自己
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）
 /// </remarks>
-/// <param name="service">字典域服务。</param>
+/// <param name="service">字典域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictsRead)]
 public sealed class GetDict(DictService service) : IOperation<GetDictRequest, DictResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "dicts.get";
 

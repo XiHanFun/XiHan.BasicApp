@@ -37,7 +37,7 @@ export interface UserProfile {
 }
 
 /**
- * 保存本人资料（后端 `profile.update`，整体覆盖；nickName 即显示名、必填，gender 是壳层的数字 0 未设置 / 1 男 / 2 女，空白当作没填）。
+ * 保存本人资料（后端 `profile.update`，整体覆盖；nickName 即显示名、必填，gender 是壳层的数字 0 未设置 / 1 男 / 2 女，空白当作没填）
  * 4.x 的 avatar、timeZone、language 不在 6.0 的资料里：头像走上传端点与 `profile.remove-avatar`（uploadAvatarApi / removeAvatarApi），时区与语言是偏好
  */
 export interface UpdateProfileParams {
@@ -127,7 +127,7 @@ export interface TwoFactorSetupResult {
 }
 
 /**
- * 用户通知偏好（渠道 × 类型；与后端 `profile.notification-preference` 同名同义，整体覆盖保存，没保存过即全收）。
+ * 用户通知偏好（渠道 × 类型；与后端 `profile.notification-preference` 同名同义，整体覆盖保存，没保存过即全收）
  * 强制阅读与紧急通知不受偏好影响。4.x 的推送、机器人两个渠道与审批、营销两种类型 6.0 没有效果（没有推送渠道、机器人是群广播不分人、
  * 审批随后续的流程模块、没有营销类通知），不显示也不存
  */

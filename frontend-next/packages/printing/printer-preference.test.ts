@@ -1,10 +1,10 @@
 /**
- * packages/printing/printer-preference.ts 的本地打印机偏好键隔离。
+ * packages/printing/printer-preference.ts 的本地打印机偏好键隔离
  *
  * 职责边界：只测存储键的构造与读写归一——同一浏览器换用户、换租户、换模板都不得串用，
- * 以及空白输入的清除语义。直打时的优先级选取（显式 > 本地偏好 > 客户端默认）已在 printing.test.ts 覆盖，这里不重复。
+ * 以及空白输入的清除语义。直打时的优先级选取（显式 > 本地偏好 > 客户端默认）已在 printing.test.ts 覆盖，这里不重复
  *
- * 用例会改 localStorage（由 vitest-setup 逐用例清理）与 pinia 用户态（每个用例新建 pinia）。
+ * 用例会改 localStorage（由 vitest-setup 逐用例清理）与 pinia 用户态（每个用例新建 pinia）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -151,8 +151,8 @@ describe('非浏览器环境', () => {
   })
 
   // 回归锚点（缺陷 40）：写侧原先没有读侧那样的环境守卫，抛的是底层
-  // TypeError: Cannot read properties of undefined，调用方无法与「模板编码为空」区分。
-  // 写入不能像读侧一样静默（用户选了打印机却没存下来必须让调用方知道），但错误要带业务语义。
+  // TypeError: Cannot read properties of undefined，调用方无法与「模板编码为空」区分
+  // 写入不能像读侧一样静默（用户选了打印机却没存下来必须让调用方知道），但错误要带业务语义
   it('没有 localStorage 时写入抛出带业务语义的「存储不可用」错误，可与编码为空区分', () => {
     vi.stubGlobal('localStorage', undefined)
 

@@ -1,8 +1,8 @@
 /**
- * 工作台小组件登记点。
+ * 工作台小组件登记点
  * 职责：可选功能模块把自己的看板小组件登记进来，工作台看板与内置小组件一起列出——
- * 工作台不依赖任何具体功能模块，删除模块目录即小组件消失（与壳层扩展同一个做法）。
- * 登记的是后端 `workbench.widget-data` 的列表型小组件：看板用同一个列表外观渲染，模块只给键、文案与跳转。
+ * 工作台不依赖任何具体功能模块，删除模块目录即小组件消失（与壳层扩展同一个做法）
+ * 登记的是后端 `workbench.widget-data` 的列表型小组件：看板用同一个列表外观渲染，模块只给键、文案与跳转
  */
 import { shallowReactive } from 'vue'
 
@@ -33,16 +33,16 @@ export interface WorkbenchListWidget {
 const widgets = shallowReactive<WorkbenchListWidget[]>([])
 
 /**
- * 登记一个看板小组件；模块 setup 钩子（app.mount 之前）调用。
- * @param widget 小组件定义。
+ * 登记一个看板小组件；模块 setup 钩子（app.mount 之前）调用
+ * @param widget 小组件定义
  */
 export function registerWorkbenchWidget(widget: WorkbenchListWidget): void {
   widgets.push(widget)
 }
 
 /**
- * 读取全部已登记的看板小组件；工作台看板消费。
- * @returns 小组件列表（登记顺序）。
+ * 读取全部已登记的看板小组件；工作台看板消费
+ * @returns 小组件列表（登记顺序）
  */
 export function useWorkbenchWidgets(): readonly WorkbenchListWidget[] {
   return widgets

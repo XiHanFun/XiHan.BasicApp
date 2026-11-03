@@ -56,7 +56,7 @@ export function buildNameMap(nodes: readonly DepartmentNode[], map = new Map<str
 }
 
 /**
- * 被上级「含下级」覆盖的部门：部门 → 覆盖它的最近一级已选上级。
+ * 被上级「含下级」覆盖的部门：部门 → 覆盖它的最近一级已选上级
  * 覆盖的部门选不选结果都一样，编辑器据此提示，而不是替用户删掉
  */
 export function findCoveredDepartments(departments: readonly ScopeDepartment[], parentMap: ReadonlyMap<string, null | string>): Map<string, string> {

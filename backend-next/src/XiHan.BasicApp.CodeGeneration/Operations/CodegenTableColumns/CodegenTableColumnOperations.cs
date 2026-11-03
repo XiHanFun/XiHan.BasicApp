@@ -11,17 +11,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 
 /// <summary>
-/// 一张表的列配置。
+/// 一张表的列配置
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-table-columns?tableId=</c>。按排序号（照 4.x）；表配置不存在 <c>CODEGENERATION_NOTFOUND_002</c>。
+/// <c>GET /api/codegen-table-columns?tableId=</c>。按排序号（照 4.x）；表配置不存在 <c>CODEGENERATION_NOTFOUND_002</c>
 /// </remarks>
-/// <param name="service">表配置规则。</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TableColumnsRead)]
 public sealed class ListCodegenTableColumns(CodeGenTableService service) : IOperation<ListCodegenTableColumnsRequest, CodegenTableColumnsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-table-columns.list";
 
@@ -42,20 +42,20 @@ public sealed class ListCodegenTableColumns(CodeGenTableService service) : IOper
 }
 
 /// <summary>
-/// 整体保存一张表的列配置。
+/// 整体保存一张表的列配置
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-table-columns:save</c>。照 4.x 的批量保存：每列都要属于这张表（<c>CODEGENERATION_VALIDATION_006</c>），交回读到的并发戳；
-/// 选项来源只留它要的那个字段并校验必填（系统字典要字典码、枚举要全名、常量要合法 JSON、关联表要表与显示列、关联树要表），值变了的被跟踪字段记为人工改过。
-/// 任一列不过即整次失败、不写入。
+/// 选项来源只留它要的那个字段并校验必填（系统字典要字典码、枚举要全名、常量要合法 JSON、关联表要表与显示列、关联树要表），值变了的被跟踪字段记为人工改过
+/// 任一列不过即整次失败、不写入
 /// </remarks>
-/// <param name="columns">列配置仓储。</param>
-/// <param name="service">表配置规则。</param>
+/// <param name="columns">列配置仓储</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TableColumnsUpdate)]
 public sealed class SaveCodegenTableColumns(IRepository<SysCodeGenTableColumn, Guid> columns, CodeGenTableService service) : IOperation<SaveCodegenTableColumnsRequest, CodegenTableColumnsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-table-columns.save";
 
@@ -127,10 +127,10 @@ public sealed class SaveCodegenTableColumns(IRepository<SysCodeGenTableColumn, G
     }
 
     /// <summary>
-    /// 套用选项来源。
+    /// 套用选项来源
     /// </summary>
     /// <remarks>
-    /// 只留当前来源要的那个字段并校验它必填（照 4.x：只校验生效的那个，免得前一种来源的残留值报出无关的错）。
+    /// 只留当前来源要的那个字段并校验它必填（照 4.x：只校验生效的那个，免得前一种来源的残留值报出无关的错）
     /// </remarks>
     private static Result ApplySelector(SysCodeGenTableColumn column, CodegenTableColumnInput input)
     {

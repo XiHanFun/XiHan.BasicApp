@@ -11,18 +11,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 批量删除部门。
+/// 批量删除部门
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/departments?ids=...</c>。还有子部门或成员的逐项 <c>ORGANIZATION_CONFLICT_002</c>；删除即软删并摘除闭包行。
+/// <c>DELETE /api/departments?ids=...</c>。还有子部门或成员的逐项 <c>ORGANIZATION_CONFLICT_002</c>；删除即软删并摘除闭包行
 /// </remarks>
-/// <param name="departments">部门仓储。</param>
-/// <param name="service">部门域服务。</param>
+/// <param name="departments">部门仓储</param>
+/// <param name="service">部门域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsDelete)]
 public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departments, DepartmentService service) : IOperation<DepartmentIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "departments.delete";
 

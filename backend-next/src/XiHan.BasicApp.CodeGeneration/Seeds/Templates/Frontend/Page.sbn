@@ -138,9 +138,9 @@
 <!--
   {{ DisplayName | html_comment }}管理页
 
-  本文件只在首次生成时创建，重新生成时不会覆盖：页面结构与表单标记可以放心改。
+  本文件只在首次生成时创建，重新生成时不会覆盖：页面结构与表单标记可以放心改
   列定义与表单缺省值来自 ./{{ Resource }}.schema.ts（它在生成的 base* 之上做 transform，随表结构变化更新）；
-  要增删列或改渲染，改那个文件而不是这里。文案键在 {{ I18nPrefix }} 下。
+  要增删列或改渲染，改那个文件而不是这里。文案键在 {{ I18nPrefix }} 下
 -->
 <script lang="ts" setup>
 {{~ if has_modal || has_row_action ~}}
@@ -300,8 +300,8 @@ async function toggleStatus(row: {{ ClassName }}Row) {
 {{~ if CanPrint ~}}
 
 /**
- * 打印：选项列换成显示名称，按页面码取打印模板预览。
- * 模板在「打印模板」页新建，编码同为页面码、数据源选本页。
+ * 打印：选项列换成显示名称，按页面码取打印模板预览
+ * 模板在「打印模板」页新建，编码同为页面码、数据源选本页
  */
 async function printRow(row: {{ ClassName }}Row) {
   try {

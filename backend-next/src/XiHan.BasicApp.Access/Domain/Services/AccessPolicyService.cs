@@ -14,50 +14,50 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 访问策略的一条条件（写入用）。
+/// 访问策略的一条条件（写入用）
 /// </summary>
-/// <param name="GroupNo">组号（同组取且、组间取或）。</param>
-/// <param name="AttributeName">属性名。</param>
-/// <param name="Operator">运算符。</param>
-/// <param name="IsNegated">是否取反。</param>
-/// <param name="Value">条件值（判空类运算符不填）。</param>
-/// <param name="Description">说明。</param>
+/// <param name="GroupNo">组号（同组取且、组间取或）</param>
+/// <param name="AttributeName">属性名</param>
+/// <param name="Operator">运算符</param>
+/// <param name="IsNegated">是否取反</param>
+/// <param name="Value">条件值（判空类运算符不填）</param>
+/// <param name="Description">说明</param>
 public sealed record PolicyConditionDefinition(int GroupNo, string AttributeName, ConditionOperator Operator, bool IsNegated, string? Value, string? Description);
 
 /// <summary>
-/// 访问策略的内容。
+/// 访问策略的内容
 /// </summary>
 /// <remarks>
-/// 新建与修改共用；动作与状态另有操作。
+/// 新建与修改共用；动作与状态另有操作
 /// </remarks>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Description">说明。</param>
-/// <param name="Priority">优先级（越小越先求值）。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">失效时间。</param>
-/// <param name="TemplateCode">来自哪个模板。</param>
-/// <param name="Remark">备注。</param>
-/// <param name="Conditions">条件（整组替换）。</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Description">说明</param>
+/// <param name="Priority">优先级（越小越先求值）</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">失效时间</param>
+/// <param name="TemplateCode">来自哪个模板</param>
+/// <param name="Remark">备注</param>
+/// <param name="Conditions">条件（整组替换）</param>
 public sealed record AccessPolicyDefinition(string Code, string Name, string? Description, int Priority, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, string? TemplateCode, string? Remark, IReadOnlyList<PolicyConditionDefinition> Conditions);
 
 /// <summary>
-/// 访问策略的写入规则。
+/// 访问策略的写入规则
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，对应 4.x 的 AccessPolicyDomainService。
+/// 见方案 5.9，对应 4.x 的 AccessPolicyDomainService
 /// 编码同一侧唯一、不含空白；至少 1 条、最多 100 条条件与 20 个组，整组按条件引擎编译；
 /// 新建一律只记录、启用，动作与状态只经 <see cref="SetActionAsync"/> 与 <see cref="SetStatusAsync"/> 修改；改动之后仍是启用中、此刻有效的拒绝策略时，
-/// 按发起这次修改的请求求值，命中即拒绝保存（防自锁，4.x 同）。写入后这一侧的策略缓存失效。
+/// 按发起这次修改的请求求值，命中即拒绝保存（防自锁，4.x 同）。写入后这一侧的策略缓存失效
 /// </remarks>
-/// <param name="policies">策略仓储。</param>
-/// <param name="conditions">策略条件仓储。</param>
-/// <param name="cache">策略缓存。</param>
-/// <param name="evaluator">策略求值。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="services">服务提供器（属性来源查库）。</param>
-/// <param name="options">授权包配置。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="policies">策略仓储</param>
+/// <param name="conditions">策略条件仓储</param>
+/// <param name="cache">策略缓存</param>
+/// <param name="evaluator">策略求值</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="services">服务提供器（属性来源查库）</param>
+/// <param name="options">授权包配置</param>
+/// <param name="clock">时间源</param>
 public sealed class AccessPolicyService(
     IRepository<SysAccessPolicy, Guid> policies,
     IRepository<SysAccessPolicyCondition, Guid> conditions,
@@ -69,7 +69,7 @@ public sealed class AccessPolicyService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 按 ID 取这一侧的策略。
+    /// 按 ID 取这一侧的策略
     /// </summary>
     public async Task<Maybe<SysAccessPolicy>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
@@ -78,7 +78,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 按编码取这一侧的策略。
+    /// 按编码取这一侧的策略
     /// </summary>
     public async Task<Maybe<SysAccessPolicy>> FindByCodeAsync(string owner, string code, CancellationToken cancellationToken)
     {
@@ -87,7 +87,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 一批策略的条件，按写入顺序。
+    /// 一批策略的条件，按写入顺序
     /// </summary>
     public async Task<ILookup<Guid, SysAccessPolicyCondition>> ConditionsOfAsync(string owner, IReadOnlyCollection<Guid> policyIds, CancellationToken cancellationToken)
     {
@@ -102,7 +102,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 新建（一律只记录、启用）。
+    /// 新建（一律只记录、启用）
     /// </summary>
     public async Task<Result<SysAccessPolicy>> CreateAsync(string owner, AccessPolicyDefinition definition, CancellationToken cancellationToken)
     {
@@ -131,7 +131,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 按模板写入一条预置策略（种子用：带模板的动作与状态）。
+    /// 按模板写入一条预置策略（种子用：带模板的动作与状态）
     /// </summary>
     public async Task<Result> SeedAsync(string owner, AccessPolicyTemplate template, CancellationToken cancellationToken)
     {
@@ -155,12 +155,12 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 整体修改内容（动作与状态不变）。
+    /// 整体修改内容（动作与状态不变）
     /// </summary>
-    /// <param name="policy">策略。</param>
-    /// <param name="definition">新内容。</param>
-    /// <param name="current">发起这次修改的请求（防自锁）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="policy">策略</param>
+    /// <param name="definition">新内容</param>
+    /// <param name="current">发起这次修改的请求（防自锁）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result> UpdateAsync(SysAccessPolicy policy, AccessPolicyDefinition definition, ConditionRequest current, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(policy);
@@ -194,7 +194,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 改动作（只记录、拒绝、放行）。
+    /// 改动作（只记录、拒绝、放行）
     /// </summary>
     public Task<Result> SetActionAsync(SysAccessPolicy policy, AccessPolicyAction action, ConditionRequest current, CancellationToken cancellationToken)
     {
@@ -204,7 +204,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 启用或停用。
+    /// 启用或停用
     /// </summary>
     public Task<Result> SetStatusAsync(SysAccessPolicy policy, AccessPolicyStatus status, ConditionRequest current, CancellationToken cancellationToken)
     {
@@ -214,7 +214,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 删除（连同条件）。
+    /// 删除（连同条件）
     /// </summary>
     public async Task<Result> DeleteAsync(SysAccessPolicy policy, CancellationToken cancellationToken)
     {
@@ -236,12 +236,12 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 校验一组条件并编译。
+    /// 校验一组条件并编译
     /// </summary>
     /// <remarks>
-    /// 试运行与写入共用；至少 1 条、最多 100 条与 20 个组。
+    /// 试运行与写入共用；至少 1 条、最多 100 条与 20 个组
     /// </remarks>
-    /// <returns>编译结果，编译不过返回引擎的错误。</returns>
+    /// <returns>编译结果，编译不过返回引擎的错误</returns>
     public Result<CompiledConditionSet> Compile(IReadOnlyList<PolicyConditionDefinition> definitions)
     {
         ArgumentNullException.ThrowIfNull(definitions);
@@ -265,7 +265,7 @@ public sealed class AccessPolicyService(
     }
 
     /// <summary>
-    /// 判定用的视图。
+    /// 判定用的视图
     /// </summary>
     public static AccessPolicyView ViewOf(Guid id, string code, string name, AccessPolicyAction action, int priority, DateTimeOffset? effectiveAt, DateTimeOffset? expiresAt, IEnumerable<PolicyConditionDefinition> definitions)
         => new(id, code, name, action, priority, effectiveAt, expiresAt, [.. definitions.Select(static c => new PolicyClauseView(c.GroupNo, c.AttributeName.Trim(), c.Operator, c.IsNegated, ValueOf(c)))]);

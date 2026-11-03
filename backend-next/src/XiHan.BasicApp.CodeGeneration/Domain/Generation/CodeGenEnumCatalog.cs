@@ -6,35 +6,35 @@ using System.Reflection;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 一个枚举类型的事实。
+/// 一个枚举类型的事实
 /// </summary>
-/// <param name="ShortName">短名。</param>
-/// <param name="Namespace">命名空间。</param>
-/// <param name="Assembly">所在程序集名（生成的包要引用它）。</param>
-/// <param name="Members">成员名，按声明顺序。</param>
+/// <param name="ShortName">短名</param>
+/// <param name="Namespace">命名空间</param>
+/// <param name="Assembly">所在程序集名（生成的包要引用它）</param>
+/// <param name="Members">成员名，按声明顺序</param>
 public sealed record CodeGenEnumFacts(string ShortName, string Namespace, string Assembly, IReadOnlyList<string> Members)
 {
     /// <summary>
-    /// 第一个成员（表单的缺省值）。
+    /// 第一个成员（表单的缺省值）
     /// </summary>
     public string DefaultMember => Members.Count > 0 ? Members[0] : string.Empty;
 
     /// <summary>
-    /// 是否启停枚举：有 <c>Active</c> 与 <c>Disabled</c> 两个成员（6.0 各包状态枚举的写法）。
+    /// 是否启停枚举：有 <c>Active</c> 与 <c>Disabled</c> 两个成员（6.0 各包状态枚举的写法）
     /// </summary>
     public bool IsActiveDisabled => Members.Contains("Active", StringComparer.Ordinal) && Members.Contains("Disabled", StringComparer.Ordinal);
 
     /// <summary>
-    /// 是否由生成器在实体里产出（整数状态列没选枚举时）。
+    /// 是否由生成器在实体里产出（整数状态列没选枚举时）
     /// </summary>
     public bool IsGenerated { get; init; }
 }
 
 /// <summary>
-/// 已装载的 XiHan 程序集里的公开枚举。
+/// 已装载的 XiHan 程序集里的公开枚举
 /// </summary>
 /// <remarks>
-/// 照 4.x：列配置的枚举类型按全名或短名解析；短名重复时优先 <c>XiHan.BasicApp.</c> 下的，仍并列即只能按全名解析。
+/// 照 4.x：列配置的枚举类型按全名或短名解析；短名重复时优先 <c>XiHan.BasicApp.</c> 下的，仍并列即只能按全名解析
 /// </remarks>
 public sealed class CodeGenEnumCatalog
 {
@@ -43,11 +43,11 @@ public sealed class CodeGenEnumCatalog
     private readonly Lazy<(IReadOnlyDictionary<string, CodeGenEnumFacts> ByFullName, IReadOnlyDictionary<string, CodeGenEnumFacts> ByShortName)> _index = new(Build);
 
     /// <summary>
-    /// 按全名或短名解析。
+    /// 按全名或短名解析
     /// </summary>
-    /// <param name="enumTypeName">枚举类型名。</param>
-    /// <param name="facts">解析出的事实。</param>
-    /// <returns>是否解析成功。</returns>
+    /// <param name="enumTypeName">枚举类型名</param>
+    /// <param name="facts">解析出的事实</param>
+    /// <returns>是否解析成功</returns>
     public bool TryResolve(string? enumTypeName, out CodeGenEnumFacts facts)
     {
         facts = null!;

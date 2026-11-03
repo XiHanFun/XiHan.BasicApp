@@ -13,10 +13,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Queries;
 
 /// <summary>
-/// 通知公告的查询：列表（当前一侧）、阅读统计与接收人。
+/// 通知公告的查询：列表（当前一侧）、阅读统计与接收人
 /// </summary>
-/// <param name="rows">按侧读写。</param>
-/// <param name="directory">用户目录（接收人显示名；没有实现即只给 ID）。</param>
+/// <param name="rows">按侧读写</param>
+/// <param name="directory">用户目录（接收人显示名；没有实现即只给 ID）</param>
 public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirectory> directory)
 {
     private const string FieldNotificationType = "notificationType";
@@ -29,15 +29,15 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     private readonly IUserDirectory? _directory = directory.FirstOrDefault();
 
     /// <summary>
-    /// 分页列出通知公告。
+    /// 分页列出通知公告
     /// </summary>
     /// <remarks>
     /// 关键字匹配标题与正文；筛选接受类型、优先级、目标的 <c>eq / in</c>，是否已发布的 <c>eq</c>，创建与发布时间的 <c>ge / le</c>；
-    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。数据范围（方案 5.9）按创建人套用：受限的主体只看得到自己与可见部门里的用户建的通知（收件箱不受影响）。
+    /// 排序接受创建时间、发布时间与优先级，缺省按创建时间倒序。数据范围（方案 5.9）按创建人套用：受限的主体只看得到自己与可见部门里的用户建的通知（收件箱不受影响）
     /// </remarks>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页通知。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页通知</returns>
     public async ValueTask<Result<PageResult<NotificationResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -102,11 +102,11 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     }
 
     /// <summary>
-    /// 阅读统计（按收件箱里还留着的那些算）。
+    /// 阅读统计（按收件箱里还留着的那些算）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notification">通知。</param>
-    /// <returns>统计。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notification">通知</param>
+    /// <returns>统计</returns>
     public async Task<NotificationReadStatsResponse> ReadStatsAsync(InvocationContext context, SysNotification notification)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -120,13 +120,13 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     }
 
     /// <summary>
-    /// 分页列出接收人（送达时间倒序）。
+    /// 分页列出接收人（送达时间倒序）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notification">已发布的通知。</param>
-    /// <param name="filter">范围。</param>
-    /// <param name="page">分页。</param>
-    /// <returns>一页接收人。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notification">已发布的通知</param>
+    /// <param name="filter">范围</param>
+    /// <param name="page">分页</param>
+    /// <returns>一页接收人</returns>
     public async Task<PageResult<NotificationRecipientResponse>> RecipientsAsync(InvocationContext context, SysNotification notification, NotificationRecipientFilter filter, PageInfo page)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -157,7 +157,7 @@ public sealed class NotificationQueries(SideRows rows, IEnumerable<IUserDirector
     }
 
     /// <summary>
-    /// 统计用的投影。
+    /// 统计用的投影
     /// </summary>
     private sealed class InboxState
     {

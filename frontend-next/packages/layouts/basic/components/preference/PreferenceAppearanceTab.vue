@@ -58,7 +58,7 @@ const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.la
 
 /**
  * 模式切换：change 事件不带坐标，取被点中的模式卡片矩形中心作为扩散起点，
- * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处。
+ * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处
  */
 function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
   const card = (event.currentTarget as HTMLElement | null)
@@ -672,7 +672,7 @@ const loaderItems = computed(() =>
   outline-offset: var(--xh-ring-offset);
 }
 
-/* 色块铺满卡片、颜色就是候选的主题色，环压在上面可能同色：与组件库的实心面同一套，环内侧衬一道底色间隔线。
+/* 色块铺满卡片、颜色就是候选的主题色，环压在上面可能同色：与组件库的实心面同一套，环内侧衬一道底色间隔线
    线画在色块上（卡片自己的投影被色块盖住），从卡片描边以内铺一个环宽，露在环内侧的那一截就是间隔线 */
 .theme-color-card:focus-visible .theme-color-dot:not(.custom-dot) {
   box-shadow: inset 0 0 0 var(--xh-ring-width) var(--xh-ring-gap);

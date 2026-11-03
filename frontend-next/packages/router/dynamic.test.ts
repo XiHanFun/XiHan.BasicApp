@@ -1,7 +1,7 @@
 /**
- * 壳层菜单模型 → 路由对象映射（dynamic.ts，与 4.x 同一套规则）。
+ * 壳层菜单模型 → 路由对象映射（dynamic.ts，与 4.x 同一套规则）
  * 职责边界：mapMenuToRoutes 的过滤、嵌套、重定向推导、meta 透传、组件解析与兜底视图、
- * 「名字 = 路由名」壳组件的缓存语义。组件路径按页面登记解析（views.ts），这里换成可控的登记表。
+ * 「名字 = 路由名」壳组件的缓存语义。组件路径按页面登记解析（views.ts），这里换成可控的登记表
  */
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'

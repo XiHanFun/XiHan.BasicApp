@@ -1,9 +1,9 @@
 /**
- * XTree 的交互契约：点行只管选中，展开只归箭头。
+ * XTree 的交互契约：点行只管选中，展开只归箭头
  *
- * XiHan.UI 2.1.0 起 Tree 的 expandOnClick 缺省为 false，选中改为行尾对号、勾选框部件删除。
+ * XiHan.UI 2.1.0 起 Tree 的 expandOnClick 缺省为 false，选中改为行尾对号、勾选框部件删除
  * 封装此前把 expandOnClick 定死成 true，点目录名会顺手展开，与选中混在同一下点击里；
- * 这里钉住：点文字不动展开集合，点箭头不动选中集合，每一行（含分支）都有行尾指示位。
+ * 这里钉住：点文字不动展开集合，点箭头不动选中集合，每一行（含分支）都有行尾指示位
  */
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'

@@ -7,10 +7,10 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Architecture.Tests.Model;
 
 /// <summary>
-/// 读各包的 <c>&lt;包&gt;Permissions.All</c>。
+/// 读各包的 <c>&lt;包&gt;Permissions.All</c>
 /// </summary>
 /// <remarks>
-/// <c>&lt;包&gt;Permissions.All</c> 是静态属性，类型为 <c>IReadOnlyList&lt;PermissionDescriptor&gt;</c>；没有权限类的包视为没有权限。
+/// <c>&lt;包&gt;Permissions.All</c> 是静态属性，类型为 <c>IReadOnlyList&lt;PermissionDescriptor&gt;</c>；没有权限类的包视为没有权限
 /// </remarks>
 public static class PermissionCatalog
 {

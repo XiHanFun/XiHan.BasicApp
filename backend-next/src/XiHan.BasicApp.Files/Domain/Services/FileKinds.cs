@@ -7,10 +7,10 @@ using XiHan.BasicApp.Files.Domain.Entities;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 判定文件大类与内容类型。
+/// 判定文件大类与内容类型
 /// </summary>
 /// <remarks>
-/// 4.x 同：先看内容类型，再看扩展名；上传方没给内容类型时按扩展名推，推不出为 <c>application/octet-stream</c>。
+/// 4.x 同：先看内容类型，再看扩展名；上传方没给内容类型时按扩展名推，推不出为 <c>application/octet-stream</c>
 /// </remarks>
 public static class FileKinds
 {
@@ -27,10 +27,10 @@ public static class FileKinds
     };
 
     /// <summary>
-    /// 规范化的扩展名（小写含点，超过 20 个字符或没有为空）。
+    /// 规范化的扩展名（小写含点，超过 20 个字符或没有为空）
     /// </summary>
-    /// <param name="fileName">文件名。</param>
-    /// <returns>扩展名。</returns>
+    /// <param name="fileName">文件名</param>
+    /// <returns>扩展名</returns>
     public static string? ExtensionOf(string fileName)
     {
         var extension = Path.GetExtension(fileName);
@@ -40,11 +40,11 @@ public static class FileKinds
     }
 
     /// <summary>
-    /// 内容类型：上传方给了就用它，没有按扩展名推。
+    /// 内容类型：上传方给了就用它，没有按扩展名推
     /// </summary>
-    /// <param name="declared">上传方给的内容类型。</param>
-    /// <param name="fileName">文件名。</param>
-    /// <returns>内容类型。</returns>
+    /// <param name="declared">上传方给的内容类型</param>
+    /// <param name="fileName">文件名</param>
+    /// <returns>内容类型</returns>
     public static string ContentTypeOf(string? declared, string fileName)
     {
         if (!string.IsNullOrWhiteSpace(declared) && declared.Length <= 100 && !string.Equals(declared, "application/octet-stream", StringComparison.OrdinalIgnoreCase))
@@ -56,11 +56,11 @@ public static class FileKinds
     }
 
     /// <summary>
-    /// 文件大类。
+    /// 文件大类
     /// </summary>
-    /// <param name="contentType">内容类型。</param>
-    /// <param name="extension">扩展名。</param>
-    /// <returns>大类。</returns>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="extension">扩展名</param>
+    /// <returns>大类</returns>
     public static FileKind KindOf(string contentType, string? extension)
     {
         if (contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))

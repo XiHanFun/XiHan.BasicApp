@@ -14,15 +14,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Middleware;
 
 /// <summary>
-/// Handle 阶段的字段安全中间件。
+/// Handle 阶段的字段安全中间件
 /// </summary>
 /// <remarks>
 /// 方案 5.9。对各包经 <see cref="FieldSecurityRegistrationExtensions.AddFieldSecurity"/> 绑定的操作，按当前主体在实体上的规则统一套用：
 /// 读取时，读受保护的字段不能筛选、排序（<c>ACCESS_DENIED_006</c>），关键字会匹配到它也不能搜；新建时只读字段不能填，
-/// 修改时只读字段不能改（<c>ACCESS_DENIED_007</c>），交回原值、脱敏值或空值即保留原值。响应的掩码在 <see cref="FieldSecurityBindings"/>（操作成功、编码之前）。
-/// 没有规则的调用原样放行。排在工作单元之内，修改时取原记录与操作同一个事务。
+/// 修改时只读字段不能改（<c>ACCESS_DENIED_007</c>），交回原值、脱敏值或空值即保留原值。响应的掩码在 <see cref="FieldSecurityBindings"/>（操作成功、编码之前）
+/// 没有规则的调用原样放行。排在工作单元之内，修改时取原记录与操作同一个事务
 /// </remarks>
-/// <param name="bindings">各包登记的操作绑定。</param>
+/// <param name="bindings">各包登记的操作绑定</param>
 public sealed class FieldSecurityMiddleware(FieldSecurityBindings bindings) : IPipelineMiddleware
 {
 

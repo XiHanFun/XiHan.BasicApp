@@ -14,17 +14,17 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Tenancy.Infrastructure;
 
 /// <summary>
-/// 套餐门控（单例，与框架权限检查器同寿命）。
+/// 套餐门控（单例，与框架权限检查器同寿命）
 /// </summary>
 /// <remarks>
 /// 租户 → 套餐 → 白名单。在权限判定的热路径上，所以结果进共享缓存（<see cref="CacheTimeToLive"/>），
-/// 套餐白名单、租户换套餐、删套餐时由写路径主动失效（推到工作单元结束之后），跨实例靠 TTL 收敛。读库经 <see cref="StoreScope"/> 在独立作用域里只读（判定时可能还没有工作单元）。
-/// 语义：没有业务租户行（不经 Tenancy 开通的目录租户）或未绑定套餐即不受限；绑定的套餐不存在（悬空引用）按空白名单处理，宁可拒绝。
+/// 套餐白名单、租户换套餐、删套餐时由写路径主动失效（推到工作单元结束之后），跨实例靠 TTL 收敛。读库经 <see cref="StoreScope"/> 在独立作用域里只读（判定时可能还没有工作单元）
+/// 语义：没有业务租户行（不经 Tenancy 开通的目录租户）或未绑定套餐即不受限；绑定的套餐不存在（悬空引用）按空白名单处理，宁可拒绝
 /// </remarks>
 public sealed class EditionGate : IEditionGate
 {
     /// <summary>
-    /// 缓存存活时间。
+    /// 缓存存活时间
     /// </summary>
     public static readonly TimeSpan CacheTimeToLive = TimeSpan.FromSeconds(30);
 
@@ -35,10 +35,10 @@ public sealed class EditionGate : IEditionGate
     private readonly IServiceScopeFactory _scopes;
 
     /// <summary>
-    /// 创建门控。
+    /// 创建门控
     /// </summary>
-    /// <param name="cache">共享缓存。</param>
-    /// <param name="scopes">作用域工厂（只读加载用）。</param>
+    /// <param name="cache">共享缓存</param>
+    /// <param name="scopes">作用域工厂（只读加载用）</param>
     public EditionGate(ISharedCache cache, IServiceScopeFactory scopes)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -56,10 +56,10 @@ public sealed class EditionGate : IEditionGate
     }
 
     /// <summary>
-    /// 失效这些租户的门控缓存（换套餐、改白名单、删套餐之后调用）。
+    /// 失效这些租户的门控缓存（换套餐、改白名单、删套餐之后调用）
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧白名单不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧白名单不会被回填进缓存
     /// </remarks>
     public async ValueTask InvalidateAsync(IEnumerable<string> tenantIds, CancellationToken cancellationToken)
     {

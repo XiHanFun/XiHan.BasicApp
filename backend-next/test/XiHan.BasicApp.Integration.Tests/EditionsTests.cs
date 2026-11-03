@@ -11,11 +11,11 @@ using XiHan.BasicApp.Tenancy.Operations.Tenants;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证套餐门控对有效权限的收窄与套餐管理。
+/// 验证套餐门控对有效权限的收窄与套餐管理
 /// </summary>
 /// <remarks>
 /// 种子四档套餐（免费版缺省）、租户侧权限目录、开通即绑定缺省套餐、有效权限与判定都按白名单收窄（租户管理员的 <c>*</c> 也收窄）、
-/// 改白名单与换套餐立即生效（换套餐不被提交前的门控判定回填）、不受限套餐、套餐的增改删与校验、租户主体碰不到套餐管理。
+/// 改白名单与换套餐立即生效（换套餐不被提交前的门控判定回填）、不受限套餐、套餐的增改删与校验、租户主体碰不到套餐管理
 /// </remarks>
 public sealed class EditionsTests : IDisposable
 {
@@ -24,7 +24,7 @@ public sealed class EditionsTests : IDisposable
     public void Dispose() => _database.Dispose();
 
     /// <summary>
-    /// 按编码取套餐主键（种子写入的套餐用）。
+    /// 按编码取套餐主键（种子写入的套餐用）
     /// </summary>
     public static async Task<string> EditionIdAsync(BasicAppTestServer server, string token, string code)
     {

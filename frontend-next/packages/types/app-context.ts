@@ -19,10 +19,10 @@ import type {
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEmailParams, ChangePasswordParams, ChangePhoneParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
- * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表。
+ * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`（Member 普通成员 / Support 运维支持）；
  * `isOwner` 是该租户的所有者（租户的 AdminUserId，与注册地、成员类型无关）；`isCurrent` 是当前会话所在的租户；
- * `joinedTime` 沿用 4.x 的字段名（后端 joinedAt）：成员是成为成员的时间，注册地是账号建立的时间。
+ * `joinedTime` 沿用 4.x 的字段名（后端 joinedAt）：成员是成为成员的时间，注册地是账号建立的时间
  */
 export interface AppTenantSwitcherItem {
   tenantId: string
@@ -35,11 +35,11 @@ export interface AppTenantSwitcherItem {
 }
 
 /**
- * shell 需要跳转、但**由应用侧定义**的路由路径。
+ * shell 需要跳转、但**由应用侧定义**的路由路径
  *
  * 底层包不该认识 `/workbench/profile` 这类业务路径——它们由 src 的路由表
- * 或后端 PageRegistry 定义，换一个应用就不存在，硬编码后点击即 404。
- * 未配置的项，对应入口应隐藏（而不是留一个点了没反应的死按钮）。
+ * 或后端 PageRegistry 定义，换一个应用就不存在，硬编码后点击即 404
+ * 未配置的项，对应入口应隐藏（而不是留一个点了没反应的死按钮）
  */
 export interface AppShellRoutes {
   /** 个人中心 */
@@ -125,7 +125,7 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
 
 // 刻意**不带**索引签名（`extends Record<string, unknown>`）：带上之后任何未声明的 key 都能塞进
 // ctx.apis 且类型检查通过（历史上 createMenuPageApis 的整块死注册就是这么活下来的），
-// 同时 `apis.typo` 也不报错（推成 unknown）。去掉后 packages 侧上百个 ctx.apis.* 调用点获得拼写保护。
+// 同时 `apis.typo` 也不报错（推成 unknown）。去掉后 packages 侧上百个 ctx.apis.* 调用点获得拼写保护
 export interface AppContextApis {
   /** 登录页配置：开放的登录方式、第三方登录与是否要图形验证码 */
   getLoginConfigApi: () => Promise<LoginConfig>

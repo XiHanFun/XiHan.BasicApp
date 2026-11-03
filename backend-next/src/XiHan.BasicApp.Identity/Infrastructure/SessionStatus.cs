@@ -6,12 +6,12 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// <see cref="ISessionStatus"/> 的实现。
+/// <see cref="ISessionStatus"/> 的实现
 /// </summary>
 /// <remarks>
-/// 与 HTTP 调用的会话门禁同一份判定与缓存（<see cref="SessionGate"/>）。
+/// 与 HTTP 调用的会话门禁同一份判定与缓存（<see cref="SessionGate"/>）
 /// </remarks>
-/// <param name="gate">会话门禁。</param>
+/// <param name="gate">会话门禁</param>
 public sealed class SessionStatus(SessionGate gate) : ISessionStatus
 {
     /// <inheritdoc />

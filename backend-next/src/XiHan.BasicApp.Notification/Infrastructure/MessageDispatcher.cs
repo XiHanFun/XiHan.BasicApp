@@ -14,21 +14,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 邮件、短信与机器人消息的发送循环（单例）。
+/// 邮件、短信与机器人消息的发送循环（单例）
 /// </summary>
 /// <remarks>
 /// 通知包的后台循环；4.x 用 Redis 延迟队列。每轮取到点的排队记录，先用条件更新把它改成发送中（多实例只有一个能领到），
-/// 再按所属侧的缺省配置（没有取平台的）发出；成功记发出时间，失败按「第 n 次等 n 倍重试间隔」退避，用完次数即失败。
-/// 启动时把发送中超过 <see cref="NotificationOptions.StuckAfter"/> 的记录改回排队中（上个进程发到一半）。
+/// 再按所属侧的缺省配置（没有取平台的）发出；成功记发出时间，失败按「第 n 次等 n 倍重试间隔」退避，用完次数即失败
+/// 启动时把发送中超过 <see cref="NotificationOptions.StuckAfter"/> 的记录改回排队中（上个进程发到一半）
 /// </remarks>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="signal">唤醒信号。</param>
-/// <param name="options">选项。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="emailTransport">邮件通道。</param>
-/// <param name="smsTransports">短信通道（每个服务商一个）。</param>
-/// <param name="botTransports">机器人通道（每个服务商一个）。</param>
-/// <param name="logger">日志。</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="signal">唤醒信号</param>
+/// <param name="options">选项</param>
+/// <param name="clock">时钟</param>
+/// <param name="emailTransport">邮件通道</param>
+/// <param name="smsTransports">短信通道（每个服务商一个）</param>
+/// <param name="botTransports">机器人通道（每个服务商一个）</param>
+/// <param name="logger">日志</param>
 public sealed partial class MessageDispatcher(
     IServiceScopeFactory scopes,
     MessageDispatchSignal signal,
@@ -46,10 +46,10 @@ public sealed partial class MessageDispatcher(
     private readonly IBotTransport[] _bots = botTransports.ToArray();
 
     /// <summary>
-    /// 循环到停止。
+    /// 循环到停止
     /// </summary>
-    /// <param name="stopping">停止信号。</param>
-    /// <returns>循环。</returns>
+    /// <param name="stopping">停止信号</param>
+    /// <returns>循环</returns>
     public async Task RunAsync(CancellationToken stopping)
     {
         while (!stopping.IsCancellationRequested)
@@ -74,10 +74,10 @@ public sealed partial class MessageDispatcher(
     }
 
     /// <summary>
-    /// 把发送中太久的记录改回排队中。
+    /// 把发送中太久的记录改回排队中
     /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<Result> RecoverAsync(CancellationToken cancellationToken)
     {
         var cutoff = clock.GetUtcNow() - options.StuckAfter;
@@ -102,10 +102,10 @@ public sealed partial class MessageDispatcher(
     }
 
     /// <summary>
-    /// 发一轮：每类至多 <c>20</c> 条到点的排队记录（邮件、短信、机器人消息）。
+    /// 发一轮：每类至多 <c>20</c> 条到点的排队记录（邮件、短信、机器人消息）
     /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>一轮。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>一轮</returns>
     public async Task DispatchOnceAsync(CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
@@ -246,10 +246,10 @@ public sealed partial class MessageDispatcher(
     }
 
     /// <summary>
-    /// 把记录从排队中改成发送中。
+    /// 把记录从排队中改成发送中
     /// </summary>
     /// <remarks>
-    /// 改到即领到。
+    /// 改到即领到
     /// </remarks>
     private async Task<bool> ClaimAsync<T>(Guid id, CancellationToken cancellationToken)
         where T : class, IMessageRecord, new()

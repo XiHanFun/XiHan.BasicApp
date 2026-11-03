@@ -4,28 +4,28 @@
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 接口文档开关 <c>BasicApp:ApiDocs:Enabled</c>。
+/// 接口文档开关 <c>BasicApp:ApiDocs:Enabled</c>
 /// </summary>
 /// <remarks>
-/// 缺省只在 Development 打开；打开时映射 <c>/openapi.json</c>（绕过内核管道、不鉴权）与 <c>/scalar</c>。
+/// 缺省只在 Development 打开；打开时映射 <c>/openapi.json</c>（绕过内核管道、不鉴权）与 <c>/scalar</c>
 /// </remarks>
 public sealed record ApiDocsOptions
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string ConfigurationSection = "BasicApp:ApiDocs";
 
     /// <summary>
-    /// 是否映射接口文档端点。
+    /// 是否映射接口文档端点
     /// </summary>
     public bool Enabled { get; init; }
 
     /// <summary>
-    /// 从配置读取接口文档开关。
+    /// 从配置读取接口文档开关
     /// </summary>
     /// <remarks>
-    /// 没写时按环境决定。
+    /// 没写时按环境决定
     /// </remarks>
     public static ApiDocsOptions FromConfiguration(IConfiguration configuration, IHostEnvironment environment)
     {

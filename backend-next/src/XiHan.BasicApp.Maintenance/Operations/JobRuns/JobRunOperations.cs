@@ -12,23 +12,23 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Maintenance.Operations.JobRuns;
 
 /// <summary>
-/// 作业的一次运行。
+/// 作业的一次运行
 /// </summary>
-/// <param name="Id">运行 ID。</param>
-/// <param name="Job">作业名。</param>
-/// <param name="TriggerName">触发器名；立即执行的是一次性触发器名。</param>
-/// <param name="Trigger">怎么触发的：计划、手动、恢复或重试。</param>
-/// <param name="Attempt">第几次尝试（从 1 起，重试的运行大于 1）。</param>
-/// <param name="RetryOf">重试的运行所重试的首次运行 ID；首次运行为 <see langword="null"/>。</param>
-/// <param name="ScheduledAt">计划的触发时间。</param>
-/// <param name="StartedAt">开始时间。</param>
-/// <param name="CompletedAt">结束时间；还在运行为 <see langword="null"/>。</param>
-/// <param name="DurationMs">耗时（毫秒）；还在运行为 <see langword="null"/>。</param>
-/// <param name="State">运行状态。</param>
-/// <param name="ErrorCode">失败的错误码。</param>
-/// <param name="ErrorMessage">失败的原因。</param>
-/// <param name="NodeId">执行的节点。</param>
-/// <param name="CancelRequested">是否已请求取消。</param>
+/// <param name="Id">运行 ID</param>
+/// <param name="Job">作业名</param>
+/// <param name="TriggerName">触发器名；立即执行的是一次性触发器名</param>
+/// <param name="Trigger">怎么触发的：计划、手动、恢复或重试</param>
+/// <param name="Attempt">第几次尝试（从 1 起，重试的运行大于 1）</param>
+/// <param name="RetryOf">重试的运行所重试的首次运行 ID；首次运行为 <see langword="null"/></param>
+/// <param name="ScheduledAt">计划的触发时间</param>
+/// <param name="StartedAt">开始时间</param>
+/// <param name="CompletedAt">结束时间；还在运行为 <see langword="null"/></param>
+/// <param name="DurationMs">耗时（毫秒）；还在运行为 <see langword="null"/></param>
+/// <param name="State">运行状态</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="ErrorMessage">失败的原因</param>
+/// <param name="NodeId">执行的节点</param>
+/// <param name="CancelRequested">是否已请求取消</param>
 public sealed record JobRunResponse(
     string Id,
     string Job,
@@ -47,7 +47,7 @@ public sealed record JobRunResponse(
     bool CancelRequested)
 {
     /// <summary>
-    /// 从框架的运行记录投影。
+    /// 从框架的运行记录投影
     /// </summary>
     public static JobRunResponse From(JobRunRecord run)
     {
@@ -72,19 +72,19 @@ public sealed record JobRunResponse(
 }
 
 /// <summary>
-/// 分页列出作业的运行历史。
+/// 分页列出作业的运行历史
 /// </summary>
 /// <remarks>
 /// <c>POST /api/job-runs:list</c>。按计划时间倒序。筛选支持 <c>job</c>（<c>eq</c>）、<c>state</c>、<c>trigger</c>（<c>eq</c> / <c>in</c>）、
-/// <c>scheduledAt</c>（<c>ge</c> / <c>lt</c>，ISO 8601）、<c>failed</c>（<c>eq</c>，有无错误码）、<c>triggerName</c> 与 <c>node</c>（<c>eq</c>）；关键字匹配触发器名、节点与错误。
-/// 运行历史只保留框架配置的天数（缺省 7 天）。条件都能交给框架时总数取 <c>CountRunsAsync</c>、按偏移直接取一页；有触发方式或关键字时逐批取齐再筛。只在平台一侧。
+/// <c>scheduledAt</c>（<c>ge</c> / <c>lt</c>，ISO 8601）、<c>failed</c>（<c>eq</c>，有无错误码）、<c>triggerName</c> 与 <c>node</c>（<c>eq</c>）；关键字匹配触发器名、节点与错误
+/// 运行历史只保留框架配置的天数（缺省 7 天）。条件都能交给框架时总数取 <c>CountRunsAsync</c>、按偏移直接取一页；有触发方式或关键字时逐批取齐再筛。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobRunsRead)]
 public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageRequest, PageResult<JobRunResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "job-runs.list";
 

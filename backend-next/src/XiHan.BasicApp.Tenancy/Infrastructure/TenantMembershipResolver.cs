@@ -10,14 +10,14 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Tenancy.Infrastructure;
 
 /// <summary>
-/// 成员关系查询（作用域，用调用方的工作单元）。
+/// 成员关系查询（作用域，用调用方的工作单元）
 /// </summary>
 /// <remarks>
-/// 给 Identity 的切换租户、模仿登录与收件人判断用户能否进入、是否算租户内的用户，以及谁是所有者（<see cref="SysTenant.AdminUserId"/>）。
+/// 给 Identity 的切换租户、模仿登录与收件人判断用户能否进入、是否算租户内的用户，以及谁是所有者（<see cref="SysTenant.AdminUserId"/>）
 /// </remarks>
-/// <param name="members">成员仓储。</param>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="members">成员仓储</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="clock">时间源</param>
 public sealed class TenantMembershipResolver(IRepository<SysTenantMember, Guid> members, IRepository<SysTenant, Guid> tenants, TimeProvider clock) : ITenantMembershipResolver
 {
     /// <inheritdoc />

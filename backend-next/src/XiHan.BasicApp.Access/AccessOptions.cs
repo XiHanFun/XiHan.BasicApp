@@ -6,75 +6,75 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 权限条件的生效模式。
+/// 权限条件的生效模式
 /// </summary>
 /// <remarks>
-/// 4.x 同。
+/// 4.x 同
 /// </remarks>
 public enum PermissionConditionMode
 {
     /// <summary>
-    /// 不按条件判定：有条件的拒绝即拒绝、有条件的授予即授予，不记命中。
+    /// 不按条件判定：有条件的拒绝即拒绝、有条件的授予即授予，不记命中
     /// </summary>
     Disabled = 0,
 
     /// <summary>
-    /// 照常判定并记下本该拒绝的命中，但放行。
+    /// 照常判定并记下本该拒绝的命中，但放行
     /// </summary>
     LogOnly = 1,
 
     /// <summary>
-    /// 照条件判定，不满足即拒绝并记命中。
+    /// 照条件判定，不满足即拒绝并记命中
     /// </summary>
     Enforce = 2,
 }
 
 /// <summary>
-/// 授权包的配置（配置节 <c>BasicApp:Access</c>）。
+/// 授权包的配置（配置节 <c>BasicApp:Access</c>）
 /// </summary>
 public sealed record AccessOptions
 {
     /// <summary>
-    /// 配置节名。
+    /// 配置节名
     /// </summary>
     public const string ConfigurationSection = "BasicApp:Access";
 
     /// <summary>
-    /// 缺省的条件时区。
+    /// 缺省的条件时区
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const string DefaultTimeZoneId = "Asia/Shanghai";
 
     /// <summary>
-    /// 权限条件的生效模式。
+    /// 权限条件的生效模式
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>PermissionConditionMode</c>，缺省 <see cref="PermissionConditionMode.Enforce"/>。
+    /// 配置键 <c>PermissionConditionMode</c>，缺省 <see cref="PermissionConditionMode.Enforce"/>
     /// </remarks>
     public PermissionConditionMode PermissionConditionMode { get; init; } = PermissionConditionMode.Enforce;
 
     /// <summary>
-    /// 访问策略是否判定。
+    /// 访问策略是否判定
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉。
+    /// 配置键 <c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉
     /// </remarks>
     public bool AccessPolicyEnabled { get; init; } = true;
 
     /// <summary>
-    /// 条件里时刻、小时、星期与日期所按的时区。
+    /// 条件里时刻、小时、星期与日期所按的时区
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>ConditionTimeZone</c>，缺省 Asia/Shanghai。
+    /// 配置键 <c>ConditionTimeZone</c>，缺省 Asia/Shanghai
     /// </remarks>
     public TimeZoneInfo ConditionTimeZone { get; init; } = Resolve(DefaultTimeZoneId);
 
     /// <summary>
-    /// 从配置读取授权包的配置。
+    /// 从配置读取授权包的配置
     /// </summary>
-    /// <exception cref="ArgumentException">不合法的值是装配错误，直接抛出。</exception>
+    /// <exception cref="ArgumentException">不合法的值是装配错误，直接抛出</exception>
     public static AccessOptions FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

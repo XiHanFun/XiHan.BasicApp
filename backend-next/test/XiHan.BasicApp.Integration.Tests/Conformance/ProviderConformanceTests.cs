@@ -14,15 +14,15 @@ using XiHan.Framework.Security.Conformance;
 namespace XiHan.BasicApp.Integration.Tests.Conformance;
 
 /// <summary>
-/// 一致性套件的宿主。
+/// 一致性套件的宿主
 /// </summary>
 /// <remarks>
 /// 每个用例一个空库（SQLite 临时文件，或 PostgreSQL 临时库——<see cref="PostgresDatabase.Variable"/> 没设即跳过）上的完整 BasicApp 宿主，
-/// 数据经 <see cref="BasicAppTestServer.SeedAsync"/>（框架的 <c>TenantRecordStore</c> / <c>PermissionGrantRecordStore</c>）写入；用例结束先停宿主再删库。
-/// 「存储不可达」的用例用 <see cref="StartUnreachableAsync"/>：宿主照常启动，之后让它的库真的打不开。
-/// 方案 N1 退出条件：BasicApp 装配出的租户存储、分片解析与授予存储通过框架的 <c>MultiTenancy.Conformance</c> 与 <c>Security.Conformance</c>。
+/// 数据经 <see cref="BasicAppTestServer.SeedAsync"/>（框架的 <c>TenantRecordStore</c> / <c>PermissionGrantRecordStore</c>）写入；用例结束先停宿主再删库
+/// 「存储不可达」的用例用 <see cref="StartUnreachableAsync"/>：宿主照常启动，之后让它的库真的打不开
+/// 方案 N1 退出条件：BasicApp 装配出的租户存储、分片解析与授予存储通过框架的 <c>MultiTenancy.Conformance</c> 与 <c>Security.Conformance</c>
 /// </remarks>
-/// <param name="postgres">是否用 PostgreSQL。</param>
+/// <param name="postgres">是否用 PostgreSQL</param>
 internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
 {
     private readonly List<IAsyncDisposable> _owned = [];
@@ -31,7 +31,7 @@ internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
     private PostgresDatabase? _database;
 
     /// <summary>
-    /// 起一个宿主。
+    /// 起一个宿主
     /// </summary>
     public async Task<BasicAppTestServer> StartAsync()
     {
@@ -53,11 +53,11 @@ internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
     }
 
     /// <summary>
-    /// 起一个宿主，再让它的库真的不可达。
+    /// 起一个宿主，再让它的库真的不可达
     /// </summary>
     /// <remarks>
     /// 宿主要先在可用的库上启动（建表、登记作业都要读写库）。启动之后，SQLite 把库文件换成同名目录（驱动打不开）；
-    /// PostgreSQL 强制删库（连接指向不存在的数据库，已有连接被服务端断开）。之后的读写都在数据库驱动里真实失败，不打桩。
+    /// PostgreSQL 强制删库（连接指向不存在的数据库，已有连接被服务端断开）。之后的读写都在数据库驱动里真实失败，不打桩
     /// </remarks>
     public async Task<BasicAppTestServer> StartUnreachableAsync()
     {
@@ -116,10 +116,10 @@ internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
 }
 
 /// <summary>
-/// 授予存储的一致性测试（SQLite）。
+/// 授予存储的一致性测试（SQLite）
 /// </summary>
 /// <remarks>
-/// 框架 <c>Security.Database</c> 装在 BasicApp 的 SqlSugar 持久化上。
+/// 框架 <c>Security.Database</c> 装在 BasicApp 的 SqlSugar 持久化上
 /// </remarks>
 public sealed class SqlitePermissionGrantStoreConformanceTests : PermissionGrantStoreConformance, IAsyncDisposable
 {
@@ -142,7 +142,7 @@ public sealed class SqlitePermissionGrantStoreConformanceTests : PermissionGrant
 }
 
 /// <summary>
-/// 授予存储（PostgreSQL）。
+/// 授予存储（PostgreSQL）
 /// </summary>
 public sealed class PostgresPermissionGrantStoreConformanceTests : PermissionGrantStoreConformance, IAsyncDisposable
 {
@@ -165,10 +165,10 @@ public sealed class PostgresPermissionGrantStoreConformanceTests : PermissionGra
 }
 
 /// <summary>
-/// 租户目录的一致性测试（SQLite）。
+/// 租户目录的一致性测试（SQLite）
 /// </summary>
 /// <remarks>
-/// 框架 <c>MultiTenancy.Database</c> 装在 BasicApp 的持久化上。
+/// 框架 <c>MultiTenancy.Database</c> 装在 BasicApp 的持久化上
 /// </remarks>
 public sealed class SqliteTenantStoreConformanceTests : TenantStoreConformance, IAsyncDisposable
 {
@@ -187,7 +187,7 @@ public sealed class SqliteTenantStoreConformanceTests : TenantStoreConformance, 
 }
 
 /// <summary>
-/// 租户目录（PostgreSQL）。
+/// 租户目录（PostgreSQL）
 /// </summary>
 public sealed class PostgresTenantStoreConformanceTests : TenantStoreConformance, IAsyncDisposable
 {
@@ -206,7 +206,7 @@ public sealed class PostgresTenantStoreConformanceTests : TenantStoreConformance
 }
 
 /// <summary>
-/// 分片解析（架在租户目录上，SQLite）。
+/// 分片解析（架在租户目录上，SQLite）
 /// </summary>
 public sealed class SqliteTenantShardResolverConformanceTests : TenantShardResolverConformance, IAsyncDisposable
 {
@@ -225,7 +225,7 @@ public sealed class SqliteTenantShardResolverConformanceTests : TenantShardResol
 }
 
 /// <summary>
-/// 分片解析（PostgreSQL）。
+/// 分片解析（PostgreSQL）
 /// </summary>
 public sealed class PostgresTenantShardResolverConformanceTests : TenantShardResolverConformance, IAsyncDisposable
 {

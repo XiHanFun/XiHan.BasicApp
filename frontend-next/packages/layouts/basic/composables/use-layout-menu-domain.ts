@@ -88,7 +88,7 @@ function buildMenuOptionsFromRoutes(
       ? buildMenuOptionsFromRoutes(children, config, fullPath)
       : undefined
 
-    // xihan 风格：隐藏父节点不直接渲染，提升其可见子节点，避免 mixed 模式二列空白。
+    // xihan 风格：隐藏父节点不直接渲染，提升其可见子节点，避免 mixed 模式二列空白
     if (meta.hidden) {
       if (childOptions?.length) {
         options.push(...childOptions)
@@ -207,7 +207,7 @@ export function useLayoutMenuDomain() {
     return visibleRootRoutes.value.find(item => toRouteNameKey(item.name) === activeRootKey.value)
   })
 
-  // 外链菜单（meta.link）按菜单键（路径与路由名两种）索引，供点击处理统一识别后新标签打开。
+  // 外链菜单（meta.link）按菜单键（路径与路由名两种）索引，供点击处理统一识别后新标签打开
   const externalLinkByKey = computed(() => {
     const map = new Map<string, string>()
     const walk = (nodes: MenuRoute[], parentPath = '') => {

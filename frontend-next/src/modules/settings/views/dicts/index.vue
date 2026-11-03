@@ -207,7 +207,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
 
 /**
  * 字典项 Schema。取数依赖当前字典，故整个右栏按 currentDict 用 v-if + key 重建：
- * 没选字典时不渲染（也就不会发请求），换字典时展开状态一并归零。后端一次返回整本字典的项，不分页、不搜索。
+ * 没选字典时不渲染（也就不会发请求），换字典时展开状态一并归零。后端一次返回整本字典的项，不分页、不搜索
  */
 const itemSchema = computed<PageSchema>(() => ({
   pageCode: 'settings.dict-items',

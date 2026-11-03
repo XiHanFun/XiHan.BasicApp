@@ -16,21 +16,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 我能进入的租户。
+/// 我能进入的租户
 /// </summary>
 /// <remarks>
-/// <c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 生效中的成员租户，只列正常状态的；平台账号另告知能进入平台。所有者按租户的 <c>AdminUserId</c> 判定。
-/// 控制中心据此画卡片，切换走 <c>auth.switch-tenant</c>。
+/// <c>tenants.mine</c>（自助操作，只要求已认证）。注册地租户 + 生效中的成员租户，只列正常状态的；平台账号另告知能进入平台。所有者按租户的 <c>AdminUserId</c> 判定
+/// 控制中心据此画卡片，切换走 <c>auth.switch-tenant</c>
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="members">成员仓储。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="members">成员仓储</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysTenant, Guid> tenants, IRepository<SysTenantMember, Guid> members, TimeProvider clock) : IOperation<MyTenantsRequest, MyTenantsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.mine";
 

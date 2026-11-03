@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 
 /**
- * 语言国旗图标。
- * 离线 iconify 仅预载 lucide/tabler/mdi（无国旗图标集），故内置 SVG 直绘，跨平台稳定显示。
+ * 语言国旗图标
+ * 离线 iconify 仅预载 lucide/tabler/mdi（无国旗图标集），故内置 SVG 直绘，跨平台稳定显示
  */
 defineOptions({ name: 'LocaleFlag' })
 

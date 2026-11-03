@@ -1,9 +1,9 @@
 /**
- * packages/utils/request-log.ts 单元测试。
+ * packages/utils/request-log.ts 单元测试
  *
  * 职责边界：前端请求日志的模块级环形缓冲——追加顺序、300 条上限裁剪、按 requestId 增量更新、
- * 清空，以及对外暴露的只读视图不可被消费方改写。
- * 该状态是模块单例，用例前后必须显式清空以保证任意顺序执行。
+ * 清空，以及对外暴露的只读视图不可被消费方改写
+ * 该状态是模块单例，用例前后必须显式清空以保证任意顺序执行
  */
 import type { FrontendRequestLog } from '~/types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

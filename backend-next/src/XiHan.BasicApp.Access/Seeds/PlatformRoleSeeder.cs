@@ -18,18 +18,18 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Seeds;
 
 /// <summary>
-/// 平台角色种子。
+/// 平台角色种子
 /// </summary>
 /// <remarks>
-/// 号段 100 + 模块偏移 10，在平台身份种子之后。
-/// 内建平台角色 <c>admin</c>（全局授予 <c>*</c>）并把 <c>superadmin</c> 指派进去。运营数据只首写：已有的角色不改名、不改授予。
+/// 号段 100 + 模块偏移 10，在平台身份种子之后
+/// 内建平台角色 <c>admin</c>（全局授予 <c>*</c>）并把 <c>superadmin</c> 指派进去。运营数据只首写：已有的角色不改名、不改授予
 /// </remarks>
-/// <param name="roles">角色仓储。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="service">角色域服务。</param>
-/// <param name="grants">角色授予。</param>
-/// <param name="accounts">账号域服务（找超级管理员）。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="members">指派仓储</param>
+/// <param name="service">角色域服务</param>
+/// <param name="grants">角色授予</param>
+/// <param name="accounts">账号域服务（找超级管理员）</param>
+/// <param name="ids">标识生成器</param>
 public sealed class PlatformRoleSeeder(
     IRepository<SysRole, Guid> roles,
     IRepository<SysUserRole, Guid> members,
@@ -39,7 +39,7 @@ public sealed class PlatformRoleSeeder(
     IIdGenerator<Guid> ids) : ISeeder
 {
     /// <summary>
-    /// 内建平台管理员角色码。
+    /// 内建平台管理员角色码
     /// </summary>
     public const string AdminRoleCode = "admin";
 

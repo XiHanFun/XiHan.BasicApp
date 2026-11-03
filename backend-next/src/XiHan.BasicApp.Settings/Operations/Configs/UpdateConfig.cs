@@ -10,19 +10,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Configs;
 
 /// <summary>
-/// 修改参数。
+/// 修改参数
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/configs/{id}</c>。只能改本侧的（另一侧 <c>SETTINGS_DENIED_001</c>）；键不可改，内建参数不能改数据类型。
-/// 加密：仍加密且没给新值即保留原密文；新开加密即加密现值；关掉加密且没给新值即解密现值。值按（新的）数据类型校验。
+/// <c>PUT /api/configs/{id}</c>。只能改本侧的（另一侧 <c>SETTINGS_DENIED_001</c>）；键不可改，内建参数不能改数据类型
+/// 加密：仍加密且没给新值即保留原密文；新开加密即加密现值；关掉加密且没给新值即解密现值。值按（新的）数据类型校验
 /// </remarks>
-/// <param name="configs">参数仓储。</param>
-/// <param name="values">参数值规则。</param>
+/// <param name="configs">参数仓储</param>
+/// <param name="values">参数值规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsUpdate)]
 public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values) : IOperation<UpdateConfigRequest, ConfigResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "configs.update";
 
@@ -76,7 +76,7 @@ public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
     }
 
     /// <summary>
-    /// 算出要存的值与用来校验的明文（明文为 <c>None</c> 表示沿用原值且不需要再校验）。
+    /// 算出要存的值与用来校验的明文（明文为 <c>None</c> 表示沿用原值且不需要再校验）
     /// </summary>
     private Result<(string? Stored, Maybe<string> Plaintext)> Next(SysConfig config, UpdateConfigRequest request, string? provided)
     {

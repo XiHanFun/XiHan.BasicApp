@@ -13,34 +13,34 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Schema;
 
 /// <summary>
-/// 一次结构升级的结果。
+/// 一次结构升级的结果
 /// </summary>
-/// <param name="Skipped">是否跳过（不是 PostgreSQL 库，脚本只为 PostgreSQL 写）。</param>
-/// <param name="From">升级前库的结构版本；新库为 <see langword="null"/>。</param>
-/// <param name="To">升级后库的结构版本。</param>
-/// <param name="Applied">执行了的脚本（<c>版本/文件名</c>）。</param>
+/// <param name="Skipped">是否跳过（不是 PostgreSQL 库，脚本只为 PostgreSQL 写）</param>
+/// <param name="From">升级前库的结构版本；新库为 <see langword="null"/></param>
+/// <param name="To">升级后库的结构版本</param>
+/// <param name="Applied">执行了的脚本（<c>版本/文件名</c>）</param>
 public sealed record SchemaUpgradeReport(bool Skipped, string? From, string? To, IReadOnlyList<string> Applied);
 
 /// <summary>
-/// 结构升级执行器。
+/// 结构升级执行器
 /// </summary>
 /// <remarks>
 /// 方案 5.14：平台库按版本台账（<see cref="SysVersion"/>）执行 <see cref="SchemaOptions.Directory"/> 里还没执行的版本目录——新库从最低的基线建起，
-/// 之后每版一个目录；每个脚本一个事务，成功与失败都记进 <see cref="SysMigrationHistory"/>，失败即停（调用方中断启动）。
-/// 多节点经台账行的条件更新抢升级锁（时间按库的 now()），别的节点等它升级完再看还有没有要执行的。台账两张表先按实体建好（与 InitTables 同一结构），再抢锁。
-/// 只支持 PostgreSQL：别的库（测试的 SQLite）跳过，由 InitTables 建表。平台库升完后，在同一把锁里逐个升级已就绪的租户独立库（<see cref="TenantSchemas"/>，台账在各自的库里，停用的租户也升）。
+/// 之后每版一个目录；每个脚本一个事务，成功与失败都记进 <see cref="SysMigrationHistory"/>，失败即停（调用方中断启动）
+/// 多节点经台账行的条件更新抢升级锁（时间按库的 now()），别的节点等它升级完再看还有没有要执行的。台账两张表先按实体建好（与 InitTables 同一结构），再抢锁
+/// 只支持 PostgreSQL：别的库（测试的 SQLite）跳过，由 InitTables 建表。平台库升完后，在同一把锁里逐个升级已就绪的租户独立库（<see cref="TenantSchemas"/>，台账在各自的库里，停用的租户也升）
 /// </remarks>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="options">结构升级配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="logger">日志。</param>
-/// <param name="tenantSchemas">租户独立库的升级。</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="options">结构升级配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="logger">日志</param>
+/// <param name="tenantSchemas">租户独立库的升级</param>
 public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOptions options, TimeProvider clock, ILogger<SchemaUpgrader> logger, TenantSchemas tenantSchemas)
 {
     private static readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
 
     /// <summary>
-    /// 执行平台库还没执行的升级脚本。
+    /// 执行平台库还没执行的升级脚本
     /// </summary>
     public async Task<Result<SchemaUpgradeReport>> UpgradeAsync(CancellationToken cancellationToken)
     {
@@ -232,9 +232,9 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
     }
 
     /// <summary>
-    /// 逐个升级已就绪的租户独立库。
+    /// 逐个升级已就绪的租户独立库
     /// </summary>
-    /// <returns>执行了的租户脚本（<c>租户/版本/tenant/文件名</c>）。</returns>
+    /// <returns>执行了的租户脚本（<c>租户/版本/tenant/文件名</c>）</returns>
     private async Task<Result<IReadOnlyList<string>>> UpgradeTenantsAsync(string node, CancellationToken cancellationToken)
     {
         var applied = new List<string>();

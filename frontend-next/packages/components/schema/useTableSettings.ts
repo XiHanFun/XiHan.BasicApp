@@ -93,8 +93,8 @@ interface PersistedTableSettings {
 const STORAGE_PREFIX = 'xh:table-settings:'
 
 /**
- * 表格列设置状态机：显隐 / 排序 / 固定 / 密度，按 pageCode 持久化到 localStorage。
- * 作为用户偏好的子集；后端偏好端点就绪后（S3）可替换存储后端。
+ * 表格列设置状态机：显隐 / 排序 / 固定 / 密度，按 pageCode 持久化到 localStorage
+ * 作为用户偏好的子集；后端偏好端点就绪后（S3）可替换存储后端
  *
  * @param pageCode 页面唯一码（存储维度）
  * @param fields 列字段（schema 的可见字段，提供默认顺序与标题）

@@ -12,21 +12,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 给租户换套餐。
+/// 给租户换套餐
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tenants/{id}:change-edition</c>（平台侧，<c>tenancy.tenants.update</c>）。
-/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算。
+/// <c>POST /api/tenants/{id}:change-edition</c>（平台侧，<c>tenancy.tenants.update</c>）
+/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="editions">套餐域服务。</param>
-/// <param name="gate">套餐门控。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="service">租户域服务</param>
+/// <param name="editions">套餐域服务</param>
+/// <param name="gate">套餐门控</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
 public sealed class ChangeTenantEdition(IRepository<SysTenant, Guid> tenants, TenantService service, EditionService editions, EditionGate gate) : IOperation<ChangeTenantEditionRequest, TenantResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.change-edition";
 

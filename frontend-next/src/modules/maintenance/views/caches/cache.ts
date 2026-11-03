@@ -68,8 +68,8 @@ export async function loadNamespaces(): Promise<CacheNamespace[]> {
 // ── 键列表 ──────────────────────────────────────────────────────
 
 /**
- * 查询的完整前缀：命名空间前缀加上子前缀（去首尾空白）。
- * 6.0 只认前缀、不认通配：4.x 的键模式 `basicapp:*` 在这里是选命名空间、再按需补一段子前缀。
+ * 查询的完整前缀：命名空间前缀加上子前缀（去首尾空白）
+ * 6.0 只认前缀、不认通配：4.x 的键模式 `basicapp:*` 在这里是选命名空间、再按需补一段子前缀
  */
 export function keyPrefix(namespacePrefix: string, subPrefix: string): string {
   return `${namespacePrefix}${subPrefix.trim()}`
@@ -91,9 +91,9 @@ export function mergeObjectKeys(existing: ReadonlySet<string>, incoming: readonl
 }
 
 /**
- * 键列表的状态：按前缀取第一页、再按续页标记往下翻，跨页去重。
- * 后端把对象缓存与字节存储两层合起来列，对象缓存的键另记一份。
- * 换前缀或重查时作废在途的上一笔，晚到的旧响应不覆盖新结果，也不报错。
+ * 键列表的状态：按前缀取第一页、再按续页标记往下翻，跨页去重
+ * 后端把对象缓存与字节存储两层合起来列，对象缓存的键另记一份
+ * 换前缀或重查时作废在途的上一笔，晚到的旧响应不覆盖新结果，也不报错
  */
 export function useCacheKeys() {
   const keys = ref<string[]>([])
@@ -172,7 +172,7 @@ export interface CacheTreeOption {
 
 /**
  * 扁平键 → 树（按 : 分组）。叶子与分组分槽存储：
- * 同一路径既是某键又是更深键前缀（如 a:b 与 a:b:c 并存）时不互相覆盖、不丢键。
+ * 同一路径既是某键又是更深键前缀（如 a:b 与 a:b:c 并存）时不互相覆盖、不丢键
  */
 export function buildKeyTree(keys: readonly string[]): CacheTreeOption[] {
   const root: CacheTreeOption[] = []
@@ -286,8 +286,8 @@ export function canEditEntry(entry: Pick<CacheEntry, 'editable' | 'text'> | null
 
 /**
  * 不能改写的原因：对象缓存的值按 JSON 只读显示（object）、写不出 JSON 不能预览（unrenderable）；
- * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only，4.x 同样禁止改写）。
- * 能改写时为 null。
+ * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only，4.x 同样禁止改写）
+ * 能改写时为 null
  */
 export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 'text'>): 'binary' | 'object' | 'read-only' | 'unrenderable' | null {
   const hasText = entry.text !== null && entry.text !== undefined
@@ -323,9 +323,9 @@ export function prettyJson(text: string): string {
 }
 
 /**
- * 当前查看的缓存项。
- * 键不存在或已过期（MAINTENANCE_NOTFOUND_003）不算错误，只把 entry 置空、由页面显示「键不存在」；其余错误抛给调用方。
- * 连点几个键时只认最后一次，晚到的旧响应丢弃。
+ * 当前查看的缓存项
+ * 键不存在或已过期（MAINTENANCE_NOTFOUND_003）不算错误，只把 entry 置空、由页面显示「键不存在」；其余错误抛给调用方
+ * 连点几个键时只认最后一次，晚到的旧响应丢弃
  */
 export function useCacheEntry() {
   const key = ref<null | string>(null)

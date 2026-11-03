@@ -10,16 +10,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Queries;
 
 /// <summary>
-/// 数据范围：取当前主体的判定并套到 SqlSugar 查询上。
+/// 数据范围：取当前主体的判定并套到 SqlSugar 查询上
 /// </summary>
 /// <remarks>
-/// 方案 5.6：判定按「归属人列」或「部门列」套到查询上。
-/// 平台侧与没有装 Access 的宿主一律不受限；受限时生成 <c>owner IN (...) [OR department IN (...)]</c>。
+/// 方案 5.6：判定按「归属人列」或「部门列」套到查询上
+/// 平台侧与没有装 Access 的宿主一律不受限；受限时生成 <c>owner IN (...) [OR department IN (...)]</c>
 /// </remarks>
 public static class DataScopeQuery
 {
     /// <summary>
-    /// 当前主体的判定：有 <see cref="IDataScopeResolver"/> 就问它，没有即不受限。
+    /// 当前主体的判定：有 <see cref="IDataScopeResolver"/> 就问它，没有即不受限
     /// </summary>
     public static ValueTask<DataScopeDecision> ResolveAsync(InvocationContext context)
     {
@@ -29,12 +29,12 @@ public static class DataScopeQuery
     }
 
     /// <summary>
-    /// 把数据范围判定套到查询上。
+    /// 把数据范围判定套到查询上
     /// </summary>
-    /// <param name="query">查询。</param>
-    /// <param name="decision">数据范围判定。</param>
-    /// <param name="owner">行的归属人列。</param>
-    /// <param name="department">行的部门列（可选），命中可见部门的行也放行。</param>
+    /// <param name="query">查询</param>
+    /// <param name="decision">数据范围判定</param>
+    /// <param name="owner">行的归属人列</param>
+    /// <param name="department">行的部门列（可选），命中可见部门的行也放行</param>
     public static ISugarQueryable<TEntity> ApplyDataScope<TEntity>(this ISugarQueryable<TEntity> query, DataScopeDecision decision, Expression<Func<TEntity, Guid>> owner, Expression<Func<TEntity, Guid>>? department = null)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -56,15 +56,15 @@ public static class DataScopeQuery
     }
 
     /// <summary>
-    /// 按创建人把数据范围判定套到查询上。
+    /// 按创建人把数据范围判定套到查询上
     /// </summary>
     /// <remarks>
     /// 给没有归属人主键列、只有审计列 <c>CreatedBy</c>（创建人的用户 ID，<c>D</c> 格式）的实体用，如文件与通知；
-    /// 受限时生成 <c>created_by IN (...)</c>，没有创建人的行（系统写入）一并看不到。
+    /// 受限时生成 <c>created_by IN (...)</c>，没有创建人的行（系统写入）一并看不到
     /// </remarks>
-    /// <param name="query">查询。</param>
-    /// <param name="decision">数据范围判定。</param>
-    /// <param name="creator">行的创建人列。</param>
+    /// <param name="query">查询</param>
+    /// <param name="decision">数据范围判定</param>
+    /// <param name="creator">行的创建人列</param>
     public static ISugarQueryable<TEntity> ApplyDataScopeByCreator<TEntity>(this ISugarQueryable<TEntity> query, DataScopeDecision decision, Expression<Func<TEntity, string?>> creator)
     {
         ArgumentNullException.ThrowIfNull(query);

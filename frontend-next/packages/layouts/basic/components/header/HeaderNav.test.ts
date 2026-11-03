@@ -1,8 +1,8 @@
 /**
- * 顶栏面包屑的过渡列表 key。
+ * 顶栏面包屑的过渡列表 key
  *
  * 各级与分隔符同是 TransitionGroup 的直接子项，key 由 v-for 模板的 key 拼上子项自己的 key 得来；
- * 子项 key 撞了，Vue 每次换路由都报 Duplicate keys，出入场也会认错节点。
+ * 子项 key 撞了，Vue 每次换路由都报 Duplicate keys，出入场也会认错节点
  */
 import type { LayoutBreadcrumbItem } from '../../contracts'
 import { mount } from '@vue/test-utils'

@@ -18,10 +18,10 @@ using XiHan.BasicApp.Contracts.Paging;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包操作的请求 / 响应序列化上下文。
+/// 审计包操作的请求 / 响应序列化上下文
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。
+/// 源生成；枚举按字符串
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

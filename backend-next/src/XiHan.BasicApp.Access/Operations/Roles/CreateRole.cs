@@ -11,20 +11,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 创建角色。
+/// 创建角色
 /// </summary>
 /// <remarks>
-/// <c>POST /api/roles</c>。角色码在作用侧内唯一。
+/// <c>POST /api/roles</c>。角色码在作用侧内唯一
 /// </remarks>
-/// <param name="roles">角色仓储。</param>
-/// <param name="service">角色域服务。</param>
-/// <param name="scopes">角色数据范围服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="service">角色域服务</param>
+/// <param name="scopes">角色数据范围服务</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesCreate)]
 public sealed class CreateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes, IIdGenerator<Guid> ids) : IOperation<CreateRoleRequest, RoleResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.create";
 

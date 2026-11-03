@@ -10,17 +10,17 @@ using XiHan.Framework.Primitives;
 namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
 
 /// <summary>
-/// {{ DisplayName | xml_doc }}树。
+/// {{ DisplayName | xml_doc }}树
 /// </summary>
 /// <remarks>
-/// <c>GET /api/{{ Resource }}:tree</c>。取当前租户的全部行在内存里组树（照 4.x，不按关键字裁，裁了会截断上级链）；上级不在的当作顶层，不丢行。
+/// <c>GET /api/{{ Resource }}:tree</c>。取当前租户的全部行在内存里组树（照 4.x，不按关键字裁，裁了会截断上级链）；上级不在的当作顶层，不丢行
 /// </remarks>
-/// <param name="queries">列表查询。</param>
+/// <param name="queries">列表查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = {{ ModuleName }}Permissions.{{ ResourcePascal }}Read)]
 public sealed class Get{{ ClassName }}Tree({{ ClassName }}Queries queries) : IOperation<{{ ClassName }}TreeRequest, {{ ClassName }}TreeResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "{{ Resource }}.tree";
 

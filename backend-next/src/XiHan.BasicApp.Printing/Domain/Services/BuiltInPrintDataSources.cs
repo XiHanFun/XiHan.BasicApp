@@ -6,18 +6,18 @@ using XiHan.BasicApp.Contracts.Printing;
 namespace XiHan.BasicApp.Printing.Domain.Services;
 
 /// <summary>
-/// 打印模块自带的数据源。
+/// 打印模块自带的数据源
 /// </summary>
 /// <remarks>
-/// 不论演示开关都登记（4.x 同），字段与样例照 4.x 原样。
+/// 不论演示开关都登记（4.x 同），字段与样例照 4.x 原样
 /// </remarks>
 public static class BuiltInPrintDataSources
 {
     /// <summary>
-    /// 系统打印示例：全部字段种类与明细表的样板。
+    /// 系统打印示例：全部字段种类与明细表的样板
     /// </summary>
     /// <remarks>
-    /// 编码 <c>system.print-demo</c>，演示模板「打印元素总览」绑定它。
+    /// 编码 <c>system.print-demo</c>，演示模板「打印元素总览」绑定它
     /// </remarks>
     public static PrintDataSourceDefinition SystemPrintDemo { get; } = new(
         "system.print-demo",

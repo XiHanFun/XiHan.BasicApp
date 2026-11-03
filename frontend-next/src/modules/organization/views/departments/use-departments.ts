@@ -86,8 +86,8 @@ export function toParentOptions(rows: DepartmentRow[], excludeId?: string): Tree
 }
 
 /**
- * SchemaPage 的资源（树形模式）：整棵树（departments.tree 一次取回、不分页）、删除与启停。
- * 部门树不接受筛选与排序：查询里出现即报错，而不是静默丢掉条件。取回的树经 onTree 交给页面，供上级候选复用。
+ * SchemaPage 的资源（树形模式）：整棵树（departments.tree 一次取回、不分页）、删除与启停
+ * 部门树不接受筛选与排序：查询里出现即报错，而不是静默丢掉条件。取回的树经 onTree 交给页面，供上级候选复用
  */
 export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): SchemaResource<DepartmentRow> {
   return {
@@ -119,10 +119,10 @@ function emptyDepartmentForm(): DepartmentForm {
 }
 
 /**
- * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑。
- * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move。
- * 负责人按关键字远程检索用户（users.list，要能查看用户）；编辑时先按用户详情把现任负责人放进候选，组合框才显示得出名字。
- * 字段级错误挂回对应字段，其余错误给整条提示。
+ * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑
+ * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move
+ * 负责人按关键字远程检索用户（users.list，要能查看用户）；编辑时先按用户详情把现任负责人放进候选，组合框才显示得出名字
+ * 字段级错误挂回对应字段，其余错误给整条提示
  */
 export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   const open = ref(false)
@@ -260,7 +260,7 @@ function listMembers(departmentId: string) {
 }
 
 /**
- * 部门详情对话框：详情（祖先链、负责人、子部门数、成员数）与成员列表（能读归属的主体才取）；子部门取自树里这一行的子行。
+ * 部门详情对话框：详情（祖先链、负责人、子部门数、成员数）与成员列表（能读归属的主体才取）；子部门取自树里这一行的子行
  */
 export function useDepartmentDetail(canReadMembers: () => boolean) {
   const open = ref(false)
@@ -333,8 +333,8 @@ export interface MembershipOptionScope {
 }
 
 /**
- * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、是否主部门）与编辑任职（用户与主部门不在这里改）。
- * 候选用户与启用中的岗位在打开时取（各前 100 条）；编辑时原岗位已停用也补进候选，免得选中值显示为空。
+ * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、是否主部门）与编辑任职（用户与主部门不在这里改）
+ * 候选用户与启用中的岗位在打开时取（各前 100 条）；编辑时原岗位已停用也补进候选，免得选中值显示为空
  */
 export function useMembershipEditor() {
   const open = ref(false)

@@ -14,29 +14,29 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.send-two-factor-code</c> 的请求。
+/// <c>auth.send-two-factor-code</c> 的请求
 /// </summary>
-/// <param name="Ticket">两步验证票据。</param>
-/// <param name="Method">邮箱还是短信。</param>
+/// <param name="Ticket">两步验证票据</param>
+/// <param name="Method">邮箱还是短信</param>
 public sealed record SendTwoFactorCodeRequest(
     [Required, StringLength(128, MinimumLength = 1)] string Ticket,
     TwoFactorMethod Method);
 
 /// <summary>
-/// 两步验证的第二步：发验证码到邮箱或手机。
+/// 两步验证的第二步：发验证码到邮箱或手机
 /// </summary>
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:send-two-factor-code</c>。凭票据发到账号已验证的邮箱或手机号，
-/// 方式须是这张票据能用的、且现在仍可用（<see cref="TwoFactorSettings.UsableAt"/>）；认证器不发码。
-/// 过登录节流（只看不计），停用与锁定期内的账号不发；限频同其他验证码（同一目标 60 秒、每天的目标与地址上限）。
-/// 第一步没登录，按平台的发送配置发。码交给 <c>auth.verify-two-factor</c>。
+/// 方式须是这张票据能用的、且现在仍可用（<see cref="TwoFactorSettings.UsableAt"/>）；认证器不发码
+/// 过登录节流（只看不计），停用与锁定期内的账号不发；限频同其他验证码（同一目标 60 秒、每天的目标与地址上限）
+/// 第一步没登录，按平台的发送配置发。码交给 <c>auth.verify-two-factor</c>
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="throttle">登录节流。</param>
-/// <param name="tickets">两步验证票据。</param>
-/// <param name="contacts">发码。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="throttle">登录节流</param>
+/// <param name="tickets">两步验证票据</param>
+/// <param name="contacts">发码</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class SendTwoFactorCode(
     IRepository<SysUser, Guid> users,
@@ -47,7 +47,7 @@ public sealed class SendTwoFactorCode(
     TimeProvider clock) : IOperation<SendTwoFactorCodeRequest, CodeSentResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.send-two-factor-code";
 
@@ -103,20 +103,20 @@ public sealed class SendTwoFactorCode(
 }
 
 /// <summary>
-/// 登录第二步的邮件与短信验证码。
+/// 登录第二步的邮件与短信验证码
 /// </summary>
 internal static class TwoFactorCodes
 {
     /// <summary>
-    /// 码的用途。
+    /// 码的用途
     /// </summary>
     public static string Purpose(ContactChannel channel) => "two-factor:" + LoginMethods.Of(channel);
 
     /// <summary>
-    /// 核对并作废收到的码。
+    /// 核对并作废收到的码
     /// </summary>
     /// <remarks>
-    /// 码记的是发到哪里：发码之后联系方式被改过，同样当作码错。
+    /// 码记的是发到哪里：发码之后联系方式被改过，同样当作码错
     /// </remarks>
     public static async Task<bool> ConsumeAsync(VerificationCodes codes, SysUser user, ContactChannel channel, string code, CancellationToken cancellationToken)
     {

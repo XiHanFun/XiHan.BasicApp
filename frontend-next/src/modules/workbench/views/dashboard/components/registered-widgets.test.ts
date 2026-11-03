@@ -1,6 +1,6 @@
 /**
- * 模块登记的看板小组件：排在内置小组件之后、进缺省看板，可见性按权限码与所属页面判定。
- * 登记表换成替身：清单在加载时读一次登记表（应用里模块 setup 先于看板加载）。
+ * 模块登记的看板小组件：排在内置小组件之后、进缺省看板，可见性按权限码与所属页面判定
+ * 登记表换成替身：清单在加载时读一次登记表（应用里模块 setup 先于看板加载）
  */
 import { describe, expect, it, vi } from 'vitest'
 import { canShowWidget, DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './index'

@@ -14,19 +14,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 批量删除租户。
+/// 批量删除租户
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/tenants?ids=...</c>。还有用户的租户不能删（逐项 <c>TENANCY_CONFLICT_003</c>）；删除即软删业务实体并从租户目录移除。
+/// <c>DELETE /api/tenants?ids=...</c>。还有用户的租户不能删（逐项 <c>TENANCY_CONFLICT_003</c>）；删除即软删业务实体并从租户目录移除
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="service">租户域服务。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="service">租户域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsDelete)]
 public sealed class DeleteTenants(IRepository<SysTenant, Guid> tenants, IRepository<SysUser, Guid> users, TenantService service) : IOperation<TenantIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.delete";
 

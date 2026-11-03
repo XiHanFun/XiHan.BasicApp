@@ -12,18 +12,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 取某个用户在当前作用侧的角色。
+/// 取某个用户在当前作用侧的角色
 /// </summary>
 /// <remarks>
-/// <c>GET /api/roles:by-user?userId=…</c>（声明只读，ADR-0041）（用户页的角色入口用它回显，再按差异 <c>roles.assign / unassign</c>）。
+/// <c>GET /api/roles:by-user?userId=…</c>（声明只读，ADR-0041）（用户页的角色入口用它回显，再按差异 <c>roles.assign / unassign</c>）
 /// </remarks>
-/// <param name="members">指派仓储。</param>
-/// <param name="service">角色域服务。</param>
+/// <param name="members">指派仓储</param>
+/// <param name="service">角色域服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class RolesByUser(IRepository<SysUserRole, Guid> members, RoleService service) : IOperation<RolesByUserRequest, RolesByUserResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.by-user";
 
@@ -46,13 +46,13 @@ public sealed class RolesByUser(IRepository<SysUserRole, Guid> members, RoleServ
 }
 
 /// <summary>
-/// <c>roles.by-user</c> 的请求。
+/// <c>roles.by-user</c> 的请求
 /// </summary>
-/// <param name="UserId">用户主键。</param>
+/// <param name="UserId">用户主键</param>
 public sealed record RolesByUserRequest(Guid UserId);
 
 /// <summary>
-/// <c>roles.by-user</c> 的响应。
+/// <c>roles.by-user</c> 的响应
 /// </summary>
-/// <param name="Items">角色，按排序号与角色码。</param>
+/// <param name="Items">角色，按排序号与角色码</param>
 public sealed record RolesByUserResponse(IReadOnlyList<RoleResponse> Items);

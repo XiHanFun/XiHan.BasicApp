@@ -7,16 +7,16 @@ using XiHan.BasicApp.Access.Operations.Auth;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 菜单行 → 树，并按有效权限裁剪。
+/// 菜单行 → 树，并按有效权限裁剪
 /// </summary>
 /// <remarks>
-/// 节点要求的权限不在集合里即连同子树去掉；没有要求权限的节点登录即可见；裁剪后没有子节点的目录不下发。
-/// 隐藏的节点（<see cref="SysMenu.IsVisible"/> 为假）照常下发并标 <see cref="MenuNode.Hidden"/>：页面仍可直接访问，导航里不显示。
+/// 节点要求的权限不在集合里即连同子树去掉；没有要求权限的节点登录即可见；裁剪后没有子节点的目录不下发
+/// 隐藏的节点（<see cref="SysMenu.IsVisible"/> 为假）照常下发并标 <see cref="MenuNode.Hidden"/>：页面仍可直接访问，导航里不显示
 /// </remarks>
 public static class MenuTree
 {
     /// <summary>
-    /// 从菜单行建树（按 <see cref="SysMenu.Order"/>、<see cref="SysMenu.Code"/> 排序）。
+    /// 从菜单行建树（按 <see cref="SysMenu.Order"/>、<see cref="SysMenu.Code"/> 排序）
     /// </summary>
     public static IReadOnlyList<MenuNode> Build(IReadOnlyList<SysMenu> rows)
     {
@@ -32,10 +32,10 @@ public static class MenuTree
     }
 
     /// <summary>
-    /// 按有效权限裁剪。
+    /// 按有效权限裁剪
     /// </summary>
     /// <remarks>
-    /// 裁剪后没有子节点的目录一并去掉。
+    /// 裁剪后没有子节点的目录一并去掉
     /// </remarks>
     public static IReadOnlyList<MenuNode> Prune(IReadOnlyList<MenuNode> nodes, IReadOnlySet<string> permissions)
     {
@@ -62,7 +62,7 @@ public static class MenuTree
     }
 
     /// <summary>
-    /// 树里全部页面码（深度优先，只含页面节点）。
+    /// 树里全部页面码（深度优先，只含页面节点）
     /// </summary>
     public static IReadOnlyList<string> Codes(IReadOnlyList<MenuNode> nodes)
     {

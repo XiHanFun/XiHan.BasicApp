@@ -20,49 +20,49 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 授权申请的对象：角色或权限（二选一）。
+/// 授权申请的对象：角色或权限（二选一）
 /// </summary>
-/// <param name="Role">申请的角色。</param>
-/// <param name="Permission">申请的权限。</param>
+/// <param name="Role">申请的角色</param>
+/// <param name="Permission">申请的权限</param>
 public sealed record PermissionRequestTarget(SysRole? Role, PermissionDescriptor? Permission);
 
 /// <summary>
-/// 授权申请的读写与校验（作用域）。
+/// 授权申请的读写与校验（作用域）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>PermissionRequestDomainService</c>：有效期合法且失效时间晚于现在、角色存在且启用、权限码在这一侧的目录里，同一申请人同一对象只能有一条待审批；
-/// 对象照 4.x 的界面二选一（4.x 的接口两者都给也收，用户已定接口同样二选一）。模仿会话里对申请的写操作一律拒绝（6.0 新加，4.x 没有）。
-/// 操作与审批业务处理器共用；它不依赖审批业务服务（处理器被审批业务服务构造时不成环）。
+/// 对象照 4.x 的界面二选一（4.x 的接口两者都给也收，用户已定接口同样二选一）。模仿会话里对申请的写操作一律拒绝（6.0 新加，4.x 没有）
+/// 操作与审批业务处理器共用；它不依赖审批业务服务（处理器被审批业务服务构造时不成环）
 /// </remarks>
-/// <param name="rows">按侧读写。</param>
-/// <param name="roles">角色。</param>
-/// <param name="roleRows">角色仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="users">用户目录。</param>
-/// <param name="permissions">权限判定。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="rows">按侧读写</param>
+/// <param name="roles">角色</param>
+/// <param name="roleRows">角色仓储</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="users">用户目录</param>
+/// <param name="permissions">权限判定</param>
+/// <param name="clock">时间源</param>
 public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRepository<SysRole, Guid> roleRows, PermissionCatalog catalog, IUserDirectory users, IPermissionChecker permissions, TimeProvider clock)
 {
     /// <summary>
-    /// 审批业务码（也是审批流程定义名）。
+    /// 审批业务码（也是审批流程定义名）
     /// </summary>
     public const string BusinessCode = "permission-request";
 
     /// <summary>
-    /// 关键字按申请人匹配时，从用户目录最多取几个人。
+    /// 关键字按申请人匹配时，从用户目录最多取几个人
     /// </summary>
     public const int RequesterMatchLimit = 200;
 
     /// <summary>
-    /// 按侧读写。
+    /// 按侧读写
     /// </summary>
     public SideRows Rows => rows;
 
     /// <summary>
-    /// 模仿会话里拒绝对申请的写操作。
+    /// 模仿会话里拒绝对申请的写操作
     /// </summary>
     /// <remarks>
-    /// 口径同个人中心与我的 OAuth 应用（冲突），按令牌带不带模仿者判定。
+    /// 口径同个人中心与我的 OAuth 应用（冲突），按令牌带不带模仿者判定
     /// </remarks>
     public static Result RejectImpersonation(InvocationContext context)
     {
@@ -73,10 +73,10 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 关键字匹配的申请人。
+    /// 关键字匹配的申请人
     /// </summary>
     /// <remarks>
-    /// 经用户目录在这一侧按登录名与显示名搜（含停用的账号），按登录名取前 <see cref="RequesterMatchLimit"/> 个。
+    /// 经用户目录在这一侧按登录名与显示名搜（含停用的账号），按登录名取前 <see cref="RequesterMatchLimit"/> 个
     /// </remarks>
     public async Task<IReadOnlyList<Guid>> RequestersMatchingAsync(string side, string keyword, CancellationToken cancellationToken)
     {
@@ -85,7 +85,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 按 ID 取这一侧的申请。
+    /// 按 ID 取这一侧的申请
     /// </summary>
     public async Task<Result<SysPermissionRequest>> FindAsync(string side, Guid id, CancellationToken cancellationToken)
     {
@@ -96,7 +96,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 校验申请的对象与有效期。
+    /// 校验申请的对象与有效期
     /// </summary>
     public async Task<Result<PermissionRequestTarget>> ValidateAsync(Guid? roleId, string? permissionCode, DateTimeOffset? effectiveAt, DateTimeOffset? expiresAt, InvocationContext context)
     {
@@ -126,7 +126,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 申请的对象此刻是否还可用（提交时与审批通过时都核对）。
+    /// 申请的对象此刻是否还可用（提交时与审批通过时都核对）
     /// </summary>
     public async Task<Result<PermissionRequestTarget>> TargetAsync(Guid? roleId, string? permissionCode, InvocationContext context)
     {
@@ -163,7 +163,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 申请人要是这一侧的在用账号。
+    /// 申请人要是这一侧的在用账号
     /// </summary>
     public async Task<Result<Guid>> RequesterAsync(InvocationContext context)
     {
@@ -178,7 +178,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 同一申请人同一对象只能有一条待审批的申请。
+    /// 同一申请人同一对象只能有一条待审批的申请
     /// </summary>
     public async Task<Result> EnsureNoDuplicateAsync(string side, Guid requester, PermissionRequestTarget target, Guid? except, CancellationToken cancellationToken)
     {
@@ -195,10 +195,10 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 处理人能否授出申请的对象。
+    /// 处理人能否授出申请的对象
     /// </summary>
     /// <remarks>
-    /// 4.x 另查模仿登录的提权防护与超管保护，6.0 没有这两样；照 6.0 的授出口径：角色要能指派（<c>access.roles.assign</c>），权限要能直授（<c>access.user-grants.grant</c>）。
+    /// 4.x 另查模仿登录的提权防护与超管保护，6.0 没有这两样；照 6.0 的授出口径：角色要能指派（<c>access.roles.assign</c>），权限要能直授（<c>access.user-grants.grant</c>）
     /// </remarks>
     public async Task<Result> CanGrantAsync(SysPermissionRequest request, InvocationContext context)
     {
@@ -233,10 +233,10 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 审批流程的标题。
+    /// 审批流程的标题
     /// </summary>
     /// <remarks>
-    /// 只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏（照 4.x）。
+    /// 只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏（照 4.x）
     /// </remarks>
     public static string TitleOf(PermissionRequestTarget target, InvocationContext context)
     {
@@ -257,7 +257,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     }
 
     /// <summary>
-    /// 投影成响应：补申请人、角色与权限的名字，接上审批进度。
+    /// 投影成响应：补申请人、角色与权限的名字，接上审批进度
     /// </summary>
     public async Task<IReadOnlyList<PermissionRequestResponse>> ProjectAsync(IReadOnlyList<SysPermissionRequest> items, IReadOnlyDictionary<string, WorkflowBusinessProgress>? progress, InvocationContext context)
     {

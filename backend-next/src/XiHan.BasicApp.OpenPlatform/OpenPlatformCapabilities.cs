@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包提供的能力。
+/// 开放平台包提供的能力
 /// </summary>
 public static class OpenPlatformCapabilities
 {
     /// <summary>
-    /// 开放平台能力：签名开放接口。
+    /// 开放平台能力：签名开放接口
     /// </summary>
     public const string OpenPlatform = AppInfo.CapabilityPrefix + "openplatform";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = 1;
 }

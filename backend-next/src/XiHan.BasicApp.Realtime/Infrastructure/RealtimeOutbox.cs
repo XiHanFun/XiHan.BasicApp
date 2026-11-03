@@ -15,18 +15,18 @@ using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// <see cref="IRealtimePush"/> 的实现（作用域）。
+/// <see cref="IRealtimePush"/> 的实现（作用域）
 /// </summary>
 /// <remarks>
 /// 调用管道里由 <see cref="Middleware.RealtimeDispatchMiddleware"/> 开一层暂存，
-/// 推送先记进当前层，调用成功提交后并入外层或发出，失败即丢弃；不在管道里立即发出。发送失败只记日志，不影响已经提交的调用。
-/// 断开连接：本实例上的连接直接移出并断开；配了 Redis 时别的实例登记的连接经背板移出全部组；再经消息代理广播，由各实例断开自己的连接。
+/// 推送先记进当前层，调用成功提交后并入外层或发出，失败即丢弃；不在管道里立即发出。发送失败只记日志，不影响已经提交的调用
+/// 断开连接：本实例上的连接直接移出并断开；配了 Redis 时别的实例登记的连接经背板移出全部组；再经消息代理广播，由各实例断开自己的连接
 /// </remarks>
-/// <param name="hubs">Hub 登记表。</param>
-/// <param name="closer">移出与断开连接。</param>
-/// <param name="node">本实例的标识。</param>
-/// <param name="services">当前作用域（取工作单元、发布者与在线登记板）。</param>
-/// <param name="logger">日志。</param>
+/// <param name="hubs">Hub 登记表</param>
+/// <param name="closer">移出与断开连接</param>
+/// <param name="node">本实例的标识</param>
+/// <param name="services">当前作用域（取工作单元、发布者与在线登记板）</param>
+/// <param name="logger">日志</param>
 internal sealed partial class RealtimeOutbox(RealtimeHubCatalog hubs, ConnectionCloser closer, RealtimeNode node, IServiceProvider services, ILogger<RealtimeOutbox> logger) : IRealtimePush
 {
     private readonly Stack<List<Func<Task>>> _frames = new();
@@ -92,12 +92,12 @@ internal sealed partial class RealtimeOutbox(RealtimeHubCatalog hubs, Connection
     }
 
     /// <summary>
-    /// 开一层暂存（一次调用管道）。
+    /// 开一层暂存（一次调用管道）
     /// </summary>
     public void Begin() => _frames.Push([]);
 
     /// <summary>
-    /// 结束当前层：成功即并入外层（没有外层就发出），失败即丢弃。
+    /// 结束当前层：成功即并入外层（没有外层就发出），失败即丢弃
     /// </summary>
     public async Task EndAsync(bool succeeded)
     {

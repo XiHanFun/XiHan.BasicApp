@@ -23,7 +23,7 @@ const keyword = ref('')
 const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
-/** 网格的根节点。ref 落在组件上得到的是实例，键盘导航要的是它渲染出的那个元素。 */
+/** 网格的根节点。ref 落在组件上得到的是实例，键盘导航要的是它渲染出的那个元素 */
 const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
 
 // 总览铺满视口期间背后的内容不该还能滚

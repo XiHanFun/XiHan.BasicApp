@@ -28,8 +28,8 @@ import {
 import { workflowProgressText, workflowProgressTone } from '../workflow-progress'
 
 /**
- * 授权申请页的「申请」页签（照 4.x）：为自己申请角色或权限，提交即进入审批流；审批在审批中心办理，这里看进度、跳过去看轨迹。
- * 另补上 4.x 后端有、前端没接的「修改重提」与「手工驳回 / 撤回」（W2）。
+ * 授权申请页的「申请」页签（照 4.x）：为自己申请角色或权限，提交即进入审批流；审批在审批中心办理，这里看进度、跳过去看轨迹
+ * 另补上 4.x 后端有、前端没接的「修改重提」与「手工驳回 / 撤回」（W2）
  */
 defineOptions({ name: 'AccessPermissionRequestsTab' })
 

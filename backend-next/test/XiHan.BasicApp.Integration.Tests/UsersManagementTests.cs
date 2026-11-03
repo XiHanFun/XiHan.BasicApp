@@ -8,10 +8,10 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证用户管理操作。
+/// 验证用户管理操作
 /// </summary>
 /// <remarks>
-/// 修改、批量锁定 / 解锁（逐项结果）、重置密码、批量删除；不能对自己操作；租户主体只能管本租户。
+/// 修改、批量锁定 / 解锁（逐项结果）、重置密码、批量删除；不能对自己操作；租户主体只能管本租户
 /// </remarks>
 public sealed class UsersManagementTests : IDisposable
 {

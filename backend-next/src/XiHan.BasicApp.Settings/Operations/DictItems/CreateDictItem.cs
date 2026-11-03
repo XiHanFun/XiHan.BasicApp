@@ -11,20 +11,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.DictItems;
 
 /// <summary>
-/// 新建字典项。
+/// 新建字典项
 /// </summary>
 /// <remarks>
 /// <c>POST /api/dict-items</c>。字典要在本侧（另一侧 <c>SETTINGS_DENIED_001</c>）且启用（停用 <c>SETTINGS_CONFLICT_007</c>）；
-/// 编码字典内唯一；上级在同一字典；元数据是 JSON；设为缺省会取消字典里其他的缺省项。
+/// 编码字典内唯一；上级在同一字典；元数据是 JSON；设为缺省会取消字典里其他的缺省项
 /// </remarks>
-/// <param name="items">字典项仓储。</param>
-/// <param name="service">字典域服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="items">字典项仓储</param>
+/// <param name="service">字典域服务</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsCreate)]
 public sealed class CreateDictItem(IRepository<SysDictItem, Guid> items, DictService service, IIdGenerator<Guid> ids) : IOperation<CreateDictItemRequest, DictItemResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "dict-items.create";
 

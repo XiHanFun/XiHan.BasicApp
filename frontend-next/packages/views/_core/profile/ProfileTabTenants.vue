@@ -17,7 +17,7 @@ const authStore = useAuthStore()
 const { t } = useI18n()
 
 /**
- * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地（没有成员类型）、运维支持、普通成员。
+ * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地（没有成员类型）、运维支持、普通成员
  * 4.x 取后端 TenantMemberType 枚举元数据；6.0 没有枚举元数据，成员类型只有 Member / Support、所有者单独由 isOwner 给出，
  * 与控制中心同口径用本地文案（键静态写出以便 i18n 门禁核对）
  */

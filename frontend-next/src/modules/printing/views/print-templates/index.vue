@@ -1,7 +1,7 @@
 <!--
-  打印 / 打印模板页面。
-  职责：按租户或平台作用域管理模板、切换可用全局模板，并从统一公共 API 发起样例预览与 FIFO 直打。
-  接口取自后端契约（print-templates.*）：租户的「可用全局模板」是列表加作用域筛选 Global；写入的一侧由登录上下文决定。
+  打印 / 打印模板页面
+  职责：按租户或平台作用域管理模板、切换可用全局模板，并从统一公共 API 发起样例预览与 FIFO 直打
+  接口取自后端契约（print-templates.*）：租户的「可用全局模板」是列表加作用域筛选 Global；写入的一侧由登录上下文决定
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetail, PrintTemplateRow, PrintTemplateScope } from './components/models'
@@ -76,7 +76,7 @@ watch(samplePreviewVisible, (show) => {
 
 onBeforeRouteLeave(async () => !editorVisible.value || (await editorRef.value?.confirmDiscard()) !== false)
 
-/** 在租户私有模板与开放的全局模板之间切换。 */
+/** 在租户私有模板与开放的全局模板之间切换 */
 function switchScope(): void {
   if (isPlatform.value)
     return
@@ -153,7 +153,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-/** 分发页面与行操作。 */
+/** 分发页面与行操作 */
 function onAction(payload: SchemaActionPayload): void {
   const row = payload.row as unknown as PrintTemplateRow | undefined
   if (payload.key === 'create') {
@@ -177,7 +177,7 @@ function onAction(payload: SchemaActionPayload): void {
     void direct(row)
 }
 
-/** 加载最新详情（并发戳）后打开编辑弹窗。 */
+/** 加载最新详情（并发戳）后打开编辑弹窗 */
 async function openMetadata(row: PrintTemplateRow): Promise<void> {
   try {
     metadataDetail.value = await printTemplates.get({ id: row.id })
@@ -188,7 +188,7 @@ async function openMetadata(row: PrintTemplateRow): Promise<void> {
   }
 }
 
-/** 元数据存好后刷新列表；新建的模板版面是空白的，接着打开设计器。 */
+/** 元数据存好后刷新列表；新建的模板版面是空白的，接着打开设计器 */
 function onMetadataSaved(detail: PrintTemplateDetail, created: boolean): void {
   void schemaPageRef.value?.reload()
   if (!created)
@@ -197,7 +197,7 @@ function onMetadataSaved(detail: PrintTemplateDetail, created: boolean): void {
   editorVisible.value = true
 }
 
-/** 加载完整 JSON 后打开全屏设计器。 */
+/** 加载完整 JSON 后打开全屏设计器 */
 async function openEditor(row: PrintTemplateRow): Promise<void> {
   try {
     editorDetail.value = await printTemplates.get({ id: row.id })
@@ -208,7 +208,7 @@ async function openEditor(row: PrintTemplateRow): Promise<void> {
   }
 }
 
-/** 加载已保存模板详情，并打开模板驱动的内存模拟数据表单。 */
+/** 加载已保存模板详情，并打开模板驱动的内存模拟数据表单 */
 async function openSamplePreview(row: PrintTemplateRow): Promise<void> {
   if (actionLoading.value)
     return
@@ -217,7 +217,7 @@ async function openSamplePreview(row: PrintTemplateRow): Promise<void> {
     const scope = activeScope.value
     const detail = await printTemplates.get({ id: row.id })
 
-    // 表单必须基于详情接口返回的版本构建，列表摘要不足以保证并发预览安全；旧格式的模板在这里就明确报错。
+    // 表单必须基于详情接口返回的版本构建，列表摘要不足以保证并发预览安全；旧格式的模板在这里就明确报错
     const document = parsePrintTemplateJson(detail.templateJson, detail.templateCode)
     samplePreviewContext.value = { detail, document, scope }
     samplePreviewVisible.value = true
@@ -231,9 +231,9 @@ async function openSamplePreview(row: PrintTemplateRow): Promise<void> {
 }
 
 /**
- * 使用用户填写的模拟数据预览已保存模板。
- * @param sample 模拟数据弹窗产生的单对象或对象数组，仅在本次调用内存中使用。
- * @returns 预览窗口打开完成信号。
+ * 使用用户填写的模拟数据预览已保存模板
+ * @param sample 模拟数据弹窗产生的单对象或对象数组，仅在本次调用内存中使用
+ * @returns 预览窗口打开完成信号
  */
 async function previewSampleData(sample: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
   if (previewLoading.value)
@@ -263,7 +263,7 @@ async function previewSampleData(sample: Record<string, unknown> | Record<string
   }
 }
 
-/** 使用注册样例或自由模板空白字段从公共 FIFO API 直打，不自动回退浏览器预览。 */
+/** 使用注册样例或自由模板空白字段从公共 FIFO API 直打，不自动回退浏览器预览 */
 async function direct(row: PrintTemplateRow): Promise<void> {
   if (actionLoading.value)
     return
@@ -284,7 +284,7 @@ async function direct(row: PrintTemplateRow): Promise<void> {
   }
 }
 
-/** 使用列表返回的并发戳执行启停，防止覆盖并行编辑。 */
+/** 使用列表返回的并发戳执行启停，防止覆盖并行编辑 */
 async function toggleStatus(row: PrintTemplateRow): Promise<void> {
   if (actionLoading.value)
     return
@@ -306,7 +306,7 @@ async function toggleStatus(row: PrintTemplateRow): Promise<void> {
   }
 }
 
-/** 确认并删除已停用模板。 */
+/** 确认并删除已停用模板 */
 function remove(row: PrintTemplateRow): void {
   void dialog.confirm({
     badge: 'warning',

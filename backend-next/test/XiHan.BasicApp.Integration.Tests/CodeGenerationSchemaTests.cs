@@ -10,12 +10,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证代码生成在真实的外部库上读库结构与推断类型。
+/// 验证代码生成在真实的外部库上读库结构与推断类型
 /// </summary>
 /// <remarks>
 /// PostgreSQL、MySQL、SQL Server、Oracle 各建一个临时库（环境变量见 <see cref="ExternalDatabase"/>，没设即跳过），经数据源测试连接、列出库表、导入，
 /// 核对框架读库结构的口径（修订（八十三））：长度只给字符与二进制类型，类型按各库的类型名映射（Oracle 的 <c>NUMBER</c> 按精度分整数与定点数、<c>DATE</c> 带时分秒，
-/// SQL Server 的 <c>rowversion</c> 是二进制），表与列的注释读得到，大小写混合的表名照原样、自增读得到，零代码运行时按数据源读得到它的行。
+/// SQL Server 的 <c>rowversion</c> 是二进制），表与列的注释读得到，大小写混合的表名照原样、自增读得到，零代码运行时按数据源读得到它的行
 /// </remarks>
 public sealed class CodeGenerationSchemaTests : IDisposable
 {
@@ -26,7 +26,7 @@ public sealed class CodeGenerationSchemaTests : IDisposable
     public void Dispose() => _database.Dispose();
 
     /// <summary>
-    /// 各库建演示表的语句与期望的 C# 类型。
+    /// 各库建演示表的语句与期望的 C# 类型
     /// </summary>
     private static (string[] Statements, string MixedCase, Dictionary<string, string> Types) Fixture(string databaseType) => databaseType switch
     {

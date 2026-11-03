@@ -441,7 +441,7 @@ function onSort(details: { from: number, to: number }) {
   border-radius: 6px;
 }
 
-/* 列名钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title。
+/* 列名钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title
    选本组件自己的类名——复选框没写默认插槽时只渲染一颗裸 button，没有 text 那个部件 */
 .xh-set-row__name {
   font-size: 14px;

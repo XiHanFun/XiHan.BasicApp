@@ -1,8 +1,8 @@
 /**
- * 流程定义设计器挂进菜单栏的宿主操作（workflow-host-extension.ts）的单元测试。
+ * 流程定义设计器挂进菜单栏的宿主操作（workflow-host-extension.ts）的单元测试
  *
  * 锁定：只有引擎定义 JSON 一条，进「文件」菜单，只在开发者模式开着时有，执行时交给宿主；
- * 回列表走设计器自带的关闭钮（closable），不再有「返回列表」宿主命令。
+ * 回列表走设计器自带的关闭钮（closable），不再有「返回列表」宿主命令
  */
 import { describe, expect, it, vi } from 'vitest'
 import { createWorkflowHostExtension, WORKFLOW_HOST_COMMANDS } from './workflow-host-extension'

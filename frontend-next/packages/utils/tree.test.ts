@@ -1,9 +1,9 @@
 /**
- * packages/utils/tree.ts 单元测试。
+ * packages/utils/tree.ts 单元测试
  *
- * 职责边界：扁平表 ↔ 树的双向转换、树内查找、按关键字过滤（含祖先链保留）、父级 id 链回溯。
+ * 职责边界：扁平表 ↔ 树的双向转换、树内查找、按关键字过滤（含祖先链保留）、父级 id 链回溯
  * 重点覆盖树工具最容易出错的输入：空集合、孤儿节点（父不存在）、重复 id、自引用、
- * 空字符串 parentId。其中若干条用例锁定的是源码**当前**行为（含缺陷），已在标题中标注。
+ * 空字符串 parentId。其中若干条用例锁定的是源码**当前**行为（含缺陷），已在标题中标注
  */
 import { describe, expect, it, vi } from 'vitest'
 import { filterTree, findTreeNode, getParentIds, listToTree, relationOptionsToTree, treeToList } from './tree'
@@ -64,8 +64,8 @@ describe('listToTree', () => {
 
   it('孤儿节点（父 id 在列表中不存在）被提升为根节点，而不是静默消失', () => {
     // 回归锚点：原实现的根层筛选只认「没有 parentId」，父 id 悬空的节点既进不了根层，
-    // 也没有任何一次递归会拿那个悬空 id 当 parentId，整条数据在接口里存在、树上却看不到也搜不到。
-    // 父被删除、或分页 / 权限过滤后父不在本批集合中都会命中，此时提升到根至少保证可见可操作。
+    // 也没有任何一次递归会拿那个悬空 id 当 parentId，整条数据在接口里存在、树上却看不到也搜不到
+    // 父被删除、或分页 / 权限过滤后父不在本批集合中都会命中，此时提升到根至少保证可见可操作
     expect(listToTree<FlatNode>([{ basicId: 'x', parentId: 'ghost' }])).toEqual([
       { basicId: 'x', parentId: 'ghost' },
     ])
@@ -123,7 +123,7 @@ describe('listToTree', () => {
   it('重复 id 且其中一份自引用时在祖先链上截断为叶子，不再递归爆栈', () => {
     // 回归锚点：原实现构建第一份 'a' 的 children 时命中第二份 parentId==='a' 的 'a'，
     // 又以同一个 id 递归同一集合，无限重入直到 RangeError: Maximum call stack size exceeded，
-    // 整棵树渲染失败。现在祖先链上再次遇到同一 basicId 即停止下钻。
+    // 整棵树渲染失败。现在祖先链上再次遇到同一 basicId 即停止下钻
     expect(listToTree<FlatNode>([{ basicId: 'a' }, { basicId: 'a', parentId: 'a' }])).toEqual([
       { basicId: 'a', children: [{ basicId: 'a', parentId: 'a' }] },
     ])
@@ -276,8 +276,8 @@ describe('filterTree', () => {
 
   it('父节点自身命中而子节点全不命中时按叶子返回，不再把未过滤的原子树带出来', () => {
     // 回归锚点：原实现只在过滤后子集非空时才覆盖 children，此处 children 为空跳过覆盖，
-    // `...node` 把那份**未过滤**的原始 children 整棵带出，搜到一个分组就把它下面全部子菜单一起显示。
-    // 表现为非单调：命中父级 + 0 个子级 → 显示全部 2 个；命中父级 + 1 个子级 → 只显示 1 个。
+    // `...node` 把那份**未过滤**的原始 children 整棵带出，搜到一个分组就把它下面全部子菜单一起显示
+    // 表现为非单调：命中父级 + 0 个子级 → 显示全部 2 个；命中父级 + 1 个子级 → 只显示 1 个
     const result = filterTree(tree, '系统', node => node.basicId === 'sys')
 
     expect(result).toHaveLength(1)
@@ -364,7 +364,7 @@ describe('getParentIds', () => {
   it('parentId 成环时就地截断，不会死循环', () => {
     // 回归锚点：上溯原本不记录走过的节点，环上两点会被无限交替取到，
     // result 一直增长到内存耗尽、主线程卡死。菜单/部门/字典树的 parentId 由人工维护，
-    // 配成环完全可能。去掉 visited 判断后本用例会挂住（而不是失败），这正是当初没法写测试的原因。
+    // 配成环完全可能。去掉 visited 判断后本用例会挂住（而不是失败），这正是当初没法写测试的原因
     const cyclic: FlatNode[] = [
       { basicId: 'a', parentId: 'b' },
       { basicId: 'b', parentId: 'a' },

@@ -10,16 +10,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 文件包给工作台的小组件。
+/// 文件包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 与文件管理页同一口径：当前一侧未删除的文件，临时文件不算。
+/// 与文件管理页同一口径：当前一侧未删除的文件，临时文件不算
 /// </remarks>
-/// <param name="rows">按侧取行。</param>
+/// <param name="rows">按侧取行</param>
 public sealed class FilesWidgets(SideRows rows) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 存储占用（按文件类型与扩展名的字节数）。
+    /// 存储占用（按文件类型与扩展名的字节数）
     /// </summary>
     public const string StorageMix = "files.storage-mix";
 
@@ -31,7 +31,7 @@ public sealed class FilesWidgets(SideRows rows) : IWorkbenchWidgetProvider
 
     /// <inheritdoc />
     /// <remarks>
-    /// 构成的键是「文件类型/扩展名」（如 <c>Image/png</c>，没有扩展名时斜杠后为空），值是字节数，前端按类型分组画层级图。
+    /// 构成的键是「文件类型/扩展名」（如 <c>Image/png</c>，没有扩展名时斜杠后为空），值是字节数，前端按类型分组画层级图
     /// </remarks>
     public async ValueTask<Result<WorkbenchWidgetData>> GetAsync(string key, WorkbenchWidgetQuery query, InvocationContext context)
     {

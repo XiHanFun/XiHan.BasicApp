@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 预览产物（照 4.x preview-modal）：左边按路径组成的目录树，右边只读的代码编辑器。
-  接口取自后端契约（codegen-tables.preview）：只渲染、不打包、不记历史。
-  与 4.x 不同：产物按后端给的归属分栏（4.x 按模板编码猜），多一栏登记片段；路径带 backend / frontend / _registration 前缀。
+  代码生成 / 预览产物（照 4.x preview-modal）：左边按路径组成的目录树，右边只读的代码编辑器
+  接口取自后端契约（codegen-tables.preview）：只渲染、不打包、不记历史
+  与 4.x 不同：产物按后端给的归属分栏（4.x 按模板编码猜），多一栏登记片段；路径带 backend / frontend / _registration 前缀
 -->
 <script setup lang="ts">
 import type { Artifact, ArtifactSide, ArtifactTreeNode } from './use-templates'

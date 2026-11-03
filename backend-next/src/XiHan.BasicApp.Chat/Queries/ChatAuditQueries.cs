@@ -13,16 +13,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Queries;
 
 /// <summary>
-/// 聊天审计的查询（作用域）。
+/// 聊天审计的查询（作用域）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>ChatAuditQueryService</c>：持有审计权限即看当前一侧全部会话的消息，不要求是成员。关键字匹配正文、发送人名与附件；
 /// 筛选 <c>conversationId</c>、<c>senderUserId</c>（<c>eq</c>）、<c>messageType</c>（<c>eq</c> / <c>in</c>）、<c>createdAt</c>（<c>ge</c> / <c>le</c>）、<c>isRecalled</c>（<c>eq</c>）；
-/// 没给 <c>isRecalled</c> 时缺省不含已撤回的（4.x 的「是否含撤回」缺省不含），给 <c>includeRecalled</c> 为 <c>true</c> 即都看。
-/// 排序 <c>createdAt</c>、<c>messageType</c>，缺省按发送时间倒序。另补 4.x 没有的消息详情与会话成员（方案 H4）。
+/// 没给 <c>isRecalled</c> 时缺省不含已撤回的（4.x 的「是否含撤回」缺省不含），给 <c>includeRecalled</c> 为 <c>true</c> 即都看
+/// 排序 <c>createdAt</c>、<c>messageType</c>，缺省按发送时间倒序。另补 4.x 没有的消息详情与会话成员（方案 H4）
 /// </remarks>
-/// <param name="store">按侧读写聊天表。</param>
-/// <param name="chats">聊天的查询（成员条目）。</param>
+/// <param name="store">按侧读写聊天表</param>
+/// <param name="chats">聊天的查询（成员条目）</param>
 public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
 {
     private const string FieldConversationId = "conversationId";
@@ -33,7 +33,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     private const string FieldIncludeRecalled = "includeRecalled";
 
     /// <summary>
-    /// 分页列出消息。
+    /// 分页列出消息
     /// </summary>
     public async ValueTask<Result<PageResult<ChatAuditMessageResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -105,7 +105,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     }
 
     /// <summary>
-    /// 消息详情。
+    /// 消息详情
     /// </summary>
     public async Task<Result<ChatAuditMessageDetailResponse>> GetAsync(InvocationContext context, Guid messageId)
     {
@@ -139,7 +139,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     }
 
     /// <summary>
-    /// 会话与它现在的成员。
+    /// 会话与它现在的成员
     /// </summary>
     public async Task<Result<ChatAuditMembersResponse>> MembersAsync(InvocationContext context, Guid conversationId)
     {

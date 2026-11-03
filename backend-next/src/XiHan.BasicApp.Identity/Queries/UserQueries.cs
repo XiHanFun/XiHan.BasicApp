@@ -15,13 +15,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Queries;
 
 /// <summary>
-/// 用户的分页查询。
+/// 用户的分页查询
 /// </summary>
 /// <remarks>
-/// 直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体只看注册地是当前租户的用户。
+/// 直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体只看注册地是当前租户的用户
 /// </remarks>
-/// <param name="unitOfWork">当前调用的工作单元；查询与同一调用里的写入共用连接与事务。</param>
-/// <param name="recipients">按角色、部门找人的来源（Access 与 Organization 实现，用于筛选）。</param>
+/// <param name="unitOfWork">当前调用的工作单元；查询与同一调用里的写入共用连接与事务</param>
+/// <param name="recipients">按角色、部门找人的来源（Access 与 Organization 实现，用于筛选）</param>
 public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IRecipientSource> recipients)
 {
     private const string FieldUserName = "userName";
@@ -36,10 +36,10 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
     private const string FieldDepartmentId = "departmentId";
 
     /// <summary>
-    /// 分页列出用户。
+    /// 分页列出用户
     /// </summary>
     /// <remarks>
-    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 、<c>status</c> 的 <c>eq</c> 与 <c>homeTenantId</c> 的 <c>eq / ne</c>（平台侧挑某租户的用户或平台账号；租户侧本就只看本租户）；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序。
+    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 、<c>status</c> 的 <c>eq</c> 与 <c>homeTenantId</c> 的 <c>eq / ne</c>（平台侧挑某租户的用户或平台账号；租户侧本就只看本租户）；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序
     /// </remarks>
     public async ValueTask<Result<PageResult<UserResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -154,10 +154,10 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
         };
     }
     /// <summary>
-    /// 按角色或部门筛选时，经对应来源找出的用户。
+    /// 按角色或部门筛选时，经对应来源找出的用户
     /// </summary>
     /// <remarks>
-    /// 取值是一个 ID（<c>eq</c>）或逗号分隔的多个（<c>in</c>）；没装对应的包即不支持这个筛选。
+    /// 取值是一个 ID（<c>eq</c>）或逗号分隔的多个（<c>in</c>）；没装对应的包即不支持这个筛选
     /// </remarks>
     private async ValueTask<Result<List<Guid>>> MembersAsync(PageFilter filter, InvocationContext context)
     {
@@ -174,7 +174,7 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
     }
 
     /// <summary>
-    /// 逗号分隔的枚举值，有一个认不出即为空。
+    /// 逗号分隔的枚举值，有一个认不出即为空
     /// </summary>
     private static List<TEnum>? ParseAll<TEnum>(string value)
         where TEnum : struct, Enum
@@ -185,7 +185,7 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
     }
 
     /// <summary>
-    /// ISO 8601 时间（没写时区按 UTC）。
+    /// ISO 8601 时间（没写时区按 UTC）
     /// </summary>
     private static bool TryParseTime(string value, out DateTimeOffset time)
         => DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out time);

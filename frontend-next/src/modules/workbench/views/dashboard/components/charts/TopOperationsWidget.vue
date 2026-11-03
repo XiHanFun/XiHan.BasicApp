@@ -11,7 +11,7 @@ import ChartWidget from './ChartWidget.vue'
 /**
  * 访问最多的操作：区间内次数最多的前 10 个操作（操作 ID），两种看法：
  * - 次数：成功与失败两段堆叠成横条，末端写合计；
- * - 耗时：同样这些操作的平均耗时，棒棒糖条形、末端写数，慢在哪一眼看出来。
+ * - 耗时：同样这些操作的平均耗时，棒棒糖条形、末端写数，慢在哪一眼看出来
  */
 defineOptions({ name: 'TopOperationsWidget' })
 

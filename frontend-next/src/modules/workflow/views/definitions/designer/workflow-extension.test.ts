@@ -1,8 +1,8 @@
 /**
- * 流程设计器上 BasicApp 的设计器扩展（workflow-extension.ts）的单元测试。
+ * 流程设计器上 BasicApp 的设计器扩展（workflow-extension.ts）的单元测试
  *
  * 锁定：流程的编码、名称、分类、描述在设计器里只读（在流程定义列表的「编辑」里改），属性面板只显示当前值、不给改；
- * 编码一行另带关联审批业务的提示。
+ * 编码一行另带关联审批业务的提示
  */
 import type { VNode } from 'vue'
 import type { WorkflowBusinessType } from '../definition-metadata'

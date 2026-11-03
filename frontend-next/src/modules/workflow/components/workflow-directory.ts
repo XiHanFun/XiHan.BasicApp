@@ -1,9 +1,9 @@
 /**
- * 审批人选择的数据源：组织对象（角色 / 岗位 / 部门）与用户。
+ * 审批人选择的数据源：组织对象（角色 / 岗位 / 部门）与用户
  *
- * 组织对象清单小且同一会话里很少变，设计器内多个规则编辑器共用一份；打开设计器时调用 reload 刷新一次。
- * 用户按需检索，见过的用户记在缓存里，已选用户回显不必每次请求。
- * 数据取自 workflow-assignees.*：角色、岗位、部门按编码引用，用户按 ID（GUID 字符串）引用，与受理人规则的取值同形。
+ * 组织对象清单小且同一会话里很少变，设计器内多个规则编辑器共用一份；打开设计器时调用 reload 刷新一次
+ * 用户按需检索，见过的用户记在缓存里，已选用户回显不必每次请求
+ * 数据取自 workflow-assignees.*：角色、岗位、部门按编码引用，用户按 ID（GUID 字符串）引用，与受理人规则的取值同形
  */
 import type { ResponseOf } from '~/contracts'
 import { workflowAssignees } from '~/contracts'
@@ -33,8 +33,8 @@ let organizationPromise: Promise<OrganizationDirectory> | null = null
 const userCache = new Map<string, AssigneeUser>()
 
 /**
- * 部门平铺清单按上级 ID 排成树序再拍平：label 带上级路径，description 为编码。
- * 上级不在清单里的部门当作顶层；兄弟之间保持后端给的顺序。
+ * 部门平铺清单按上级 ID 排成树序再拍平：label 带上级路径，description 为编码
+ * 上级不在清单里的部门当作顶层；兄弟之间保持后端给的顺序
  */
 export function flattenDepartments(items: readonly AssigneeDepartment[]): DirectoryOption[] {
   const ids = new Set(items.map(item => item.id))

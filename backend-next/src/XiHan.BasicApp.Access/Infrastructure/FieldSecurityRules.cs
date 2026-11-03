@@ -15,38 +15,38 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一条启用的字段安全规则的判定视图。
+/// 一条启用的字段安全规则的判定视图
 /// </summary>
-/// <param name="TargetKind">目标类型。</param>
-/// <param name="TargetId">目标 ID。</param>
-/// <param name="Field">字段名。</param>
-/// <param name="Strategy">读取方式。</param>
-/// <param name="KeepHead">部分脱敏保留前几位。</param>
-/// <param name="KeepTail">部分脱敏保留后几位。</param>
-/// <param name="Replacement">固定文本。</param>
-/// <param name="IsEditable">能否改写。</param>
+/// <param name="TargetKind">目标类型</param>
+/// <param name="TargetId">目标 ID</param>
+/// <param name="Field">字段名</param>
+/// <param name="Strategy">读取方式</param>
+/// <param name="KeepHead">部分脱敏保留前几位</param>
+/// <param name="KeepTail">部分脱敏保留后几位</param>
+/// <param name="Replacement">固定文本</param>
+/// <param name="IsEditable">能否改写</param>
 public sealed record FieldSecurityRuleView(FieldSecurityTargetKind TargetKind, Guid TargetId, string Field, FieldMaskStrategy Strategy, int? KeepHead, int? KeepTail, string? Replacement, bool IsEditable)
 {
     /// <summary>
-    /// 转成契约里的单条规则（合并前）。
+    /// 转成契约里的单条规则（合并前）
     /// </summary>
     public FieldRule ToRule() => new(Field, Strategy, KeepHead, KeepTail, Replacement, IsEditable);
 }
 
 /// <summary>
-/// 字段安全规则的读取（单例）。
+/// 字段安全规则的读取（单例）
 /// </summary>
 /// <remarks>
-/// 按（侧、实体）缓存启用的规则，60 秒，写入后由写入方失效。缓存存成 JSON 文本（固定文本可含任意字符），按创建先后排好（合并时固定文本取第一条）。
+/// 按（侧、实体）缓存启用的规则，60 秒，写入后由写入方失效。缓存存成 JSON 文本（固定文本可含任意字符），按创建先后排好（合并时固定文本取第一条）
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）</param>
 public sealed class FieldSecurityRules(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一侧在一个实体上的全部启用规则。
+    /// 一侧在一个实体上的全部启用规则
     /// </summary>
     public async Task<IReadOnlyList<FieldSecurityRuleView>> OfAsync(string owner, string entity, CancellationToken cancellationToken)
     {
@@ -55,10 +55,10 @@ public sealed class FieldSecurityRules(ISharedCache cache, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 一侧在一个实体上的规则有变：失效缓存。
+    /// 一侧在一个实体上的规则有变：失效缓存
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, string entity, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner, entity), cancellationToken).ConfigureAwait(false);

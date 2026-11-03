@@ -1,8 +1,8 @@
 /**
- * 审批中心的状态、结果与动作展示规则（纯函数，页面、抽屉与步骤条共用）。
+ * 审批中心的状态、结果与动作展示规则（纯函数，页面、抽屉与步骤条共用）
  *
- * 照 4.x 的 approval-labels；6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对。
- * 实例状态与标准结果的文案、色调与流程实例页同一处（workflow.instances 下、instance-labels），这里不另起一套。
+ * 照 4.x 的 approval-labels；6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
+ * 实例状态与标准结果的文案、色调与流程实例页同一处（workflow.instances 下、instance-labels），这里不另起一套
  */
 import type { WorkflowInstanceStatus, WorkflowTaskRecordAction } from '~/contracts'
 import { standardOutcome } from '../instances/instance-labels'
@@ -47,8 +47,8 @@ export function isActiveInstance(status: WorkflowInstanceStatus): boolean {
 }
 
 /**
- * 待办可选的办理结果：未配置白名单时为同意/驳回；配置了白名单按白名单（去掉超时，超时只由引擎产生）。
- * @param allowedOutcomes 节点允许的结果（后端 task.allowedOutcomes）。
+ * 待办可选的办理结果：未配置白名单时为同意/驳回；配置了白名单按白名单（去掉超时，超时只由引擎产生）
+ * @param allowedOutcomes 节点允许的结果（后端 task.allowedOutcomes）
  */
 export function handleOutcomes(allowedOutcomes: readonly string[]): string[] {
   const outcomes = allowedOutcomes.filter(outcome => outcome.trim() !== '' && outcome !== 'timeout')

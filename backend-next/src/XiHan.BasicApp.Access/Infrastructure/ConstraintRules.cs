@@ -14,56 +14,56 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一个规则项（判定所需的部分）。
+/// 一个规则项（判定所需的部分）
 /// </summary>
-/// <param name="TargetId">目标：角色 ID、权限码或用户 ID。</param>
-/// <param name="GroupNo">组号。</param>
+/// <param name="TargetId">目标：角色 ID、权限码或用户 ID</param>
+/// <param name="GroupNo">组号</param>
 public sealed record ConstraintItemView(string TargetId, int GroupNo);
 
 /// <summary>
-/// 一条启用的约束规则（判定所需的部分）。
+/// 一条启用的约束规则（判定所需的部分）
 /// </summary>
-/// <param name="Id">规则 ID。</param>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Type">约束类型。</param>
-/// <param name="TargetType">目标类型。</param>
-/// <param name="MaxAllowed">数量上限。</param>
-/// <param name="Action">违规处理方式。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">失效时间。</param>
-/// <param name="Conditions">条件类的条件。</param>
-/// <param name="Items">规则项。</param>
+/// <param name="Id">规则 ID</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Type">约束类型</param>
+/// <param name="TargetType">目标类型</param>
+/// <param name="MaxAllowed">数量上限</param>
+/// <param name="Action">违规处理方式</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">失效时间</param>
+/// <param name="Conditions">条件类的条件</param>
+/// <param name="Items">规则项</param>
 public sealed record ConstraintRuleView(Guid Id, string Code, string Name, ConstraintType Type, ConstraintTargetType TargetType, int MaxAllowed, ConstraintViolationAction Action, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, List<PolicyClauseView> Conditions, List<ConstraintItemView> Items)
 {
     /// <summary>
-    /// 某一时刻是否在有效期内。
+    /// 某一时刻是否在有效期内
     /// </summary>
     public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 
     /// <summary>
-    /// 违规是否拦下变更。
+    /// 违规是否拦下变更
     /// </summary>
     /// <remarks>
-    /// 拒绝与需审批即拦下；审批未接入，按拒绝。
+    /// 拒绝与需审批即拦下；审批未接入，按拒绝
     /// </remarks>
     public bool IsBlocking => Action is ConstraintViolationAction.Deny or ConstraintViolationAction.RequireApproval;
 }
 
 /// <summary>
-/// 一侧启用的约束规则（单例）。
+/// 一侧启用的约束规则（单例）
 /// </summary>
 /// <remarks>
-/// 放在共享缓存里 60 秒，写入即失效；按优先级从大到小、再按编码排列，有效期在判定时比较。
+/// 放在共享缓存里 60 秒，写入即失效；按优先级从大到小、再按编码排列，有效期在判定时比较
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）</param>
 public sealed class ConstraintRules(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一侧启用的规则。
+    /// 一侧启用的规则
     /// </summary>
     public async Task<IReadOnlyList<ConstraintRuleView>> OfAsync(string owner, CancellationToken cancellationToken)
     {
@@ -72,19 +72,19 @@ public sealed class ConstraintRules(ISharedCache cache, IServiceScopeFactory sco
     }
 
     /// <summary>
-    /// 一侧的规则失效。
+    /// 一侧的规则失效
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// 条件类的条件从 JSON 读回。
+    /// 条件类的条件从 JSON 读回
     /// </summary>
     /// <remarks>
-    /// 为空即没有。
+    /// 为空即没有
     /// </remarks>
     public static List<PolicyClauseView> ConditionsOf(string? json)
         => string.IsNullOrWhiteSpace(json) ? [] : JsonSerializer.Deserialize(json, AccessJsonContext.Default.ListPolicyClauseView) ?? [];

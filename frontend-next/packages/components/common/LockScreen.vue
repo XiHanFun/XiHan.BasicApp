@@ -39,7 +39,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
 <template>
   <Teleport to="body">
     <div v-if="lockMode !== 'off'" class="lock-screen-mask">
-      <!-- 不透明背景：锁屏遮住的内容不该透出来（半透明 + 模糊仍能看清大致版面）。
+      <!-- 不透明背景：锁屏遮住的内容不该透出来（半透明 + 模糊仍能看清大致版面）
            动效沿用登录页的漂移光斑，保持同一套视觉语言 -->
       <div class="lock-screen-bg" aria-hidden="true">
         <div class="lock-blob lock-blob--1" />

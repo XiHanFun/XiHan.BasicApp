@@ -1,8 +1,8 @@
 /**
- * 下拉选择 XSelect 按组件库的部件结构摆：多选标签、在途与空态、读屏名。
+ * 下拉选择 XSelect 按组件库的部件结构摆：多选标签、在途与空态、读屏名
  *
  * 手写触发器曾经漏掉标签行，多选只显示一串截断的「a, b, c」，maxTagCount 不起作用；
- * 加载中与无选项时又拿自绘的转圈 / 空状态顶掉了 list，触发器的 aria-controls 指向一个不存在的节点。
+ * 加载中与无选项时又拿自绘的转圈 / 空状态顶掉了 list，触发器的 aria-controls 指向一个不存在的节点
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'

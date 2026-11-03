@@ -16,13 +16,13 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 代码生成的退出验证：生成的新包能编译、能过前端门禁。
+/// 代码生成的退出验证：生成的新包能编译、能过前端门禁
 /// </summary>
 /// <remarks>
 /// 方案 N3 第四批的退出条件，手动触发、不进缺省 CI：设 <c>XIHAN_TEST_CODEGEN_COMPILE</c> 为框架源码的 <c>src/</c> 目录（同 <c>-p:XiHanFrameworkSrc</c>）才跑，
 /// 前端要先在本检出的 <c>frontend-next</c> 装好依赖。把当前提交的 <c>backend-next</c> 与 <c>frontend-next</c> 导出到临时目录，
 /// 四张演示表（树表 Catalog 带生成的启停枚举；单表 Shop 带关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数；主从 Sales / SalesItems）
-/// 各配成新建包，按「生成到项目」写进去，再照生成的登记片段登记进宿主与模块门禁：宿主 Release 构建不许有警告，导出契约、生成前端契约之后前端 <c>pnpm check</c> 八项通过。
+/// 各配成新建包，按「生成到项目」写进去，再照生成的登记片段登记进宿主与模块门禁：宿主 Release 构建不许有警告，导出契约、生成前端契约之后前端 <c>pnpm check</c> 八项通过
 /// </remarks>
 public sealed class CodeGenerationCompileTests : IDisposable
 {

@@ -1,8 +1,8 @@
 /**
- * 壳层扩展注册点（shell-extensions）单元测试。
+ * 壳层扩展注册点（shell-extensions）单元测试
  * 职责边界：注册顺序、三类挂载物（顶栏按钮/浮层/集成钩子）可各自省略、
- * 读取结果与内部数组是同一响应式引用（布局层依赖它做增量渲染）。
- * 注册表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本。
+ * 读取结果与内部数组是同一响应式引用（布局层依赖它做增量渲染）
+ * 注册表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本
  */
 import type { Component } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

@@ -1,6 +1,6 @@
 /**
- * RFC 9457 Problem Details（后端失败响应的唯一形态）解包成 `ApiError`。
- * 客户端只依赖 `code` 与 `errors`：`detail` 已按 Accept-Language 本地化，直接展示；`errors` 是字段键 → 文案数组，交给表单按字段显示。
+ * RFC 9457 Problem Details（后端失败响应的唯一形态）解包成 `ApiError`
+ * 客户端只依赖 `code` 与 `errors`：`detail` 已按 Accept-Language 本地化，直接展示；`errors` 是字段键 → 文案数组，交给表单按字段显示
  */
 export interface ProblemDetails {
   type?: string
@@ -35,23 +35,23 @@ export class ApiError extends Error {
     this.details = problem.details
   }
 
-  /** 错误 KIND：错误码的中段（VALIDATION、NOTFOUND、DENIED…）。 */
+  /** 错误 KIND：错误码的中段（VALIDATION、NOTFOUND、DENIED…） */
   get kind(): string {
     return this.code.split('_')[1] ?? ''
   }
 
-  /** 是否带字段级错误（VALIDATION 种类）。 */
+  /** 是否带字段级错误（VALIDATION 种类） */
   get hasFieldErrors(): boolean {
     return !!this.errors && Object.keys(this.errors).length > 0
   }
 
-  /** 某个字段的第一条文案；表单项按它显示。 */
+  /** 某个字段的第一条文案；表单项按它显示 */
   fieldError(field: string): string | undefined {
     return this.errors?.[field]?.[0]
   }
 }
 
-/** 把失败响应解析成 `ApiError`；不是 Problem Details 的正文也不丢状态码。 */
+/** 把失败响应解析成 `ApiError`；不是 Problem Details 的正文也不丢状态码 */
 export async function parseProblem(response: Response, traceId: string): Promise<ApiError> {
   let problem: ProblemDetails = {}
   const text = await response.text().catch(() => '')

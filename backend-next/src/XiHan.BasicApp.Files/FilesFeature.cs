@@ -33,14 +33,14 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件能力包：存储配置、文件与副本、导出中心与导入历史。
+/// 文件能力包：存储配置、文件与副本、导出中心与导入历史
 /// </summary>
 /// <remarks>
-/// Tier 2：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）。
-/// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行。
-/// 大文件走分片上传（<see cref="FileUploadService"/>，各分片经签名地址直传存储），过了时限的由作业 <see cref="FileUploadExpiryJob"/> 记为过期。
-/// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与按身份读（<c>GET /api/files/{id}/content</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>。
-/// 对象存储用框架的命名存储实例（<see cref="StorageInstances"/>）；签名地址要宿主装上代收发的签名端点（<c>HostedBlobUrlFeature</c> 与 <c>MapXiHanBlobs()</c>），本地存储的地址由它收发。
+/// Tier 2：存储配置（平台库实体，随所属侧）、文件与副本（租户库实体，平台一侧以 <c>platform</c> 为租户）
+/// 导出中心与导入历史也在这里：导出由后台循环（<see cref="ExportRunner"/>）以发起人的身份执行
+/// 大文件走分片上传（<see cref="FileUploadService"/>，各分片经签名地址直传存储），过了时限的由作业 <see cref="FileUploadExpiryJob"/> 记为过期
+/// 操作只管元数据；上传（<c>POST /api/files/upload</c>）与按身份读（<c>GET /api/files/{id}/content</c>）是宿主映射的普通端点，调用这里的 <see cref="FileService"/>
+/// 对象存储用框架的命名存储实例（<see cref="StorageInstances"/>）；签名地址要宿主装上代收发的签名端点（<c>HostedBlobUrlFeature</c> 与 <c>MapXiHanBlobs()</c>），本地存储的地址由它收发
 /// </remarks>
 public sealed class FilesFeature : IHostedFeature, IDisposable
 {

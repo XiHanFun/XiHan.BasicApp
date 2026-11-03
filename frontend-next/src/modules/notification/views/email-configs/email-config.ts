@@ -124,7 +124,7 @@ export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<
 
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（密码不带即保留）；
- * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）。
+ * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
 export function emailConfigResource(t: Translate): SchemaResource<EmailConfigRow> {
   return {

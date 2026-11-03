@@ -47,7 +47,7 @@ onMounted(() => {
 })
 
 // 聊天界面卸载即释放「当前会话」：否则离开聊天页后 activeConversationId 仍指着它，
-// 该会话的新消息会被判为「正在看」而直接标已读，顶栏未读角标永远涨不起来。
+// 该会话的新消息会被判为「正在看」而直接标已读，顶栏未读角标永远涨不起来
 onUnmounted(() => {
   chatStore.closeActiveConversation()
 })

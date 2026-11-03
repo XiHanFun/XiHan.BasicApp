@@ -1,7 +1,7 @@
 /**
- * usePermission 权限判定单元测试。
+ * usePermission 权限判定单元测试
  * 职责：锁定与 userStore / accessStore 的判定一致性——两者都是 auth.permissions 的投影，
- * 只认服务端展开下发的码（`*` 不当通配）、空入参一律放行，以及角色判定只看角色码（不参与权限码回退）。
+ * 只认服务端展开下发的码（`*` 不当通配）、空入参一律放行，以及角色判定只看角色码（不参与权限码回退）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

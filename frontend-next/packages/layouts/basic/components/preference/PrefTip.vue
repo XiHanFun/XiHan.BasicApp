@@ -3,9 +3,9 @@ import { XhTooltipArrow, XhTooltipContent, XhTooltipPositioner, XhTooltipRoot, X
 import { Icon } from '~/iconify'
 
 /**
- * 帮助图标：提示文案是这段说明的唯一载体，所以触发器保持可聚焦。
+ * 帮助图标：提示文案是这段说明的唯一载体，所以触发器保持可聚焦
  * 代价是它进 tab 序列——不要把它放在浮层内容的最前面，组件库把程序化聚焦
- * 也当成展开信号，浮层一打开就会自动弹出提示盖住内容。
+ * 也当成展开信号，浮层一打开就会自动弹出提示盖住内容
  */
 defineOptions({ name: 'PrefTip' })
 defineProps<{ content: string }>()

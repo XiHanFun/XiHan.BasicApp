@@ -10,14 +10,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.ConstraintRules;
 
 /// <summary>
-/// 约束规则的响应投影：带规则项（目标的显示名与编码）、条件与此刻是否生效。
+/// 约束规则的响应投影：带规则项（目标的显示名与编码）、条件与此刻是否生效
 /// </summary>
-/// <param name="service">规则服务。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="service">规则服务</param>
+/// <param name="clock">时间源</param>
 public sealed class ConstraintRuleProjection(ConstraintRuleService service, TimeProvider clock)
 {
     /// <summary>
-    /// 投影一条。
+    /// 投影一条
     /// </summary>
     public async Task<ConstraintRuleResponse> ToAsync(SysConstraintRule rule, InvocationContext context)
     {
@@ -26,7 +26,7 @@ public sealed class ConstraintRuleProjection(ConstraintRuleService service, Time
     }
 
     /// <summary>
-    /// 投影一批（同一侧）。
+    /// 投影一批（同一侧）
     /// </summary>
     public async Task<IReadOnlyList<ConstraintRuleResponse>> ToAsync(IReadOnlyList<SysConstraintRule> rules, InvocationContext context)
     {

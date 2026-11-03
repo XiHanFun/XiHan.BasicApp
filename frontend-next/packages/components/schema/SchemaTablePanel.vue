@@ -237,8 +237,8 @@ function widthOf(column: SchemaColumn<TRow>): number | undefined {
 
 /**
  * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
- * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
- * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致。
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐
+ * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致
  */
 function declaredWidthOf(column: SchemaColumn<TRow>): number {
   return widthOf(column) ?? column.minWidth ?? 120
@@ -248,12 +248,12 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
 const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
 
 /**
- * 喂给组件库的列契约：列号、列宽、上下限、可排序与吸附的唯一事实源。
- * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
+ * 喂给组件库的列契约：列号、列宽、上下限、可排序与吸附的唯一事实源
+ * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位
  *
  * width 只是 flex 基准，容器不够时各列按比例压缩；minWidth 由库写到表头格与表体格上，
- * 布局压缩与拖动改宽都不越过它。没写 minWidth 的列以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
- * 前缀列（展开/勾选/序号）与操作列不吃余量：上下限都写成声明宽，即一列定宽。
+ * 布局压缩与拖动改宽都不越过它。没写 minWidth 的列以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值
+ * 前缀列（展开/勾选/序号）与操作列不吃余量：上下限都写成声明宽，即一列定宽
  */
 const tableColumns = computed<TableColumnDef[]>(() => {
   // 有业务列左固定时，前面的勾选/序号/展开列也钉在行首侧，业务列的偏移才接得上
@@ -288,8 +288,8 @@ const tableColumns = computed<TableColumnDef[]>(() => {
 })
 
 /**
- * 列宽由库写进列偏好，这里只把变化转成既有的 resizeColumn 出口。
- * 库在按下那一刻会把同排各列的实际宽度一并写进去当基线，因此这里只报真正变过的那些。
+ * 列宽由库写进列偏好，这里只把变化转成既有的 resizeColumn 出口
+ * 库在按下那一刻会把同排各列的实际宽度一并写进去当基线，因此这里只报真正变过的那些
  */
 const lastWidths = ref<Record<string, number>>({})
 function onColumnPreferenceChange(details: { value: { widths?: Record<string, number | string> } }): void {
@@ -482,16 +482,16 @@ function rowAttrs(row: TRow, rowIndex: number) {
   height: 100%;
 }
 
-/* 以下三条都从 .xh-table-panel 用 :deep() 打进去，不能直接写 .xh-table-panel__grid。
+/* 以下三条都从 .xh-table-panel 用 :deep() 打进去，不能直接写 .xh-table-panel__grid
  * XhTableRoot 的 render 返回的是 Fragment（表格根 div + aria 播报区两个兄弟节点），
- * 而 Vue 只会把父组件的 scoped 属性打到「单根」子组件的根元素上，fragment 根拿不到 data-v-x。
+ * 而 Vue 只会把父组件的 scoped 属性打到「单根」子组件的根元素上，fragment 根拿不到 data-v-x
  * 于是 `.xh-table-panel__grid { ... }` 编译出的 .xh-table-panel__grid[data-v-x] 永远选不中表格根：
- * class 确实挂上去了（attrs 被 mergeProps 合进根 div），但属性选择器那一半不成立。
+ * class 确实挂上去了（attrs 被 mergeProps 合进根 div），但属性选择器那一半不成立
  * 这条链断了之后，表格既拿不到 flex:1、也拿不到 --xh-table-max-h 改写，
- * 一直吃皮肤的缺省上限 24rem —— 卡片再高，表格也只显示 384px 一截。 */
+ * 一直吃皮肤的缺省上限 24rem —— 卡片再高，表格也只显示 384px 一截 */
 
-/* 表格占满中段，内部纵向滚动而非撑高外层。高度全部交给 flex 分配，皮肤那道上限直接撤掉。
- * 溢出滚动皮肤已经给了，这里不重复声明。 */
+/* 表格占满中段，内部纵向滚动而非撑高外层。高度全部交给 flex 分配，皮肤那道上限直接撤掉
+ * 溢出滚动皮肤已经给了，这里不重复声明 */
 .xh-table-panel :deep([data-scope='table'][data-part='root']) {
   flex: 1;
   min-block-size: 0;
@@ -500,7 +500,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
 
 /* 区段的下限从 max-content 换成 min-content：
    max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
-   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
+   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉
    min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
 .xh-table-panel :deep([data-scope='table'][data-part='header']),
 .xh-table-panel :deep([data-scope='table'][data-part='body']) {
@@ -560,7 +560,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
   min-width: 0;
 }
 
-/* 分页：限制不超过页脚宽度；页数极多时靠分页条自己的 flex-wrap 折行。
+/* 分页：限制不超过页脚宽度；页数极多时靠分页条自己的 flex-wrap 折行
    不能在这里开 overflow-x: auto——那会连带把 overflow-y 变成 auto，粗指针下页码钮的 44px 热区伪元素
    竖向探出 8px 就冒出一条竖向滚动条，手机上页码右侧那根「竖线」就是它 */
 .xh-table-panel__pagination {

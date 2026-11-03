@@ -1,8 +1,8 @@
 /**
- * 打印模板元数据表单与保存入参（print-template-form.ts）的单元测试。
+ * 打印模板元数据表单与保存入参（print-template-form.ts）的单元测试
  *
  * 锁定：新增时编码、名称、备注去掉首尾空白，空数据源记为自由模板，带上初始状态；只有维护全局模板时才能开放给租户；
- * 编辑时主键与并发戳取自详情，不带编码与状态；编码与名称都填了才算填好。写入的一侧由登录上下文决定，入参里没有作用域。
+ * 编辑时主键与并发戳取自详情，不带编码与状态；编码与名称都填了才算填好。写入的一侧由登录上下文决定，入参里没有作用域
  */
 import type { PrintTemplateDetail, PrintTemplateFormModel } from './models'
 import { describe, expect, it } from 'vitest'

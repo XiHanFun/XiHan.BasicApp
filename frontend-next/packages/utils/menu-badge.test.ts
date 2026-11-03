@@ -1,5 +1,5 @@
 /**
- * 菜单标签的语气：存库取值就是组件库的 tone 词；没配时文字标签走 neutral、圆点走 danger。
+ * 菜单标签的语气：存库取值就是组件库的 tone 词；没配时文字标签走 neutral、圆点走 danger
  */
 import { describe, expect, it } from 'vitest'
 import { MENU_BADGE_TONES, menuBadgeDotColor, resolveMenuBadgeTone } from './menu-badge'

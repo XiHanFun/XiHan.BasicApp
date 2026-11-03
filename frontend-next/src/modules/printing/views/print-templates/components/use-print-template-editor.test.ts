@@ -1,9 +1,9 @@
 /**
- * 打印模板编辑会话（use-print-template-editor.ts）的单元测试。
+ * 打印模板编辑会话（use-print-template-editor.ts）的单元测试
  *
  * 锁定：设计器只打开已有模板，没有详情时提示找不到并关掉；本机草稿键是模板 id；
  * 保存只更新这份模板，设计取设计器里的，元数据与并发戳沿用详情，存好后让设计器记为已保存；
- * 未保存跟随设计器的判定，改了又撤销回原样即复位，只有旧格式模板换成空白时在存好前一直算未保存。
+ * 未保存跟随设计器的判定，改了又撤销回原样即复位，只有旧格式模板换成空白时在存好前一直算未保存
  */
 import type { PrintTemplateDetail } from './models'
 import type { PrintDocument } from '~/printing/designer'

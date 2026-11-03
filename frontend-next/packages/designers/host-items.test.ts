@@ -1,8 +1,8 @@
 /**
- * 宿主放进设计器外框的两样（host-items.ts 的 DesignerMenubarTitle、DesignerStatusText）的单元测试。
+ * 宿主放进设计器外框的两样（host-items.ts 的 DesignerMenubarTitle、DesignerStatusText）的单元测试
  *
  * 锁定：标题是一个元素、写 slot="menubar-center"，名称与编码合成一行（「名称 · 编码」），放不下由外壳整体截断；
- * 状态栏里的每一样各自一个元素、写 slot="status-end"，外壳在相邻两样之间画细分隔；未保存这类提醒带语气。
+ * 状态栏里的每一样各自一个元素、写 slot="status-end"，外壳在相邻两样之间画细分隔；未保存这类提醒带语气
  */
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'

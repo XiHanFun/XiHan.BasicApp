@@ -3,11 +3,11 @@ import { ref, toValue, watchEffect } from 'vue'
 import { getChatApi } from '../api-contract'
 
 /**
- * 聊天附件的可显示地址（图片内联、语音播放）。
+ * 聊天附件的可显示地址（图片内联、语音播放）
  *
  * 6.0 的附件以会话为访问范围（方案 H2）：会话成员凭会话换签名地址（chat-messages.presign），
- * 不再走通用文件的签名（4.x 借用头像的 useAvatarUrl，要通用文件权限）。
- * 地址会过期：按「会话 + 文件」缓存到到期前一刻，同一附件并发只换一次；换取失败为空串（缩略图显示失败态）。
+ * 不再走通用文件的签名（4.x 借用头像的 useAvatarUrl，要通用文件权限）
+ * 地址会过期：按「会话 + 文件」缓存到到期前一刻，同一附件并发只换一次；换取失败为空串（缩略图显示失败态）
  */
 
 /** 一个附件引用：哪个会话里的哪个文件 */
@@ -35,9 +35,9 @@ function peekChatFileUrl(file: ChatFileRef): null | string {
 }
 
 /**
- * 换一个附件的签名地址（带缓存与并发去重）；失败抛出，由调用方决定怎么展示。
- * @param file 附件引用。
- * @returns 可直接用于 src 的地址。
+ * 换一个附件的签名地址（带缓存与并发去重）；失败抛出，由调用方决定怎么展示
+ * @param file 附件引用
+ * @returns 可直接用于 src 的地址
  */
 export function resolveChatFileUrl(file: ChatFileRef): Promise<string> {
   const known = peekChatFileUrl(file)
@@ -68,8 +68,8 @@ export function clearChatFileUrlCache(): void {
 }
 
 /**
- * 一组附件的响应式可显示地址，与入参逐项对应；某项换取中或失败时为 ''。
- * 入参变了（往上翻出历史、换会话）只换新出现的那几项，已缓存的同步给出。
+ * 一组附件的响应式可显示地址，与入参逐项对应；某项换取中或失败时为 ''
+ * 入参变了（往上翻出历史、换会话）只换新出现的那几项，已缓存的同步给出
  */
 export function useChatFileUrls(source: MaybeRefOrGetter<readonly ChatFileRef[]>): Ref<string[]> {
   const urls = ref<string[]>([])

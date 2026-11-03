@@ -13,25 +13,25 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 一个用户的数据范围覆盖与它的自定义部门。
+/// 一个用户的数据范围覆盖与它的自定义部门
 /// </summary>
-/// <param name="Scope">覆盖行。</param>
-/// <param name="Departments">自定义部门（只有 <see cref="DataScope.Custom"/> 时非空）。</param>
+/// <param name="Scope">覆盖行</param>
+/// <param name="Departments">自定义部门（只有 <see cref="DataScope.Custom"/> 时非空）</param>
 public sealed record UserDataScopeView(SysUserDataScope Scope, IReadOnlyList<(Guid DepartmentId, bool IncludeChildren)> Departments);
 
 /// <summary>
-/// 用户级数据范围覆盖（作用域服务，只在租户侧）：读、整体替换与清除。
+/// 用户级数据范围覆盖（作用域服务，只在租户侧）：读、整体替换与清除
 /// </summary>
-/// <param name="scopes">覆盖仓储。</param>
-/// <param name="departments">自定义部门仓储。</param>
-/// <param name="directory">部门仓储（租户库，按当前租户过滤）。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="scopes">覆盖仓储</param>
+/// <param name="departments">自定义部门仓储</param>
+/// <param name="directory">部门仓储（租户库，按当前租户过滤）</param>
+/// <param name="ids">标识生成器</param>
 public sealed class UserDataScopeService(IRepository<SysUserDataScope, Guid> scopes, IRepository<SysUserDataScopeDepartment, Guid> departments, IRepository<SysDepartment, Guid> directory, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 取用户的数据范围覆盖。
+    /// 取用户的数据范围覆盖
     /// </summary>
-    /// <returns>用户的覆盖；没有即按角色。</returns>
+    /// <returns>用户的覆盖；没有即按角色</returns>
     public async Task<Maybe<UserDataScopeView>> FindAsync(string owner, Guid userId, CancellationToken cancellationToken)
     {
         var rows = await scopes.ListAsync(EntityQuery.All<SysUserDataScope>().Where(new Specification<SysUserDataScope>(s => s.OwnerTenantId == owner && s.UserId == userId)), cancellationToken).ConfigureAwait(false);
@@ -47,11 +47,11 @@ public sealed class UserDataScopeService(IRepository<SysUserDataScope, Guid> sco
     }
 
     /// <summary>
-    /// 设置用户的数据范围覆盖。
+    /// 设置用户的数据范围覆盖
     /// </summary>
     /// <remarks>
-    /// <paramref name="scope"/> 为 <see langword="null"/> 即清除、回到按角色。
-    /// 自定义范围要列出部门，其他范围不能带部门，部门须在本租户。
+    /// <paramref name="scope"/> 为 <see langword="null"/> 即清除、回到按角色
+    /// 自定义范围要列出部门，其他范围不能带部门，部门须在本租户
     /// </remarks>
     public async Task<Result> SetAsync(string owner, Guid userId, DataScope? scope, IReadOnlyList<DataScopeDepartmentRequest> custom, CancellationToken cancellationToken)
     {

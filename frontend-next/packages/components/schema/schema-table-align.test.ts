@@ -1,6 +1,6 @@
 /**
  * 列表页表格的对齐落到组件库的列契约上：表格设置选居中、居右时数据列一起换，
- * 靠左是库的缺省，不写出来；勾选、序号这些前缀列不跟着换。
+ * 靠左是库的缺省，不写出来；勾选、序号这些前缀列不跟着换
  */
 import type { TableColumnDef } from '@xihan-ui/headless'
 import type { SchemaColumn } from './types'

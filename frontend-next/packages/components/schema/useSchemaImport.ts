@@ -10,8 +10,8 @@ function t(key: string, named?: Record<string, unknown>): string {
 }
 
 /**
- * Schema 同步导入（CSV → 预校验 → 逐行 create）。
- * 模板列、解析校验均由 importable 字段派生（toImportFields），页面零额外配置。
+ * Schema 同步导入（CSV → 预校验 → 逐行 create）
+ * 模板列、解析校验均由 importable 字段派生（toImportFields），页面零额外配置
  */
 
 /** 行级错误（row 为数据行号，从 1 开始，不含表头/说明行） */
@@ -50,7 +50,7 @@ function csvCell(value: string): string {
 }
 
 /**
- * 解析 CSV 文本为单元格矩阵：支持双引号包裹、内嵌逗号/换行、"" 转义，兼容 CRLF/LF，剥离 BOM。
+ * 解析 CSV 文本为单元格矩阵：支持双引号包裹、内嵌逗号/换行、"" 转义，兼容 CRLF/LF，剥离 BOM
  */
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^\uFEFF/, '')
@@ -143,7 +143,7 @@ function fieldHint(field: ListFieldSchema): string {
 }
 
 /**
- * 生成导入模板 CSV：表头行（字段标题）+ 以 # 开头的说明行（必填/取值提示，导入时自动跳过）。
+ * 生成导入模板 CSV：表头行（字段标题）+ 以 # 开头的说明行（必填/取值提示，导入时自动跳过）
  */
 export function buildImportTemplate(fields: ListFieldSchema[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')

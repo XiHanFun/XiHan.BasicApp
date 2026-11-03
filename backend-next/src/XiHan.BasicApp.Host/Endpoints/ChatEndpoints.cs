@@ -11,20 +11,20 @@ using XiHan.Framework.Hosting.AspNetCore.Endpoints;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 聊天的普通端点。
+/// 聊天的普通端点
 /// </summary>
 /// <remarks>
 /// <c>POST /api/chat-messages/attachments</c>：multipart 表单上传一个聊天附件（字段 <c>file</c>），只要聊天的发送权限（方案 H2，4.x 要通用文件的新建权限），
-/// 文件经 Files 的附件契约存在调用方这一侧、来源记 <c>chat</c>，发送时核对是自己上传的；大小上限与存储配额同普通上传。访问日志按 <c>chat-messages.upload</c> 记录。
-/// 只在聊天模块开着时映射。
+/// 文件经 Files 的附件契约存在调用方这一侧、来源记 <c>chat</c>，发送时核对是自己上传的；大小上限与存储配额同普通上传。访问日志按 <c>chat-messages.upload</c> 记录
+/// 只在聊天模块开着时映射
 /// </remarks>
 internal static class ChatEndpoints
 {
     /// <summary>
-    /// 映射聊天端点。
+    /// 映射聊天端点
     /// </summary>
-    /// <param name="endpoints">端点构建器。</param>
-    /// <returns>同一构建器。</returns>
+    /// <param name="endpoints">端点构建器</param>
+    /// <returns>同一构建器</returns>
     public static IEndpointRouteBuilder MapChatEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);

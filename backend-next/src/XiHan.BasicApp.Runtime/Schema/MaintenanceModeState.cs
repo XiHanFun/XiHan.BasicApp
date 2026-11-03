@@ -10,26 +10,26 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Runtime.Schema;
 
 /// <summary>
-/// 共享的库是否正在被别的节点升级。
+/// 共享的库是否正在被别的节点升级
 /// </summary>
 /// <remarks>
 /// 每 <see cref="PollInterval"/> 读一次平台库的版本台账：有节点持着没过期的升级锁即进入维护模式（4.x 同语义），
-/// 维护模式下除健康检查外的请求一律 503。只看 PostgreSQL 库（升级脚本只为它写）；台账还没建或读不到时不进入维护模式。
+/// 维护模式下除健康检查外的请求一律 503。只看 PostgreSQL 库（升级脚本只为它写）；台账还没建或读不到时不进入维护模式
 /// </remarks>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="options">结构升级配置。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="options">结构升级配置</param>
+/// <param name="clock">时间源</param>
 public sealed class MaintenanceModeState(IServiceScopeFactory scopes, SchemaOptions options, TimeProvider clock) : BackgroundService
 {
     /// <summary>
-    /// 读台账的间隔。
+    /// 读台账的间隔
     /// </summary>
     public static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(10);
 
     private volatile bool _active;
 
     /// <summary>
-    /// 是否处在维护模式。
+    /// 是否处在维护模式
     /// </summary>
     public bool IsActive => _active;
 

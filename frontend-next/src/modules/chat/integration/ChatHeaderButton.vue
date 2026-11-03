@@ -31,7 +31,7 @@ const buttonLabel = computed(() =>
       :aria-label="buttonLabel"
       @click="(event: MouseEvent) => chatStore.requestOpenChatPanel(event.currentTarget as HTMLElement)"
     >
-      <!-- 数字、99+、「零则收起」与贴角定位都归组件库算；与通知铃铛同一写法。
+      <!-- 数字、99+、「零则收起」与贴角定位都归组件库算；与通知铃铛同一写法
            不在角标里再嵌数字动画：它会继承角标语气的文字色（深色压在同色底上看不见），行高也和角标不是一档 -->
       <XhBadge
         size="sm"

@@ -8,7 +8,7 @@ import { useRangeOptions, useWeekdayNames } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 访问时段：区间内请求按查看者本地的星期 × 小时汇总成矩阵，连续色阶着色，忙闲时段一眼能看出来。
+ * 访问时段：区间内请求按查看者本地的星期 × 小时汇总成矩阵，连续色阶着色，忙闲时段一眼能看出来
  */
 defineOptions({ name: 'RequestHeatmapWidget' })
 

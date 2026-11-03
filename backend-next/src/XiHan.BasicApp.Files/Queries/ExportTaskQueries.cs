@@ -12,12 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Queries;
 
 /// <summary>
-/// 自己的导出任务列表查询。
+/// 自己的导出任务列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配任务名称与列表操作 ID；按状态、格式多选，按列表操作筛选；缺省按提交时间倒序（4.x 同只看自己的）。
+/// 关键字匹配任务名称与列表操作 ID；按状态、格式多选，按列表操作筛选；缺省按提交时间倒序（4.x 同只看自己的）
 /// </remarks>
-/// <param name="rows">任务读写。</param>
+/// <param name="rows">任务读写</param>
 public sealed class ExportTaskQueries(SideRows rows)
 {
     private const string FieldStatus = "status";
@@ -27,11 +27,11 @@ public sealed class ExportTaskQueries(SideRows rows)
     private const string FieldTaskName = "taskName";
 
     /// <summary>
-    /// 分页列出。
+    /// 分页列出
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页任务。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页任务</returns>
     public async ValueTask<Result<PageResult<ExportTaskResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

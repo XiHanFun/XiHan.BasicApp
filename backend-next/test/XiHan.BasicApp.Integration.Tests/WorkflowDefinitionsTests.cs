@@ -16,11 +16,11 @@ using XiHan.Framework.Workflow.Abstractions.Tasks;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 工作流的定义、实例与选人（N3 第三批之三）。
+/// 工作流的定义、实例与选人（N3 第三批之三）
 /// </summary>
 /// <remarks>
 /// 定义的生命周期（建草稿、改、发布、新版本、停用、归档、删草稿）与发布前的业务校验；平台与租户两个分区互不可见；实例的发起、详情（节点历史与等待）
-/// 与控制；选人目录；组织类受理人在演示数据上按 4.x 的规则解析；四个演示流程只首写；模块开关。
+/// 与控制；选人目录；组织类受理人在演示数据上按 4.x 的规则解析；四个演示流程只首写；模块开关
 /// </remarks>
 public sealed class WorkflowDefinitionsTests : IDisposable
 {
@@ -325,7 +325,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
     private static List<string?> Titles(List<JsonElement> instances) => instances.Select(static i => i.GetProperty("title").GetString()).ToList();
 
     /// <summary>
-    /// 测试用的审批业务。
+    /// 测试用的审批业务
     /// </summary>
     private sealed class TestBusiness : IWorkflowBusinessHandler
     {

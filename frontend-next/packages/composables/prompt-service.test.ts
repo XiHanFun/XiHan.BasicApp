@@ -1,7 +1,7 @@
 /**
- * 取值弹窗的字段结构：输入框套在 control 部件里才有盒，大写锁定提示是盒里的一格。
+ * 取值弹窗的字段结构：输入框套在 control 部件里才有盒，大写锁定提示是盒里的一格
  *
- * 描边、底色与聚焦环画在 control 上（Field Chrome），直接把 input 放进根部件里得到的是一个无框的输入框。
+ * 描边、底色与聚焦环画在 control 上（Field Chrome），直接把 input 放进根部件里得到的是一个无框的输入框
  */
 import type { VNodeChild } from 'vue'
 import { mount } from '@vue/test-utils'

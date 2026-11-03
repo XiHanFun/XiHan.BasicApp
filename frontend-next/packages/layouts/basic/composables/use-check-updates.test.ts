@@ -3,11 +3,11 @@
  * @vitest-environment-options { "url": "https://app.example.com/" }
  */
 /**
- * useCheckUpdates 发版检查单元测试（部署站点这一侧）。
+ * useCheckUpdates 发版检查单元测试（部署站点这一侧）
  * 职责：锁定「线上发布标记与当前产物不同才提示」「就是当前这一版时不提示」
- * 「按掉之后同一版不再追问、换版再提醒」这几条约定——它们决定用户到底看不看得到更新弹窗。
+ * 「按掉之后同一版不再追问、换版再提醒」这几条约定——它们决定用户到底看不看得到更新弹窗
  * 本机与开发环境的「一概不轮询」在 use-check-updates.localhost.test.ts 里锁，
- * 那条要跑在 localhost 这个域名下，只能另开一份环境。
+ * 那条要跑在 localhost 这个域名下，只能另开一份环境
  */
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'

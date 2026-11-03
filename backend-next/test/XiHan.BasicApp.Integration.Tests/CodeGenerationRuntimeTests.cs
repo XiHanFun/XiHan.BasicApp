@@ -11,11 +11,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证代码生成的零代码运行时。
+/// 验证代码生成的零代码运行时
 /// </summary>
 /// <remarks>
 /// 照 4.x：只读已配置且启用的表配置，按列配置给表结构、按表名分页读数据，主库的表只看调用方这一侧未删的行；
-/// 6.0 按表配置的数据源读（外部库的表不套租户与软删），数据行按属性名给键，停用即冲突，库里读不出即不可用。
+/// 6.0 按表配置的数据源读（外部库的表不套租户与软删），数据行按属性名给键，停用即冲突，库里读不出即不可用
 /// </remarks>
 public sealed class CodeGenerationRuntimeTests : IDisposable
 {

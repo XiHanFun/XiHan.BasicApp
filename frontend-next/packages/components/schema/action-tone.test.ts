@@ -1,9 +1,9 @@
 /**
- * 危险操作在下拉菜单里的条目语气。
+ * 危险操作在下拉菜单里的条目语气
  *
  * 行操作与页面「更多」都收在下拉菜单里，删除、重置密码、强制下线这类命令要靠红字从一列里跳出来；
- * 只有 danger / warning 着色，其余语气与普通条目同档，否则一片彩字又分不出哪条危险。
- * 通用下拉（XDropdown / 右键菜单）经 toDropdownCollection 把条目上写的 tone 原样交给组件库。
+ * 只有 danger / warning 着色，其余语气与普通条目同档，否则一片彩字又分不出哪条危险
+ * 通用下拉（XDropdown / 右键菜单）经 toDropdownCollection 把条目上写的 tone 原样交给组件库
  */
 import type { MenuNodeMeta } from '@xihan-ui/headless'
 import { describe, expect, it } from 'vitest'

@@ -6,18 +6,18 @@ using XiHan.BasicApp.Access.Domain.Entities;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 角色的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用。
+/// 角色的响应形态：列表项、创建 / 修改的响应与详情里的基本信息共用
 /// </summary>
-/// <param name="Id">角色 ID（也是令牌 <c>role</c> 声明与授予主体的值）。</param>
-/// <param name="OwnerTenantId">所属侧：<c>platform</c> 或租户 ID。</param>
-/// <param name="Code">角色码。</param>
-/// <param name="Name">显示名。</param>
-/// <param name="Description">说明。</param>
-/// <param name="Order">排序号。</param>
-/// <param name="IsBuiltIn">是否内建。</param>
-/// <param name="DataScope">数据范围。</param>
-/// <param name="Status">状态。</param>
-/// <param name="CreatedAt">创建时间（UTC）。</param>
+/// <param name="Id">角色 ID（也是令牌 <c>role</c> 声明与授予主体的值）</param>
+/// <param name="OwnerTenantId">所属侧：<c>platform</c> 或租户 ID</param>
+/// <param name="Code">角色码</param>
+/// <param name="Name">显示名</param>
+/// <param name="Description">说明</param>
+/// <param name="Order">排序号</param>
+/// <param name="IsBuiltIn">是否内建</param>
+/// <param name="DataScope">数据范围</param>
+/// <param name="Status">状态</param>
+/// <param name="CreatedAt">创建时间（UTC）</param>
 public sealed record RoleResponse(
     Guid Id,
     string OwnerTenantId,
@@ -31,7 +31,7 @@ public sealed record RoleResponse(
     DateTimeOffset CreatedAt)
 {
     /// <summary>
-    /// 由实体投影。
+    /// 由实体投影
     /// </summary>
     public static RoleResponse From(SysRole role)
     {

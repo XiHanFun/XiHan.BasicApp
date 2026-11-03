@@ -5,8 +5,8 @@ import { XCombobox } from '~/components'
 import { resolveUsers, searchUsers, toUserOption } from './workflow-directory'
 
 /**
- * 审批人选人：远程检索当前上下文可见的启用用户，值为用户主键字符串（与受理人标识同形）。
- * 已选用户先按主键回显，再与检索结果合并，换一批候选时已选项仍念得出名字。
+ * 审批人选人：远程检索当前上下文可见的启用用户，值为用户主键字符串（与受理人标识同形）
+ * 已选用户先按主键回显，再与检索结果合并，换一批候选时已选项仍念得出名字
  */
 defineOptions({ name: 'WorkflowUserPicker', inheritAttrs: false })
 

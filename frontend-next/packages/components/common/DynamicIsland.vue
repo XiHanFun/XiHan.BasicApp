@@ -57,9 +57,9 @@ const {
 const shellVisible = computed(() => enabled.value && (expanded.value ? hasPanel.value : !!current.value))
 
 // ── 折叠态形态 ──────────────────────────────────────────────────
-// 单任务＝第一形态：中~宽自适应胶囊，显示任务文案。
-// 多任务＝第二形态：固定「宽」档胶囊，常驻聚合文案「N 个任务进行中」+ 计数 + 展开箭头。
-// 不再有更小的极简档（图标+计数），宽度只在「中」「宽」之间。
+// 单任务＝第一形态：中~宽自适应胶囊，显示任务文案
+// 多任务＝第二形态：固定「宽」档胶囊，常驻聚合文案「N 个任务进行中」+ 计数 + 展开箭头
+// 不再有更小的极简档（图标+计数），宽度只在「中」「宽」之间
 // 聚合文案只在「岛上显示的确实是进行中任务」时生效：队首是消息时要显示消息本身
 const isMulti = computed(() => loadingCount.value > 1 && current.value?.state === 'loading')
 const displayLabel = computed(() => {
@@ -152,8 +152,8 @@ function relativeTime(time: number): string {
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
-// 折叠态两档宽度：「中」(下限 200) 与「宽」(上限 320)。单任务在二者间按内容自适应，多任务固定「宽」档。
-// 中档下限刻意取得较饱满，避免「登录成功」等短文案缩成小胶囊，与「宽」档形成清晰的中/宽两级。
+// 折叠态两档宽度：「中」(下限 200) 与「宽」(上限 320)。单任务在二者间按内容自适应，多任务固定「宽」档
+// 中档下限刻意取得较饱满，避免「登录成功」等短文案缩成小胶囊，与「宽」档形成清晰的中/宽两级
 const PILL_MIN_WIDTH = 200
 const PILL_MAX_WIDTH = 320
 
@@ -174,14 +174,14 @@ async function measurePill(): Promise<void> {
   if (!inner) {
     return
   }
-  // 量取内容固有宽度：临时切到 max-content（同帧内改回，不产生闪烁）。
-  // 注意不能直接用 scrollWidth——inner 为 width:100% 时它不小于容器宽，会逐次放大。
+  // 量取内容固有宽度：临时切到 max-content（同帧内改回，不产生闪烁）
+  // 注意不能直接用 scrollWidth——inner 为 width:100% 时它不小于容器宽，会逐次放大
   const previousWidth = inner.style.width
   inner.style.width = 'max-content'
   const intrinsic = inner.getBoundingClientRect().width
   inner.style.width = previousWidth
-  // 宽度只收敛为两档：「中」(PILL_MIN_WIDTH 下限) ~「宽」(PILL_MAX_WIDTH 上限)，不再有更小的极简档。
-  // 第二形态（多任务）固定「宽」档承载聚合文案；第一形态（单任务）在中~宽间按内容自适应，超「宽」自然截断。
+  // 宽度只收敛为两档：「中」(PILL_MIN_WIDTH 下限) ~「宽」(PILL_MAX_WIDTH 上限)，不再有更小的极简档
+  // 第二形态（多任务）固定「宽」档承载聚合文案；第一形态（单任务）在中~宽间按内容自适应，超「宽」自然截断
   const cap = Math.min(window.innerWidth * 0.8, PILL_MAX_WIDTH)
   pillWidth.value = isMulti.value
     ? cap
@@ -190,7 +190,7 @@ async function measurePill(): Promise<void> {
 
 // ── 卡片态：参照 iOS 灵动岛「重要更新自动短暂展开、随后自行收回」──────
 // 判据取「任务是否带正文（detail）」：聊天消息一类有正文的才值得抢占视线，
-// 纯状态胶囊（连接断开/任务进行中）不打断。用户手动展开时立刻让位给内容态。
+// 纯状态胶囊（连接断开/任务进行中）不打断。用户手动展开时立刻让位给内容态
 const CARD_LINGER = 2600
 const cardTaskId = ref<string | null>(null)
 let cardTimer: ReturnType<typeof setTimeout> | null = null
@@ -237,7 +237,7 @@ function onCardClick(): void {
 
 // ── 入栈动效：岛已在屏上时，新消息自顶缘落下压到最前 ─────────────────
 // 只认「真的更新的那条」：最前一条到期后浮上来的是更旧的一条，此时再落一次
-// 就成了「又来新消息」的假象。
+// 就成了「又来新消息」的假象
 const sliding = ref(false)
 const lastTopOrder = ref(0)
 let slideTimer: ReturnType<typeof setTimeout> | null = null
@@ -340,7 +340,7 @@ watch(
 
 // ── 折叠态堆叠：最新一条在最前完整展示，其余在下方露边 ─────────────────
 // 露两层（含最前共三条可见）与 Sonner 的 visibleToasts、AntD 的堆叠阈值一致；
-// 再多的不再露层，改由文案右侧的 +N 兜底，读全部走展开面板。
+// 再多的不再露层，改由文案右侧的 +N 兜底，读全部走展开面板
 const STACK_MAX_LAYERS = 2
 const hovering = ref(false)
 
@@ -348,9 +348,9 @@ const hovering = ref(false)
 const stackTasks = computed(() => (expanded.value ? [] : pendingTasks.value.slice(0, STACK_MAX_LAYERS)))
 
 /**
- * 叠层几何：与最前一条等大，逐层向下挪并缩小，从下缘露出边。
+ * 叠层几何：与最前一条等大，逐层向下挪并缩小，从下缘露出边
  * 位移与缩放的量级取自 Sonner（每层 14px、缩 0.05），方向朝下——
- * 岛在屏幕顶部，堆叠一律朝屏幕内侧延伸。
+ * 岛在屏幕顶部，堆叠一律朝屏幕内侧延伸
  */
 function layerStyle(depth: number): Record<string, string> {
   const isCard = mode.value === 'card'
@@ -368,8 +368,8 @@ function layerStyle(depth: number): Record<string, string> {
 
 /**
  * 叠层按「消息」取 key 而不是层号：按层号取的话，持续来新消息时层数恒为上限，
- * key 集合不变，元素只是原地改样式，进出场动画一次都不会触发。
- * DOM 顺序保持由新到旧固定不变（前后靠 z-index 定），避免 TransitionGroup 走 FLIP 与行内 transform 打架。
+ * key 集合不变，元素只是原地改样式，进出场动画一次都不会触发
+ * DOM 顺序保持由新到旧固定不变（前后靠 z-index 定），避免 TransitionGroup 走 FLIP 与行内 transform 打架
  */
 const stackLayers = computed(() =>
   stackTasks.value.map((task, index) => ({ key: task.id, style: layerStyle(index + 1) })))
@@ -669,8 +669,8 @@ onBeforeUnmount(() => {
 }
 
 /* ============ 后方叠层：多条活动消息的「还有更多」暗示 ============ */
-/* 与壳体同色（压低亮度会糊成灰块，看不出是卡片），靠缩放与左右挪出体现前后。
-   不接收指针事件：点击落在壳体上，行为与单条时一致。 */
+/* 与壳体同色（压低亮度会糊成灰块，看不出是卡片），靠缩放与左右挪出体现前后
+   不接收指针事件：点击落在壳体上，行为与单条时一致 */
 .di-stack {
   position: absolute;
   top: 0;
@@ -687,9 +687,9 @@ onBeforeUnmount(() => {
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
-/* 入栈动效：新叠层从「最前那条的原位、原尺寸」沉到后方，看着就是上一条被压下去。
+/* 入栈动效：新叠层从「最前那条的原位、原尺寸」沉到后方，看着就是上一条被压下去
    关键帧只写起始态，结束态隐式取元素自身的行内 transform（各层位移不同，写死不了）；
-   动画期间关键帧优先级高于行内样式，动画结束自然落回行内位置。 */
+   动画期间关键帧优先级高于行内样式，动画结束自然落回行内位置 */
 .di-stack-enter-active {
   /* 关掉基础 transition：入场只跑关键帧，避免与之并存时 Vue 把过渡类型判成 transition */
   transition: none;
@@ -703,8 +703,8 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 出栈动效：最旧的一层顺着同一方向继续下沉并淡出。
-   与入场对称——关键帧只写结束态，起始态隐式取元素自身的行内 transform。 */
+/* 出栈动效：最旧的一层顺着同一方向继续下沉并淡出
+   与入场对称——关键帧只写结束态，起始态隐式取元素自身的行内 transform */
 .di-stack-leave-active {
   transition: none;
   animation: di-stack-drop var(--xh-motion-duration-slide) var(--xh-motion-ease-exit) forwards;
@@ -719,7 +719,7 @@ onBeforeUnmount(() => {
 
 /* 关掉 TransitionGroup 的 FLIP：叠层位置全靠行内 transform，而 FLIP 会直接改写
    el.style.transform 做位移补偿，两者互相覆盖。层间推移交给 .di-stack 自带的
-   transform 过渡即可（深度变了行内值就变，自然滑过去）。 */
+   transform 过渡即可（深度变了行内值就变，自然滑过去） */
 .di-stack-move {
   transition: none;
 }
@@ -1219,8 +1219,8 @@ onBeforeUnmount(() => {
   transform: translateY(calc(-100% - 14px)) scale(0.88);
 }
 
-/* 入栈：新消息自顶缘落下压到最前（岛已在屏上、不重新入场时）。
-   方向与堆叠一致——堆朝下延伸，新的就从上方来。 */
+/* 入栈：新消息自顶缘落下压到最前（岛已在屏上、不重新入场时）
+   方向与堆叠一致——堆朝下延伸，新的就从上方来 */
 .di-slide {
   animation: di-slide-in var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }

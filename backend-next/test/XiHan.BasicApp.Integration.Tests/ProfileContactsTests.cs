@@ -14,11 +14,11 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证个人中心的邮箱 / 手机号验证与换绑。
+/// 验证个人中心的邮箱 / 手机号验证与换绑
 /// </summary>
 /// <remarks>
 /// 验证码经 Notification 的发件箱发出（没有可用的发送配置即不签发）；同一目标 60 秒内不能再发，码错计次、5 次锁定；
-/// 验证当前联系方式后记为已验证，管理员改了即复位；换绑要当前密码、新的合格式且同一租户里没人用，收码确认后换成新的并记为已验证。
+/// 验证当前联系方式后记为已验证，管理员改了即复位；换绑要当前密码、新的合格式且同一租户里没人用，收码确认后换成新的并记为已验证
 /// </remarks>
 public sealed class ProfileContactsTests : IDisposable
 {

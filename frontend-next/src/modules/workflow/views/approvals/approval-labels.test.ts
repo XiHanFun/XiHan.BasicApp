@@ -1,8 +1,8 @@
 /**
- * 审批中心展示规则（approval-labels.ts）的单元测试（照 4.x 的 approval-labels.test）。
+ * 审批中心展示规则（approval-labels.ts）的单元测试（照 4.x 的 approval-labels.test）
  *
  * 锁定：未配置白名单时办理结果为同意与驳回，白名单去掉超时与重复项；标准结果有文案、业务自定义结果原样显示；
- * 实例状态文案与流程实例页同一组键；运行、挂起与故障算进行中；每种审批记录动作都有各自的文案。
+ * 实例状态文案与流程实例页同一组键；运行、挂起与故障算进行中；每种审批记录动作都有各自的文案
  */
 import { describe, expect, it } from 'vitest'
 import { WorkflowInstanceStatus, WorkflowTaskRecordAction } from '~/contracts'

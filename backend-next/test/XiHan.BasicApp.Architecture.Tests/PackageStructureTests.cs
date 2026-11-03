@@ -12,10 +12,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 检查包的目录名、区域文件、错误码与清单。
+/// 检查包的目录名、区域文件、错误码与清单
 /// </summary>
 /// <remarks>
-/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀；清单 ID、包名与版本按附录 B。
+/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀；清单 ID、包名与版本按附录 B
 /// </remarks>
 public sealed class PackageStructureTests
 {
@@ -162,10 +162,10 @@ public sealed class PackageStructureTests
     private const string TagPrefix = "openapi.tags.";
 
     /// <summary>
-    /// 操作 ID 或资源段对应的消息键前缀。
+    /// 操作 ID 或资源段对应的消息键前缀
     /// </summary>
     /// <remarks>
-    /// 资源段与动词段里的连字符换成下划线（<c>my-login-logs.list</c> → <c>my_login_logs.list</c>），权限码同样换。
+    /// 资源段与动词段里的连字符换成下划线（<c>my-login-logs.list</c> → <c>my_login_logs.list</c>），权限码同样换
     /// </remarks>
     private static string KeyOf(string id) => id.Replace('-', '_');
 }

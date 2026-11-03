@@ -7,8 +7,8 @@ import { XTree } from '~/components'
 import { buildNameMap, buildParentMap, DATA_SCOPE_LEVELS, findCoveredDepartments, setIncludeChildren, syncPickedDepartments } from '../data-scope'
 
 /**
- * 数据范围编辑（4.x 的 DataScopeEditor 搬入，按 6.0 的部门树与档位改型）：先选档位；自定义时在部门树里勾部门，已选部门逐项设「含下级」。
- * 角色与成员共用——成员多一个「跟随角色」档（`allowInherit`，档位为空即不覆盖，与 4.x 相同）。
+ * 数据范围编辑（4.x 的 DataScopeEditor 搬入，按 6.0 的部门树与档位改型）：先选档位；自定义时在部门树里勾部门，已选部门逐项设「含下级」
+ * 角色与成员共用——成员多一个「跟随角色」档（`allowInherit`，档位为空即不覆盖，与 4.x 相同）
  */
 defineOptions({ name: 'AccessRoleDataScopeEditor' })
 

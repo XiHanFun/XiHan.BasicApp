@@ -16,20 +16,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 转移租户所有权。
+/// 转移租户所有权
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants/{id}:transfer-owner</c>（平台侧）。所有者即 <see cref="SysTenant.AdminUserId"/>，每租户唯一，转移即改写它（照 4.x 的所有权转移）：
 /// 新所有者须是该租户注册地的用户或生效中的普通成员（运维支持成员不行），启用且未锁定；新所有者经 <see cref="ITenantInitializer"/> 拿到管理员身份，
-/// 原所有者保留已有角色（降为管理员），两人的授权缓存随即失效。转移记一条权限变更日志（含原 / 新所有者）。
+/// 原所有者保留已有角色（降为管理员），两人的授权缓存随即失效。转移记一条权限变更日志（含原 / 新所有者）
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="members">成员仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="initializers">租户初始化扩展（Access 实现：管理员角色与授权缓存）。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="members">成员仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="initializers">租户初始化扩展（Access 实现：管理员角色与授权缓存）</param>
+/// <param name="service">租户域服务</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsTransferOwner)]
 public sealed class TransferOwner(
     IRepository<SysTenant, Guid> tenants,
@@ -41,7 +41,7 @@ public sealed class TransferOwner(
     TimeProvider clock) : IOperation<TransferOwnerRequest, TenantResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.transfer-owner";
 
@@ -111,10 +111,10 @@ public sealed class TransferOwner(
     }
 
     /// <summary>
-    /// 新所有者是否合格。
+    /// 新所有者是否合格
     /// </summary>
     /// <remarks>
-    /// 注册地在该租户的用户，或生效中的普通成员；启用且没有处在锁定期。
+    /// 注册地在该租户的用户，或生效中的普通成员；启用且没有处在锁定期
     /// </remarks>
     private async Task<Maybe<SysUser>> EligibleAsync(string tenantId, Guid userId, CancellationToken cancellationToken)
     {

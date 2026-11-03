@@ -25,11 +25,11 @@ using XiHan.Framework.Security.Abstractions;
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包（Tier 3）。
+/// {{ ModuleName }} 包（Tier 3）
 /// </summary>
 /// <remarks>
-/// 由代码生成建出：业务数据是租户库实体，只在租户侧管理（权限码全在租户侧，平台主体的菜单与操作里都没有）。
-/// 加新的资源时在这里登记它的查询与打印数据源（见生成产物里的 <c>_registration</c>）。
+/// 由代码生成建出：业务数据是租户库实体，只在租户侧管理（权限码全在租户侧，平台主体的菜单与操作里都没有）
+/// 加新的资源时在这里登记它的查询与打印数据源（见生成产物里的 <c>_registration</c>）
 /// </remarks>
 public sealed class {{ ModuleName }}Feature : IFeature
 {

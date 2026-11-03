@@ -9,7 +9,7 @@ import { COUNT_COMPACT, localDay, useRangeOptions } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 作业执行：逐日作业运行按成功、失败（含节点掉线丢失的）两段堆叠，按计划时刻归到本地日。只在平台一侧。
+ * 作业执行：逐日作业运行按成功、失败（含节点掉线丢失的）两段堆叠，按计划时刻归到本地日。只在平台一侧
  */
 defineOptions({ name: 'JobRunsWidget' })
 

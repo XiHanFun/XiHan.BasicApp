@@ -13,20 +13,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 设租户的隔离方式与独立库连接。
+/// 设租户的隔离方式与独立库连接
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tenants/{id}:configure-database</c>（平台侧），在初始化独立库之前。独立库就绪之后不能再改（数据已在那个库里，<c>TENANCY_CONFLICT_013</c>）。
-/// 改成独立库即待初始化，连接串经 <see cref="ISecretProtector"/> 加密后存放并同步进租户目录；改回共库即清掉连接。
+/// <c>POST /api/tenants/{id}:configure-database</c>（平台侧），在初始化独立库之前。独立库就绪之后不能再改（数据已在那个库里，<c>TENANCY_CONFLICT_013</c>）
+/// 改成独立库即待初始化，连接串经 <see cref="ISecretProtector"/> 加密后存放并同步进租户目录；改回共库即清掉连接
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="protector">机密保护器。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="service">租户域服务</param>
+/// <param name="protector">机密保护器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsConfigureDatabase)]
 public sealed class ConfigureTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, ISecretProtector protector) : IOperation<ConfigureTenantDatabaseRequest, TenantResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.configure-database";
 
@@ -89,22 +89,22 @@ public sealed class ConfigureTenantDatabase(IRepository<SysTenant, Guid> tenants
 }
 
 /// <summary>
-/// 初始化租户的独立库。
+/// 初始化租户的独立库
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants/{id}:initialize-database</c>（平台侧）：按租户目录绑定该租户的分片（框架 <c>TenantShardScope</c>，停用的租户也行），
-/// 建库、只建落租户库的实体的表、在该库登记当前结构版本（<see cref="TenantSchemas"/>，幂等）。
-/// 结果写回租户：成功即就绪，失败记原因（响应照常返回、状态为失败），可改连接后再试。
+/// 建库、只建落租户库的实体的表、在该库登记当前结构版本（<see cref="TenantSchemas"/>，幂等）
+/// 结果写回租户：成功即就绪，失败记原因（响应照常返回、状态为失败），可改连接后再试
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="schemas">租户库的建库与建表。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="service">租户域服务</param>
+/// <param name="schemas">租户库的建库与建表</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeDatabase)]
 public sealed class InitializeTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, TenantSchemas schemas, TimeProvider clock) : IOperation<InitializeTenantDatabaseRequest, TenantResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.initialize-database";
 

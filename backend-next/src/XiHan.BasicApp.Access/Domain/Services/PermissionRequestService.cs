@@ -17,16 +17,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 授权申请的提交、重新提交、撤回、手工处理与查询（作用域）。
+/// 授权申请的提交、重新提交、撤回、手工处理与查询（作用域）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>PermissionRequestAppService</c> 与查询服务：提交即在同一个事务里经审批业务服务发起 <see cref="PermissionRequestStore.BusinessCode"/> 的流程；
-/// 修改后重新提交撤回旧流程、按新内容重新发起；申请人撤回与管理员手工驳回 / 撤回都同时撤回进行中的流程（业务自己撤回，不回调中止）。
-/// Workflow 模块关掉时没有审批业务服务：列表照常、进度为空并标「审批未启用」，提交与重新提交即 <see cref="AccessErrors.ApprovalUnavailable"/>（方案 W1，4.x 是列表直接报错）。
+/// 修改后重新提交撤回旧流程、按新内容重新发起；申请人撤回与管理员手工驳回 / 撤回都同时撤回进行中的流程（业务自己撤回，不回调中止）
+/// Workflow 模块关掉时没有审批业务服务：列表照常、进度为空并标「审批未启用」，提交与重新提交即 <see cref="AccessErrors.ApprovalUnavailable"/>（方案 W1，4.x 是列表直接报错）
 /// </remarks>
-/// <param name="store">读写与校验。</param>
-/// <param name="ids">ID 生成。</param>
-/// <param name="workflows">审批业务服务（Workflow 关掉时没有）。</param>
+/// <param name="store">读写与校验</param>
+/// <param name="ids">ID 生成</param>
+/// <param name="workflows">审批业务服务（Workflow 关掉时没有）</param>
 public sealed class PermissionRequestService(PermissionRequestStore store, IIdGenerator<Guid> ids, IEnumerable<IWorkflowBusinessService> workflows)
 {
     private const string FieldStatus = "status";
@@ -38,7 +38,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     private IWorkflowBusinessService? Workflow => workflows.FirstOrDefault();
 
     /// <summary>
-    /// 提交。
+    /// 提交
     /// </summary>
     public async Task<Result<PermissionRequestResponse>> CreateAsync(CreatePermissionRequestRequest request, InvocationContext context)
     {
@@ -92,7 +92,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 修改并重新提交。
+    /// 修改并重新提交
     /// </summary>
     public async Task<Result<PermissionRequestResponse>> UpdateAsync(UpdatePermissionRequestRequest request, InvocationContext context)
     {
@@ -160,7 +160,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 申请人撤回自己待审批的申请。
+    /// 申请人撤回自己待审批的申请
     /// </summary>
     public async Task<Result<BatchResult>> WithdrawAsync(PermissionRequestIdsRequest request, InvocationContext context)
     {
@@ -183,7 +183,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 管理员手工驳回或撤回别人待审批的申请。
+    /// 管理员手工驳回或撤回别人待审批的申请
     /// </summary>
     public async Task<Result<BatchResult>> SetStatusAsync(SetPermissionRequestStatusRequest request, InvocationContext context)
     {
@@ -209,11 +209,11 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 分页列出这一侧的申请。
+    /// 分页列出这一侧的申请
     /// </summary>
     /// <remarks>
     /// 照 4.x：持有查看权限即看这一侧全部的申请；关键字匹配申请人（经用户目录按登录名与显示名，见 <see cref="PermissionRequestStore.RequestersMatchingAsync"/>）、申请原因与备注，
-    /// 筛选申请人、角色、权限码与状态，缺省按提交时间降序。
+    /// 筛选申请人、角色、权限码与状态，缺省按提交时间降序
     /// </remarks>
     public async Task<Result<PageResult<PermissionRequestResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -283,7 +283,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 取一条。
+    /// 取一条
     /// </summary>
     public async Task<Result<PermissionRequestResponse>> GetAsync(Guid id, InvocationContext context)
     {
@@ -304,10 +304,10 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 发起审批流程并回填实例。
+    /// 发起审批流程并回填实例
     /// </summary>
     /// <remarks>
-    /// 发起时可能就走完了（结论回写已改了状态）：先重读一遍再回填，免得盖掉。
+    /// 发起时可能就走完了（结论回写已改了状态）：先重读一遍再回填，免得盖掉
     /// </remarks>
     private async Task<Result> StartAsync(IWorkflowBusinessService workflow, Guid id, PermissionRequestTarget target, Guid requester, InvocationContext context)
     {
@@ -336,7 +336,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
-    /// 逐条置为完结状态，并撤回进行中的流程。
+    /// 逐条置为完结状态，并撤回进行中的流程
     /// </summary>
     private async Task<Result<BatchResult>> EachAsync(IReadOnlyList<Guid> ids, InvocationContext context, Func<SysPermissionRequest, Task<Result>> check, PermissionRequestStatus status, string? remark, string reason, bool allowSame = false)
     {
@@ -410,9 +410,9 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     private static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
-    /// 解析逗号分隔的枚举名。
+    /// 解析逗号分隔的枚举名
     /// </summary>
-    /// <returns>枚举值；有一个认不出即为空（交给不支持的筛选报错）。</returns>
+    /// <returns>枚举值；有一个认不出即为空（交给不支持的筛选报错）</returns>
     private static List<TEnum>? EnumsOf<TEnum>(string value) where TEnum : struct, Enum
     {
         var parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

@@ -6,170 +6,170 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Notification;
 
 /// <summary>
-/// 通知包的权限码。
+/// 通知包的权限码
 /// </summary>
 /// <remarks>
-/// 两侧都有，各自管理本侧的通知公告。收件箱是自助的，只要求已登录，不在这里。
+/// 两侧都有，各自管理本侧的通知公告。收件箱是自助的，只要求已登录，不在这里
 /// </remarks>
 public static class NotificationPermissions
 {
     /// <summary>
-    /// 查看通知公告、阅读统计与接收人。
+    /// 查看通知公告、阅读统计与接收人
     /// </summary>
     public const string NotificationsRead = "notification.notifications.read";
 
     /// <summary>
-    /// 新建通知（草稿）。
+    /// 新建通知（草稿）
     /// </summary>
     public const string NotificationsCreate = "notification.notifications.create";
 
     /// <summary>
-    /// 修改草稿。
+    /// 修改草稿
     /// </summary>
     public const string NotificationsUpdate = "notification.notifications.update";
 
     /// <summary>
-    /// 删除通知（已发布的连同收件箱里的那一条）。
+    /// 删除通知（已发布的连同收件箱里的那一条）
     /// </summary>
     public const string NotificationsDelete = "notification.notifications.delete";
 
     /// <summary>
-    /// 发布与提醒。
+    /// 发布与提醒
     /// </summary>
     public const string NotificationsPublish = "notification.notifications.publish";
 
     /// <summary>
-    /// 查看消息模板。
+    /// 查看消息模板
     /// </summary>
     public const string TemplatesRead = "notification.message-templates.read";
 
     /// <summary>
-    /// 新建消息模板。
+    /// 新建消息模板
     /// </summary>
     public const string TemplatesCreate = "notification.message-templates.create";
 
     /// <summary>
-    /// 修改消息模板（含启停）。
+    /// 修改消息模板（含启停）
     /// </summary>
     public const string TemplatesUpdate = "notification.message-templates.update";
 
     /// <summary>
-    /// 删除消息模板。
+    /// 删除消息模板
     /// </summary>
     public const string TemplatesDelete = "notification.message-templates.delete";
 
     /// <summary>
-    /// 查看邮件配置。
+    /// 查看邮件配置
     /// </summary>
     public const string EmailConfigsRead = "notification.email-configs.read";
 
     /// <summary>
-    /// 新建邮件配置。
+    /// 新建邮件配置
     /// </summary>
     public const string EmailConfigsCreate = "notification.email-configs.create";
 
     /// <summary>
-    /// 修改邮件配置、设缺省。
+    /// 修改邮件配置、设缺省
     /// </summary>
     public const string EmailConfigsUpdate = "notification.email-configs.update";
 
     /// <summary>
-    /// 删除邮件配置。
+    /// 删除邮件配置
     /// </summary>
     public const string EmailConfigsDelete = "notification.email-configs.delete";
 
     /// <summary>
-    /// 查看短信配置。
+    /// 查看短信配置
     /// </summary>
     public const string SmsConfigsRead = "notification.sms-configs.read";
 
     /// <summary>
-    /// 新建短信配置。
+    /// 新建短信配置
     /// </summary>
     public const string SmsConfigsCreate = "notification.sms-configs.create";
 
     /// <summary>
-    /// 修改短信配置、设缺省。
+    /// 修改短信配置、设缺省
     /// </summary>
     public const string SmsConfigsUpdate = "notification.sms-configs.update";
 
     /// <summary>
-    /// 删除短信配置。
+    /// 删除短信配置
     /// </summary>
     public const string SmsConfigsDelete = "notification.sms-configs.delete";
 
     /// <summary>
-    /// 查看机器人配置。
+    /// 查看机器人配置
     /// </summary>
     public const string BotConfigsRead = "notification.bot-configs.read";
 
     /// <summary>
-    /// 新建机器人配置。
+    /// 新建机器人配置
     /// </summary>
     public const string BotConfigsCreate = "notification.bot-configs.create";
 
     /// <summary>
-    /// 修改机器人配置、设缺省。
+    /// 修改机器人配置、设缺省
     /// </summary>
     public const string BotConfigsUpdate = "notification.bot-configs.update";
 
     /// <summary>
-    /// 删除机器人配置。
+    /// 删除机器人配置
     /// </summary>
     public const string BotConfigsDelete = "notification.bot-configs.delete";
 
     /// <summary>
-    /// 查看 Telegram 机器人（平台）。
+    /// 查看 Telegram 机器人（平台）
     /// </summary>
     public const string TelegramBotsRead = "notification.telegram-bots.read";
 
     /// <summary>
-    /// 新建 Telegram 机器人（平台）。
+    /// 新建 Telegram 机器人（平台）
     /// </summary>
     public const string TelegramBotsCreate = "notification.telegram-bots.create";
 
     /// <summary>
-    /// 修改 Telegram 机器人（平台）。
+    /// 修改 Telegram 机器人（平台）
     /// </summary>
     public const string TelegramBotsUpdate = "notification.telegram-bots.update";
 
     /// <summary>
-    /// 删除 Telegram 机器人（平台）。
+    /// 删除 Telegram 机器人（平台）
     /// </summary>
     public const string TelegramBotsDelete = "notification.telegram-bots.delete";
 
     /// <summary>
-    /// 查看邮件发送记录。
+    /// 查看邮件发送记录
     /// </summary>
     public const string EmailsRead = "notification.emails.read";
 
     /// <summary>
-    /// 重发与取消邮件。
+    /// 重发与取消邮件
     /// </summary>
     public const string EmailsResend = "notification.emails.resend";
 
     /// <summary>
-    /// 删除邮件发送记录。
+    /// 删除邮件发送记录
     /// </summary>
     public const string EmailsDelete = "notification.emails.delete";
 
     /// <summary>
-    /// 查看短信发送记录。
+    /// 查看短信发送记录
     /// </summary>
     public const string SmsRead = "notification.sms.read";
 
     /// <summary>
-    /// 重发与取消短信。
+    /// 重发与取消短信
     /// </summary>
     public const string SmsResend = "notification.sms.resend";
 
     /// <summary>
-    /// 删除短信发送记录。
+    /// 删除短信发送记录
     /// </summary>
     public const string SmsDelete = "notification.sms.delete";
 
     /// <summary>
-    /// 本包全部权限的描述。
+    /// 本包全部权限的描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

@@ -9,13 +9,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// <see cref="IInboxDelivery"/> 的实现。
+/// <see cref="IInboxDelivery"/> 的实现
 /// </summary>
 /// <remarks>
 /// 照 4.x 的待办提醒：在调用所在的一侧建一条指定用户的「待办」通知（纯文本、普通优先级、只走站内）并立即发布，
-/// 收件人按站内偏好过滤，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）。
+/// 收件人按站内偏好过滤，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）
 /// </remarks>
-/// <param name="notifications">通知域服务。</param>
+/// <param name="notifications">通知域服务</param>
 public sealed class InboxDelivery(NotificationService notifications) : IInboxDelivery
 {
     /// <inheritdoc />

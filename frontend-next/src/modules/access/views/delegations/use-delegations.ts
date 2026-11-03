@@ -75,9 +75,9 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）与删除。
- * 搜索按后端白名单：关键字匹配权限码与原因，状态多选（合成 in）；排序只放生效、到期与创建时间。
- * 委托对象里的权限按当前界面语言显示：权限目录随列表一起取（`loadNames`，同一语言只取一次）。
+ * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）与删除
+ * 搜索按后端白名单：关键字匹配权限码与原因，状态多选（合成 in）；排序只放生效、到期与创建时间
+ * 委托对象里的权限按当前界面语言显示：权限目录随列表一起取（`loadNames`，同一语言只取一次）
  */
 export function delegationsResource(loadNames: () => Promise<void>): SchemaResource<DelegationRow> {
   return {
@@ -95,8 +95,8 @@ export function revokeDelegation(id: string): Promise<DelegationRow> {
 }
 
 /**
- * 新建委托的弹窗（4.x 的委托表单）：委托人与接收人远程检索本侧用户，委托对象二选一（启用的非内置角色，或本侧权限目录）。
- * 字段级错误挂回对应字段。
+ * 新建委托的弹窗（4.x 的委托表单）：委托人与接收人远程检索本侧用户，委托对象二选一（启用的非内置角色，或本侧权限目录）
+ * 字段级错误挂回对应字段
  */
 export function useDelegationEditor() {
   const open = ref(false)

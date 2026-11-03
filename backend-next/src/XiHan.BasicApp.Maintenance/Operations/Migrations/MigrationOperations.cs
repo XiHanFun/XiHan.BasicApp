@@ -10,18 +10,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Maintenance.Operations.Migrations;
 
 /// <summary>
-/// 分页列出升级脚本的执行记录。
+/// 分页列出升级脚本的执行记录
 /// </summary>
 /// <remarks>
 /// <c>POST /api/migrations:list</c>。缺省按执行时间倒序。关键字匹配版本、脚本名与节点；筛选支持 <c>version</c>（<c>eq</c> / <c>contains</c>）、
-/// <c>scriptName</c>、<c>nodeName</c>（<c>contains</c>）、<c>success</c>（<c>eq</c>）、<c>executedAt</c>（<c>ge</c> / <c>lt</c>）；排序支持 <c>executedAt</c>、<c>version</c>、<c>scriptName</c>、<c>durationMs</c>。只在平台一侧。
+/// <c>scriptName</c>、<c>nodeName</c>（<c>contains</c>）、<c>success</c>（<c>eq</c>）、<c>executedAt</c>（<c>ge</c> / <c>lt</c>）；排序支持 <c>executedAt</c>、<c>version</c>、<c>scriptName</c>、<c>durationMs</c>。只在平台一侧
 /// </remarks>
-/// <param name="queries">台账与执行记录的查询。</param>
+/// <param name="queries">台账与执行记录的查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
 public sealed class ListMigrations(SchemaQueries queries) : IOperation<PageRequest, PageResult<MigrationResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "migrations.list";
 
@@ -35,17 +35,17 @@ public sealed class ListMigrations(SchemaQueries queries) : IOperation<PageReque
 }
 
 /// <summary>
-/// 取一条执行记录。
+/// 取一条执行记录
 /// </summary>
 /// <remarks>
-/// <c>GET /api/migrations/{id}</c>。只在平台一侧。
+/// <c>GET /api/migrations/{id}</c>。只在平台一侧
 /// </remarks>
-/// <param name="queries">台账与执行记录的查询。</param>
+/// <param name="queries">台账与执行记录的查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
 public sealed class GetMigration(SchemaQueries queries) : IOperation<MigrationIdRequest, MigrationResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "migrations.get";
 

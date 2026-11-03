@@ -14,42 +14,42 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 模板内容（新建与修改共用）。
+/// 模板内容（新建与修改共用）
 /// </summary>
 /// <remarks>
-/// 编码与渠道只在新建时给。
+/// 编码与渠道只在新建时给
 /// </remarks>
-/// <param name="Name">名称。</param>
-/// <param name="Subject">主题。</param>
-/// <param name="Content">正文。</param>
-/// <param name="IsHtml">正文是 HTML。</param>
-/// <param name="Description">说明。</param>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="Order">排序。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="Name">名称</param>
+/// <param name="Subject">主题</param>
+/// <param name="Content">正文</param>
+/// <param name="IsHtml">正文是 HTML</param>
+/// <param name="Description">说明</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="Order">排序</param>
+/// <param name="Remark">备注</param>
 public sealed record TemplateDraft(string Name, string? Subject, string Content, bool IsHtml, string? Description, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 消息模板的规则。
+/// 消息模板的规则
 /// </summary>
 /// <remarks>
 /// 编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查，主题只留给邮件与站内通知、HTML 只对邮件；
-/// 租户读得到平台的模板、只改自己的（4.x 同），建同编码的即覆盖；取模板时当前一侧启用的优先，没有取平台启用的。
+/// 租户读得到平台的模板、只改自己的（4.x 同），建同编码的即覆盖；取模板时当前一侧启用的优先，没有取平台启用的
 /// </remarks>
-/// <param name="templates">模板仓储。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="templates">模板仓储</param>
+/// <param name="ids">标识生成器</param>
 public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid> templates, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 取这一侧看得到的模板。
+    /// 取这一侧看得到的模板
     /// </summary>
     /// <remarks>
-    /// 自己的与平台的。
+    /// 自己的与平台的
     /// </remarks>
-    /// <param name="owner">侧。</param>
-    /// <param name="id">模板 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模板；不存在即 <c>NOTIFICATION_NOTFOUND_003</c>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="id">模板 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>模板；不存在即 <c>NOTIFICATION_NOTFOUND_003</c></returns>
     public async Task<Result<SysMessageTemplate>> FindVisibleAsync(string owner, Guid id, CancellationToken cancellationToken)
     {
         var found = await templates.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -59,12 +59,12 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 取这一侧能改的模板。
+    /// 取这一侧能改的模板
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="id">模板 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模板；看不到即 <c>NOTIFICATION_NOTFOUND_003</c>，租户碰平台的即 <c>NOTIFICATION_DENIED_002</c>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="id">模板 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>模板；看不到即 <c>NOTIFICATION_NOTFOUND_003</c>，租户碰平台的即 <c>NOTIFICATION_DENIED_002</c></returns>
     public async Task<Result<SysMessageTemplate>> FindOwnedAsync(string owner, Guid id, CancellationToken cancellationToken)
     {
         var found = await FindVisibleAsync(owner, id, cancellationToken).ConfigureAwait(false);
@@ -79,20 +79,20 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 是否为平台的模板。
+    /// 是否为平台的模板
     /// </summary>
-    /// <param name="owner">属主。</param>
-    /// <returns>是否平台。</returns>
+    /// <param name="owner">属主</param>
+    /// <returns>是否平台</returns>
     public static bool IsPlatform(string owner) => string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal);
 
     /// <summary>
-    /// 发送时取模板：当前一侧启用的同编码模板，没有取平台启用的。
+    /// 发送时取模板：当前一侧启用的同编码模板，没有取平台启用的
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="channel">渠道。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模板；都没有为 <see langword="null"/>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="channel">渠道</param>
+    /// <param name="code">编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>模板；都没有为 <see langword="null"/></returns>
     public async Task<SysMessageTemplate?> ResolveAsync(string owner, TemplateChannel channel, string code, CancellationToken cancellationToken)
     {
         var platform = TenantIds.Platform;
@@ -101,13 +101,13 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 这一侧、这个渠道是否已有这个编码的模板（不论启用与否）。
+    /// 这一侧、这个渠道是否已有这个编码的模板（不论启用与否）
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="channel">渠道。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>是否已有。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="channel">渠道</param>
+    /// <param name="code">编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否已有</returns>
     public async Task<bool> ExistsAsync(string owner, TemplateChannel channel, string code, CancellationToken cancellationToken)
     {
         var taken = await templates.ListAsync(EntityQuery.All<SysMessageTemplate>().Where(new Specification<SysMessageTemplate>(t => t.OwnerTenantId == owner && t.Channel == channel && t.Code == code)).Page(0, 1), cancellationToken).ConfigureAwait(false);
@@ -115,14 +115,14 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 新建。
+    /// 新建
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="channel">渠道。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新模板。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="code">编码</param>
+    /// <param name="channel">渠道</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新模板</returns>
     public async Task<Result<SysMessageTemplate>> CreateAsync(string owner, string code, TemplateChannel channel, TemplateDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -144,12 +144,12 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 修改（编码与渠道不改）。
+    /// 修改（编码与渠道不改）
     /// </summary>
-    /// <param name="template">模板。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="template">模板</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateAsync(SysMessageTemplate template, TemplateDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(template);
@@ -165,12 +165,12 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     }
 
     /// <summary>
-    /// 批量删除当前一侧的模板。
+    /// 批量删除当前一侧的模板
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="templateIds">模板 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="templateIds">模板 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteAsync(string owner, IReadOnlyList<Guid> templateIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(templateIds);

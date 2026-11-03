@@ -107,7 +107,7 @@ export function clampPage(page: number, total: number, size: number = INBOX_PAGE
 
 /**
  * 通知链接的去向：`/` 开头的站内路由走路由跳转，http(s) 地址在新窗口打开（4.x 同）；
- * 其它协议（javascript: 之类）不当链接，按钮不出。
+ * 其它协议（javascript: 之类）不当链接，按钮不出
  */
 export function resolveLink(link: null | string | undefined): { kind: 'external', url: string } | { kind: 'route', path: string } | null {
   const value = link?.trim()

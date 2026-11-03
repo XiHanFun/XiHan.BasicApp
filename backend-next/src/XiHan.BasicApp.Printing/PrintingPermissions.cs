@@ -6,53 +6,53 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Printing;
 
 /// <summary>
-/// 打印模块的权限码。
+/// 打印模块的权限码
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 7 个码（<c>print-template:*</c>）：前六个两侧都有，全局管理只在平台一侧。
-/// 平台一侧维护全局模板要同时持有对应的写权限与 <see cref="PrintTemplatesGlobalManage"/>，由操作判定（4.x 同）。
-/// 数据源目录（<c>print-data-sources.list</c>）不另设权限码，持有读取或使用其一即可（<see cref="PrintingPolicies.DataSourceCatalog"/>）。
-/// 使用（解析）是只读操作，不进操作日志（4.x 记审计，6.0 读操作不标 <c>audited</c>）。
+/// 照 4.x 的 7 个码（<c>print-template:*</c>）：前六个两侧都有，全局管理只在平台一侧
+/// 平台一侧维护全局模板要同时持有对应的写权限与 <see cref="PrintTemplatesGlobalManage"/>，由操作判定（4.x 同）
+/// 数据源目录（<c>print-data-sources.list</c>）不另设权限码，持有读取或使用其一即可（<see cref="PrintingPolicies.DataSourceCatalog"/>）
+/// 使用（解析）是只读操作，不进操作日志（4.x 记审计，6.0 读操作不标 <c>audited</c>）
 /// </remarks>
 public static class PrintingPermissions
 {
     /// <summary>
-    /// 查看模板。
+    /// 查看模板
     /// </summary>
     public const string PrintTemplatesRead = "printing.print-templates.read";
 
     /// <summary>
-    /// 新建模板。
+    /// 新建模板
     /// </summary>
     public const string PrintTemplatesCreate = "printing.print-templates.create";
 
     /// <summary>
-    /// 修改模板（元数据与设计）。
+    /// 修改模板（元数据与设计）
     /// </summary>
     public const string PrintTemplatesUpdate = "printing.print-templates.update";
 
     /// <summary>
-    /// 启停模板。
+    /// 启停模板
     /// </summary>
     public const string PrintTemplatesStatus = "printing.print-templates.status";
 
     /// <summary>
-    /// 删除模板。
+    /// 删除模板
     /// </summary>
     public const string PrintTemplatesDelete = "printing.print-templates.delete";
 
     /// <summary>
-    /// 按编码解析模板以预览与打印。
+    /// 按编码解析模板以预览与打印
     /// </summary>
     public const string PrintTemplatesUse = "printing.print-templates.use";
 
     /// <summary>
-    /// 维护平台全局模板。
+    /// 维护平台全局模板
     /// </summary>
     public const string PrintTemplatesGlobalManage = "printing.print-templates.global-manage";
 
     /// <summary>
-    /// 全部权限描述。
+    /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

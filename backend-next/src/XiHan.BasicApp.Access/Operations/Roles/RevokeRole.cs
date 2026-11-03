@@ -11,22 +11,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 撤销角色的权限。
+/// 撤销角色的权限
 /// </summary>
 /// <remarks>
 /// <c>POST /api/roles/{id}:revoke</c>。撤掉授予，连同这些权限码上的规则（有效期、原因、Deny）；
-/// 只有 Deny 没有授予的权限码撤销即解除拒绝，算成功；既没有授予也没有规则的是 NotFound。
+/// 只有 Deny 没有授予的权限码撤销即解除拒绝，算成功；既没有授予也没有规则的是 NotFound
 /// </remarks>
-/// <param name="service">角色域服务。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="grants">角色授予。</param>
-/// <param name="rules">授予规则。</param>
-/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
+/// <param name="service">角色域服务</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="grants">角色授予</param>
+/// <param name="rules">授予规则</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
 public sealed class RevokeRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<RolePermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.revoke";
 

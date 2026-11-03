@@ -15,22 +15,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录完成：开会话并签发令牌对。
+/// 登录完成：开会话并签发令牌对
 /// </summary>
 /// <remarks>
-/// 作用域服务。密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对。
-/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写。
+/// 作用域服务。密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对
+/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写
 /// </remarks>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="securities">账号安全仓储。</param>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="issuer">令牌签发器。</param>
-/// <param name="guards">登录守卫。</param>
-/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="users">用户仓储</param>
+/// <param name="securities">账号安全仓储</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="issuer">令牌签发器</param>
+/// <param name="guards">登录守卫</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
+/// <param name="options">身份配置</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时间源</param>
 public sealed class LoginSessions(
     UserAccountService accounts,
     IRepository<SysUser, Guid> users,
@@ -44,14 +44,14 @@ public sealed class LoginSessions(
     TimeProvider clock)
 {
     /// <summary>
-    /// 为已通过全部验证的账号开会话。
+    /// 为已通过全部验证的账号开会话
     /// </summary>
-    /// <param name="user">账号。</param>
-    /// <param name="security">账号安全（本方法写回清零的计数与锁定）。</param>
-    /// <param name="tenantId">登录的上下文；平台为 <see langword="null"/>。</param>
-    /// <param name="tenantName">上下文的显示名。</param>
-    /// <param name="log">本次调用登记的登录日志。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="user">账号</param>
+    /// <param name="security">账号安全（本方法写回清零的计数与锁定）</param>
+    /// <param name="tenantId">登录的上下文；平台为 <see langword="null"/></param>
+    /// <param name="tenantName">上下文的显示名</param>
+    /// <param name="log">本次调用登记的登录日志</param>
+    /// <param name="context">调用上下文</param>
     public async Task<Result<TokenResponse>> StartAsync(SysUser user, SysUserSecurity security, string? tenantId, string? tenantName, LoginLogEntry log, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(user);

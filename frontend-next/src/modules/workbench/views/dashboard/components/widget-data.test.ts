@@ -1,5 +1,5 @@
 /**
- * 工作台小组件的取数：带上查看者的时区偏移，天数变了重取，失败只记文案；序列按键取值、字节换单位、本地日解析。
+ * 工作台小组件的取数：带上查看者的时区偏移，天数变了重取，失败只记文案；序列按键取值、字节换单位、本地日解析
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'

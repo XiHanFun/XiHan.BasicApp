@@ -29,9 +29,9 @@ interface PersistedSearchSettings {
 const STORAGE_PREFIX = 'xh:search-settings:'
 
 /**
- * 搜索字段设置状态机：固定（常用/高级）与拖拽排序，按 pageCode 持久化。
+ * 搜索字段设置状态机：固定（常用/高级）与拖拽排序，按 pageCode 持久化
  * 字段池来自 schema 中所有 searchable 或 advancedSearch 的字段；
- * 默认：searchable=true 的字段固定到常用区，仅 advancedSearch 的收入高级区。
+ * 默认：searchable=true 的字段固定到常用区，仅 advancedSearch 的收入高级区
  *
  * @param pageCode 页面唯一码（存储维度）
  * @param fields 搜索字段池（已按权限过滤）

@@ -13,12 +13,12 @@ using StorageType = XiHan.BasicApp.Files.Domain.Entities.StorageType;
 namespace XiHan.BasicApp.Files.Queries;
 
 /// <summary>
-/// 当前一侧的存储配置列表查询。
+/// 当前一侧的存储配置列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配编码、名称、桶与备注；按类型、状态多选，按是否缺省筛选；缺省按缺省在前、再按排序与创建时间（4.x 同）。
+/// 关键字匹配编码、名称、桶与备注；按类型、状态多选，按是否缺省筛选；缺省按缺省在前、再按排序与创建时间（4.x 同）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class StorageConfigQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldCode = "code";
@@ -30,11 +30,11 @@ public sealed class StorageConfigQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出。
+    /// 分页列出
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页配置。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页配置</returns>
     public async ValueTask<Result<PageResult<StorageConfigResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

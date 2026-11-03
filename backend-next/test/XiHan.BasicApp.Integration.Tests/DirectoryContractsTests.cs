@@ -20,12 +20,12 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// Contracts 里给流程用的三组目录与待办投递。
+/// Contracts 里给流程用的三组目录与待办投递
 /// </summary>
 /// <remarks>
 /// 在演示数据上核对：组织目录（部门成员、负责人、岗位任职、部门链）只读调用所在租户、只取启用的部门与岗位；
 /// 角色成员目录只取当前一侧启用的角色与有效期内的指派；可见的在用账号不含运维支持成员、停用的账号与别的租户的人；
-/// 待办投递在调用所在一侧给收件人各写一条「待办」站内信。也核对演示种子写出的人、组织与角色（照 4.x 示例企业里流程演示的那几位）。
+/// 待办投递在调用所在一侧给收件人各写一条「待办」站内信。也核对演示种子写出的人、组织与角色（照 4.x 示例企业里流程演示的那几位）
 /// </remarks>
 public sealed class DirectoryContractsTests : IDisposable
 {

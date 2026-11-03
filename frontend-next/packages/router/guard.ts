@@ -37,7 +37,7 @@ export function setupRouterGuard(router: Router) {
       }
       if (!routeName) {
         // 菜单缺路由名就装不上。侧边栏照样渲染出条目，点进去却落 404，
-        // 而整条链路一行日志都没有——配错的人无从查起。这里必须出声，与下面加载失败的日志同级。
+        // 而整条链路一行日志都没有——配错的人无从查起。这里必须出声，与下面加载失败的日志同级
         console.error('[router] 菜单缺少路由名，已跳过装载，导航到该路径会落 404', route.path)
         continue
       }
@@ -89,12 +89,12 @@ export function setupRouterGuard(router: Router) {
     }
 
     // 用户上下文随会话一起保存（auth.login / auth.refresh 的结果），不另拉用户信息；
-    // 权限与菜单（auth.permissions）每次整页加载重取一次，换上下文后的平台 / 租户标识随之更新。
+    // 权限与菜单（auth.permissions）每次整页加载重取一次，换上下文后的平台 / 租户标识随之更新
     //
     // 白名单页对已登录用户同样是终点，不能再触发装载：
     // 装载失败时会重定向到 /500，若 /500 自身又进装载分支（isRoutesLoaded 仍为假），
     // 就是失败 → /500 → 再装载 → 再失败的自我循环，最终被 vue-router 判为无限重定向而中止，
-    // 用户既看不到 500 页也停在白屏，权限接口还被连打多次。后端菜单接口整体不可用时必然命中。
+    // 用户既看不到 500 页也停在白屏，权限接口还被连打多次。后端菜单接口整体不可用时必然命中
     if (!accessStore.isRoutesLoaded && !WHITE_LIST.includes(to.path)) {
       try {
         const loaded = await authStore.loadPermissions()
@@ -110,7 +110,7 @@ export function setupRouterGuard(router: Router) {
       }
       catch (error) {
         // 会话锁定（423）：权限/菜单接口在解锁前拿不到，直接放行挂壳（遮罩盖住空白内容区），
-        // 解锁改密成功后重新走守卫即可完整加载。
+        // 解锁改密成功后重新走守卫即可完整加载
         if (isLockedState()) {
           return true
         }
@@ -125,7 +125,7 @@ export function setupRouterGuard(router: Router) {
         }
 
         // 不能静默吞掉：这里失败等于整个会话拿不到任何动态路由，
-        // 之后每次导航都匹配不到而落 404，且无从查起。
+        // 之后每次导航都匹配不到而落 404，且无从查起
         // 失败时权限没写进 store，isRoutesLoaded 仍为假，下一次导航会重试，一次偶发失败不会把应用锁死在 404
         console.error('[router] 动态路由加载失败', error)
         return { path: SERVER_ERROR_PATH, replace: true }
@@ -135,7 +135,7 @@ export function setupRouterGuard(router: Router) {
       if (takeIdentitySwitchedMarker()) {
         markPreferenceIdentitySwitched()
       }
-      // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁。
+      // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁
       // 单独 try：偏好同步是锦上添花，失败不该连累已经建好的路由表
       try {
         await hydratePreferencesFromBackend()
@@ -147,9 +147,9 @@ export function setupRouterGuard(router: Router) {
       // 1) { path: to.fullPath }：vue-router 不解析 path 里的查询串，含 ?query#hash 的 fullPath
       //    塞进 path 会把两者静默丢掉。这条分支只在「本次会话首次装载动态路由」时命中，
       //    也就是刷新页面/直接打开深链——正是查询参数最要紧的场景：带筛选条件的分享链接、
-      //    OAuth 回调的 ?code=、登录后按 redirect 回跳的带参地址。
+      //    OAuth 回调的 ?code=、登录后按 redirect 回跳的带参地址
       // 2) { ...to }：会把 name 与 matched 一并带上，而 vue-router 优先按 name 解析；
-      //    此刻动态路由刚装好、to 仍是装载前的匹配结果（通常是 404 兜底），重进会直接落回 404。
+      //    此刻动态路由刚装好、to 仍是装载前的匹配结果（通常是 404 兜底），重进会直接落回 404
       return { path: to.path, query: to.query, hash: to.hash, replace: true }
     }
 
@@ -189,7 +189,7 @@ export function setupRouterGuard(router: Router) {
 
     // 标签标题存的是国际化键而不是当次导航解析出的文本：
     // 标签栏与标签总览都按「是键就翻译、不是键就原样显示」渲染，
-    // 在这里提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随。
+    // 在这里提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随
     const routeTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
     const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
     tabbarStore.ensureTab({

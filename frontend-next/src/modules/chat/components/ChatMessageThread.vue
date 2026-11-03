@@ -51,7 +51,7 @@ const chatStore = useChatStore()
 const { items: galleryItems, open: galleryOpen, index: galleryIndex } = provideChatImageGallery(() => chatStore.activeMessages)
 const userStore = useUserStore()
 
-// 消息流的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置。
+// 消息流的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置
 // 每条消息是 list 的直接子节点、role=article，根上带方向键 / PageUp / PageDown 的巡航
 const { api: feed, rootRef, viewportRef, contentRef } = useMessageFeed({
   // 距底 80px 内算在底，沿用旧判定的阈值
@@ -810,7 +810,7 @@ onBeforeUnmount(() => {
         <!-- 转发目标选择 -->
         <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
 
-        <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片。
+        <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片
              计数、翻页、工具条、关闭各自钉在浮层的一条边上，都是 content 的直接子件；只有一张时不出计数与翻页 -->
         <XhImageViewerRoot v-model:open="galleryOpen" v-model:index="galleryIndex" :collection="galleryItems">
           <XhImageViewerContent>

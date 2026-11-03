@@ -6,10 +6,10 @@ using Microsoft.Data.Sqlite;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 每个测试一个临时 SQLite 文件。
+/// 每个测试一个临时 SQLite 文件
 /// </summary>
 /// <remarks>
-/// 释放时清空连接池再删文件（Windows 上池化连接持有文件句柄；宿主停止后后台的发件箱 / 审计批次可能还在收尾，删文件带短暂重试）。
+/// 释放时清空连接池再删文件（Windows 上池化连接持有文件句柄；宿主停止后后台的发件箱 / 审计批次可能还在收尾，删文件带短暂重试）
 /// </remarks>
 public sealed class SqliteDatabase : IDisposable
 {
@@ -18,7 +18,7 @@ public sealed class SqliteDatabase : IDisposable
     public string ConnectionString => $"Data Source={Path}";
 
     /// <summary>
-    /// 工作流租约表所在库文件的后缀（见 <see cref="BasicAppTestServer"/>）。
+    /// 工作流租约表所在库文件的后缀（见 <see cref="BasicAppTestServer"/>）
     /// </summary>
     public const string LeasesSuffix = ".leases";
 

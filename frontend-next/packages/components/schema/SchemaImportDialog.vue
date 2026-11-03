@@ -114,7 +114,7 @@ function reportHistory(result: ImportSummary): void {
 }
 
 /**
- * 已选文件受控为空：组件只当选择器用，每次选中的文件交给导入器解析后不留在组件里。
+ * 已选文件受控为空：组件只当选择器用，每次选中的文件交给导入器解析后不留在组件里
  * 否则选过一份之后 maxFiles=1 已满，重选的文件会被当成「数量超限」拒收
  */
 const NO_FILES: File[] = []

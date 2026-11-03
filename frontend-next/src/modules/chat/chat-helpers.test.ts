@@ -1,9 +1,9 @@
 /**
- * components/chat-helpers.ts 纯函数行为。
+ * components/chat-helpers.ts 纯函数行为
  *
- * 职责边界：只测消息摘要标签、会话/消息时间格式化、文件大小格式化与报错文案这五个导出函数的全分支与边界。
+ * 职责边界：只测消息摘要标签、会话/消息时间格式化、文件大小格式化与报错文案这五个导出函数的全分支与边界
  * 时间相关用例一律 vi.setSystemTime 固定“现在”。应用时区没设时跟随浏览器，这时用不带时区标记的 ISO 串作为输入
- * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入。
+ * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '~/request'

@@ -14,11 +14,11 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证自助注册与找回密码。
+/// 验证自助注册与找回密码
 /// </summary>
 /// <remarks>
 /// 注册缺省关、配置打开后注册平台账号（立即可登录、不带角色，配了邮件发欢迎邮件），登录名与邮箱不能重复；
-/// 找回密码按邮箱或已验证的手机号发码，账号不存在也回答已发送而不发；码对即设新密码、吊销全部会话，码用过作废，密码不合格不消费码。
+/// 找回密码按邮箱或已验证的手机号发码，账号不存在也回答已发送而不发；码对即设新密码、吊销全部会话，码用过作废，密码不合格不消费码
 /// </remarks>
 public sealed class SelfServiceAccountTests : IDisposable
 {

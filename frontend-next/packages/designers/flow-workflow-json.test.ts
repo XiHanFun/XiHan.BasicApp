@@ -1,16 +1,16 @@
 /**
- * WorkflowJson ↔ 预设 4.x 引擎定义映射层（flow-workflow-json.ts）的单元测试。
+ * WorkflowJson ↔ 预设 4.x 引擎定义映射层（flow-workflow-json.ts）的单元测试
  *
  * 锁定：两个方向的字段换算（名字与显示名、节点超时与重试的 TimeSpan、设计器画面数据的对象与 JSON 字符串、
  * 延时 / 遍历 / 子流程里预设沿用 4.x 叫法的属性键）、
- * 缺 id 补合法 id、去掉 4.x 才有的字段、往返稳定；经预设打开时坐标照存的还原，没有画面数据的定义按连线自动排布。
+ * 缺 id 补合法 id、去掉 4.x 才有的字段、往返稳定；经预设打开时坐标照存的还原，没有画面数据的定义按连线自动排布
  */
 import type { WorkflowJsonDefinition } from './flow-workflow-json'
 import { fromWorkflowDefinition, toWorkflowDefinition } from '@xihan-flow/core/presets/xihan-workflow'
 import { describe, expect, it } from 'vitest'
 import { fromWorkflowJson, secondsToTimeSpan, timeSpanToSeconds, toWorkflowJson } from './flow-workflow-json'
 
-/** 后端 get 返回的一份定义：框架序列化的写法（camelCase、不写 null、TimeSpan 文本），带设计器画面数据。 */
+/** 后端 get 返回的一份定义：框架序列化的写法（camelCase、不写 null、TimeSpan 文本），带设计器画面数据 */
 const stored: WorkflowJsonDefinition = {
   id: '0193f0aa00007000800000000000a001',
   name: 'leave',

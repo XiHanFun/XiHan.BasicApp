@@ -14,73 +14,73 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Infrastructure;
 
 /// <summary>
-/// 日志包给工作台的小组件。
+/// 日志包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 只看当前一侧的日志（与日志页同一口径），按查看者的本地日统计。
-/// 按时间分布的统计先在库里按 UTC 小时分组（各数据库都支持的取年、月、日、时），再换到查看者的本地日与星期。
+/// 只看当前一侧的日志（与日志页同一口径），按查看者的本地日统计
+/// 按时间分布的统计先在库里按 UTC 小时分组（各数据库都支持的取年、月、日、时），再换到查看者的本地日与星期
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
+/// <param name="clock">时钟</param>
 public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider clock) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 今日登录（成功的登录次数）。
+    /// 今日登录（成功的登录次数）
     /// </summary>
     public const string LoginsToday = "auditing.logins-today";
 
     /// <summary>
-    /// 今日访问（请求次数）。
+    /// 今日访问（请求次数）
     /// </summary>
     public const string RequestsToday = "auditing.requests-today";
 
     /// <summary>
-    /// 今日异常。
+    /// 今日异常
     /// </summary>
     public const string ExceptionsToday = "auditing.exceptions-today";
 
     /// <summary>
-    /// 登录趋势（逐日成功与失败）。
+    /// 登录趋势（逐日成功与失败）
     /// </summary>
     public const string LoginTrend = "auditing.login-trend";
 
     /// <summary>
-    /// 登录失败原因（按错误码）。
+    /// 登录失败原因（按错误码）
     /// </summary>
     public const string LoginFailures = "auditing.login-failures";
 
     /// <summary>
-    /// 访问概况（逐日请求、失败与平均耗时）。
+    /// 访问概况（逐日请求、失败与平均耗时）
     /// </summary>
     public const string RequestKpi = "auditing.request-kpi";
 
     /// <summary>
-    /// 访问时段（星期与小时的热力）。
+    /// 访问时段（星期与小时的热力）
     /// </summary>
     public const string RequestHeatmap = "auditing.request-heatmap";
 
     /// <summary>
-    /// 访问最多的操作（次数、失败与平均耗时）。
+    /// 访问最多的操作（次数、失败与平均耗时）
     /// </summary>
     public const string TopOperations = "auditing.top-operations";
 
     /// <summary>
-    /// 异常类型（按异常类名）。
+    /// 异常类型（按异常类名）
     /// </summary>
     public const string ExceptionTypes = "auditing.exception-types";
 
     /// <summary>
-    /// 构成类只列前几项，其余并成一项。
+    /// 构成类只列前几项，其余并成一项
     /// </summary>
     private const int SliceLimit = 6;
 
     /// <summary>
-    /// 访问最多的操作列前几个。
+    /// 访问最多的操作列前几个
     /// </summary>
     private const int OperationLimit = 10;
 
     /// <summary>
-    /// 并在一起的其余项的键。
+    /// 并在一起的其余项的键
     /// </summary>
     private const string Others = "others";
 
@@ -121,7 +121,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 今天的条数，带昨天的作对比。
+    /// 今天的条数，带昨天的作对比
     /// </summary>
     private static async Task<WorkbenchWidgetData> TodayAsync<TEntity>(ISugarQueryable<TEntity> scoped, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
         where TEntity : AuditLogRecord, new()
@@ -135,7 +135,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 逐日的成功与失败登录。
+    /// 逐日的成功与失败登录
     /// </summary>
     private async Task<WorkbenchWidgetData> LoginTrendAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -171,10 +171,10 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 失败登录按错误码的构成。
+    /// 失败登录按错误码的构成
     /// </summary>
     /// <remarks>
-    /// 显示名取该错误码的一条失败原因（写日志时按当时的区域）。
+    /// 显示名取该错误码的一条失败原因（写日志时按当时的区域）
     /// </remarks>
     private async Task<WorkbenchWidgetData> LoginFailuresAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -190,7 +190,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 逐日的请求、失败与平均耗时。
+    /// 逐日的请求、失败与平均耗时
     /// </summary>
     private async Task<WorkbenchWidgetData> RequestKpiAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -213,10 +213,10 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 请求按本地星期与小时的分布。
+    /// 请求按本地星期与小时的分布
     /// </summary>
     /// <remarks>
-    /// 类目是 0 到 23 时，序列是星期一（<c>1</c>）到星期日（<c>7</c>）。
+    /// 类目是 0 到 23 时，序列是星期一（<c>1</c>）到星期日（<c>7</c>）
     /// </remarks>
     private async Task<WorkbenchWidgetData> RequestHeatmapAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -236,10 +236,10 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 访问最多的操作。
+    /// 访问最多的操作
     /// </summary>
     /// <remarks>
-    /// 类目是操作 ID（按次数从多到少），序列是次数、失败次数与平均耗时（毫秒）。
+    /// 类目是操作 ID（按次数从多到少），序列是次数、失败次数与平均耗时（毫秒）
     /// </remarks>
     private async Task<WorkbenchWidgetData> TopOperationsAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -272,7 +272,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 异常按类名的构成。
+    /// 异常按类名的构成
     /// </summary>
     private async Task<WorkbenchWidgetData> ExceptionTypesAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -288,7 +288,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 统计区间内请求按 UTC 小时的次数、失败与总耗时。
+    /// 统计区间内请求按 UTC 小时的次数、失败与总耗时
     /// </summary>
     private async Task<List<HourBucket>> RequestHoursAsync(InvocationContext context, WorkbenchWidgetQuery query, DateTimeOffset now, CancellationToken cancellationToken)
     {
@@ -312,7 +312,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 当前一侧的日志：租户主体是本租户，平台主体是 <c>platform</c>。
+    /// 当前一侧的日志：租户主体是本租户，平台主体是 <c>platform</c>
     /// </summary>
     private ISugarQueryable<TEntity> Scope<TEntity>(InvocationContext context)
         where TEntity : AuditLogRecord, new()
@@ -322,13 +322,13 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 统计区间（UTC）：区间第一天的本地零点到此刻。
+    /// 统计区间（UTC）：区间第一天的本地零点到此刻
     /// </summary>
     private static (DateTime From, DateTime To) Range(WorkbenchWidgetQuery query, DateTimeOffset now)
         => (query.StartOfRange(now).UtcDateTime, now.UtcDateTime);
 
     /// <summary>
-    /// 统计区间里的本地日期（<c>yyyy-MM-dd</c>），从早到晚。
+    /// 统计区间里的本地日期（<c>yyyy-MM-dd</c>），从早到晚
     /// </summary>
     private static List<string> Days(WorkbenchWidgetQuery query, DateTimeOffset now)
     {
@@ -337,10 +337,10 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 一个 UTC 小时落在第几个本地日。
+    /// 一个 UTC 小时落在第几个本地日
     /// </summary>
     /// <remarks>
-    /// 落在区间外为空。
+    /// 落在区间外为空
     /// </remarks>
     private static int? DayIndex(HourBucket bucket, WorkbenchWidgetQuery query, List<string> days)
     {
@@ -349,7 +349,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 构成的前几项，其余并成 <c>others</c>。
+    /// 构成的前几项，其余并成 <c>others</c>
     /// </summary>
     private static List<WorkbenchSlice> Top(List<KeyCount> rows)
     {
@@ -365,7 +365,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 一个 UTC 小时的统计。
+    /// 一个 UTC 小时的统计
     /// </summary>
     private sealed class HourBucket
     {
@@ -387,7 +387,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 一个键的条数。
+    /// 一个键的条数
     /// </summary>
     private sealed class KeyCount
     {
@@ -399,7 +399,7 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
     }
 
     /// <summary>
-    /// 一个操作的统计。
+    /// 一个操作的统计
     /// </summary>
     private sealed class OperationBucket
     {

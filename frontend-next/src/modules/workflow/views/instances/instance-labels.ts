@@ -1,8 +1,8 @@
 /**
- * 流程实例页的状态、结果与运行轨迹着色规则（纯函数）。
+ * 流程实例页的状态、结果与运行轨迹着色规则（纯函数）
  *
  * 4.x 的结果色调与标准结果在审批中心的 approval-labels 里，实例页借用；6.0 先搬的实例页，放在这里、文案在 workflow.instances 下，
- * 审批中心（approvals/approval-labels）反过来借用这里的色调、标准结果与状态 / 结果文案键。
+ * 审批中心（approvals/approval-labels）反过来借用这里的色调、标准结果与状态 / 结果文案键
  */
 import type { Tone } from '@xihan-ui/core'
 import type { WorkflowInstanceStatus, WorkflowNodeInstanceStatus } from '~/contracts'
@@ -71,9 +71,9 @@ const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, FlowNodeStatus> = {
 }
 
 /**
- * 定义节点 id → 运行态：取该节点最近一次执行的状态（执行历史按开始时间排），还在等待的补 waiting。
- * @param nodes 节点执行历史。
- * @param waits 待恢复的等待。
+ * 定义节点 id → 运行态：取该节点最近一次执行的状态（执行历史按开始时间排），还在等待的补 waiting
+ * @param nodes 节点执行历史
+ * @param waits 待恢复的等待
  */
 export function graphStatuses(
   nodes: readonly { nodeId: string, status: WorkflowNodeInstanceStatus }[],
@@ -90,8 +90,8 @@ export function graphStatuses(
 }
 
 /**
- * 定义文档（WorkflowJson）里节点 id → 显示名：执行历史只带节点 id，名字从实例所用的定义里取；文档读不出来时为空表。
- * @param document 实例所用的定义文档。
+ * 定义文档（WorkflowJson）里节点 id → 显示名：执行历史只带节点 id，名字从实例所用的定义里取；文档读不出来时为空表
+ * @param document 实例所用的定义文档
  */
 export function nodeTitles(document: string | null | undefined): Record<string, string> {
   if (!document)

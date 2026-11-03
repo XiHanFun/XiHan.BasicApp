@@ -12,7 +12,7 @@ import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useAuthStore, useFavoritesStore, useLayoutBridgeStore } from '~/stores'
 
 /**
- * 命令面板：布局层常驻一份，由 layoutBridgeStore.requestOpenGlobalSearch 打开。
+ * 命令面板：布局层常驻一份，由 layoutBridgeStore.requestOpenGlobalSearch 打开
  * 顶栏入口（HeaderSearchTrigger）、悬浮组入口与快捷键都只发请求，入口放哪、藏不藏都不影响面板可用
  */
 defineOptions({ name: 'AppGlobalSearch' })

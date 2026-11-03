@@ -11,10 +11,10 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证版本台账与升级记录的查询。
+/// 验证版本台账与升级记录的查询
 /// </summary>
 /// <remarks>
-/// 台账与执行记录由升级执行器写（这里直接写进测试库）；列表、筛选、缺省排序与按 ID 取，找不到即 404。
+/// 台账与执行记录由升级执行器写（这里直接写进测试库）；列表、筛选、缺省排序与按 ID 取，找不到即 404
 /// </remarks>
 public sealed class MaintenanceSchemaRecordsTests : IDisposable
 {

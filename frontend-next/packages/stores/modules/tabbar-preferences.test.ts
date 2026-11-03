@@ -1,7 +1,7 @@
 /**
- * 标签栏偏好组合式（tabbar-preferences）单元测试。
- * 职责边界：偏好抽屉里标签栏分区的 v-model 视图，八项可写 computed 直连 appStore setter。
- * 覆盖字段集合、读写双向、以及「关掉持久化开关会真正影响标签栏落地行为」这条联动。
+ * 标签栏偏好组合式（tabbar-preferences）单元测试
+ * 职责边界：偏好抽屉里标签栏分区的 v-model 视图，八项可写 computed 直连 appStore setter
+ * 覆盖字段集合、读写双向、以及「关掉持久化开关会真正影响标签栏落地行为」这条联动
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

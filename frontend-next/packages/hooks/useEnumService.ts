@@ -26,15 +26,15 @@ export interface EnumSelectOption {
 }
 
 // 全量枚举元数据缓存（键=枚举类型名）。后端 AllEnums 一次返回全量，且 app-context 里
-// getByName/getBatch 实际都打 AllEnums——故统一「整库取一次、按语言缓存」，杜绝按枚举各取。
+// getByName/getBatch 实际都打 AllEnums——故统一「整库取一次、按语言缓存」，杜绝按枚举各取
 const enumState = ref<Record<string, EnumDefinition>>({})
-// enumState 当前持有的语言；切语言后由全局监听整库重取一次。
+// enumState 当前持有的语言；切语言后由全局监听整库重取一次
 const loadedLang = ref<string | null>(null)
 const loading = ref(false)
-// 同语言并发去重：多个消费者/首屏多个下拉同时 ensure 时只发一次请求。
+// 同语言并发去重：多个消费者/首屏多个下拉同时 ensure 时只发一次请求
 let inflight: Promise<Record<string, EnumDefinition>> | null = null
 let inflightLang: string | null = null
-// 全局语言监听只装一次（应用级，脱离组件作用域）。
+// 全局语言监听只装一次（应用级，脱离组件作用域）
 let localeWatcherInstalled = false
 
 export function useEnumService() {
@@ -48,14 +48,14 @@ export function useEnumService() {
   }
 
   /**
-   * 整库取一次：getBatch({ enumNames: [] }) 在 app-context 返回全量映射。
-   * 按语言缓存 + 同语言并发去重 → 一个页面无论多少枚举下拉，只触发一次 AllEnums 请求。
+   * 整库取一次：getBatch({ enumNames: [] }) 在 app-context 返回全量映射
+   * 按语言缓存 + 同语言并发去重 → 一个页面无论多少枚举下拉，只触发一次 AllEnums 请求
    */
   async function ensureAll(language?: string): Promise<Record<string, EnumDefinition>> {
     const lang = resolveLanguage(language)
-    // 命中条件只看 loadedLang——它仅在请求成功回调里写入，失败时保持原值自然会重取。
+    // 命中条件只看 loadedLang——它仅在请求成功回调里写入，失败时保持原值自然会重取
     // 不能再叠加「集合非空」：后端合法地返回 {}（枚举模块未部署 / 全部隐藏）时缓存永不命中，
-    // 一屏 N 个下拉就会打 N 次全量请求。
+    // 一屏 N 个下拉就会打 N 次全量请求
     if (loadedLang.value === lang) {
       return enumState.value
     }
@@ -80,13 +80,13 @@ export function useEnumService() {
   }
 
   // 全局语言监听（装一次）：切语言后整库重取一次，避免每个 useEnumOptions/useSchemaDictionaries
-  // 各自监听各自重取造成 N 次请求。脱离组件作用域以存活整个应用生命周期。
+  // 各自监听各自重取造成 N 次请求。脱离组件作用域以存活整个应用生命周期
   if (!localeWatcherInstalled) {
     localeWatcherInstalled = true
     const scope = effectScope(true)
     scope.run(() => {
       watch(() => appStore.locale, (lang) => {
-        // 仅在已加载过枚举时重取，避免无谓请求。
+        // 仅在已加载过枚举时重取，避免无谓请求
         if (loadedLang.value !== null) {
           void ensureAll(lang)
         }

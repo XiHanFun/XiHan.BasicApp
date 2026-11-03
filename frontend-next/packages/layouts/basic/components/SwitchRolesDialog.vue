@@ -7,7 +7,7 @@ import { useAuthStore } from '~/stores'
 
 /**
  * 切换角色：本会话此刻持有的角色里选要激活的（令牌只带激活的角色）。同一动态职责分离组的角色不能同时激活，由服务端判定；
- * 保存后换签令牌、整页重建（与切换租户同一条路）。
+ * 保存后换签令牌、整页重建（与切换租户同一条路）
  */
 defineOptions({ name: 'SwitchRolesDialog' })
 

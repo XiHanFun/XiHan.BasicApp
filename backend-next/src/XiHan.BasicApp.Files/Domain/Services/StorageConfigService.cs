@@ -16,42 +16,42 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 存储配置的写入内容（编码只在新建时生效）。
+/// 存储配置的写入内容（编码只在新建时生效）
 /// </summary>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Type">存储类型。</param>
-/// <param name="Endpoint">服务地址。</param>
-/// <param name="Region">区域。</param>
-/// <param name="Bucket">桶名。</param>
-/// <param name="AccessKeyId">访问密钥 ID。</param>
-/// <param name="SecretAccessKey">访问密钥明文；修改时为空即保留原值。</param>
-/// <param name="Order">排序。</param>
-/// <param name="Remark">备注。</param>
-/// <param name="ConditionalWrites">是否条件写入（S3 兼容存储；本地存储恒为开）。</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Type">存储类型</param>
+/// <param name="Endpoint">服务地址</param>
+/// <param name="Region">区域</param>
+/// <param name="Bucket">桶名</param>
+/// <param name="AccessKeyId">访问密钥 ID</param>
+/// <param name="SecretAccessKey">访问密钥明文；修改时为空即保留原值</param>
+/// <param name="Order">排序</param>
+/// <param name="Remark">备注</param>
+/// <param name="ConditionalWrites">是否条件写入（S3 兼容存储；本地存储恒为开）</param>
 public sealed record StorageConfigDefinition(string Code, string Name, StorageType Type, string? Endpoint, string? Region, string Bucket, string? AccessKeyId, string? SecretAccessKey, int Order, string? Remark, bool ConditionalWrites = true);
 
 /// <summary>
-/// 存储配置的维护与上传目标的选取。
+/// 存储配置的维护与上传目标的选取
 /// </summary>
 /// <remarks>
-/// 4.x 同。编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除。
-/// 上传时取当前一侧的缺省配置，租户没有就取平台的缺省配置。
+/// 4.x 同。编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除
+/// 上传时取当前一侧的缺省配置，租户没有就取平台的缺省配置
 /// </remarks>
-/// <param name="configs">存储配置仓储。</param>
-/// <param name="unitOfWork">工作单元（查副本引用）。</param>
-/// <param name="secrets">密钥保护。</param>
-/// <param name="ids">ID 生成器。</param>
-/// <param name="instances">存储配置对应的对象存储实例（删配置时移除）。</param>
+/// <param name="configs">存储配置仓储</param>
+/// <param name="unitOfWork">工作单元（查副本引用）</param>
+/// <param name="secrets">密钥保护</param>
+/// <param name="ids">ID 生成器</param>
+/// <param name="instances">存储配置对应的对象存储实例（删配置时移除）</param>
 public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> configs, SqlSugarUnitOfWork unitOfWork, ISecretProtector secrets, IIdGenerator<Guid> ids, StorageInstances instances)
 {
     /// <summary>
-    /// 按 ID 取这一侧的配置。
+    /// 按 ID 取这一侧的配置
     /// </summary>
-    /// <param name="id">配置 ID。</param>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>找到的配置。</returns>
+    /// <param name="id">配置 ID</param>
+    /// <param name="owner">所属侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>找到的配置</returns>
     public async Task<Maybe<SysStorageConfig>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
         var found = await configs.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -59,15 +59,15 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 按 ID 取这一侧能用的配置：本侧的，租户没有就取平台的。
+    /// 按 ID 取这一侧能用的配置：本侧的，租户没有就取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户没有自己的缺省配置时副本落在平台的配置上，照样能读写；别的租户的配置取不到。
+    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户没有自己的缺省配置时副本落在平台的配置上，照样能读写；别的租户的配置取不到
     /// </remarks>
-    /// <param name="id">配置 ID。</param>
-    /// <param name="side">文件所在的侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>找到的配置。</returns>
+    /// <param name="id">配置 ID</param>
+    /// <param name="side">文件所在的侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>找到的配置</returns>
     public async Task<Maybe<SysStorageConfig>> FindForSideAsync(Guid id, string side, CancellationToken cancellationToken)
     {
         var found = await configs.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -77,12 +77,12 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 按编码取这一侧的配置。
+    /// 按编码取这一侧的配置
     /// </summary>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>找到的配置。</returns>
+    /// <param name="owner">所属侧</param>
+    /// <param name="code">编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>找到的配置</returns>
     public async Task<Maybe<SysStorageConfig>> FindByCodeAsync(string owner, string code, CancellationToken cancellationToken)
     {
         var rows = await configs.ListAsync(EntityQuery.All<SysStorageConfig>().Where(new Specification<SysStorageConfig>(c => c.OwnerTenantId == owner && c.Code == code)).Page(0, 1), cancellationToken).ConfigureAwait(false);
@@ -90,11 +90,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 一批配置（列副本时补配置的编码与名称）。
+    /// 一批配置（列副本时补配置的编码与名称）
     /// </summary>
-    /// <param name="ids">配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>按 ID 索引的配置。</returns>
+    /// <param name="ids">配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>按 ID 索引的配置</returns>
     public async Task<IReadOnlyDictionary<Guid, SysStorageConfig>> ManyAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken)
     {
         if (ids.Count == 0)
@@ -108,11 +108,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 上传落到哪条配置：这一侧启用的缺省配置，租户没有就取平台的。
+    /// 上传落到哪条配置：这一侧启用的缺省配置，租户没有就取平台的
     /// </summary>
-    /// <param name="side">上传方所在的侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>配置；都没有时失败。</returns>
+    /// <param name="side">上传方所在的侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>配置；都没有时失败</returns>
     public async Task<Result<SysStorageConfig>> UploadTargetAsync(string side, CancellationToken cancellationToken)
     {
         if ((await DefaultOfAsync(side, cancellationToken).ConfigureAwait(false)).TryGetValue(out var own))
@@ -129,14 +129,14 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 新建。
+    /// 新建
     /// </summary>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="definition">写入内容。</param>
-    /// <param name="isDefault">是否设为缺省。</param>
-    /// <param name="status">状态。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新建的配置。</returns>
+    /// <param name="owner">所属侧</param>
+    /// <param name="definition">写入内容</param>
+    /// <param name="isDefault">是否设为缺省</param>
+    /// <param name="status">状态</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新建的配置</returns>
     public async Task<Result<SysStorageConfig>> CreateAsync(string owner, StorageConfigDefinition definition, bool isDefault, StorageConfigStatus status, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -182,15 +182,15 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 修改存储配置。
+    /// 修改存储配置
     /// </summary>
     /// <remarks>
-    /// 编码不变；访问密钥为空即保留原值。
+    /// 编码不变；访问密钥为空即保留原值
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <param name="definition">写入内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="definition">写入内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateAsync(SysStorageConfig config, StorageConfigDefinition definition, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -200,15 +200,15 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 启用或停用存储配置。
+    /// 启用或停用存储配置
     /// </summary>
     /// <remarks>
-    /// 缺省配置不能停用。
+    /// 缺省配置不能停用
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <param name="status">状态。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="status">状态</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetStatusAsync(SysStorageConfig config, StorageConfigStatus status, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -222,11 +222,11 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 设为这一侧的缺省配置（须启用），同侧其余配置不再是缺省。
+    /// 设为这一侧的缺省配置（须启用），同侧其余配置不再是缺省
     /// </summary>
-    /// <param name="config">配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetDefaultAsync(SysStorageConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -249,14 +249,14 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     }
 
     /// <summary>
-    /// 删除存储配置。
+    /// 删除存储配置
     /// </summary>
     /// <remarks>
-    /// 缺省配置与还有副本的配置不能删除。
+    /// 缺省配置与还有副本的配置不能删除
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> DeleteAsync(SysStorageConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);

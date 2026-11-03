@@ -12,13 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Queries;
 
 /// <summary>
-/// 数据源的列表查询。
+/// 数据源的列表查询
 /// </summary>
 /// <remarks>
 /// 关键字匹配名称、描述、主机与库名（照 4.x 页面的搜索提示；4.x 后端只匹配名称与描述）；筛选：数据库类型、状态（<c>eq</c> / <c>in</c>，4.x 前端是多选）、是否缺省（<c>eq</c>）、名称（<c>contains</c>）；
-/// 排序：名称、数据库类型、主机、库名、连接结果、状态、排序号、创建时间，没给即排序号再名称升序（照 4.x）。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>。
+/// 排序：名称、数据库类型、主机、库名、连接结果、状态、排序号、创建时间，没给即排序号再名称升序（照 4.x）。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class CodegenDatasourceQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldSourceName = "sourceName";
@@ -32,10 +32,10 @@ public sealed class CodegenDatasourceQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出数据源。
+    /// 分页列出数据源
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
     public async ValueTask<Result<PageResult<CodegenDatasourceResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -90,9 +90,9 @@ public sealed class CodegenDatasourceQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 全部数据源，按排序号与名称。
+    /// 全部数据源，按排序号与名称
     /// </summary>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="context">调用上下文</param>
     public async Task<IReadOnlyList<CodegenDatasourceResponse>> OptionsAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -105,9 +105,9 @@ public sealed class CodegenDatasourceQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 逗号分隔的枚举值。
+    /// 逗号分隔的枚举值
     /// </summary>
-    /// <returns>都认得为列表，否则为 <see langword="null"/>。</returns>
+    /// <returns>都认得为列表，否则为 <see langword="null"/></returns>
     internal static List<TEnum>? EnumsOf<TEnum>(string value)
         where TEnum : struct, Enum
     {

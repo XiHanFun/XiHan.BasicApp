@@ -15,19 +15,19 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
 /// <summary>
-/// 列出一个用户在当前这一侧的直接授权。
+/// 列出一个用户在当前这一侧的直接授权
 /// </summary>
 /// <remarks>
-/// <c>GET /api/user-grants?userId=</c>。授予来自框架授予存储（含别的包直接写入的，如超管的 <c>*</c>），拒绝与有效期来自授予规则。
+/// <c>GET /api/user-grants?userId=</c>。授予来自框架授予存储（含别的包直接写入的，如超管的 <c>*</c>），拒绝与有效期来自授予规则
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="grants">用户直接授予。</param>
-/// <param name="rules">授予规则。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="grants">用户直接授予</param>
+/// <param name="rules">授予规则</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsRead)]
 public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserGrantsRequest, UserGrantsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "user-grants.list";
 
@@ -57,17 +57,17 @@ public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastruct
 }
 
 /// <summary>
-/// 给用户直接授予。
+/// 给用户直接授予
 /// </summary>
 /// <remarks>
-/// <c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）。
+/// <c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）
 /// </remarks>
-/// <param name="grants">直授。</param>
+/// <param name="grants">直授</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "user-grants.grant";
 
@@ -77,21 +77,21 @@ public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissi
 }
 
 /// <summary>
-/// 给用户直接拒绝。
+/// 给用户直接拒绝
 /// </summary>
 /// <remarks>
-/// <c>POST /api/user-grants:deny</c>。用户上的 Deny 压过一切授予（角色、直接授予）；同码的直接授予撤掉，换成 Deny 规则（可带有效期与原因）。
+/// <c>POST /api/user-grants:deny</c>。用户上的 Deny 压过一切授予（角色、直接授予）；同码的直接授予撤掉，换成 Deny 规则（可带有效期与原因）
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="grants">用户直接授予。</param>
-/// <param name="rules">授予规则。</param>
-/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="grants">用户直接授予</param>
+/// <param name="rules">授予规则</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "user-grants.deny";
 
@@ -117,21 +117,21 @@ public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog
 }
 
 /// <summary>
-/// 撤销用户的直接授予或拒绝。
+/// 撤销用户的直接授予或拒绝
 /// </summary>
 /// <remarks>
-/// <c>POST /api/user-grants:revoke</c>。连同这些权限码上的规则一起删；只有 Deny 的撤销即解除拒绝，算成功；两者都没有的是 NotFound。
+/// <c>POST /api/user-grants:revoke</c>。连同这些权限码上的规则一起删；只有 Deny 的撤销即解除拒绝，算成功；两者都没有的是 NotFound
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="grants">用户直接授予。</param>
-/// <param name="rules">授予规则。</param>
-/// <param name="conditions">权限条件（绑定没了连同删除）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="grants">用户直接授予</param>
+/// <param name="rules">授予规则</param>
+/// <param name="conditions">权限条件（绑定没了连同删除）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class RevokeUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "user-grants.revoke";
 

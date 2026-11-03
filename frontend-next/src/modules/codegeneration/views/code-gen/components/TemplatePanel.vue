@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 模板页签（照 4.x template-panel）。
-  接口取自后端契约（codegen-templates.*）：内置模板随程序版本走，不能编辑、不能删除、可以启停；自有模板可增删改；正文在大编辑器里写，可先检查语法。
-  与 4.x 不同：「是否启用」与状态合成一个启停（编辑时一起提交）；引擎只有 Scriban（去掉选了即报错的 T4）。
+  代码生成 / 模板页签（照 4.x template-panel）
+  接口取自后端契约（codegen-templates.*）：内置模板随程序版本走，不能编辑、不能删除、可以启停；自有模板可增删改；正文在大编辑器里写，可先检查语法
+  与 4.x 不同：「是否启用」与状态合成一个启停（编辑时一起提交）；引擎只有 Scriban（去掉选了即报错的 T4）
 -->
 <script setup lang="ts">
 import type { TemplateEngine, TemplateRow, WriteMode } from './use-templates'

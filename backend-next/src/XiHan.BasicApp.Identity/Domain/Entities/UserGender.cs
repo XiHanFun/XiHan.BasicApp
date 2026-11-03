@@ -4,25 +4,25 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 性别。
+/// 性别
 /// </summary>
 /// <remarks>
-/// 个人资料，4.x 同。JSON 上是字符串枚举。
+/// 个人资料，4.x 同。JSON 上是字符串枚举
 /// </remarks>
 public enum UserGender
 {
     /// <summary>
-    /// 未设置。
+    /// 未设置
     /// </summary>
     Unknown = 0,
 
     /// <summary>
-    /// 男。
+    /// 男
     /// </summary>
     Male = 1,
 
     /// <summary>
-    /// 女。
+    /// 女
     /// </summary>
     Female = 2,
 }

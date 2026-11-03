@@ -26,13 +26,13 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Realtime;
 
 /// <summary>
-/// 实时能力包（Tier 2）。
+/// 实时能力包（Tier 2）
 /// </summary>
 /// <remarks>
 /// SignalR Hub 的登记与映射（通知 Hub <see cref="RealtimeHubs.Notification"/> 与各包经 <see cref="RealtimeHubServiceCollectionExtensions.AddRealtimeHub{THub}"/> 登记的 Hub，由宿主经 <see cref="RealtimeEndpoints.MapRealtimeHubs"/> 映射）、
-/// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起。
+/// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起
 /// 宿主配了 Redis 时以 <c>scaleOut</c> 装配（方案 N3 第二批，用户定「配置了就跨实例」）：SignalR 接 Redis 背板（连接配置取宿主的 Redis 缓存配置，频道带同一键前缀），
-/// 在线状态的连接登记存进共享缓存、按实例心跳续期，断开连接经消息代理广播到各实例；没配即全部在本实例内。
+/// 在线状态的连接登记存进共享缓存、按实例心跳续期，断开连接经消息代理广播到各实例；没配即全部在本实例内
 /// </remarks>
 public sealed class RealtimeFeature : IHostedFeature, IDisposable
 {
@@ -41,7 +41,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
     private PresenceBoard? _board;
 
     /// <summary>
-    /// 单实例装配。
+    /// 单实例装配
     /// </summary>
     public RealtimeFeature()
         : this(scaleOut: false)
@@ -49,9 +49,9 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
     }
 
     /// <summary>
-    /// 按是否跨实例装配。
+    /// 按是否跨实例装配
     /// </summary>
-    /// <param name="scaleOut">跨实例：要求宿主同时装配 Redis 缓存（<c>caching.distributed</c>）。</param>
+    /// <param name="scaleOut">跨实例：要求宿主同时装配 Redis 缓存（<c>caching.distributed</c>）</param>
     public RealtimeFeature(bool scaleOut)
     {
         ScaleOut = scaleOut;
@@ -86,7 +86,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
     }
 
     /// <summary>
-    /// 是否跨实例。
+    /// 是否跨实例
     /// </summary>
     public bool ScaleOut { get; }
 

@@ -10,18 +10,18 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// <see cref="IUserDirectory"/> 的实现。
+/// <see cref="IUserDirectory"/> 的实现
 /// </summary>
 /// <remarks>
-/// 在调用的工作单元里直接查用户表；按 ID 取摘要含已删除的，按一侧取的不含（取在用账号的另外不含停用的）。
-/// 租户一侧的普通成员来自 <see cref="ITenantMembershipResolver"/>（Tenancy 实现，没装即只有注册在该租户的账号）。
+/// 在调用的工作单元里直接查用户表；按 ID 取摘要含已删除的，按一侧取的不含（取在用账号的另外不含停用的）
+/// 租户一侧的普通成员来自 <see cref="ITenantMembershipResolver"/>（Tenancy 实现，没装即只有注册在该租户的账号）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="memberships">租户成员。</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="memberships">租户成员</param>
 public sealed class UserDirectory(SqlSugarUnitOfWork unitOfWork, IEnumerable<ITenantMembershipResolver> memberships) : IUserDirectory
 {
     /// <summary>
-    /// 搜索一次最多返回的账号数。
+    /// 搜索一次最多返回的账号数
     /// </summary>
     public const int MaxSearchLimit = 200;
 

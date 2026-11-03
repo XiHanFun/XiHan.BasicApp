@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件包提供的能力。
+/// 文件包提供的能力
 /// </summary>
 public static class FilesCapabilities
 {
     /// <summary>
-    /// 文件能力：存储配置、文件与副本。
+    /// 文件能力：存储配置、文件与副本
     /// </summary>
     public const string Files = AppInfo.CapabilityPrefix + "files";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = 1;
 }

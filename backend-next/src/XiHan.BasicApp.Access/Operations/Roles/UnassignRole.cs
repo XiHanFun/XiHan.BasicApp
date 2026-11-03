@@ -16,20 +16,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 解除角色成员。
+/// 解除角色成员
 /// </summary>
 /// <remarks>
-/// <c>POST /api/roles/{id}:unassign</c>。不是成员的算成功（幂等）。解除最迟在用户下一次刷新令牌时生效。
+/// <c>POST /api/roles/{id}:unassign</c>。不是成员的算成功（幂等）。解除最迟在用户下一次刷新令牌时生效
 /// </remarks>
-/// <param name="service">角色域服务。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="users">用户仓储（权限变更日志记目标用户的登录名）。</param>
-/// <param name="assignments">指派缓存（移出即从判定里拿掉，不等令牌刷新）。</param>
+/// <param name="service">角色域服务</param>
+/// <param name="members">指派仓储</param>
+/// <param name="users">用户仓储（权限变更日志记目标用户的登录名）</param>
+/// <param name="assignments">指派缓存（移出即从判定里拿掉，不等令牌刷新）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
 public sealed class UnassignRole(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.unassign";
 

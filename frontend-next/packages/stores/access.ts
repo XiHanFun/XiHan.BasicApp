@@ -8,9 +8,9 @@ import { useAuthStore } from './auth'
 import { SetupStoreId } from './store-ids'
 
 /**
- * 后端菜单树（auth.permissions 的 MenuNode）→ 壳层的菜单路由模型（MenuRoute）。
- * 标题：运营改过或运营建的节点给原文，其余给文案键，壳层按 te / t 翻译（各能力包的语言文件登记）。
- * 目录与外链没有路由，给它一条以节点码命名的占位路径（侧栏按它当展开键 / 外链键，不生成路由记录）；外链走 meta.link 新标签打开。
+ * 后端菜单树（auth.permissions 的 MenuNode）→ 壳层的菜单路由模型（MenuRoute）
+ * 标题：运营改过或运营建的节点给原文，其余给文案键，壳层按 te / t 翻译（各能力包的语言文件登记）
+ * 目录与外链没有路由，给它一条以节点码命名的占位路径（侧栏按它当展开键 / 外链键，不生成路由记录）；外链走 meta.link 新标签打开
  */
 export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
   return menus.map(node => ({
@@ -32,8 +32,8 @@ export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
 }
 
 /**
- * 访问态（壳层视角）：令牌、菜单路由、权限码都是 auth store 的投影，这里不另存一份。
- * 4.x 由登录流程写入这些字段；6.0 的真源是 auth.login / auth.permissions（见 auth.ts），壳层只读。
+ * 访问态（壳层视角）：令牌、菜单路由、权限码都是 auth store 的投影，这里不另存一份
+ * 4.x 由登录流程写入这些字段；6.0 的真源是 auth.login / auth.permissions（见 auth.ts），壳层只读
  */
 export const useAccessStore = defineStore(SetupStoreId.Access, () => {
   const auth = useAuthStore()

@@ -6,47 +6,47 @@ using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 namespace XiHan.BasicApp.CodeGeneration.Seeds;
 
 /// <summary>
-/// 一份内置模板。
+/// 一份内置模板
 /// </summary>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Group">分组。</param>
-/// <param name="Resource">嵌入的模板文件（<c>Seeds/Templates</c> 下的相对路径）。</param>
-/// <param name="FileName">文件名表达式。</param>
-/// <param name="FilePath">目录表达式。</param>
-/// <param name="Extension">扩展名。</param>
-/// <param name="WriteMode">写入方式。</param>
-/// <param name="TemplateType">适用的生成模式。</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Group">分组</param>
+/// <param name="Resource">嵌入的模板文件（<c>Seeds/Templates</c> 下的相对路径）</param>
+/// <param name="FileName">文件名表达式</param>
+/// <param name="FilePath">目录表达式</param>
+/// <param name="Extension">扩展名</param>
+/// <param name="WriteMode">写入方式</param>
+/// <param name="TemplateType">适用的生成模式</param>
 public sealed record BuiltInTemplate(string Code, string Name, string Group, string Resource, string FileName, string FilePath, string Extension, CodeGenWriteMode WriteMode, CodeGenTemplateType TemplateType = CodeGenTemplateType.Universal);
 
 /// <summary>
-/// 内置模板的目录。
+/// 内置模板的目录
 /// </summary>
 /// <remarks>
-/// 用户已定的写入方式（照 4.x 成对）：每次覆盖的是实体的生成部分、请求与响应和映射、查询白名单；只首次写的是实体的手写部分、各个操作与查询的手写部分。
-/// 分组 <c>backend-crud</c> / <c>frontend-crud</c> 两种目标都出，<c>backend-package</c> / <c>frontend-package</c> 只在新建包时出（包级文件只首次）。
-/// 路径相对那一侧的根目录（<c>backend-next</c> 或 <c>frontend-next</c>）；按勾选的操作一份模板一个文件，没勾的渲染为空、不产出。
-/// 前端照 4.x 按生成模式分单表、主从与树表三组（单表与主从共用一份模板），页面与 schema 的手写部分只首次、schema 的生成部分每次覆盖。
+/// 用户已定的写入方式（照 4.x 成对）：每次覆盖的是实体的生成部分、请求与响应和映射、查询白名单；只首次写的是实体的手写部分、各个操作与查询的手写部分
+/// 分组 <c>backend-crud</c> / <c>frontend-crud</c> 两种目标都出，<c>backend-package</c> / <c>frontend-package</c> 只在新建包时出（包级文件只首次）
+/// 路径相对那一侧的根目录（<c>backend-next</c> 或 <c>frontend-next</c>）；按勾选的操作一份模板一个文件，没勾的渲染为空、不产出
+/// 前端照 4.x 按生成模式分单表、主从与树表三组（单表与主从共用一份模板），页面与 schema 的手写部分只首次、schema 的生成部分每次覆盖
 /// </remarks>
 public static class BuiltInTemplates
 {
     /// <summary>
-    /// 两种目标都出的后端模板分组。
+    /// 两种目标都出的后端模板分组
     /// </summary>
     public const string BackendCrud = "backend-crud";
 
     /// <summary>
-    /// 只在新建包时出的后端包级模板分组。
+    /// 只在新建包时出的后端包级模板分组
     /// </summary>
     public const string BackendPackage = "backend-package";
 
     /// <summary>
-    /// 两种目标都出的前端模板分组。
+    /// 两种目标都出的前端模板分组
     /// </summary>
     public const string FrontendCrud = "frontend-crud";
 
     /// <summary>
-    /// 只在新建包时出的前端包级模板分组。
+    /// 只在新建包时出的前端包级模板分组
     /// </summary>
     public const string FrontendPackage = "frontend-package";
 
@@ -60,7 +60,7 @@ public static class BuiltInTemplates
     private const string SchemaManualFile = "{{ Resource }}.schema.ts";
 
     /// <summary>
-    /// 全部内置模板，按排序。
+    /// 全部内置模板，按排序
     /// </summary>
     public static IReadOnlyList<BuiltInTemplate> All { get; } =
     [

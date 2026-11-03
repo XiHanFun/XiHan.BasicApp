@@ -15,8 +15,8 @@ type PageFilter = PageRequest['filters'][number]
 const EXECUTED_AT = 'executedAt'
 
 /**
- * 列表的后端筛选：关键字匹配版本、脚本名与节点；版本、脚本名与节点按包含匹配，执行结果精确匹配。
- * 缺省（不排序）由后端按执行时间倒序。
+ * 列表的后端筛选：关键字匹配版本、脚本名与节点；版本、脚本名与节点按包含匹配，执行结果精确匹配
+ * 缺省（不排序）由后端按执行时间倒序
  */
 export const MIGRATION_QUERY: PageQueryMapping = {
   filters: { version: 'contains', scriptName: 'contains', nodeName: 'contains', success: 'eq' },
@@ -72,7 +72,7 @@ export function getMigration(id: string): Promise<MigrationRow> {
 
 /**
  * 详情抽屉的定义（与审计包的日志详情同一套写法）：抬头是版本 · 脚本、执行结果与耗时，副信息是执行时间与节点；
- * 记录 ID 可复制，失败原因排在最后。
+ * 记录 ID 可复制，失败原因排在最后
  */
 export function migrationDetailSchema(t: Translate): LogDetailSchema {
   return {

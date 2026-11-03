@@ -12,15 +12,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Domain.Services;
 
 /// <summary>
-/// 归属域服务（作用域）。
+/// 归属域服务（作用域）
 /// </summary>
 /// <remarks>
-/// 核对用户注册地、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）。
+/// 核对用户注册地、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）
 /// </remarks>
-/// <param name="users">用户仓储（平台库）。</param>
-/// <param name="departments">部门仓储。</param>
-/// <param name="positions">岗位仓储。</param>
-/// <param name="memberships">归属仓储。</param>
+/// <param name="users">用户仓储（平台库）</param>
+/// <param name="departments">部门仓储</param>
+/// <param name="positions">岗位仓储</param>
+/// <param name="memberships">归属仓储</param>
 public sealed class MembershipService(
     IRepository<SysUser, Guid> users,
     IRepository<SysDepartment, Guid> departments,
@@ -28,10 +28,10 @@ public sealed class MembershipService(
     IRepository<SysUserDepartment, Guid> memberships)
 {
     /// <summary>
-    /// 查找注册地是 <paramref name="tenantId"/> 的用户。
+    /// 查找注册地是 <paramref name="tenantId"/> 的用户
     /// </summary>
     /// <remarks>
-    /// 别的租户或平台的用户视为不存在。
+    /// 别的租户或平台的用户视为不存在
     /// </remarks>
     public async Task<Maybe<SysUser>> FindUserInTenantAsync(Guid userId, string tenantId, CancellationToken cancellationToken)
     {
@@ -40,7 +40,7 @@ public sealed class MembershipService(
     }
 
     /// <summary>
-    /// 用户在某部门的归属行。
+    /// 用户在某部门的归属行
     /// </summary>
     public async Task<Maybe<SysUserDepartment>> FindAsync(Guid userId, Guid departmentId, CancellationToken cancellationToken)
     {
@@ -49,13 +49,13 @@ public sealed class MembershipService(
     }
 
     /// <summary>
-    /// 用户的全部归属行。
+    /// 用户的全部归属行
     /// </summary>
     public Task<IReadOnlyList<SysUserDepartment>> OfUserAsync(Guid userId, CancellationToken cancellationToken)
         => memberships.ListAsync(EntityQuery.All<SysUserDepartment>().Where(new Specification<SysUserDepartment>(m => m.UserId == userId)), cancellationToken);
 
     /// <summary>
-    /// 把 <paramref name="primary"/> 设为该用户唯一的主部门：其他归属行的主标记清掉。
+    /// 把 <paramref name="primary"/> 设为该用户唯一的主部门：其他归属行的主标记清掉
     /// </summary>
     public async Task<Result> MakePrimaryAsync(SysUserDepartment primary, CancellationToken cancellationToken)
     {
@@ -82,10 +82,10 @@ public sealed class MembershipService(
     }
 
     /// <summary>
-    /// 把归属行配上名称。
+    /// 把归属行配上名称
     /// </summary>
     /// <remarks>
-    /// 用户、部门或岗位已不存在时名称为空串，不丢行。
+    /// 用户、部门或岗位已不存在时名称为空串，不丢行
     /// </remarks>
     public async Task<IReadOnlyList<MembershipResponse>> ComposeAsync(IReadOnlyList<SysUserDepartment> rows, CancellationToken cancellationToken)
     {

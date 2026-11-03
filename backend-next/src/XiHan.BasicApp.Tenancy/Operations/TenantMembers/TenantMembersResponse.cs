@@ -4,7 +4,7 @@
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// <c>tenant-members.list</c> 的响应：某租户的全部成员。
+/// <c>tenant-members.list</c> 的响应：某租户的全部成员
 /// </summary>
-/// <param name="Items">成员。</param>
+/// <param name="Items">成员</param>
 public sealed record TenantMembersResponse(IReadOnlyList<TenantMemberResponse> Items);

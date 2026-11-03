@@ -15,20 +15,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 注销当前会话。
+/// 注销当前会话
 /// </summary>
 /// <remarks>
-/// 自助操作，只要求已认证。吊销当前令牌的 <c>sid</c> 会话并让门禁缓存失效；之后同一会话的访问令牌与刷新令牌都不再可用。
-/// 由这个会话发起的模仿会话一并吊销（发起人走了，被模仿身份的令牌不能继续用）。
+/// 自助操作，只要求已认证。吊销当前令牌的 <c>sid</c> 会话并让门禁缓存失效；之后同一会话的访问令牌与刷新令牌都不再可用
+/// 由这个会话发起的模仿会话一并吊销（发起人走了，被模仿身份的令牌不能继续用）
 /// </remarks>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="gate">会话门禁。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="gate">会话门禁</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class Logout(IRepository<SysUserSession, Guid> sessions, SessionGate gate, TimeProvider clock) : IOperation<LogoutRequest, LogoutResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.logout";
 

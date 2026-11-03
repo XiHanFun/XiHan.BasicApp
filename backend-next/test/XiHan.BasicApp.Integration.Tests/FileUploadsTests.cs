@@ -15,12 +15,12 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证分片上传的发起、续传、完成、放弃与过期。
+/// 验证分片上传的发起、续传、完成、放弃与过期
 /// </summary>
 /// <remarks>
 /// 各分片经签名地址直传本地存储（宿主的 <c>/blobs</c> 端点）；完成时按存储列出的分片核对齐全与总大小，缺片或大小不符可补传后再完成，
 /// 拼好后回读算 SHA-256，内容与已有的相同即共用已有的对象；只有发起人能看到与操作，已结束的不能再签地址、完成或放弃；
-/// 过了时限的按过期回答，过期作业把它记为过期并放弃存储里的分片。
+/// 过了时限的按过期回答，过期作业把它记为过期并放弃存储里的分片
 /// </remarks>
 public sealed class FileUploadsTests : IDisposable
 {
@@ -77,7 +77,7 @@ public sealed class FileUploadsTests : IDisposable
     }
 
     /// <summary>
-    /// 对一次分片上传调动词操作（<c>POST /api/files:&lt;动词&gt;</c>，请求体带 <c>uploadId</c>）。
+    /// 对一次分片上传调动词操作（<c>POST /api/files:&lt;动词&gt;</c>，请求体带 <c>uploadId</c>）
     /// </summary>
     private static Task<(HttpStatusCode Status, JsonElement Body)> VerbAsync(BasicAppTestServer server, string verb, string uploadId, string token, string partNumbers = "")
         => SendAsync(server, HttpMethod.Post, "/api/files:" + verb, $$"""{"uploadId":"{{uploadId}}"{{(partNumbers.Length == 0 ? string.Empty : ",\"partNumbers\":[" + partNumbers + "]")}}}""", token);

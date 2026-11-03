@@ -6,80 +6,80 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Maintenance;
 
 /// <summary>
-/// 运维包的权限码。
+/// 运维包的权限码
 /// </summary>
 /// <remarks>
-/// 作业与运行历史是全局的（框架的调度表不分租户），版本台账在平台库，都只在平台一侧。
+/// 作业与运行历史是全局的（框架的调度表不分租户），版本台账在平台库，都只在平台一侧
 /// </remarks>
 public static class MaintenancePermissions
 {
     /// <summary>
-    /// 查看作业。
+    /// 查看作业
     /// </summary>
     public const string JobsRead = "maintenance.jobs.read";
 
     /// <summary>
-    /// 暂停与恢复作业。
+    /// 暂停与恢复作业
     /// </summary>
     public const string JobsUpdate = "maintenance.jobs.update";
 
     /// <summary>
-    /// 立即执行作业。
+    /// 立即执行作业
     /// </summary>
     public const string JobsTrigger = "maintenance.jobs.trigger";
 
     /// <summary>
-    /// 改作业计划与恢复代码定义。
+    /// 改作业计划与恢复代码定义
     /// </summary>
     public const string JobsReschedule = "maintenance.jobs.reschedule";
 
     /// <summary>
-    /// 新建运行时作业：<c>jobs.create</c>。
+    /// 新建运行时作业：<c>jobs.create</c>
     /// </summary>
     public const string JobsCreate = "maintenance.jobs.create";
 
     /// <summary>
-    /// 删除运行时作业：<c>jobs.delete</c>。
+    /// 删除运行时作业：<c>jobs.delete</c>
     /// </summary>
     public const string JobsDelete = "maintenance.jobs.delete";
 
     /// <summary>
-    /// 查看缓存。
+    /// 查看缓存
     /// </summary>
     public const string CachesRead = "maintenance.caches.read";
 
     /// <summary>
-    /// 改写缓存值。
+    /// 改写缓存值
     /// </summary>
     public const string CachesUpdate = "maintenance.caches.update";
 
     /// <summary>
-    /// 删除缓存。
+    /// 删除缓存
     /// </summary>
     public const string CachesDelete = "maintenance.caches.delete";
 
     /// <summary>
-    /// 查看服务监控。
+    /// 查看服务监控
     /// </summary>
     public const string ServerRead = "maintenance.server.read";
 
     /// <summary>
-    /// 查看作业的运行历史。
+    /// 查看作业的运行历史
     /// </summary>
     public const string JobRunsRead = "maintenance.job-runs.read";
 
     /// <summary>
-    /// 查看版本台账。
+    /// 查看版本台账
     /// </summary>
     public const string VersionsRead = "maintenance.versions.read";
 
     /// <summary>
-    /// 查看升级记录。
+    /// 查看升级记录
     /// </summary>
     public const string MigrationsRead = "maintenance.migrations.read";
 
     /// <summary>
-    /// 本包全部权限码。
+    /// 本包全部权限码
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

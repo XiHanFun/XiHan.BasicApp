@@ -10,12 +10,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 业务附件的文件。
+/// 业务附件的文件
 /// </summary>
 /// <remarks>
-/// 存在调用方所在的一侧，访问级别「需要授权」、记上业务给的来源；签名不核对通用的文件权限，由业务按自己的范围先核对（方案 H2）。
+/// 存在调用方所在的一侧，访问级别「需要授权」、记上业务给的来源；签名不核对通用的文件权限，由业务按自己的范围先核对（方案 H2）
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 public sealed class AttachmentFiles(FileService files) : IAttachmentFiles
 {
     private static readonly FileDetails _details = new(FileAccessLevel.Authorized, IsTemporary: false, ExpiresAt: null, Tags: null, Remark: null);

@@ -14,35 +14,35 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一条授予规则的判定视图。
+/// 一条授予规则的判定视图
 /// </summary>
-/// <param name="Permission">权限码（或 <c>*</c>）。</param>
-/// <param name="Action">授予还是拒绝。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">到期时间（不含）。</param>
+/// <param name="Permission">权限码（或 <c>*</c>）</param>
+/// <param name="Action">授予还是拒绝</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">到期时间（不含）</param>
 public sealed record PermissionRuleView(string Permission, PermissionAction Action, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt)
 {
     /// <summary>
-    /// 此刻是否在有效期内。
+    /// 此刻是否在有效期内
     /// </summary>
     public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 }
 
 /// <summary>
-/// 授予规则的读取（单例）。
+/// 授予规则的读取（单例）
 /// </summary>
 /// <remarks>
-/// 按（侧、主体）缓存在共享缓存里，写入后由写入方失效；有效期在判定时按当前时间比较，到点生效与到期不必重建缓存。
-/// 缓存存成文本行，不依赖缓存的对象序列化。
+/// 按（侧、主体）缓存在共享缓存里，写入后由写入方失效；有效期在判定时按当前时间比较，到点生效与到期不必重建缓存
+/// 缓存存成文本行，不依赖缓存的对象序列化
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）</param>
 public sealed class PermissionRules(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一个主体在一侧的全部规则。
+    /// 一个主体在一侧的全部规则
     /// </summary>
     public async Task<IReadOnlyList<PermissionRuleView>> OfAsync(string owner, GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
     {
@@ -51,10 +51,10 @@ public sealed class PermissionRules(ISharedCache cache, IServiceScopeFactory sco
     }
 
     /// <summary>
-    /// 主体的规则有变：失效缓存。
+    /// 主体的规则有变：失效缓存
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner, kind, subjectId), cancellationToken).ConfigureAwait(false);

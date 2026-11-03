@@ -10,11 +10,11 @@ import XNumberInput from './XNumberInput.vue'
 import XSelect from './XSelect.vue'
 
 /**
- * Cron 表达式编辑组件（公共组件）。
- * - 表现为「输入框 + 构建器按钮」，点击按钮弹出可视化构建器（不直接占用表单空间）。
- * - 支持 5 段（分 时 日 月 周）与 6 段（秒 分 时 日 月 周），与后端 CronHelper 方言一致。
- * - 字段语法：* ? , - /（不含 L/W/#）；周 0-6（0=周日）。
- * - v-model:value 双向绑定表达式字符串；构建器与手动输入实时同步，并预览最近执行时间。
+ * Cron 表达式编辑组件（公共组件）
+ * - 表现为「输入框 + 构建器按钮」，点击按钮弹出可视化构建器（不直接占用表单空间）
+ * - 支持 5 段（分 时 日 月 周）与 6 段（秒 分 时 日 月 周），与后端 CronHelper 方言一致
+ * - 字段语法：* ? , - /（不含 L/W/#）；周 0-6（0=周日）
+ * - v-model:value 双向绑定表达式字符串；构建器与手动输入实时同步，并预览最近执行时间
  */
 defineOptions({ name: 'CronExpression' })
 
@@ -301,7 +301,7 @@ let previewTimer: ReturnType<typeof setTimeout> | null = null
 /**
  * 计算最近 N 次执行。性能要点：
  * 1) 任一字段为空集 → 永不匹配，立即返回，避免空转；
- * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环。
+ * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环
  */
 function computeNextRuns(): Date[] {
   const sec = hasSeconds.value ? fieldAllowed(fields.second, defOf('second')) : new Set([0])

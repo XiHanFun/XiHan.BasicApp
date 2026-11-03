@@ -9,22 +9,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 本人收件箱的写入。
+/// 本人收件箱的写入
 /// </summary>
 /// <remarks>
-/// 标已读、全部已读、确认（同时标已读）、记下弹窗已显示、删除（软删除，通知本身不受影响）。
-/// 都只动调用方本人在当前一侧的条目，别人的按不存在处理。
+/// 标已读、全部已读、确认（同时标已读）、记下弹窗已显示、删除（软删除，通知本身不受影响）
+/// 都只动调用方本人在当前一侧的条目，别人的按不存在处理
 /// </remarks>
-/// <param name="rows">按侧读写。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="rows">按侧读写</param>
+/// <param name="clock">时钟</param>
 public sealed class InboxService(SideRows rows, TimeProvider clock)
 {
     /// <summary>
-    /// 取本人的一条。
+    /// 取本人的一条
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="id">收件箱条目 ID。</param>
-    /// <returns>条目；不存在即 <c>NOTIFICATION_NOTFOUND_002</c>。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="id">收件箱条目 ID</param>
+    /// <returns>条目；不存在即 <c>NOTIFICATION_NOTFOUND_002</c></returns>
     public async Task<Result<SysUserNotification>> FindMineAsync(InvocationContext context, Guid id)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -36,11 +36,11 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 标已读（已读的照常算成功）。
+    /// 标已读（已读的照常算成功）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="ids">收件箱条目 ID。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="ids">收件箱条目 ID</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> MarkReadAsync(InvocationContext context, IReadOnlyList<Guid> ids)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -58,11 +58,11 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 把本人此刻可见的未读全部标为已读。
+    /// 把本人此刻可见的未读全部标为已读
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="visibleUnread">此刻可见的未读条目（由收件箱查询给出）。</param>
-    /// <returns>标了多少条。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="visibleUnread">此刻可见的未读条目（由收件箱查询给出）</param>
+    /// <returns>标了多少条</returns>
     public async Task<int> MarkAllReadAsync(InvocationContext context, IReadOnlyList<Guid> visibleUnread)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -88,14 +88,14 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 确认一条（同时标已读）。
+    /// 确认一条（同时标已读）
     /// </summary>
     /// <remarks>
-    /// 确认过的保留原确认时间。
+    /// 确认过的保留原确认时间
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="row">本人的条目。</param>
-    /// <returns>结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="row">本人的条目</param>
+    /// <returns>结果</returns>
     public async Task ConfirmAsync(InvocationContext context, SysUserNotification row)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -107,11 +107,11 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 记下弹窗已显示（之后不再弹出）。
+    /// 记下弹窗已显示（之后不再弹出）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="row">本人的条目。</param>
-    /// <returns>结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="row">本人的条目</param>
+    /// <returns>结果</returns>
     public async Task MarkPopupShownAsync(InvocationContext context, SysUserNotification row)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -126,11 +126,11 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
     }
 
     /// <summary>
-    /// 从本人收件箱里删除。
+    /// 从本人收件箱里删除
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="ids">收件箱条目 ID。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="ids">收件箱条目 ID</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteAsync(InvocationContext context, IReadOnlyList<Guid> ids)
     {
         ArgumentNullException.ThrowIfNull(context);

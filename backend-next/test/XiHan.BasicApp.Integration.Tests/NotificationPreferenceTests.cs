@@ -8,11 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证通知偏好的保存与发布时的筛选。
+/// 验证通知偏好的保存与发布时的筛选
 /// </summary>
 /// <remarks>
 /// 没保存过即缺省全收；整体覆盖保存；发布时站内信只发给愿意收这类通知的人（安全、待办各一类，其余算公告），强制阅读与紧急通知不筛（4.x 同）；
-/// 关掉站内信即只剩强制与紧急。
+/// 关掉站内信即只剩强制与紧急
 /// </remarks>
 public sealed class NotificationPreferenceTests : IDisposable
 {
@@ -34,7 +34,7 @@ public sealed class NotificationPreferenceTests : IDisposable
     }
 
     /// <summary>
-    /// 发一条给 ann 与 bob 的通知，返回实际进收件箱的人数。
+    /// 发一条给 ann 与 bob 的通知，返回实际进收件箱的人数
     /// </summary>
     private static async Task<int> PublishAsync(BasicAppTestServer server, string token, string[] targets, object extra)
     {

@@ -31,8 +31,8 @@ export function browserTimeZone(): string {
 /**
  * 显示时间用的时区（IANA 名）
  *
- * 由偏好设置的应用时区写入（stores 的 appTimezone），写入之前是浏览器的时区。
- * formatDate 在渲染时读它，模板随时区切换重新渲染。
+ * 由偏好设置的应用时区写入（stores 的 appTimezone），写入之前是浏览器的时区
+ * formatDate 在渲染时读它，模板随时区切换重新渲染
  */
 const displayTimeZone = ref(browserTimeZone())
 
@@ -61,9 +61,9 @@ export function utcOffsetMinutes(zone: string, at: Date = new Date()): number {
  * 按指定时区格式化时间
  *
  * 后端的时间一律是带 `Z` 或偏移的 ISO 串（时刻），按 dayjs utc + timezone 换到 timeZone 再格式化，
- * 与浏览器所在的时区无关。只有日历日的串原样格式化（换算会把零点挪到前一天）。
+ * 与浏览器所在的时区无关。只有日历日的串原样格式化（换算会把零点挪到前一天）
  * 判空只认「没有值」（null / undefined / 空串）：数字 0 是 Unix 纪元，照常格式化；
- * NaN 与解析不出的串归到占位符，不把 'Invalid Date' 渲染到界面上。
+ * NaN 与解析不出的串归到占位符，不把 'Invalid Date' 渲染到界面上
  */
 export function formatDateTime(
   value: string | Date | number | null | undefined,
@@ -92,9 +92,9 @@ export function formatDate(
  * 格式化文件大小
  *
  * 非有限数与负数返回 '-'，与 formatDate / getOptionLabel 的占位符口径一致：
- * 后端字段缺失被 Number() 化成 NaN 时，原实现会把 'NaN undefined' 直接渲染到文件列表与配额统计上。
+ * 后端字段缺失被 Number() 化成 NaN 时，原实现会把 'NaN undefined' 直接渲染到文件列表与配额统计上
  * 下标两侧都要夹：0~1 字节的小数得到 -1、≥1PB 得到 5，越界那一侧 sizes[i] 是 undefined，
- * 输出成 '512 undefined' / '1 undefined'。
+ * 输出成 '512 undefined' / '1 undefined'
  */
 export function formatFileSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0)
@@ -158,9 +158,9 @@ export function deepClone<T>(obj: T): T {
  * 判断是否为空值
  *
  * Date、Map、Set 都没有自有可枚举键，落到最后的 Object.keys 分支会一律被判为空——
- * 表单 / 查询条件用本函数裁参数时，用户选中的日期与 Map/Set 型集合会被静默丢掉，请求少带条件。
+ * 表单 / 查询条件用本函数裁参数时，用户选中的日期与 Map/Set 型集合会被静默丢掉，请求少带条件
  * 因此在通用对象分支之前按各自的「有没有内容」口径短路：
- * 日期只有 Invalid Date（没选出有效时间）才算空，集合看 size。
+ * 日期只有 Invalid Date（没选出有效时间）才算空，集合看 size
  */
 export function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined)

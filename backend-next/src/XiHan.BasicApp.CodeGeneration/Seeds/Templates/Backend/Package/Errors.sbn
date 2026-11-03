@@ -4,10 +4,10 @@
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包的错误码。
+/// {{ ModuleName }} 包的错误码
 /// </summary>
 /// <remarks>
-/// 格式为 <c>{{ ErrorPrefix }}_&lt;KIND&gt;_&lt;NNN&gt;</c>，同类错误码的序号往后编。
+/// 格式为 <c>{{ ErrorPrefix }}_&lt;KIND&gt;_&lt;NNN&gt;</c>，同类错误码的序号往后编
 /// </remarks>
 public static class {{ ModuleName }}Errors
 {
@@ -16,10 +16,10 @@ public static class {{ ModuleName }}Errors
 
 {{~ end ~}}
     /// <summary>
-    /// 错误 <c>{{ error.Code }}</c>。
+    /// 错误 <c>{{ error.Code }}</c>
     /// </summary>
     /// <remarks>
-    /// 消息 <c>{{ error.Messages[0].Key }}</c>。
+    /// 消息 <c>{{ error.Messages[0].Key }}</c>
     /// </remarks>
     public const string {{ error.ConstName }} = "{{ error.Code }}";
 {{~ end ~}}

@@ -11,10 +11,10 @@ using XiHan.BasicApp.Printing.Operations.PrintTemplates;
 namespace XiHan.BasicApp.Printing;
 
 /// <summary>
-/// 打印模块操作的请求 / 响应序列化上下文。
+/// 打印模块操作的请求 / 响应序列化上下文
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。缓存里的模板（<see cref="CachedPrintTemplate"/>）也经它往返。
+/// 源生成；枚举按字符串。缓存里的模板（<see cref="CachedPrintTemplate"/>）也经它往返
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

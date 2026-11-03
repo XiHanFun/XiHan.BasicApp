@@ -25,7 +25,7 @@ const loaded = ref(false)
 const avatarErrors = ref<Set<string>>(new Set())
 
 // 支持的渠道全部罗列（与登录页一致，支持什么显示什么）；每个渠道合并其绑定状态：
-// 已绑定 → 展示账号信息 + 解除绑定；未绑定 → 展示绑定按钮。
+// 已绑定 → 展示账号信息 + 解除绑定；未绑定 → 展示绑定按钮
 // 绑定记的是规范类型、登录配置给的是名称（可能是别名或自定义名），按登录配置带的类型对齐；
 // 对不上任何已配置渠道的绑定（渠道已下线）也列出来，只能解除绑定
 const providers = computed(() => {
@@ -85,8 +85,8 @@ async function handleUnlinkAccount(provider: string) {
   }
 }
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底。
-// 企业微信、飞书在这四个集里没有品牌 logo，用语义相近的通用图标占位（与登录页保持一致）。
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底
+// 企业微信、飞书在这四个集里没有品牌 logo，用语义相近的通用图标占位（与登录页保持一致）
 function providerIcon(type: string) {
   const map: Record<string, string> = {
     github: 'mdi:github',

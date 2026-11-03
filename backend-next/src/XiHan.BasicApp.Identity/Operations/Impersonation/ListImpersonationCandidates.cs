@@ -15,20 +15,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 
 /// <summary>
-/// 列出目标上下文里可被模仿的用户。
+/// 列出目标上下文里可被模仿的用户
 /// </summary>
 /// <remarks>
-/// 操作 <c>impersonation.candidates</c>。目标上下文里可被模仿的正常用户——注册地在该租户（或平台）的，加上该租户生效中的普通成员（运维支持不算）；不含自己。
-/// 范围规则与 <c>impersonation.start</c> 相同：不填租户即发起人当前上下文，租户主体只能看自己的租户。
-/// 注册地用户与成员在同一个查询里按登录名排序分页，带总数。
+/// 操作 <c>impersonation.candidates</c>。目标上下文里可被模仿的正常用户——注册地在该租户（或平台）的，加上该租户生效中的普通成员（运维支持不算）；不含自己
+/// 范围规则与 <c>impersonation.start</c> 相同：不填租户即发起人当前上下文，租户主体只能看自己的租户
+/// 注册地用户与成员在同一个查询里按登录名排序分页，带总数
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="memberships">成员关系（Tenancy 实现）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="memberships">成员关系（Tenancy 实现）</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class ListImpersonationCandidates(IRepository<SysUser, Guid> users, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<ImpersonationCandidatesRequest, PageResult<ImpersonationCandidateResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "impersonation.candidates";
 
@@ -64,10 +64,10 @@ public sealed class ListImpersonationCandidates(IRepository<SysUser, Guid> users
     }
 
     /// <summary>
-    /// 候选的条件。
+    /// 候选的条件
     /// </summary>
     /// <remarks>
-    /// 启用、不是自己，注册地在目标上下文或是其成员；有关键字时再匹配登录名或显示名。
+    /// 启用、不是自己，注册地在目标上下文或是其成员；有关键字时再匹配登录名或显示名
     /// </remarks>
     private static System.Linq.Expressions.Expression<Func<SysUser, bool>> Scope(string home, List<Guid> memberIds, Guid selfId, string? keyword) =>
         (memberIds.Count == 0, string.IsNullOrEmpty(keyword)) switch

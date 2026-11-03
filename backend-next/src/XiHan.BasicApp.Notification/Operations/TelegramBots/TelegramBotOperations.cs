@@ -12,17 +12,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.TelegramBots;
 
 /// <summary>
-/// 分页列出 Telegram 机器人。
+/// 分页列出 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// <c>POST /api/telegram-bots:list</c>（平台托管；令牌不回显）。
+/// <c>POST /api/telegram-bots:list</c>（平台托管；令牌不回显）
 /// </remarks>
-/// <param name="queries">查询。</param>
+/// <param name="queries">查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
 public sealed class ListTelegramBots(MessagingQueries queries) : IOperation<PageRequest, PageResult<TelegramBotResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "telegram-bots.list";
 
@@ -31,17 +31,17 @@ public sealed class ListTelegramBots(MessagingQueries queries) : IOperation<Page
 }
 
 /// <summary>
-/// 取一个 Telegram 机器人。
+/// 取一个 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// <c>GET /api/telegram-bots/{id}</c>。
+/// <c>GET /api/telegram-bots/{id}</c>
 /// </remarks>
-/// <param name="service">机器人服务。</param>
+/// <param name="service">机器人服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
 public sealed class GetTelegramBot(TelegramBotService service) : IOperation<MessagingIdRequest, TelegramBotResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "telegram-bots.get";
 
@@ -56,17 +56,17 @@ public sealed class GetTelegramBot(TelegramBotService service) : IOperation<Mess
 }
 
 /// <summary>
-/// 新建 Telegram 机器人。
+/// 新建 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// <c>POST /api/telegram-bots</c>（名称唯一 <c>NOTIFICATION_CONFLICT_008</c>、令牌格式 <c>NOTIFICATION_VALIDATION_012</c>、ID 列表须是整数 <c>013</c>、命令名 <c>014</c>）。
+/// <c>POST /api/telegram-bots</c>（名称唯一 <c>NOTIFICATION_CONFLICT_008</c>、令牌格式 <c>NOTIFICATION_VALIDATION_012</c>、ID 列表须是整数 <c>013</c>、命令名 <c>014</c>）
 /// </remarks>
-/// <param name="service">机器人服务。</param>
+/// <param name="service">机器人服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsCreate)]
 public sealed class CreateTelegramBot(TelegramBotService service) : IOperation<CreateTelegramBotRequest, TelegramBotResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "telegram-bots.create";
 
@@ -81,17 +81,17 @@ public sealed class CreateTelegramBot(TelegramBotService service) : IOperation<C
 }
 
 /// <summary>
-/// 修改 Telegram 机器人。
+/// 修改 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/telegram-bots/{id}</c>（令牌不填即保留）。
+/// <c>PUT /api/telegram-bots/{id}</c>（令牌不填即保留）
 /// </remarks>
-/// <param name="service">机器人服务。</param>
+/// <param name="service">机器人服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsUpdate)]
 public sealed class UpdateTelegramBot(TelegramBotService service) : IOperation<UpdateTelegramBotRequest, TelegramBotResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "telegram-bots.update";
 
@@ -112,17 +112,17 @@ public sealed class UpdateTelegramBot(TelegramBotService service) : IOperation<U
 }
 
 /// <summary>
-/// 批量删除 Telegram 机器人。
+/// 批量删除 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/telegram-bots?ids=</c>。
+/// <c>DELETE /api/telegram-bots?ids=</c>
 /// </remarks>
-/// <param name="service">机器人服务。</param>
+/// <param name="service">机器人服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsDelete)]
 public sealed class DeleteTelegramBots(TelegramBotService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "telegram-bots.delete";
 

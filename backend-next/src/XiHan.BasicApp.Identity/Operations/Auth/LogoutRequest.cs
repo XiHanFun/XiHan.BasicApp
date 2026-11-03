@@ -4,6 +4,6 @@
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.logout</c> 的请求：没有输入，注销的是当前令牌所属的会话。
+/// <c>auth.logout</c> 的请求：没有输入，注销的是当前令牌所属的会话
 /// </summary>
 public sealed record LogoutRequest;

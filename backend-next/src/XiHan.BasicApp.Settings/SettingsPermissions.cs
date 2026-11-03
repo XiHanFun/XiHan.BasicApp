@@ -6,106 +6,106 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包的权限码。
+/// 设置包的权限码
 /// </summary>
 /// <remarks>
-/// 全部两侧都有（平台维护平台数据，租户维护自己的覆盖与数据；只能写本侧，由操作按属主判定）。
-/// 字典选项（<c>dicts.options</c>）只要求已登录，不在这里。
+/// 全部两侧都有（平台维护平台数据，租户维护自己的覆盖与数据；只能写本侧，由操作按属主判定）
+/// 字典选项（<c>dicts.options</c>）只要求已登录，不在这里
 /// </remarks>
 public static class SettingsPermissions
 {
     /// <summary>
-    /// 查看参数。
+    /// 查看参数
     /// </summary>
     public const string ConfigsRead = "settings.configs.read";
 
     /// <summary>
-    /// 新建参数（含租户覆盖平台参数）。
+    /// 新建参数（含租户覆盖平台参数）
     /// </summary>
     public const string ConfigsCreate = "settings.configs.create";
 
     /// <summary>
-    /// 修改参数。
+    /// 修改参数
     /// </summary>
     public const string ConfigsUpdate = "settings.configs.update";
 
     /// <summary>
-    /// 删除参数。
+    /// 删除参数
     /// </summary>
     public const string ConfigsDelete = "settings.configs.delete";
 
     /// <summary>
-    /// 查看字典。
+    /// 查看字典
     /// </summary>
     public const string DictsRead = "settings.dicts.read";
 
     /// <summary>
-    /// 新建字典。
+    /// 新建字典
     /// </summary>
     public const string DictsCreate = "settings.dicts.create";
 
     /// <summary>
-    /// 修改字典。
+    /// 修改字典
     /// </summary>
     public const string DictsUpdate = "settings.dicts.update";
 
     /// <summary>
-    /// 删除字典。
+    /// 删除字典
     /// </summary>
     public const string DictsDelete = "settings.dicts.delete";
 
     /// <summary>
-    /// 查看字典项。
+    /// 查看字典项
     /// </summary>
     public const string DictItemsRead = "settings.dict-items.read";
 
     /// <summary>
-    /// 新建字典项。
+    /// 新建字典项
     /// </summary>
     public const string DictItemsCreate = "settings.dict-items.create";
 
     /// <summary>
-    /// 修改字典项。
+    /// 修改字典项
     /// </summary>
     public const string DictItemsUpdate = "settings.dict-items.update";
 
     /// <summary>
-    /// 删除字典项。
+    /// 删除字典项
     /// </summary>
     public const string DictItemsDelete = "settings.dict-items.delete";
 
     /// <summary>
-    /// 查看编号规则与发号记录。
+    /// 查看编号规则与发号记录
     /// </summary>
     public const string NumberingRulesRead = "settings.numbering-rules.read";
 
     /// <summary>
-    /// 新建编号规则。
+    /// 新建编号规则
     /// </summary>
     public const string NumberingRulesCreate = "settings.numbering-rules.create";
 
     /// <summary>
-    /// 修改编号规则。
+    /// 修改编号规则
     /// </summary>
     public const string NumberingRulesUpdate = "settings.numbering-rules.update";
 
     /// <summary>
-    /// 删除编号规则。
+    /// 删除编号规则
     /// </summary>
     public const string NumberingRulesDelete = "settings.numbering-rules.delete";
 
     /// <summary>
-    /// 重置编号规则的流水。
+    /// 重置编号规则的流水
     /// </summary>
     public const string NumberingRulesReset = "settings.numbering-rules.reset";
 
     /// <summary>
-    /// 按规则发号。
+    /// 按规则发号
     /// </summary>
     public const string NumberingRulesGenerate = "settings.numbering-rules.generate";
 
     /// <summary>
-    /// 全部权限描述。
+    /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

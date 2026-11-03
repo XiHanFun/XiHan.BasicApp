@@ -1,11 +1,11 @@
 import type { DateSegmentType } from '@xihan-ui/headless'
 
 /**
- * 日期选择封装的值换算与区间草稿。
+ * 日期选择封装的值换算与区间草稿
  *
  * 组件库收发不带时区的 ISO 串（日期档 `YYYY-MM-DD`，带时刻档 `YYYY-MM-DDTHH:mm`），
  * 本应用上下游一律用时间戳（毫秒）。两边都按本地时区读写：toISOString 走 UTC，
- * 东八区零点会被挪到前一天，所以这里一律用本地分量拼、按本地分量解。
+ * 东八区零点会被挪到前一天，所以这里一律用本地分量拼、按本地分量解
  */
 
 function pad(part: number): string {
@@ -49,11 +49,11 @@ export function rangeToDraft(value: readonly [number, number] | null | undefined
 }
 
 /**
- * 组件库发来的区间两端 → 该往上抛什么。
+ * 组件库发来的区间两端 → 该往上抛什么
  *
- * 组件库按位存放：只填了起点是 `[起]` 或 `[起, '']`，只填了终点是 `['', 止]`。
+ * 组件库按位存放：只填了起点是 `[起]` 或 `[起, '']`，只填了终点是 `['', 止]`
  * 两端齐备上抛 [起, 止]；两端皆空（清空）上抛 null；只有一端时返回 undefined——
- * 先不上抛，调用方拿到的区间要么两端齐备、要么为空，那一半留在封装的草稿里继续填。
+ * 先不上抛，调用方拿到的区间要么两端齐备、要么为空，那一半留在封装的草稿里继续填
  */
 export function resolveRangeChange(next: readonly string[]): [number, number] | null | undefined {
   const start = isoToTimestamp(next[0] ?? '')

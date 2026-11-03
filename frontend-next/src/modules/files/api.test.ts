@@ -22,7 +22,7 @@ vi.mock('~/request', async importOriginal => ({
 
 const MiB = 1024 * 1024
 
-/** 只记下 PUT 了什么；状态码按地址里的分片编号决定（缺省 200）。 */
+/** 只记下 PUT 了什么；状态码按地址里的分片编号决定（缺省 200） */
 class FakeXhr {
   static sent: Array<{ url: string, size: number }> = []
   static failing = new Set<string>()

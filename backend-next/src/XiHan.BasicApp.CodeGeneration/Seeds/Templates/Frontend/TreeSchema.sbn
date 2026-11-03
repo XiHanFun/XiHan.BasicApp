@@ -19,8 +19,8 @@
 {{~ value_imports = value_imports | array.add "toPageRequest" ~}}
 {{~ end ~}}
 /**
- * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手改。
- * 列定义与表单缺省值的微调写在 {{ Resource }}.schema.ts（在那里对下列 base* 做 transform）。
+ * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手改
+ * 列定义与表单缺省值的微调写在 {{ Resource }}.schema.ts（在那里对下列 base* 做 transform）
  */
 import type { ListFieldSchema, PageSchema, {{ if CanExport }}SchemaQueryParams, {{ end }}SchemaResource } from '~/components'
 import type { {{ if can_create || can_update }}RequestOf, {{ end }}ResponseOf } from '~/contracts'
@@ -69,7 +69,7 @@ export interface {{ ClassName }}FormModel {
 /**
  * 页面元信息（树形模式：走 resource.tree 取数、不分页、按 children 展开）
  *
- * 导出、导入、批量删除与批量启停按权限码门控：取消勾选后重新生成，按钮随之消失，页面不必改。
+ * 导出、导入、批量删除与批量启停按权限码门控：取消勾选后重新生成，按钮随之消失，页面不必改
  */
 export const basePageMeta = {
   pageCode: '{{ PageCode }}',
@@ -120,7 +120,7 @@ export function {{ col.Field }}Options(t: Translate) {
 /**
  * 列定义（{{ TreeNameColumn.Field }} 承载展开箭头；树不分页、不搜索、不排序）
  *
- * 不进列表但要参与导入的列以 visible: false 声明：表格与列设置里都不出现，导入模板照常带上它这一列。
+ * 不进列表但要参与导入的列以 visible: false 声明：表格与列设置里都不出现，导入模板照常带上它这一列
  */
 export function baseFields(t: Translate): ListFieldSchema[] {
   return [
@@ -247,11 +247,11 @@ export function toUpdateRequest(id: string, form: {{ ClassName }}FormModel): {{ 
 const IMPORT_DATE_PATTERN = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
 
 /**
- * 导入的日期单元格按本地时间换成时刻（ISO 8601）。
+ * 导入的日期单元格按本地时间换成时刻（ISO 8601）
  *
  * 表格软件另存的 CSV 常写成 2026/9/30，原样交给 Date 解析不了；纯 yyyy-MM-dd 交给 Date
  * 又会被当成 UTC 零点，西半球会退一天。所以认得的写法按字面取年月日时分秒，
- * 其余写法已过导入的日期校验，交给 Date 按本地时间解析。
+ * 其余写法已过导入的日期校验，交给 Date 按本地时间解析
  */
 function toImportInstant(value: unknown) {
   const text = String(value).trim()
@@ -266,8 +266,8 @@ function toImportInstant(value: unknown) {
 /**
  * 导入记录 → 新建请求（导入逐行调用新建操作）
  *
- * 记录里只有表格填了值的列，值已按字段类型换算好；必填列没填过不了导入校验，其余没填的列与新建表单留空同口径补齐，上级留空即作为根节点。
- * 同一批导入并发新建，上级只能填库里已有节点的 ID，不能引用同一文件里的新行。
+ * 记录里只有表格填了值的列，值已按字段类型换算好；必填列没填过不了导入校验，其余没填的列与新建表单留空同口径补齐，上级留空即作为根节点
+ * 同一批导入并发新建，上级只能填库里已有节点的 ID，不能引用同一文件里的新行
  */
 export function toCreateInputFromImport(record: Record<string, unknown>): {{ ClassName }}CreateRequest {
   return {
@@ -289,8 +289,8 @@ function failedCodes(result: { failed: { code: string }[] }): void {
 {{~ end ~}}
 
 /**
- * SchemaPage 的资源（树形模式）：整棵树（{{ Resource }}.tree 一次取回、不分页）{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}。
- * 取回的树经 onTree 交给页面，供上级候选复用。
+ * SchemaPage 的资源（树形模式）：整棵树（{{ Resource }}.tree 一次取回、不分页）{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}
+ * 取回的树经 onTree 交给页面，供上级候选复用
  */
 export function baseResource(onTree?: (rows: {{ ClassName }}Row[]) => void): SchemaResource<{{ ClassName }}Row> {
   return {

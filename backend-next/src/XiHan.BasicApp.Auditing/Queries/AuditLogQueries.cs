@@ -13,22 +13,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 分表日志查询的公共部分（SqlSugar 直查）。
+/// 分表日志查询的公共部分（SqlSugar 直查）
 /// </summary>
 /// <remarks>
-/// 日志严格按上下文隔离——租户主体只看本租户的行，平台主体只看平台一侧（租户列 <c>platform</c>）的行。
+/// 日志严格按上下文隔离——租户主体只看本租户的行，平台主体只看平台一侧（租户列 <c>platform</c>）的行
 /// 公共筛选：<c>occurredAt</c>（<c>ge</c> / <c>gt</c> / <c>le</c> / <c>lt</c>，ISO 8601，同时限定扫描的月表）、<c>traceId</c>、<c>userId</c>、<c>userName</c>、<c>sessionId</c>、<c>clientIp</c>；
-/// 公共排序：<c>occurredAt</c>（缺省倒序）、<c>userName</c>。没有时间范围即扫全部月表（ADR-0023）。
+/// 公共排序：<c>occurredAt</c>（缺省倒序）、<c>userName</c>。没有时间范围即扫全部月表（ADR-0023）
 /// </remarks>
-/// <typeparam name="TEntity">日志实体。</typeparam>
-/// <typeparam name="TItem">列表项。</typeparam>
-/// <typeparam name="TDetail">详情。</typeparam>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <typeparam name="TEntity">日志实体</typeparam>
+/// <typeparam name="TItem">列表项</typeparam>
+/// <typeparam name="TDetail">详情</typeparam>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWork unitOfWork)
     where TEntity : AuditLogRecord, new()
 {
     /// <summary>
-    /// 发生时间。
+    /// 发生时间
     /// </summary>
     protected const string FieldOccurredAt = "occurredAt";
 
@@ -39,12 +39,12 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     private const string FieldClientIp = "clientIp";
 
     /// <summary>
-    /// 时间下界没给时的扫描起点（早于任何月表）。
+    /// 时间下界没给时的扫描起点（早于任何月表）
     /// </summary>
     private static readonly DateTime _earliest = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     /// <summary>
-    /// 分页列出日志。
+    /// 分页列出日志
     /// </summary>
     public async ValueTask<Result<PageResult<TItem>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -146,10 +146,10 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     }
 
     /// <summary>
-    /// 按主键取一条（扫全部月表）。
+    /// 按主键取一条（扫全部月表）
     /// </summary>
     /// <remarks>
-    /// 不在当前一侧即找不到。
+    /// 不在当前一侧即找不到
     /// </remarks>
     public async ValueTask<Result<TDetail>> GetAsync(Guid id, InvocationContext context)
     {
@@ -161,7 +161,7 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     }
 
     /// <summary>
-    /// 当前一侧的日志：租户主体是本租户，平台主体是 <c>platform</c>。
+    /// 当前一侧的日志：租户主体是本租户，平台主体是 <c>platform</c>
     /// </summary>
     protected ISugarQueryable<TEntity> Scope(InvocationContext context)
     {
@@ -170,55 +170,55 @@ public abstract class AuditLogQueries<TEntity, TItem, TDetail>(SqlSugarUnitOfWor
     }
 
     /// <summary>
-    /// 关键字匹配哪些列。
+    /// 关键字匹配哪些列
     /// </summary>
     protected abstract ISugarQueryable<TEntity> ApplyKeyword(ISugarQueryable<TEntity> query, string keyword);
 
     /// <summary>
-    /// 本类日志特有的筛选。
+    /// 本类日志特有的筛选
     /// </summary>
-    /// <returns>筛选后的查询；不认识的返回 <see cref="Unsupported()"/>。</returns>
+    /// <returns>筛选后的查询；不认识的返回 <see cref="Unsupported()"/></returns>
     protected abstract Result<ISugarQueryable<TEntity>> ApplyFilter(ISugarQueryable<TEntity> query, string field, string op, string value);
 
     /// <summary>
-    /// 本类日志特有的排序。
+    /// 本类日志特有的排序
     /// </summary>
-    /// <returns>排序后的查询；不认识的返回 <see langword="null"/>。</returns>
+    /// <returns>排序后的查询；不认识的返回 <see langword="null"/></returns>
     protected abstract ISugarQueryable<TEntity>? ApplySort(ISugarQueryable<TEntity> query, string field, OrderByType direction);
 
     /// <summary>
-    /// 投影成列表项。
+    /// 投影成列表项
     /// </summary>
     protected abstract TItem MapItem(TEntity entity);
 
     /// <summary>
-    /// 投影成详情。
+    /// 投影成详情
     /// </summary>
     protected abstract TDetail MapDetail(TEntity entity);
 
     /// <summary>
-    /// 不支持的筛选（由 <see cref="ListAsync"/> 补上字段与运算符）。
+    /// 不支持的筛选（由 <see cref="ListAsync"/> 补上字段与运算符）
     /// </summary>
     protected static Error Unsupported() => Error.Validation(AuditingErrors.QueryUnsupported, AuditingMessages.FilterUnsupported);
 
     /// <summary>
-    /// 枚举值按名字解析（不区分大小写）。
+    /// 枚举值按名字解析（不区分大小写）
     /// </summary>
     protected static bool TryParseEnum<TEnum>(string value, out TEnum parsed)
         where TEnum : struct, Enum
         => Enum.TryParse(value, ignoreCase: true, out parsed) && Enum.IsDefined(parsed);
 
     /// <summary>
-    /// 不合法的筛选值。
+    /// 不合法的筛选值
     /// </summary>
     protected static Error InvalidValue(string field, string value)
         => Error.Validation(AuditingErrors.FilterValueInvalid, AuditingMessages.FilterValueInvalid, MessageArguments.Of(("field", field), ("value", value)));
 
     /// <summary>
-    /// 解析 <c>in</c> 筛选的值。
+    /// 解析 <c>in</c> 筛选的值
     /// </summary>
-    /// <param name="value">逗号分隔的枚举名。</param>
-    /// <returns>解析出的枚举；有一个不认识即 <see langword="null"/>。</returns>
+    /// <param name="value">逗号分隔的枚举名</param>
+    /// <returns>解析出的枚举；有一个不认识即 <see langword="null"/></returns>
     protected static TEnum[]? ParseEnums<TEnum>(string value)
         where TEnum : struct, Enum
     {

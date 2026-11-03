@@ -10,17 +10,17 @@ namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
 {{~ for col in RelationColumns ~}}
 
 /// <summary>
-/// {{ col.Label | xml_doc }}的选项。
+/// {{ col.Label | xml_doc }}的选项
 /// </summary>
 /// <remarks>
-/// <c>GET /api/{{ Resource }}:{{ col.CSharpProperty | kebab }}-options</c>：{{ col.Relation.Label | xml_doc }}的主键与显示名{{ if col.Relation.IsTree }}，带上级供前端组树{{ end }}。照 4.x「不焊外键」，表单下拉、列表显示名与搜索都用它，与列表同一个读权限。
+/// <c>GET /api/{{ Resource }}:{{ col.CSharpProperty | kebab }}-options</c>：{{ col.Relation.Label | xml_doc }}的主键与显示名{{ if col.Relation.IsTree }}，带上级供前端组树{{ end }}。照 4.x「不焊外键」，表单下拉、列表显示名与搜索都用它，与列表同一个读权限
 /// </remarks>
-/// <param name="queries">列表查询。</param>
+/// <param name="queries">列表查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = {{ ModuleName }}Permissions.{{ ResourcePascal }}Read)]
 public sealed class List{{ ClassName }}{{ col.CSharpProperty }}Options({{ ClassName }}Queries queries) : IOperation<{{ ClassName }}OptionsRequest, {{ ClassName }}OptionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "{{ Resource }}.{{ col.CSharpProperty | kebab }}-options";
 

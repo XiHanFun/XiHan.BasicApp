@@ -13,33 +13,33 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 新建委托的内容。
+/// 新建委托的内容
 /// </summary>
-/// <param name="DelegatorId">委托人。</param>
-/// <param name="DelegateeId">被委托人。</param>
-/// <param name="Permission">委托的权限码（与 <paramref name="RoleId"/> 二选一）。</param>
-/// <param name="RoleId">委托的角色。</param>
-/// <param name="EffectiveAt">生效时间；为空即立即生效。</param>
-/// <param name="ExpiresAt">到期时间。</param>
-/// <param name="Reason">委托原因。</param>
+/// <param name="DelegatorId">委托人</param>
+/// <param name="DelegateeId">被委托人</param>
+/// <param name="Permission">委托的权限码（与 <paramref name="RoleId"/> 二选一）</param>
+/// <param name="RoleId">委托的角色</param>
+/// <param name="EffectiveAt">生效时间；为空即立即生效</param>
+/// <param name="ExpiresAt">到期时间</param>
+/// <param name="Reason">委托原因</param>
 public sealed record DelegationDefinition(Guid DelegatorId, Guid DelegateeId, string? Permission, Guid? RoleId, DateTimeOffset? EffectiveAt, DateTimeOffset ExpiresAt, string? Reason);
 
 /// <summary>
-/// 委托的写入规则。
+/// 委托的写入规则
 /// </summary>
 /// <remarks>
-/// 见方案 5.9。
+/// 见方案 5.9
 /// 比 4.x 多三条：新建时委托人此刻须持有所委托的权限或角色；未到生效时间的到点自动生效（状态按时间推出）；
-/// 重复只看同一委托人、被委托人与目标上未撤销、未到期的那条，撤销或到期后可以重建。委托的角色须启用且不是内置角色。
+/// 重复只看同一委托人、被委托人与目标上未撤销、未到期的那条，撤销或到期后可以重建。委托的角色须启用且不是内置角色
 /// </remarks>
-/// <param name="delegations">委托仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="roles">角色查找。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="evaluator">授予全貌（委托人是否持有）。</param>
-/// <param name="cache">被委托人的委托缓存（写入后失效）。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="delegations">委托仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="roles">角色查找</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="evaluator">授予全貌（委托人是否持有）</param>
+/// <param name="cache">被委托人的委托缓存（写入后失效）</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时间源</param>
 public sealed class DelegationService(
     IRepository<SysPermissionDelegation, Guid> delegations,
     IRepository<SysUser, Guid> users,
@@ -51,17 +51,17 @@ public sealed class DelegationService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 原因的长度上限。
+    /// 原因的长度上限
     /// </summary>
     public const int MaxReasonLength = 512;
 
     /// <summary>
-    /// 当前时间（状态按它推出）。
+    /// 当前时间（状态按它推出）
     /// </summary>
     public DateTimeOffset Now => clock.GetUtcNow();
 
     /// <summary>
-    /// 按 ID 取这一侧的委托。
+    /// 按 ID 取这一侧的委托
     /// </summary>
     public async Task<Maybe<SysPermissionDelegation>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
@@ -70,7 +70,7 @@ public sealed class DelegationService(
     }
 
     /// <summary>
-    /// 新建一条委托。
+    /// 新建一条委托
     /// </summary>
     public async Task<Result<SysPermissionDelegation>> CreateAsync(string owner, DelegationDefinition definition, CancellationToken cancellationToken)
     {
@@ -181,7 +181,7 @@ public sealed class DelegationService(
     }
 
     /// <summary>
-    /// 撤销一条未撤销、未到期的委托（保留记录）。
+    /// 撤销一条未撤销、未到期的委托（保留记录）
     /// </summary>
     public async Task<Result> RevokeAsync(SysPermissionDelegation delegation, Guid? revokedBy, CancellationToken cancellationToken)
     {
@@ -205,7 +205,7 @@ public sealed class DelegationService(
     }
 
     /// <summary>
-    /// 删除一条委托记录（生效中的随之失效）。
+    /// 删除一条委托记录（生效中的随之失效）
     /// </summary>
     public async Task<Result> DeleteAsync(SysPermissionDelegation delegation, CancellationToken cancellationToken)
     {
@@ -221,7 +221,7 @@ public sealed class DelegationService(
     }
 
     /// <summary>
-    /// 删除角色时连同删掉委托这个角色的记录。
+    /// 删除角色时连同删掉委托这个角色的记录
     /// </summary>
     public async Task<Result> RemoveForRoleAsync(SysRole role, CancellationToken cancellationToken)
     {
@@ -250,7 +250,7 @@ public sealed class DelegationService(
     }
 
     /// <summary>
-    /// 委托涉及的用户与角色的显示名：用户为「显示名 (@登录名)」，角色为名称。
+    /// 委托涉及的用户与角色的显示名：用户为「显示名 (@登录名)」，角色为名称
     /// </summary>
     public async Task<(IReadOnlyDictionary<Guid, string> Users, IReadOnlyDictionary<Guid, string> Roles)> NamesAsync(IReadOnlyList<SysPermissionDelegation> rows, string owner, CancellationToken cancellationToken)
     {

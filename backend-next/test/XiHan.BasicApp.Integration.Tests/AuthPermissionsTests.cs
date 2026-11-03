@@ -8,10 +8,10 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证 <c>auth.permissions</c> 的展开、裁剪与权限目录。
+/// 验证 <c>auth.permissions</c> 的展开、裁剪与权限目录
 /// </summary>
 /// <remarks>
-/// 通配展开、按作用侧裁剪、角色摘要、按权限裁剪的菜单树（菜单种子来自各包页面登记、可重复执行）；<c>permissions.list</c> 的目录。
+/// 通配展开、按作用侧裁剪、角色摘要、按权限裁剪的菜单树（菜单种子来自各包页面登记、可重复执行）；<c>permissions.list</c> 的目录
 /// </remarks>
 public sealed class AuthPermissionsTests : IDisposable
 {

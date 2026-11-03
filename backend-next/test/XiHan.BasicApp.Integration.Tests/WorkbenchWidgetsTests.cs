@@ -12,11 +12,11 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证工作台小组件。
+/// 验证工作台小组件
 /// </summary>
 /// <remarks>
 /// 各包登记的小组件按调用方权限列出（平台侧的作业执行租户看不到），取数先核权限再交给登记它的包；
-/// 日志类按查看者的本地日统计（偏移由前端带来），构成只列前几项。
+/// 日志类按查看者的本地日统计（偏移由前端带来），构成只列前几项
 /// </remarks>
 public sealed class WorkbenchWidgetsTests : IDisposable
 {

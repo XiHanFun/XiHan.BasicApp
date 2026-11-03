@@ -2,8 +2,8 @@
  * 后端定义文档（框架 5 的 WorkflowJson）↔ 流程设计器的流程定义
  *
  * 预设只认 4.x 引擎的定义格式：先经映射层（~/designers/flow 的 fromWorkflowJson / toWorkflowJson）换成 4.x 的写法，
- * 再交给工作流引擎预设互转。坐标存 properties.designerLayout（{nodeId: {x,y}}），没列出的字段原样往返。
- * 打开时把人工任务的旧版受理人写法（Assignees / AssigneesExpression / CcUserIds）并入受理人规则，保存即落为新写法。
+ * 再交给工作流引擎预设互转。坐标存 properties.designerLayout（{nodeId: {x,y}}），没列出的字段原样往返
+ * 打开时把人工任务的旧版受理人写法（Assignees / AssigneesExpression / CcUserIds）并入受理人规则，保存即落为新写法
  */
 
 import type { FlowDocument, WorkflowJsonDefinition, XihanWorkflowDefinition } from '~/designers/flow'

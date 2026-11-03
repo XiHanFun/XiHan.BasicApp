@@ -20,8 +20,8 @@ function toMutableOptions(
 }
 
 /**
- * 字段脱敏：内置常用 formatter，供字段权限脱敏使用。
- * S2 可由后端 FLS 规则下发，覆盖此处默认。
+ * 字段脱敏：内置常用 formatter，供字段权限脱敏使用
+ * S2 可由后端 FLS 规则下发，覆盖此处默认
  */
 const maskers: Record<string, (value: string) => string> = {
   maskPhone: value => (value.length >= 11 ? `${value.slice(0, 3)}****${value.slice(-4)}` : value),
@@ -36,7 +36,7 @@ const maskers: Record<string, (value: string) => string> = {
 }
 
 /**
- * 解析格式化文本值（不含富渲染，供导出/详情复用）。
+ * 解析格式化文本值（不含富渲染，供导出/详情复用）
  */
 export function formatFieldText<TRow extends object>(
   field: ListFieldSchema<TRow>,
@@ -75,8 +75,8 @@ export function formatFieldText<TRow extends object>(
 }
 
 /**
- * 渲染单元格 VNode（表格列 render 使用）。
- * 自定义 field.render 优先级最高；其次按 dataType 走内置渲染；兜底为格式化文本。
+ * 渲染单元格 VNode（表格列 render 使用）
+ * 自定义 field.render 优先级最高；其次按 dataType 走内置渲染；兜底为格式化文本
  */
 export function renderFieldCell<TRow extends object>(
   field: ListFieldSchema<TRow>,

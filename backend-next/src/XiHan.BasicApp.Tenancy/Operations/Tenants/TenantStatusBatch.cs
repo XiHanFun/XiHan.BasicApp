@@ -10,15 +10,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 停用 / 恢复租户的共同骨架。
+/// 停用 / 恢复租户的共同骨架
 /// </summary>
 /// <remarks>
-/// 逐个找租户、置状态、写回并同步租户目录；已经是目标状态的算成功，<c>refuse</c> 给出错误码的记为逐项失败。
+/// 逐个找租户、置状态、写回并同步租户目录；已经是目标状态的算成功，<c>refuse</c> 给出错误码的记为逐项失败
 /// </remarks>
 internal static class TenantStatusBatch
 {
     /// <summary>
-    /// 执行一批。
+    /// 执行一批
     /// </summary>
     public static async ValueTask<Result<BatchResult>> RunAsync(TenantIdsRequest request, InvocationContext context, IRepository<SysTenant, Guid> tenants, TenantService service, TenantStatus target, Func<SysTenant, string?>? refuse = null)
     {

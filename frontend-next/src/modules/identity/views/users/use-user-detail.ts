@@ -19,8 +19,8 @@ export async function loadMemberships(userId: string): Promise<MembershipRow[]> 
 }
 
 /**
- * 查看详情：账号资料直接用列表行（同一份 `UserResponse`），角色与部门归属按区块另取。
- * 区块没开的保持 null（页面据此不出那一节）；取数失败把错误文案留在 error 上。
+ * 查看详情：账号资料直接用列表行（同一份 `UserResponse`），角色与部门归属按区块另取
+ * 区块没开的保持 null（页面据此不出那一节）；取数失败把错误文案留在 error 上
  */
 export function useUserDetail() {
   const open = ref(false)

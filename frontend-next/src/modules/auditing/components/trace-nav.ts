@@ -43,8 +43,8 @@ export interface TraceFieldOptions {
 }
 
 /**
- * 按指定维度深链到链路追踪页。
- * 时间窗口以给定时间为中心 ±1 天（无时间则回退近 7 天）。
+ * 按指定维度深链到链路追踪页
+ * 时间窗口以给定时间为中心 ±1 天（无时间则回退近 7 天）
  * @returns 值为空时返回 false，不跳转
  */
 export function gotoTraceDimension(router: Router, dimension: string, value: string | number | null | undefined, time?: string | null): boolean {
@@ -64,7 +64,7 @@ export function gotoTraceDimension(router: Router, dimension: string, value: str
 }
 
 /**
- * 从某条日志行深链到链路追踪页（维度优先级：TraceId → 会话标识 → 用户名）。
+ * 从某条日志行深链到链路追踪页（维度优先级：TraceId → 会话标识 → 用户名）
  * @returns 三个维度值都为空时返回 false
  */
 export function gotoTrace(router: Router, row: TraceNavRow, time?: string | null): boolean {
@@ -77,8 +77,8 @@ export function gotoTrace(router: Router, row: TraceNavRow, time?: string | null
 }
 
 /**
- * 给日志列表的关键维度列（用户名/会话标识/TraceId/IP）注入「点击跳转链路追踪」链接渲染。
- * 已带自定义 render 的列保持不变。
+ * 给日志列表的关键维度列（用户名/会话标识/TraceId/IP）注入「点击跳转链路追踪」链接渲染
+ * 已带自定义 render 的列保持不变
  */
 export function decorateTraceFields(fields: ListFieldSchema[], router: Router, options: TraceFieldOptions = {}): ListFieldSchema[] {
   const timeField = options.timeField ?? 'occurredAt'

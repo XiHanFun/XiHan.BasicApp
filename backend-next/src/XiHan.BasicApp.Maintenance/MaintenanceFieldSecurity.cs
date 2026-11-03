@@ -9,17 +9,17 @@ using XiHan.BasicApp.Maintenance.Operations.Versions;
 namespace XiHan.BasicApp.Maintenance;
 
 /// <summary>
-/// 运维包登记的字段安全实体。
+/// 运维包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同两个实体：版本台账与升级记录（只读）。字段由响应类型生成，规则由 Access 的字段安全中间件在列表与详情上统一套用。
+/// 4.x 同两个实体：版本台账与升级记录（只读）。字段由响应类型生成，规则由 Access 的字段安全中间件在列表与详情上统一套用
 /// </remarks>
 public static class MaintenanceFieldSecurity
 {
     /// <summary>
-    /// 登记本包的实体与操作。
+    /// 登记本包的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("maintenance", MaintenanceJsonContext.Default, fields => fields
             .Entity<SchemaVersionResponse>("maintenance.versions", "maintenance.versions.title", "maintenance.versions.")

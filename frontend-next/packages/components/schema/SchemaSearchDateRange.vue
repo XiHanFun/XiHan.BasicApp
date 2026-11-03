@@ -5,12 +5,12 @@ import { useI18n } from 'vue-i18n'
 import XDateRangePicker from '../common/XDateRangePicker.vue'
 
 /**
- * 搜索区间日期组件（封装：双端日期 + 便捷预设区间）。
- * - 值为 [startTs, endTs]（毫秒时间戳）或 null，受控 v-model:value。
- * - 快捷区间交给组件库的一等部件，摆在日历浮层里。
- * - date 字段两端按整日取：起点当日 00:00、终点当日 23:59:59.999（查询侧 queryFiltersFromSchema 同此口径）。
+ * 搜索区间日期组件（封装：双端日期 + 便捷预设区间）
+ * - 值为 [startTs, endTs]（毫秒时间戳）或 null，受控 v-model:value
+ * - 快捷区间交给组件库的一等部件，摆在日历浮层里
+ * - date 字段两端按整日取：起点当日 00:00、终点当日 23:59:59.999（查询侧 queryFiltersFromSchema 同此口径）
  * - datetime 字段带上时刻（日志查询要精确到分）：只点日期时两端补 00:00 与 23:59，
- *   终点含这一分钟、补到 59.999 秒；查询侧对 datetime 原样使用端点。
+ *   终点含这一分钟、补到 59.999 秒；查询侧对 datetime 原样使用端点
  */
 defineOptions({ name: 'SchemaSearchDateRange' })
 
@@ -49,7 +49,7 @@ function inclusiveEnd(timestamp: number): number {
 
 /**
  * 便捷预设区间。日子在 computed 里算一次：连接层每帧都会跑一遍，
- * 把「今天」放进渲染期会跨零点算出两个答案。
+ * 把「今天」放进渲染期会跨零点算出两个答案
  */
 const presets = computed(() => [
   { label: t('component.search_date_range.today'), value: dateRangePickerPresetRange(0, 0) },
@@ -62,7 +62,7 @@ const presets = computed(() => [
 
 /**
  * 选择器给的终点落在那一刻的开头（只到日时是零点、带时刻时是整分）；补成含到这一天 / 这一分钟，
- * 否则「选到今天」会把今天整天排除在外，「选到 18:00」会漏掉 18:00 那一分钟里的记录。
+ * 否则「选到今天」会把今天整天排除在外，「选到 18:00」会漏掉 18:00 那一分钟里的记录
  */
 function onRangeChange(next: [number, number] | null): void {
   if (next == null) {

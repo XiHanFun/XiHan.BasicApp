@@ -10,18 +10,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 修改套餐。
+/// 修改套餐
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/editions/{id}</c>（平台侧）。只动名称、说明、缺省标记与排序，不影响门控（白名单走 <c>editions.set-permissions</c>）。
+/// <c>PUT /api/editions/{id}</c>（平台侧）。只动名称、说明、缺省标记与排序，不影响门控（白名单走 <c>editions.set-permissions</c>）
 /// </remarks>
-/// <param name="editions">套餐仓储。</param>
-/// <param name="service">套餐域服务。</param>
+/// <param name="editions">套餐仓储</param>
+/// <param name="service">套餐域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsUpdate)]
 public sealed class UpdateEdition(IRepository<SysEdition, Guid> editions, EditionService service) : IOperation<UpdateEditionRequest, EditionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "editions.update";
 

@@ -7,7 +7,7 @@ import { COUNT_COMPACT } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 异常类型：近 30 天异常按异常类名的占比，只列最多的几种，其余并成「其他」；类名只写最后一段，完整名在提示里。
+ * 异常类型：近 30 天异常按异常类名的占比，只列最多的几种，其余并成「其他」；类名只写最后一段，完整名在提示里
  */
 defineOptions({ name: 'ExceptionTypesWidget' })
 

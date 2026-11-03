@@ -133,7 +133,7 @@ export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）。
+ * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）
  */
 export function telegramBotResource(t: Translate): SchemaResource<TelegramBotRow> {
   return {

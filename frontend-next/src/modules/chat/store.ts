@@ -67,8 +67,8 @@ function isLocalMessage(message: ChatMessageItem): boolean {
 
 /**
  * 按会话内序号把一条已落库消息插进列表：排在第一条序号比它大的已落库消息之前；
- * 比现有的都新时排在最后一条已落库消息之后，本地占位与发送失败的条目留在最下方。
- * 4.x 按雪花 ID 的长度与字典序比先后，6.0 的主键是 GUID，先后只看 seq。
+ * 比现有的都新时排在最后一条已落库消息之后，本地占位与发送失败的条目留在最下方
+ * 4.x 按雪花 ID 的长度与字典序比先后，6.0 的主键是 GUID，先后只看 seq
  */
 function insertBySeq(list: ChatLocalMessage[], item: ChatLocalMessage): void {
   const before = list.findIndex(m => !isLocalMessage(m) && m.seq > item.seq)
@@ -89,7 +89,7 @@ function insertBySeq(list: ChatLocalMessage[], item: ChatLocalMessage): void {
 /**
  * 聊天状态 store —— 会话列表（含未读合计供顶栏角标）+ 按会话的消息缓存 +
  * 乐观上屏/撤回/已读/typing。数据经本模块注入缝（api-contract）的 ChatApiContract，实时事件由
- * 壳层扩展的集成钩子 use-chat-integration 订阅后回灌本 store。
+ * 壳层扩展的集成钩子 use-chat-integration 订阅后回灌本 store
  */
 export const useChatStore = defineStore('chat', () => {
   const conversations = ref<ChatConversationListItem[]>([])
@@ -116,9 +116,9 @@ export const useChatStore = defineStore('chat', () => {
   /** 会话草稿（localStorage 持久化） */
   const drafts = ref<Record<string, string>>(LocalStorage.get<Record<string, string>>(CHAT_DRAFTS_STORAGE_KEY) ?? {})
   /**
-   * 语音「已听」记录，仅存本机（localStorage）。
-   * 条目形如 `用户ID:消息ID`：同一浏览器换账号登录时不会互相染色。
-   * 服务端不留痕，因此换设备/清缓存后旧语音会重新显示未听红点。
+   * 语音「已听」记录，仅存本机（localStorage）
+   * 条目形如 `用户ID:消息ID`：同一浏览器换账号登录时不会互相染色
+   * 服务端不留痕，因此换设备/清缓存后旧语音会重新显示未听红点
    */
   const playedVoiceKeys = ref<string[]>(LocalStorage.get<string[]>(CHAT_VOICE_PLAYED_STORAGE_KEY) ?? [])
   const playedVoiceSet = computed(() => new Set(playedVoiceKeys.value))
@@ -135,7 +135,7 @@ export const useChatStore = defineStore('chat', () => {
   /** 聊天浮动面板打开请求（版本计数器：顶栏按钮递增、面板组件 watch 响应） */
   const chatPanelVersion = ref(0)
   /**
-   * 发起本次打开请求的元素（顶栏聊天按钮）：面板首次贴着它落位，关闭后焦点送回它。
+   * 发起本次打开请求的元素（顶栏聊天按钮）：面板首次贴着它落位，关闭后焦点送回它
    * 显式传入而不取 document.activeElement——Safari 点按钮不给焦点，页面自动聚焦的输入框也会被误当锚点
    */
   const chatPanelOrigin = shallowRef<HTMLElement | null>(null)
@@ -357,7 +357,7 @@ export const useChatStore = defineStore('chat', () => {
 
   /**
    * REST 回执 / 推送到达后收敛：clientMessageId 匹配的乐观占位换成正式消息，messageId 已在的不重复插入
-   * （保留已有那条：历史里带的表情回应推送不带）；正式消息按 seq 落位，推送乱序到达也排得对。
+   * （保留已有那条：历史里带的表情回应推送不带）；正式消息按 seq 落位，推送乱序到达也排得对
    */
   function reconcileSaved(saved: ChatMessageItem) {
     const list = messages.value[saved.conversationId]
@@ -589,7 +589,7 @@ export const useChatStore = defineStore('chat', () => {
 
   /**
    * 会话置顶开关（个人维度）。6.0 的接口传新值而不是切换：新值取列表里的当前值取反，
-   * 不在列表里的会话不知道当前值，不发请求。
+   * 不在列表里的会话不知道当前值，不发请求
    */
   async function togglePinConversation(conversationId: string) {
     const current = findConversation(conversationId)
@@ -634,8 +634,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 群聊某条自己消息的已读人数（不含自己）；单聊则表示对端是否已读。
-   * 按会话内序号比较：成员的已读序号不小于这条的 seq 即已读（4.x 按雪花 ID 的长度与字典序比）；还没落库的占位（seq 0）不算。
+   * 群聊某条自己消息的已读人数（不含自己）；单聊则表示对端是否已读
+   * 按会话内序号比较：成员的已读序号不小于这条的 seq 即已读（4.x 按雪花 ID 的长度与字典序比）；还没落库的占位（seq 0）不算
    */
   function readCountFor(conversationId: string, seq: number): number {
     const positions = readPositions.value[conversationId]

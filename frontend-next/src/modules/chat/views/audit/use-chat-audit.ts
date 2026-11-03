@@ -18,7 +18,7 @@ export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = ['Text', 'Image', 
 /**
  * 列表的后端筛选（与后端 ChatAuditQueries 的白名单一致）：关键字匹配正文、发送人名与附件；
  * 会话与发送人精确匹配，消息类型多选（合成 in），发送时间按区间（拆成 ge / le），已撤回精确匹配；
- * includeRecalled 是伪筛选：后端没给 isRecalled 时缺省不含已撤回的，给 includeRecalled=true 即都看。
+ * includeRecalled 是伪筛选：后端没给 isRecalled 时缺省不含已撤回的，给 includeRecalled=true 即都看
  */
 export const CHAT_AUDIT_QUERY: PageQueryMapping = {
   ranges: ['createdAt'],
@@ -90,7 +90,7 @@ export function memberRoleTone(role: ChatMemberRole): Tone {
 
 /**
  * 一次只看一条的按需加载（详情、成员两个弹窗共用）：打开即清掉上一条，换来的结果只认最后一次打开的那条，
- * 关掉或连点别的行时，慢回来的旧结果不回写。失败抛给调用方提示。
+ * 关掉或连点别的行时，慢回来的旧结果不回写。失败抛给调用方提示
  */
 export function useAuditLoader<TKey, TValue>(load: (key: TKey) => Promise<TValue>) {
   const open = ref(false)

@@ -4,6 +4,6 @@
 namespace XiHan.BasicApp.Access.Operations.Auth;
 
 /// <summary>
-/// <c>auth.permissions</c> 的请求：没有输入。
+/// <c>auth.permissions</c> 的请求：没有输入
 /// </summary>
 public sealed record PermissionsRequest;

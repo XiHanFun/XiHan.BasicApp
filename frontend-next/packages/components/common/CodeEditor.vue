@@ -44,8 +44,8 @@ const emit = defineEmits<{
   'update:value': [value: string]
 }>()
 
-// 离线安全：把 monaco 的 web worker 随应用打包（?worker），不走 CDN。
-// 首次挂载编辑器前执行；本组件异步懒加载，故仅在真正用到编辑器时才付出代价。
+// 离线安全：把 monaco 的 web worker 随应用打包（?worker），不走 CDN
+// 首次挂载编辑器前执行；本组件异步懒加载，故仅在真正用到编辑器时才付出代价
 window.MonacoEnvironment = {
   getWorker(_workerId, label) {
     if (label === 'json') {

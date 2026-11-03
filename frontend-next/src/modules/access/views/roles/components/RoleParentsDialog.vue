@@ -10,8 +10,8 @@ import { roles as rolesApi } from '~/contracts'
 import { buildRoleParentOptions, directParentIds, sameParents } from '../role-parents'
 
 /**
- * 设置上级角色：本角色继承所选上级经启用角色可达的授权，上级的拒绝同样作用于本角色。
- * 一次提交整组直接上级（空即解除全部继承）。
+ * 设置上级角色：本角色继承所选上级经启用角色可达的授权，上级的拒绝同样作用于本角色
+ * 一次提交整组直接上级（空即解除全部继承）
  */
 defineOptions({ name: 'RoleParentsDialog' })
 

@@ -16,19 +16,19 @@ using XiHan.Framework.Workflow.Abstractions.Serialization;
 namespace XiHan.BasicApp.Workflow.Operations.WorkflowDefinitions;
 
 /// <summary>
-/// 流程定义列表。
+/// 流程定义列表
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-definitions:list</c>。当前一侧的定义（平台只看平台的，租户只看本租户的），框架在存储里按关键字（名字、显示名、说明）、名字、分类、状态与创建时间过滤、
-/// 按多列排序（照 4.x）并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>。
+/// 按多列排序（照 4.x）并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsRead)]
 public sealed class ListWorkflowDefinitions(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<PageRequest, PageResult<WorkflowDefinitionResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.list";
 
@@ -51,18 +51,18 @@ public sealed class ListWorkflowDefinitions(IWorkflowDefinitionCatalog catalog, 
 }
 
 /// <summary>
-/// 流程定义详情。
+/// 流程定义详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-definitions/{id}</c>。带整份定义（WorkflowJson），设计器按它打开；别的分区的当作不存在。
+/// <c>GET /api/workflow-definitions/{id}</c>。带整份定义（WorkflowJson），设计器按它打开；别的分区的当作不存在
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsRead)]
 public sealed class GetWorkflowDefinition(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<GetWorkflowDefinitionRequest, WorkflowDefinitionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.get";
 
@@ -77,18 +77,18 @@ public sealed class GetWorkflowDefinition(IWorkflowDefinitionCatalog catalog, Wo
 }
 
 /// <summary>
-/// 新建流程定义草稿。
+/// 新建流程定义草稿
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions</c>。文档按框架的 WorkflowJson 读（不合法即 <c>WORKFLOW_VALIDATION_001</c>），ID 由框架分配，版本按同名最大版本加一；建草稿不做结构校验，发布时才校验。
+/// <c>POST /api/workflow-definitions</c>。文档按框架的 WorkflowJson 读（不合法即 <c>WORKFLOW_VALIDATION_001</c>），ID 由框架分配，版本按同名最大版本加一；建草稿不做结构校验，发布时才校验
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsCreate)]
 public sealed class CreateWorkflowDefinition(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<CreateWorkflowDefinitionRequest, WorkflowDefinitionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.create";
 
@@ -109,18 +109,18 @@ public sealed class CreateWorkflowDefinition(IWorkflowDefinitionCatalog catalog,
 }
 
 /// <summary>
-/// 改流程定义草稿。
+/// 改流程定义草稿
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/workflow-definitions/{id}</c>。只有草稿能改（别的状态是框架的 <c>WORKFLOW_CONFLICT_002</c>）；名字与版本沿用已存的。
+/// <c>PUT /api/workflow-definitions/{id}</c>。只有草稿能改（别的状态是框架的 <c>WORKFLOW_CONFLICT_002</c>）；名字与版本沿用已存的
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsUpdate)]
 public sealed class UpdateWorkflowDefinition(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<UpdateWorkflowDefinitionRequest, WorkflowDefinitionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.update";
 
@@ -147,19 +147,19 @@ public sealed class UpdateWorkflowDefinition(IWorkflowDefinitionCatalog catalog,
 }
 
 /// <summary>
-/// 发布流程定义。
+/// 发布流程定义
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-definitions/{id}:publish</c>。单条（照 4.x，设计稿 D10）：关联了审批业务（名字等于业务码）的定义先过业务校验
-/// （每个结束节点的结论在业务允许的范围里、没有终止节点），再由框架做结构校验，不合法即 <c>WORKFLOW_VALIDATION_001</c>，问题列表在 <c>details.errors</c>。
+/// （每个结束节点的结论在业务允许的范围里、没有终止节点），再由框架做结构校验，不合法即 <c>WORKFLOW_VALIDATION_001</c>，问题列表在 <c>details.errors</c>
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsUpdate)]
 public sealed class PublishWorkflowDefinition(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<PublishWorkflowDefinitionRequest, WorkflowDefinitionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.publish";
 
@@ -189,18 +189,18 @@ public sealed class PublishWorkflowDefinition(IWorkflowDefinitionCatalog catalog
 }
 
 /// <summary>
-/// 按名字开新版本。
+/// 按名字开新版本
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions:new-version</c>。以这个名字的最新版本为底复制出新草稿（照 4.x 归新建权限）。
+/// <c>POST /api/workflow-definitions:new-version</c>。以这个名字的最新版本为底复制出新草稿（照 4.x 归新建权限）
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsCreate)]
 public sealed class NewWorkflowDefinitionVersion(IWorkflowDefinitionCatalog catalog, WorkflowBusinessRegistry business) : IOperation<NewWorkflowDefinitionVersionRequest, WorkflowDefinitionDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.new-version";
 
@@ -215,17 +215,17 @@ public sealed class NewWorkflowDefinitionVersion(IWorkflowDefinitionCatalog cata
 }
 
 /// <summary>
-/// 停用流程定义。
+/// 停用流程定义
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions:disable</c>。批量，只停已发布的；存量实例照常跑完。
+/// <c>POST /api/workflow-definitions:disable</c>。批量，只停已发布的；存量实例照常跑完
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
+/// <param name="catalog">定义目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsUpdate)]
 public sealed class DisableWorkflowDefinitions(IWorkflowDefinitionCatalog catalog) : IOperation<WorkflowDefinitionIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.disable";
 
@@ -240,17 +240,17 @@ public sealed class DisableWorkflowDefinitions(IWorkflowDefinitionCatalog catalo
 }
 
 /// <summary>
-/// 归档流程定义。
+/// 归档流程定义
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions:archive</c>。批量，任何状态都能归档。
+/// <c>POST /api/workflow-definitions:archive</c>。批量，任何状态都能归档
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
+/// <param name="catalog">定义目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsUpdate)]
 public sealed class ArchiveWorkflowDefinitions(IWorkflowDefinitionCatalog catalog) : IOperation<WorkflowDefinitionIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.archive";
 
@@ -265,17 +265,17 @@ public sealed class ArchiveWorkflowDefinitions(IWorkflowDefinitionCatalog catalo
 }
 
 /// <summary>
-/// 删除流程定义草稿。
+/// 删除流程定义草稿
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/workflow-definitions?ids=</c>。批量，只删草稿（别的状态是框架的 <c>WORKFLOW_CONFLICT_002</c>）。
+/// <c>DELETE /api/workflow-definitions?ids=</c>。批量，只删草稿（别的状态是框架的 <c>WORKFLOW_CONFLICT_002</c>）
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
+/// <param name="catalog">定义目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.DefinitionsDelete)]
 public sealed class DeleteWorkflowDefinitions(IWorkflowDefinitionCatalog catalog) : IOperation<WorkflowDefinitionIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.delete";
 
@@ -305,17 +305,17 @@ public sealed class DeleteWorkflowDefinitions(IWorkflowDefinitionCatalog catalog
 }
 
 /// <summary>
-/// 审批业务目录。
+/// 审批业务目录
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-definitions:business-types</c>。各包登记的审批业务：业务码（即流程定义名）、显示名文案键、单据组件、发起变量与允许的结论，设计器「关联业务」用。
+/// <c>GET /api/workflow-definitions:business-types</c>。各包登记的审批业务：业务码（即流程定义名）、显示名文案键、单据组件、发起变量与允许的结论，设计器「关联业务」用
 /// </remarks>
-/// <param name="business">审批业务登记表。</param>
+/// <param name="business">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.DefinitionsRead)]
 public sealed class ListWorkflowBusinessTypes(WorkflowBusinessRegistry business) : IOperation<ListWorkflowBusinessTypesRequest, WorkflowBusinessTypesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.business-types";
 
@@ -325,17 +325,17 @@ public sealed class ListWorkflowBusinessTypes(WorkflowBusinessRegistry business)
 }
 
 /// <summary>
-/// 活动类型目录。
+/// 活动类型目录
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-definitions:activity-types</c>。框架登记的活动里设计器能放的那些（照 4.x 的节点，不含 Script 与框架 5 新增的事件网关、补偿、外部任务，W4、W5）。
+/// <c>GET /api/workflow-definitions:activity-types</c>。框架登记的活动里设计器能放的那些（照 4.x 的节点，不含 Script 与框架 5 新增的事件网关、补偿、外部任务，W4、W5）
 /// </remarks>
-/// <param name="catalog">定义目录。</param>
+/// <param name="catalog">定义目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.DefinitionsRead)]
 public sealed class ListWorkflowActivityTypes(IWorkflowDefinitionCatalog catalog) : IOperation<ListWorkflowActivityTypesRequest, WorkflowActivityTypesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-definitions.activity-types";
 
@@ -345,7 +345,7 @@ public sealed class ListWorkflowActivityTypes(IWorkflowDefinitionCatalog catalog
 }
 
 /// <summary>
-/// 定义操作共用的读取与换算。
+/// 定义操作共用的读取与换算
 /// </summary>
 internal static class WorkflowDefinitions
 {
@@ -363,7 +363,7 @@ internal static class WorkflowDefinitions
     }
 
     /// <summary>
-    /// 读请求里的定义文档，ID 换成给定的（框架要求文档带 ID 与版本）。
+    /// 读请求里的定义文档，ID 换成给定的（框架要求文档带 ID 与版本）
     /// </summary>
     public static Result<WorkflowDefinition> Parse(string document, string id)
     {

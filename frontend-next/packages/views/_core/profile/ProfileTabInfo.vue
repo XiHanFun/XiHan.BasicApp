@@ -110,8 +110,8 @@ const genderOptions = computed(() => [
 
 // ==================== 头像上传 / 删除 ====================
 // 与 4.x 不同：4.x 先把文件传进文件库、再经 updateProfileApi 把 fileId 写进资料（去掉头像写空串）；
-// 6.0 的头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不再带头像。
-// 会话里的用户由壳层换成后端回的那份（userStore 是会话的投影，顶栏与侧栏头像随之刷新），这里只重拉资料。
+// 6.0 的头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不再带头像
+// 会话里的用户由壳层换成后端回的那份（userStore 是会话的投影，顶栏与侧栏头像随之刷新），这里只重拉资料
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const AVATAR_ACCEPT = ['image/jpeg', 'image/png']

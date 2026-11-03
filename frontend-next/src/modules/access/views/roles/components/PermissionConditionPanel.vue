@@ -12,7 +12,7 @@ import { verdictLabel, verdictTone } from '../condition-trial'
 import { composeAttributeName, CONDITION_OPERATORS, groupConditions, nextGroupNumber, requiresValue, resolveAttribute } from '../permission-condition'
 
 /**
- * 一条授权上的条件：组内且、组间或，可增改、启停、删除。角色授权与用户直授共用；能做什么由调用方按权限码给出，后端照样校验。
+ * 一条授权上的条件：组内且、组间或，可增改、启停、删除。角色授权与用户直授共用；能做什么由调用方按权限码给出，后端照样校验
  */
 defineOptions({ name: 'PermissionConditionPanel' })
 

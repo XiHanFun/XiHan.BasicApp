@@ -11,10 +11,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证工作单元：一次调用里的多次写入一起提交或一起回滚。
+/// 验证工作单元：一次调用里的多次写入一起提交或一起回滚
 /// </summary>
 /// <remarks>
-/// 单库版本；双库版本见 Smoke/MultiDatabaseSmokeTests。
+/// 单库版本；双库版本见 Smoke/MultiDatabaseSmokeTests
 /// </remarks>
 public sealed class TransactionTests : IDisposable
 {

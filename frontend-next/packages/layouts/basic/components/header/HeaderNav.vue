@@ -49,7 +49,7 @@ function isLast(isHome: boolean, index?: number): boolean {
 }
 
 /**
- * 过渡列表的直接子项：每级一条，级间一个分隔符，key 各自写明。
+ * 过渡列表的直接子项：每级一条，级间一个分隔符，key 各自写明
  * 不能一级一个模板同出条目与分隔符：模板子项上不许写 key，Vue 便拿模板 key 拼序号，
  * 而带 v-if 的分隔符被编译器补上 key 0，与条目的序号 0 拼成同一个 key
  */
@@ -69,7 +69,7 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
     <!-- 顶栏只有一行：皮肤缺省 flex-wrap 会在顶栏挤压时把路径折成两行，这里改为不换行，
          各项按比例压缩并在文字上出省略号（根与列表都要 min-w-0 才压得动） -->
     <XhBreadcrumbList class="flex min-w-0 flex-nowrap items-center">
-      <!-- 路由层级一变，新出现的那几级从行尾一侧滑入；退场的当场摘掉，不和新的并排挤一帧。
+      <!-- 路由层级一变，新出现的那几级从行尾一侧滑入；退场的当场摘掉，不和新的并排挤一帧
            TransitionGroup 不渲包裹元素，各级与分隔符仍是列表的直接子项，key 见 crumbEntries -->
       <TransitionGroup name="crumb">
         <!-- 可去的层级是真链接：link 部件 as-child 借 RouterLink 渲出带 href 的 <a>，跳转交给路由，

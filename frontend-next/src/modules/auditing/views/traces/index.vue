@@ -161,8 +161,8 @@ function reset() {
 type StatusKind = 'success' | 'error' | 'warning' | 'info'
 
 /**
- * 状态归一：以后端归并的 item.status 为权威来源（访问结果、成败、是否拦下等已折算成同一口径）。
- * 不按原始 HTTP 码判色；HTTP 码仅用于状态标签文案（statusText）。
+ * 状态归一：以后端归并的 item.status 为权威来源（访问结果、成败、是否拦下等已折算成同一口径）
+ * 不按原始 HTTP 码判色；HTTP 码仅用于状态标签文案（statusText）
  */
 function statusKind(item: TraceItem): StatusKind {
   switch (item.status) {

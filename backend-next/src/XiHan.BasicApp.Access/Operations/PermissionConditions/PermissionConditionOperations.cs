@@ -13,17 +13,17 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Operations.PermissionConditions;
 
 /// <summary>
-/// 列出条件属性目录。
+/// 列出条件属性目录
 /// </summary>
 /// <remarks>
-/// <c>GET /api/permission-conditions:attributes</c>。权限条件与访问策略共用，带每个属性可用的运算符与认证前能否取得。
+/// <c>GET /api/permission-conditions:attributes</c>。权限条件与访问策略共用，带每个属性可用的运算符与认证前能否取得
 /// </remarks>
-/// <param name="registry">条件属性登记表。</param>
+/// <param name="registry">条件属性登记表</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
 public sealed class ListConditionAttributes(IConditionAttributeRegistry registry) : IOperation<ConditionAttributesRequest, ConditionAttributesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.attributes";
 
@@ -36,7 +36,7 @@ public sealed class ListConditionAttributes(IConditionAttributeRegistry registry
     }
 
     /// <summary>
-    /// 登记表投影成目录（访问策略的 <c>policies.attributes</c> 共用）。
+    /// 登记表投影成目录（访问策略的 <c>policies.attributes</c> 共用）
     /// </summary>
     public static ConditionAttributesResponse Of(IConditionAttributeRegistry registry)
     {
@@ -48,17 +48,17 @@ public sealed class ListConditionAttributes(IConditionAttributeRegistry registry
 }
 
 /// <summary>
-/// 列出一个主体上的授权绑定与条件。
+/// 列出一个主体上的授权绑定与条件
 /// </summary>
 /// <remarks>
-/// <c>GET /api/permission-conditions?subjectKind=&amp;subjectId=</c>。授予来自框架授予存储，拒绝来自规则行；子句含停用的。
+/// <c>GET /api/permission-conditions?subjectKind=&amp;subjectId=</c>。授予来自框架授予存储，拒绝来自规则行；子句含停用的
 /// </remarks>
-/// <param name="service">条件服务。</param>
+/// <param name="service">条件服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
 public sealed class ListPermissionConditions(PermissionConditionService service) : IOperation<PermissionConditionsRequest, PermissionConditionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.list";
 
@@ -84,17 +84,17 @@ public sealed class ListPermissionConditions(PermissionConditionService service)
 }
 
 /// <summary>
-/// 在授权绑定上加一条条件子句。
+/// 在授权绑定上加一条条件子句
 /// </summary>
 /// <remarks>
-/// <c>POST /api/permission-conditions</c>。挂在授予上是满足才授予，挂在拒绝上是满足才拒绝；调用时按请求属性判定。
+/// <c>POST /api/permission-conditions</c>。挂在授予上是满足才授予，挂在拒绝上是满足才拒绝；调用时按请求属性判定
 /// </remarks>
-/// <param name="service">条件服务。</param>
+/// <param name="service">条件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsCreate)]
 public sealed class CreatePermissionCondition(PermissionConditionService service) : IOperation<CreatePermissionConditionRequest, PermissionConditionResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.create";
 
@@ -116,17 +116,17 @@ public sealed class CreatePermissionCondition(PermissionConditionService service
 }
 
 /// <summary>
-/// 修改一条条件子句（含启停）。
+/// 修改一条条件子句（含启停）
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/permission-conditions/{id}</c>。启用时重新校验绑定。
+/// <c>PUT /api/permission-conditions/{id}</c>。启用时重新校验绑定
 /// </remarks>
-/// <param name="service">条件服务。</param>
+/// <param name="service">条件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsUpdate)]
 public sealed class UpdatePermissionCondition(PermissionConditionService service) : IOperation<UpdatePermissionConditionRequest, PermissionConditionResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.update";
 
@@ -152,17 +152,17 @@ public sealed class UpdatePermissionCondition(PermissionConditionService service
 }
 
 /// <summary>
-/// 删除条件子句。
+/// 删除条件子句
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/permission-conditions?ids=</c>。
+/// <c>DELETE /api/permission-conditions?ids=</c>
 /// </remarks>
-/// <param name="service">条件服务。</param>
+/// <param name="service">条件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsDelete)]
 public sealed class DeletePermissionConditions(PermissionConditionService service) : IOperation<PermissionConditionIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.delete";
 
@@ -197,15 +197,15 @@ public sealed class DeletePermissionConditions(PermissionConditionService servic
 }
 
 /// <summary>
-/// 权限条件的权限变更日志（ConditionChange）。
+/// 权限条件的权限变更日志（ConditionChange）
 /// </summary>
 /// <remarks>
-/// 目标是角色或用户，明细写动作、绑定与子句。
+/// 目标是角色或用户，明细写动作、绑定与子句
 /// </remarks>
 internal static class ConditionLog
 {
     /// <summary>
-    /// 记一条。
+    /// 记一条
     /// </summary>
     public static void Record(InvocationContext context, SysPermissionCondition condition, string action)
     {
@@ -220,17 +220,17 @@ internal static class ConditionLog
 }
 
 /// <summary>
-/// 条件试算。
+/// 条件试算
 /// </summary>
 /// <remarks>
-/// <c>GET /api/permission-conditions:trial</c>。一个用户在一个权限码上按给定的请求情形判定，逐组逐子句说明；按他此刻的有效指派与委托，不看令牌。
+/// <c>GET /api/permission-conditions:trial</c>。一个用户在一个权限码上按给定的请求情形判定，逐组逐子句说明；按他此刻的有效指派与委托，不看令牌
 /// </remarks>
-/// <param name="insight">试算与盘点。</param>
+/// <param name="insight">试算与盘点</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class TrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionTrialRequest, ConditionTrialResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.trial";
 
@@ -244,17 +244,17 @@ public sealed class TrialPermissionCondition(ConditionInsightService insight) : 
 }
 
 /// <summary>
-/// 影响试算。
+/// 影响试算
 /// </summary>
 /// <remarks>
-/// <c>GET /api/permission-conditions:batch-trial</c>。一个绑定影响到的人此刻各自的结论（角色即它及其下级角色的有效成员，最多 200 人）。
+/// <c>GET /api/permission-conditions:batch-trial</c>。一个绑定影响到的人此刻各自的结论（角色即它及其下级角色的有效成员，最多 200 人）
 /// </remarks>
-/// <param name="insight">试算与盘点。</param>
+/// <param name="insight">试算与盘点</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class BatchTrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionBatchTrialRequest, ConditionBatchTrialResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.batch-trial";
 
@@ -268,17 +268,17 @@ public sealed class BatchTrialPermissionCondition(ConditionInsightService insigh
 }
 
 /// <summary>
-/// 条件盘点。
+/// 条件盘点
 /// </summary>
 /// <remarks>
-/// <c>GET /api/permission-conditions:inventory</c>。这一侧每条子句的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论。
+/// <c>GET /api/permission-conditions:inventory</c>。这一侧每条子句的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论
 /// </remarks>
-/// <param name="insight">试算与盘点。</param>
+/// <param name="insight">试算与盘点</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class PermissionConditionInventory(ConditionInsightService insight) : IOperation<ConditionInventoryRequest, ConditionInventoryResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "permission-conditions.inventory";
 

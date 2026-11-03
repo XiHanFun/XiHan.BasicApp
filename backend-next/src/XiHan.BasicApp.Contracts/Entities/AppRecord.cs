@@ -6,10 +6,10 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Contracts.Entities;
 
 /// <summary>
-/// 只增记录基类：<see cref="AppEntity"/> + 创建时间 + 创建人。
+/// 只增记录基类：<see cref="AppEntity"/> + 创建时间 + 创建人
 /// </summary>
 /// <remarks>
-/// 用于日志、流水、投递记录。
+/// 用于日志、流水、投递记录
 /// </remarks>
 public abstract class AppRecord : AppEntity, IHasCreationTime, IHasCreator
 {

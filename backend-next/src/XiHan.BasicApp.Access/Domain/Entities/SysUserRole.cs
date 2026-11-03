@@ -7,11 +7,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 用户与角色的指派（平台库实体）。
+/// 用户与角色的指派（平台库实体）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 与角色相同，用户的注册地必须是同一侧。
-/// 可带生效与到期时间：不在有效期内的指派不进令牌，也不参与判定（令牌里已有的角色到期即由权限过滤器拿掉）。
+/// <see cref="OwnerTenantId"/> 与角色相同，用户的注册地必须是同一侧
+/// 可带生效与到期时间：不在有效期内的指派不进令牌，也不参与判定（令牌里已有的角色到期即由权限过滤器拿掉）
 /// </remarks>
 [SugarIndex("ux_{table}_role_id_user_id", nameof(RoleId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
 [SugarIndex("ix_{table}_owner_tenant_id_user_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
@@ -21,33 +21,33 @@ public sealed class SysUserRole : AppRecord, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 用户 ID。
+    /// 用户 ID
     /// </summary>
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 角色 ID。
+    /// 角色 ID
     /// </summary>
     public Guid RoleId { get; set; }
 
     /// <summary>
-    /// 生效时间。
+    /// 生效时间
     /// </summary>
     /// <remarks>
-    /// 为空即立即生效。
+    /// 为空即立即生效
     /// </remarks>
     public DateTimeOffset? EffectiveAt { get; set; }
 
     /// <summary>
-    /// 到期时间（不含）。
+    /// 到期时间（不含）
     /// </summary>
     /// <remarks>
-    /// 为空即长期有效。
+    /// 为空即长期有效
     /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
-    /// 此刻是否在有效期内。
+    /// 此刻是否在有效期内
     /// </summary>
     public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 }

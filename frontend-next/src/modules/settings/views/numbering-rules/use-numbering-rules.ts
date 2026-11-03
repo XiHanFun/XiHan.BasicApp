@@ -97,8 +97,8 @@ function formatOf(form: Pick<RuleForm, 'dateFormat' | 'prefix' | 'resetCycle' | 
 }
 
 /**
- * SchemaPage 的资源：分页（平台：平台规则；租户：自己的 + 供租户使用的平台规则）、删除、启停与导入新建。
- * 搜索字段按后端白名单下发：所属 / 状态 / 重置周期精确匹配，关键字匹配编码与名称。
+ * SchemaPage 的资源：分页（平台：平台规则；租户：自己的 + 供租户使用的平台规则）、删除、启停与导入新建
+ * 搜索字段按后端白名单下发：所属 / 状态 / 重置周期精确匹配，关键字匹配编码与名称
  */
 export function numberingRulesResource(): SchemaResource<RuleRow> {
   return {
@@ -148,7 +148,7 @@ export function numberingRulesResource(): SchemaResource<RuleRow> {
 
 /**
  * 规则的编辑弹窗（两侧都有）：新建（写在调用方这一侧）、编辑本侧规则（发过号后格式冻结，只能改名称、说明、状态与是否供租户使用）、
- * 按表单里的格式预览一个号（不发号）。只有平台规则能供租户使用；另一侧的规则只读。字段级错误挂回对应字段。
+ * 按表单里的格式预览一个号（不发号）。只有平台规则能供租户使用；另一侧的规则只读。字段级错误挂回对应字段
  */
 export function useNumberingRuleEditor(isPlatformCaller: () => boolean) {
   const open = ref(false)
@@ -256,8 +256,8 @@ export function useNumberingRuleEditor(isPlatformCaller: () => boolean) {
 }
 
 /**
- * 安全重置弹窗：下一个值要在位数范围内、大于本周期已发出的最大值（可向前跳、不能回退）；平台规则要回填规则编码确认，理由必填。
- * 缺省预填当前流水 + 1；18 位流水按字符串传输以免精度丢失。字段级错误挂回对应字段。
+ * 安全重置弹窗：下一个值要在位数范围内、大于本周期已发出的最大值（可向前跳、不能回退）；平台规则要回填规则编码确认，理由必填
+ * 缺省预填当前流水 + 1；18 位流水按字符串传输以免精度丢失。字段级错误挂回对应字段
  */
 export function useNumberingReset() {
   const open = ref(false)
@@ -325,8 +325,8 @@ export interface PreviewMetadata {
 export type PreviewOutcome = 'done' | 'invalid_count' | 'invalid_start' | 'stale'
 
 /**
- * 规则预览面板：按已保存规则的格式拼单个或连续一批号（1 到 50 个，不消耗流水）。
- * 条件一变就清掉旧结果；版本号隔离快速切换规则时的旧响应。
+ * 规则预览面板：按已保存规则的格式拼单个或连续一批号（1 到 50 个，不消耗流水）
+ * 条件一变就清掉旧结果；版本号隔离快速切换规则时的旧响应
  */
 export function useNumberingPreview() {
   /** 批量模式缺省展示十个连续编号 */
@@ -407,8 +407,8 @@ export function useNumberingPreview() {
 }
 
 /**
- * 发号记录抽屉：按规则远程分页、关键字匹配幂等键 / 业务类型 / 业务单据。租户对供租户使用的平台规则只看到自己发起的。
- * 版本号隔离快速切换规则时的旧响应；记录只读。
+ * 发号记录抽屉：按规则远程分页、关键字匹配幂等键 / 业务类型 / 业务单据。租户对供租户使用的平台规则只看到自己发起的
+ * 版本号隔离快速切换规则时的旧响应；记录只读
  */
 export function useNumberingAllocations(pageSize = 10) {
   const rule = ref<RuleRow | null>(null)

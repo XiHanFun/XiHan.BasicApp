@@ -15,11 +15,11 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证邮箱 / 手机验证码登录。
+/// 验证邮箱 / 手机验证码登录
 /// </summary>
 /// <remarks>
 /// 登录方式由系统参数 <c>identity.login-methods</c> 开放（没建只有密码，写错即报错）；发码对账号不存在、不唯一一律回答已发送而不发，
-/// 只有恰好一个正常账号（邮箱不分大小写、手机号要已验证）才真发；码对即登录，用过作废，码错计入节流；开了双因素的账号照样要第二步。
+/// 只有恰好一个正常账号（邮箱不分大小写、手机号要已验证）才真发；码对即登录，用过作废，码错计入节流；开了双因素的账号照样要第二步
 /// </remarks>
 public sealed class LoginByCodeTests : IDisposable
 {

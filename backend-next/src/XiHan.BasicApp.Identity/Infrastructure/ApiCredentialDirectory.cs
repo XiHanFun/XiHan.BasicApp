@@ -17,24 +17,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// <see cref="IApiCredentialDirectory"/> 的实现。
+/// <see cref="IApiCredentialDirectory"/> 的实现
 /// </summary>
 /// <remarks>
-/// 签名开放接口在 Authenticate 阶段按 AppKey 取凭证（那时还没有工作单元，经 <see cref="StoreScope"/> 在独立作用域里只读）。
-/// 不缓存：停用、删除、滚动密钥与改白名单都立即生效。账号不正常（停用、锁定中）时凭证照样取出，由调用方按 <see cref="ApiCredentialRecord.UserActive"/> 拒绝。
+/// 签名开放接口在 Authenticate 阶段按 AppKey 取凭证（那时还没有工作单元，经 <see cref="StoreScope"/> 在独立作用域里只读）
+/// 不缓存：停用、删除、滚动密钥与改白名单都立即生效。账号不正常（停用、锁定中）时凭证照样取出，由调用方按 <see cref="ApiCredentialRecord.UserActive"/> 拒绝
 /// </remarks>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="secrets">密钥保护。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="secrets">密钥保护</param>
+/// <param name="clock">时间源</param>
 public sealed class ApiCredentialDirectory(IServiceScopeFactory scopes, ISecretProtector secrets, TimeProvider clock) : IApiCredentialDirectory
 {
     /// <summary>
-    /// 最近使用时间的写入间隔：本实例一分钟内重复的调用不再写库。
+    /// 最近使用时间的写入间隔：本实例一分钟内重复的调用不再写库
     /// </summary>
     private static readonly TimeSpan _touchInterval = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// 本实例上次写库的时间（按凭证）。
+    /// 本实例上次写库的时间（按凭证）
     /// </summary>
     private readonly ConcurrentDictionary<Guid, DateTimeOffset> _touched = new();
 

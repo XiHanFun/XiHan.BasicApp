@@ -25,7 +25,7 @@ import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 /**
  * 找回密码：4.x 只按邮箱发一次性重置链接，6.0 发验证码（auth.request-password-reset），
- * 同一页填码与新密码（auth.reset-password），设好后这个账号的全部会话失效，回登录页用新密码登录。
+ * 同一页填码与新密码（auth.reset-password），设好后这个账号的全部会话失效，回登录页用新密码登录
  */
 defineOptions({ name: 'ForgetPasswordPage' })
 

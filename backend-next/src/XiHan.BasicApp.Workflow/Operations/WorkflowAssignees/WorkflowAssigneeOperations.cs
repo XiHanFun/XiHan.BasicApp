@@ -12,85 +12,85 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Workflow.Operations.WorkflowAssignees;
 
 /// <summary>
-/// 选用户。
+/// 选用户
 /// </summary>
-/// <param name="Keyword">关键字（登录名、显示名）。</param>
-/// <param name="Ids">按 ID 回显（给了就不按关键字搜）。</param>
-/// <param name="Limit">按关键字搜时最多返回几个（1～200，缺省 50）。</param>
+/// <param name="Keyword">关键字（登录名、显示名）</param>
+/// <param name="Ids">按 ID 回显（给了就不按关键字搜）</param>
+/// <param name="Limit">按关键字搜时最多返回几个（1～200，缺省 50）</param>
 public sealed record ListAssigneeUsersRequest([property: StringLength(64)] string? Keyword = null, [property: MaxLength(200)] IReadOnlyList<Guid>? Ids = null, [property: Range(1, ListAssigneeUsers.MaxLimit)] int? Limit = null);
 
 /// <summary>
-/// 可选的用户。
+/// 可选的用户
 /// </summary>
-/// <param name="Items">用户。</param>
+/// <param name="Items">用户</param>
 public sealed record AssigneeUsersResponse(IReadOnlyList<AssigneeUser> Items);
 
 /// <summary>
-/// 一个可选的用户。
+/// 一个可选的用户
 /// </summary>
-/// <param name="Id">用户 ID。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="DisplayName">显示名。</param>
+/// <param name="Id">用户 ID</param>
+/// <param name="UserName">登录名</param>
+/// <param name="DisplayName">显示名</param>
 public sealed record AssigneeUser(Guid Id, string UserName, string DisplayName);
 
 /// <summary>
-/// 选角色、岗位或部门。
+/// 选角色、岗位或部门
 /// </summary>
 public sealed record ListAssigneeOptionsRequest;
 
 /// <summary>
-/// 可选的角色或岗位。
+/// 可选的角色或岗位
 /// </summary>
-/// <param name="Items">选项。</param>
+/// <param name="Items">选项</param>
 public sealed record AssigneeOptionsResponse(IReadOnlyList<AssigneeOption> Items);
 
 /// <summary>
-/// 一个可选的角色或岗位。
+/// 一个可选的角色或岗位
 /// </summary>
-/// <param name="Id">ID。</param>
-/// <param name="Code">编码（受理人规则按编码引用）。</param>
-/// <param name="Name">名称。</param>
+/// <param name="Id">ID</param>
+/// <param name="Code">编码（受理人规则按编码引用）</param>
+/// <param name="Name">名称</param>
 public sealed record AssigneeOption(Guid Id, string Code, string Name);
 
 /// <summary>
-/// 可选的部门。
+/// 可选的部门
 /// </summary>
-/// <param name="Items">部门的平铺清单，前端按上级 ID 组树。</param>
+/// <param name="Items">部门的平铺清单，前端按上级 ID 组树</param>
 public sealed record AssigneeDepartmentsResponse(IReadOnlyList<AssigneeDepartment> Items);
 
 /// <summary>
-/// 一个可选的部门。
+/// 一个可选的部门
 /// </summary>
-/// <param name="Id">部门 ID。</param>
-/// <param name="ParentId">上级部门 ID。</param>
-/// <param name="Code">编码（受理人规则按编码引用）。</param>
-/// <param name="Name">名称。</param>
-/// <param name="IsActive">是否启用。</param>
+/// <param name="Id">部门 ID</param>
+/// <param name="ParentId">上级部门 ID</param>
+/// <param name="Code">编码（受理人规则按编码引用）</param>
+/// <param name="Name">名称</param>
+/// <param name="IsActive">是否启用</param>
 public sealed record AssigneeDepartment(Guid Id, Guid? ParentId, string Code, string Name, bool IsActive);
 
 /// <summary>
-/// 选用户。
+/// 选用户
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-assignees:users</c>。照 4.x 只要登录（转办、加签也要选人），只返回 ID、登录名与显示名，不带联系方式。
-/// 按关键字搜的是当前一侧可见的在用账号（运维支持成员不算），缺省 50 个、至多 200 个；按 ID 回显的是这一侧可见的账号，含停用的（已经选过的人照样念得出名字）。
+/// <c>GET /api/workflow-assignees:users</c>。照 4.x 只要登录（转办、加签也要选人），只返回 ID、登录名与显示名，不带联系方式
+/// 按关键字搜的是当前一侧可见的在用账号（运维支持成员不算），缺省 50 个、至多 200 个；按 ID 回显的是这一侧可见的账号，含停用的（已经选过的人照样念得出名字）
 /// </remarks>
-/// <param name="users">用户目录。</param>
+/// <param name="users">用户目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Policy = Policies.Authenticated)]
 public sealed class ListAssigneeUsers(IUserDirectory users) : IOperation<ListAssigneeUsersRequest, AssigneeUsersResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-assignees.users";
 
     /// <summary>
-    /// 一次搜索缺省返回的用户数。
+    /// 一次搜索缺省返回的用户数
     /// </summary>
     public const int DefaultLimit = 50;
 
     /// <summary>
-    /// 一次搜索最多返回的用户数。
+    /// 一次搜索最多返回的用户数
     /// </summary>
     public const int MaxLimit = 200;
 
@@ -113,17 +113,17 @@ public sealed class ListAssigneeUsers(IUserDirectory users) : IOperation<ListAss
 }
 
 /// <summary>
-/// 选角色。
+/// 选角色
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-assignees:roles</c>。当前一侧启用的角色（受理人规则按编码引用）。
+/// <c>GET /api/workflow-assignees:roles</c>。当前一侧启用的角色（受理人规则按编码引用）
 /// </remarks>
-/// <param name="roles">角色成员目录。</param>
+/// <param name="roles">角色成员目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.AssigneesRead)]
 public sealed class ListAssigneeRoles(IRoleMemberDirectory roles) : IOperation<ListAssigneeOptionsRequest, AssigneeOptionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-assignees.roles";
 
@@ -137,17 +137,17 @@ public sealed class ListAssigneeRoles(IRoleMemberDirectory roles) : IOperation<L
 }
 
 /// <summary>
-/// 选岗位。
+/// 选岗位
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-assignees:positions</c>。本租户启用的岗位；平台一侧没有组织，为空。
+/// <c>GET /api/workflow-assignees:positions</c>。本租户启用的岗位；平台一侧没有组织，为空
 /// </remarks>
-/// <param name="organization">组织目录。</param>
+/// <param name="organization">组织目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.AssigneesRead)]
 public sealed class ListAssigneePositions(IOrganizationDirectory organization) : IOperation<ListAssigneeOptionsRequest, AssigneeOptionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-assignees.positions";
 
@@ -161,17 +161,17 @@ public sealed class ListAssigneePositions(IOrganizationDirectory organization) :
 }
 
 /// <summary>
-/// 选部门。
+/// 选部门
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-assignees:departments</c>。本租户的部门（含停用的，前端标出）；平台一侧没有组织，为空。
+/// <c>GET /api/workflow-assignees:departments</c>。本租户的部门（含停用的，前端标出）；平台一侧没有组织，为空
 /// </remarks>
-/// <param name="organization">组织目录。</param>
+/// <param name="organization">组织目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.AssigneesRead)]
 public sealed class ListAssigneeDepartments(IOrganizationDirectory organization) : IOperation<ListAssigneeOptionsRequest, AssigneeDepartmentsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-assignees.departments";
 

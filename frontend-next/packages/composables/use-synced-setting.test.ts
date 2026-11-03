@@ -1,7 +1,7 @@
 /**
- * bindSyncedSetting：跨端同步设置的通用接法。
+ * bindSyncedSetting：跨端同步设置的通用接法
  * 锁定：关着同步立即就绪不拉取；已在手的后端值同步采用；开着同步等后端那份、超时先就绪；
- * 拉取与推送都经 apply 应用、经 writeLocal 写回本地；空数组照样采用；编辑中不覆盖；onReady 只调一次；dispose 退订并清计时。
+ * 拉取与推送都经 apply 应用、经 writeLocal 写回本地；空数组照样采用；编辑中不覆盖；onReady 只调一次；dispose 退订并清计时
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSyncedSetting, SYNCED_SETTING_WAIT } from './useSyncedSetting'

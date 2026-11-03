@@ -11,17 +11,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Operations.OauthApps;
 
 /// <summary>
-/// 分页列出 OAuth 应用。
+/// 分页列出 OAuth 应用
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-apps:list</c>（平台建的与用户在「我的应用」里建的都在内，密钥不回显）。
+/// <c>POST /api/oauth-apps:list</c>（平台建的与用户在「我的应用」里建的都在内，密钥不回显）
 /// </remarks>
-/// <param name="queries">查询。</param>
+/// <param name="queries">查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
 public sealed class ListOAuthApps(OAuthAppQueries queries) : IOperation<PageRequest, PageResult<OAuthAppResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.list";
 
@@ -30,14 +30,14 @@ public sealed class ListOAuthApps(OAuthAppQueries queries) : IOperation<PageRequ
 }
 
 /// <summary>
-/// 取一个 OAuth 应用：<c>GET /api/oauth-apps/{id}</c>。
+/// 取一个 OAuth 应用：<c>GET /api/oauth-apps/{id}</c>
 /// </summary>
-/// <param name="service">应用服务。</param>
+/// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
 public sealed class GetOAuthApp(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.get";
 
@@ -52,17 +52,17 @@ public sealed class GetOAuthApp(OAuthAppService service) : IOperation<OAuthAppId
 }
 
 /// <summary>
-/// 新建 OAuth 应用。
+/// 新建 OAuth 应用
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-apps</c>（ClientId 重复 <c>OPENPLATFORM_CONFLICT_002</c>；机密客户端的密钥只在这一次返回，4.x 管理端建不了公开客户端，这里可以）。
+/// <c>POST /api/oauth-apps</c>（ClientId 重复 <c>OPENPLATFORM_CONFLICT_002</c>；机密客户端的密钥只在这一次返回，4.x 管理端建不了公开客户端，这里可以）
 /// </remarks>
-/// <param name="service">应用服务。</param>
+/// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsCreate)]
 public sealed class CreateOAuthApp(OAuthAppService service) : IOperation<CreateOAuthAppRequest, OAuthAppSecretResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.create";
 
@@ -77,17 +77,17 @@ public sealed class CreateOAuthApp(OAuthAppService service) : IOperation<CreateO
 }
 
 /// <summary>
-/// 修改 OAuth 应用（整体覆盖，含启停）。
+/// 修改 OAuth 应用（整体覆盖，含启停）
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/oauth-apps/{id}</c>。ClientId、客户端类型与密钥不变。
+/// <c>PUT /api/oauth-apps/{id}</c>。ClientId、客户端类型与密钥不变
 /// </remarks>
-/// <param name="service">应用服务。</param>
+/// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
 public sealed class UpdateOAuthApp(OAuthAppService service) : IOperation<UpdateOAuthAppRequest, OAuthAppResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.update";
 
@@ -108,17 +108,17 @@ public sealed class UpdateOAuthApp(OAuthAppService service) : IOperation<UpdateO
 }
 
 /// <summary>
-/// 重置 OAuth 应用的密钥。
+/// 重置 OAuth 应用的密钥
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-apps/{id}:reset-secret</c>（旧密钥立即失效；公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）。
+/// <c>POST /api/oauth-apps/{id}:reset-secret</c>（旧密钥立即失效；公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）
 /// </remarks>
-/// <param name="service">应用服务。</param>
+/// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
 public sealed class ResetOAuthAppSecret(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppSecretResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.reset-secret";
 
@@ -139,17 +139,17 @@ public sealed class ResetOAuthAppSecret(OAuthAppService service) : IOperation<OA
 }
 
 /// <summary>
-/// 批量删除 OAuth 应用。
+/// 批量删除 OAuth 应用
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/oauth-apps?ids=</c>（软删除，发出的令牌随应用失效；4.x 有授权码或令牌就不让删，记录又没有清理，应用永远删不掉）。
+/// <c>DELETE /api/oauth-apps?ids=</c>（软删除，发出的令牌随应用失效；4.x 有授权码或令牌就不让删，记录又没有清理，应用永远删不掉）
 /// </remarks>
-/// <param name="service">应用服务。</param>
+/// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsDelete)]
 public sealed class DeleteOAuthApps(OAuthAppService service) : IOperation<OAuthAppIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "oauth-apps.delete";
 

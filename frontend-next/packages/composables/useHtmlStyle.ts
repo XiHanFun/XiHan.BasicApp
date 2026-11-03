@@ -7,8 +7,8 @@ import { useAppStore } from '~/stores'
 const ROOT_FONT_SIZE_BASELINE = 16
 
 /**
- * 将主题 / 密度 / 图表配色 / 灰度 / 色弱 / 字号 / 磨砂等偏好实时同步到 <html> 元素。
- * 在 App 根组件中调用一次即可。
+ * 将主题 / 密度 / 图表配色 / 灰度 / 色弱 / 字号 / 磨砂等偏好实时同步到 <html> 元素
+ * 在 App 根组件中调用一次即可
  */
 export function useHtmlStyle() {
   const appStore = useAppStore()
@@ -28,7 +28,7 @@ export function useHtmlStyle() {
     // Portal 视觉桥再把它投影到浮层壳，下拉、菜单与页面同一档
     el.dataset.density = appStore.uiDensity
 
-    // 图表配色由组件库按 [data-xh-chart-palette] 取值：分类色槽与色块内文字整套换掉，画布渲染的图表跟着重画。
+    // 图表配色由组件库按 [data-xh-chart-palette] 取值：分类色槽与色块内文字整套换掉，画布渲染的图表跟着重画
     // 多彩分类是不写这个属性时的缺省方案，选它就把属性撤掉
     if (appStore.chartPalette === DEFAULT_CHART_PALETTE)
       delete el.dataset.xhChartPalette

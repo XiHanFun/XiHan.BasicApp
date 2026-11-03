@@ -6,19 +6,19 @@ using System.ComponentModel.DataAnnotations;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// <c>tenants.create</c> 的请求。
+/// <c>tenants.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 开通一个租户（写业务实体并登记进租户目录）；管理员另由 <c>tenants.initialize-admin</c> 初始化。
+/// 开通一个租户（写业务实体并登记进租户目录）；管理员另由 <c>tenants.initialize-admin</c> 初始化
 /// </remarks>
-/// <param name="TenantId">租户 ID：字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>-</c>，最长 64；创建后不可改。</param>
-/// <param name="Name">名称：1 到 128 个字符。</param>
-/// <param name="Description">说明，可空。</param>
-/// <param name="ExpiresAt">到期时间（UTC），可空。</param>
-/// <param name="Order">排序号。</param>
-/// <param name="EditionId">套餐；不填即缺省套餐（没有缺省套餐时 <c>TENANCY_VALIDATION_003</c>）。</param>
-/// <param name="UserLimit">租户自己的席位上限，覆盖套餐的；为空即沿用套餐。</param>
-/// <param name="StorageLimitMb">租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐。</param>
+/// <param name="TenantId">租户 ID：字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>-</c>，最长 64；创建后不可改</param>
+/// <param name="Name">名称：1 到 128 个字符</param>
+/// <param name="Description">说明，可空</param>
+/// <param name="ExpiresAt">到期时间（UTC），可空</param>
+/// <param name="Order">排序号</param>
+/// <param name="EditionId">套餐；不填即缺省套餐（没有缺省套餐时 <c>TENANCY_VALIDATION_003</c>）</param>
+/// <param name="UserLimit">租户自己的席位上限，覆盖套餐的；为空即沿用套餐</param>
+/// <param name="StorageLimitMb">租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐</param>
 public sealed record CreateTenantRequest(
     [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string TenantId,
     [Required, StringLength(128, MinimumLength = 1)] string Name,

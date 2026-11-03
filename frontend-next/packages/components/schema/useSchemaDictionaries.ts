@@ -5,13 +5,13 @@ import { ensureDictOptions, getDictOptions, loadAsyncOptions } from '~/composabl
 import { useEnumService } from '~/hooks'
 
 /**
- * Schema 字典/枚举异步取值。
+ * Schema 字典/枚举异步取值
  *
  * 字段声明 `dictionaryCode`（后端枚举类型名）、`dictCode`（系统字典编码）或 `optionsLoader`（异步加载器，
  * 如外键关联记录）后，运行时拉取选项并注入到字段 `options`：单元格按值映射 label、
- * 搜索区自动渲染为下拉、导入按选项文本反查值。
+ * 搜索区自动渲染为下拉、导入按选项文本反查值
  * 解析结果优先；解析为空（未加载/未部署）时回退字段静态 `options`，
- * 故字段可同时声明取值来源 + 静态 `options`，绝不出现空下拉。
+ * 故字段可同时声明取值来源 + 静态 `options`，绝不出现空下拉
  */
 export interface UseSchemaDictionaries {
   /** dictionaryCode → 选项（响应式，随元数据加载填充） */
@@ -83,7 +83,7 @@ export function useSchemaDictionaries(
   }
 
   // 触发整库拉取（并发去重）。切语言由 useEnumService 全局监听整库重取一次，
-  // optionsMap 读响应式 enumState 自动更新，故此处无需再各自监听 locale（否则每页各发一次请求）。
+  // optionsMap 读响应式 enumState 自动更新，故此处无需再各自监听 locale（否则每页各发一次请求）
   async function resolve(): Promise<void> {
     await Promise.all([
       codes.value.length > 0 ? enumService.ensureBatch(codes.value) : undefined,

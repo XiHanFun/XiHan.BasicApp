@@ -1,6 +1,6 @@
 <!--
-  模拟打印数据填写弹窗。
-  职责：根据当前模板实际字段绑定生成表单，管理单对象/对象数组样例，并仅在内存中向预览入口提交纯打印数据。
+  模拟打印数据填写弹窗
+  职责：根据当前模板实际字段绑定生成表单，管理单对象/对象数组样例，并仅在内存中向预览入口提交纯打印数据
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 }>()
 
 interface EditableRecord {
-  /** 仅用于页签稳定渲染，不写入打印数据。 */
+  /** 仅用于页签稳定渲染，不写入打印数据 */
   id: string
   data: Record<string, unknown>
 }
@@ -59,7 +59,7 @@ let initializationVersion = 0
 const recordsHeadingId = useId()
 /**
  * 字段表单只写一份：多条记录时摆进当前记录的标签面板（只有标签带没有面板，触发器的 aria-controls 会落空），
- * 单条记录时直接摆。
+ * 单条记录时直接摆
  */
 const [DefineRecordFields, ReuseRecordFields] = createReusableTemplate()
 
@@ -86,9 +86,9 @@ onBeforeUnmount(() => {
 })
 
 /**
- * 初始化样例字段结构：字段取模板引用的那些；绑定数据源时样例用它的工厂，自由模板是一条按字段生成的空白记录。
- * @returns 初始化完成信号。
- * @throws 所有异常都会转换为弹窗内错误，不向事件循环泄漏。
+ * 初始化样例字段结构：字段取模板引用的那些；绑定数据源时样例用它的工厂，自由模板是一条按字段生成的空白记录
+ * @returns 初始化完成信号
+ * @throws 所有异常都会转换为弹窗内错误，不向事件循环泄漏
  */
 async function initialize(): Promise<void> {
   const requestVersion = ++initializationVersion
@@ -124,8 +124,8 @@ async function initialize(): Promise<void> {
 }
 
 /**
- * 重新执行样例工厂，恢复当前数据源最新默认数据。
- * @returns 重置完成信号。
+ * 重新执行样例工厂，恢复当前数据源最新默认数据
+ * @returns 重置完成信号
  */
 async function resetDefaultSample(): Promise<void> {
   if (loading.value || props.submitting)
@@ -134,10 +134,10 @@ async function resetDefaultSample(): Promise<void> {
 }
 
 /**
- * 更新当前记录的普通字段或整个明细表。
- * @param field 模板表单字段。
- * @param value 新值。
- * @returns 无返回值。
+ * 更新当前记录的普通字段或整个明细表
+ * @param field 模板表单字段
+ * @param value 新值
+ * @returns 无返回值
  */
 function updateField(field: PrintSampleFormField, value: unknown): void {
   const current = currentRecord.value
@@ -150,7 +150,7 @@ function updateField(field: PrintSampleFormField, value: unknown): void {
     : record)
 }
 
-/** 新增一条按当前模板字段初始化的空白顶层记录。 */
+/** 新增一条按当前模板字段初始化的空白顶层记录 */
 function addRecord(): void {
   const record = {
     id: crypto.randomUUID(),
@@ -160,7 +160,7 @@ function addRecord(): void {
   activeRecordId.value = record.id
 }
 
-/** 复制当前记录及其嵌套明细，确保新记录不存在共享引用。 */
+/** 复制当前记录及其嵌套明细，确保新记录不存在共享引用 */
 function duplicateRecord(): void {
   const current = currentRecord.value
   if (!current)
@@ -175,7 +175,7 @@ function duplicateRecord(): void {
   activeRecordId.value = duplicate.id
 }
 
-/** 删除当前记录；顶层数组至少保留一条，避免提交空载荷。 */
+/** 删除当前记录；顶层数组至少保留一条，避免提交空载荷 */
 function deleteRecord(): void {
   if (records.value.length <= 1)
     return
@@ -186,8 +186,8 @@ function deleteRecord(): void {
 }
 
 /**
- * 提交不含组件 UUID 的模拟数据；真正预览由所属入口负责并使用 loading 锁。
- * @returns 无返回值。
+ * 提交不含组件 UUID 的模拟数据；真正预览由所属入口负责并使用 loading 锁
+ * @returns 无返回值
  */
 function submitPreview(): void {
   if (!canPreview.value || props.submitting)
@@ -196,19 +196,19 @@ function submitPreview(): void {
   emit('preview', payload)
 }
 
-/** 拒绝在提交期间关闭，避免预览结果与用户看到的表单状态错位。 */
+/** 拒绝在提交期间关闭，避免预览结果与用户看到的表单状态错位 */
 function requestVisible(value: boolean): void {
   if (!value && !props.submitting)
     emit('update:show', false)
 }
 
-/** 用独立数据和 UUID 替换全部记录。 */
+/** 用独立数据和 UUID 替换全部记录 */
 function setRecords(values: readonly Record<string, unknown>[]): void {
   records.value = values.map(data => ({ id: crypto.randomUUID(), data: clonePrintSampleRecord(data) }))
   activeRecordId.value = records.value[0]?.id ?? ''
 }
 
-/** 清理所有模拟数据引用，确保关闭后不会在页面状态中保留打印内容。 */
+/** 清理所有模拟数据引用，确保关闭后不会在页面状态中保留打印内容 */
 function clearSession(): void {
   initializationVersion += 1
   loading.value = false

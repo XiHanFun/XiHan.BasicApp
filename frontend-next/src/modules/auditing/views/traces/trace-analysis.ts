@@ -21,7 +21,7 @@ function pathnameOf(raw?: string | null): string {
 
 /**
  * 日志落在哪个模块：接口路径取资源段（/api/roles/{id}:grant → roles），没有路径的访问与操作日志取操作 ID 的资源段，
- * 非 /api 的路径取前两段，数据变更取实体类型名；登录、权限变更等没有可归类的返回 null。
+ * 非 /api 的路径取前两段，数据变更取实体类型名；登录、权限变更等没有可归类的返回 null
  */
 export function traceModuleOf(item: TraceItem): string | null {
   const segments = pathnameOf(item.path).split('/').filter(Boolean)
@@ -65,9 +65,9 @@ export interface TraceFlowLabels {
 const OTHER_MODULE_ID = 'module:*'
 
 /**
- * 流向：日志类型 → 模块 → 结果，流量为条数。没有模块的日志从类型直接流到结果。
- * 模块只留条数最多的前 maxModules 个，其余并成「其他模块」，免得一列几十个节点挤成一片。
- * 节点次序即展示次序：类型、模块按条数由多到少，结果按 成功 → 信息 → 警告 → 失败。
+ * 流向：日志类型 → 模块 → 结果，流量为条数。没有模块的日志从类型直接流到结果
+ * 模块只留条数最多的前 maxModules 个，其余并成「其他模块」，免得一列几十个节点挤成一片
+ * 节点次序即展示次序：类型、模块按条数由多到少，结果按 成功 → 信息 → 警告 → 失败
  */
 export function buildTraceFlow(items: readonly TraceItem[], labels: TraceFlowLabels, maxModules = 10) {
   const moduleCounts = new Map<string, number>()
@@ -168,8 +168,8 @@ function floorToBucket(time: number, minutes: number): Date {
 export type TraceTimeBucket = { start: Date, end: Date } & Record<TraceResult, number>
 
 /**
- * 时间分布：从最早一条到最晚一条连续铺桶，没有日志的时段也占位（计 0），空档一眼可见。
- * 返回桶宽（分钟）与各桶按结果分类的条数。
+ * 时间分布：从最早一条到最晚一条连续铺桶，没有日志的时段也占位（计 0），空档一眼可见
+ * 返回桶宽（分钟）与各桶按结果分类的条数
  */
 export function buildTraceTimeBuckets(items: readonly TraceItem[], maxBuckets = 60) {
   const times = items.map(item => new Date(item.occurredAt).getTime())

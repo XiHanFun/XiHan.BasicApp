@@ -1,8 +1,8 @@
 /**
- * 审批人选择数据源（workflow-directory.ts）的单元测试。
+ * 审批人选择数据源（workflow-directory.ts）的单元测试
  *
  * 锁定：后端给的部门是平铺清单，按上级 ID 排成树序、label 带上级路径，停用的部门只念得出名字、不能再选；
- * 用户回显只拿 GUID 形式的 ID 去查，见过的用户不再请求。
+ * 用户回显只拿 GUID 形式的 ID 去查，见过的用户不再请求
  */
 import type { AssigneeDepartment } from './workflow-directory'
 import { describe, expect, it } from 'vitest'

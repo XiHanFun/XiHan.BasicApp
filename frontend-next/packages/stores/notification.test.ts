@@ -1,8 +1,8 @@
 /**
- * 通知 Store（notification）单元测试。
+ * 通知 Store（notification）单元测试
  * 职责边界：只覆盖头部铃铃需要的轻量状态——「需要关注」口径（未读 或 需确认未确认）、
- * 站内信/提及我两条列表的派生、标记已读/已确认/全部已读的时间戳写入、插入与 $reset。
- * 管理页 CRUD 走 notificationApi，不在本文件范围内。
+ * 站内信/提及我两条列表的派生、标记已读/已确认/全部已读的时间戳写入、插入与 $reset
+ * 管理页 CRUD 走 notificationApi，不在本文件范围内
  */
 import type { NotificationItem } from './notification'
 import { createPinia, setActivePinia } from 'pinia'

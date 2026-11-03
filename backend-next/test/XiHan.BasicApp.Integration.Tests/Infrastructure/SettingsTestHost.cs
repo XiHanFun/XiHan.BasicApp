@@ -12,15 +12,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 设置包用例的起手。
+/// 设置包用例的起手
 /// </summary>
 /// <remarks>
-/// 跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）。
+/// 跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）
 /// </remarks>
 public static class SettingsTestHost
 {
     /// <summary>
-    /// 起宿主并准备两侧的令牌。
+    /// 起宿主并准备两侧的令牌
     /// </summary>
     public static async Task<(BasicAppTestServer Server, string Platform, string Tenant)> StartAsync(string connectionString, string provider = "sqlite", Action<WebApplicationBuilder>? configure = null)
     {
@@ -39,7 +39,7 @@ public static class SettingsTestHost
     }
 
     /// <summary>
-    /// 进程内发起一次调用（完整内核管道）：<paramref name="tenantId"/> 为空即平台上下文。
+    /// 进程内发起一次调用（完整内核管道）：<paramref name="tenantId"/> 为空即平台上下文
     /// </summary>
     public static async Task<T> InvokeAsync<T>(BasicAppTestServer server, string? tenantId, Func<InvocationContext, ValueTask<T>> action)
     {

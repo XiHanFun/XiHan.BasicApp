@@ -15,32 +15,32 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// Telegram 的出站。
+/// Telegram 的出站
 /// </summary>
 /// <remarks>
 /// 4.x TelegramNotifier 同一套。发消息、发图片 / 文件、改消息与改按钮会重试并审计——429、5xx 与网络错误按退避重试
 /// （429 等 <c>retry_after</c>，超过 <see cref="TelegramRetryOptions.MaxRetryAfterSeconds"/> 即按失败处理），成功或最终失败各记一条 <see cref="SysTelegramMessage"/>，
-/// 最终失败再私发每个管理员一条告警（告警本身不再告警）；回调应答、内联查询应答与管理调用（getMe、setWebhook 等）直接调用，不重试不审计。
+/// 最终失败再私发每个管理员一条告警（告警本身不再告警）；回调应答、内联查询应答与管理调用（getMe、setWebhook 等）直接调用，不重试不审计
 /// </remarks>
-/// <param name="api">Bot API。</param>
-/// <param name="runtime">当前设置（网络）。</param>
-/// <param name="scopes">作用域工厂（写审计）。</param>
-/// <param name="options">选项。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="logger">日志。</param>
+/// <param name="api">Bot API</param>
+/// <param name="runtime">当前设置（网络）</param>
+/// <param name="scopes">作用域工厂（写审计）</param>
+/// <param name="options">选项</param>
+/// <param name="clock">时钟</param>
+/// <param name="logger">日志</param>
 public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime runtime, IServiceScopeFactory scopes, TelegramOptions options, TimeProvider clock, ILogger<TelegramNotifier> logger)
 {
     /// <summary>
-    /// 发一条文本消息。
+    /// 发一条文本消息
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">会话。</param>
-    /// <param name="text">正文。</param>
-    /// <param name="replyToMessageId">要引用的消息。</param>
-    /// <param name="parseMode">解析模式（<c>none</c> / <c>markdown</c> / <c>markdownv2</c> / <c>html</c>，认不出按纯文本）。</param>
-    /// <param name="replyMarkup">按钮（Bot API 的 <c>reply_markup</c>）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">会话</param>
+    /// <param name="text">正文</param>
+    /// <param name="replyToMessageId">要引用的消息</param>
+    /// <param name="parseMode">解析模式（<c>none</c> / <c>markdown</c> / <c>markdownv2</c> / <c>html</c>，认不出按纯文本）</param>
+    /// <param name="replyMarkup">按钮（Bot API 的 <c>reply_markup</c>）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> SendTextAsync(TelegramBot bot, long chatId, string text, long? replyToMessageId = null, string? parseMode = null, JsonObject? replyMarkup = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -49,15 +49,15 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 发一张图片（URL 或 Telegram 的 file_id）。
+    /// 发一张图片（URL 或 Telegram 的 file_id）
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">会话。</param>
-    /// <param name="photo">图片地址或 file_id。</param>
-    /// <param name="caption">说明。</param>
-    /// <param name="replyToMessageId">要引用的消息。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">会话</param>
+    /// <param name="photo">图片地址或 file_id</param>
+    /// <param name="caption">说明</param>
+    /// <param name="replyToMessageId">要引用的消息</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> SendPhotoAsync(TelegramBot bot, long chatId, string photo, string? caption = null, long? replyToMessageId = null, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["chat_id"] = chatId, ["photo"] = photo };
@@ -70,15 +70,15 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 发一个文件（URL 或 Telegram 的 file_id）。
+    /// 发一个文件（URL 或 Telegram 的 file_id）
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">会话。</param>
-    /// <param name="document">文件地址或 file_id。</param>
-    /// <param name="caption">说明（审计里没有说明时记文件）。</param>
-    /// <param name="replyToMessageId">要引用的消息。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">会话</param>
+    /// <param name="document">文件地址或 file_id</param>
+    /// <param name="caption">说明（审计里没有说明时记文件）</param>
+    /// <param name="replyToMessageId">要引用的消息</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> SendDocumentAsync(TelegramBot bot, long chatId, string document, string? caption = null, long? replyToMessageId = null, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["chat_id"] = chatId, ["document"] = document };
@@ -91,16 +91,16 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 改一条消息的文字。
+    /// 改一条消息的文字
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">会话。</param>
-    /// <param name="messageId">消息。</param>
-    /// <param name="text">新正文。</param>
-    /// <param name="parseMode">解析模式。</param>
-    /// <param name="replyMarkup">按钮。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">会话</param>
+    /// <param name="messageId">消息</param>
+    /// <param name="text">新正文</param>
+    /// <param name="parseMode">解析模式</param>
+    /// <param name="replyMarkup">按钮</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> EditMessageTextAsync(TelegramBot bot, long chatId, long messageId, string text, string? parseMode = null, JsonObject? replyMarkup = null, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["chat_id"] = chatId, ["message_id"] = messageId, ["text"] = text };
@@ -108,14 +108,14 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 改一条消息的按钮。
+    /// 改一条消息的按钮
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">会话。</param>
-    /// <param name="messageId">消息。</param>
-    /// <param name="replyMarkup">新按钮（为空即去掉）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">会话</param>
+    /// <param name="messageId">消息</param>
+    /// <param name="replyMarkup">新按钮（为空即去掉）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> EditMessageReplyMarkupAsync(TelegramBot bot, long chatId, long messageId, JsonObject? replyMarkup, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["chat_id"] = chatId, ["message_id"] = messageId };
@@ -123,14 +123,14 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 应答回调（不重试、不审计）。
+    /// 应答回调（不重试、不审计）
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="callbackQueryId">回调 ID。</param>
-    /// <param name="text">提示文字（为空即只停止转圈）。</param>
-    /// <param name="showAlert">是否弹窗。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="callbackQueryId">回调 ID</param>
+    /// <param name="text">提示文字（为空即只停止转圈）</param>
+    /// <param name="showAlert">是否弹窗</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> AnswerCallbackQueryAsync(TelegramBot bot, string callbackQueryId, string? text = null, bool showAlert = false, CancellationToken cancellationToken = default)
     {
         var payload = new JsonObject { ["callback_query_id"] = callbackQueryId };
@@ -144,30 +144,30 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 应答内联查询（缓存 300 秒）。
+    /// 应答内联查询（缓存 300 秒）
     /// </summary>
     /// <remarks>
-    /// 4.x 同；不重试、不审计。
+    /// 4.x 同；不重试、不审计
     /// </remarks>
-    /// <param name="bot">机器人。</param>
-    /// <param name="inlineQueryId">内联查询 ID。</param>
-    /// <param name="results">结果（Bot API 的 InlineQueryResult 数组）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="inlineQueryId">内联查询 ID</param>
+    /// <param name="results">结果（Bot API 的 InlineQueryResult 数组）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> AnswerInlineQueryAsync(TelegramBot bot, string inlineQueryId, JsonArray results, CancellationToken cancellationToken = default)
         => CallAsync(bot, "answerInlineQuery", new JsonObject { ["inline_query_id"] = inlineQueryId, ["results"] = results, ["cache_time"] = 300 }, cancellationToken);
 
     /// <summary>
-    /// 直接调一个方法（管理调用）。
+    /// 直接调一个方法（管理调用）
     /// </summary>
     /// <remarks>
-    /// 不重试、不审计。
+    /// 不重试、不审计
     /// </remarks>
-    /// <param name="bot">机器人。</param>
-    /// <param name="method">方法。</param>
-    /// <param name="payload">载荷。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="method">方法</param>
+    /// <param name="payload">载荷</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public Task<TelegramApiResult> CallAsync(TelegramBot bot, string method, JsonObject payload, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(bot);
@@ -175,10 +175,10 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     }
 
     /// <summary>
-    /// 解析模式的规整：认得的返回 Bot API 的写法，其余为 <see langword="null"/>（纯文本）。
+    /// 解析模式的规整：认得的返回 Bot API 的写法，其余为 <see langword="null"/>（纯文本）
     /// </summary>
-    /// <param name="parseMode">原值。</param>
-    /// <returns>Bot API 的解析模式。</returns>
+    /// <param name="parseMode">原值</param>
+    /// <returns>Bot API 的解析模式</returns>
     public static string? ParseModeOf(string? parseMode) => parseMode?.Trim().ToLowerInvariant() switch
     {
         "markdown" => "Markdown",

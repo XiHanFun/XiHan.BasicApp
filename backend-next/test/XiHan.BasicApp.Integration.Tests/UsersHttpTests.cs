@@ -8,10 +8,10 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证示例操作在 HTTP 上的契约。
+/// 验证示例操作在 HTTP 上的契约
 /// </summary>
 /// <remarks>
-/// 路由推导、认证与授权、字段级校验错误、租户隔离、分页。
+/// 路由推导、认证与授权、字段级校验错误、租户隔离、分页
 /// </remarks>
 public sealed class UsersHttpTests : IDisposable
 {

@@ -4,28 +4,28 @@
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
 /// <summary>
-/// 租户状态。
+/// 租户状态
 /// </summary>
 /// <remarks>
-/// 与框架租户目录的 <c>IsEnabled</c> 同步（Active ⇔ 启用）。
+/// 与框架租户目录的 <c>IsEnabled</c> 同步（Active ⇔ 启用）
 /// </remarks>
 public enum TenantStatus
 {
     /// <summary>
-    /// 生效：租户用户可登录。
+    /// 生效：租户用户可登录
     /// </summary>
     Active = 0,
 
     /// <summary>
-    /// 停用：目录标记为禁用，租户用户不能登录、带该租户声明的调用被拒。
+    /// 停用：目录标记为禁用，租户用户不能登录、带该租户声明的调用被拒
     /// </summary>
     Suspended = 1,
 
     /// <summary>
-    /// 到期：到期作业把过了到期时间的生效租户标为到期，目录随之禁用。
+    /// 到期：到期作业把过了到期时间的生效租户标为到期，目录随之禁用
     /// </summary>
     /// <remarks>
-    /// 延长到期时间之后用 <c>tenants.resume</c> 恢复；停用照常可用。
+    /// 延长到期时间之后用 <c>tenants.resume</c> 恢复；停用照常可用
     /// </remarks>
     Expired = 2,
 }

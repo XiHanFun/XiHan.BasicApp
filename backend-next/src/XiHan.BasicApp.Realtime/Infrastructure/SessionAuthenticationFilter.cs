@@ -10,13 +10,13 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// Hub 认证的会话门禁。
+/// Hub 认证的会话门禁
 /// </summary>
 /// <remarks>
 /// 认证方案 <c>XiHan</c> 认过令牌之后，按令牌的 <c>sid</c> 经 <see cref="ISessionStatus"/> 核对会话仍有效（Hub 绕过内核管道，HTTP 调用的会话门禁管不到这里）；
-/// 没有会话或会话已吊销、过期即认证失败（401），连接建立不起来。
+/// 没有会话或会话已吊销、过期即认证失败（401），连接建立不起来
 /// </remarks>
-/// <param name="sessions">会话状态。</param>
+/// <param name="sessions">会话状态</param>
 internal sealed class SessionAuthenticationFilter(ISessionStatus sessions) : IInvocationAuthenticationFilter
 {
     // Identity 签发的访问令牌声明（方案 5.8）

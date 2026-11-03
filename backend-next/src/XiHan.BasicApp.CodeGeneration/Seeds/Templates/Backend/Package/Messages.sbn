@@ -6,21 +6,21 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包的消息键。
+/// {{ ModuleName }} 包的消息键
 /// </summary>
 /// <remarks>
-/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>。
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>
 /// </remarks>
 public static class {{ ModuleName }}Messages
 {
     /// <summary>
-    /// 消息目录名。
+    /// 消息目录名
     /// </summary>
     public const string CatalogName = "{{ MessageCatalog }}";
 {{~ for operation in Operations ~}}
 
     /// <summary>
-    /// 操作 <c>{{ operation.Id }}</c> 的说明。
+    /// 操作 <c>{{ operation.Id }}</c> 的说明
     /// </summary>
     public const string {{ operation.DescriptionConst }} = "{{ operation.Key }}.description";
 {{~ end ~}}
@@ -28,7 +28,7 @@ public static class {{ ModuleName }}Messages
 {{~ for message in error.Messages ~}}
 
     /// <summary>
-    /// 消息 <c>{{ message.Key }}</c>。
+    /// 消息 <c>{{ message.Key }}</c>
     /// </summary>
     public const string {{ message.ConstName }} = "{{ message.Key }}";
 {{~ end ~}}
@@ -37,7 +37,7 @@ public static class {{ ModuleName }}Messages
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof({{ ModuleName }}Messages)));
 
     /// <summary>
-    /// 本包的消息目录（嵌入的 10 种区域文件）。
+    /// 本包的消息目录（嵌入的 10 种区域文件）
     /// </summary>
     public static MessageCatalog Catalog => _catalog.Value;
 }

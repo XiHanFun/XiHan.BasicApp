@@ -135,7 +135,7 @@ function handleClear() {
             </XhButton>
           </XhFlex>
 
-          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪。
+          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪
                一个图标集上千个图标：面板内容只在选中时渲染、选走即卸，否则每个面板都铺一整份网格 -->
           <XhTabsRoot :value="activePrefix" variant="line" lazy-mount unmount-on-exit @update:value="handleTabChange">
             <XhTabsList>

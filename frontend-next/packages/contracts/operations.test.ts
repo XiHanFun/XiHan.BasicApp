@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { routes, users } from './operations'
 import { operationPermission, permissionDefinitions } from './permissions'
 
-/** 生成物与 contracts/openapi.json 的对应关系：路由表覆盖全部操作（带 x-xihan-stability；普通端点不进类型化客户端），权限码来自文档的扩展。 */
+/** 生成物与 contracts/openapi.json 的对应关系：路由表覆盖全部操作（带 x-xihan-stability；普通端点不进类型化客户端），权限码来自文档的扩展 */
 describe('generated contracts', () => {
   const document = JSON.parse(readFileSync(resolve(process.cwd(), 'contracts/openapi.json'), 'utf8')) as {
     paths: Record<string, Record<string, { 'operationId'?: string, 'x-xihan-permission'?: string, 'x-xihan-stability'?: string }>>

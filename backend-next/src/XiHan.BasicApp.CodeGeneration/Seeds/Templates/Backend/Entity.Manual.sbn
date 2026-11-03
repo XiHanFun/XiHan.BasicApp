@@ -4,11 +4,11 @@
 namespace {{ Namespace }}.Domain.Entities;
 
 /// <summary>
-/// {{ DisplayName | xml_doc }}（手写部分）。
+/// {{ DisplayName | xml_doc }}（手写部分）
 /// </summary>
 /// <remarks>
-/// 只在第一次生成时写出，重新生成不碰它；表结构推出的属性在 {{ ClassName }}.Generated.cs，两者经 partial 合成同一个类。
-/// 计算属性、领域方法写在这里；不映射到列的属性加 <c>[SugarColumn(IsIgnore = true)]</c>。
+/// 只在第一次生成时写出，重新生成不碰它；表结构推出的属性在 {{ ClassName }}.Generated.cs，两者经 partial 合成同一个类
+/// 计算属性、领域方法写在这里；不映射到列的属性加 <c>[SugarColumn(IsIgnore = true)]</c>
 /// </remarks>
 public sealed partial class {{ ClassName }}
 {

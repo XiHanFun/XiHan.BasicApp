@@ -12,19 +12,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 批量删除用户（软删除）。
+/// 批量删除用户（软删除）
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/users?ids=</c>。不能删自己，租户的所有者要先转移所有权；被删用户的会话一并吊销。
+/// <c>DELETE /api/users?ids=</c>。不能删自己，租户的所有者要先转移所有权；被删用户的会话一并吊销
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="memberships">成员关系（Tenancy 实现：租户的所有者逐项拒绝）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="memberships">成员关系（Tenancy 实现：租户的所有者逐项拒绝）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersDelete)]
 public sealed class DeleteUsers(IRepository<SysUser, Guid> users, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "users.delete";
 

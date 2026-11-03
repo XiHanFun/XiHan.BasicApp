@@ -15,18 +15,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// 初始化租户管理员。
+/// 初始化租户管理员
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants/{id}:initialize-admin</c>。在租户注册地建用户、设初始密码（首次登录须改密），
-/// 并以租户范围的用户授予 <c>*</c> 给到该租户侧的全部权限（Tenancy 不能引用 Access，角色化的租户管理员随 Access 的租户种子加入）。每个租户只能初始化一次；独立库的租户要先初始化数据库（<c>TENANCY_CONFLICT_014</c>）。
+/// 并以租户范围的用户授予 <c>*</c> 给到该租户侧的全部权限（Tenancy 不能引用 Access，角色化的租户管理员随 Access 的租户种子加入）。每个租户只能初始化一次；独立库的租户要先初始化数据库（<c>TENANCY_CONFLICT_014</c>）
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）</param>
+/// <param name="service">租户域服务</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeAdmin)]
 public sealed class InitializeAdmin(
     IRepository<SysTenant, Guid> tenants,
@@ -37,7 +37,7 @@ public sealed class InitializeAdmin(
     IIdGenerator<Guid> ids) : IOperation<InitializeAdminRequest, UserResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenants.initialize-admin";
 

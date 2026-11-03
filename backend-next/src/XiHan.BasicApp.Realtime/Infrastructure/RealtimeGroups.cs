@@ -4,10 +4,10 @@
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// 连接所在的 SignalR 组。
+/// 连接所在的 SignalR 组
 /// </summary>
 /// <remarks>
-/// 每条连接建立时加入自己的会话组、用户组、用户在当前侧的组与当前侧的组，推送按组发出（接背板后跨实例同样成立）。
+/// 每条连接建立时加入自己的会话组、用户组、用户在当前侧的组与当前侧的组，推送按组发出（接背板后跨实例同样成立）
 /// </remarks>
 internal static class RealtimeGroups
 {
@@ -20,7 +20,7 @@ internal static class RealtimeGroups
     public static string Side(string side) => $"t:{side}";
 
     /// <summary>
-    /// 一条连接所在的全部组。
+    /// 一条连接所在的全部组
     /// </summary>
     public static string[] Of(Guid sessionId, Guid userId, string side) => [Session(sessionId), User(userId), UserIn(side, userId), Side(side)];
 }

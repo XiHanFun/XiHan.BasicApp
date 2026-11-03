@@ -1,9 +1,9 @@
 /**
- * 收藏夹 Store（favorites）单元测试。
- * 职责边界：本地即时事实源（localStorage）+ 后端「尽力而为」跨端同步。
+ * 收藏夹 Store（favorites）单元测试
+ * 职责边界：本地即时事实源（localStorage）+ 后端「尽力而为」跨端同步
  * 覆盖增删改查去重、拖拽排序边界、防抖落库、同步开关门控、
- * hydrate 的 in-flight 去重与失败静默、远端推送覆盖与脏数据过滤。
- * 后端 API 经 AppContext 注入替身，不发真实请求。
+ * hydrate 的 in-flight 去重与失败静默、远端推送覆盖与脏数据过滤
+ * 后端 API 经 AppContext 注入替身，不发真实请求
  */
 import type { AppContextApis, FavoriteItem } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'

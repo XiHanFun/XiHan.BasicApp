@@ -50,9 +50,9 @@ function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
 const PAGE_MAX_SIZE = 500
 
 /**
- * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空。
+ * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空
  * 对应的壳层件（如通知、锁屏）缺省关着（见 stores/app/preferences.ts 的缺省值），
- * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件。
+ * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件
  */
 function notAvailable(name: string): never {
   throw new Error(`${name} 尚未接入 6.0 后端`)
@@ -96,9 +96,9 @@ type ProfileResponse = components['schemas']['ProfileResponse']
 
 /**
  * 本人资料 → 4.x 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
- * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）。
+ * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）
  * 6.0 没有系统账号（isSystemAccount 恒为否），邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
- * 锁定取账号状态与登录失败锁定期。
+ * 锁定取账号状态与登录失败锁定期
  */
 function toShellProfile(profile: ProfileResponse): UserProfile {
   const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now() ? profile.lockoutEndAt : null
@@ -311,8 +311,8 @@ function timeZoneOptions() {
 }
 
 /**
- * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由。
- * 登录配置来自 `auth.login-config`（开放的登录方式、后端配置启用的第三方登录提供方、是否要图形验证码与是否开放注册）。
+ * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由
+ * 登录配置来自 `auth.login-config`（开放的登录方式、后端配置启用的第三方登录提供方、是否要图形验证码与是否开放注册）
  */
 export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {
@@ -350,7 +350,7 @@ export function registerApplicationContext(router: Router): void {
     },
     // 个人中心：资料与账号安全概况、认证器双因素；邮箱 / 短信双因素要等 Notification 发码，停用与注销账号随个人中心批次
     getProfileApi: async () => toShellProfile(await profileOps.get({})),
-    // 个人资料（Identity 的 profile.update / change-username / remove-avatar 与宿主的头像上传端点，只要求已登录）：都回整份资料，会话里的用户随之换掉。
+    // 个人资料（Identity 的 profile.update / change-username / remove-avatar 与宿主的头像上传端点，只要求已登录）：都回整份资料，会话里的用户随之换掉
     // 资料整体覆盖、空白当作没填，不收头像；改用户名凭当前密码、90 天一次（模仿会话被拒）
     updateProfileApi: async input => applyProfile(await profileOps.update({
       displayName: input.nickName,

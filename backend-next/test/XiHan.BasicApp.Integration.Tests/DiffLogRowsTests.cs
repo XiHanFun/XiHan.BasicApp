@@ -8,10 +8,10 @@ using XiHan.BasicApp.Auditing.Domain.Services;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证差异事件转数据变更日志时的种类判定。
+/// 验证差异事件转数据变更日志时的种类判定
 /// </summary>
 /// <remarks>
-/// 软删除列由真变假即恢复（4.x 同），由假变真与其余修改仍是修改；各库读回的布尔类型不同，都认。
+/// 软删除列由真变假即恢复（4.x 同），由假变真与其余修改仍是修改；各库读回的布尔类型不同，都认
 /// </remarks>
 public sealed class DiffLogRowsTests
 {

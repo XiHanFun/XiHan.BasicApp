@@ -72,8 +72,8 @@ function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'f
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停。
- * 搜索按后端白名单：关键字匹配字段名与备注；实体、目标类型、读取方式、状态多选（合成 in）。
+ * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停
+ * 搜索按后端白名单：关键字匹配字段名与备注；实体、目标类型、读取方式、状态多选（合成 in）
  */
 export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
   return {
@@ -117,7 +117,7 @@ function snakeOf(name: string): string {
 
 /**
  * 字段显示名的文案键：登记的键 → 同一页面命名空间（键的前两段）里末段是字段名（或 col_ / detail_ / form_ 加字段名）的键
- * → 通用字段词表 → 没有（显示字段名）。字段名是接口的 camelCase，文案键末段是 snake_case。
+ * → 通用字段词表 → 没有（显示字段名）。字段名是接口的 camelCase，文案键末段是 snake_case
  */
 export function fieldTitleKey(titleKey: string, name: string, keys: readonly string[]): string | null {
   const known = new Set(keys)
@@ -157,7 +157,7 @@ export function useFieldSecurityEntities() {
 
 /**
  * 字段规则的编辑弹窗（4.x 的字段安全表单）：目标按类型远程检索，实体与字段从目录选；
- * 非文本字段只能明文或隐藏、不可空的字段不能隐藏，明文规则只能只读。字段级错误挂回对应字段。
+ * 非文本字段只能明文或隐藏、不可空的字段不能隐藏，明文规则只能只读。字段级错误挂回对应字段
  */
 export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEntity | undefined) {
   const open = ref(false)

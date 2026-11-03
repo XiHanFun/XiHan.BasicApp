@@ -17,48 +17,48 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 
 /// <summary>
-/// 令牌端点的一次结果。
+/// 令牌端点的一次结果
 /// </summary>
 /// <remarks>
-/// 成功即令牌对，失败即 OAuth 错误（401 只给客户端认证失败）。
+/// 成功即令牌对，失败即 OAuth 错误（401 只给客户端认证失败）
 /// </remarks>
-/// <param name="Tokens">令牌。</param>
-/// <param name="Error">错误码。</param>
-/// <param name="Description">说明。</param>
+/// <param name="Tokens">令牌</param>
+/// <param name="Error">错误码</param>
+/// <param name="Description">说明</param>
 public sealed record OAuthTokenResult(OAuthIssuedTokens? Tokens, string? Error, string? Description)
 {
     /// <summary>
-    /// 失败。
+    /// 失败
     /// </summary>
     public static OAuthTokenResult Fail(string error, string description) => new(null, error, description);
 }
 
 /// <summary>
-/// 签发出去的令牌。
+/// 签发出去的令牌
 /// </summary>
-/// <param name="AccessToken">访问令牌。</param>
-/// <param name="ExpiresIn">访问令牌有效期（秒）。</param>
-/// <param name="RefreshToken">刷新令牌（应用开着刷新令牌模式才有）。</param>
-/// <param name="Scope">授予的范围。</param>
-/// <param name="IdToken">id_token（只在授权码兑换时签）。</param>
+/// <param name="AccessToken">访问令牌</param>
+/// <param name="ExpiresIn">访问令牌有效期（秒）</param>
+/// <param name="RefreshToken">刷新令牌（应用开着刷新令牌模式才有）</param>
+/// <param name="Scope">授予的范围</param>
+/// <param name="IdToken">id_token（只在授权码兑换时签）</param>
 public sealed record OAuthIssuedTokens(string AccessToken, int ExpiresIn, string? RefreshToken, string Scope, string? IdToken);
 
 /// <summary>
-/// 令牌服务：客户端认证、授权码兑换、刷新、撤销与 userinfo。
+/// 令牌服务：客户端认证、授权码兑换、刷新、撤销与 userinfo
 /// </summary>
 /// <remarks>
-/// 在一次平台调用里用：客户端认证、授权码兑换（PKCE、回调地址一致、原子消费，重放即吊销这次授权码发出的整族令牌）、刷新令牌轮换（作废的再被使用即整族吊销）、撤销与 userinfo。
-/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明（4.x 不按范围收窄）。
+/// 在一次平台调用里用：客户端认证、授权码兑换（PKCE、回调地址一致、原子消费，重放即吊销这次授权码发出的整族令牌）、刷新令牌轮换（作废的再被使用即整族吊销）、撤销与 userinfo
+/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明（4.x 不按范围收窄）
 /// </remarks>
-/// <param name="apps">应用仓储。</param>
-/// <param name="codes">授权码仓储。</param>
-/// <param name="tokens">令牌仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="unitOfWork">工作单元（条件更新）。</param>
-/// <param name="keys">签名密钥。</param>
-/// <param name="options">开放平台配置。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="apps">应用仓储</param>
+/// <param name="codes">授权码仓储</param>
+/// <param name="tokens">令牌仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="unitOfWork">工作单元（条件更新）</param>
+/// <param name="keys">签名密钥</param>
+/// <param name="options">开放平台配置</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时间源</param>
 public sealed class OAuthTokenService(
     IRepository<SysOAuthApp, Guid> apps,
     IRepository<SysOAuthCode, Guid> codes,
@@ -73,15 +73,15 @@ public sealed class OAuthTokenService(
     private readonly JsonWebTokenHandler _handler = new() { SetDefaultTimesOnTokenCreation = false };
 
     /// <summary>
-    /// 认证客户端。
+    /// 认证客户端
     /// </summary>
     /// <remarks>
-    /// <c>Authorization: Basic</c>（先 form-url 解码）优先，其次表单的 client_id / client_secret；机密客户端须核对密钥，公开客户端只认 client_id。
+    /// <c>Authorization: Basic</c>（先 form-url 解码）优先，其次表单的 client_id / client_secret；机密客户端须核对密钥，公开客户端只认 client_id
     /// </remarks>
-    /// <param name="clientId">ClientId。</param>
-    /// <param name="clientSecret">密钥。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用；认证失败为空。</returns>
+    /// <param name="clientId">ClientId</param>
+    /// <param name="clientSecret">密钥</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>应用；认证失败为空</returns>
     public async Task<SysOAuthApp?> AuthenticateClientAsync(string? clientId, string? clientSecret, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(clientId))
@@ -100,15 +100,15 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 授权码兑换。
+    /// 授权码兑换
     /// </summary>
-    /// <param name="app">已认证的应用。</param>
-    /// <param name="code">授权码。</param>
-    /// <param name="redirectUri">回调地址（须与授权时逐字一致）。</param>
-    /// <param name="codeVerifier">PKCE verifier。</param>
-    /// <param name="issuer">签发者。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="app">已认证的应用</param>
+    /// <param name="code">授权码</param>
+    /// <param name="redirectUri">回调地址（须与授权时逐字一致）</param>
+    /// <param name="codeVerifier">PKCE verifier</param>
+    /// <param name="issuer">签发者</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<OAuthTokenResult> ExchangeCodeAsync(SysOAuthApp app, string? code, string? redirectUri, string? codeVerifier, string issuer, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -178,15 +178,15 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 刷新令牌轮换：旧的作废、同族发新的一对。
+    /// 刷新令牌轮换：旧的作废、同族发新的一对
     /// </summary>
     /// <remarks>
-    /// 作废的刷新令牌再被使用即整族吊销。
+    /// 作废的刷新令牌再被使用即整族吊销
     /// </remarks>
-    /// <param name="app">已认证的应用。</param>
-    /// <param name="refreshToken">刷新令牌。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="app">已认证的应用</param>
+    /// <param name="refreshToken">刷新令牌</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<OAuthTokenResult> RefreshAsync(SysOAuthApp app, string? refreshToken, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -232,15 +232,15 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 撤销令牌（RFC 7009）。
+    /// 撤销令牌（RFC 7009）
     /// </summary>
     /// <remarks>
-    /// 令牌属于这个客户端才撤；刷新令牌连同整族，访问令牌只撤自己；不认识的令牌静默成功。
+    /// 令牌属于这个客户端才撤；刷新令牌连同整族，访问令牌只撤自己；不认识的令牌静默成功
     /// </remarks>
-    /// <param name="app">已认证的应用。</param>
-    /// <param name="token">令牌。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示异步操作的任务。</returns>
+    /// <param name="app">已认证的应用</param>
+    /// <param name="token">令牌</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>表示异步操作的任务</returns>
     public async Task RevokeAsync(SysOAuthApp app, string? token, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -267,11 +267,11 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// userinfo：访问令牌有效、应用还启用着、用户正常才返回，声明按范围给。
+    /// userinfo：访问令牌有效、应用还启用着、用户正常才返回，声明按范围给
     /// </summary>
-    /// <param name="accessToken">访问令牌。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>声明；令牌无效为空。</returns>
+    /// <param name="accessToken">访问令牌</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>声明；令牌无效为空</returns>
     public async Task<IReadOnlyDictionary<string, string>?> UserInfoAsync(string? accessToken, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(accessToken))
@@ -296,12 +296,12 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 吊销一个用户在一个应用下的全部令牌（撤销同意时用）。
+    /// 吊销一个用户在一个应用下的全部令牌（撤销同意时用）
     /// </summary>
-    /// <param name="userId">用户。</param>
-    /// <param name="clientId">ClientId。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示异步操作的任务。</returns>
+    /// <param name="userId">用户</param>
+    /// <param name="clientId">ClientId</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>表示异步操作的任务</returns>
     public async Task RevokeAllAsync(Guid userId, string clientId, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
@@ -367,10 +367,10 @@ public sealed class OAuthTokenService(
     }
 
     /// <summary>
-    /// 按范围给出身份声明。
+    /// 按范围给出身份声明
     /// </summary>
     /// <remarks>
-    /// <c>sub</c> 总有；profile → name、preferred_username；email → email；phone → phone_number。
+    /// <c>sub</c> 总有；profile → name、preferred_username；email → email；phone → phone_number
     /// </remarks>
     private static Dictionary<string, string> Claims(SysUser user, IReadOnlyList<string> scopes)
     {

@@ -4,7 +4,7 @@
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.get</c> 的请求：标识由路由值 <c>{id}</c> 绑定。
+/// <c>roles.get</c> 的请求：标识由路由值 <c>{id}</c> 绑定
 /// </summary>
-/// <param name="Id">角色 ID。</param>
+/// <param name="Id">角色 ID</param>
 public sealed record GetRoleRequest(Guid Id);

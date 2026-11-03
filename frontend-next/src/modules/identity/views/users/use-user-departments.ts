@@ -32,8 +32,8 @@ export function flattenDepartments(nodes: DepartmentNode[], depth = 0, out: Sele
 }
 
 /**
- * 所属部门抽屉（租户侧）：列出该用户的部门归属，加入部门（可带岗位）与移出。
- * 部门与岗位是租户数据，平台侧不出这个入口；字段级错误挂回字段，其余失败抛给页面提示。
+ * 所属部门抽屉（租户侧）：列出该用户的部门归属，加入部门（可带岗位）与移出
+ * 部门与岗位是租户数据，平台侧不出这个入口；字段级错误挂回字段，其余失败抛给页面提示
  */
 export function useUserDepartments() {
   const open = ref(false)

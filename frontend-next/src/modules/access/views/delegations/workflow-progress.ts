@@ -1,7 +1,7 @@
 /**
- * 授权申请的审批进度展示（照 4.x 的 workflow-progress）。
+ * 授权申请的审批进度展示（照 4.x 的 workflow-progress）
  * 进度来自 Workflow 模块：模块关掉时 approvalEnabled 为假、进度为空，标「审批未启用」（方案 W1）；
- * 申请还没发起过流程时进度为空。
+ * 申请还没发起过流程时进度为空
  */
 import type { Tone } from '@xihan-ui/core'
 import type { components } from '~/contracts'

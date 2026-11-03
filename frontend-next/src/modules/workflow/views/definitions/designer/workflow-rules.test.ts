@@ -1,9 +1,9 @@
 /**
- * 设计器上 BasicApp 自己的校验规则的单元测试。
+ * 设计器上 BasicApp 自己的校验规则的单元测试
  *
  * 职责边界：只测 workflow-rules.ts——BasicApp 注册的受理人类型参数要填全、关联审批业务时的结束与终止节点、
- * 发布失败时后端给的问题落到节点与连线上。
- * 预设与通用校验的规则由流程设计器仓库的测试覆盖。
+ * 发布失败时后端给的问题落到节点与连线上
+ * 预设与通用校验的规则由流程设计器仓库的测试覆盖
  */
 import type { ServerDiagnostic } from './server-diagnostics'
 import type { FlowDocument, FlowEdge, FlowNode } from '~/designers/flow'

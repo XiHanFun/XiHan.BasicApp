@@ -27,10 +27,10 @@ using XiHanApp = XiHan.Framework.Kernel.Hosting.App;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 用宿主的真实装配（<see cref="BasicAppHost.Create"/>）在 TestServer 里启动应用。
+/// 用宿主的真实装配（<see cref="BasicAppHost.Create"/>）在 TestServer 里启动应用
 /// </summary>
 /// <remarks>
-/// 数据库换成 SQLite 文件或测试 PostgreSQL，JWT 用测试密钥。
+/// 数据库换成 SQLite 文件或测试 PostgreSQL，JWT 用测试密钥
 /// </remarks>
 public sealed class BasicAppTestServer : IAsyncDisposable
 {
@@ -109,11 +109,11 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     ];
 
     /// <summary>
-    /// SQLite 上工作流租约表的库。
+    /// SQLite 上工作流租约表的库
     /// </summary>
     /// <remarks>
-    /// 租约的每一步自己提交，与业务事务不在一起：SQLite 只有一个写者，租约表与业务表同库时自己等自己直到 <c>WORKFLOW_TIMEOUT_001</c>。
-    /// 照框架的选项把租约表放进同目录的另一个库文件（<see cref="SqliteDatabase"/> 清理时一并删掉）；PostgreSQL 不用配。
+    /// 租约的每一步自己提交，与业务事务不在一起：SQLite 只有一个写者，租约表与业务表同库时自己等自己直到 <c>WORKFLOW_TIMEOUT_001</c>
+    /// 照框架的选项把租约表放进同目录的另一个库文件（<see cref="SqliteDatabase"/> 清理时一并删掉）；PostgreSQL 不用配
     /// </remarks>
     private static IEnumerable<KeyValuePair<string, string?>> WorkflowLeases(string connectionString, string provider)
     {
@@ -131,10 +131,10 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 在一次独立调用（完整内核管道）里执行。
+    /// 在一次独立调用（完整内核管道）里执行
     /// </summary>
     /// <remarks>
-    /// 完整内核管道：认证、租户、授权、工作单元。带令牌时主体由 JWT 处理器解析。
+    /// 完整内核管道：认证、租户、授权、工作单元。带令牌时主体由 JWT 处理器解析
     /// </remarks>
     public async Task<Result> InvokeAsync(Func<InvocationContext, Task<Result>> action, string? token = null, IReadOnlyDictionary<string, string>? baggage = null)
     {
@@ -149,10 +149,10 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 写入租户目录与权限授予。
+    /// 写入租户目录与权限授予
     /// </summary>
     /// <remarks>
-    /// 经框架的数据库 Provider 存储，在 Transaction 阶段内。
+    /// 经框架的数据库 Provider 存储，在 Transaction 阶段内
     /// </remarks>
     public async Task SeedAsync(IReadOnlyList<TenantInfo> tenants, IReadOnlyList<PermissionGrant> grants)
     {
@@ -185,19 +185,19 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     }
 
     /// <summary>
-    /// 执行各包登记的种子。
+    /// 执行各包登记的种子
     /// </summary>
     /// <remarks>
-    /// 包括超级管理员 <c>superadmin</c> 与它的全局授予等，与 <c>seed</c> 命令同一条路径。
+    /// 包括超级管理员 <c>superadmin</c> 与它的全局授予等，与 <c>seed</c> 命令同一条路径
     /// </remarks>
     public async Task RunSeedersAsync(IReadOnlyCollection<string>? only = null)
         => (await Services.GetRequiredService<SeedRunner>().RunAsync(only, CancellationToken.None)).ThrowIfFailure();
 
     /// <summary>
-    /// 写入缺省的测试数据。
+    /// 写入缺省的测试数据
     /// </summary>
     /// <remarks>
-    /// 租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读。
+    /// 租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读
     /// </remarks>
     public Task SeedDefaultsAsync(IReadOnlyDictionary<string, string>? acmeProperties = null) => SeedAsync(
         [

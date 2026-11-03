@@ -22,8 +22,8 @@ const CHAT_RECONNECT_INTERVAL_MS = 15000
 
 /**
  * 在 BasicLayout 中初始化聊天实时链路（RealtimeHubs.Chat 独立连接）：
- * 订阅聊天的九个推送方法（方法名取 ~/contracts 的 RealtimeMethods）回灌 chat store，并预取会话列表供顶栏未读角标。
- * 没有会话读权限（chat.chat-conversations.read）的用户整条链路静默关闭。
+ * 订阅聊天的九个推送方法（方法名取 ~/contracts 的 RealtimeMethods）回灌 chat store，并预取会话列表供顶栏未读角标
+ * 没有会话读权限（chat.chat-conversations.read）的用户整条链路静默关闭
  */
 export function useChatIntegration() {
   const accessStore = useAccessStore()
@@ -62,7 +62,7 @@ export function useChatIntegration() {
     const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
     const preview = conversation.lastMessagePreview?.trim() || message.content?.trim() || ''
     // islandStart 只建条目，要靠句柄置终态才会安排移除；此处随即 info() 收尾，
-    // 否则这条通知会一直挂在岛上不消失。
+    // 否则这条通知会一直挂在岛上不消失
     // id 带上 messageId：按会话取 id 会让同一会话的后续消息复用同一条目（更新而非新增），
     // 岛上永远只有一条，既排不了队也堆不起来
     islandStart(`chat:msg:${message.conversationId}:${message.messageId}`, sender, {

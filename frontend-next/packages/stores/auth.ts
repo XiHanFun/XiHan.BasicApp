@@ -25,7 +25,7 @@ export function takeIdentitySwitchedMarker(): boolean {
   }
 }
 
-/** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`）。 */
+/** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`） */
 export type Session = ResponseOf<'auth.refresh'>
 
 /** 双因素方式：契约是 `Totp` / `Email` / `Phone`，4.x 登录页按小写标识 `totp` / `email` / `phone` 认 */
@@ -67,9 +67,9 @@ const OAUTH_PENDING_TTL_MS = 10 * 60 * 1000
 export type OAuthMode = 'bind' | 'login'
 
 /**
- * 本标签页发起的第三方流程：整页跳走前记进 sessionStorage，回调页取走并核对用途与提供方。
+ * 本标签页发起的第三方流程：整页跳走前记进 sessionStorage，回调页取走并核对用途与提供方
  * 回调地址上的一次性票据谁拿到谁能用，只认这个标签页自己发起的流程带回来的：别人发来的回调链接（带着他的票据）
- * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来（4.x 回调后一律落首页）。
+ * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来（4.x 回调后一律落首页）
  */
 export interface OAuthPending {
   mode: OAuthMode
@@ -106,8 +106,8 @@ export function takeOAuthPending(): OAuthPending | null {
 }
 
 /**
- * 第三方登录的发起地址：普通端点 `/api/oauth/{名称}/challenge`（整页跳转，不经请求层、不带令牌），带注册地租户（登录页那一栏；平台账号留空即不带）。
- * 绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）。
+ * 第三方登录的发起地址：普通端点 `/api/oauth/{名称}/challenge`（整页跳转，不经请求层、不带令牌），带注册地租户（登录页那一栏；平台账号留空即不带）
+ * 绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）
  */
 export function oauthChallengeUrl(provider: string, tenant?: string): string {
   const query = new URLSearchParams({ mode: 'login' })
@@ -117,7 +117,7 @@ export function oauthChallengeUrl(provider: string, tenant?: string): string {
   return endpointUrl(`/api/oauth/${encodeURIComponent(provider)}/challenge?${query.toString()}`)
 }
 export type SessionUser = Session['user']
-/** `auth.permissions`：有效权限码、角色、菜单树与页面码。 */
+/** `auth.permissions`：有效权限码、角色、菜单树与页面码 */
 export type Permissions = ResponseOf<'auth.permissions'>
 export type MenuNode = Permissions['menus'][number]
 
@@ -145,8 +145,8 @@ function writeSession(session: Session | null): void {
 
 /**
  * 会话与权限：`auth.login` 写入会话，`auth.refresh` 轮换（单飞，并发的未认证重放共用一次刷新），`auth.logout` 吊销并清掉；
- * `auth.permissions` 在路由守卫首次进入时装载（刷新令牌后清空、下次导航重取，角色变化随之生效）。
- * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的结果，`can` 精确匹配、不认通配。
+ * `auth.permissions` 在路由守卫首次进入时装载（刷新令牌后清空、下次导航重取，角色变化随之生效）
+ * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的结果，`can` 精确匹配、不认通配
  */
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(readSession())
@@ -168,7 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
       permissions.value = null
   }
 
-  /** 是否持有某个权限码（精确匹配；后端已把 `*` 展开）。 */
+  /** 是否持有某个权限码（精确匹配；后端已把 `*` 展开） */
   function can(permission: string): boolean {
     return granted.value.has(permission)
   }
@@ -179,7 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
    * 密码登录（4.x 登录页的入口，同一个函数走两步验证的每一段）：
    * - 不带票据是首段：账号、密码与图形验证码交给 `auth.login`；账号开了双因素即返回挑战（票据、可用方式），不存会话；
    * - 带票据与验证码是第二段：`auth.verify-two-factor` 换令牌；
-   * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入。
+   * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入
    */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
     if (loginLoading.value)
@@ -242,7 +242,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 第三方登录回调（4.x 回调把令牌放在地址片段里直接落地；6.0 是一次性票据，经 `auth.external-login` 换）：
    * 拿到令牌即与密码登录同样存会话、跳回跳地址；账号开了双因素即返回挑战——记下挑战、带着回跳地址回登录页，
-   * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）。
+   * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）
    */
   async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
     await finishOrChallenge(() => authApi.externalLogin({ ticket }, { anonymous: true }), redirect)
@@ -250,7 +250,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 验证码登录（4.x 同名；6.0 走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
-   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）。
+   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）
    */
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
     await finishOrChallenge(() => authApi.loginByCode({ channel: 'Phone', target: params.phone.trim(), code: params.code, tenant: params.tenant?.trim() || null }, { anonymous: true }), redirect)
@@ -293,7 +293,7 @@ export const useAuthStore = defineStore('auth', () => {
     return pending
   }
 
-  /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null。 */
+  /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null */
   function refresh(): Promise<string | null> {
     const current = session.value
     if (!current)
@@ -313,7 +313,7 @@ export const useAuthStore = defineStore('auth', () => {
     return refreshing
   }
 
-  /** 装载当前主体的权限、菜单与页面；没有会话即 null。 */
+  /** 装载当前主体的权限、菜单与页面；没有会话即 null */
   async function loadPermissions(): Promise<Permissions | null> {
     if (!session.value)
       return null
@@ -322,7 +322,7 @@ export const useAuthStore = defineStore('auth', () => {
     return result
   }
 
-  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳）。 */
+  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳） */
   async function logout(): Promise<void> {
     if (session.value) {
       try {
@@ -338,7 +338,7 @@ export const useAuthStore = defineStore('auth', () => {
       await router.replace(LOGIN_PATH)
   }
 
-  /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时）。 */
+  /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时） */
   async function loadMe(): Promise<void> {
     if (!session.value)
       return
@@ -346,13 +346,13 @@ export const useAuthStore = defineStore('auth', () => {
     store({ ...session.value, user: me.user, tenantId: me.tenantId, mustChangePassword: me.mustChangePassword })
   }
 
-  /** 本人改密成功后：当前会话保留，强制改密标记清除。 */
+  /** 本人改密成功后：当前会话保留，强制改密标记清除 */
   function markPasswordChanged(): void {
     if (session.value)
       store({ ...session.value, mustChangePassword: false })
   }
 
-  /** 本人改了资料（显示名、用户名、头像）后：会话里的用户换成后端回的那份（令牌不变），顶栏、用户菜单与个人中心侧栏随之刷新。 */
+  /** 本人改了资料（显示名、用户名、头像）后：会话里的用户换成后端回的那份（令牌不变），顶栏、用户菜单与个人中心侧栏随之刷新 */
   function applyUser(nextUser: Session['user']): void {
     if (session.value)
       store({ ...session.value, user: nextUser })
@@ -363,9 +363,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 切换上下文：进入某个租户，或（平台账号）回到平台（`tenantId` 为 null）。
+   * 切换上下文：进入某个租户，或（平台账号）回到平台（`tenantId` 为 null）
    * 后端在目标上下文续接同一会话、签发新令牌（旧令牌随即失效）；本地存下新会话后整页重建，
-   * 由守卫按新上下文重取权限、重装菜单路由（标签栏等壳层状态都属于上一上下文）。
+   * 由守卫按新上下文重取权限、重装菜单路由（标签栏等壳层状态都属于上一上下文）
    */
   async function switchTenant(tenantId: null | string): Promise<void> {
     store(await useAppContext().apis.tenantApi.switchTenant({ tenantId }))

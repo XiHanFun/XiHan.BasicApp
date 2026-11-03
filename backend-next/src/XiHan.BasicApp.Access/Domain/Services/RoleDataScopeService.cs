@@ -13,27 +13,27 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 角色数据范围（作用域）。
+/// 角色数据范围（作用域）
 /// </summary>
 /// <remarks>
-/// 校验（平台角色只能全部；自定义至少一个部门且部门须在当前租户）、读写自定义部门行（整体替换）。
+/// 校验（平台角色只能全部；自定义至少一个部门且部门须在当前租户）、读写自定义部门行（整体替换）
 /// </remarks>
-/// <param name="customs">自定义部门行仓储。</param>
-/// <param name="departments">部门仓储（租户库，按当前租户过滤）。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="customs">自定义部门行仓储</param>
+/// <param name="departments">部门仓储（租户库，按当前租户过滤）</param>
+/// <param name="ids">标识生成器</param>
 public sealed class RoleDataScopeService(IRepository<SysRoleDataScope, Guid> customs, IRepository<SysDepartment, Guid> departments, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 角色的自定义部门行。
+    /// 角色的自定义部门行
     /// </summary>
     public Task<IReadOnlyList<SysRoleDataScope>> ListAsync(Guid roleId, CancellationToken cancellationToken)
         => customs.ListAsync(EntityQuery.All<SysRoleDataScope>().Where(new Specification<SysRoleDataScope>(s => s.RoleId == roleId)), cancellationToken);
 
     /// <summary>
-    /// 校验请求的数据范围对该角色是否成立。
+    /// 校验请求的数据范围对该角色是否成立
     /// </summary>
     /// <remarks>
-    /// 平台角色只能 <see cref="DataScope.All"/> 且不能带部门；<see cref="DataScope.Custom"/> 至少一个部门，且部门都在当前租户。
+    /// 平台角色只能 <see cref="DataScope.All"/> 且不能带部门；<see cref="DataScope.Custom"/> 至少一个部门，且部门都在当前租户
     /// </remarks>
     public async Task<Result> ValidateAsync(SysRole role, DataScope scope, IReadOnlyList<DataScopeDepartmentRequest> customDepartments, CancellationToken cancellationToken)
     {
@@ -65,10 +65,10 @@ public sealed class RoleDataScopeService(IRepository<SysRoleDataScope, Guid> cus
     }
 
     /// <summary>
-    /// 整体替换自定义部门行。
+    /// 整体替换自定义部门行
     /// </summary>
     /// <remarks>
-    /// 非 <see cref="DataScope.Custom"/> 即清空。
+    /// 非 <see cref="DataScope.Custom"/> 即清空
     /// </remarks>
     public async Task<Result> ReplaceAsync(SysRole role, IReadOnlyList<DataScopeDepartmentRequest> customDepartments, CancellationToken cancellationToken)
     {

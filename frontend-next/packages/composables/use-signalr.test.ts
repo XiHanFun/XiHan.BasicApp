@@ -1,9 +1,9 @@
 /**
- * useSignalR 连接管理单元测试。
+ * useSignalR 连接管理单元测试
  * 职责：用假 Hub 连接注入（绝不真连），锁定「按 hubPath 各持一条连接」
  * 「无 token 不发起连接」「已连接不重复建连」「事件订阅在重建连接时被重新绑定」
  * 「negotiate 401 借道刷新后只重试一次」「渐进式重连延迟与登出后放弃重连」
- * 以及 stop / destroy 的清理彻底性。
+ * 以及 stop / destroy 的清理彻底性
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

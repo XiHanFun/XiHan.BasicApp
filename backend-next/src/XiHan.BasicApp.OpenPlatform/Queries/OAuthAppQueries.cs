@@ -11,21 +11,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Queries;
 
 /// <summary>
-/// OAuth 应用的分页查询（平台库实体，只给平台管理用）。
+/// OAuth 应用的分页查询（平台库实体，只给平台管理用）
 /// </summary>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class OAuthAppQueries(SqlSugarUnitOfWork unitOfWork)
 {
     /// <summary>
-    /// 分页查询 OAuth 应用。
+    /// 分页查询 OAuth 应用
     /// </summary>
     /// <remarks>
     /// 关键字匹配名称、描述、ClientId、主页与备注；筛选应用类型 <c>eq / in</c>、客户端类型、启停、跳过同意页 <c>eq</c>，<c>personal eq</c> 只看我的应用（或只看平台的）；
-    /// 缺省按启停（启用在前）、创建时间倒序、名称排（4.x 同）。
+    /// 缺省按启停（启用在前）、创建时间倒序、名称排（4.x 同）
     /// </remarks>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页应用。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页应用</returns>
     public async Task<Result<PageResult<OAuthAppResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

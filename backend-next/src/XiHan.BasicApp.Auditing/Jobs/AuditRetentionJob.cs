@@ -20,40 +20,40 @@ using XiHan.Framework.Scheduling.Abstractions.Jobs;
 namespace XiHan.BasicApp.Auditing.Jobs;
 
 /// <summary>
-/// 日志保留清理：删除早于保留期的日志。
+/// 日志保留清理：删除早于保留期的日志
 /// </summary>
 /// <remarks>
 /// 内建作业（方案 5.12）。保留天数读平台参数 <c>auditing.retention-days</c>（1 到 3650），没建即用 <see cref="AuditLogOptions.DefaultRetentionDays"/>，
 /// 参数值不合法直接失败（不按错误的保留期删数据）。七类分表日志按平台与目录里的每个租户逐个作用域、逐批（每批 <see cref="BatchSize"/> 条，一批一个工作单元）删除；
-/// 框架的操作审计表不分租户，单独一遍。一个作用域或一类失败只记日志、计入失败，不影响其他。
+/// 框架的操作审计表不分租户，单独一遍。一个作用域或一类失败只记日志、计入失败，不影响其他
 /// </remarks>
-/// <param name="configs">参数读取。</param>
-/// <param name="options">日志选项。</param>
-/// <param name="tenants">租户目录。</param>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="logger">日志。</param>
+/// <param name="configs">参数读取</param>
+/// <param name="options">日志选项</param>
+/// <param name="tenants">租户目录</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="clock">时间源</param>
+/// <param name="logger">日志</param>
 public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditLogOptions options, ITenantStore tenants, IServiceScopeFactory scopes, TimeProvider clock, ILogger<AuditRetentionJob> logger) : IJob
 {
     /// <summary>
-    /// 作业名。
+    /// 作业名
     /// </summary>
     public const string Name = "auditing.retention";
 
     /// <summary>
-    /// 一批删除的条数。
+    /// 一批删除的条数
     /// </summary>
     public const int BatchSize = 1000;
 
     /// <summary>
-    /// 保留天数的上限（十年）。
+    /// 保留天数的上限（十年）
     /// </summary>
     public const int MaxRetentionDays = 3650;
 
     private static readonly DateTimeOffset _earliest = new(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     /// <summary>
-    /// 七类分表日志各自的清理。
+    /// 七类分表日志各自的清理
     /// </summary>
     private static readonly Func<AuditRetentionJob, string, DateTimeOffset, CancellationToken, Task<long>>[] _purges =
     [
@@ -113,10 +113,10 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 读取保留天数。
+    /// 读取保留天数
     /// </summary>
     /// <remarks>
-    /// 参数没建用缺省值；建了必须是 1 到 <see cref="MaxRetentionDays"/> 的整数。
+    /// 参数没建用缺省值；建了必须是 1 到 <see cref="MaxRetentionDays"/> 的整数
     /// </remarks>
     private async ValueTask<Result<int>> RetentionDaysAsync(InvocationContext context)
     {
@@ -137,7 +137,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 一个作用域里一类日志的清理：逐批取出早于截止时间的行再删，取不满一批即结束。
+    /// 一个作用域里一类日志的清理：逐批取出早于截止时间的行再删，取不满一批即结束
     /// </summary>
     private async Task<long> PurgeAsync<TEntity>(string tenant, DateTimeOffset cutoff, CancellationToken cancellationToken)
         where TEntity : AuditLogRecord
@@ -167,7 +167,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 框架操作审计表的清理（不分租户）。
+    /// 框架操作审计表的清理（不分租户）
     /// </summary>
     private async Task<long> PurgeOperationAuditsAsync(DateTimeOffset cutoff, CancellationToken cancellationToken)
     {
@@ -195,10 +195,10 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 在独立作用域、带租户的工作单元里执行一批（独立库的租户先绑定分片）。
+    /// 在独立作用域、带租户的工作单元里执行一批（独立库的租户先绑定分片）
     /// </summary>
     /// <remarks>
-    /// 成功即提交，抛出即回滚。
+    /// 成功即提交，抛出即回滚
     /// </remarks>
     private async Task<int> InScopeAsync(string? tenant, Func<IServiceProvider, CancellationToken, Task<int>> work, CancellationToken cancellationToken)
     {
@@ -229,7 +229,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     }
 
     /// <summary>
-    /// 逐项结果里有失败即抛出（本批回滚）。
+    /// 逐项结果里有失败即抛出（本批回滚）
     /// </summary>
     private static void Fold(IReadOnlyList<Result> results)
     {

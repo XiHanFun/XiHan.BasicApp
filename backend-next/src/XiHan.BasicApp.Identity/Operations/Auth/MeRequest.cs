@@ -4,6 +4,6 @@
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.me</c> 的请求：没有输入。
+/// <c>auth.me</c> 的请求：没有输入
 /// </summary>
 public sealed record MeRequest;

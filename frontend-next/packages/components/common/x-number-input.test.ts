@@ -1,8 +1,8 @@
 /**
- * XNumberInput 的固定小数位、加减钮与前后缀。
+ * XNumberInput 的固定小数位、加减钮与前后缀
  *
  * 组件库的数字字段没有 precision：整数字段要防住 1.5，价格要固定两位小数，
- * 回舍、补齐与缺省步长都由封装给；加减钮留空，皮肤才画得出字形。
+ * 回舍、补齐与缺省步长都由封装给；加减钮留空，皮肤才画得出字形
  */
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'

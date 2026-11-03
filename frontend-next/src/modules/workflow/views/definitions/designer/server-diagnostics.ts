@@ -1,8 +1,8 @@
 /**
  * 发布失败时后端给的逐条问题：Problem Details 的字段级 errors，键是定义 JSON（WorkflowJson）里去掉 `$.` 的路径，
- * 如 `nodes[2].properties.Cron`、`transitions[0].condition`，定义级的问题是 `nodes`；值是已按界面语言翻译的文案。
+ * 如 `nodes[2].properties.Cron`、`transitions[0].condition`，定义级的问题是 `nodes`；值是已按界面语言翻译的文案
  *
- * 按下标找到节点与连线的 ID（设计器里的节点、连线沿用定义里的 ID），交给设计器标出来；定位不到具体对象的算定义级问题。
+ * 按下标找到节点与连线的 ID（设计器里的节点、连线沿用定义里的 ID），交给设计器标出来；定位不到具体对象的算定义级问题
  */
 
 /** 一条落到设计器上的问题 */

@@ -1,9 +1,9 @@
 /**
- * 可搜索下拉 XCombobox 的取值与输入框文字。
+ * 可搜索下拉 XCombobox 的取值与输入框文字
  *
- * 组件库的 combobox 只管显示：输入框里写什么、候选怎么筛都归调用方。
+ * 组件库的 combobox 只管显示：输入框里写什么、候选怎么筛都归调用方
  * 输入框受控后若不主动回填，选中项在收起时就是一个空输入框——时区选择器曾经就这样，
- * 要点进去再点出来才显示；远程检索也曾靠 Select 上不存在的 filterable / remote 透传，根本发不出去。
+ * 要点进去再点出来才显示；远程检索也曾靠 Select 上不存在的 filterable / remote 透传，根本发不出去
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'

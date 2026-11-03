@@ -1,10 +1,10 @@
 /**
  * packages/constants 跨模块契约测试（http / route / layout-events / user-setting /
- * notification / index 汇总）。
+ * notification / index 汇总）
  *
  * 职责边界：这些常量都是与后端或与 shell 其它层的**约定**——状态码与后端一致、
  * 场景枚举与后端 UserSettingScene 一致、静态选项覆盖枚举的全部成员、
- * 事件名不与其它自定义事件撞名、汇总入口不丢导出。逐条锁定，改一处即失败。
+ * 事件名不与其它自定义事件撞名、汇总入口不丢导出。逐条锁定，改一处即失败
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NotificationType } from '~/types/enums'

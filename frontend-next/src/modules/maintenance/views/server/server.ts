@@ -493,7 +493,7 @@ export interface HealthSummary {
 
 /**
  * 概览角标：取最差的健康项。全部就绪（或没有健康项）为「运行正常」（4.x 恒为运行正常），
- * 有故障、有降级、有未就绪的分别写出。
+ * 有故障、有降级、有未就绪的分别写出
  */
 export function healthSummary(t: Translate, items: readonly Pick<HealthItem, 'state'>[]): HealthSummary {
   let worst: Tone = 'success'
@@ -545,8 +545,8 @@ export function healthCard(t: Translate, item: HealthItem): HealthCard {
 // ── 取数与自动刷新 ──────────────────────────────────────────────
 
 /**
- * 运行信息的状态：取一次替换整份；失败时保留上一次的数据并抛给调用方。
- * 上一次还在途时不再发（自动刷新遇上慢响应不堆积请求）。
+ * 运行信息的状态：取一次替换整份；失败时保留上一次的数据并抛给调用方
+ * 上一次还在途时不再发（自动刷新遇上慢响应不堆积请求）
  */
 export function useServerInfo() {
   const info = ref<ServerInfo | null>(null)

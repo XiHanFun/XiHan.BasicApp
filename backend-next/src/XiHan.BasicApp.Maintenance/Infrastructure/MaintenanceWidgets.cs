@@ -11,22 +11,22 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Maintenance.Infrastructure;
 
 /// <summary>
-/// 运维包给工作台的小组件。
+/// 运维包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 作业只在平台一侧，租户主体取不到（权限码本就是平台侧的）。
+/// 作业只在平台一侧，租户主体取不到（权限码本就是平台侧的）
 /// </remarks>
-/// <param name="scheduler">作业调度器。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="scheduler">作业调度器</param>
+/// <param name="clock">时钟</param>
 public sealed class MaintenanceWidgets(IJobScheduler scheduler, TimeProvider clock) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 作业执行（逐日成功与失败的运行次数）。
+    /// 作业执行（逐日成功与失败的运行次数）
     /// </summary>
     public const string JobRuns = "maintenance.job-runs";
 
     /// <summary>
-    /// 最多翻几页运行历史（每页取框架允许的上限）。
+    /// 最多翻几页运行历史（每页取框架允许的上限）
     /// </summary>
     private const int MaxPages = 20;
 
@@ -38,7 +38,7 @@ public sealed class MaintenanceWidgets(IJobScheduler scheduler, TimeProvider clo
 
     /// <inheritdoc />
     /// <remarks>
-    /// 按计划时刻归到查看者的本地日；失败含「丢失」（节点掉线没跑完），取消与运行中不计。
+    /// 按计划时刻归到查看者的本地日；失败含「丢失」（节点掉线没跑完），取消与运行中不计
     /// </remarks>
     public async ValueTask<Result<WorkbenchWidgetData>> GetAsync(string key, WorkbenchWidgetQuery query, InvocationContext context)
     {

@@ -1,8 +1,8 @@
 /**
- * XInput 对外的事件与部件：clear / enter 两个事件、字数、后缀、原生 type 与多行行数。
+ * XInput 对外的事件与部件：clear / enter 两个事件、字数、后缀、原生 type 与多行行数
  *
  * 调用方写 `@clear`、`show-count`、`#suffix` 都依赖这一层真的把它们接到组件库的部件上；
- * 没接时监听落成输入框上的死 DOM 事件、属性落成无意义的特性，页面上什么也不发生且不报错。
+ * 没接时监听落成输入框上的死 DOM 事件、属性落成无意义的特性，页面上什么也不发生且不报错
  */
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'

@@ -15,31 +15,31 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 由表配置与列配置建出生成的上下文。
+/// 由表配置与列配置建出生成的上下文
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>BuildContextAsync</c>：树表、主从与关联的结构字段在这里解析成列模型，解析不出来即报错、不静默降级（否则模板渲染出引用了不存在属性的代码，要到编译时才暴露）。
+/// 照 4.x 的 <c>BuildContextAsync</c>：树表、主从与关联的结构字段在这里解析成列模型，解析不出来即报错、不静默降级（否则模板渲染出引用了不存在属性的代码，要到编译时才暴露）
 /// 与 4.x 不同（6.0 的写法）：主键是 Guid，树表的父级列与关联列要 <c>Guid</c>（4.x 要 long）；状态切换要一列启停枚举（有 <c>Active</c> 与 <c>Disabled</c>，4.x 是全局的 <c>EnableStatus</c>），新建实体时属性名为 <c>Status</c>、没选枚举的整数列由生成器在实体里出 <c>&lt;类&gt;Status</c>；
-/// 包名、资源名、权限码与页面码由包的命名空间与类名推出；父菜单去掉（页面登记在包的 <c>Pages</c> 里）。
+/// 包名、资源名、权限码与页面码由包的命名空间与类名推出；父菜单去掉（页面登记在包的 <c>Pages</c> 里）
 /// </remarks>
-/// <param name="tableService">表配置服务。</param>
-/// <param name="tables">表配置仓储。</param>
-/// <param name="entities">框架登记的实体。</param>
-/// <param name="enums">枚举目录。</param>
+/// <param name="tableService">表配置服务</param>
+/// <param name="tables">表配置仓储</param>
+/// <param name="entities">框架登记的实体</param>
+/// <param name="enums">枚举目录</param>
 public sealed partial class CodeGenContextBuilder(CodeGenTableService tableService, IRepository<SysCodeGenTable, Guid> tables, IEntityCatalog entities, CodeGenEnumCatalog enums)
 {
     /// <summary>
-    /// 生成器给它产出的实体打的工具名：据此区分生成的与手写的。
+    /// 生成器给它产出的实体打的工具名：据此区分生成的与手写的
     /// </summary>
     public const string GeneratedCodeTool = "XiHan.CodeGen";
 
     private const string AppPrefix = "XiHan.BasicApp.";
 
     /// <summary>
-    /// 建出上下文。
+    /// 建出上下文
     /// </summary>
-    /// <param name="tableId">表配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="tableId">表配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<CodeGenContext>> BuildAsync(Guid tableId, CancellationToken cancellationToken)
     {
         if (!(await tableService.FindAsync(tableId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var table))
@@ -119,9 +119,9 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
     }
 
     /// <summary>
-    /// 类名的资源名：kebab 写法、末段取复数（如 <c>SalesOrder</c> → <c>sales-orders</c>）。
+    /// 类名的资源名：kebab 写法、末段取复数（如 <c>SalesOrder</c> → <c>sales-orders</c>）
     /// </summary>
-    /// <param name="className">类名。</param>
+    /// <param name="className">类名</param>
     public static string ResourceOf(string className)
     {
         var kebab = CodeGenNaming.Kebabize(className);
@@ -131,12 +131,12 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
     }
 
     /// <summary>
-    /// 界面上的业务对象名。
+    /// 界面上的业务对象名
     /// </summary>
     /// <remarks>
-    /// 业务名，没有即表注释，再没有即类名（照 4.x）；都去掉句末标点（<see cref="CodeGenItems.PhraseOf"/>，导入时业务名取的就是表注释）。
+    /// 业务名，没有即表注释，再没有即类名（照 4.x）；都去掉句末标点（<see cref="CodeGenItems.PhraseOf"/>，导入时业务名取的就是表注释）
     /// </remarks>
-    /// <param name="table">表配置。</param>
+    /// <param name="table">表配置</param>
     public static string DisplayNameOf(SysCodeGenTable table)
     {
         ArgumentNullException.ThrowIfNull(table);
@@ -144,12 +144,12 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
     }
 
     /// <summary>
-    /// 包的命名空间与短名。
+    /// 包的命名空间与短名
     /// </summary>
     /// <remarks>
-    /// 命名空间没填按 <c>XiHan.BasicApp.&lt;包名&gt;</c>，包名没填取命名空间末段。
+    /// 命名空间没填按 <c>XiHan.BasicApp.&lt;包名&gt;</c>，包名没填取命名空间末段
     /// </remarks>
-    /// <param name="table">表配置。</param>
+    /// <param name="table">表配置</param>
     public static Result<(string Namespace, string Module)> NamesOf(SysCodeGenTable table)
     {
         ArgumentNullException.ThrowIfNull(table);
@@ -340,7 +340,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return column is null ? null : Invalid(CodeGenerationMessages.GenerateUniqueUnsupported, ("column", column.ColumnName), ("type", column.CSharpType));
     }
 
-    // 状态列：启停枚举的业务列，有属性名 Status 的取它，否则要恰好一列；行内启停按列表里的值切换，要进列表。
+    // 状态列：启停枚举的业务列，有属性名 Status 的取它，否则要恰好一列；行内启停按列表里的值切换，要进列表
     // 一列也没有时，属性名为 Status、没选枚举的整数列由生成器在实体里出 <类>Status（Active 0、Disabled 1，同各包的状态枚举）；沿用已有实体时实体是手写的，不出
     private static Error? ResolveStatus(SysCodeGenTable table, CodeGenContext context)
     {

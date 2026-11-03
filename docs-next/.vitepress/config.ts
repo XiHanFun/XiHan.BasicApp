@@ -3,7 +3,7 @@ import type { DefaultTheme } from "vitepress";
 import { defineXiHanConfig } from "@xihanfun/vitepress-theme/config";
 const require = createRequire(import.meta.url);
 
-// 导航末项显示的版本号取自 6.0 管理端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处。
+// 导航末项显示的版本号取自 6.0 管理端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处
 const { version } = require("../../frontend-next/package.json");
 
 const title: string = "曦寒基础应用 6.0 文档";
@@ -119,7 +119,7 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
 ];
 
 // 每个顶部导航板块各自一份侧栏，由路径前缀决定用哪一份；
-// 首页是 layout: home，不落任何一份。
+// 首页是 layout: home，不落任何一份
 const sidebar: DefaultTheme.Sidebar = {
   "/backend/": backendSidebar,
   "/frontend/": frontendSidebar,

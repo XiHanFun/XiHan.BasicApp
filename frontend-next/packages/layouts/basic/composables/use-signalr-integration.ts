@@ -100,7 +100,7 @@ export function useSignalRIntegration() {
     const tone = toneMap[payload?.type ?? 'Info'] ?? 'info'
 
     // 卡片只出一句纯文本摘要：命令式通知的 description 是 string，承不了富文本；
-    // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染。
+    // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染
     notification.create({
       tone,
       title: payload?.title || t('page.signalr.new_notification'),
@@ -132,8 +132,8 @@ export function useSignalRIntegration() {
   }
 
   /**
-   * 同账号其它设备保存设置后的实时推送：按场景分发应用。
-   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值。
+   * 同账号其它设备保存设置后的实时推送：按场景分发应用
+   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值
    */
   function handleUserSettingChanged(payload: UserSettingChangedPayload) {
     if (!payload || payload.sourceClientId === USER_SETTING_CLIENT_ID) {

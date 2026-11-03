@@ -8,11 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证运行时作业的新建与删除。
+/// 验证运行时作业的新建与删除
 /// </summary>
 /// <remarks>
 /// 按已登记的作业类型运行时登记（来源 <c>Runtime</c>），同名、名不合规、参数不是 JSON 对象、类型不认识各自报错；
-/// 只删运行时登记的，代码登记的逐项拒绝；只在平台一侧。
+/// 只删运行时登记的，代码登记的逐项拒绝；只在平台一侧
 /// </remarks>
 public sealed class MaintenanceJobRegistrationTests : IDisposable
 {

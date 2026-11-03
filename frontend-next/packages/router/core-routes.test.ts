@@ -1,6 +1,6 @@
 /**
- * 核心路由表（routes/core.ts）的结构约束：name / path 唯一、认证与错误页齐备、通配路由压底。
- * 不涉及导航行为（那部分在 guard.test.ts）。
+ * 核心路由表（routes/core.ts）的结构约束：name / path 唯一、认证与错误页齐备、通配路由压底
+ * 不涉及导航行为（那部分在 guard.test.ts）
  */
 import type { RouteRecordRaw } from 'vue-router'
 import { describe, expect, it } from 'vitest'

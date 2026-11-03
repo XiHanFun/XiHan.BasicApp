@@ -1,8 +1,8 @@
 /**
- * 分格验证码换算。
+ * 分格验证码换算
  *
  * 只锁两条对外可见的约定：拆出来的数组长度恒等于格数，多余的截、不足的补；
- * 一个格子放一个码点，代理对不会被劈成两半。
+ * 一个格子放一个码点，代理对不会被劈成两半
  */
 import { describe, expect, it } from 'vitest'
 import { CAPTCHA_CODE_LENGTH, OTP_CODE_LENGTH, splitPinCode } from './pin-code'

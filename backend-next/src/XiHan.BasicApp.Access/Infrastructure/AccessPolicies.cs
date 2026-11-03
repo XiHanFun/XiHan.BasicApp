@@ -18,35 +18,35 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一条访问策略条件（判定所需的部分）。
+/// 一条访问策略条件（判定所需的部分）
 /// </summary>
-/// <param name="GroupNo">组号。</param>
-/// <param name="AttributeName">属性名。</param>
-/// <param name="Operator">运算符。</param>
-/// <param name="IsNegated">是否取反。</param>
-/// <param name="Value">条件值。</param>
+/// <param name="GroupNo">组号</param>
+/// <param name="AttributeName">属性名</param>
+/// <param name="Operator">运算符</param>
+/// <param name="IsNegated">是否取反</param>
+/// <param name="Value">条件值</param>
 public sealed record PolicyClauseView(int GroupNo, string AttributeName, ConditionOperator Operator, bool IsNegated, string? Value);
 
 /// <summary>
-/// 一条启用的访问策略（判定所需的部分）。
+/// 一条启用的访问策略（判定所需的部分）
 /// </summary>
-/// <param name="Id">策略 ID。</param>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Action">动作。</param>
-/// <param name="Priority">优先级。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">失效时间。</param>
-/// <param name="Conditions">条件。</param>
+/// <param name="Id">策略 ID</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Action">动作</param>
+/// <param name="Priority">优先级</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">失效时间</param>
+/// <param name="Conditions">条件</param>
 public sealed record AccessPolicyView(Guid Id, string Code, string Name, AccessPolicyAction Action, int Priority, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, List<PolicyClauseView> Conditions)
 {
     /// <summary>
-    /// 某一时刻是否在有效期内。
+    /// 某一时刻是否在有效期内
     /// </summary>
     public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 
     /// <summary>
-    /// 条件转成条件引擎的条件集：按组号分组、组内按写入顺序。
+    /// 条件转成条件引擎的条件集：按组号分组、组内按写入顺序
     /// </summary>
     public ConditionSet ToSet()
         => new([.. Conditions.GroupBy(static c => c.GroupNo).OrderBy(static g => g.Key).Select(static g => new ConditionGroup(
@@ -55,19 +55,19 @@ public sealed record AccessPolicyView(Guid Id, string Code, string Name, AccessP
 }
 
 /// <summary>
-/// 一侧启用的访问策略（单例）。
+/// 一侧启用的访问策略（单例）
 /// </summary>
 /// <remarks>
-/// 放在共享缓存里 60 秒，写入即失效；按优先级（越小越先）与编码排列，有效期在判定时比较。
+/// 放在共享缓存里 60 秒，写入即失效；按优先级（越小越先）与编码排列，有效期在判定时比较
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）</param>
 public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一侧启用的策略。
+    /// 一侧启用的策略
     /// </summary>
     public async Task<IReadOnlyList<AccessPolicyView>> OfAsync(string owner, CancellationToken cancellationToken)
     {
@@ -76,10 +76,10 @@ public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scop
     }
 
     /// <summary>
-    /// 一侧的策略失效。
+    /// 一侧的策略失效
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner), cancellationToken).ConfigureAwait(false);
@@ -111,44 +111,44 @@ public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scop
 }
 
 /// <summary>
-/// 一条命中的策略与它的时机。
+/// 一条命中的策略与它的时机
 /// </summary>
-/// <param name="Policy">策略。</param>
-/// <param name="Phase">时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后。</param>
+/// <param name="Policy">策略</param>
+/// <param name="Phase">时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后</param>
 public sealed record AccessPolicyHit(AccessPolicyView Policy, ConditionHitPhase Phase);
 
 /// <summary>
-/// 一层（平台或租户）的判定。
+/// 一层（平台或租户）的判定
 /// </summary>
-/// <param name="Hits">命中的策略（全部记命中）。</param>
-/// <param name="Allowed">是否有放行命中（压过同层的拒绝）。</param>
-/// <param name="BlockedBy">拦下这次调用的第一条拒绝策略；没有即不拦。</param>
+/// <param name="Hits">命中的策略（全部记命中）</param>
+/// <param name="Allowed">是否有放行命中（压过同层的拒绝）</param>
+/// <param name="BlockedBy">拦下这次调用的第一条拒绝策略；没有即不拦</param>
 public sealed record AccessPolicyLayer(IReadOnlyList<AccessPolicyHit> Hits, bool Allowed, AccessPolicyView? BlockedBy);
 
 /// <summary>
-/// 访问策略的求值（单例）。
+/// 访问策略的求值（单例）
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 AccessPolicyEvaluator。
-/// 逐条求值一层里此刻有效的策略，命中全部记下；同层有放行命中即不拒绝，否则第一条命中的拒绝拦下。
-/// 编译结果按条件内容记住（策略改了内容就是新的一份）；编译不过的策略不命中。
+/// 对应 4.x 的 AccessPolicyEvaluator
+/// 逐条求值一层里此刻有效的策略，命中全部记下；同层有放行命中即不拒绝，否则第一条命中的拒绝拦下
+/// 编译结果按条件内容记住（策略改了内容就是新的一份）；编译不过的策略不命中
 /// </remarks>
-/// <param name="compiler">条件编译器。</param>
-/// <param name="evaluator">条件求值器。</param>
-/// <param name="options">授权包配置（时区）。</param>
+/// <param name="compiler">条件编译器</param>
+/// <param name="evaluator">条件求值器</param>
+/// <param name="options">授权包配置（时区）</param>
 public sealed class AccessPolicyEvaluator(IConditionCompiler compiler, IConditionEvaluator evaluator, AccessOptions options)
 {
     private const int MemoLimit = 1000;
     private readonly ConcurrentDictionary<string, CompiledConditionSet> _compiled = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// 求值一层。
+    /// 求值一层
     /// </summary>
-    /// <param name="policies">这一层启用的策略（已排好）。</param>
-    /// <param name="source">请求属性。</param>
-    /// <param name="now">判定时刻。</param>
-    /// <param name="platform">是不是平台层（只有平台层分认证前时机）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="policies">这一层启用的策略（已排好）</param>
+    /// <param name="source">请求属性</param>
+    /// <param name="now">判定时刻</param>
+    /// <param name="platform">是不是平台层（只有平台层分认证前时机）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<AccessPolicyLayer> EvaluateAsync(IReadOnlyList<AccessPolicyView> policies, IConditionAttributeSource source, DateTimeOffset now, bool platform, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(policies);
@@ -180,7 +180,7 @@ public sealed class AccessPolicyEvaluator(IConditionCompiler compiler, IConditio
     }
 
     /// <summary>
-    /// 编译一条策略（按内容记住）。
+    /// 编译一条策略（按内容记住）
     /// </summary>
     public CompiledConditionSet Compile(AccessPolicyView policy)
     {
@@ -195,10 +195,10 @@ public sealed class AccessPolicyEvaluator(IConditionCompiler compiler, IConditio
     }
 
     /// <summary>
-    /// 判定策略的求值时机。
+    /// 判定策略的求值时机
     /// </summary>
     /// <remarks>
-    /// 平台策略只引用认证前就取得到的属性即认证前，否则认证后；租户策略一律认证后。
+    /// 平台策略只引用认证前就取得到的属性即认证前，否则认证后；租户策略一律认证后
     /// </remarks>
     public static ConditionHitPhase PhaseOf(CompiledConditionSet compiled, bool platform)
     {

@@ -9,12 +9,12 @@ using XiHan.BasicApp.CodeGeneration.Domain.Services;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 模板的渲染（Scriban）。
+/// 模板的渲染（Scriban）
 /// </summary>
 /// <remarks>
 /// 照 4.x：变量以 PascalCase 原名注入（关掉 Scriban 缺省的 snake_case 改名），模板写 <c>{{ ClassName }}</c>、<c>{{ for col in Columns }}{{ col.CSharpProperty }}{{ end }}</c>；
-/// 注册 10 个转义过滤器（<c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>、<c>html_attr</c>、<c>html_text</c>、<c>block_comment</c>、<c>html_comment</c>、<c>i18n_message</c>、<c>js_literal</c>、<c>select_options</c>）。
-/// 6.0 加的限制（同 Notification 的消息模板）：不给模板加载器（不能 <c>include</c> 别的文件），循环与递归设上限。
+/// 注册 10 个转义过滤器（<c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>、<c>html_attr</c>、<c>html_text</c>、<c>block_comment</c>、<c>html_comment</c>、<c>i18n_message</c>、<c>js_literal</c>、<c>select_options</c>）
+/// 6.0 加的限制（同 Notification 的消息模板）：不给模板加载器（不能 <c>include</c> 别的文件），循环与递归设上限
 /// </remarks>
 public static class CodeGenRenderer
 {
@@ -24,10 +24,10 @@ public static class CodeGenRenderer
     private const int DetailPageSize = 100;
 
     /// <summary>
-    /// 检查模板语法。
+    /// 检查模板语法
     /// </summary>
-    /// <param name="source">模板源文。</param>
-    /// <returns>错误；没错为空集合。</returns>
+    /// <param name="source">模板源文</param>
+    /// <returns>错误；没错为空集合</returns>
     public static IReadOnlyList<string> Validate(string? source)
     {
         var template = Template.Parse(source ?? string.Empty);
@@ -35,14 +35,14 @@ public static class CodeGenRenderer
     }
 
     /// <summary>
-    /// 渲染一段模板源文。
+    /// 渲染一段模板源文
     /// </summary>
-    /// <param name="source">模板源文。</param>
-    /// <param name="model">变量（<see cref="Model"/> 建出的）。</param>
-    /// <returns>渲染结果。</returns>
-    /// <exception cref="InvalidOperationException">语法错误。</exception>
-    /// <exception cref="Scriban.Syntax.ScriptRuntimeException">运行时错误。</exception>
-    /// <exception cref="CodeGenRenderException">过滤器发现配置问题。</exception>
+    /// <param name="source">模板源文</param>
+    /// <param name="model">变量（<see cref="Model"/> 建出的）</param>
+    /// <returns>渲染结果</returns>
+    /// <exception cref="InvalidOperationException">语法错误</exception>
+    /// <exception cref="Scriban.Syntax.ScriptRuntimeException">运行时错误</exception>
+    /// <exception cref="CodeGenRenderException">过滤器发现配置问题</exception>
     public static string Render(string? source, ScriptObject model)
     {
         ArgumentNullException.ThrowIfNull(model);
@@ -60,10 +60,10 @@ public static class CodeGenRenderer
     }
 
     /// <summary>
-    /// 由上下文建出模板变量。
+    /// 由上下文建出模板变量
     /// </summary>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="items">要登记的操作、权限码与错误码。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="items">要登记的操作、权限码与错误码</param>
     public static ScriptObject Model(CodeGenContext context, CodeGenItems items)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -170,7 +170,8 @@ public static class CodeGenRenderer
                 ["Audited"] = p.Audited,
                 ["Name"] = CodeGenPhrases.Text($"perm.{p.Action}.name", "en-US", ("name", context.DisplayName)),
                 ["Description"] = CodeGenPhrases.Text($"perm.{p.Action}.description", "en-US", ("name", context.DisplayName)),
-                ["Summary"] = CodeGenPhrases.Text($"perm.{p.Action}.description", "zh-CN", ("name", context.DisplayName)),
+                // 文档注释用中文说明，句末不加「。」（说明文案本身是带句号的消息）
+                ["Summary"] = CodeGenItems.PhraseOf(CodeGenPhrases.Text($"perm.{p.Action}.description", "zh-CN", ("name", context.DisplayName))),
             })).ToList(),
             ["Errors"] = items.Errors.Select(static e => Object(new Dictionary<string, object?>
             {

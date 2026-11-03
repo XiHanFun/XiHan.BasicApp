@@ -14,7 +14,7 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 授权申请的审批业务。
+/// 授权申请的审批业务
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>PermissionRequestWorkflowHandler</c>：
@@ -24,17 +24,17 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// <item>结论 <c>approved</c>：重核对象仍可用，按期望的有效期指派角色（经 <see cref="RoleAssignmentService"/>，过约束规则，拦截类违规即失败）与直授权限（经 <see cref="UserGrantService"/>），
 /// 再置为已批准；任一步失败即返回失败，结束节点故障、申请保持待审批，处理后重试流程（4.x 同）；已批准时幂等；</item>
 /// <item>结论 <c>rejected</c> 置为已驳回；中止（管理员取消、终止，发起人在审批中心撤回）把待审批的置为已撤回；</item>
-/// <item>单据组件 <c>access/permission-request-approval/index</c>（设计稿 D4），数据是与 <c>permission-requests.get</c> 同一形态的响应。</item>
+/// <item>单据组件 <c>access/permission-request-approval/index</c>（设计稿 D4），数据是与 <c>permission-requests.get</c> 同一形态的响应</item>
 /// </list>
-/// 缺省定义（当前分区第一次提交时建并发布）：管理员角色 <c>admin</c> 审批，不含申请人自己（4.x 的租户所有者与超管在 6.0 合成两侧同名的内建 <c>admin</c>）。
+/// 缺省定义（当前分区第一次提交时建并发布）：管理员角色 <c>admin</c> 审批，不含申请人自己（4.x 的租户所有者与超管在 6.0 合成两侧同名的内建 <c>admin</c>）
 /// </remarks>
-/// <param name="store">授权申请的读写与校验。</param>
-/// <param name="assignments">角色指派。</param>
-/// <param name="grants">直接授予。</param>
+/// <param name="store">授权申请的读写与校验</param>
+/// <param name="assignments">角色指派</param>
+/// <param name="grants">直接授予</param>
 public sealed class PermissionRequestApprovalHandler(PermissionRequestStore store, RoleAssignmentService assignments, UserGrantService grants) : IWorkflowBusinessHandler
 {
     /// <summary>
-    /// 单据组件。
+    /// 单据组件
     /// </summary>
     public const string FormComponent = "access/permission-request-approval/index";
 
@@ -180,7 +180,7 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
     }
 
     /// <summary>
-    /// 指派角色与直授权限（沿用期望的有效期）。
+    /// 指派角色与直授权限（沿用期望的有效期）
     /// </summary>
     private async Task<Result> GrantAsync(SysPermissionRequest request, InvocationContext context)
     {

@@ -26,18 +26,18 @@ import { useI18n } from 'vue-i18n'
 import { useControlAttrs } from './control-attrs'
 
 /**
- * 可搜索的下拉选择：输入框 + 候选列表，取值方式与 XSelect 一致。
+ * 可搜索的下拉选择：输入框 + 候选列表，取值方式与 XSelect 一致
  *
  * 组件库的 combobox 只管显示，筛哪些条目、输入框里写什么都归调用方，这里把全站一样的那套收拢：
- * 1. 值类型。选中值一律是 `string[]`，按 String(value) 建映射，收上来再还原成原类型（同 XSelect）。
+ * 1. 值类型。选中值一律是 `string[]`，按 String(value) 建映射，收上来再还原成原类型（同 XSelect）
  * 2. 输入框文字。由本组件受控：没在打字时显示选中项的文字（选项晚到、换语言后跟着变），
- *    打字时显示打的字；收起或失焦即复位，不留半截筛选串。
- * 3. 筛选。缺省按文字（含副文本）在本地筛；remote 时不筛，候选全由调用方据 search 换。
- * 4. 检索。打字停顿后发出 search，同一串不重复发；清空、选中后回到空串也会发一次，供远程换回缺省清单。
- * 5. 自填。allowCustomValue 时候选只是建议：回车或失焦把打的字本身收为选中值（取值是字符串）。
+ *    打字时显示打的字；收起或失焦即复位，不留半截筛选串
+ * 3. 筛选。缺省按文字（含副文本）在本地筛；remote 时不筛，候选全由调用方据 search 换
+ * 4. 检索。打字停顿后发出 search，同一串不重复发；清空、选中后回到空串也会发一次，供远程换回缺省清单
+ * 5. 自填。allowCustomValue 时候选只是建议：回车或失焦把打的字本身收为选中值（取值是字符串）
  *
  * 落在这个标签上的 id 与 aria-* 转交给输入框；aria-label 改放进视觉隐藏的 label 部件，
- * 因为输入框的名字由 aria-labelledby 指向 label 部件给出，直接写的 aria-label 会被它盖掉。
+ * 因为输入框的名字由 aria-labelledby 指向 label 部件给出，直接写的 aria-label 会被它盖掉
  */
 defineOptions({ name: 'XCombobox', inheritAttrs: false })
 
@@ -105,7 +105,7 @@ const inputAttrs = computed(() => {
 
 /**
  * 见过的选项（文字与原始值）。远程检索会把候选整批换掉，已选那条不在新候选里时，
- * 输入框与标签仍要念得出它的名字、删掉别的标签时它也不能被收成字符串。
+ * 输入框与标签仍要念得出它的名字、删掉别的标签时它也不能被收成字符串
  */
 const known = shallowReactive(new Map<string, { label: string, value: string | number }>())
 watch(() => props.options, (options) => {
@@ -199,7 +199,7 @@ function onInputValueChange(details: { inputValue: string }): void {
 }
 
 function onOpenChange(details: { open: boolean }): void {
-  // 自填时收起不收字：Tab 离开是先收起再失焦，字在收起时没了，失焦提交的就是旧文字。
+  // 自填时收起不收字：Tab 离开是先收起再失焦，字在收起时没了，失焦提交的就是旧文字
   // 打的字由组件库在回车 / 失焦时收成值，值一换下面的 watch 自然复位
   if (!details.open && !props.allowCustomValue) {
     draft.value = null

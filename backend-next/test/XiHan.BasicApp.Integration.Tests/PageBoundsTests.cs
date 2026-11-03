@@ -9,11 +9,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证页码的上限。
+/// 验证页码的上限
 /// </summary>
 /// <remarks>
-/// 页码 1 到 <see cref="PageInfo.MaxIndex"/>：上限本身照常返回（空页），越界以 400 <c>KERNEL_VALIDATION_003</c> 拒绝，字段错误按请求的区域给出文案。
-/// 原先只限到 <see cref="int.MaxValue"/>，换算跳过的行数时溢出成负数（SQLite 返回第一页，PostgreSQL 报错成 500）。
+/// 页码 1 到 <see cref="PageInfo.MaxIndex"/>：上限本身照常返回（空页），越界以 400 <c>KERNEL_VALIDATION_003</c> 拒绝，字段错误按请求的区域给出文案
+/// 原先只限到 <see cref="int.MaxValue"/>，换算跳过的行数时溢出成负数（SQLite 返回第一页，PostgreSQL 报错成 500）
 /// </remarks>
 public sealed class PageBoundsTests : IDisposable
 {

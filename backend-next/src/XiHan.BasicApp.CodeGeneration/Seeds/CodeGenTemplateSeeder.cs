@@ -12,15 +12,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Seeds;
 
 /// <summary>
-/// 内置模板的种子。
+/// 内置模板的种子
 /// </summary>
 /// <remarks>
 /// 号段 600 + 20（平台数据，可选模块按偏移；Access 已占 610）。照 4.x：把嵌入的 <c>Seeds/Templates/**/*.sbn</c> 写成内置模板，
-/// 每次启动对齐正文、名称、分组、生成模式、扩展名、路径表达式、写入方式与排序（内置模板随程序版本走，改了模板文件已有的库也要生效），启停归运维、不动。
-/// 嵌入的文件缺了是构建问题，直接失败。
+/// 每次启动对齐正文、名称、分组、生成模式、扩展名、路径表达式、写入方式与排序（内置模板随程序版本走，改了模板文件已有的库也要生效），启停归运维、不动
+/// 嵌入的文件缺了是构建问题，直接失败
 /// </remarks>
-/// <param name="templates">模板仓储。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="templates">模板仓储</param>
+/// <param name="ids">标识生成器</param>
 public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> templates, IIdGenerator<Guid> ids) : ISeeder
 {
     /// <inheritdoc />
@@ -30,10 +30,10 @@ public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> 
     public int Order => SeedOrders.PlatformData + (SeedOrders.ModuleOffset * 2);
 
     /// <summary>
-    /// 读一份内置模板的正文。
+    /// 读一份内置模板的正文
     /// </summary>
-    /// <param name="template">内置模板。</param>
-    /// <exception cref="InvalidOperationException">嵌入的文件不存在。</exception>
+    /// <param name="template">内置模板</param>
+    /// <exception cref="InvalidOperationException">嵌入的文件不存在</exception>
     public static string ContentOf(BuiltInTemplate template)
     {
         ArgumentNullException.ThrowIfNull(template);

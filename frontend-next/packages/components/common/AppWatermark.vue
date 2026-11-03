@@ -10,7 +10,7 @@ const appStore = useAppStore()
 <template>
   <!--
     组件库的水印是「盖住一段内容」的容器；全屏水印在这里靠定位实现：
-    铺满视口、不吃指针、压在业务内容之上但在浮层之下。
+    铺满视口、不吃指针、压在业务内容之上但在浮层之下
   -->
   <XhWatermarkRoot
     v-if="appStore.watermarkEnabled"

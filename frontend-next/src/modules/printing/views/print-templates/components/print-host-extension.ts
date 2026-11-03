@@ -1,10 +1,10 @@
 /**
  * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印与打印机写成一个扩展的命令，
  * 落在菜单栏的「文件」菜单里，常用的同时上工具栏；保存用设计器内置的 save 命令（Ctrl / ⌘ + S），
- * 回列表用设计器自带的关闭钮（closable），都不在这里。
+ * 回列表用设计器自带的关闭钮（closable），都不在这里
  *
  * 命令只读编辑会话此刻的状态、执行时交回编辑会话；状态变了由宿主调设计器的 requestUpdate() 刷新可用与勾选，
- * 扩展对象本身建一次、引用不变（换引用设计器当作卸下再装上）。
+ * 扩展对象本身建一次、引用不变（换引用设计器当作卸下再装上）
  */
 import type { DesignerCommandMenuEntry } from '~/designers'
 import type { PrintDesignerExtension } from '~/printing/designer'

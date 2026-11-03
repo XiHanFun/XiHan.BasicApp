@@ -11,18 +11,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 取本人的资料与账号安全概况。
+/// 取本人的资料与账号安全概况
 /// </summary>
 /// <remarks>
-/// <c>GET /api/profile</c>。已登录即可；模仿会话看到的是被模仿人的。
+/// <c>GET /api/profile</c>。已登录即可；模仿会话看到的是被模仿人的
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetProfile(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<ProfileRequest, ProfileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.get";
 

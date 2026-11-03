@@ -8,17 +8,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.ExceptionLogs;
 
 /// <summary>
-/// 异常日志详情。
+/// 异常日志详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/exception-logs/{id}</c>。不在当前一侧即找不到。
+/// <c>GET /api/exception-logs/{id}</c>。不在当前一侧即找不到
 /// </remarks>
-/// <param name="queries">异常日志查询。</param>
+/// <param name="queries">异常日志查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.ExceptionLogsRead)]
 public sealed class GetExceptionLog(ExceptionLogQueries queries) : IOperation<GetExceptionLogRequest, ExceptionLogDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "exception-logs.get";
 

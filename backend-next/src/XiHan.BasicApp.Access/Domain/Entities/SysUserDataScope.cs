@@ -7,11 +7,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 用户级数据范围覆盖（平台库实体，只在租户侧）。
+/// 用户级数据范围覆盖（平台库实体，只在租户侧）
 /// </summary>
 /// <remarks>
-/// 有这一行时完全取代该用户所有角色的数据范围（不取并集），没有即按角色。
-/// <see cref="DataScope.Custom"/> 的部门在 <see cref="SysUserDataScopeDepartment"/>。
+/// 有这一行时完全取代该用户所有角色的数据范围（不取并集），没有即按角色
+/// <see cref="DataScope.Custom"/> 的部门在 <see cref="SysUserDataScopeDepartment"/>
 /// </remarks>
 [SugarIndex("ux_{table}_owner_tenant_id_user_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
 public sealed class SysUserDataScope : AppRecord, IOwnedByTenant
@@ -20,18 +20,18 @@ public sealed class SysUserDataScope : AppRecord, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 用户。
+    /// 用户
     /// </summary>
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 覆盖后的数据范围。
+    /// 覆盖后的数据范围
     /// </summary>
     public DataScope DataScope { get; set; }
 }
 
 /// <summary>
-/// 用户级自定义数据范围的一个部门（平台库实体，随覆盖整体替换）。
+/// 用户级自定义数据范围的一个部门（平台库实体，随覆盖整体替换）
 /// </summary>
 [SugarIndex("ux_{table}_owner_user_department", nameof(OwnerTenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 public sealed class SysUserDataScopeDepartment : AppRecord, IOwnedByTenant
@@ -40,17 +40,17 @@ public sealed class SysUserDataScopeDepartment : AppRecord, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 用户。
+    /// 用户
     /// </summary>
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 部门（租户库 <c>SysDepartment</c> 主键）。
+    /// 部门（租户库 <c>SysDepartment</c> 主键）
     /// </summary>
     public Guid DepartmentId { get; set; }
 
     /// <summary>
-    /// 是否连同子部门。
+    /// 是否连同子部门
     /// </summary>
     public bool IncludeChildren { get; set; }
 }

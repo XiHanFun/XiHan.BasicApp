@@ -6,25 +6,25 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包的页面登记。
+/// 身份包的页面登记
 /// </summary>
 /// <remarks>
-/// 见方案 D4。菜单种子与前端路由从这里派生；组件路径 = 路由去前导斜杠 + <c>/index</c>。
+/// 见方案 D4。菜单种子与前端路由从这里派生；组件路径 = 路由去前导斜杠 + <c>/index</c>
 /// </remarks>
 public static class IdentityPages
 {
     /// <summary>
-    /// 用户管理页。
+    /// 用户管理页
     /// </summary>
     public static PageDescriptor Users { get; } = new("identity.users", "/identity/users", "identity.users.title", "lucide:users", 100, IdentityPermissions.UsersRead);
 
     /// <summary>
-    /// 在线用户页。
+    /// 在线用户页
     /// </summary>
     public static PageDescriptor OnlineUsers { get; } = new("identity.online-users", "/identity/online-users", "identity.online_users.title", "lucide:radio", 170, IdentityPermissions.SessionsRead);
 
     /// <summary>
-    /// 本包全部页面。
+    /// 本包全部页面
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } = [Users, OnlineUsers];
 }

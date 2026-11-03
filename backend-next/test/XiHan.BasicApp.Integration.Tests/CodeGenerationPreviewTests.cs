@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.CodeGeneration.Seeds;
@@ -12,12 +13,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证代码生成的模板维护与预览。
+/// 验证代码生成的模板维护与预览
 /// </summary>
 /// <remarks>
-/// 照 4.x：内置模板随程序版本种下、不能改不能删、可以启停，自有模板可增删改；预览只渲染不写历史。
-/// 6.0 的产物：新建包出包级文件与 10 个文案文件（后端 JSON、前端 TS 各一套），加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件。
-/// 前端照 4.x 按生成模式出页面与 schema（生成部分、手写部分），取数走生成的契约客户端，文案按键写、键在包的 locales 里。
+/// 照 4.x：内置模板随程序版本种下、不能改不能删、可以启停，自有模板可增删改；预览只渲染不写历史
+/// 6.0 的产物：新建包出包级文件与 10 个文案文件（后端 JSON、前端 TS 各一套），加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件
+/// 前端照 4.x 按生成模式出页面与 schema（生成部分、手写部分），取数走生成的契约客户端，文案按键写、键在包的 locales 里
 /// </remarks>
 public sealed class CodeGenerationPreviewTests : IDisposable
 {
@@ -105,6 +106,14 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var (saved, savedBody) = await SendAsync(server, HttpMethod.Post, "/api/codegen-table-columns:save", new { tableId = detail.GetProperty("table").GetProperty("id").GetString(), columns }, token);
         Assert.True(saved.StatusCode == HttpStatusCode.OK, savedBody.ToString());
     }
+
+    // 生成的代码里句末带「。」的注释行（C# 的 // 与 ///、TS 的 // 与 /* */ 各行、Vue 的 <!-- -->），产物路径:行号
+    private static List<string> StoppedComments(IEnumerable<KeyValuePair<string, string>> artifacts)
+        => [.. artifacts
+            .Where(static a => a.Key.EndsWith(".cs", StringComparison.Ordinal) || a.Key.EndsWith(".ts", StringComparison.Ordinal) || a.Key.EndsWith(".vue", StringComparison.Ordinal))
+            .SelectMany(static a => a.Value.ReplaceLineEndings("\n").Split('\n').Select((line, index) => (a.Key, Line: line.TrimStart(), Index: index + 1)))
+            .Where(static l => (l.Line.StartsWith("//", StringComparison.Ordinal) || l.Line.StartsWith('*') || l.Line.StartsWith("/*", StringComparison.Ordinal) || l.Line.StartsWith("<!--", StringComparison.Ordinal)) && Regex.IsMatch(l.Line, @"。(?:\s*(?:</[A-Za-z][\w:.-]*>|\*/|-->))*\s*$"))
+            .Select(static l => $"{l.Key}:{l.Index} {l.Line}")];
 
     private static async Task<Dictionary<string, string>> PreviewAsync(BasicAppTestServer server, string token, JsonElement detail)
     {
@@ -291,6 +300,10 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("title: '商品分类',", tree["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
         Assert.DoesNotContain(tree, static f => f.Value.Contains("。。", StringComparison.Ordinal));
         Assert.DoesNotContain(files, static f => f.Value.Contains("。。", StringComparison.Ordinal));
+
+        // 生成的代码照 6.0 的写法：注释句末不加「。」
+        var stopped = StoppedComments(tree.Concat(files));
+        Assert.True(stopped.Count == 0, string.Join('\n', stopped));
     }
 
     [Fact]

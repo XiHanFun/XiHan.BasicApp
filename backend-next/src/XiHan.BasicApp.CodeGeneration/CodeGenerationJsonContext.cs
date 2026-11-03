@@ -15,10 +15,10 @@ using XiHan.BasicApp.Contracts.Paging;
 namespace XiHan.BasicApp.CodeGeneration;
 
 /// <summary>
-/// 代码生成模块操作的请求 / 响应序列化上下文。
+/// 代码生成模块操作的请求 / 响应序列化上下文
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。表与列配置里人工改过的字段集合（字符串数组）也经它往返。
+/// 源生成；枚举按字符串。表与列配置里人工改过的字段集合（字符串数组）也经它往返
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

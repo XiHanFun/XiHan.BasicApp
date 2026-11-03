@@ -87,8 +87,8 @@ const showTopMenu = computed(
 const showBreadcrumb = computed(() => !showTopMenu.value && appStore.breadcrumbEnabled)
 
 /**
- * 顶栏空间先给横向菜单：菜单一行装不下就把命令面板收成图标钮，让出它那一截宽度。
- * 展开与收起用同一把尺量，避免来回抖动——收起后要再展开，富余量必须够放回展开态与图标态的差值。
+ * 顶栏空间先给横向菜单：菜单一行装不下就把命令面板收成图标钮，让出它那一截宽度
+ * 展开与收起用同一把尺量，避免来回抖动——收起后要再展开，富余量必须够放回展开态与图标态的差值
  */
 const SEARCH_ICON_WIDTH = 32
 const SEARCH_RESTORE_SPARE = 8
@@ -217,7 +217,7 @@ const contextLabel = computed(() => {
 })
 
 const userOptions = computed<AppDropdownOption[]>(() => [
-  // 个人中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，免得留一个点了没反应的死菜单。
+  // 个人中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，免得留一个点了没反应的死菜单
   // 控制中心（切换租户 / 进入平台）不在这里：顶栏的上下文切换按钮就是它的入口
   ...(appContext.shellRoutes.profile
     ? [{

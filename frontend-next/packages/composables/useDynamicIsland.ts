@@ -2,17 +2,17 @@ import type { Tone } from '@xihan-ui/core'
 import { computed, ref, watch } from 'vue'
 
 /**
- * 灵动岛（Dynamic Island）。
+ * 灵动岛（Dynamic Island）
  *
  * 不止是提醒：支持「进行中/成功/失败/信息」状态、确定性进度（进度环）、岛内交互按钮、
  * 整条点击跳转、常驻状态（网络/实时连接等）、服务端后台任务（SignalR TaskProgress 推送）
- * 以及点击展开的活动面板（活动 + 最近历史）。
+ * 以及点击展开的活动面板（活动 + 最近历史）
  *
  * 模块级单例状态，可在 store / composable / 组件任意处调用，由全局挂载的
- * DynamicIsland 组件订阅渲染。`islandStart` 兼容旧用法 `islandStart(id, label)`。
+ * DynamicIsland 组件订阅渲染。`islandStart` 兼容旧用法 `islandStart(id, label)`
  *
  * 常驻性：状态存活于模块作用域（跨路由不丢）；服务端任务与历史另存 sessionStorage，
- * 刷新页面后自动恢复（进行中的服务端任务等待 SignalR 续推）。
+ * 刷新页面后自动恢复（进行中的服务端任务等待 SignalR 续推）
  */
 
 export type IslandState = 'loading' | 'success' | 'error' | 'info'
@@ -116,12 +116,12 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
 
 /**
- * 终态消息（非常驻的 success/error/info），由新到旧。
+ * 终态消息（非常驻的 success/error/info），由新到旧
  *
  * 多条并存靠「同时可见的堆叠」而不是排队：每条各自计时同时倒数，最新的一条在最前完整展示，
- * 其余在后方露边，点开面板可看全部——与 Sonner / Ant Design / iOS 通知一致。
+ * 其余在后方露边，点开面板可看全部——与 Sonner / Ant Design / iOS 通知一致
  * 排队逐条展示是 Snackbar 那条路线（一次一条、不堆叠），两者不能混用：
- * 混起来会既看不到多条、新消息又要等。
+ * 混起来会既看不到多条、新消息又要等
  */
 const messageStack = computed(() => tasks.value
   .filter(item => item.state !== 'loading' && !item.persistent)
@@ -243,8 +243,8 @@ function settle(id: string, state: IslandState): void {
 }
 
 /**
- * 展开面板时暂停全部消息计时，收起后重新计时。
- * 否则正看着列表，消息在眼皮底下一条条消失。
+ * 展开面板时暂停全部消息计时，收起后重新计时
+ * 否则正看着列表，消息在眼皮底下一条条消失
  */
 watch(expanded, (open) => {
   for (const task of messageStack.value) {
@@ -360,14 +360,14 @@ restoreState()
 watch([tasks, history], persistState, { deep: true })
 
 // ── 关闭灵动岛时的兜底接管 ──────────────────────────────────────
-// 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由轻提示接管终态。
+// 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由轻提示接管终态
 type IslandMessageSink = (state: 'success' | 'error' | 'info', content: string) => void
 let enabledResolver: (() => boolean) | null = null
 let messageSink: IslandMessageSink | null = null
 
 /**
- * 注入灵动岛启用判定与「关闭时」的消息兜底。
- * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由轻提示接管。
+ * 注入灵动岛启用判定与「关闭时」的消息兜底
+ * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由轻提示接管
  */
 export function configureDynamicIsland(options: { isEnabled: () => boolean, message: IslandMessageSink }): void {
   enabledResolver = options.isEnabled
@@ -417,7 +417,7 @@ function silentHandle(): IslandHandle {
 }
 
 /**
- * 开始一个灵动岛任务（默认进行中态）。返回句柄推进终态。
+ * 开始一个灵动岛任务（默认进行中态）。返回句柄推进终态
  * @param id    任务键；同 id 复用同一条
  * @param label 文案
  * @param init  可选：detail/icon/state/progress/actions/onClick/link/persistent
@@ -433,8 +433,8 @@ export function islandStart(id: string, label: string, init: IslandTaskInit = {}
 }
 
 /**
- * 常驻状态指示（不自动消失，用于网络/实时连接/后台运行等）。
- * 通过返回句柄的 success/info/dismiss 收尾。
+ * 常驻状态指示（不自动消失，用于网络/实时连接/后台运行等）
+ * 通过返回句柄的 success/info/dismiss 收尾
  */
 export function islandStatus(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
   // 灵动岛关闭：常驻状态整体静默（不弹消息）
@@ -447,8 +447,8 @@ export function islandStatus(id: string, label: string, init: IslandTaskInit = {
 }
 
 /**
- * 服务端后台任务进度入口（SignalR TaskProgress 事件 → 灵动岛）。
- * 同 taskId 复用同一条；进行中任务参与会话级持久化（刷新后恢复，等待服务端续推）。
+ * 服务端后台任务进度入口（SignalR TaskProgress 事件 → 灵动岛）
+ * 同 taskId 复用同一条；进行中任务参与会话级持久化（刷新后恢复，等待服务端续推）
  */
 export function applyServerTaskProgress(payload: ServerTaskProgressPayload): void {
   if (!payload?.taskId || !payload.label) {

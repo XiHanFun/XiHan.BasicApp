@@ -17,21 +17,21 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一次判定所用的请求事实（调用时取自调用上下文，试算时由管理员给出）。
+/// 一次判定所用的请求事实（调用时取自调用上下文，试算时由管理员给出）
 /// </summary>
-/// <param name="Owner">所属侧（平台侧为 <c>platform</c>）。</param>
-/// <param name="UserId">用户；未登录为空。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="IsImpersonating">是否模仿登录。</param>
-/// <param name="RoleIds">此刻持有的角色。</param>
-/// <param name="PermissionCodes">本次调用要求的权限码。</param>
-/// <param name="Path">请求路径。</param>
-/// <param name="Method">请求方法。</param>
-/// <param name="OperationId">操作 ID。</param>
-/// <param name="Ip">客户端地址。</param>
-/// <param name="UserAgent">客户端 User-Agent。</param>
-/// <param name="ClientKind">客户端类型。</param>
-/// <param name="Time">判定时刻。</param>
+/// <param name="Owner">所属侧（平台侧为 <c>platform</c>）</param>
+/// <param name="UserId">用户；未登录为空</param>
+/// <param name="UserName">登录名</param>
+/// <param name="IsImpersonating">是否模仿登录</param>
+/// <param name="RoleIds">此刻持有的角色</param>
+/// <param name="PermissionCodes">本次调用要求的权限码</param>
+/// <param name="Path">请求路径</param>
+/// <param name="Method">请求方法</param>
+/// <param name="OperationId">操作 ID</param>
+/// <param name="Ip">客户端地址</param>
+/// <param name="UserAgent">客户端 User-Agent</param>
+/// <param name="ClientKind">客户端类型</param>
+/// <param name="Time">判定时刻</param>
 public sealed record ConditionRequest(
     string Owner,
     Guid? UserId,
@@ -48,12 +48,12 @@ public sealed record ConditionRequest(
     DateTimeOffset Time);
 
 /// <summary>
-/// 按请求事实给出条件属性。
+/// 按请求事实给出条件属性
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 SaasConditionAttributeSource。
+/// 对应 4.x 的 SaasConditionAttributeSource
 /// 主体、资源与环境三族；主体的角色码、部门与岗位按需查库（部门与岗位只在租户侧），
-/// 归属地经 <see cref="IIpRegionResolver"/>（宿主没装即取不到）；空白一律算取不到。外面套 <see cref="MemoizingConditionAttributeSource"/>，每个属性一次调用只取一次。
+/// 归属地经 <see cref="IIpRegionResolver"/>（宿主没装即取不到）；空白一律算取不到。外面套 <see cref="MemoizingConditionAttributeSource"/>，每个属性一次调用只取一次
 /// </remarks>
 public sealed class ConditionAttributeSource : IConditionAttributeSource
 {
@@ -73,7 +73,7 @@ public sealed class ConditionAttributeSource : IConditionAttributeSource
     }
 
     /// <summary>
-    /// 为一次判定建属性来源。
+    /// 为一次判定建属性来源
     /// </summary>
     public static IConditionAttributeSource Create(ConditionRequest request, IServiceProvider services, AccessOptions options)
     {

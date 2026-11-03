@@ -4,6 +4,6 @@
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 /// <summary>
-/// <c>tenants.mine</c> 的请求：没有输入。
+/// <c>tenants.mine</c> 的请求：没有输入
 /// </summary>
 public sealed record MyTenantsRequest;

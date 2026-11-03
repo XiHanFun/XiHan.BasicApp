@@ -1,9 +1,9 @@
 /**
- * store.ts 的助手回复流、发起会话与 $reset 清理。
+ * store.ts 的助手回复流、发起会话与 $reset 清理
  *
  * 职责边界：AI 助手是可选扩展——未注册提供方时聊天必须照常工作；已注册时增量气泡的
  * replyId 配对、失败展示与落库后丢弃是本文件的重点。另外覆盖发起各类会话的「刷新列表再进入」
- * 顺序，以及 $reset 是否真的把定时器一起清掉（不清就会在登出后继续打接口）。
+ * 顺序，以及 $reset 是否真的把定时器一起清掉（不清就会在登出后继续打接口）
  */
 import type { ChatAssistantProvider } from './assistant-provider'
 import type { ChatApiContract, ChatConversationListItem, ChatConversationOpenResult, ChatMessageItem } from './types'
@@ -16,9 +16,9 @@ import { useChatStore } from './store'
 
 const hub = vi.hoisted(() => ({ calls: [] as string[] }))
 
-// 助手提供方注册表本身是模块级单例，真实模块没有反注册入口。
+// 助手提供方注册表本身是模块级单例，真实模块没有反注册入口
 // 这里整体替身掉并在每个用例前清空，保证「未注册」的降级用例不受其它用例注册残留影响，
-// 用例因此可任意顺序 / 并行执行。注册表自身的语义在 chat-registries.test.ts 里测。
+// 用例因此可任意顺序 / 并行执行。注册表自身的语义在 chat-registries.test.ts 里测
 const assistant = vi.hoisted(() => ({ provider: null as unknown }))
 
 vi.mock('./assistant-provider', () => ({

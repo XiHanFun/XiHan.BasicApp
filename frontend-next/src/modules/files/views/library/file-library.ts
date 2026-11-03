@@ -24,7 +24,7 @@ export const FILE_SOURCES = ['upload', 'fast-upload', 'chat'] as const
 
 /**
  * 列表的后端筛选（与后端白名单一致）：关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；
- * 大类、状态、访问级别多选（合成 in）；上传时间、到期时间按区间（拆成 ge / le）；临时、来源、扩展名、内容类型精确匹配。
+ * 大类、状态、访问级别多选（合成 in）；上传时间、到期时间按区间（拆成 ge / le）；临时、来源、扩展名、内容类型精确匹配
  */
 export const FILE_QUERY: PageQueryMapping = {
   multiples: ['kind', 'status', 'accessLevel'],
@@ -208,7 +208,7 @@ export function canSetPrimary(storage: FileStorageRow): boolean {
 }
 
 /**
- * 启停副本的目标状态：正常 ↔ 停用；主副本不能停用，校验失败的要重新校验，这两种为空。
+ * 启停副本的目标状态：正常 ↔ 停用；主副本不能停用，校验失败的要重新校验，这两种为空
  */
 export function storageToggleTarget(storage: FileStorageRow): 'Normal' | 'Unavailable' | null {
   if (storage.status === 'Normal')

@@ -11,17 +11,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.Configs;
 
 /// <summary>
-/// 批量删除参数。
+/// 批量删除参数
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/configs?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_001</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，内建的 <c>SETTINGS_CONFLICT_006</c>。
+/// <c>DELETE /api/configs?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_001</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，内建的 <c>SETTINGS_CONFLICT_006</c>
 /// </remarks>
-/// <param name="configs">参数仓储。</param>
+/// <param name="configs">参数仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsDelete)]
 public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs) : IOperation<ConfigIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "configs.delete";
 

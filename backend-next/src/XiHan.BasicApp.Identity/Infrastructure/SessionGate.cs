@@ -12,11 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 会话门禁：核对令牌的会话仍然有效。
+/// 会话门禁：核对令牌的会话仍然有效
 /// </summary>
 /// <remarks>
-/// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）。
-/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效（推到工作单元结束之后）。
+/// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）
+/// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效（推到工作单元结束之后）
 /// </remarks>
 public sealed class SessionGate
 {
@@ -30,7 +30,7 @@ public sealed class SessionGate
     private readonly TimeProvider _clock;
 
     /// <summary>
-    /// 构造门禁。
+    /// 构造门禁
     /// </summary>
     public SessionGate(ISharedCache cache, IServiceScopeFactory scopes, IdentityOptions options, TimeProvider clock)
     {
@@ -41,9 +41,9 @@ public sealed class SessionGate
     }
 
     /// <summary>
-    /// 检查会话是否仍可用。
+    /// 检查会话是否仍可用
     /// </summary>
-    /// <returns>不可用返回 <c>IDENTITY_DENIED_001</c>，锁定返回 <c>IDENTITY_DENIED_002</c>（参数 <c>reason</c>）。</returns>
+    /// <returns>不可用返回 <c>IDENTITY_DENIED_001</c>，锁定返回 <c>IDENTITY_DENIED_002</c>（参数 <c>reason</c>）</returns>
     public async ValueTask<Result> ValidateAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         var state = await _cache.GetOrCreateAsync(KeyOf(sessionId), ct => LoadAsync(sessionId, ct), CacheEntryOptions.Expires(_options.SessionCacheTimeToLive), cancellationToken).ConfigureAwait(false);
@@ -58,11 +58,11 @@ public sealed class SessionGate
     }
 
     /// <summary>
-    /// 吊销、锁屏或解锁后让会话的缓存失效。
+    /// 吊销、锁屏或解锁后让会话的缓存失效
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧判定不会被回填进缓存。
-    /// 共享缓存是进程内实现时只对本实例生效，其他实例最迟在存活时间后生效。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧判定不会被回填进缓存
+    /// 共享缓存是进程内实现时只对本实例生效，其他实例最迟在存活时间后生效
     /// </remarks>
     public ValueTask InvalidateAsync(Guid sessionId, CancellationToken cancellationToken) => CacheInvalidation.RemoveAsync(_cache, KeyOf(sessionId), cancellationToken);
 

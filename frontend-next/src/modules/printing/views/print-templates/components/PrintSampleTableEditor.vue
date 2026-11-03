@@ -1,6 +1,6 @@
 <!--
-  模拟打印明细表编辑器。
-  职责：按数据源列定义编辑明细行，提供稳定行标识，并确保内部 UUID 不进入最终打印数据。
+  模拟打印明细表编辑器
+  职责：按数据源列定义编辑明细行，提供稳定行标识，并确保内部 UUID 不进入最终打印数据
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintTableColumn } from '~/printing'
@@ -27,7 +27,7 @@ const emit = defineEmits<{
 }>()
 
 interface EditableTableRow {
-  /** 仅用于 Vue 渲染稳定性的内存标识，不写入 data。 */
+  /** 仅用于 Vue 渲染稳定性的内存标识，不写入 data */
   id: string
   data: Record<string, unknown>
 }
@@ -52,9 +52,9 @@ watch(
 )
 
 /**
- * 把列元数据转换为通用单值编辑器字段。
- * @param column 明细列定义。
- * @returns 不可变的表单字段视图。
+ * 把列元数据转换为通用单值编辑器字段
+ * @param column 明细列定义
+ * @returns 不可变的表单字段视图
  */
 function toColumnFormField(column: PrintTableColumn): PrintSampleFormField {
   return {
@@ -68,11 +68,11 @@ function toColumnFormField(column: PrintTableColumn): PrintSampleFormField {
 }
 
 /**
- * 更新一个单元格并发布不含内部 UUID 的新数组。
- * @param rowIndex 行索引。
- * @param column 列定义。
- * @param value 新单元格值。
- * @returns 无返回值。
+ * 更新一个单元格并发布不含内部 UUID 的新数组
+ * @param rowIndex 行索引
+ * @param column 列定义
+ * @param value 新单元格值
+ * @returns 无返回值
  */
 function updateCell(rowIndex: number, column: PrintTableColumn, value: unknown): void {
   const target = rows.value[rowIndex]
@@ -84,7 +84,7 @@ function updateCell(rowIndex: number, column: PrintTableColumn, value: unknown):
   publishRows()
 }
 
-/** 新增一条按列类型初始化的空白明细。 */
+/** 新增一条按列类型初始化的空白明细 */
 function addRow(): void {
   const data: Record<string, unknown> = {}
   for (const column of columns.value) {
@@ -99,7 +99,7 @@ function addRow(): void {
   publishRows()
 }
 
-/** 复制指定明细并生成新的稳定标识，避免两行共享嵌套对象。 */
+/** 复制指定明细并生成新的稳定标识，避免两行共享嵌套对象 */
 function duplicateRow(rowIndex: number): void {
   const source = rows.value[rowIndex]
   if (!source)
@@ -113,25 +113,25 @@ function duplicateRow(rowIndex: number): void {
   publishRows()
 }
 
-/** 删除指定明细；明细允许为空，以支持无明细打印场景。 */
+/** 删除指定明细；明细允许为空，以支持无明细打印场景 */
 function removeRow(rowIndex: number): void {
   rows.value = rows.value.filter((_, index) => index !== rowIndex)
   publishRows()
 }
 
-/** 发布纯数据数组，并记录引用以避免父组件回写触发无意义的 UUID 重建。 */
+/** 发布纯数据数组，并记录引用以避免父组件回写触发无意义的 UUID 重建 */
 function publishRows(): void {
   lastEmittedValue = rows.value.map(row => clonePrintSampleRecord(row.data))
   emit('update:value', lastEmittedValue)
 }
 
-/** 克隆可能来自 Vue 响应式对象的表格行；只接受打印所需的 JSON 风格值。 */
+/** 克隆可能来自 Vue 响应式对象的表格行；只接受打印所需的 JSON 风格值 */
 function clonePlainRecord(record: Record<string, unknown>): Record<string, unknown> {
   const plain = { ...record }
   return clonePrintSampleRecord(plain)
 }
 
-/** 判断明细行是否为普通对象。 */
+/** 判断明细行是否为普通对象 */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }

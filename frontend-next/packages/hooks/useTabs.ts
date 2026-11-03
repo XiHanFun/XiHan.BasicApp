@@ -7,7 +7,7 @@ import { useTabbarStore } from '~/stores'
  * Tab 管理组合式函数
  *
  * 封装 tabbarStore 的全部操作，并自动关联当前路由，
- * 页面组件中直接调用即可，无需手动操作 store 和 router。
+ * 页面组件中直接调用即可，无需手动操作 store 和 router
  *
  */
 export function useTabs() {
@@ -27,7 +27,7 @@ export function useTabs() {
 
     // 当前路由还没有对应标签（标签被别处关掉、或路由尚未 ensureTab）：
     // 此时 store 的 closeLeft/closeRight 会直接 return、closeOthers 会误清空全部可关闭标签，
-    // 因此除「关闭全部」外一律禁用，避免菜单项可点却无效（或反而做错事）。
+    // 因此除「关闭全部」外一律禁用，避免菜单项可点却无效（或反而做错事）
     if (currentIndex < 0) {
       return {
         closeCurrent: true,
@@ -84,7 +84,7 @@ export function useTabs() {
   }
 
   /**
-   * 切换当前 tab 的固定状态。
+   * 切换当前 tab 的固定状态
    * @param path 指定路径，默认为当前路由
    */
   function toggleTabPin(path?: string) {
@@ -92,9 +92,9 @@ export function useTabs() {
   }
 
   /**
-   * 用掉一次性的路由参数（深链里「打开某条详情」「切到某个页签」这类意图）。
+   * 用掉一次性的路由参数（深链里「打开某条详情」「切到某个页签」这类意图）
    * 标签按完整地址区分：参数留在地址里，标签就一直记着它，切回来或刷新会再触发一次；
-   * 这里把地址换成去掉这些参数的地址，带参数的那个标签并入目标标签。
+   * 这里把地址换成去掉这些参数的地址，带参数的那个标签并入目标标签
    * @param keys 要用掉的参数名
    */
   async function consumeQuery(keys: readonly string[]) {

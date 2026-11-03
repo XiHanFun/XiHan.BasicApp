@@ -15,20 +15,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 个人中心的头像上传端点。
+/// 个人中心的头像上传端点
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（4.x 同，资料不拦）。
+/// <c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（4.x 同，资料不拦）
 /// 按文件头认 JPEG / PNG（不信扩展名与上传方给的内容类型），不超过 2 MB；存平台侧、公开级别（6.0 的用户跨租户，头像跟着用户走、不属于某个租户，所以不计入租户的存储配额），
-/// 随即换成本人的头像并回收旧的头像文件，回本人的资料。去掉头像走 <c>profile.remove-avatar</c>。
+/// 随即换成本人的头像并回收旧的头像文件，回本人的资料。去掉头像走 <c>profile.remove-avatar</c>
 /// </remarks>
 internal static class ProfileEndpoints
 {
     /// <summary>
-    /// 头像的大小上限。
+    /// 头像的大小上限
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const long MaxAvatarBytes = 2 * 1024 * 1024;
 
@@ -38,10 +38,10 @@ internal static class ProfileEndpoints
     private static readonly byte[] _png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
     /// <summary>
-    /// 映射头像端点。
+    /// 映射头像端点
     /// </summary>
-    /// <param name="endpoints">端点构建器。</param>
-    /// <returns>同一构建器。</returns>
+    /// <param name="endpoints">端点构建器</param>
+    /// <returns>同一构建器</returns>
     public static IEndpointRouteBuilder MapProfileEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -116,10 +116,10 @@ internal static class ProfileEndpoints
     }
 
     /// <summary>
-    /// 按文件头认图片。
+    /// 按文件头认图片
     /// </summary>
     /// <remarks>
-    /// JPEG 以 <c>FF D8 FF</c> 开头，PNG 以 8 字节签名开头；别的一律不认。
+    /// JPEG 以 <c>FF D8 FF</c> 开头，PNG 以 8 字节签名开头；别的一律不认
     /// </remarks>
     private static async Task<(string Extension, string ContentType)?> SniffAsync(IFormFile file, CancellationToken cancellationToken)
     {
@@ -140,7 +140,7 @@ internal static class ProfileEndpoints
     private static Error Invalid() => Error.Validation(IdentityErrors.AvatarInvalid, IdentityMessages.AvatarInvalid, MessageArguments.Of(("max", MaxAvatarBytes / 1024 / 1024)));
 
     /// <summary>
-    /// 失败：结果交给框架按 Problem Details 写出（响应还没开始写）。
+    /// 失败：结果交给框架按 Problem Details 写出（响应还没开始写）
     /// </summary>
     private static IResult Fail(InvocationContext context, Error error)
     {
@@ -149,7 +149,7 @@ internal static class ProfileEndpoints
     }
 
     /// <summary>
-    /// 端点的调用上下文（端点在框架管道里执行，一定有）。
+    /// 端点的调用上下文（端点在框架管道里执行，一定有）
     /// </summary>
     private static InvocationContext ContextOf(HttpContext http)
         => http.GetXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The profile endpoints must run inside the XiHan pipeline.");

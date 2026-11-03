@@ -9,17 +9,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 分页列出当前作用侧的角色。
+/// 分页列出当前作用侧的角色
 /// </summary>
 /// <remarks>
-/// <c>POST /api/roles:list</c>（分页、关键字、筛选、排序），只列当前作用侧。
+/// <c>POST /api/roles:list</c>（分页、关键字、筛选、排序），只列当前作用侧
 /// </remarks>
-/// <param name="queries">角色查询。</param>
+/// <param name="queries">角色查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class ListRoles(RoleQueries queries) : IOperation<PageRequest, PageResult<RoleResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.list";
 

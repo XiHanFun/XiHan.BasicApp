@@ -7,20 +7,20 @@ using System.Text.Json;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 模板的转义过滤器。
+/// 模板的转义过滤器
 /// </summary>
 /// <remarks>
-/// 照 4.x：表注释、列注释是自由文本，直插产物会破坏宿主语法，模板按插值点所在的上下文选用（如 <c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>）。
-/// 常量选项的形状不对时抛 <see cref="CodeGenRenderException"/>，按调用方区域出文案（4.x 是写死的中文）。
+/// 照 4.x：表注释、列注释是自由文本，直插产物会破坏宿主语法，模板按插值点所在的上下文选用（如 <c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>）
+/// 常量选项的形状不对时抛 <see cref="CodeGenRenderException"/>，按调用方区域出文案（4.x 是写死的中文）
 /// </remarks>
 public static class CodeGenTextEscaper
 {
     private const int PreviewLength = 120;
 
     /// <summary>
-    /// C# 双引号字符串字面量里的内容。
+    /// C# 双引号字符串字面量里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string CSharpString(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -46,9 +46,9 @@ public static class CodeGenTextEscaper
     }
 
     /// <summary>
-    /// XML 文档注释里的内容。
+    /// XML 文档注释里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string XmlDoc(string? value)
         => string.IsNullOrEmpty(value)
             ? string.Empty
@@ -58,21 +58,21 @@ public static class CodeGenTextEscaper
                 .Replace(">", "&gt;", StringComparison.Ordinal);
 
     /// <summary>
-    /// HTML / Vue 模板文本节点里的内容。
+    /// HTML / Vue 模板文本节点里的内容
     /// </summary>
     /// <remarks>
-    /// 比属性多一层：Vue 把双花括号当插值，花括号也转成实体。
+    /// 比属性多一层：Vue 把双花括号当插值，花括号也转成实体
     /// </remarks>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string HtmlText(string? value)
         => XmlDoc(value)
             .Replace("{", "&#123;", StringComparison.Ordinal)
             .Replace("}", "&#125;", StringComparison.Ordinal);
 
     /// <summary>
-    /// TypeScript 单引号字符串字面量里的内容。
+    /// TypeScript 单引号字符串字面量里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string TsString(string? value)
         => string.IsNullOrEmpty(value)
             ? string.Empty
@@ -81,12 +81,12 @@ public static class CodeGenTextEscaper
                 .Replace("'", "\\'", StringComparison.Ordinal);
 
     /// <summary>
-    /// vue-i18n 消息文本（放在 TypeScript 单引号字面量里）。
+    /// vue-i18n 消息文本（放在 TypeScript 单引号字面量里）
     /// </summary>
     /// <remarks>
-    /// <c>@</c>、<c>|</c>、花括号是 vue-i18n 的保留字符，折成字面量插值。
+    /// <c>@</c>、<c>|</c>、花括号是 vue-i18n 的保留字符，折成字面量插值
     /// </remarks>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string I18nMessage(string? value)
     {
         if (string.IsNullOrEmpty(value))
@@ -111,9 +111,9 @@ public static class CodeGenTextEscaper
     }
 
     /// <summary>
-    /// HTML / Vue 双引号属性值里的内容。
+    /// HTML / Vue 双引号属性值里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string HtmlAttribute(string? value)
         => string.IsNullOrEmpty(value)
             ? string.Empty
@@ -124,16 +124,16 @@ public static class CodeGenTextEscaper
                 .Replace(">", "&gt;", StringComparison.Ordinal);
 
     /// <summary>
-    /// 块注释里的内容。
+    /// 块注释里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string BlockComment(string? value)
         => string.IsNullOrEmpty(value) ? string.Empty : CollapseNewLines(value).Replace("*/", "* /", StringComparison.Ordinal);
 
     /// <summary>
-    /// HTML 注释里的内容。
+    /// HTML 注释里的内容
     /// </summary>
-    /// <param name="value">原文。</param>
+    /// <param name="value">原文</param>
     public static string HtmlComment(string? value)
         => string.IsNullOrEmpty(value)
             ? string.Empty
@@ -142,9 +142,9 @@ public static class CodeGenTextEscaper
                 .Replace("-->", "- ->", StringComparison.Ordinal);
 
     /// <summary>
-    /// JSON 文本重排为 JavaScript 字面量。
+    /// JSON 文本重排为 JavaScript 字面量
     /// </summary>
-    /// <param name="json">JSON 文本；空即空数组。</param>
+    /// <param name="json">JSON 文本；空即空数组</param>
     public static string JsLiteral(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -166,15 +166,15 @@ public static class CodeGenTextEscaper
     }
 
     /// <summary>
-    /// 常量选项 → JavaScript 数组字面量。
+    /// 常量选项 → JavaScript 数组字面量
     /// </summary>
     /// <remarks>
-    /// 照 4.x 在生成时拦下形状不对的选项（不是数组、不是 <c>{ label, value }</c>、重复键、空数组、值的类型与列不符），不产出编译不过的代码。
+    /// 照 4.x 在生成时拦下形状不对的选项（不是数组、不是 <c>{ label, value }</c>、重复键、空数组、值的类型与列不符），不产出编译不过的代码
     /// </remarks>
-    /// <param name="json">常量选项 JSON。</param>
-    /// <param name="columnLabel">列的显示名（报错用）。</param>
-    /// <param name="tsType">列的 TypeScript 类型。</param>
-    /// <exception cref="CodeGenRenderException">选项缺失或形状不对。</exception>
+    /// <param name="json">常量选项 JSON</param>
+    /// <param name="columnLabel">列的显示名（报错用）</param>
+    /// <param name="tsType">列的 TypeScript 类型</param>
+    /// <exception cref="CodeGenRenderException">选项缺失或形状不对</exception>
     public static string SelectOptions(string? json, string? columnLabel, string? tsType)
     {
         var column = string.IsNullOrWhiteSpace(columnLabel) ? "?" : columnLabel;

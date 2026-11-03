@@ -15,17 +15,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Operations.Files;
 
 /// <summary>
-/// 分页列出当前一侧的文件。
+/// 分页列出当前一侧的文件
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:list</c>。上传与下载内容走普通端点 <c>POST /api/files/upload</c>、<c>GET /api/files/{id}/content</c>。
+/// <c>POST /api/files:list</c>。上传与下载内容走普通端点 <c>POST /api/files/upload</c>、<c>GET /api/files/{id}/content</c>
 /// </remarks>
-/// <param name="queries">文件查询。</param>
+/// <param name="queries">文件查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class ListFiles(FileQueries queries) : IOperation<PageRequest, PageResult<FileResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.list";
 
@@ -39,14 +39,14 @@ public sealed class ListFiles(FileQueries queries) : IOperation<PageRequest, Pag
 }
 
 /// <summary>
-/// 按 ID 取当前一侧的文件：<c>GET /api/files/{id}</c>。
+/// 按 ID 取当前一侧的文件：<c>GET /api/files/{id}</c>
 /// </summary>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class GetFile(FileService files) : IOperation<GetFileRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.get";
 
@@ -66,17 +66,17 @@ public sealed class GetFile(FileService files) : IOperation<GetFileRequest, File
 }
 
 /// <summary>
-/// 修改文件的访问级别、临时与到期、标签与备注。
+/// 修改文件的访问级别、临时与到期、标签与备注
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/files/{id}</c>。
+/// <c>PUT /api/files/{id}</c>
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class UpdateFile(FileService files) : IOperation<UpdateFileRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.update";
 
@@ -97,17 +97,17 @@ public sealed class UpdateFile(FileService files) : IOperation<UpdateFileRequest
 }
 
 /// <summary>
-/// 归档或恢复文件。
+/// 归档或恢复文件
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:set-status</c>。已损坏的文件逐项拒绝（先换一个校验通过的主副本）。
+/// <c>POST /api/files:set-status</c>。已损坏的文件逐项拒绝（先换一个校验通过的主副本）
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetFileStatus(FileService files) : IOperation<SetFileStatusRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.set-status";
 
@@ -121,17 +121,17 @@ public sealed class SetFileStatus(FileService files) : IOperation<SetFileStatusR
 }
 
 /// <summary>
-/// 删除文件。
+/// 删除文件
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/files?ids=</c>。不再被别的文件用到的内容随之从存储里删除。
+/// <c>DELETE /api/files?ids=</c>。不再被别的文件用到的内容随之从存储里删除
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesDelete)]
 public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.delete";
 
@@ -145,19 +145,19 @@ public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, 
 }
 
 /// <summary>
-/// 换取文件的签名下载地址。
+/// 换取文件的签名下载地址
 /// </summary>
 /// <remarks>
 /// <c>GET /api/files/{id}:presign</c>。访问级别「已登录」的同一侧已登录即可，「需要授权」的要持有 <c>files.files.read</c>，
 /// 「公开」的（头像，固定在平台侧）任何已登录主体不分侧都能换（本侧找不到再到平台侧找，只认公开级别）；
-/// 归档或损坏的文件换不到地址。地址由对象存储签出、指向对象本身，有效期内不再校验身份（给图片、链接与新窗口用），签出之后的归档不影响它；换一次记一次下载。
+/// 归档或损坏的文件换不到地址。地址由对象存储签出、指向对象本身，有效期内不再校验身份（给图片、链接与新窗口用），签出之后的归档不影响它；换一次记一次下载
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class PresignFile(FileService files) : IOperation<PresignFileRequest, PresignFileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.presign";
 
@@ -197,17 +197,17 @@ public sealed class PresignFile(FileService files) : IOperation<PresignFileReque
 }
 
 /// <summary>
-/// 秒传：同一侧已有相同内容时直接得到一条新记录。
+/// 秒传：同一侧已有相同内容时直接得到一条新记录
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:fast-upload</c>。同一侧已有内容相同的正常文件时直接得到一条新记录（共用存储里的内容），没命中返回空，前端再走普通上传。
+/// <c>POST /api/files:fast-upload</c>。同一侧已有内容相同的正常文件时直接得到一条新记录（共用存储里的内容），没命中返回空，前端再走普通上传
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class FastUploadFile(FileService files) : IOperation<FastUploadFileRequest, FastUploadFileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.fast-upload";
 
@@ -227,18 +227,18 @@ public sealed class FastUploadFile(FileService files) : IOperation<FastUploadFil
 }
 
 /// <summary>
-/// 列出文件的副本（主副本在前）。
+/// 列出文件的副本（主副本在前）
 /// </summary>
 /// <remarks>
-/// <c>GET /api/files/{id}:storages</c>。
+/// <c>GET /api/files/{id}:storages</c>
 /// </remarks>
-/// <param name="files">文件服务。</param>
-/// <param name="configs">存储配置（补配置的编码与名称）。</param>
+/// <param name="files">文件服务</param>
+/// <param name="configs">存储配置（补配置的编码与名称）</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class ListFileStorages(FileService files, StorageConfigService configs) : IOperation<GetFileRequest, FileStoragesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.storages";
 
@@ -264,17 +264,17 @@ public sealed class ListFileStorages(FileService files, StorageConfigService con
 }
 
 /// <summary>
-/// 把一个副本设为主副本。
+/// 把一个副本设为主副本
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files/{id}:set-primary-storage</c>。目标须正常且校验过；已损坏的文件随之恢复。
+/// <c>POST /api/files/{id}:set-primary-storage</c>。目标须正常且校验过；已损坏的文件随之恢复
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorageRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.set-primary-storage";
 
@@ -307,17 +307,17 @@ public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorag
 }
 
 /// <summary>
-/// 校验一个副本。
+/// 校验一个副本
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files/{id}:verify-storage</c>。读出内容按 SHA-256 比对，不符或读不到记校验失败，主副本不通过时文件记为损坏。
+/// <c>POST /api/files/{id}:verify-storage</c>。读出内容按 SHA-256 比对，不符或读不到记校验失败，主副本不通过时文件记为损坏
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class VerifyStorage(FileService files) : IOperation<FileStorageRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.verify-storage";
 
@@ -350,17 +350,17 @@ public sealed class VerifyStorage(FileService files) : IOperation<FileStorageReq
 }
 
 /// <summary>
-/// 启用或停用一个副本。
+/// 启用或停用一个副本
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files/{id}:set-storage-status</c>。主副本不能停用，校验失败的副本要重新校验。
+/// <c>POST /api/files/{id}:set-storage-status</c>。主副本不能停用，校验失败的副本要重新校验
 /// </remarks>
-/// <param name="files">文件服务。</param>
+/// <param name="files">文件服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetStorageStatus(FileService files) : IOperation<SetFileStorageStatusRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.set-storage-status";
 

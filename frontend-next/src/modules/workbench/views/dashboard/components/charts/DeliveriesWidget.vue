@@ -8,7 +8,7 @@ import { COUNT_COMPACT } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 消息发送：近 30 天邮件与短信（有短信发件记录的权限才有）按发送状态堆叠：成功、失败、待发（含发送中）、取消。
+ * 消息发送：近 30 天邮件与短信（有短信发件记录的权限才有）按发送状态堆叠：成功、失败、待发（含发送中）、取消
  */
 defineOptions({ name: 'DeliveriesWidget' })
 

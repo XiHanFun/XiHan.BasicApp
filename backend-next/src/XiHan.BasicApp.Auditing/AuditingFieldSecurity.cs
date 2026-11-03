@@ -14,23 +14,23 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Auditing;
 
 /// <summary>
-/// 审计包登记的字段安全实体。
+/// 审计包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同七类日志：访问、开放接口、操作、登录、异常、数据变更与条件命中（本人的「我的登录日志」与活跃度不套用）。
-/// 字段取详情的响应类型（列表项是它的子集），规则由 Access 的字段安全中间件在列表与详情上统一套用；日志只读，没有写入。
+/// 4.x 同七类日志：访问、开放接口、操作、登录、异常、数据变更与条件命中（本人的「我的登录日志」与活跃度不套用）
+/// 字段取详情的响应类型（列表项是它的子集），规则由 Access 的字段安全中间件在列表与详情上统一套用；日志只读，没有写入
 /// </remarks>
 public static class AuditingFieldSecurity
 {
     /// <summary>
-    /// 共用的字段显示名前缀（日志页的列名都在 <c>auditing.common</c> 下）。
+    /// 共用的字段显示名前缀（日志页的列名都在 <c>auditing.common</c> 下）
     /// </summary>
     private const string Common = "auditing.common.";
 
     /// <summary>
-    /// 登记本包的实体与操作。
+    /// 登记本包的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("auditing", AuditingJsonContext.Default, fields => fields
             .Entity<AccessLogResponse>("auditing.access-logs", "auditing.access_logs.title", Common)

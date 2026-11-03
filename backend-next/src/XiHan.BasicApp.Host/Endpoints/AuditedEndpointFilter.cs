@@ -9,14 +9,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 普通端点的审计过滤器。
+/// 普通端点的审计过滤器
 /// </summary>
 /// <remarks>
 /// 端点执行前在调用上下文里登记端点身份（访问日志、数据变更日志按它记录），写入类端点同时登记操作审计动作；
-/// 端点返回的结果执行完后登记实际写出的状态码。授权阶段就被拒绝的调用到不了这里，访问日志改按框架带进上下文的端点名记（ADR-0048），状态码按错误类别推出。
+/// 端点返回的结果执行完后登记实际写出的状态码。授权阶段就被拒绝的调用到不了这里，访问日志改按框架带进上下文的端点名记（ADR-0048），状态码按错误类别推出
 /// </remarks>
-/// <param name="id">端点身份（与操作 ID 同一种写法）。</param>
-/// <param name="audited">是否记操作审计（写入类端点）。</param>
+/// <param name="id">端点身份（与操作 ID 同一种写法）</param>
+/// <param name="audited">是否记操作审计（写入类端点）</param>
 internal sealed class AuditedEndpointFilter(string id, bool audited) : IEndpointFilter
 {
     /// <inheritdoc />

@@ -36,7 +36,7 @@ export const MAX_REDIRECT_URIS = 10
 
 /**
  * 列表的后端筛选：关键字匹配名称、描述、Client ID、主页与备注；应用类型多选（合成 in）；
- * 客户端类型、是否启用、是否跳过授权确认与是否个人应用（用户在「我的 OAuth 应用」里建的）精确匹配。
+ * 客户端类型、是否启用、是否跳过授权确认与是否个人应用（用户在「我的 OAuth 应用」里建的）精确匹配
  */
 export const OAUTH_APP_QUERY: PageQueryMapping = {
   multiples: ['appType'],
@@ -271,7 +271,7 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改。
+ * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
  */
 export function oauthAppResource(t: Translate): SchemaResource<OAuthAppRow> {
   return {

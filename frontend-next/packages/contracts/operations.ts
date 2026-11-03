@@ -1,10 +1,10 @@
-// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts。
+// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts
 
 import type { CallOptions, RouteDef } from '~/request'
 import { invoke } from '~/request'
 import type { operations } from './types'
 
-/** 每个操作的 HTTP 落点：方法、路由模板、路由值与查询串里的字段名；其余字段进请求体（GET / DELETE 没有请求体）。 */
+/** 每个操作的 HTTP 落点：方法、路由模板、路由值与查询串里的字段名；其余字段进请求体（GET / DELETE 没有请求体） */
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
@@ -471,20 +471,20 @@ export type OperationId = keyof typeof routes
 
 type JsonBody<T> = T extends { content: { 'application/json': infer B } } ? B : never
 type Params<T> = T extends { parameters: infer P } ? (P extends { path: infer A } ? (A extends object ? A : object) : object) & (P extends { query?: infer Q } ? (Q extends object ? Q : object) : object) : object
-/** 操作的请求类型：有请求体取请求体，否则是路由值与查询串的并集。 */
+/** 操作的请求类型：有请求体取请求体，否则是路由值与查询串的并集 */
 type BodyOf<T> = T extends { requestBody?: infer R } ? JsonBody<NonNullable<R>> : never
 export type RequestOf<Id extends OperationId> = [BodyOf<operations[Id]>] extends [never] ? Params<operations[Id]> : BodyOf<operations[Id]>
 type SuccessCode<Id extends OperationId> = (typeof routes)[Id]['success']
-/** 操作的成功响应类型。 */
+/** 操作的成功响应类型 */
 export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] extends infer R ? (SuccessCode<Id> extends keyof R ? JsonBody<R[SuccessCode<Id>]> : never) : never
 
-/** 资源 `access-logs` 的操作。 */
+/** 资源 `access-logs` 的操作 */
 export const accessLogs = {
   get: (request: RequestOf<'access-logs.get'>, options?: CallOptions) => invoke<RequestOf<'access-logs.get'>, ResponseOf<'access-logs.get'>>('access-logs.get', routes['access-logs.get'], request, options),
   list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
 }
 
-/** 资源 `approvals` 的操作。 */
+/** 资源 `approvals` 的操作 */
 export const approvals = {
   get: (request: RequestOf<'approvals.get'>, options?: CallOptions) => invoke<RequestOf<'approvals.get'>, ResponseOf<'approvals.get'>>('approvals.get', routes['approvals.get'], request, options),
   listCc: (request: RequestOf<'approvals.list-cc'>, options?: CallOptions) => invoke<RequestOf<'approvals.list-cc'>, ResponseOf<'approvals.list-cc'>>('approvals.list-cc', routes['approvals.list-cc'], request, options),
@@ -493,7 +493,7 @@ export const approvals = {
   withdraw: (request: RequestOf<'approvals.withdraw'>, options?: CallOptions) => invoke<RequestOf<'approvals.withdraw'>, ResponseOf<'approvals.withdraw'>>('approvals.withdraw', routes['approvals.withdraw'], request, options),
 }
 
-/** 资源 `auth` 的操作。 */
+/** 资源 `auth` 的操作 */
 export const auth = {
   activateRoles: (request: RequestOf<'auth.activate-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.activate-roles'>, ResponseOf<'auth.activate-roles'>>('auth.activate-roles', routes['auth.activate-roles'], request, options),
   captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
@@ -517,7 +517,7 @@ export const auth = {
   verifyTwoFactor: (request: RequestOf<'auth.verify-two-factor'>, options?: CallOptions) => invoke<RequestOf<'auth.verify-two-factor'>, ResponseOf<'auth.verify-two-factor'>>('auth.verify-two-factor', routes['auth.verify-two-factor'], request, options),
 }
 
-/** 资源 `bot-configs` 的操作。 */
+/** 资源 `bot-configs` 的操作 */
 export const botConfigs = {
   create: (request: RequestOf<'bot-configs.create'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.create'>, ResponseOf<'bot-configs.create'>>('bot-configs.create', routes['bot-configs.create'], request, options),
   delete: (request: RequestOf<'bot-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.delete'>, ResponseOf<'bot-configs.delete'>>('bot-configs.delete', routes['bot-configs.delete'], request, options),
@@ -527,7 +527,7 @@ export const botConfigs = {
   update: (request: RequestOf<'bot-configs.update'>, options?: CallOptions) => invoke<RequestOf<'bot-configs.update'>, ResponseOf<'bot-configs.update'>>('bot-configs.update', routes['bot-configs.update'], request, options),
 }
 
-/** 资源 `caches` 的操作。 */
+/** 资源 `caches` 的操作 */
 export const caches = {
   delete: (request: RequestOf<'caches.delete'>, options?: CallOptions) => invoke<RequestOf<'caches.delete'>, ResponseOf<'caches.delete'>>('caches.delete', routes['caches.delete'], request, options),
   deleteByPrefix: (request: RequestOf<'caches.delete-by-prefix'>, options?: CallOptions) => invoke<RequestOf<'caches.delete-by-prefix'>, ResponseOf<'caches.delete-by-prefix'>>('caches.delete-by-prefix', routes['caches.delete-by-prefix'], request, options),
@@ -537,14 +537,14 @@ export const caches = {
   update: (request: RequestOf<'caches.update'>, options?: CallOptions) => invoke<RequestOf<'caches.update'>, ResponseOf<'caches.update'>>('caches.update', routes['caches.update'], request, options),
 }
 
-/** 资源 `chat-audit` 的操作。 */
+/** 资源 `chat-audit` 的操作 */
 export const chatAudit = {
   get: (request: RequestOf<'chat-audit.get'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.get'>, ResponseOf<'chat-audit.get'>>('chat-audit.get', routes['chat-audit.get'], request, options),
   list: (request: RequestOf<'chat-audit.list'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.list'>, ResponseOf<'chat-audit.list'>>('chat-audit.list', routes['chat-audit.list'], request, options),
   members: (request: RequestOf<'chat-audit.members'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.members'>, ResponseOf<'chat-audit.members'>>('chat-audit.members', routes['chat-audit.members'], request, options),
 }
 
-/** 资源 `chat-conversations` 的操作。 */
+/** 资源 `chat-conversations` 的操作 */
 export const chatConversations = {
   addMembers: (request: RequestOf<'chat-conversations.add-members'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.add-members'>, ResponseOf<'chat-conversations.add-members'>>('chat-conversations.add-members', routes['chat-conversations.add-members'], request, options),
   createGroup: (request: RequestOf<'chat-conversations.create-group'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.create-group'>, ResponseOf<'chat-conversations.create-group'>>('chat-conversations.create-group', routes['chat-conversations.create-group'], request, options),
@@ -566,7 +566,7 @@ export const chatConversations = {
   userOptions: (request: RequestOf<'chat-conversations.user-options'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.user-options'>, ResponseOf<'chat-conversations.user-options'>>('chat-conversations.user-options', routes['chat-conversations.user-options'], request, options),
 }
 
-/** 资源 `chat-messages` 的操作。 */
+/** 资源 `chat-messages` 的操作 */
 export const chatMessages = {
   edit: (request: RequestOf<'chat-messages.edit'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.edit'>, ResponseOf<'chat-messages.edit'>>('chat-messages.edit', routes['chat-messages.edit'], request, options),
   fastUpload: (request: RequestOf<'chat-messages.fast-upload'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.fast-upload'>, ResponseOf<'chat-messages.fast-upload'>>('chat-messages.fast-upload', routes['chat-messages.fast-upload'], request, options),
@@ -582,7 +582,7 @@ export const chatMessages = {
   unpin: (request: RequestOf<'chat-messages.unpin'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.unpin'>, ResponseOf<'chat-messages.unpin'>>('chat-messages.unpin', routes['chat-messages.unpin'], request, options),
 }
 
-/** 资源 `codegen-datasources` 的操作。 */
+/** 资源 `codegen-datasources` 的操作 */
 export const codegenDatasources = {
   create: (request: RequestOf<'codegen-datasources.create'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.create'>, ResponseOf<'codegen-datasources.create'>>('codegen-datasources.create', routes['codegen-datasources.create'], request, options),
   delete: (request: RequestOf<'codegen-datasources.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.delete'>, ResponseOf<'codegen-datasources.delete'>>('codegen-datasources.delete', routes['codegen-datasources.delete'], request, options),
@@ -594,25 +594,25 @@ export const codegenDatasources = {
   update: (request: RequestOf<'codegen-datasources.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.update'>, ResponseOf<'codegen-datasources.update'>>('codegen-datasources.update', routes['codegen-datasources.update'], request, options),
 }
 
-/** 资源 `codegen-histories` 的操作。 */
+/** 资源 `codegen-histories` 的操作 */
 export const codegenHistories = {
   get: (request: RequestOf<'codegen-histories.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.get'>, ResponseOf<'codegen-histories.get'>>('codegen-histories.get', routes['codegen-histories.get'], request, options),
   list: (request: RequestOf<'codegen-histories.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.list'>, ResponseOf<'codegen-histories.list'>>('codegen-histories.list', routes['codegen-histories.list'], request, options),
 }
 
-/** 资源 `codegen-runtime` 的操作。 */
+/** 资源 `codegen-runtime` 的操作 */
 export const codegenRuntime = {
   getSchema: (request: RequestOf<'codegen-runtime.get-schema'>, options?: CallOptions) => invoke<RequestOf<'codegen-runtime.get-schema'>, ResponseOf<'codegen-runtime.get-schema'>>('codegen-runtime.get-schema', routes['codegen-runtime.get-schema'], request, options),
   list: (request: RequestOf<'codegen-runtime.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-runtime.list'>, ResponseOf<'codegen-runtime.list'>>('codegen-runtime.list', routes['codegen-runtime.list'], request, options),
 }
 
-/** 资源 `codegen-table-columns` 的操作。 */
+/** 资源 `codegen-table-columns` 的操作 */
 export const codegenTableColumns = {
   list: (request: RequestOf<'codegen-table-columns.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-table-columns.list'>, ResponseOf<'codegen-table-columns.list'>>('codegen-table-columns.list', routes['codegen-table-columns.list'], request, options),
   save: (request: RequestOf<'codegen-table-columns.save'>, options?: CallOptions) => invoke<RequestOf<'codegen-table-columns.save'>, ResponseOf<'codegen-table-columns.save'>>('codegen-table-columns.save', routes['codegen-table-columns.save'], request, options),
 }
 
-/** 资源 `codegen-tables` 的操作。 */
+/** 资源 `codegen-tables` 的操作 */
 export const codegenTables = {
   dbTables: (request: RequestOf<'codegen-tables.db-tables'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.db-tables'>, ResponseOf<'codegen-tables.db-tables'>>('codegen-tables.db-tables', routes['codegen-tables.db-tables'], request, options),
   delete: (request: RequestOf<'codegen-tables.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.delete'>, ResponseOf<'codegen-tables.delete'>>('codegen-tables.delete', routes['codegen-tables.delete'], request, options),
@@ -627,7 +627,7 @@ export const codegenTables = {
   update: (request: RequestOf<'codegen-tables.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.update'>, ResponseOf<'codegen-tables.update'>>('codegen-tables.update', routes['codegen-tables.update'], request, options),
 }
 
-/** 资源 `codegen-templates` 的操作。 */
+/** 资源 `codegen-templates` 的操作 */
 export const codegenTemplates = {
   create: (request: RequestOf<'codegen-templates.create'>, options?: CallOptions) => invoke<RequestOf<'codegen-templates.create'>, ResponseOf<'codegen-templates.create'>>('codegen-templates.create', routes['codegen-templates.create'], request, options),
   delete: (request: RequestOf<'codegen-templates.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-templates.delete'>, ResponseOf<'codegen-templates.delete'>>('codegen-templates.delete', routes['codegen-templates.delete'], request, options),
@@ -638,13 +638,13 @@ export const codegenTemplates = {
   validate: (request: RequestOf<'codegen-templates.validate'>, options?: CallOptions) => invoke<RequestOf<'codegen-templates.validate'>, ResponseOf<'codegen-templates.validate'>>('codegen-templates.validate', routes['codegen-templates.validate'], request, options),
 }
 
-/** 资源 `condition-hits` 的操作。 */
+/** 资源 `condition-hits` 的操作 */
 export const conditionHits = {
   get: (request: RequestOf<'condition-hits.get'>, options?: CallOptions) => invoke<RequestOf<'condition-hits.get'>, ResponseOf<'condition-hits.get'>>('condition-hits.get', routes['condition-hits.get'], request, options),
   list: (request: RequestOf<'condition-hits.list'>, options?: CallOptions) => invoke<RequestOf<'condition-hits.list'>, ResponseOf<'condition-hits.list'>>('condition-hits.list', routes['condition-hits.list'], request, options),
 }
 
-/** 资源 `configs` 的操作。 */
+/** 资源 `configs` 的操作 */
 export const configs = {
   create: (request: RequestOf<'configs.create'>, options?: CallOptions) => invoke<RequestOf<'configs.create'>, ResponseOf<'configs.create'>>('configs.create', routes['configs.create'], request, options),
   delete: (request: RequestOf<'configs.delete'>, options?: CallOptions) => invoke<RequestOf<'configs.delete'>, ResponseOf<'configs.delete'>>('configs.delete', routes['configs.delete'], request, options),
@@ -653,7 +653,7 @@ export const configs = {
   update: (request: RequestOf<'configs.update'>, options?: CallOptions) => invoke<RequestOf<'configs.update'>, ResponseOf<'configs.update'>>('configs.update', routes['configs.update'], request, options),
 }
 
-/** 资源 `constraint-rules` 的操作。 */
+/** 资源 `constraint-rules` 的操作 */
 export const constraintRules = {
   create: (request: RequestOf<'constraint-rules.create'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.create'>, ResponseOf<'constraint-rules.create'>>('constraint-rules.create', routes['constraint-rules.create'], request, options),
   delete: (request: RequestOf<'constraint-rules.delete'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.delete'>, ResponseOf<'constraint-rules.delete'>>('constraint-rules.delete', routes['constraint-rules.delete'], request, options),
@@ -663,7 +663,7 @@ export const constraintRules = {
   update: (request: RequestOf<'constraint-rules.update'>, options?: CallOptions) => invoke<RequestOf<'constraint-rules.update'>, ResponseOf<'constraint-rules.update'>>('constraint-rules.update', routes['constraint-rules.update'], request, options),
 }
 
-/** 资源 `delegations` 的操作。 */
+/** 资源 `delegations` 的操作 */
 export const delegations = {
   create: (request: RequestOf<'delegations.create'>, options?: CallOptions) => invoke<RequestOf<'delegations.create'>, ResponseOf<'delegations.create'>>('delegations.create', routes['delegations.create'], request, options),
   delete: (request: RequestOf<'delegations.delete'>, options?: CallOptions) => invoke<RequestOf<'delegations.delete'>, ResponseOf<'delegations.delete'>>('delegations.delete', routes['delegations.delete'], request, options),
@@ -671,7 +671,7 @@ export const delegations = {
   revoke: (request: RequestOf<'delegations.revoke'>, options?: CallOptions) => invoke<RequestOf<'delegations.revoke'>, ResponseOf<'delegations.revoke'>>('delegations.revoke', routes['delegations.revoke'], request, options),
 }
 
-/** 资源 `departments` 的操作。 */
+/** 资源 `departments` 的操作 */
 export const departments = {
   create: (request: RequestOf<'departments.create'>, options?: CallOptions) => invoke<RequestOf<'departments.create'>, ResponseOf<'departments.create'>>('departments.create', routes['departments.create'], request, options),
   delete: (request: RequestOf<'departments.delete'>, options?: CallOptions) => invoke<RequestOf<'departments.delete'>, ResponseOf<'departments.delete'>>('departments.delete', routes['departments.delete'], request, options),
@@ -681,7 +681,7 @@ export const departments = {
   update: (request: RequestOf<'departments.update'>, options?: CallOptions) => invoke<RequestOf<'departments.update'>, ResponseOf<'departments.update'>>('departments.update', routes['departments.update'], request, options),
 }
 
-/** 资源 `dict-items` 的操作。 */
+/** 资源 `dict-items` 的操作 */
 export const dictItems = {
   create: (request: RequestOf<'dict-items.create'>, options?: CallOptions) => invoke<RequestOf<'dict-items.create'>, ResponseOf<'dict-items.create'>>('dict-items.create', routes['dict-items.create'], request, options),
   delete: (request: RequestOf<'dict-items.delete'>, options?: CallOptions) => invoke<RequestOf<'dict-items.delete'>, ResponseOf<'dict-items.delete'>>('dict-items.delete', routes['dict-items.delete'], request, options),
@@ -690,7 +690,7 @@ export const dictItems = {
   update: (request: RequestOf<'dict-items.update'>, options?: CallOptions) => invoke<RequestOf<'dict-items.update'>, ResponseOf<'dict-items.update'>>('dict-items.update', routes['dict-items.update'], request, options),
 }
 
-/** 资源 `dicts` 的操作。 */
+/** 资源 `dicts` 的操作 */
 export const dicts = {
   create: (request: RequestOf<'dicts.create'>, options?: CallOptions) => invoke<RequestOf<'dicts.create'>, ResponseOf<'dicts.create'>>('dicts.create', routes['dicts.create'], request, options),
   delete: (request: RequestOf<'dicts.delete'>, options?: CallOptions) => invoke<RequestOf<'dicts.delete'>, ResponseOf<'dicts.delete'>>('dicts.delete', routes['dicts.delete'], request, options),
@@ -700,13 +700,13 @@ export const dicts = {
   update: (request: RequestOf<'dicts.update'>, options?: CallOptions) => invoke<RequestOf<'dicts.update'>, ResponseOf<'dicts.update'>>('dicts.update', routes['dicts.update'], request, options),
 }
 
-/** 资源 `diff-logs` 的操作。 */
+/** 资源 `diff-logs` 的操作 */
 export const diffLogs = {
   get: (request: RequestOf<'diff-logs.get'>, options?: CallOptions) => invoke<RequestOf<'diff-logs.get'>, ResponseOf<'diff-logs.get'>>('diff-logs.get', routes['diff-logs.get'], request, options),
   list: (request: RequestOf<'diff-logs.list'>, options?: CallOptions) => invoke<RequestOf<'diff-logs.list'>, ResponseOf<'diff-logs.list'>>('diff-logs.list', routes['diff-logs.list'], request, options),
 }
 
-/** 资源 `editions` 的操作。 */
+/** 资源 `editions` 的操作 */
 export const editions = {
   create: (request: RequestOf<'editions.create'>, options?: CallOptions) => invoke<RequestOf<'editions.create'>, ResponseOf<'editions.create'>>('editions.create', routes['editions.create'], request, options),
   delete: (request: RequestOf<'editions.delete'>, options?: CallOptions) => invoke<RequestOf<'editions.delete'>, ResponseOf<'editions.delete'>>('editions.delete', routes['editions.delete'], request, options),
@@ -716,7 +716,7 @@ export const editions = {
   update: (request: RequestOf<'editions.update'>, options?: CallOptions) => invoke<RequestOf<'editions.update'>, ResponseOf<'editions.update'>>('editions.update', routes['editions.update'], request, options),
 }
 
-/** 资源 `email-configs` 的操作。 */
+/** 资源 `email-configs` 的操作 */
 export const emailConfigs = {
   create: (request: RequestOf<'email-configs.create'>, options?: CallOptions) => invoke<RequestOf<'email-configs.create'>, ResponseOf<'email-configs.create'>>('email-configs.create', routes['email-configs.create'], request, options),
   delete: (request: RequestOf<'email-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'email-configs.delete'>, ResponseOf<'email-configs.delete'>>('email-configs.delete', routes['email-configs.delete'], request, options),
@@ -726,7 +726,7 @@ export const emailConfigs = {
   update: (request: RequestOf<'email-configs.update'>, options?: CallOptions) => invoke<RequestOf<'email-configs.update'>, ResponseOf<'email-configs.update'>>('email-configs.update', routes['email-configs.update'], request, options),
 }
 
-/** 资源 `emails` 的操作。 */
+/** 资源 `emails` 的操作 */
 export const emails = {
   cancel: (request: RequestOf<'emails.cancel'>, options?: CallOptions) => invoke<RequestOf<'emails.cancel'>, ResponseOf<'emails.cancel'>>('emails.cancel', routes['emails.cancel'], request, options),
   delete: (request: RequestOf<'emails.delete'>, options?: CallOptions) => invoke<RequestOf<'emails.delete'>, ResponseOf<'emails.delete'>>('emails.delete', routes['emails.delete'], request, options),
@@ -735,13 +735,13 @@ export const emails = {
   resend: (request: RequestOf<'emails.resend'>, options?: CallOptions) => invoke<RequestOf<'emails.resend'>, ResponseOf<'emails.resend'>>('emails.resend', routes['emails.resend'], request, options),
 }
 
-/** 资源 `exception-logs` 的操作。 */
+/** 资源 `exception-logs` 的操作 */
 export const exceptionLogs = {
   get: (request: RequestOf<'exception-logs.get'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.get'>, ResponseOf<'exception-logs.get'>>('exception-logs.get', routes['exception-logs.get'], request, options),
   list: (request: RequestOf<'exception-logs.list'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.list'>, ResponseOf<'exception-logs.list'>>('exception-logs.list', routes['exception-logs.list'], request, options),
 }
 
-/** 资源 `export-tasks` 的操作。 */
+/** 资源 `export-tasks` 的操作 */
 export const exportTasks = {
   cancel: (request: RequestOf<'export-tasks.cancel'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.cancel'>, ResponseOf<'export-tasks.cancel'>>('export-tasks.cancel', routes['export-tasks.cancel'], request, options),
   delete: (request: RequestOf<'export-tasks.delete'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.delete'>, ResponseOf<'export-tasks.delete'>>('export-tasks.delete', routes['export-tasks.delete'], request, options),
@@ -750,7 +750,7 @@ export const exportTasks = {
   submit: (request: RequestOf<'export-tasks.submit'>, options?: CallOptions) => invoke<RequestOf<'export-tasks.submit'>, ResponseOf<'export-tasks.submit'>>('export-tasks.submit', routes['export-tasks.submit'], request, options),
 }
 
-/** 资源 `field-security` 的操作。 */
+/** 资源 `field-security` 的操作 */
 export const fieldSecurity = {
   create: (request: RequestOf<'field-security.create'>, options?: CallOptions) => invoke<RequestOf<'field-security.create'>, ResponseOf<'field-security.create'>>('field-security.create', routes['field-security.create'], request, options),
   delete: (request: RequestOf<'field-security.delete'>, options?: CallOptions) => invoke<RequestOf<'field-security.delete'>, ResponseOf<'field-security.delete'>>('field-security.delete', routes['field-security.delete'], request, options),
@@ -760,7 +760,7 @@ export const fieldSecurity = {
   update: (request: RequestOf<'field-security.update'>, options?: CallOptions) => invoke<RequestOf<'field-security.update'>, ResponseOf<'field-security.update'>>('field-security.update', routes['field-security.update'], request, options),
 }
 
-/** 资源 `files` 的操作。 */
+/** 资源 `files` 的操作 */
 export const files = {
   abortUpload: (request: RequestOf<'files.abort-upload'>, options?: CallOptions) => invoke<RequestOf<'files.abort-upload'>, ResponseOf<'files.abort-upload'>>('files.abort-upload', routes['files.abort-upload'], request, options),
   completeUpload: (request: RequestOf<'files.complete-upload'>, options?: CallOptions) => invoke<RequestOf<'files.complete-upload'>, ResponseOf<'files.complete-upload'>>('files.complete-upload', routes['files.complete-upload'], request, options),
@@ -780,20 +780,20 @@ export const files = {
   verifyStorage: (request: RequestOf<'files.verify-storage'>, options?: CallOptions) => invoke<RequestOf<'files.verify-storage'>, ResponseOf<'files.verify-storage'>>('files.verify-storage', routes['files.verify-storage'], request, options),
 }
 
-/** 资源 `impersonation` 的操作。 */
+/** 资源 `impersonation` 的操作 */
 export const impersonation = {
   candidates: (request: RequestOf<'impersonation.candidates'>, options?: CallOptions) => invoke<RequestOf<'impersonation.candidates'>, ResponseOf<'impersonation.candidates'>>('impersonation.candidates', routes['impersonation.candidates'], request, options),
   start: (request: RequestOf<'impersonation.start'>, options?: CallOptions) => invoke<RequestOf<'impersonation.start'>, ResponseOf<'impersonation.start'>>('impersonation.start', routes['impersonation.start'], request, options),
   stop: (request: RequestOf<'impersonation.stop'>, options?: CallOptions) => invoke<RequestOf<'impersonation.stop'>, ResponseOf<'impersonation.stop'>>('impersonation.stop', routes['impersonation.stop'], request, options),
 }
 
-/** 资源 `import-histories` 的操作。 */
+/** 资源 `import-histories` 的操作 */
 export const importHistories = {
   create: (request: RequestOf<'import-histories.create'>, options?: CallOptions) => invoke<RequestOf<'import-histories.create'>, ResponseOf<'import-histories.create'>>('import-histories.create', routes['import-histories.create'], request, options),
   recent: (request: RequestOf<'import-histories.recent'>, options?: CallOptions) => invoke<RequestOf<'import-histories.recent'>, ResponseOf<'import-histories.recent'>>('import-histories.recent', routes['import-histories.recent'], request, options),
 }
 
-/** 资源 `inbox` 的操作。 */
+/** 资源 `inbox` 的操作 */
 export const inbox = {
   banners: (request: RequestOf<'inbox.banners'>, options?: CallOptions) => invoke<RequestOf<'inbox.banners'>, ResponseOf<'inbox.banners'>>('inbox.banners', routes['inbox.banners'], request, options),
   confirm: (request: RequestOf<'inbox.confirm'>, options?: CallOptions) => invoke<RequestOf<'inbox.confirm'>, ResponseOf<'inbox.confirm'>>('inbox.confirm', routes['inbox.confirm'], request, options),
@@ -806,12 +806,12 @@ export const inbox = {
   popups: (request: RequestOf<'inbox.popups'>, options?: CallOptions) => invoke<RequestOf<'inbox.popups'>, ResponseOf<'inbox.popups'>>('inbox.popups', routes['inbox.popups'], request, options),
 }
 
-/** 资源 `job-runs` 的操作。 */
+/** 资源 `job-runs` 的操作 */
 export const jobRuns = {
   list: (request: RequestOf<'job-runs.list'>, options?: CallOptions) => invoke<RequestOf<'job-runs.list'>, ResponseOf<'job-runs.list'>>('job-runs.list', routes['job-runs.list'], request, options),
 }
 
-/** 资源 `jobs` 的操作。 */
+/** 资源 `jobs` 的操作 */
 export const jobs = {
   create: (request: RequestOf<'jobs.create'>, options?: CallOptions) => invoke<RequestOf<'jobs.create'>, ResponseOf<'jobs.create'>>('jobs.create', routes['jobs.create'], request, options),
   delete: (request: RequestOf<'jobs.delete'>, options?: CallOptions) => invoke<RequestOf<'jobs.delete'>, ResponseOf<'jobs.delete'>>('jobs.delete', routes['jobs.delete'], request, options),
@@ -826,19 +826,19 @@ export const jobs = {
   validateSchedule: (request: RequestOf<'jobs.validate-schedule'>, options?: CallOptions) => invoke<RequestOf<'jobs.validate-schedule'>, ResponseOf<'jobs.validate-schedule'>>('jobs.validate-schedule', routes['jobs.validate-schedule'], request, options),
 }
 
-/** 资源 `login-bans` 的操作。 */
+/** 资源 `login-bans` 的操作 */
 export const loginBans = {
   lift: (request: RequestOf<'login-bans.lift'>, options?: CallOptions) => invoke<RequestOf<'login-bans.lift'>, ResponseOf<'login-bans.lift'>>('login-bans.lift', routes['login-bans.lift'], request, options),
   list: (request: RequestOf<'login-bans.list'>, options?: CallOptions) => invoke<RequestOf<'login-bans.list'>, ResponseOf<'login-bans.list'>>('login-bans.list', routes['login-bans.list'], request, options),
 }
 
-/** 资源 `login-logs` 的操作。 */
+/** 资源 `login-logs` 的操作 */
 export const loginLogs = {
   get: (request: RequestOf<'login-logs.get'>, options?: CallOptions) => invoke<RequestOf<'login-logs.get'>, ResponseOf<'login-logs.get'>>('login-logs.get', routes['login-logs.get'], request, options),
   list: (request: RequestOf<'login-logs.list'>, options?: CallOptions) => invoke<RequestOf<'login-logs.list'>, ResponseOf<'login-logs.list'>>('login-logs.list', routes['login-logs.list'], request, options),
 }
 
-/** 资源 `memberships` 的操作。 */
+/** 资源 `memberships` 的操作 */
 export const memberships = {
   create: (request: RequestOf<'memberships.create'>, options?: CallOptions) => invoke<RequestOf<'memberships.create'>, ResponseOf<'memberships.create'>>('memberships.create', routes['memberships.create'], request, options),
   delete: (request: RequestOf<'memberships.delete'>, options?: CallOptions) => invoke<RequestOf<'memberships.delete'>, ResponseOf<'memberships.delete'>>('memberships.delete', routes['memberships.delete'], request, options),
@@ -846,7 +846,7 @@ export const memberships = {
   update: (request: RequestOf<'memberships.update'>, options?: CallOptions) => invoke<RequestOf<'memberships.update'>, ResponseOf<'memberships.update'>>('memberships.update', routes['memberships.update'], request, options),
 }
 
-/** 资源 `menus` 的操作。 */
+/** 资源 `menus` 的操作 */
 export const menus = {
   create: (request: RequestOf<'menus.create'>, options?: CallOptions) => invoke<RequestOf<'menus.create'>, ResponseOf<'menus.create'>>('menus.create', routes['menus.create'], request, options),
   delete: (request: RequestOf<'menus.delete'>, options?: CallOptions) => invoke<RequestOf<'menus.delete'>, ResponseOf<'menus.delete'>>('menus.delete', routes['menus.delete'], request, options),
@@ -856,7 +856,7 @@ export const menus = {
   update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
 }
 
-/** 资源 `message-templates` 的操作。 */
+/** 资源 `message-templates` 的操作 */
 export const messageTemplates = {
   create: (request: RequestOf<'message-templates.create'>, options?: CallOptions) => invoke<RequestOf<'message-templates.create'>, ResponseOf<'message-templates.create'>>('message-templates.create', routes['message-templates.create'], request, options),
   delete: (request: RequestOf<'message-templates.delete'>, options?: CallOptions) => invoke<RequestOf<'message-templates.delete'>, ResponseOf<'message-templates.delete'>>('message-templates.delete', routes['message-templates.delete'], request, options),
@@ -865,18 +865,18 @@ export const messageTemplates = {
   update: (request: RequestOf<'message-templates.update'>, options?: CallOptions) => invoke<RequestOf<'message-templates.update'>, ResponseOf<'message-templates.update'>>('message-templates.update', routes['message-templates.update'], request, options),
 }
 
-/** 资源 `migrations` 的操作。 */
+/** 资源 `migrations` 的操作 */
 export const migrations = {
   get: (request: RequestOf<'migrations.get'>, options?: CallOptions) => invoke<RequestOf<'migrations.get'>, ResponseOf<'migrations.get'>>('migrations.get', routes['migrations.get'], request, options),
   list: (request: RequestOf<'migrations.list'>, options?: CallOptions) => invoke<RequestOf<'migrations.list'>, ResponseOf<'migrations.list'>>('migrations.list', routes['migrations.list'], request, options),
 }
 
-/** 资源 `my-activity` 的操作。 */
+/** 资源 `my-activity` 的操作 */
 export const myActivity = {
   summary: (request: RequestOf<'my-activity.summary'>, options?: CallOptions) => invoke<RequestOf<'my-activity.summary'>, ResponseOf<'my-activity.summary'>>('my-activity.summary', routes['my-activity.summary'], request, options),
 }
 
-/** 资源 `my-api-credentials` 的操作。 */
+/** 资源 `my-api-credentials` 的操作 */
 export const myApiCredentials = {
   create: (request: RequestOf<'my-api-credentials.create'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.create'>, ResponseOf<'my-api-credentials.create'>>('my-api-credentials.create', routes['my-api-credentials.create'], request, options),
   delete: (request: RequestOf<'my-api-credentials.delete'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.delete'>, ResponseOf<'my-api-credentials.delete'>>('my-api-credentials.delete', routes['my-api-credentials.delete'], request, options),
@@ -887,12 +887,12 @@ export const myApiCredentials = {
   updateSettings: (request: RequestOf<'my-api-credentials.update-settings'>, options?: CallOptions) => invoke<RequestOf<'my-api-credentials.update-settings'>, ResponseOf<'my-api-credentials.update-settings'>>('my-api-credentials.update-settings', routes['my-api-credentials.update-settings'], request, options),
 }
 
-/** 资源 `my-login-logs` 的操作。 */
+/** 资源 `my-login-logs` 的操作 */
 export const myLoginLogs = {
   list: (request: RequestOf<'my-login-logs.list'>, options?: CallOptions) => invoke<RequestOf<'my-login-logs.list'>, ResponseOf<'my-login-logs.list'>>('my-login-logs.list', routes['my-login-logs.list'], request, options),
 }
 
-/** 资源 `my-oauth-apps` 的操作。 */
+/** 资源 `my-oauth-apps` 的操作 */
 export const myOauthApps = {
   create: (request: RequestOf<'my-oauth-apps.create'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.create'>, ResponseOf<'my-oauth-apps.create'>>('my-oauth-apps.create', routes['my-oauth-apps.create'], request, options),
   delete: (request: RequestOf<'my-oauth-apps.delete'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.delete'>, ResponseOf<'my-oauth-apps.delete'>>('my-oauth-apps.delete', routes['my-oauth-apps.delete'], request, options),
@@ -902,7 +902,7 @@ export const myOauthApps = {
   update: (request: RequestOf<'my-oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.update'>, ResponseOf<'my-oauth-apps.update'>>('my-oauth-apps.update', routes['my-oauth-apps.update'], request, options),
 }
 
-/** 资源 `notifications` 的操作。 */
+/** 资源 `notifications` 的操作 */
 export const notifications = {
   create: (request: RequestOf<'notifications.create'>, options?: CallOptions) => invoke<RequestOf<'notifications.create'>, ResponseOf<'notifications.create'>>('notifications.create', routes['notifications.create'], request, options),
   delete: (request: RequestOf<'notifications.delete'>, options?: CallOptions) => invoke<RequestOf<'notifications.delete'>, ResponseOf<'notifications.delete'>>('notifications.delete', routes['notifications.delete'], request, options),
@@ -915,7 +915,7 @@ export const notifications = {
   update: (request: RequestOf<'notifications.update'>, options?: CallOptions) => invoke<RequestOf<'notifications.update'>, ResponseOf<'notifications.update'>>('notifications.update', routes['notifications.update'], request, options),
 }
 
-/** 资源 `numbering-rules` 的操作。 */
+/** 资源 `numbering-rules` 的操作 */
 export const numberingRules = {
   allocations: (request: RequestOf<'numbering-rules.allocations'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.allocations'>, ResponseOf<'numbering-rules.allocations'>>('numbering-rules.allocations', routes['numbering-rules.allocations'], request, options),
   create: (request: RequestOf<'numbering-rules.create'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.create'>, ResponseOf<'numbering-rules.create'>>('numbering-rules.create', routes['numbering-rules.create'], request, options),
@@ -928,7 +928,7 @@ export const numberingRules = {
   update: (request: RequestOf<'numbering-rules.update'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.update'>, ResponseOf<'numbering-rules.update'>>('numbering-rules.update', routes['numbering-rules.update'], request, options),
 }
 
-/** 资源 `oauth-apps` 的操作。 */
+/** 资源 `oauth-apps` 的操作 */
 export const oauthApps = {
   create: (request: RequestOf<'oauth-apps.create'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.create'>, ResponseOf<'oauth-apps.create'>>('oauth-apps.create', routes['oauth-apps.create'], request, options),
   delete: (request: RequestOf<'oauth-apps.delete'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.delete'>, ResponseOf<'oauth-apps.delete'>>('oauth-apps.delete', routes['oauth-apps.delete'], request, options),
@@ -938,7 +938,7 @@ export const oauthApps = {
   update: (request: RequestOf<'oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'oauth-apps.update'>, ResponseOf<'oauth-apps.update'>>('oauth-apps.update', routes['oauth-apps.update'], request, options),
 }
 
-/** 资源 `oauth-consents` 的操作。 */
+/** 资源 `oauth-consents` 的操作 */
 export const oauthConsents = {
   approve: (request: RequestOf<'oauth-consents.approve'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.approve'>, ResponseOf<'oauth-consents.approve'>>('oauth-consents.approve', routes['oauth-consents.approve'], request, options),
   deny: (request: RequestOf<'oauth-consents.deny'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.deny'>, ResponseOf<'oauth-consents.deny'>>('oauth-consents.deny', routes['oauth-consents.deny'], request, options),
@@ -947,31 +947,31 @@ export const oauthConsents = {
   revoke: (request: RequestOf<'oauth-consents.revoke'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.revoke'>, ResponseOf<'oauth-consents.revoke'>>('oauth-consents.revoke', routes['oauth-consents.revoke'], request, options),
 }
 
-/** 资源 `open-api-logs` 的操作。 */
+/** 资源 `open-api-logs` 的操作 */
 export const openApiLogs = {
   get: (request: RequestOf<'open-api-logs.get'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.get'>, ResponseOf<'open-api-logs.get'>>('open-api-logs.get', routes['open-api-logs.get'], request, options),
   list: (request: RequestOf<'open-api-logs.list'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.list'>, ResponseOf<'open-api-logs.list'>>('open-api-logs.list', routes['open-api-logs.list'], request, options),
 }
 
-/** 资源 `open` 的操作。 */
+/** 资源 `open` 的操作 */
 export const open = {
   echo: (request: RequestOf<'open.echo'>, options?: CallOptions) => invoke<RequestOf<'open.echo'>, ResponseOf<'open.echo'>>('open.echo', routes['open.echo'], request, options),
   ping: (request: RequestOf<'open.ping'>, options?: CallOptions) => invoke<RequestOf<'open.ping'>, ResponseOf<'open.ping'>>('open.ping', routes['open.ping'], request, options),
 }
 
-/** 资源 `operation-logs` 的操作。 */
+/** 资源 `operation-logs` 的操作 */
 export const operationLogs = {
   get: (request: RequestOf<'operation-logs.get'>, options?: CallOptions) => invoke<RequestOf<'operation-logs.get'>, ResponseOf<'operation-logs.get'>>('operation-logs.get', routes['operation-logs.get'], request, options),
   list: (request: RequestOf<'operation-logs.list'>, options?: CallOptions) => invoke<RequestOf<'operation-logs.list'>, ResponseOf<'operation-logs.list'>>('operation-logs.list', routes['operation-logs.list'], request, options),
 }
 
-/** 资源 `permission-change-logs` 的操作。 */
+/** 资源 `permission-change-logs` 的操作 */
 export const permissionChangeLogs = {
   get: (request: RequestOf<'permission-change-logs.get'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.get'>, ResponseOf<'permission-change-logs.get'>>('permission-change-logs.get', routes['permission-change-logs.get'], request, options),
   list: (request: RequestOf<'permission-change-logs.list'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.list'>, ResponseOf<'permission-change-logs.list'>>('permission-change-logs.list', routes['permission-change-logs.list'], request, options),
 }
 
-/** 资源 `permission-conditions` 的操作。 */
+/** 资源 `permission-conditions` 的操作 */
 export const permissionConditions = {
   attributes: (request: RequestOf<'permission-conditions.attributes'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.attributes'>, ResponseOf<'permission-conditions.attributes'>>('permission-conditions.attributes', routes['permission-conditions.attributes'], request, options),
   batchTrial: (request: RequestOf<'permission-conditions.batch-trial'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.batch-trial'>, ResponseOf<'permission-conditions.batch-trial'>>('permission-conditions.batch-trial', routes['permission-conditions.batch-trial'], request, options),
@@ -983,7 +983,7 @@ export const permissionConditions = {
   update: (request: RequestOf<'permission-conditions.update'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.update'>, ResponseOf<'permission-conditions.update'>>('permission-conditions.update', routes['permission-conditions.update'], request, options),
 }
 
-/** 资源 `permission-requests` 的操作。 */
+/** 资源 `permission-requests` 的操作 */
 export const permissionRequests = {
   create: (request: RequestOf<'permission-requests.create'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.create'>, ResponseOf<'permission-requests.create'>>('permission-requests.create', routes['permission-requests.create'], request, options),
   get: (request: RequestOf<'permission-requests.get'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.get'>, ResponseOf<'permission-requests.get'>>('permission-requests.get', routes['permission-requests.get'], request, options),
@@ -993,12 +993,12 @@ export const permissionRequests = {
   withdraw: (request: RequestOf<'permission-requests.withdraw'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.withdraw'>, ResponseOf<'permission-requests.withdraw'>>('permission-requests.withdraw', routes['permission-requests.withdraw'], request, options),
 }
 
-/** 资源 `permissions` 的操作。 */
+/** 资源 `permissions` 的操作 */
 export const permissions = {
   list: (request: RequestOf<'permissions.list'>, options?: CallOptions) => invoke<RequestOf<'permissions.list'>, ResponseOf<'permissions.list'>>('permissions.list', routes['permissions.list'], request, options),
 }
 
-/** 资源 `policies` 的操作。 */
+/** 资源 `policies` 的操作 */
 export const policies = {
   attributes: (request: RequestOf<'policies.attributes'>, options?: CallOptions) => invoke<RequestOf<'policies.attributes'>, ResponseOf<'policies.attributes'>>('policies.attributes', routes['policies.attributes'], request, options),
   create: (request: RequestOf<'policies.create'>, options?: CallOptions) => invoke<RequestOf<'policies.create'>, ResponseOf<'policies.create'>>('policies.create', routes['policies.create'], request, options),
@@ -1012,7 +1012,7 @@ export const policies = {
   update: (request: RequestOf<'policies.update'>, options?: CallOptions) => invoke<RequestOf<'policies.update'>, ResponseOf<'policies.update'>>('policies.update', routes['policies.update'], request, options),
 }
 
-/** 资源 `positions` 的操作。 */
+/** 资源 `positions` 的操作 */
 export const positions = {
   create: (request: RequestOf<'positions.create'>, options?: CallOptions) => invoke<RequestOf<'positions.create'>, ResponseOf<'positions.create'>>('positions.create', routes['positions.create'], request, options),
   delete: (request: RequestOf<'positions.delete'>, options?: CallOptions) => invoke<RequestOf<'positions.delete'>, ResponseOf<'positions.delete'>>('positions.delete', routes['positions.delete'], request, options),
@@ -1021,12 +1021,12 @@ export const positions = {
   update: (request: RequestOf<'positions.update'>, options?: CallOptions) => invoke<RequestOf<'positions.update'>, ResponseOf<'positions.update'>>('positions.update', routes['positions.update'], request, options),
 }
 
-/** 资源 `print-data-sources` 的操作。 */
+/** 资源 `print-data-sources` 的操作 */
 export const printDataSources = {
   list: (request: RequestOf<'print-data-sources.list'>, options?: CallOptions) => invoke<RequestOf<'print-data-sources.list'>, ResponseOf<'print-data-sources.list'>>('print-data-sources.list', routes['print-data-sources.list'], request, options),
 }
 
-/** 资源 `print-templates` 的操作。 */
+/** 资源 `print-templates` 的操作 */
 export const printTemplates = {
   create: (request: RequestOf<'print-templates.create'>, options?: CallOptions) => invoke<RequestOf<'print-templates.create'>, ResponseOf<'print-templates.create'>>('print-templates.create', routes['print-templates.create'], request, options),
   delete: (request: RequestOf<'print-templates.delete'>, options?: CallOptions) => invoke<RequestOf<'print-templates.delete'>, ResponseOf<'print-templates.delete'>>('print-templates.delete', routes['print-templates.delete'], request, options),
@@ -1037,7 +1037,7 @@ export const printTemplates = {
   update: (request: RequestOf<'print-templates.update'>, options?: CallOptions) => invoke<RequestOf<'print-templates.update'>, ResponseOf<'print-templates.update'>>('print-templates.update', routes['print-templates.update'], request, options),
 }
 
-/** 资源 `profile` 的操作。 */
+/** 资源 `profile` 的操作 */
 export const profile = {
   beginExternalBind: (request: RequestOf<'profile.begin-external-bind'>, options?: CallOptions) => invoke<RequestOf<'profile.begin-external-bind'>, ResponseOf<'profile.begin-external-bind'>>('profile.begin-external-bind', routes['profile.begin-external-bind'], request, options),
   changeContact: (request: RequestOf<'profile.change-contact'>, options?: CallOptions) => invoke<RequestOf<'profile.change-contact'>, ResponseOf<'profile.change-contact'>>('profile.change-contact', routes['profile.change-contact'], request, options),
@@ -1063,7 +1063,7 @@ export const profile = {
   verifyContact: (request: RequestOf<'profile.verify-contact'>, options?: CallOptions) => invoke<RequestOf<'profile.verify-contact'>, ResponseOf<'profile.verify-contact'>>('profile.verify-contact', routes['profile.verify-contact'], request, options),
 }
 
-/** 资源 `roles` 的操作。 */
+/** 资源 `roles` 的操作 */
 export const roles = {
   assign: (request: RequestOf<'roles.assign'>, options?: CallOptions) => invoke<RequestOf<'roles.assign'>, ResponseOf<'roles.assign'>>('roles.assign', routes['roles.assign'], request, options),
   byUser: (request: RequestOf<'roles.by-user'>, options?: CallOptions) => invoke<RequestOf<'roles.by-user'>, ResponseOf<'roles.by-user'>>('roles.by-user', routes['roles.by-user'], request, options),
@@ -1082,25 +1082,25 @@ export const roles = {
   updateMember: (request: RequestOf<'roles.update-member'>, options?: CallOptions) => invoke<RequestOf<'roles.update-member'>, ResponseOf<'roles.update-member'>>('roles.update-member', routes['roles.update-member'], request, options),
 }
 
-/** 资源 `server` 的操作。 */
+/** 资源 `server` 的操作 */
 export const server = {
   get: (request: RequestOf<'server.get'>, options?: CallOptions) => invoke<RequestOf<'server.get'>, ResponseOf<'server.get'>>('server.get', routes['server.get'], request, options),
 }
 
-/** 资源 `session-roles` 的操作。 */
+/** 资源 `session-roles` 的操作 */
 export const sessionRoles = {
   get: (request: RequestOf<'session-roles.get'>, options?: CallOptions) => invoke<RequestOf<'session-roles.get'>, ResponseOf<'session-roles.get'>>('session-roles.get', routes['session-roles.get'], request, options),
   list: (request: RequestOf<'session-roles.list'>, options?: CallOptions) => invoke<RequestOf<'session-roles.list'>, ResponseOf<'session-roles.list'>>('session-roles.list', routes['session-roles.list'], request, options),
 }
 
-/** 资源 `sessions` 的操作。 */
+/** 资源 `sessions` 的操作 */
 export const sessions = {
   list: (request: RequestOf<'sessions.list'>, options?: CallOptions) => invoke<RequestOf<'sessions.list'>, ResponseOf<'sessions.list'>>('sessions.list', routes['sessions.list'], request, options),
   revoke: (request: RequestOf<'sessions.revoke'>, options?: CallOptions) => invoke<RequestOf<'sessions.revoke'>, ResponseOf<'sessions.revoke'>>('sessions.revoke', routes['sessions.revoke'], request, options),
   summary: (request: RequestOf<'sessions.summary'>, options?: CallOptions) => invoke<RequestOf<'sessions.summary'>, ResponseOf<'sessions.summary'>>('sessions.summary', routes['sessions.summary'], request, options),
 }
 
-/** 资源 `sms-configs` 的操作。 */
+/** 资源 `sms-configs` 的操作 */
 export const smsConfigs = {
   create: (request: RequestOf<'sms-configs.create'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.create'>, ResponseOf<'sms-configs.create'>>('sms-configs.create', routes['sms-configs.create'], request, options),
   delete: (request: RequestOf<'sms-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.delete'>, ResponseOf<'sms-configs.delete'>>('sms-configs.delete', routes['sms-configs.delete'], request, options),
@@ -1110,7 +1110,7 @@ export const smsConfigs = {
   update: (request: RequestOf<'sms-configs.update'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.update'>, ResponseOf<'sms-configs.update'>>('sms-configs.update', routes['sms-configs.update'], request, options),
 }
 
-/** 资源 `sms` 的操作。 */
+/** 资源 `sms` 的操作 */
 export const sms = {
   cancel: (request: RequestOf<'sms.cancel'>, options?: CallOptions) => invoke<RequestOf<'sms.cancel'>, ResponseOf<'sms.cancel'>>('sms.cancel', routes['sms.cancel'], request, options),
   delete: (request: RequestOf<'sms.delete'>, options?: CallOptions) => invoke<RequestOf<'sms.delete'>, ResponseOf<'sms.delete'>>('sms.delete', routes['sms.delete'], request, options),
@@ -1119,7 +1119,7 @@ export const sms = {
   resend: (request: RequestOf<'sms.resend'>, options?: CallOptions) => invoke<RequestOf<'sms.resend'>, ResponseOf<'sms.resend'>>('sms.resend', routes['sms.resend'], request, options),
 }
 
-/** 资源 `storage-configs` 的操作。 */
+/** 资源 `storage-configs` 的操作 */
 export const storageConfigs = {
   create: (request: RequestOf<'storage-configs.create'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.create'>, ResponseOf<'storage-configs.create'>>('storage-configs.create', routes['storage-configs.create'], request, options),
   delete: (request: RequestOf<'storage-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.delete'>, ResponseOf<'storage-configs.delete'>>('storage-configs.delete', routes['storage-configs.delete'], request, options),
@@ -1130,12 +1130,12 @@ export const storageConfigs = {
   update: (request: RequestOf<'storage-configs.update'>, options?: CallOptions) => invoke<RequestOf<'storage-configs.update'>, ResponseOf<'storage-configs.update'>>('storage-configs.update', routes['storage-configs.update'], request, options),
 }
 
-/** 资源 `subscription` 的操作。 */
+/** 资源 `subscription` 的操作 */
 export const subscription = {
   get: (request: RequestOf<'subscription.get'>, options?: CallOptions) => invoke<RequestOf<'subscription.get'>, ResponseOf<'subscription.get'>>('subscription.get', routes['subscription.get'], request, options),
 }
 
-/** 资源 `tasks` 的操作。 */
+/** 资源 `tasks` 的操作 */
 export const tasks = {
   addAssignees: (request: RequestOf<'tasks.add-assignees'>, options?: CallOptions) => invoke<RequestOf<'tasks.add-assignees'>, ResponseOf<'tasks.add-assignees'>>('tasks.add-assignees', routes['tasks.add-assignees'], request, options),
   complete: (request: RequestOf<'tasks.complete'>, options?: CallOptions) => invoke<RequestOf<'tasks.complete'>, ResponseOf<'tasks.complete'>>('tasks.complete', routes['tasks.complete'], request, options),
@@ -1143,7 +1143,7 @@ export const tasks = {
   transfer: (request: RequestOf<'tasks.transfer'>, options?: CallOptions) => invoke<RequestOf<'tasks.transfer'>, ResponseOf<'tasks.transfer'>>('tasks.transfer', routes['tasks.transfer'], request, options),
 }
 
-/** 资源 `telegram-bots` 的操作。 */
+/** 资源 `telegram-bots` 的操作 */
 export const telegramBots = {
   create: (request: RequestOf<'telegram-bots.create'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.create'>, ResponseOf<'telegram-bots.create'>>('telegram-bots.create', routes['telegram-bots.create'], request, options),
   delete: (request: RequestOf<'telegram-bots.delete'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.delete'>, ResponseOf<'telegram-bots.delete'>>('telegram-bots.delete', routes['telegram-bots.delete'], request, options),
@@ -1152,14 +1152,14 @@ export const telegramBots = {
   update: (request: RequestOf<'telegram-bots.update'>, options?: CallOptions) => invoke<RequestOf<'telegram-bots.update'>, ResponseOf<'telegram-bots.update'>>('telegram-bots.update', routes['telegram-bots.update'], request, options),
 }
 
-/** 资源 `tenant-members` 的操作。 */
+/** 资源 `tenant-members` 的操作 */
 export const tenantMembers = {
   create: (request: RequestOf<'tenant-members.create'>, options?: CallOptions) => invoke<RequestOf<'tenant-members.create'>, ResponseOf<'tenant-members.create'>>('tenant-members.create', routes['tenant-members.create'], request, options),
   delete: (request: RequestOf<'tenant-members.delete'>, options?: CallOptions) => invoke<RequestOf<'tenant-members.delete'>, ResponseOf<'tenant-members.delete'>>('tenant-members.delete', routes['tenant-members.delete'], request, options),
   list: (request: RequestOf<'tenant-members.list'>, options?: CallOptions) => invoke<RequestOf<'tenant-members.list'>, ResponseOf<'tenant-members.list'>>('tenant-members.list', routes['tenant-members.list'], request, options),
 }
 
-/** 资源 `tenants` 的操作。 */
+/** 资源 `tenants` 的操作 */
 export const tenants = {
   changeEdition: (request: RequestOf<'tenants.change-edition'>, options?: CallOptions) => invoke<RequestOf<'tenants.change-edition'>, ResponseOf<'tenants.change-edition'>>('tenants.change-edition', routes['tenants.change-edition'], request, options),
   configureDatabase: (request: RequestOf<'tenants.configure-database'>, options?: CallOptions) => invoke<RequestOf<'tenants.configure-database'>, ResponseOf<'tenants.configure-database'>>('tenants.configure-database', routes['tenants.configure-database'], request, options),
@@ -1177,18 +1177,18 @@ export const tenants = {
   update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),
 }
 
-/** 资源 `traces` 的操作。 */
+/** 资源 `traces` 的操作 */
 export const traces = {
   timeline: (request: RequestOf<'traces.timeline'>, options?: CallOptions) => invoke<RequestOf<'traces.timeline'>, ResponseOf<'traces.timeline'>>('traces.timeline', routes['traces.timeline'], request, options),
 }
 
-/** 资源 `user-data-scopes` 的操作。 */
+/** 资源 `user-data-scopes` 的操作 */
 export const userDataScopes = {
   get: (request: RequestOf<'user-data-scopes.get'>, options?: CallOptions) => invoke<RequestOf<'user-data-scopes.get'>, ResponseOf<'user-data-scopes.get'>>('user-data-scopes.get', routes['user-data-scopes.get'], request, options),
   set: (request: RequestOf<'user-data-scopes.set'>, options?: CallOptions) => invoke<RequestOf<'user-data-scopes.set'>, ResponseOf<'user-data-scopes.set'>>('user-data-scopes.set', routes['user-data-scopes.set'], request, options),
 }
 
-/** 资源 `user-grants` 的操作。 */
+/** 资源 `user-grants` 的操作 */
 export const userGrants = {
   deny: (request: RequestOf<'user-grants.deny'>, options?: CallOptions) => invoke<RequestOf<'user-grants.deny'>, ResponseOf<'user-grants.deny'>>('user-grants.deny', routes['user-grants.deny'], request, options),
   grant: (request: RequestOf<'user-grants.grant'>, options?: CallOptions) => invoke<RequestOf<'user-grants.grant'>, ResponseOf<'user-grants.grant'>>('user-grants.grant', routes['user-grants.grant'], request, options),
@@ -1196,13 +1196,13 @@ export const userGrants = {
   revoke: (request: RequestOf<'user-grants.revoke'>, options?: CallOptions) => invoke<RequestOf<'user-grants.revoke'>, ResponseOf<'user-grants.revoke'>>('user-grants.revoke', routes['user-grants.revoke'], request, options),
 }
 
-/** 资源 `user-settings` 的操作。 */
+/** 资源 `user-settings` 的操作 */
 export const userSettings = {
   get: (request: RequestOf<'user-settings.get'>, options?: CallOptions) => invoke<RequestOf<'user-settings.get'>, ResponseOf<'user-settings.get'>>('user-settings.get', routes['user-settings.get'], request, options),
   update: (request: RequestOf<'user-settings.update'>, options?: CallOptions) => invoke<RequestOf<'user-settings.update'>, ResponseOf<'user-settings.update'>>('user-settings.update', routes['user-settings.update'], request, options),
 }
 
-/** 资源 `users` 的操作。 */
+/** 资源 `users` 的操作 */
 export const users = {
   create: (request: RequestOf<'users.create'>, options?: CallOptions) => invoke<RequestOf<'users.create'>, ResponseOf<'users.create'>>('users.create', routes['users.create'], request, options),
   delete: (request: RequestOf<'users.delete'>, options?: CallOptions) => invoke<RequestOf<'users.delete'>, ResponseOf<'users.delete'>>('users.delete', routes['users.delete'], request, options),
@@ -1217,19 +1217,19 @@ export const users = {
   update: (request: RequestOf<'users.update'>, options?: CallOptions) => invoke<RequestOf<'users.update'>, ResponseOf<'users.update'>>('users.update', routes['users.update'], request, options),
 }
 
-/** 资源 `versions` 的操作。 */
+/** 资源 `versions` 的操作 */
 export const versions = {
   get: (request: RequestOf<'versions.get'>, options?: CallOptions) => invoke<RequestOf<'versions.get'>, ResponseOf<'versions.get'>>('versions.get', routes['versions.get'], request, options),
   list: (request: RequestOf<'versions.list'>, options?: CallOptions) => invoke<RequestOf<'versions.list'>, ResponseOf<'versions.list'>>('versions.list', routes['versions.list'], request, options),
 }
 
-/** 资源 `workbench` 的操作。 */
+/** 资源 `workbench` 的操作 */
 export const workbench = {
   widgetData: (request: RequestOf<'workbench.widget-data'>, options?: CallOptions) => invoke<RequestOf<'workbench.widget-data'>, ResponseOf<'workbench.widget-data'>>('workbench.widget-data', routes['workbench.widget-data'], request, options),
   widgets: (request: RequestOf<'workbench.widgets'>, options?: CallOptions) => invoke<RequestOf<'workbench.widgets'>, ResponseOf<'workbench.widgets'>>('workbench.widgets', routes['workbench.widgets'], request, options),
 }
 
-/** 资源 `workflow-assignees` 的操作。 */
+/** 资源 `workflow-assignees` 的操作 */
 export const workflowAssignees = {
   departments: (request: RequestOf<'workflow-assignees.departments'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.departments'>, ResponseOf<'workflow-assignees.departments'>>('workflow-assignees.departments', routes['workflow-assignees.departments'], request, options),
   positions: (request: RequestOf<'workflow-assignees.positions'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.positions'>, ResponseOf<'workflow-assignees.positions'>>('workflow-assignees.positions', routes['workflow-assignees.positions'], request, options),
@@ -1237,7 +1237,7 @@ export const workflowAssignees = {
   users: (request: RequestOf<'workflow-assignees.users'>, options?: CallOptions) => invoke<RequestOf<'workflow-assignees.users'>, ResponseOf<'workflow-assignees.users'>>('workflow-assignees.users', routes['workflow-assignees.users'], request, options),
 }
 
-/** 资源 `workflow-definitions` 的操作。 */
+/** 资源 `workflow-definitions` 的操作 */
 export const workflowDefinitions = {
   activityTypes: (request: RequestOf<'workflow-definitions.activity-types'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.activity-types'>, ResponseOf<'workflow-definitions.activity-types'>>('workflow-definitions.activity-types', routes['workflow-definitions.activity-types'], request, options),
   archive: (request: RequestOf<'workflow-definitions.archive'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.archive'>, ResponseOf<'workflow-definitions.archive'>>('workflow-definitions.archive', routes['workflow-definitions.archive'], request, options),
@@ -1252,7 +1252,7 @@ export const workflowDefinitions = {
   update: (request: RequestOf<'workflow-definitions.update'>, options?: CallOptions) => invoke<RequestOf<'workflow-definitions.update'>, ResponseOf<'workflow-definitions.update'>>('workflow-definitions.update', routes['workflow-definitions.update'], request, options),
 }
 
-/** 资源 `workflow-instances` 的操作。 */
+/** 资源 `workflow-instances` 的操作 */
 export const workflowInstances = {
   cancel: (request: RequestOf<'workflow-instances.cancel'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.cancel'>, ResponseOf<'workflow-instances.cancel'>>('workflow-instances.cancel', routes['workflow-instances.cancel'], request, options),
   get: (request: RequestOf<'workflow-instances.get'>, options?: CallOptions) => invoke<RequestOf<'workflow-instances.get'>, ResponseOf<'workflow-instances.get'>>('workflow-instances.get', routes['workflow-instances.get'], request, options),

@@ -9,10 +9,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Infrastructure;
 
 /// <summary>
-/// <see cref="IOrganizationDirectory"/> 的实现。
+/// <see cref="IOrganizationDirectory"/> 的实现
 /// </summary>
 /// <remarks>
-/// 部门、岗位与任职都是租户库实体，经 <see cref="TenantScopedQuery"/> 只读调用所在租户的行（平台一侧什么都查不到，结果为空）。
+/// 部门、岗位与任职都是租户库实体，经 <see cref="TenantScopedQuery"/> 只读调用所在租户的行（平台一侧什么都查不到，结果为空）
 /// </remarks>
 public sealed class OrganizationDirectory : IOrganizationDirectory
 {

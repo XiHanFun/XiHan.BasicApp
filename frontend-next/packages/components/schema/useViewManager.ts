@@ -4,7 +4,7 @@ import { storage } from '~/utils'
 import { useUserSettingSync } from './useUserSettingSync'
 
 /**
- * 视图快照 —— 捕获一套可复用的列表状态。
+ * 视图快照 —— 捕获一套可复用的列表状态
  */
 export interface ViewSnapshot {
   /** 筛选条件 */
@@ -32,8 +32,8 @@ export interface PersonalView {
 const STORAGE_PREFIX = 'xh:views:'
 
 /**
- * 视图管理状态机：个人视图的增删改查与默认设置，按 pageCode 持久化到 localStorage。
- * S3 后端 SysPageView 端点就绪后可扩展系统/租户/团队视图（scope）。
+ * 视图管理状态机：个人视图的增删改查与默认设置，按 pageCode 持久化到 localStorage
+ * S3 后端 SysPageView 端点就绪后可扩展系统/租户/团队视图（scope）
  *
  * @param pageCode 页面唯一码（存储维度）
  */
@@ -44,7 +44,7 @@ export function useViewManager(pageCode: string) {
   const views = ref<PersonalView[]>(storage.get<PersonalView[]>(storageKey) ?? [])
   const activeCode = ref<string | undefined>(views.value.find(v => v.isDefault)?.code)
 
-  // 跨端同步：开着同步以后端那份为准（等它回来再渲染），其它设备推来时实时应用，二者都写回本地。
+  // 跨端同步：开着同步以后端那份为准（等它回来再渲染），其它设备推来时实时应用，二者都写回本地
   // 空数组是用户把视图删光了，同样采用
   const remote = sync.bindSection<PersonalView[]>('views', {
     accept: (value): value is PersonalView[] => Array.isArray(value),

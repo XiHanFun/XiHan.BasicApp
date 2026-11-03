@@ -10,14 +10,14 @@ export interface EnumOptionItem {
 }
 
 /**
- * 响应式枚举下拉选项。
+ * 响应式枚举下拉选项
  *
  * 以**后端枚举元数据**为本地化单一事实源（按 X-Language 返回当前语言标签）：
- * 挂载时拉取、语言切换自动重取，元数据为空（未加载/未部署）时回退静态 fallback。
- * 返回的 computed 随语言/数据响应式更新，免刷新即切换。
+ * 挂载时拉取、语言切换自动重取，元数据为空（未加载/未部署）时回退静态 fallback
+ * 返回的 computed 随语言/数据响应式更新，免刷新即切换
  *
  * 适用于**非 SchemaPage** 的表单/弹窗下拉与展示标签；
- * SchemaPage 字段请用 `dictionaryCode`（已由 useSchemaDictionaries 统一处理）。
+ * SchemaPage 字段请用 `dictionaryCode`（已由 useSchemaDictionaries 统一处理）
  *
  * @param enumName 后端枚举类型名（如 'EnableStatus' / 'PermissionType'，即 business.ts 常量所用枚举类型名）
  * @param fallback 元数据为空时的兜底静态选项（通常传 business.ts 的 *_OPTIONS 常量）
@@ -29,7 +29,7 @@ export function useEnumOptions(
   const enumService = useEnumService()
 
   // 挂载时触发整库拉取（并发去重）；切语言由 useEnumService 全局监听整库重取一次，
-  // 本组合式只读响应式 enumState，无需各自监听 locale（否则每个下拉各发一次请求）。
+  // 本组合式只读响应式 enumState，无需各自监听 locale（否则每个下拉各发一次请求）
   onMounted(() => void enumService.ensureEnum(enumName))
 
   return computed<EnumOptionItem[]>(() => {

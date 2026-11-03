@@ -8,10 +8,10 @@ using XiHan.BasicApp.Realtime.Infrastructure;
 namespace XiHan.BasicApp.Realtime;
 
 /// <summary>
-/// 实时包的源生成序列化上下文。
+/// 实时包的源生成序列化上下文
 /// </summary>
 /// <remarks>
-/// 共享缓存里的在线登记与断开连接的广播消息。
+/// 共享缓存里的在线登记与断开连接的广播消息
 /// </remarks>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(PresenceSnapshot))]

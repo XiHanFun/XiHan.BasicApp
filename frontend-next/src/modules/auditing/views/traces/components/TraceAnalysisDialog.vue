@@ -7,9 +7,9 @@ import { useI18n } from 'vue-i18n'
 import { buildTraceFlow, buildTraceTimeBuckets, TRACE_RESULTS } from '../trace-analysis'
 
 /**
- * 链路分析：同一批追踪结果从两个方向看。
+ * 链路分析：同一批追踪结果从两个方向看
  * 流向（桑基图）：日志类型 → 模块 → 结果，看流量去了哪里、失败出在哪一段；
- * 时间分布（堆叠柱）：按时间桶数条数，结果分色，看什么时候密集、什么时候开始出错。
+ * 时间分布（堆叠柱）：按时间桶数条数，结果分色，看什么时候密集、什么时候开始出错
  */
 defineOptions({ name: 'TraceAnalysisDialog' })
 

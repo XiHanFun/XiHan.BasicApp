@@ -15,36 +15,36 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 一条字段安全规则的定义（新建与修改共用）。
+/// 一条字段安全规则的定义（新建与修改共用）
 /// </summary>
-/// <param name="TargetKind">目标类型。</param>
-/// <param name="TargetId">目标 ID。</param>
-/// <param name="Entity">实体码。</param>
-/// <param name="Field">字段名。</param>
-/// <param name="Strategy">读取方式。</param>
-/// <param name="KeepHead">部分脱敏保留前几位。</param>
-/// <param name="KeepTail">部分脱敏保留后几位。</param>
-/// <param name="Replacement">固定文本。</param>
-/// <param name="IsEditable">能否改写。</param>
-/// <param name="Status">状态。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="TargetKind">目标类型</param>
+/// <param name="TargetId">目标 ID</param>
+/// <param name="Entity">实体码</param>
+/// <param name="Field">字段名</param>
+/// <param name="Strategy">读取方式</param>
+/// <param name="KeepHead">部分脱敏保留前几位</param>
+/// <param name="KeepTail">部分脱敏保留后几位</param>
+/// <param name="Replacement">固定文本</param>
+/// <param name="IsEditable">能否改写</param>
+/// <param name="Status">状态</param>
+/// <param name="Remark">备注</param>
 public sealed record FieldRuleDefinition(FieldSecurityTargetKind TargetKind, Guid TargetId, string Entity, string Field, FieldMaskStrategy Strategy, int? KeepHead, int? KeepTail, string? Replacement, bool IsEditable, FieldRuleStatus Status, string? Remark);
 
 /// <summary>
-/// 字段安全规则的维护。
+/// 字段安全规则的维护
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，校验沿用 4.x。
+/// 见方案 5.9，校验沿用 4.x
 /// 实体与字段须在目录里；非文本字段只能明文只读或隐藏，响应里不可空的字段不能隐藏；明文且可改的规则什么都没限制；
-/// 部分脱敏要保留位数（0 到 32，前后不能都是 0）、固定文本要文字（不超过 100 字）；目标须在这一侧且启用（部门只在租户侧）；同一侧同一目标同一字段只有一条。写入后失效该实体的规则缓存。
+/// 部分脱敏要保留位数（0 到 32，前后不能都是 0）、固定文本要文字（不超过 100 字）；目标须在这一侧且启用（部门只在租户侧）；同一侧同一目标同一字段只有一条。写入后失效该实体的规则缓存
 /// </remarks>
-/// <param name="rules">规则仓储。</param>
-/// <param name="roles">角色仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="departments">部门仓储（租户库）。</param>
-/// <param name="catalog">字段安全实体目录。</param>
-/// <param name="cache">规则缓存。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="rules">规则仓储</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="departments">部门仓储（租户库）</param>
+/// <param name="catalog">字段安全实体目录</param>
+/// <param name="cache">规则缓存</param>
+/// <param name="ids">标识生成器</param>
 public sealed class FieldSecurityService(
     IRepository<SysFieldSecurityRule, Guid> rules,
     IRepository<SysRole, Guid> roles,
@@ -55,7 +55,7 @@ public sealed class FieldSecurityService(
     IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 按 ID 取这一侧的规则。
+    /// 按 ID 取这一侧的规则
     /// </summary>
     public async Task<Maybe<SysFieldSecurityRule>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
         => (await rules.FindAsync(id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var rule) && string.Equals(rule.OwnerTenantId, owner, StringComparison.Ordinal)
@@ -63,7 +63,7 @@ public sealed class FieldSecurityService(
             : Maybe.None<SysFieldSecurityRule>();
 
     /// <summary>
-    /// 新建一条规则。
+    /// 新建一条规则
     /// </summary>
     public async Task<Result<SysFieldSecurityRule>> CreateAsync(string owner, FieldRuleDefinition definition, CancellationToken cancellationToken)
     {
@@ -86,7 +86,7 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 整体修改一条规则（实体可以换，换了即失效新旧两个实体的缓存）。
+    /// 整体修改一条规则（实体可以换，换了即失效新旧两个实体的缓存）
     /// </summary>
     public async Task<Result<SysFieldSecurityRule>> UpdateAsync(SysFieldSecurityRule rule, FieldRuleDefinition definition, CancellationToken cancellationToken)
     {
@@ -111,7 +111,7 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 删除一条规则。
+    /// 删除一条规则
     /// </summary>
     public async Task<Result> DeleteAsync(SysFieldSecurityRule rule, CancellationToken cancellationToken)
     {
@@ -127,7 +127,7 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 目标没了（删角色）：连同删掉以它为目标的规则。
+    /// 目标没了（删角色）：连同删掉以它为目标的规则
     /// </summary>
     public async Task<Result> RemoveForTargetAsync(string owner, FieldSecurityTargetKind kind, Guid targetId, CancellationToken cancellationToken)
     {
@@ -145,10 +145,10 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 取规则目标的显示名（角色名、用户显示名、部门名）。
+    /// 取规则目标的显示名（角色名、用户显示名、部门名）
     /// </summary>
     /// <remarks>
-    /// 目标已不存在的不在结果里。
+    /// 目标已不存在的不在结果里
     /// </remarks>
     public async Task<IReadOnlyDictionary<(FieldSecurityTargetKind Kind, Guid Id), string>> TargetNamesAsync(IReadOnlyCollection<SysFieldSecurityRule> rows, CancellationToken cancellationToken)
     {
@@ -203,7 +203,7 @@ public sealed class FieldSecurityService(
     }
 
     /// <summary>
-    /// 校验并规整：只保留当前读取方式用得到的参数。
+    /// 校验并规整：只保留当前读取方式用得到的参数
     /// </summary>
     private async Task<Result<FieldRuleDefinition>> CheckAsync(string owner, FieldRuleDefinition definition, Guid? excludeId, CancellationToken cancellationToken)
     {

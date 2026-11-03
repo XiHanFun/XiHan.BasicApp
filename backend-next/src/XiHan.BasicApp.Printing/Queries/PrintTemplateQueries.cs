@@ -14,15 +14,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Printing.Queries;
 
 /// <summary>
-/// 打印模板列表查询（SqlSugar 直查，平台库）。
+/// 打印模板列表查询（SqlSugar 直查，平台库）
 /// </summary>
 /// <remarks>
 /// 作用域筛选 <c>scope</c>（<c>eq</c>）：平台一侧只有全局模板（全部状态，<c>Tenant</c> 即 <c>PRINTING_VALIDATION_004</c>），租户一侧缺省本租户、<c>Global</c> 是启用且开放的全局模板；
 /// 作用域条件在客户端筛选之后追加，客户端改不动边界（4.x 同）。关键字匹配编码、名称、数据源与备注；
 /// 筛选 <c>templateCode</c>（<c>eq</c> / <c>contains</c>）、<c>templateName</c>（<c>contains</c>）、<c>dataSourceCode</c>（<c>eq</c> / <c>contains</c>）、<c>status</c>、<c>allowTenantUse</c>；
-/// 排序 <c>templateCode</c>、<c>templateName</c>、<c>dataSourceCode</c>、<c>status</c>、<c>order</c>、<c>createdAt</c>，缺省按排序号再按编码。
+/// 排序 <c>templateCode</c>、<c>templateName</c>、<c>dataSourceCode</c>、<c>status</c>、<c>order</c>、<c>createdAt</c>，缺省按排序号再按编码
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class PrintTemplateQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldScope = "scope";
@@ -35,10 +35,10 @@ public sealed class PrintTemplateQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出模板。
+    /// 分页列出模板
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
     public async ValueTask<Result<PageResult<PrintTemplateResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -117,7 +117,7 @@ public sealed class PrintTemplateQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 请求里的作用域：没写即 <c>Auto</c>（平台是全局，租户是本租户）。
+    /// 请求里的作用域：没写即 <c>Auto</c>（平台是全局，租户是本租户）
     /// </summary>
     private static Result<PrintTemplateScope> ScopeOf(PageRequest request)
     {

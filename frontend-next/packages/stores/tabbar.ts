@@ -22,8 +22,8 @@ export const useTabbarStore = defineStore('tabbar', () => {
 
   const tabKeys = computed(() => tabs.value.map(item => item.key))
 
-  // KeepAlive 的 include：所有「已打开 且 开了缓存」标签的路由名（= 组件强制名，见 router/dynamic.ts）。
-  // 必须是全部缓存标签，而非仅当前路由——否则切走的标签会被踢出缓存，返回时重渲染。
+  // KeepAlive 的 include：所有「已打开 且 开了缓存」标签的路由名（= 组件强制名，见 router/dynamic.ts）
+  // 必须是全部缓存标签，而非仅当前路由——否则切走的标签会被踢出缓存，返回时重渲染
   const cachedTabNames = computed(() =>
     tabs.value.filter(item => item.keepAlive && item.name).map(item => item.name as string),
   )
@@ -104,7 +104,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   /**
    * 批量关闭后若激活标签已被移除，把激活位收敛到本次操作的目标标签（它必然被保留），
    * 目标也不在时回落首页。与 removeTab / closeOthers / closeAll 的兜底口径一致，
-   * 避免标签栏无高亮项而内容区仍停在已关闭页。
+   * 避免标签栏无高亮项而内容区仍停在已关闭页
    */
   function ensureActiveTabAlive(fallbackKey: string) {
     if (tabs.value.some(tab => tab.key === activeTab.value)) {

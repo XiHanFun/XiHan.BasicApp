@@ -17,68 +17,68 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 邮件配置内容（密码为空即保留原值）。
+/// 邮件配置内容（密码为空即保留原值）
 /// </summary>
-/// <param name="Name">名称。</param>
-/// <param name="SmtpHost">SMTP 主机。</param>
-/// <param name="SmtpPort">端口。</param>
-/// <param name="UseSsl">加密连接。</param>
-/// <param name="AcceptInvalidCertificate">接受无效证书。</param>
-/// <param name="FromEmail">发件地址。</param>
-/// <param name="FromName">发件人名称。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="Password">密码。</param>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="Order">排序。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="Name">名称</param>
+/// <param name="SmtpHost">SMTP 主机</param>
+/// <param name="SmtpPort">端口</param>
+/// <param name="UseSsl">加密连接</param>
+/// <param name="AcceptInvalidCertificate">接受无效证书</param>
+/// <param name="FromEmail">发件地址</param>
+/// <param name="FromName">发件人名称</param>
+/// <param name="UserName">登录名</param>
+/// <param name="Password">密码</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="Order">排序</param>
+/// <param name="Remark">备注</param>
 public sealed record EmailConfigDraft(string Name, string SmtpHost, int SmtpPort, bool UseSsl, bool AcceptInvalidCertificate, string FromEmail, string? FromName, string? UserName, string? Password, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 短信配置内容（访问密钥为空即保留原值）。
+/// 短信配置内容（访问密钥为空即保留原值）
 /// </summary>
-/// <param name="Name">名称。</param>
-/// <param name="Provider">服务商。</param>
-/// <param name="AccessKeyId">访问密钥 ID。</param>
-/// <param name="AccessKeySecret">访问密钥。</param>
-/// <param name="SdkAppId">应用 ID。</param>
-/// <param name="SignName">签名。</param>
-/// <param name="Region">地域。</param>
-/// <param name="TemplateMap">模板映射（JSON 对象）。</param>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="Order">排序。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="Name">名称</param>
+/// <param name="Provider">服务商</param>
+/// <param name="AccessKeyId">访问密钥 ID</param>
+/// <param name="AccessKeySecret">访问密钥</param>
+/// <param name="SdkAppId">应用 ID</param>
+/// <param name="SignName">签名</param>
+/// <param name="Region">地域</param>
+/// <param name="TemplateMap">模板映射（JSON 对象）</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="Order">排序</param>
+/// <param name="Remark">备注</param>
 public sealed record SmsConfigDraft(string Name, SmsProvider Provider, string AccessKeyId, string? AccessKeySecret, string? SdkAppId, string SignName, string? Region, string? TemplateMap, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// 邮件与短信配置的规则（与存储配置同一套）。
+/// 邮件与短信配置的规则（与存储配置同一套）
 /// </summary>
 /// <remarks>
 /// 编码在同一侧唯一、建好不改；每侧至多一条缺省，第一条自动成为缺省；缺省配置须启用，不能停用或删除；
-/// 发送用当前一侧的缺省配置，租户没有就用平台的。密码与访问密钥加密存储。
+/// 发送用当前一侧的缺省配置，租户没有就用平台的。密码与访问密钥加密存储
 /// </remarks>
-/// <param name="emails">邮件配置仓储。</param>
-/// <param name="sms">短信配置仓储。</param>
-/// <param name="secrets">密钥保护。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="emails">邮件配置仓储</param>
+/// <param name="sms">短信配置仓储</param>
+/// <param name="secrets">密钥保护</param>
+/// <param name="ids">标识生成器</param>
 public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> emails, IRepository<SysSmsConfig, Guid> sms, ISecretProtector secrets, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 邮件密码的加密用途。
+    /// 邮件密码的加密用途
     /// </summary>
     public const string EmailSecretPurpose = "XiHan.BasicApp.Notification.EmailPassword";
 
     /// <summary>
-    /// 短信访问密钥的加密用途。
+    /// 短信访问密钥的加密用途
     /// </summary>
     public const string SmsSecretPurpose = "XiHan.BasicApp.Notification.SmsSecret";
 
     /// <summary>
-    /// 取当前一侧的邮件配置。
+    /// 取当前一侧的邮件配置
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="id">配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>配置；不存在即 <c>NOTIFICATION_NOTFOUND_004</c>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="id">配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>配置；不存在即 <c>NOTIFICATION_NOTFOUND_004</c></returns>
     public async Task<Result<SysEmailConfig>> FindEmailAsync(string owner, Guid id, CancellationToken cancellationToken)
     {
         var found = await emails.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -88,12 +88,12 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 取当前一侧的短信配置。
+    /// 取当前一侧的短信配置
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="id">配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>配置；不存在即 <c>NOTIFICATION_NOTFOUND_005</c>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="id">配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>配置；不存在即 <c>NOTIFICATION_NOTFOUND_005</c></returns>
     public async Task<Result<SysSmsConfig>> FindSmsAsync(string owner, Guid id, CancellationToken cancellationToken)
     {
         var found = await sms.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -103,14 +103,14 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 发送用的邮件配置：当前一侧启用的缺省配置，没有取平台的。
+    /// 发送用的邮件配置：当前一侧启用的缺省配置，没有取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）。
+    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
     /// </remarks>
-    /// <param name="owner">侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>配置；都没有为 <see langword="null"/>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>配置；都没有为 <see langword="null"/></returns>
     public async Task<SysEmailConfig?> ResolveEmailAsync(string owner, CancellationToken cancellationToken)
     {
         var platform = TenantIds.Platform;
@@ -119,14 +119,14 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 发送用的短信配置：当前一侧启用的缺省配置，没有取平台的。
+    /// 发送用的短信配置：当前一侧启用的缺省配置，没有取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）。
+    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
     /// </remarks>
-    /// <param name="owner">侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>配置；都没有为 <see langword="null"/>。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>配置；都没有为 <see langword="null"/></returns>
     public async Task<SysSmsConfig?> ResolveSmsAsync(string owner, CancellationToken cancellationToken)
     {
         var platform = TenantIds.Platform;
@@ -135,13 +135,13 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 新建邮件配置（本侧还没有缺省配置即成为缺省）。
+    /// 新建邮件配置（本侧还没有缺省配置即成为缺省）
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新配置。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="code">编码</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新配置</returns>
     public async Task<Result<SysEmailConfig>> CreateEmailAsync(string owner, string code, EmailConfigDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -165,15 +165,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 修改邮件配置。
+    /// 修改邮件配置
     /// </summary>
     /// <remarks>
-    /// 编码不改；缺省配置不能停用。
+    /// 编码不改；缺省配置不能停用
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateEmailAsync(SysEmailConfig config, EmailConfigDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -194,11 +194,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 设为本侧的缺省邮件配置（须启用）。
+    /// 设为本侧的缺省邮件配置（须启用）
     /// </summary>
-    /// <param name="config">配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetDefaultEmailAsync(SysEmailConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -228,15 +228,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 批量删除邮件配置。
+    /// 批量删除邮件配置
     /// </summary>
     /// <remarks>
-    /// 缺省配置逐项拒绝。
+    /// 缺省配置逐项拒绝
     /// </remarks>
-    /// <param name="owner">侧。</param>
-    /// <param name="configIds">配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="configIds">配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteEmailsAsync(string owner, IReadOnlyList<Guid> configIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(configIds);
@@ -267,13 +267,13 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 新建短信配置（本侧还没有缺省配置即成为缺省）。
+    /// 新建短信配置（本侧还没有缺省配置即成为缺省）
     /// </summary>
-    /// <param name="owner">侧。</param>
-    /// <param name="code">编码。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新配置。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="code">编码</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新配置</returns>
     public async Task<Result<SysSmsConfig>> CreateSmsAsync(string owner, string code, SmsConfigDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -297,15 +297,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 修改短信配置。
+    /// 修改短信配置
     /// </summary>
     /// <remarks>
-    /// 编码不改；缺省配置不能停用。
+    /// 编码不改；缺省配置不能停用
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateSmsAsync(SysSmsConfig config, SmsConfigDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -326,11 +326,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 设为本侧的缺省短信配置（须启用）。
+    /// 设为本侧的缺省短信配置（须启用）
     /// </summary>
-    /// <param name="config">配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetDefaultSmsAsync(SysSmsConfig config, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -360,15 +360,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 批量删除短信配置。
+    /// 批量删除短信配置
     /// </summary>
     /// <remarks>
-    /// 缺省配置逐项拒绝。
+    /// 缺省配置逐项拒绝
     /// </remarks>
-    /// <param name="owner">侧。</param>
-    /// <param name="configIds">配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="owner">侧</param>
+    /// <param name="configIds">配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteSmsAsync(string owner, IReadOnlyList<Guid> configIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(configIds);
@@ -399,13 +399,13 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 发送用的 SMTP 服务器（密码解密）。
+    /// 发送用的 SMTP 服务器（密码解密）
     /// </summary>
     /// <remarks>
-    /// 密码解不开按没有密码处理，由服务器拒绝认证。
+    /// 密码解不开按没有密码处理，由服务器拒绝认证
     /// </remarks>
-    /// <param name="config">配置。</param>
-    /// <returns>服务器。</returns>
+    /// <param name="config">配置</param>
+    /// <returns>服务器</returns>
     public EmailServer ServerOf(SysEmailConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -414,10 +414,10 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 发送用的短信账号（访问密钥解密）。
+    /// 发送用的短信账号（访问密钥解密）
     /// </summary>
-    /// <param name="config">配置。</param>
-    /// <returns>账号；密钥解不开为 <see langword="null"/>。</returns>
+    /// <param name="config">配置</param>
+    /// <returns>账号；密钥解不开为 <see langword="null"/></returns>
     public SmsAccount? AccountOf(SysSmsConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -427,11 +427,11 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     }
 
     /// <summary>
-    /// 模板编码在服务商那边的模板 ID（短信配置的模板映射）。
+    /// 模板编码在服务商那边的模板 ID（短信配置的模板映射）
     /// </summary>
-    /// <param name="config">配置。</param>
-    /// <param name="templateCode">本应用的模板编码。</param>
-    /// <returns>服务商的模板 ID；没映射为 <see langword="null"/>。</returns>
+    /// <param name="config">配置</param>
+    /// <param name="templateCode">本应用的模板编码</param>
+    /// <returns>服务商的模板 ID；没映射为 <see langword="null"/></returns>
     public static string? ProviderTemplateOf(SysSmsConfig config, string templateCode)
     {
         ArgumentNullException.ThrowIfNull(config);

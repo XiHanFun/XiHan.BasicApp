@@ -8,34 +8,34 @@ using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 把产物打成 Zip 产物包。
+/// 把产物打成 Zip 产物包
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>ZipArtifactPackager</c> 按写入方式分目录：每次覆盖的进 <c>_generated/</c>（可整体覆盖到工程），只首次写的进 <c>_manual/</c>（目标不存在时才拷过去），
-/// 包根附 <c>README.txt</c> 说明两者的区别。6.0 的产物路径带归属（<c>backend/</c>、<c>frontend/</c>），登记片段放在包根的 <c>_registration/</c>。
+/// 包根附 <c>README.txt</c> 说明两者的区别。6.0 的产物路径带归属（<c>backend/</c>、<c>frontend/</c>），登记片段放在包根的 <c>_registration/</c>
 /// </remarks>
 public static class CodeGenPackager
 {
     /// <summary>
-    /// 每次覆盖的文件所在目录。
+    /// 每次覆盖的文件所在目录
     /// </summary>
     public const string GeneratedDirectory = "_generated";
 
     /// <summary>
-    /// 只首次写的文件所在目录。
+    /// 只首次写的文件所在目录
     /// </summary>
     public const string ManualDirectory = "_manual";
 
     /// <summary>
-    /// 包内说明文件。
+    /// 包内说明文件
     /// </summary>
     public const string Readme = "README.txt";
 
     /// <summary>
-    /// 打包。
+    /// 打包
     /// </summary>
-    /// <param name="artifacts">产物。</param>
-    /// <returns>Zip 的内容。</returns>
+    /// <param name="artifacts">产物</param>
+    /// <returns>Zip 的内容</returns>
     public static byte[] Pack(IReadOnlyList<CodeGenArtifact> artifacts)
     {
         ArgumentNullException.ThrowIfNull(artifacts);
@@ -54,9 +54,9 @@ public static class CodeGenPackager
     }
 
     /// <summary>
-    /// 一个产物在包里的路径。
+    /// 一个产物在包里的路径
     /// </summary>
-    /// <param name="artifact">产物。</param>
+    /// <param name="artifact">产物</param>
     public static string EntryOf(CodeGenArtifact artifact)
     {
         ArgumentNullException.ThrowIfNull(artifact);

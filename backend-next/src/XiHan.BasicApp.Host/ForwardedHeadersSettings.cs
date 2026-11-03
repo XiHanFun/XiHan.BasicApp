@@ -7,39 +7,39 @@ using Microsoft.AspNetCore.HttpOverrides;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 反向代理转发头 <c>BasicApp:ForwardedHeaders</c>。
+/// 反向代理转发头 <c>BasicApp:ForwardedHeaders</c>
 /// </summary>
 /// <remarks>
-/// 宿主在管道最前面还原 <c>X-Forwarded-For</c> / <c>-Proto</c> / <c>-Host</c>：访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址，而不是代理的地址（照 4.x 的 <c>Api:ForwardedHeaders</c>）。
-/// 只信本机回环与这里列出的代理（<c>KnownProxies</c>，单个地址）和网段（<c>KnownNetworks</c>，CIDR 且主机位为 0）；<c>ForwardLimit</c> 是从右往左认几层转发，缺省 1。配置写错启动即报错。
+/// 宿主在管道最前面还原 <c>X-Forwarded-For</c> / <c>-Proto</c> / <c>-Host</c>：访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址，而不是代理的地址（照 4.x 的 <c>Api:ForwardedHeaders</c>）
+/// 只信本机回环与这里列出的代理（<c>KnownProxies</c>，单个地址）和网段（<c>KnownNetworks</c>，CIDR 且主机位为 0）；<c>ForwardLimit</c> 是从右往左认几层转发，缺省 1。配置写错启动即报错
 /// </remarks>
 public sealed record ForwardedHeadersSettings
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string ConfigurationSection = "BasicApp:ForwardedHeaders";
 
     /// <summary>
-    /// 受信的代理地址。
+    /// 受信的代理地址
     /// </summary>
     public IReadOnlyList<IPAddress> KnownProxies { get; init; } = [];
 
     /// <summary>
-    /// 受信的代理网段。
+    /// 受信的代理网段
     /// </summary>
     public IReadOnlyList<System.Net.IPNetwork> KnownNetworks { get; init; } = [];
 
     /// <summary>
-    /// 认几层转发。
+    /// 认几层转发
     /// </summary>
     public int ForwardLimit { get; init; } = 1;
 
     /// <summary>
-    /// 从配置读取转发头设置。
+    /// 从配置读取转发头设置
     /// </summary>
     /// <remarks>
-    /// 没写即只信本机回环、认一层；地址、网段或层数写错抛出 <see cref="ArgumentException"/>。
+    /// 没写即只信本机回环、认一层；地址、网段或层数写错抛出 <see cref="ArgumentException"/>
     /// </remarks>
     public static ForwardedHeadersSettings FromConfiguration(IConfiguration configuration)
     {
@@ -72,10 +72,10 @@ public sealed record ForwardedHeadersSettings
     }
 
     /// <summary>
-    /// 写进 ASP.NET Core 的转发头选项。
+    /// 写进 ASP.NET Core 的转发头选项
     /// </summary>
     /// <remarks>
-    /// 受信列表追加在框架缺省的本机回环之后。
+    /// 受信列表追加在框架缺省的本机回环之后
     /// </remarks>
     public void Apply(ForwardedHeadersOptions options)
     {

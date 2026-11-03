@@ -19,15 +19,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// <see cref="INumberGenerator"/> 的实现。
+/// <see cref="INumberGenerator"/> 的实现
 /// </summary>
 /// <remarks>
-/// 在独立作用域与事务里（<see cref="StoreScope"/>）发号并提交，外层调用失败也不回收。
-/// 先对规则行做一次加锁更新，同一规则的发号由此串行：之后再查幂等、翻转周期（只前进）、推进流水、写发号记录，按格式快照拼出号码。
+/// 在独立作用域与事务里（<see cref="StoreScope"/>）发号并提交，外层调用失败也不回收
+/// 先对规则行做一次加锁更新，同一规则的发号由此串行：之后再查幂等、翻转周期（只前进）、推进流水、写发号记录，按格式快照拼出号码
 /// </remarks>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="clock">时间源</param>
+/// <param name="ids">标识生成器</param>
 public sealed class NumberGenerator(IServiceScopeFactory scopes, TimeProvider clock, IIdGenerator<Guid> ids) : INumberGenerator
 {
     /// <inheritdoc />
@@ -61,7 +61,7 @@ public sealed class NumberGenerator(IServiceScopeFactory scopes, TimeProvider cl
     }
 
     /// <summary>
-    /// 请求参数的指纹：同一幂等键下参数不同即冲突。
+    /// 请求参数的指纹：同一幂等键下参数不同即冲突
     /// </summary>
     public static string FingerprintOf(SysNumberingRule rule, NumberRequest request)
     {
@@ -72,7 +72,7 @@ public sealed class NumberGenerator(IServiceScopeFactory scopes, TimeProvider cl
     }
 
     /// <summary>
-    /// 按发号记录的格式快照重建结果。
+    /// 按发号记录的格式快照重建结果
     /// </summary>
     public static NumberAllocation Rebuild(SysNumberingAllocation record, bool isReplay)
     {

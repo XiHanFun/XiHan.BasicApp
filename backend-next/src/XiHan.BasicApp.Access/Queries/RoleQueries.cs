@@ -12,13 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 角色列表查询。
+/// 角色列表查询
 /// </summary>
 /// <remarks>
-/// SqlSugar 直查，作用侧 = 当前租户或平台。
-/// 关键字匹配角色码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// SqlSugar 直查，作用侧 = 当前租户或平台
+/// 关键字匹配角色码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class RoleQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldCode = "code";
@@ -28,7 +28,7 @@ public sealed class RoleQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出当前作用侧的角色。
+    /// 分页列出当前作用侧的角色
     /// </summary>
     public async ValueTask<Result<PageResult<RoleResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {

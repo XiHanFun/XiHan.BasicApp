@@ -23,10 +23,10 @@ import { CHAT_PAGE_PATH } from '../constants'
 import { useChatStore } from '../store'
 
 /**
- * 在线聊天浮动面板：非模态，边聊边看页面；可拖动、改尺寸、收拢成标题栏或铺满视口。
+ * 在线聊天浮动面板：非模态，边聊边看页面；可拖动、改尺寸、收拢成标题栏或铺满视口
  *
  * 顶栏聊天按钮经 store 的版本计数器请求打开（按钮在壳层另一处，不是本面板的 trigger 部件），
- * 所以开合、位置、尺寸与形态都由这里受控持有。
+ * 所以开合、位置、尺寸与形态都由这里受控持有
  */
 defineOptions({ name: 'AppChatPanel' })
 
@@ -139,7 +139,7 @@ function handleOpenFullPage() {
 </template>
 
 <style scoped>
-/* 正文交给聊天面板自己滚：会话列表与消息流各有滚动区，外层不再出第二根滚动条。
+/* 正文交给聊天面板自己滚：会话列表与消息流各有滚动区，外层不再出第二根滚动条
    收拢时组件库给正文打 hidden，这里避开它，免得本条压过组件库的隐藏 */
 .app-chat-panel__body:not([hidden]) {
   display: flex;

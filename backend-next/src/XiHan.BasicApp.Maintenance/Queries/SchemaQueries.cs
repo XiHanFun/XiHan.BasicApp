@@ -13,20 +13,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Maintenance.Queries;
 
 /// <summary>
-/// 版本台账与升级执行记录的查询。
+/// 版本台账与升级执行记录的查询
 /// </summary>
 /// <remarks>
-/// 执行记录读平台库（默认连接）；版本台账另读已就绪的租户独立库（台账在各自的库里，经 <see cref="TenantSchemas"/> 绑定分片）。
+/// 执行记录读平台库（默认连接）；版本台账另读已就绪的租户独立库（台账在各自的库里，经 <see cref="TenantSchemas"/> 绑定分片）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="tenantSchemas">租户独立库的结构。</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="tenantSchemas">租户独立库的结构</param>
 public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas tenantSchemas)
 {
     /// <summary>
-    /// 分页列出版本台账。
+    /// 分页列出版本台账
     /// </summary>
     /// <remarks>
-    /// 平台库加每个已就绪的独立库一行（库不多，合起来在内存里筛选、排序与分页）；读不到台账的库那一行带原因。
+    /// 平台库加每个已就绪的独立库一行（库不多，合起来在内存里筛选、排序与分页）；读不到台账的库那一行带原因
     /// </remarks>
     public async Task<Result<PageResult<SchemaVersionResponse>>> ListVersionsAsync(PageRequest request, InvocationContext context)
     {
@@ -100,10 +100,10 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
     }
 
     /// <summary>
-    /// 分页列出升级脚本的执行记录。
+    /// 分页列出升级脚本的执行记录
     /// </summary>
     /// <remarks>
-    /// 缺省按执行时间倒序、同一时间按脚本名。
+    /// 缺省按执行时间倒序、同一时间按脚本名
     /// </remarks>
     public async Task<Result<PageResult<MigrationResponse>>> ListMigrationsAsync(PageRequest request, InvocationContext context)
     {
@@ -168,10 +168,10 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
     }
 
     /// <summary>
-    /// 取一个库的版本台账。
+    /// 取一个库的版本台账
     /// </summary>
     /// <remarks>
-    /// 库名是 <c>platform</c> 或已就绪独立库的租户 ID，别的即找不到；独立库读不到时那一行带原因。
+    /// 库名是 <c>platform</c> 或已就绪独立库的租户 ID，别的即找不到；独立库读不到时那一行带原因
     /// </remarks>
     public async Task<Result<SchemaVersionResponse>> GetVersionAsync(string database, InvocationContext context)
     {
@@ -190,7 +190,7 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
     }
 
     /// <summary>
-    /// 读一个独立库的台账，读不到即带上原因。
+    /// 读一个独立库的台账，读不到即带上原因
     /// </summary>
     private async Task<SchemaVersionResponse> TenantVersionAsync(string tenantId, CancellationToken cancellationToken)
     {
@@ -211,7 +211,7 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
         => Error.NotFound(MaintenanceErrors.SchemaRecordNotFound, MaintenanceMessages.SchemaRecordNotFound, MessageArguments.Of(("id", database)));
 
     /// <summary>
-    /// 取一条执行记录。
+    /// 取一条执行记录
     /// </summary>
     public async Task<Result<MigrationResponse>> GetMigrationAsync(Guid id, InvocationContext context)
     {

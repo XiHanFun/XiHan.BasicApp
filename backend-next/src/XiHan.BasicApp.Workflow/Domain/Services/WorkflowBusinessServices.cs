@@ -15,22 +15,22 @@ using XiHan.Framework.Workflow.Abstractions.Tasks;
 namespace XiHan.BasicApp.Workflow.Domain.Services;
 
 /// <summary>
-/// 审批业务服务（<see cref="IWorkflowBusinessService"/> 的实现）。
+/// 审批业务服务（<see cref="IWorkflowBusinessService"/> 的实现）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>WorkflowBusinessService</c>：业务码即流程定义名，单据 ID 写进实例的关联 ID；同一单据同一时刻只许一个进行中的实例（框架的 <see cref="WorkflowReusePolicy.RejectActive"/>，
-/// 已有时 <c>WORKFLOW_CONFLICT_005</c>）。引擎写入加入调用方的工作单元：发起与业务写入一起提交或回滚；发起即故障时返回失败，调用方随之回滚，不留半截审批（4.x 在没有事务时另行终止）。
-/// 当前分区一个这个名字的定义都没有时，按业务描述的缺省定义建并发布（每个分区一份，平台与租户互不可见）。
+/// 已有时 <c>WORKFLOW_CONFLICT_005</c>）。引擎写入加入调用方的工作单元：发起与业务写入一起提交或回滚；发起即故障时返回失败，调用方随之回滚，不留半截审批（4.x 在没有事务时另行终止）
+/// 当前分区一个这个名字的定义都没有时，按业务描述的缺省定义建并发布（每个分区一份，平台与租户互不可见）
 /// </remarks>
-/// <param name="registry">审批业务登记表。</param>
-/// <param name="engine">引擎。</param>
-/// <param name="catalog">定义目录。</param>
-/// <param name="tasks">任务服务。</param>
-/// <param name="lookup">人名与定义。</param>
+/// <param name="registry">审批业务登记表</param>
+/// <param name="engine">引擎</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="tasks">任务服务</param>
+/// <param name="lookup">人名与定义</param>
 public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, IWorkflowEngine engine, IWorkflowDefinitionCatalog catalog, IWorkflowTaskService tasks, WorkflowLookup lookup) : IWorkflowBusinessService
 {
     /// <summary>
-    /// 一次查进度最多的单据数。
+    /// 一次查进度最多的单据数
     /// </summary>
     public const int MaxProgressIds = WorkflowInstanceQuery.MaxCorrelationIds;
 
@@ -220,7 +220,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
     }
 
     /// <summary>
-    /// 当前分区还没有这个名字的定义时，按缺省定义建并发布。
+    /// 当前分区还没有这个名字的定义时，按缺省定义建并发布
     /// </summary>
     private async Task<Result> EnsureDefinitionAsync(WorkflowBusinessDescriptor descriptor, CancellationToken cancellationToken)
     {
@@ -269,13 +269,13 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
 }
 
 /// <summary>
-/// 结论回写（结束节点 → 审批业务）。
+/// 结论回写（结束节点 → 审批业务）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowBusinessOutcomeHandler</c>：只分发登记过的业务的顶层实例；结论不在业务允许的范围里、实例没有单据 ID 即返回失败，结束节点随之故障、实例停在故障态，修好后重试再分发。
-/// 在实例锁内、与引擎同一个调用和事务里执行（框架 <see cref="IWorkflowOutcomeHandler"/>），业务的写入与实例完成一起提交。
+/// 照 4.x 的 <c>WorkflowBusinessOutcomeHandler</c>：只分发登记过的业务的顶层实例；结论不在业务允许的范围里、实例没有单据 ID 即返回失败，结束节点随之故障、实例停在故障态，修好后重试再分发
+/// 在实例锁内、与引擎同一个调用和事务里执行（框架 <see cref="IWorkflowOutcomeHandler"/>），业务的写入与实例完成一起提交
 /// </remarks>
-/// <param name="registry">审批业务登记表。</param>
+/// <param name="registry">审批业务登记表</param>
 public sealed class WorkflowBusinessOutcomeDispatcher(WorkflowBusinessRegistry registry) : IWorkflowOutcomeHandler
 {
     /// <inheritdoc />
@@ -304,23 +304,23 @@ public sealed class WorkflowBusinessOutcomeDispatcher(WorkflowBusinessRegistry r
 }
 
 /// <summary>
-/// 改动前校验（转办、加签、撤回与管理员的实例控制之前问业务）。
+/// 改动前校验（转办、加签、撤回与管理员的实例控制之前问业务）
 /// </summary>
 /// <remarks>
 /// 只对登记过的业务、有单据 ID 的顶层实例回调 <see cref="IWorkflowBusinessHandler.OnChangingAsync"/>（如授权申请在模仿会话里一律拒绝）。批量控制先逐个校验，
-/// 不过的那一项记失败、不交给引擎，免得流程已中止而单据还待审批；找不到的实例不在这里报，交给引擎照常报。
+/// 不过的那一项记失败、不交给引擎，免得流程已中止而单据还待审批；找不到的实例不在这里报，交给引擎照常报
 /// </remarks>
-/// <param name="registry">审批业务登记表。</param>
-/// <param name="engine">引擎。</param>
+/// <param name="registry">审批业务登记表</param>
+/// <param name="engine">引擎</param>
 public sealed class WorkflowBusinessChanges(WorkflowBusinessRegistry registry, IWorkflowEngine engine)
 {
     /// <summary>
-    /// 校验一个实例。
+    /// 校验一个实例
     /// </summary>
-    /// <param name="instance">实例。</param>
-    /// <param name="kind">改动的种类。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>业务是否允许；不需要回调时成功。</returns>
+    /// <param name="instance">实例</param>
+    /// <param name="kind">改动的种类</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>业务是否允许；不需要回调时成功</returns>
     public async ValueTask<Result> CheckAsync(WorkflowInstance instance, WorkflowBusinessChangeKind kind, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -336,13 +336,13 @@ public sealed class WorkflowBusinessChanges(WorkflowBusinessRegistry registry, I
     }
 
     /// <summary>
-    /// 批量控制：校验过的交给引擎，不过的记失败。
+    /// 批量控制：校验过的交给引擎，不过的记失败
     /// </summary>
-    /// <param name="ids">实例 ID（已去重）。</param>
-    /// <param name="kind">改动的种类。</param>
-    /// <param name="run">对校验过的那些调引擎。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>与 <paramref name="ids"/> 一一对应的结果。</returns>
+    /// <param name="ids">实例 ID（已去重）</param>
+    /// <param name="kind">改动的种类</param>
+    /// <param name="run">对校验过的那些调引擎</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>与 <paramref name="ids"/> 一一对应的结果</returns>
     public async Task<IReadOnlyList<Result<WorkflowInstance>>> RunAsync(IReadOnlyList<Guid> ids, WorkflowBusinessChangeKind kind, Func<IReadOnlyList<string>, ValueTask<IReadOnlyList<Result<WorkflowInstance>>>> run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(ids);
@@ -378,22 +378,22 @@ public sealed class WorkflowBusinessChanges(WorkflowBusinessRegistry registry, I
 }
 
 /// <summary>
-/// 中止回写（管理员取消、终止，发起人撤回之后通知业务）。
+/// 中止回写（管理员取消、终止，发起人撤回之后通知业务）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowBusinessAbortNotifier</c>：只对登记过的业务、有单据 ID、已取消或已终止的顶层实例回调；业务自己经 <see cref="IWorkflowBusinessService.WithdrawAsync"/> 撤回的不经过这里。
-/// 回写在操作的同一个事务里：批量取消、终止时回写失败记为那一项失败（实例照样已中止，同 4.x）；发起人撤回是单条，回写失败即整个撤回回滚。
+/// 照 4.x 的 <c>WorkflowBusinessAbortNotifier</c>：只对登记过的业务、有单据 ID、已取消或已终止的顶层实例回调；业务自己经 <see cref="IWorkflowBusinessService.WithdrawAsync"/> 撤回的不经过这里
+/// 回写在操作的同一个事务里：批量取消、终止时回写失败记为那一项失败（实例照样已中止，同 4.x）；发起人撤回是单条，回写失败即整个撤回回滚
 /// </remarks>
-/// <param name="registry">审批业务登记表。</param>
+/// <param name="registry">审批业务登记表</param>
 public sealed class WorkflowBusinessAborts(WorkflowBusinessRegistry registry)
 {
     /// <summary>
-    /// 通知业务。
+    /// 通知业务
     /// </summary>
-    /// <param name="instance">已中止的实例。</param>
-    /// <param name="reason">原因。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>业务的回写结果；不需要回调时成功。</returns>
+    /// <param name="instance">已中止的实例</param>
+    /// <param name="reason">原因</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>业务的回写结果；不需要回调时成功</returns>
     public async ValueTask<Result> NotifyAsync(WorkflowInstance instance, string? reason, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(instance);
@@ -412,12 +412,12 @@ public sealed class WorkflowBusinessAborts(WorkflowBusinessRegistry registry)
 }
 
 /// <summary>
-/// 实例状态到审批业务状态的换算。
+/// 实例状态到审批业务状态的换算
 /// </summary>
 public static class WorkflowBusinessStatuses
 {
     /// <summary>
-    /// 换算。
+    /// 换算
     /// </summary>
     public static WorkflowBusinessStatus Of(WorkflowInstanceStatus status) => status switch
     {

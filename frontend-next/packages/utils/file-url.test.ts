@@ -1,16 +1,16 @@
 /**
- * packages/utils/file-url.ts 单元测试。
+ * packages/utils/file-url.ts 单元测试
  *
  * 职责边界：后端根相对路径（/uploads/...）到可直链访问 URL 的解析规则，以及 BACKEND_ORIGIN
- * 从 VITE_API_BASE_URL 推导时的取源、去尾斜杠、非法值兜底三条分支。
- * BACKEND_ORIGIN 在模块求值期一次算定，故按不同 env 取值的用例走 resetModules + 动态导入。
+ * 从 VITE_API_BASE_URL 推导时的取源、去尾斜杠、非法值兜底三条分支
+ * BACKEND_ORIGIN 在模块求值期一次算定，故按不同 env 取值的用例走 resetModules + 动态导入
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BACKEND_ORIGIN, toAbsoluteFileUrl } from './file-url'
 
 type FileUrlModule = typeof import('./file-url')
 
-/** 以指定的 VITE_API_BASE_URL 重新求值模块，拿到对应的 BACKEND_ORIGIN。 */
+/** 以指定的 VITE_API_BASE_URL 重新求值模块，拿到对应的 BACKEND_ORIGIN */
 async function importWithBaseUrl(baseUrl: string | undefined): Promise<FileUrlModule> {
   vi.resetModules()
   if (baseUrl === undefined) {

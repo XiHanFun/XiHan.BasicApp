@@ -1,11 +1,11 @@
 /**
- * packages/utils/theme-transition.ts 单元测试。
+ * packages/utils/theme-transition.ts 单元测试
  *
  * 职责边界：明暗切换的圆形扩散动画编排。重点锁定源码注释里写明的三条「坑」：
  * 1) 后台标签页（document.hidden）必须绕开 ViewTransition，否则远端推来的偏好会卡在 ready 上；
  * 2) clipPath 一律用百分比而非 px，写 px 会被页面缩放整体压缩导致圆心偏移；
- * 3) 调用方只等 commit 落地，不等 450ms 动画播完，否则期间的本机改动会丢失上行。
- * 不验证真实视觉效果，ViewTransition 与 Web Animations 在 jsdom 中均由替身提供。
+ * 3) 调用方只等 commit 落地，不等 450ms 动画播完，否则期间的本机改动会丢失上行
+ * 不验证真实视觉效果，ViewTransition 与 Web Animations 在 jsdom 中均由替身提供
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runThemeTransition } from './theme-transition'
@@ -36,12 +36,12 @@ function defineTemporary(target: object, key: string, value: unknown): void {
 }
 
 /**
- * 让已排入队列的微任务与宏任务跑完（playReveal 是游离的异步分支）。
+ * 让已排入队列的微任务与宏任务跑完（playReveal 是游离的异步分支）
  *
- * 连排多轮而不是一轮：playReveal 内部有多层 await，一个 setTimeout(0) 只推进一层。
+ * 连排多轮而不是一轮：playReveal 内部有多层 await，一个 setTimeout(0) 只推进一层
  * 排不干净时，上一个用例遗留的分支会在下一个用例执行期间才 resolve，
  * 而它 remove 的 theme-switching 挂在共享的 documentElement 上 —— 表现为乱序执行时
- * 「类应为 true 却是 false」的随机失败。
+ * 「类应为 true 却是 false」的随机失败
  */
 async function flush(): Promise<void> {
   for (let turn = 0; turn < 5; turn += 1) {
@@ -49,7 +49,7 @@ async function flush(): Promise<void> {
   }
 }
 
-/** 安装 startViewTransition 与 documentElement.animate 的替身。 */
+/** 安装 startViewTransition 与 documentElement.animate 的替身 */
 function installViewTransition() {
   let resolveReady = (): void => {}
   let rejectReady = (_reason?: unknown): void => {}
@@ -75,7 +75,7 @@ function installViewTransition() {
   return { startViewTransition, animate, animation, skipTransition, resolveReady, rejectReady }
 }
 
-/** 从 circle(R% at X% Y%) 里取出三个百分比数值。 */
+/** 从 circle(R% at X% Y%) 里取出三个百分比数值 */
 function parseCircle(value: string): { radius: number, x: number, y: number } {
   const matched = /^circle\(([\d.]+)% at ([\d.]+)% ([\d.]+)%\)$/.exec(value)
   if (!matched) {

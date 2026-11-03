@@ -10,7 +10,7 @@ import WidgetCard from './WidgetCard.vue'
 
 /**
  * 今日统计：各包登记的单值指标（今日登录、今日访问、今日异常、在线用户……），只列调用方看得到的，
- * 后端加了新指标这里自动多一格。较昨日的变化写在悬停提示里。
+ * 后端加了新指标这里自动多一格。较昨日的变化写在悬停提示里
  */
 defineOptions({ name: 'StatsWidget' })
 

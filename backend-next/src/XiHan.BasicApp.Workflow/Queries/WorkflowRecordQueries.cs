@@ -11,21 +11,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Workflow.Queries;
 
 /// <summary>
-/// 审批记录的分页（我已审批、抄送我的）。
+/// 审批记录的分页（我已审批、抄送我的）
 /// </summary>
 /// <remarks>
-/// 照 4.x：主体锁定为调用方，办理、转办、加签都算「我已审批」，抄送归「抄送我的」；关键字匹配任务标题、实例标题与关联 ID，按时间降序，没有筛选与排序。
+/// 照 4.x：主体锁定为调用方，办理、转办、加签都算「我已审批」，抄送归「抄送我的」；关键字匹配任务标题、实例标题与关联 ID，按时间降序，没有筛选与排序
 /// </remarks>
-/// <param name="rows">按侧读写。</param>
+/// <param name="rows">按侧读写</param>
 public sealed class WorkflowRecordQueries(SideRows rows)
 {
     /// <summary>
-    /// 分页列出调用方的记录。
+    /// 分页列出调用方的记录
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="copied"><c>true</c> 是抄送我的，<c>false</c> 是我已审批。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页记录。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="copied"><c>true</c> 是抄送我的，<c>false</c> 是我已审批</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页记录</returns>
     public async ValueTask<Result<PageResult<SysWorkflowTaskRecord>>> ListAsync(PageRequest request, bool copied, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

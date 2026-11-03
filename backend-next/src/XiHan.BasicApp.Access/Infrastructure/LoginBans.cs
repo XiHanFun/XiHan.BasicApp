@@ -9,59 +9,59 @@ using XiHan.Framework.Caching.Abstractions.Stores;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 登录失败自动封禁的参数。
+/// 登录失败自动封禁的参数
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的；没建即缺省值，缺省关，4.x 同。
+/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的；没建即缺省值，缺省关，4.x 同
 /// </remarks>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="WindowMinutes">计数的固定窗口（分钟，1–1440）。</param>
-/// <param name="MaxFailures">一个窗口里同一地址的失败上限（1–10000），达到即封禁。</param>
-/// <param name="BanMinutes">首次封禁时长（分钟，1–43200）。</param>
-/// <param name="MaxBanMinutes">封禁时长上限（分钟，不小于首次时长、不超过 43200）；24 小时内再犯时长翻倍到它为止。</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="WindowMinutes">计数的固定窗口（分钟，1–1440）</param>
+/// <param name="MaxFailures">一个窗口里同一地址的失败上限（1–10000），达到即封禁</param>
+/// <param name="BanMinutes">首次封禁时长（分钟，1–43200）</param>
+/// <param name="MaxBanMinutes">封禁时长上限（分钟，不小于首次时长、不超过 43200）；24 小时内再犯时长翻倍到它为止</param>
 public sealed record LoginAutoBanSettings(bool IsEnabled = false, int WindowMinutes = 10, int MaxFailures = 20, int BanMinutes = 30, int MaxBanMinutes = 1440)
 {
     /// <summary>
-    /// 系统参数键。
+    /// 系统参数键
     /// </summary>
     public const string ConfigKey = "access.security.login-auto-ban";
 
     /// <summary>
-    /// 缺省值（关）。
+    /// 缺省值（关）
     /// </summary>
     public static LoginAutoBanSettings Default { get; } = new();
 
     /// <summary>
-    /// 各项是否在范围内。
+    /// 各项是否在范围内
     /// </summary>
     public bool IsValid => WindowMinutes is >= 1 and <= 1440 && MaxFailures is >= 1 and <= 10000 && BanMinutes is >= 1 and <= 43200 && MaxBanMinutes >= BanMinutes && MaxBanMinutes <= 43200;
 }
 
 /// <summary>
-/// 一条封禁。
+/// 一条封禁
 /// </summary>
-/// <param name="Ip">地址。</param>
-/// <param name="Until">解封时刻。</param>
+/// <param name="Ip">地址</param>
+/// <param name="Until">解封时刻</param>
 public sealed record LoginBanEntry(string Ip, DateTimeOffset Until);
 
 /// <summary>
-/// 登录失败自动封禁的存储（单例，共享缓存）。
+/// 登录失败自动封禁的存储（单例，共享缓存）
 /// </summary>
 /// <remarks>
-/// 同一地址跨账号、按固定窗口数失败，达到上限即封；24 小时内再犯，时长在上次的基础上翻倍到上限（4.x 同）。
-/// 封禁带到期时间，到点自动解封；另存一份封禁名单供查看（先读后写，不是原子的，与登录节流一样只当减速，不当安全边界）。
+/// 同一地址跨账号、按固定窗口数失败，达到上限即封；24 小时内再犯，时长在上次的基础上翻倍到上限（4.x 同）
+/// 封禁带到期时间，到点自动解封；另存一份封禁名单供查看（先读后写，不是原子的，与登录节流一样只当减速，不当安全边界）
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="clock">时间源</param>
 public sealed class LoginBans(ISharedCache cache, TimeProvider clock)
 {
     private static readonly TimeSpan _historyLifetime = TimeSpan.FromHours(24);
     private static readonly CacheKey _indexKey = new("access:ban:index");
 
     /// <summary>
-    /// 取地址此刻的封禁到期时刻。
+    /// 取地址此刻的封禁到期时刻
     /// </summary>
-    /// <returns>封禁到期时刻；没封为空。</returns>
+    /// <returns>封禁到期时刻；没封为空</returns>
     public async Task<DateTimeOffset?> BannedUntilAsync(string ip, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ip);
@@ -70,12 +70,12 @@ public sealed class LoginBans(ISharedCache cache, TimeProvider clock)
     }
 
     /// <summary>
-    /// 记一次登录失败。
+    /// 记一次登录失败
     /// </summary>
     /// <remarks>
-    /// 达到上限即封禁。
+    /// 达到上限即封禁
     /// </remarks>
-    /// <returns>达到上限时返回解封时刻。</returns>
+    /// <returns>达到上限时返回解封时刻</returns>
     public async Task<DateTimeOffset?> RecordFailureAsync(string ip, LoginAutoBanSettings settings, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ip);
@@ -104,7 +104,7 @@ public sealed class LoginBans(ISharedCache cache, TimeProvider clock)
     }
 
     /// <summary>
-    /// 此刻的封禁，按解封时刻排列。
+    /// 此刻的封禁，按解封时刻排列
     /// </summary>
     public async Task<IReadOnlyList<LoginBanEntry>> ListAsync(CancellationToken cancellationToken)
     {
@@ -122,12 +122,12 @@ public sealed class LoginBans(ISharedCache cache, TimeProvider clock)
     }
 
     /// <summary>
-    /// 解封一个地址，连同它这一窗口的失败计数。
+    /// 解封一个地址，连同它这一窗口的失败计数
     /// </summary>
     /// <remarks>
-    /// 4.x 同；封禁历史保留，24 小时内再犯照样翻倍。
+    /// 4.x 同；封禁历史保留，24 小时内再犯照样翻倍
     /// </remarks>
-    /// <returns>没封着返回 <see langword="false"/>。</returns>
+    /// <returns>没封着返回 <see langword="false"/></returns>
     public async Task<bool> LiftAsync(string ip, LoginAutoBanSettings settings, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ip);

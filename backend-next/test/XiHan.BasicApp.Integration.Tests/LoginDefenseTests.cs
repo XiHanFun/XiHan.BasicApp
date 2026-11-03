@@ -14,12 +14,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证登录防护：图形验证码、登录节流与双因素。
+/// 验证登录防护：图形验证码、登录节流与双因素
 /// </summary>
 /// <remarks>
 /// 图形验证码（开启后必填、一次性、错码不能重试）、登录节流（按固定窗口数失败，超限连正确密码也拒绝，下个窗口恢复）、
 /// 认证器双因素（绑定先暂存密钥、凭码确认；登录拿到票据而不是令牌；第二步码错计次、同一步的码不能重放、票据用一次即作废；关闭要当前的码；管理员可重置），
-/// 以及这些结果都进登录日志。
+/// 以及这些结果都进登录日志
 /// </remarks>
 public sealed class LoginDefenseTests : IDisposable
 {

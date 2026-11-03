@@ -22,22 +22,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 
 /// <summary>
-/// 生成代码：打包或写进项目，并记生成历史。
+/// 生成代码：打包或写进项目，并记生成历史
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>GenerateAsync</c>：渲染之后按交付方式分流，产物包存成 Files 的临时文件（7 天，同导出中心），写进项目经 <see cref="CodeGenProjectWriter"/>；
-/// 每次生成不论成败都记一条历史，成功才回写表的生成状态与时间。失败的那条在独立的短事务里写（调用失败会回滚自己的写入）。
-/// 与 4.x 不同：产物包不再以 Base64 放进响应，由历史的下载端点取（方案已定）。
+/// 每次生成不论成败都记一条历史，成功才回写表的生成状态与时间。失败的那条在独立的短事务里写（调用失败会回滚自己的写入）
+/// 与 4.x 不同：产物包不再以 Base64 放进响应，由历史的下载端点取（方案已定）
 /// </remarks>
-/// <param name="engine">生成管线。</param>
-/// <param name="tables">表配置服务。</param>
-/// <param name="tableRows">表配置仓储。</param>
-/// <param name="histories">生成历史仓储。</param>
-/// <param name="writer">写进项目。</param>
-/// <param name="files">临时文件。</param>
-/// <param name="ids">ID 生成器。</param>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="engine">生成管线</param>
+/// <param name="tables">表配置服务</param>
+/// <param name="tableRows">表配置仓储</param>
+/// <param name="histories">生成历史仓储</param>
+/// <param name="writer">写进项目</param>
+/// <param name="files">临时文件</param>
+/// <param name="ids">ID 生成器</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="clock">时钟</param>
 public sealed class CodeGenGenerationService(
     CodeGenEngine engine,
     CodeGenTableService tables,
@@ -50,20 +50,20 @@ public sealed class CodeGenGenerationService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 产物包保留多久。
+    /// 产物包保留多久
     /// </summary>
     public static readonly TimeSpan PackageLifetime = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 产物包在 Files 里记的来源。
+    /// 产物包在 Files 里记的来源
     /// </summary>
     public const string PackageSource = "codegeneration";
 
     /// <summary>
-    /// 生成一张表的代码。
+    /// 生成一张表的代码
     /// </summary>
-    /// <param name="request">生成请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">生成请求</param>
+    /// <param name="context">调用上下文</param>
     public async Task<Result<CodegenGenerateResponse>> GenerateAsync(GenerateCodegenTableRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

@@ -9,8 +9,8 @@ import { COUNT_COMPACT, localDay, useRangeOptions } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 登录趋势：逐日登录按成功、失败两段堆叠，成功次数另画 7 日均线与峰值点；横轴可拖动缩放，看长区间时拉近某一段。
- * 按查看者的本地日分桶（后端按偏移换算）。
+ * 登录趋势：逐日登录按成功、失败两段堆叠，成功次数另画 7 日均线与峰值点；横轴可拖动缩放，看长区间时拉近某一段
+ * 按查看者的本地日分桶（后端按偏移换算）
  */
 defineOptions({ name: 'LoginTrendWidget' })
 

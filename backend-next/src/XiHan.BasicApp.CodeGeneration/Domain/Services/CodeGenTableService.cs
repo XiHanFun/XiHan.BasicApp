@@ -15,36 +15,36 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 
 /// <summary>
-/// 一张表的读库来源。
+/// 一张表的读库来源
 /// </summary>
-/// <param name="DataSourceId">数据源 ID，为空即主库。</param>
-/// <param name="Definition">外部库的连接定义，主库为空。</param>
-/// <param name="DatabaseType">数据库类型。</param>
+/// <param name="DataSourceId">数据源 ID，为空即主库</param>
+/// <param name="Definition">外部库的连接定义，主库为空</param>
+/// <param name="DatabaseType">数据库类型</param>
 public sealed record CodeGenTableSource(Guid? DataSourceId, DataSourceDefinition? Definition, CodeGenDatabaseType DatabaseType);
 
 /// <summary>
-/// 同步结构的结果。
+/// 同步结构的结果
 /// </summary>
-/// <param name="Added">新增的列。</param>
-/// <param name="Updated">更新的列数。</param>
-/// <param name="Removed">移除的列。</param>
+/// <param name="Added">新增的列</param>
+/// <param name="Updated">更新的列数</param>
+/// <param name="Removed">移除的列</param>
 public sealed record CodeGenSyncResult(IReadOnlyList<string> Added, int Updated, IReadOnlyList<string> Removed);
 
 /// <summary>
-/// 表配置的导入、同步结构与规则。
+/// 表配置的导入、同步结构与规则
 /// </summary>
 /// <remarks>
-/// 读库结构经框架的 <see cref="ISchemaReader"/>（主库传空，外部库传数据源的连接定义），表名照返回的原名、不自己转大小写（修订（八十三））。
+/// 读库结构经框架的 <see cref="ISchemaReader"/>（主库传空，外部库传数据源的连接定义），表名照返回的原名、不自己转大小写（修订（八十三））
 /// 导入照 4.x 按表隔离：一张表读不到、已导入或没有列就记一条失败，其余照常导入；同步结构照 4.x 三路合并：结构字段以库为准，
-/// 推断字段只覆盖没被人工改过的，库里已删的列删掉列配置（6.0 软删除）。
+/// 推断字段只覆盖没被人工改过的，库里已删的列删掉列配置（6.0 软删除）
 /// </remarks>
-/// <param name="tables">表配置仓储。</param>
-/// <param name="columns">列配置仓储。</param>
-/// <param name="dataSources">数据源规则。</param>
-/// <param name="reader">框架的读库结构。</param>
-/// <param name="inference">推断。</param>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="tables">表配置仓储</param>
+/// <param name="columns">列配置仓储</param>
+/// <param name="dataSources">数据源规则</param>
+/// <param name="reader">框架的读库结构</param>
+/// <param name="inference">推断</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="ids">标识生成器</param>
 public sealed class CodeGenTableService(
     IRepository<SysCodeGenTable, Guid> tables,
     IRepository<SysCodeGenTableColumn, Guid> columns,
@@ -55,10 +55,10 @@ public sealed class CodeGenTableService(
     IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 被跟踪的表字段。
+    /// 被跟踪的表字段
     /// </summary>
     /// <remarks>
-    /// 照 4.x：保存时值变了即记为人工改过，同步结构时不覆盖。
+    /// 照 4.x：保存时值变了即记为人工改过，同步结构时不覆盖
     /// </remarks>
     public static IReadOnlyList<string> TrackedTableFields { get; } =
     [
@@ -74,7 +74,7 @@ public sealed class CodeGenTableService(
     ];
 
     /// <summary>
-    /// 被跟踪的列字段。
+    /// 被跟踪的列字段
     /// </summary>
     public static IReadOnlyList<string> TrackedColumnFields { get; } =
     [
@@ -99,25 +99,25 @@ public sealed class CodeGenTableService(
     ];
 
     /// <summary>
-    /// 不存在。
+    /// 不存在
     /// </summary>
-    /// <param name="id">表配置 ID。</param>
+    /// <param name="id">表配置 ID</param>
     public static Error NotFound(Guid id)
         => Error.NotFound(CodeGenerationErrors.TableNotFound, CodeGenerationMessages.TableNotFound, MessageArguments.Of(("id", id)));
 
     /// <summary>
-    /// 按 ID 取表配置。
+    /// 按 ID 取表配置
     /// </summary>
-    /// <param name="id">表配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="id">表配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<SysCodeGenTable>> FindAsync(Guid id, CancellationToken cancellationToken)
         => (await tables.FindAsync(id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var table) ? table : NotFound(id);
 
     /// <summary>
-    /// 一张表的全部列配置，按排序号。
+    /// 一张表的全部列配置，按排序号
     /// </summary>
-    /// <param name="tableId">表配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="tableId">表配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<IReadOnlyList<SysCodeGenTableColumn>> ColumnsOfAsync(Guid tableId, CancellationToken cancellationToken)
     {
         var rows = await columns.ListAsync(EntityQuery.All<SysCodeGenTableColumn>().Where(new Specification<SysCodeGenTableColumn>(c => c.TableId == tableId)), cancellationToken).ConfigureAwait(false);
@@ -125,11 +125,11 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 表名是否已被别的表配置占用。
+    /// 表名是否已被别的表配置占用
     /// </summary>
-    /// <param name="tableName">表名。</param>
-    /// <param name="except">排除的表配置（修改时是它自己）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="tableName">表名</param>
+    /// <param name="except">排除的表配置（修改时是它自己）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<bool> TableNameTakenAsync(string tableName, Guid? except, CancellationToken cancellationToken)
     {
         var excluded = except ?? Guid.Empty;
@@ -137,13 +137,13 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 解析读库来源。
+    /// 解析读库来源
     /// </summary>
     /// <remarks>
-    /// 数据源为空即主库（数据库类型取主库的连接）；外部库要存在且启用，口令解不开即失败。
+    /// 数据源为空即主库（数据库类型取主库的连接）；外部库要存在且启用，口令解不开即失败
     /// </remarks>
-    /// <param name="dataSourceId">数据源 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="dataSourceId">数据源 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<CodeGenTableSource>> SourceOfAsync(Guid? dataSourceId, CancellationToken cancellationToken)
     {
         if (!dataSourceId.HasValue)
@@ -168,13 +168,13 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 分页列出库里的表。
+    /// 分页列出库里的表
     /// </summary>
-    /// <param name="source">读库来源。</param>
-    /// <param name="keyword">关键字（匹配表名与注释）。</param>
-    /// <param name="skip">跳过的条数。</param>
-    /// <param name="take">取的条数。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="source">读库来源</param>
+    /// <param name="keyword">关键字（匹配表名与注释）</param>
+    /// <param name="skip">跳过的条数</param>
+    /// <param name="take">取的条数</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public Task<Result<TablePage>> ListDatabaseTablesAsync(CodeGenTableSource source, string? keyword, int skip, int take, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -182,13 +182,13 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 导入一批表。
+    /// 导入一批表
     /// </summary>
-    /// <param name="source">读库来源。</param>
-    /// <param name="tableNames">表名（照列表返回的原名）。</param>
-    /// <param name="author">作者。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>每张表的结果，与入参顺序一致；整批读不了为失败。</returns>
+    /// <param name="source">读库来源</param>
+    /// <param name="tableNames">表名（照列表返回的原名）</param>
+    /// <param name="author">作者</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>每张表的结果，与入参顺序一致；整批读不了为失败</returns>
     public async Task<Result<IReadOnlyList<(string TableName, Result Outcome)>>> ImportAsync(CodeGenTableSource source, IReadOnlyList<string> tableNames, string? author, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -209,11 +209,11 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 按最新库结构同步一张表的配置。
+    /// 按最新库结构同步一张表的配置
     /// </summary>
-    /// <param name="table">表配置。</param>
-    /// <param name="author">作者。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="table">表配置</param>
+    /// <param name="author">作者</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<CodeGenSyncResult>> SyncAsync(SysCodeGenTable table, string? author, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(table);
@@ -295,10 +295,10 @@ public sealed class CodeGenTableService(
     }
 
     /// <summary>
-    /// 删除表配置与它的列配置（软删除）。
+    /// 删除表配置与它的列配置（软删除）
     /// </summary>
-    /// <param name="table">表配置。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="table">表配置</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result> RemoveAsync(SysCodeGenTable table, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(table);

@@ -8,17 +8,17 @@ using XiHan.BasicApp.CodeGeneration.Domain.Services;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 前端模板用的列判据。
+/// 前端模板用的列判据
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ScribanTemplateRenderer</c>：控件种类、表单取值五件套、数字框小数位、文本框字数上限、字段数据类型与导入取值收在这一处，几份前端模板共用，不各写一套。
+/// 照 4.x 的 <c>ScribanTemplateRenderer</c>：控件种类、表单取值五件套、数字框小数位、文本框字数上限、字段数据类型与导入取值收在这一处，几份前端模板共用，不各写一套
 /// 与 4.x 不同（6.0 的报文）：long 是数字（4.x 按字符串承载）；日期是 <c>DateTimeOffset</c>，回填按 ISO 解析、提交 <c>toISOString()</c>（4.x 发本地时间文本）；
-/// 枚举是成员名字面量；树表的上级为空即根节点（可空列发 null，非空列发空 Guid）。
+/// 枚举是成员名字面量；树表的上级为空即根节点（可空列发 null，非空列发空 Guid）
 /// </remarks>
 internal static class CodeGenFrontendFacts
 {
     /// <summary>
-    /// 空 Guid：非空的上级列表示根节点。
+    /// 空 Guid：非空的上级列表示根节点
     /// </summary>
     public const string EmptyGuid = "00000000-0000-0000-0000-000000000000";
 
@@ -29,11 +29,11 @@ internal static class CodeGenFrontendFacts
     private const int MaxInputLengthHint = 65_535;
 
     /// <summary>
-    /// 列的前端判据。
+    /// 列的前端判据
     /// </summary>
-    /// <param name="column">列模型。</param>
-    /// <param name="operators">后端筛选白名单给这一列的运算符。</param>
-    /// <param name="isTreeParent">是否树表的上级列。</param>
+    /// <param name="column">列模型</param>
+    /// <param name="operators">后端筛选白名单给这一列的运算符</param>
+    /// <param name="isTreeParent">是否树表的上级列</param>
     public static Dictionary<string, object?> Of(CodeGenColumnModel column, IReadOnlyList<string> operators, bool isTreeParent)
     {
         ArgumentNullException.ThrowIfNull(column);
@@ -146,11 +146,11 @@ internal static class CodeGenFrontendFacts
     }
 
     /// <summary>
-    /// 列在表单里用哪种控件。
+    /// 列在表单里用哪种控件
     /// </summary>
     /// <remarks>
-    /// 取值 binary / switch / date / datetime / time / image / file / treeselect / select / number / textarea / text。
-    /// 照 4.x，判定次序即「类型优先于配置」：布尔只能是开关、日期只能是日期控件；数字与文本都能被下拉承载，故下拉排在这两者之前。
+    /// 取值 binary / switch / date / datetime / time / image / file / treeselect / select / number / textarea / text
+    /// 照 4.x，判定次序即「类型优先于配置」：布尔只能是开关、日期只能是日期控件；数字与文本都能被下拉承载，故下拉排在这两者之前
     /// </remarks>
     private static string ControlKindOf(CodeGenColumnModel column, string type, string tsType)
     {
@@ -197,12 +197,12 @@ internal static class CodeGenFrontendFacts
     }
 
     /// <summary>
-    /// 表单取值口径。
+    /// 表单取值口径
     /// </summary>
     /// <remarks>
-    /// 照 4.x：报文的可空性跟请求类型走（即 C# 类型可不可空），「必填」只管表单校验，二者不混用。
-    /// 非空列留空时报文要有一个能落库的值：文本给空串、数字给 0、开关恒有值；下拉、日期、时间、二进制与 Guid 没有说得通的缺省值，非空时一律按必填校验。
-    /// 可空的文本类控件清空后是空串，按 null 发。
+    /// 照 4.x：报文的可空性跟请求类型走（即 C# 类型可不可空），「必填」只管表单校验，二者不混用
+    /// 非空列留空时报文要有一个能落库的值：文本给空串、数字给 0、开关恒有值；下拉、日期、时间、二进制与 Guid 没有说得通的缺省值，非空时一律按必填校验
+    /// 可空的文本类控件清空后是空串，按 null 发
     /// </remarks>
     private static FormFacts FormOf(CodeGenColumnModel column, string control, string tsType, string type, bool nullable)
     {

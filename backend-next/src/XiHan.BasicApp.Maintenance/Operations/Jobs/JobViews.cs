@@ -12,35 +12,35 @@ using XiHan.Framework.Scheduling.Abstractions.Schedules;
 namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 
 /// <summary>
-/// 作业状态到响应的投影与公共检查。
+/// 作业状态到响应的投影与公共检查
 /// </summary>
 /// <remarks>
-/// 作业的显示名与说明取登记它的包按区域给出的 <c>jobs.&lt;作业名&gt;.title</c> / <c>.description</c>（连字符换下划线），没有即作业名与登记时的说明。
+/// 作业的显示名与说明取登记它的包按区域给出的 <c>jobs.&lt;作业名&gt;.title</c> / <c>.description</c>（连字符换下划线），没有即作业名与登记时的说明
 /// </remarks>
 internal static class JobViews
 {
     /// <summary>
-    /// 重试等待与执行时限的秒数上限。
+    /// 重试等待与执行时限的秒数上限
     /// </summary>
     /// <remarks>
-    /// 30 天，与框架的 <see cref="JobRetryPolicy.DelayLimit"/>、<see cref="JobDefinition.TimeoutLimit"/> 一致。
+    /// 30 天，与框架的 <see cref="JobRetryPolicy.DelayLimit"/>、<see cref="JobDefinition.TimeoutLimit"/> 一致
     /// </remarks>
     public const int MaxSeconds = 2_592_000;
 
     /// <summary>
-    /// 不在平台一侧即拒绝。
+    /// 不在平台一侧即拒绝
     /// </summary>
     public static Error? RequirePlatform(InvocationContext context)
         => context.GetSecurity().Tenant is null ? null : Error.Denied(MaintenanceErrors.PlatformOnly, MaintenanceMessages.PlatformOnly);
 
     /// <summary>
-    /// 作业不存在的错误。
+    /// 作业不存在的错误
     /// </summary>
     public static Error NotFound(string name)
         => Error.NotFound(MaintenanceErrors.JobNotFound, MaintenanceMessages.JobNotFound, MessageArguments.Of(("name", name)));
 
     /// <summary>
-    /// 把作业状态投影成响应。
+    /// 把作业状态投影成响应
     /// </summary>
     public static JobResponse From(JobStatus status, InvocationContext context)
     {
@@ -80,10 +80,10 @@ internal static class JobViews
     }
 
     /// <summary>
-    /// 由请求的几项拼出重试策略。
+    /// 由请求的几项拼出重试策略
     /// </summary>
     /// <remarks>
-    /// 没给重试次数即不重试，等待与退避随之不用；秒数的范围由请求的注解校验。
+    /// 没给重试次数即不重试，等待与退避随之不用；秒数的范围由请求的注解校验
     /// </remarks>
     public static JobRetryPolicy? RetryOf(int? maxRetries, long delaySeconds, JobRetryBackoff backoff, long? maxDelaySeconds)
         => maxRetries is { } retries
@@ -91,12 +91,12 @@ internal static class JobViews
             : null;
 
     /// <summary>
-    /// 由请求的秒数拼出执行时限。
+    /// 由请求的秒数拼出执行时限
     /// </summary>
     public static TimeSpan? TimeoutOf(long? seconds) => seconds is { } value ? TimeSpan.FromSeconds(value) : null;
 
     /// <summary>
-    /// 计划的文本写法：Cron 表达式补上 <c>cron</c> 前缀与时区。
+    /// 计划的文本写法：Cron 表达式补上 <c>cron</c> 前缀与时区
     /// </summary>
     public static string TextOf(string expression, string? timeZone)
     {
@@ -111,10 +111,10 @@ internal static class JobViews
     }
 
     /// <summary>
-    /// 解析计划写法。
+    /// 解析计划写法
     /// </summary>
     /// <remarks>
-    /// 时区不认识也算解析失败。
+    /// 时区不认识也算解析失败
     /// </remarks>
     public static bool TryParse(string expression, string? timeZone, [NotNullWhen(true)] out JobSchedule? schedule)
     {
@@ -130,10 +130,10 @@ internal static class JobViews
     }
 
     /// <summary>
-    /// 解析逗号分隔的枚举名。
+    /// 解析逗号分隔的枚举名
     /// </summary>
     /// <remarks>
-    /// 有认不出的名字或一个都没有时为 <see langword="null"/>。
+    /// 有认不出的名字或一个都没有时为 <see langword="null"/>
     /// </remarks>
     public static List<T>? EnumsOf<T>(string value)
         where T : struct, Enum
@@ -153,10 +153,10 @@ internal static class JobViews
     }
 
     /// <summary>
-    /// 时长的整秒数。
+    /// 时长的整秒数
     /// </summary>
     /// <remarks>
-    /// 不足一秒按一秒。
+    /// 不足一秒按一秒
     /// </remarks>
     private static long SecondsOf(TimeSpan span) => (long)Math.Ceiling(span.TotalSeconds);
 

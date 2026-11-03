@@ -8,181 +8,181 @@ using XiHan.Framework.Persistence.Abstractions.Queries;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包配置（<c>BasicApp:Auth</c>）。
+/// 身份包配置（<c>BasicApp:Auth</c>）
 /// </summary>
 /// <remarks>
-/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、验证码与自助注册。
+/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、验证码与自助注册
 /// </remarks>
 public sealed record IdentityOptions
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string ConfigurationSection = "BasicApp:Auth";
 
     /// <summary>
-    /// 访问令牌有效期（<c>AccessTokenMinutes</c>，缺省 120 分钟）。
+    /// 访问令牌有效期（<c>AccessTokenMinutes</c>，缺省 120 分钟）
     /// </summary>
     public TimeSpan AccessTokenLifetime { get; init; } = TimeSpan.FromMinutes(120);
 
     /// <summary>
-    /// 刷新令牌（会话）有效期（<c>RefreshTokenDays</c>，缺省 7 天）。
+    /// 刷新令牌（会话）有效期（<c>RefreshTokenDays</c>，缺省 7 天）
     /// </summary>
     public TimeSpan RefreshTokenLifetime { get; init; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 连续登录失败多少次后锁定。
+    /// 连续登录失败多少次后锁定
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>MaxFailedAccessAttempts</c>，缺省 5。
+    /// 配置键 <c>MaxFailedAccessAttempts</c>，缺省 5
     /// </remarks>
     public int MaxFailedAccessAttempts { get; init; } = 5;
 
     /// <summary>
-    /// 锁定时长（<c>LockoutMinutes</c>，缺省 15 分钟）。
+    /// 锁定时长（<c>LockoutMinutes</c>，缺省 15 分钟）
     /// </summary>
     public TimeSpan LockoutDuration { get; init; } = TimeSpan.FromMinutes(15);
 
     /// <summary>
-    /// 密码最短长度（<c>PasswordMinLength</c>，缺省 8）。
+    /// 密码最短长度（<c>PasswordMinLength</c>，缺省 8）
     /// </summary>
     public int PasswordMinLength { get; init; } = 8;
 
     /// <summary>
-    /// 不得与最近多少个历史密码相同。
+    /// 不得与最近多少个历史密码相同
     /// </summary>
     /// <remarks>
     /// 配置键 <c>PasswordHistoryDepth</c>，缺省 3；0 不检查。历史按一次查询取出比对，最多
-    /// <see cref="EntityQuery.DefaultMaxTake"/>（1000），配得更大在读配置时就失败。
+    /// <see cref="EntityQuery.DefaultMaxTake"/>（1000），配得更大在读配置时就失败
     /// </remarks>
     public int PasswordHistoryDepth { get; init; } = 3;
 
     /// <summary>
-    /// 会话门禁的缓存存活时间。
+    /// 会话门禁的缓存存活时间
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>SessionCacheSeconds</c>，缺省 30 秒。吊销最迟在此时长后对其他实例生效。
+    /// 配置键 <c>SessionCacheSeconds</c>，缺省 30 秒。吊销最迟在此时长后对其他实例生效
     /// </remarks>
     public TimeSpan SessionCacheTimeToLive { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// 密码登录是否要求图形验证码（<c>CaptchaEnabled</c>，缺省开）。
+    /// 密码登录是否要求图形验证码（<c>CaptchaEnabled</c>，缺省开）
     /// </summary>
     public bool CaptchaEnabled { get; init; } = true;
 
     /// <summary>
-    /// 图形验证码有效期（<c>CaptchaSeconds</c>，缺省 300 秒）。
+    /// 图形验证码有效期（<c>CaptchaSeconds</c>，缺省 300 秒）
     /// </summary>
     public TimeSpan CaptchaLifetime { get; init; } = TimeSpan.FromSeconds(300);
 
     /// <summary>
-    /// 登录节流的固定窗口。
+    /// 登录节流的固定窗口
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>LoginThrottleWindowSeconds</c>，缺省 60 秒。
+    /// 配置键 <c>LoginThrottleWindowSeconds</c>，缺省 60 秒
     /// </remarks>
     public TimeSpan LoginThrottleWindow { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 同一账号在同一地址上每个窗口允许的失败次数。
+    /// 同一账号在同一地址上每个窗口允许的失败次数
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>LoginThrottleAccountLimit</c>，缺省 5。
+    /// 配置键 <c>LoginThrottleAccountLimit</c>，缺省 5
     /// </remarks>
     public int LoginThrottleAccountLimit { get; init; } = 5;
 
     /// <summary>
-    /// 同一地址每个窗口允许的失败次数，跨账号累计。
+    /// 同一地址每个窗口允许的失败次数，跨账号累计
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>LoginThrottleIpLimit</c>，缺省 30。
+    /// 配置键 <c>LoginThrottleIpLimit</c>，缺省 30
     /// </remarks>
     public int LoginThrottleIpLimit { get; init; } = 30;
 
     /// <summary>
-    /// 两步验证票据有效期。
+    /// 两步验证票据有效期
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>TwoFactorTicketMinutes</c>，缺省 10 分钟。从签发起算、不顺延。
+    /// 配置键 <c>TwoFactorTicketMinutes</c>，缺省 10 分钟。从签发起算、不顺延
     /// </remarks>
     public TimeSpan TwoFactorTicketLifetime { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 一张票据允许输错验证码的次数。
+    /// 一张票据允许输错验证码的次数
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>TwoFactorTicketMaxFailures</c>，缺省 5。用完即作废、须重新登录。
+    /// 配置键 <c>TwoFactorTicketMaxFailures</c>，缺省 5。用完即作废、须重新登录
     /// </remarks>
     public int TwoFactorTicketMaxFailures { get; init; } = 5;
 
     /// <summary>
-    /// 认证器里显示的签发方。
+    /// 认证器里显示的签发方
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>TotpIssuer</c>，缺省 <c>XiHan BasicApp</c>。
+    /// 配置键 <c>TotpIssuer</c>，缺省 <c>XiHan BasicApp</c>
     /// </remarks>
     public string TotpIssuer { get; init; } = "XiHan BasicApp";
 
     /// <summary>
-    /// 是否开放自助注册（<c>auth.register</c>）。
+    /// 是否开放自助注册（<c>auth.register</c>）
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>SelfRegistrationEnabled</c>，缺省关：注册的是平台账号，部署方确认要开放再打开（4.x 没有开关、总是开放）。
+    /// 配置键 <c>SelfRegistrationEnabled</c>，缺省关：注册的是平台账号，部署方确认要开放再打开（4.x 没有开关、总是开放）
     /// </remarks>
     public bool SelfRegistrationEnabled { get; init; }
 
     /// <summary>
-    /// 邮件 / 短信验证码的有效期。
+    /// 邮件 / 短信验证码的有效期
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeMinutes</c>，缺省 10 分钟（4.x 同）。
+    /// 配置键 <c>VerificationCodeMinutes</c>，缺省 10 分钟（4.x 同）
     /// </remarks>
     public TimeSpan VerificationCodeLifetime { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 同一用途、同一目标两次发码的最短间隔。
+    /// 同一用途、同一目标两次发码的最短间隔
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeIntervalSeconds</c>，缺省 60 秒（4.x 同）。
+    /// 配置键 <c>VerificationCodeIntervalSeconds</c>，缺省 60 秒（4.x 同）
     /// </remarks>
     public TimeSpan VerificationCodeInterval { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一个邮箱 / 手机号每天（UTC）最多收几次验证码。
+    /// 一个邮箱 / 手机号每天（UTC）最多收几次验证码
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeDailyPerTarget</c>，缺省 10（4.x 同），不分用途。
+    /// 配置键 <c>VerificationCodeDailyPerTarget</c>，缺省 10（4.x 同），不分用途
     /// </remarks>
     public int VerificationCodeDailyPerTarget { get; init; } = 10;
 
     /// <summary>
-    /// 一个客户端地址每天（UTC）最多发几次验证码。
+    /// 一个客户端地址每天（UTC）最多发几次验证码
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeDailyPerAddress</c>，缺省 50（4.x 同），不分用途。
+    /// 配置键 <c>VerificationCodeDailyPerAddress</c>，缺省 50（4.x 同），不分用途
     /// </remarks>
     public int VerificationCodeDailyPerAddress { get; init; } = 50;
 
     /// <summary>
-    /// 一个验证码允许输错的次数。
+    /// 一个验证码允许输错的次数
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeMaxFailures</c>，缺省 5（4.x 同）；用完即作废并锁定 <see cref="VerificationCodeLockout"/>。
+    /// 配置键 <c>VerificationCodeMaxFailures</c>，缺省 5（4.x 同）；用完即作废并锁定 <see cref="VerificationCodeLockout"/>
     /// </remarks>
     public int VerificationCodeMaxFailures { get; init; } = 5;
 
     /// <summary>
-    /// 输错用完后同一用途、同一主体不能再发码与校验的时长。
+    /// 输错用完后同一用途、同一主体不能再发码与校验的时长
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeLockoutMinutes</c>，缺省 10 分钟（4.x 同）。
+    /// 配置键 <c>VerificationCodeLockoutMinutes</c>，缺省 10 分钟（4.x 同）
     /// </remarks>
     public TimeSpan VerificationCodeLockout { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 从配置读取身份包配置。
+    /// 从配置读取身份包配置
     /// </summary>
-    /// <exception cref="ArgumentException">配置里有不合法的值时抛出（装配错误）。</exception>
+    /// <exception cref="ArgumentException">配置里有不合法的值时抛出（装配错误）</exception>
     public static IdentityOptions FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);

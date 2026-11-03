@@ -22,33 +22,33 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 文件的附加信息（上传与修改时给）。
+/// 文件的附加信息（上传与修改时给）
 /// </summary>
-/// <param name="AccessLevel">访问级别。</param>
-/// <param name="IsTemporary">是否临时文件。</param>
-/// <param name="ExpiresAt">到期时间。</param>
-/// <param name="Tags">标签（逗号分隔）。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="AccessLevel">访问级别</param>
+/// <param name="IsTemporary">是否临时文件</param>
+/// <param name="ExpiresAt">到期时间</param>
+/// <param name="Tags">标签（逗号分隔）</param>
+/// <param name="Remark">备注</param>
 public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, DateTimeOffset? ExpiresAt, string? Tags, string? Remark);
 
 /// <summary>
-/// 文件服务：上传、读取、访问与副本管理。
+/// 文件服务：上传、读取、访问与副本管理
 /// </summary>
 /// <remarks>
-/// 上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理。
-/// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）。
-/// 下载计数：按身份读整个内容或从头读的范围记一次，签发签名地址记一次（之后经地址的读取不经应用）。
+/// 上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理
+/// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）
+/// 下载计数：按身份读整个内容或从头读的范围记一次，签发签名地址记一次（之后经地址的读取不经应用）
 /// </remarks>
-/// <param name="rows">文件与副本的读写。</param>
-/// <param name="configs">存储配置。</param>
-/// <param name="stores">存储配置对应的对象存储实例。</param>
-/// <param name="permissions">权限判定（访问级别）。</param>
-/// <param name="options">文件包配置。</param>
-/// <param name="ids">ID 生成器。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="scopes">作用域工厂（下载计数在独立的短事务里写）。</param>
-/// <param name="quotas">租户配额（存储空间；没装 Tenancy 即不限）。</param>
-/// <param name="logger">日志。</param>
+/// <param name="rows">文件与副本的读写</param>
+/// <param name="configs">存储配置</param>
+/// <param name="stores">存储配置对应的对象存储实例</param>
+/// <param name="permissions">权限判定（访问级别）</param>
+/// <param name="options">文件包配置</param>
+/// <param name="ids">ID 生成器</param>
+/// <param name="clock">时钟</param>
+/// <param name="scopes">作用域工厂（下载计数在独立的短事务里写）</param>
+/// <param name="quotas">租户配额（存储空间；没装 Tenancy 即不限）</param>
+/// <param name="logger">日志</param>
 public sealed partial class FileService(
     SideRows rows,
     StorageConfigService configs,
@@ -62,43 +62,43 @@ public sealed partial class FileService(
     ILogger<FileService> logger)
 {
     /// <summary>
-    /// 来源：上传。
+    /// 来源：上传
     /// </summary>
     public const string SourceUpload = "upload";
 
     /// <summary>
-    /// 来源：秒传。
+    /// 来源：秒传
     /// </summary>
     public const string SourceFastUpload = "fast-upload";
 
     private const int BufferSize = 81920;
 
     /// <summary>
-    /// 一侧的文件。
+    /// 一侧的文件
     /// </summary>
-    /// <param name="side">侧。</param>
-    /// <param name="id">文件 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>文件；没有为失败。</returns>
+    /// <param name="side">侧</param>
+    /// <param name="id">文件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>文件；没有为失败</returns>
     public async Task<Result<SysFile>> FindAsync(string side, Guid id, CancellationToken cancellationToken)
         => (await rows.FindAsync<SysFile>(side, id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var file)
             ? file
             : Error.NotFound(FilesErrors.FileNotFound, FilesMessages.FileNotFound, MessageArguments.Of(("id", id)));
 
     /// <summary>
-    /// 上传一个文件。
+    /// 上传一个文件
     /// </summary>
     /// <remarks>
-    /// 内容先写到临时文件并算 SHA-256，超过上限即停；同一侧已有相同内容的正常文件就共用它的对象，否则写进上传目标配置。
+    /// 内容先写到临时文件并算 SHA-256，超过上限即停；同一侧已有相同内容的正常文件就共用它的对象，否则写进上传目标配置
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="content">内容。</param>
-    /// <param name="fileName">原始文件名。</param>
-    /// <param name="contentType">上传方给的内容类型。</param>
-    /// <param name="details">附加信息。</param>
-    /// <param name="side">存到哪一侧；为空即调用方所在的一侧（头像固定存平台侧，不计入租户的存储配额）。</param>
-    /// <param name="source">来源；为空即 <see cref="SourceUpload"/>（聊天附件记 <c>chat</c>）。</param>
-    /// <returns>新文件。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="content">内容</param>
+    /// <param name="fileName">原始文件名</param>
+    /// <param name="contentType">上传方给的内容类型</param>
+    /// <param name="details">附加信息</param>
+    /// <param name="side">存到哪一侧；为空即调用方所在的一侧（头像固定存平台侧，不计入租户的存储配额）</param>
+    /// <param name="source">来源；为空即 <see cref="SourceUpload"/>（聊天附件记 <c>chat</c>）</param>
+    /// <returns>新文件</returns>
     public async Task<Result<SysFile>> UploadAsync(InvocationContext context, Stream content, string? fileName, string? contentType, FileDetails details, string? side = null, string? source = null)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -145,19 +145,19 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 秒传：同一侧已有相同内容的正常文件时直接得到一条新记录。
+    /// 秒传：同一侧已有相同内容的正常文件时直接得到一条新记录
     /// </summary>
     /// <remarks>
-    /// 内容相同即 SHA-256 与大小都相同，新记录共用它的对象；没有为无值，前端再走普通上传。
+    /// 内容相同即 SHA-256 与大小都相同，新记录共用它的对象；没有为无值，前端再走普通上传
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="hash">SHA-256。</param>
-    /// <param name="size">大小。</param>
-    /// <param name="fileName">原始文件名。</param>
-    /// <param name="contentType">内容类型。</param>
-    /// <param name="details">附加信息。</param>
-    /// <param name="source">来源；为空即 <see cref="SourceFastUpload"/>（聊天附件记 <c>chat</c>）。</param>
-    /// <returns>新文件；没命中为无值。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="hash">SHA-256</param>
+    /// <param name="size">大小</param>
+    /// <param name="fileName">原始文件名</param>
+    /// <param name="contentType">内容类型</param>
+    /// <param name="details">附加信息</param>
+    /// <param name="source">来源；为空即 <see cref="SourceFastUpload"/>（聊天附件记 <c>chat</c>）</param>
+    /// <returns>新文件；没命中为无值</returns>
     public async Task<Result<Maybe<SysFile>>> FastUploadAsync(InvocationContext context, string hash, long size, string fileName, string? contentType, FileDetails details, string? source = null)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -191,14 +191,14 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 判定调用方能否换取这个文件的下载地址。
+    /// 判定调用方能否换取这个文件的下载地址
     /// </summary>
     /// <remarks>
-    /// 访问级别「需要授权」的要持有 <c>files.files.read</c>，「已登录」的同一侧已登录即可。
+    /// 访问级别「需要授权」的要持有 <c>files.files.read</c>，「已登录」的同一侧已登录即可
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="file">文件。</param>
-    /// <returns>能为成功。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="file">文件</param>
+    /// <returns>能为成功</returns>
     public async Task<Result> CheckAccessAsync(InvocationContext context, SysFile file)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -218,17 +218,17 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 签发主副本的下载地址，并记一次下载。
+    /// 签发主副本的下载地址，并记一次下载
     /// </summary>
     /// <remarks>
-    /// 地址由对象存储签出（ADR-0049）：S3 兼容存储是直连存储的完整地址，本地存储是宿主签名端点的路径（<c>/blobs/…</c>，调用方按接口地址拼完整地址）。
-    /// 地址指向对象本身、有效期内不再经过应用：签出之后归档、损坏或改访问级别都不影响它，对象删掉（删到最后一条引用）即失效。
+    /// 地址由对象存储签出（ADR-0049）：S3 兼容存储是直连存储的完整地址，本地存储是宿主签名端点的路径（<c>/blobs/…</c>，调用方按接口地址拼完整地址）
+    /// 地址指向对象本身、有效期内不再经过应用：签出之后归档、损坏或改访问级别都不影响它，对象删掉（删到最后一条引用）即失效
     /// </remarks>
-    /// <param name="file">文件。</param>
-    /// <param name="lifetime">有效期；为空取缺省值。</param>
-    /// <param name="download">是否以附件下载（带原始文件名）；否则按内容类型内联显示。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>地址与到期时间。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="lifetime">有效期；为空取缺省值</param>
+    /// <param name="download">是否以附件下载（带原始文件名）；否则按内容类型内联显示</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>地址与到期时间</returns>
     public async Task<Result<(string Url, DateTimeOffset ExpiresAt)>> SignAsync(SysFile file, TimeSpan? lifetime, bool download, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -256,16 +256,16 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 读主副本的内容。
+    /// 读主副本的内容
     /// </summary>
     /// <remarks>
-    /// 给了范围就只读那一段（音视频拖动、断点续传），起点不在内容里是 <see cref="ObjectStorageErrors.RangeNotSatisfiable"/>。
-    /// 读整个内容或从头读的范围记一次下载：计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行。
+    /// 给了范围就只读那一段（音视频拖动、断点续传），起点不在内容里是 <see cref="ObjectStorageErrors.RangeNotSatisfiable"/>
+    /// 读整个内容或从头读的范围记一次下载：计数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行
     /// </remarks>
-    /// <param name="file">文件。</param>
-    /// <param name="range">要读的范围；为空读整个内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>内容（调用方释放）。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="range">要读的范围；为空读整个内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>内容（调用方释放）</returns>
     public async Task<Result<BlobContent>> OpenAsync(SysFile file, BlobRange? range, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -292,11 +292,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 修改附加信息。
+    /// 修改附加信息
     /// </summary>
-    /// <param name="file">文件。</param>
-    /// <param name="details">附加信息。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="file">文件</param>
+    /// <param name="details">附加信息</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task UpdateAsync(SysFile file, FileDetails details, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -306,16 +306,16 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 归档或恢复文件。
+    /// 归档或恢复文件
     /// </summary>
     /// <remarks>
-    /// 只在正常与已归档之间切换；损坏的文件先换主副本。
+    /// 只在正常与已归档之间切换；损坏的文件先换主副本
     /// </remarks>
-    /// <param name="side">侧。</param>
-    /// <param name="fileIds">文件 ID。</param>
-    /// <param name="status">目标状态。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>逐项结果。</returns>
+    /// <param name="side">侧</param>
+    /// <param name="fileIds">文件 ID</param>
+    /// <param name="status">目标状态</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>逐项结果</returns>
     public async Task<Result<BatchResult>> SetStatusAsync(string side, IReadOnlyList<Guid> fileIds, FileStatus status, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(fileIds);
@@ -353,15 +353,15 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 删除文件：文件与副本软删除。
+    /// 删除文件：文件与副本软删除
     /// </summary>
     /// <remarks>
-    /// 不再被这一侧其他副本引用的对象随之删除（对象删不掉只记警告，记录照删）。
+    /// 不再被这一侧其他副本引用的对象随之删除（对象删不掉只记警告，记录照删）
     /// </remarks>
-    /// <param name="side">侧。</param>
-    /// <param name="fileIds">文件 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>逐项结果。</returns>
+    /// <param name="side">侧</param>
+    /// <param name="fileIds">文件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>逐项结果</returns>
     public async Task<BatchResult> DeleteAsync(string side, IReadOnlyList<Guid> fileIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(fileIds);
@@ -394,11 +394,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 文件的副本（主副本在前）。
+    /// 文件的副本（主副本在前）
     /// </summary>
-    /// <param name="file">文件。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>副本。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>副本</returns>
     public async Task<List<SysFileStorage>> StoragesOfAsync(SysFile file, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -408,12 +408,12 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 文件的一个副本。
+    /// 文件的一个副本
     /// </summary>
-    /// <param name="file">文件。</param>
-    /// <param name="storageId">副本 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>副本；没有为失败。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="storageId">副本 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>副本；没有为失败</returns>
     public async Task<Result<SysFileStorage>> StorageOfAsync(SysFile file, Guid storageId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -423,15 +423,15 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 把一个副本设为主副本。
+    /// 把一个副本设为主副本
     /// </summary>
     /// <remarks>
-    /// 目标须正常且校验过；损坏的文件随之恢复正常（4.x 同）。
+    /// 目标须正常且校验过；损坏的文件随之恢复正常（4.x 同）
     /// </remarks>
-    /// <param name="file">文件。</param>
-    /// <param name="storage">副本。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="storage">副本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetPrimaryAsync(SysFile file, SysFileStorage storage, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -462,16 +462,16 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 校验副本：读出内容按 SHA-256 比对。
+    /// 校验副本：读出内容按 SHA-256 比对
     /// </summary>
     /// <remarks>
-    /// 读不到或不符记校验失败，是主副本时文件记为损坏；通过时记校验时间，主副本通过时损坏的文件恢复正常。
-    /// 存储本身不可用（网络、权限）时不改状态，返回存储的错误。
+    /// 读不到或不符记校验失败，是主副本时文件记为损坏；通过时记校验时间，主副本通过时损坏的文件恢复正常
+    /// 存储本身不可用（网络、权限）时不改状态，返回存储的错误
     /// </remarks>
-    /// <param name="file">文件。</param>
-    /// <param name="storage">副本。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="file">文件</param>
+    /// <param name="storage">副本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> VerifyAsync(SysFile file, SysFileStorage storage, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -519,15 +519,15 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 启用或停用副本。
+    /// 启用或停用副本
     /// </summary>
     /// <remarks>
-    /// 主副本不能停用；校验失败的副本要重新校验才回到正常。
+    /// 主副本不能停用；校验失败的副本要重新校验才回到正常
     /// </remarks>
-    /// <param name="storage">副本。</param>
-    /// <param name="status">目标状态。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="storage">副本</param>
+    /// <param name="status">目标状态</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> SetStorageStatusAsync(SysFileStorage storage, FileStorageStatus status, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(storage);
@@ -556,11 +556,11 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 副本所在配置的对象存储。
+    /// 副本所在配置的对象存储
     /// </summary>
-    /// <param name="storage">副本。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>对象存储。</returns>
+    /// <param name="storage">副本</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>对象存储</returns>
     public async Task<Result<IBlobStore>> StoreOfAsync(SysFileStorage storage, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(storage);
@@ -573,7 +573,7 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 正常文件的主副本、它的配置与对象存储。
+    /// 正常文件的主副本、它的配置与对象存储
     /// </summary>
     private async Task<Result<Located>> LocateAsync(SysFile file, CancellationToken cancellationToken)
     {
@@ -592,10 +592,10 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 在独立的短事务里给下载次数原子加一。
+    /// 在独立的短事务里给下载次数原子加一
     /// </summary>
     /// <remarks>
-    /// 计数失败只记警告，不影响下载本身。
+    /// 计数失败只记警告，不影响下载本身
     /// </remarks>
     private async Task CountDownloadAsync(SysFile file, CancellationToken cancellationToken)
     {
@@ -619,17 +619,17 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 把分片上传拼好的对象落成文件。
+    /// 把分片上传拼好的对象落成文件
     /// </summary>
     /// <remarks>
     /// 内容按回读算出的 SHA-256 记；同一侧已有内容相同的正常文件就共用它的对象，刚拼好的对象随即删掉（删不掉只记警告），
-    /// 否则以发起时定下的文件 ID 新建文件与指向这个对象的主副本。
+    /// 否则以发起时定下的文件 ID 新建文件与指向这个对象的主副本
     /// </remarks>
-    /// <param name="upload">分片上传。</param>
-    /// <param name="store">它的对象存储。</param>
-    /// <param name="hash">回读算出的 SHA-256。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新文件。</returns>
+    /// <param name="upload">分片上传</param>
+    /// <param name="store">它的对象存储</param>
+    /// <param name="hash">回读算出的 SHA-256</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新文件</returns>
     internal async Task<SysFile> AdoptAsync(SysFileUpload upload, IBlobStore store, string hash, CancellationToken cancellationToken)
     {
         var details = new FileDetails(upload.AccessLevel, upload.IsTemporary, upload.FileExpiresAt, upload.Tags, upload.Remark);
@@ -664,10 +664,10 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 核对一侧的存储配额。
+    /// 核对一侧的存储配额
     /// </summary>
     /// <remarks>
-    /// 只约束租户主体的调用；没装 Tenancy 即不限。
+    /// 只约束租户主体的调用；没装 Tenancy 即不限
     /// </remarks>
     internal async Task<Result> EnsureQuotaAsync(InvocationContext context, string side, long bytes)
     {
@@ -684,10 +684,10 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 规范原始文件名。
+    /// 规范原始文件名
     /// </summary>
     /// <remarks>
-    /// 去掉路径与首尾空白，过长的截掉主名、保留扩展名；为空时为 <see langword="null"/>。
+    /// 去掉路径与首尾空白，过长的截掉主名、保留扩展名；为空时为 <see langword="null"/>
     /// </remarks>
     internal static string? NameOf(string? fileName)
     {
@@ -708,7 +708,7 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 读完内容，算 SHA-256 与长度。
+    /// 读完内容，算 SHA-256 与长度
     /// </summary>
     internal static async Task<(string Hash, long Length)> DigestAsync(Stream content, CancellationToken cancellationToken)
     {
@@ -791,10 +791,10 @@ public sealed partial class FileService(
     }
 
     /// <summary>
-    /// 复用同一侧内容相同的正常文件的对象。
+    /// 复用同一侧内容相同的正常文件的对象
     /// </summary>
     /// <remarks>
-    /// 同一侧有内容相同的正常文件（主副本正常）就复制出一条新记录与一个指向同一对象的主副本。
+    /// 同一侧有内容相同的正常文件（主副本正常）就复制出一条新记录与一个指向同一对象的主副本
     /// </remarks>
     private async Task<Maybe<SysFile>> ReuseAsync(string side, string hash, long size, string name, string? contentType, FileDetails details, string origin, CancellationToken cancellationToken)
     {

@@ -17,7 +17,7 @@ export const EXPORT_FORMATS: readonly ExportFormat[] = ['Csv', 'Xlsx']
 
 /**
  * 认得的业务类型：4.x 有服务端导出的七个列表。6.0 的业务类型就是列表操作 ID，后端能导任何列表操作，
- * 不在这里的照原样显示。
+ * 不在这里的照原样显示
  */
 export const KNOWN_BUSINESS_TYPES = [
   'users.list',
@@ -36,8 +36,8 @@ export const INTERRUPTED_MESSAGE = 'interrupted'
 export const REFRESH_INTERVAL_MS = 5_000
 
 /**
- * 列表的后端筛选（与后端白名单一致）：关键字匹配任务名称与业务类型；状态、格式多选（合成 in）；业务类型精确匹配。
- * 后端只列调用方自己的任务，缺省按创建时间倒序。
+ * 列表的后端筛选（与后端白名单一致）：关键字匹配任务名称与业务类型；状态、格式多选（合成 in）；业务类型精确匹配
+ * 后端只列调用方自己的任务，缺省按创建时间倒序
  */
 export const EXPORT_TASK_QUERY: PageQueryMapping = {
   multiples: ['status', 'format'],

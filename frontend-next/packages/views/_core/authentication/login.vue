@@ -115,9 +115,9 @@ const redirect = computed(() => {
   return (route.query.redirect as string) || undefined
 })
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）。
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）
 // 企业微信、飞书在这四个集里都没有品牌 logo，先用语义相近的通用图标占位以便彼此区分；
-// 要换成真 logo 需另行预载含该品牌的图标集，或把 SVG 注册成自定义图标集。
+// 要换成真 logo 需另行预载含该品牌的图标集，或把 SVG 注册成自定义图标集
 const oauthProviderIcons: Record<string, string> = {
   github: 'mdi:github',
   gitee: 'simple-icons:gitee',
@@ -133,7 +133,7 @@ const oauthProviderIcons: Record<string, string> = {
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
 
 /**
- * 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高。
+ * 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高
  * 三颗带字钮加「更多」一行约 316 宽，手机窄栏（375 宽视口只剩 304）放不下时 flex 会把钮压到
  * 比内容还窄、图标文字溢出钮外，这时按行宽退到两颗
  */
@@ -161,8 +161,8 @@ function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
 }
 
 /**
- * 登录配置的状态：是否要验证码、有哪些登录方式都由它定，取到之前不能提交账号密码。
- * 取不到（后端没起来、断网）时停在 failed，表单上方常驻提示并可重试，不按缺省值放出一张没有验证码的表单。
+ * 登录配置的状态：是否要验证码、有哪些登录方式都由它定，取到之前不能提交账号密码
+ * 取不到（后端没起来、断网）时停在 failed，表单上方常驻提示并可重试，不按缺省值放出一张没有验证码的表单
  */
 const configState = ref<'failed' | 'pending' | 'ready'>('pending')
 /** 取配置失败的原因（请求层给的本地化说明） */
@@ -240,8 +240,8 @@ function rememberTwoFactorTicket(result: LoginResponse | null) {
 }
 
 /**
- * 票据失效（不存在 / 过期 / 用户不匹配）：服务端要求重新登录，回到凭据阶段并换一枚新图形码。
- * 返回是否已按票据失效处理，调用方据此跳过通用错误分支。
+ * 票据失效（不存在 / 过期 / 用户不匹配）：服务端要求重新登录，回到凭据阶段并换一枚新图形码
+ * 返回是否已按票据失效处理，调用方据此跳过通用错误分支
  */
 function handleTicketExpired(error: unknown) {
   if (!(error instanceof ApiError) || error.code !== TWO_FACTOR_TICKET_INVALID) {
@@ -288,9 +288,9 @@ async function applyTwoFactorChallenge(result: LoginResponse) {
 }
 
 /**
- * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」。
+ * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」
  * 入口先同步看 loginLoading：XhButton 的 loading 拦截读的是渲染期状态，首个 click 到重渲染之间的
- * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途。
+ * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途
  */
 async function onSubmit() {
   if (authStore.loginLoading)
@@ -607,7 +607,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhAlertAction>
         </XhAlertRoot>
 
-        <!-- Enter 只走原生隐式提交这一条：字段里按 Enter 触发表单提交，经规则校验后才到 @submit。
+        <!-- Enter 只走原生隐式提交这一条：字段里按 Enter 触发表单提交，经规则校验后才到 @submit
              原先另挂的 keydown 直接调 onSubmit 绕过了校验（用户名为空也发请求），且它一置 loading
              就把提交钮禁掉，浏览器随后的隐式提交被压下，Enter 发出的恰是那次没校验的请求 -->
         <XhFormRoot
@@ -618,7 +618,7 @@ const onAuthInvalid = useAuthFormInvalid()
           @invalid="onAuthInvalid"
           @submit="onSubmit"
         >
-          <!-- 字段靠占位文案表意，标签只留给读屏。
+          <!-- 字段靠占位文案表意，标签只留给读屏
                6.0 的用户名在注册地租户内唯一：租户账号填租户 ID，平台账号留空（4.x 先登录后选租户，没有这一栏） -->
           <XhFormFieldGroup name="tenant" class="!mb-6">
             <XhFieldRoot>
@@ -671,10 +671,10 @@ const onAuthInvalid = useAuthFormInvalid()
               <XhFieldLabel class="sr-only">
                 {{ t('page.login.captcha_required') }}
               </XhFieldLabel>
-              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆。
+              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆
                    服务端签发的是四位纯数字（CaptchaService 走框架一次性验证码，只出 0-9），格子按 numeric 准入、
-                   弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off。
-                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度。
+                   弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off
+                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度
                    与手机/邮箱登录的验证码行同一套排布：格子在左，验证码图靠右缘 -->
               <div class="auth-code-row">
                 <XhFieldControl>
@@ -736,7 +736,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
         </p>
 
-        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线，颜色取库缺省的描边令牌，深浅两态都跟着走。
+        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线，颜色取库缺省的描边令牌，深浅两态都跟着走
              separator 角色的子节点对读屏是展示性的，名字另用 aria-label 给出 -->
         <XhSeparator
           v-if="oauthProviders.length > 0"

@@ -84,9 +84,9 @@ function sameSet(left: readonly string[], right: readonly string[]): boolean {
 }
 
 /**
- * SchemaPage 的资源：分页与删除。
+ * SchemaPage 的资源：分页与删除
  * `editions.list` 不分页、不收筛选与排序（套餐数量有限，一次全列，后端按排序号、编码排好），资源在前端按页切片；
- * 页面因此不登记搜索与排序字段，查询里一旦出现筛选或排序就报错，而不是静默丢掉条件（与 toPageRequest 同一口径）。
+ * 页面因此不登记搜索与排序字段，查询里一旦出现筛选或排序就报错，而不是静默丢掉条件（与 toPageRequest 同一口径）
  */
 export function editionsResource(): SchemaResource<EditionRow> {
   return {
@@ -115,7 +115,7 @@ export async function setDefaultEdition(id: string): Promise<EditionRow> {
 
 /**
  * 租户侧权限目录 + 白名单 → 穿梭框条目。按「包.资源」分段；白名单里有、目录里没有的码（权限已下线或改了作用侧）
- * 也列出来并标 outside，否则一动穿梭框它们就被悄悄丢掉。
+ * 也列出来并标 outside，否则一动穿梭框它们就被悄悄丢掉
  */
 export function toWhitelistItems(catalog: readonly CatalogItem[], whitelist: readonly string[], outsideGroup: string): WhitelistItem[] {
   const items: WhitelistItem[] = catalog.map(item => ({
@@ -139,8 +139,8 @@ function emptyForm(): EditionForm {
 }
 
 /**
- * 新建 / 编辑弹窗。新建时白名单为空（什么都不放行），页面接着打开白名单抽屉；编码创建后不可改。字段级错误挂回对应字段。
- * 免费与价格互斥（4.x 同）：打开免费即清空价格、价格框随之禁用；提交前再核对一次，标了价的免费套餐不发请求、错误挂在价格上。
+ * 新建 / 编辑弹窗。新建时白名单为空（什么都不放行），页面接着打开白名单抽屉；编码创建后不可改。字段级错误挂回对应字段
+ * 免费与价格互斥（4.x 同）：打开免费即清空价格、价格框随之禁用；提交前再核对一次，标了价的免费套餐不发请求、错误挂在价格上
  */
 export function useEditionEditor(t: Translate) {
   const open = ref(false)
@@ -227,8 +227,8 @@ export function useEditionEditor(t: Translate) {
 
 /**
  * 白名单抽屉：目录取租户侧（`permissions.list?side=tenant`，一次取全后缓存），白名单取 `editions.get`；
- * 本地勾选、整体替换保存（`editions.set-permissions`），后端只接受租户能生效的权限并立即作用到绑定它的租户。
- * 加载失败时只读：拿不到现有白名单就算不出该存什么。
+ * 本地勾选、整体替换保存（`editions.set-permissions`），后端只接受租户能生效的权限并立即作用到绑定它的租户
+ * 加载失败时只读：拿不到现有白名单就算不出该存什么
  */
 export function useEditionPermissions() {
   const open = ref(false)

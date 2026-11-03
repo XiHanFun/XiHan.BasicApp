@@ -1,8 +1,8 @@
 /**
- * useCheckUpdates 在本机地址下的单元测试。
+ * useCheckUpdates 在本机地址下的单元测试
  * 职责：锁定「跑在 localhost 上一概不轮询」——本机跑的产物不会被别人重新部署，
- * 比对首页指纹没有意义；开发服务器更是每改一次就换一次指纹。
- * 域名是 jsdom 环境自带的 localhost，只能单独一份文件（部署站点那一侧在 use-check-updates.test.ts）。
+ * 比对首页指纹没有意义；开发服务器更是每改一次就换一次指纹
+ * 域名是 jsdom 环境自带的 localhost，只能单独一份文件（部署站点那一侧在 use-check-updates.test.ts）
  */
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'

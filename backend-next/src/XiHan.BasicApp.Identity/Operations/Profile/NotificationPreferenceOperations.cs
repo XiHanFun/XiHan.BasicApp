@@ -14,24 +14,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 本人的通知偏好。
+/// 本人的通知偏好
 /// </summary>
 /// <remarks>
-/// 没保存过即缺省，全收。强制阅读与紧急通知不受偏好影响。
+/// 没保存过即缺省，全收。强制阅读与紧急通知不受偏好影响
 /// </remarks>
-/// <param name="ChannelInApp">收站内信。</param>
-/// <param name="ChannelEmail">收邮件。</param>
-/// <param name="ChannelSms">收短信。</param>
-/// <param name="TypeAnnouncement">收公告（系统、业务等）。</param>
-/// <param name="TypeTask">收待办。</param>
-/// <param name="TypeSecurity">收安全通知。</param>
+/// <param name="ChannelInApp">收站内信</param>
+/// <param name="ChannelEmail">收邮件</param>
+/// <param name="ChannelSms">收短信</param>
+/// <param name="TypeAnnouncement">收公告（系统、业务等）</param>
+/// <param name="TypeTask">收待办</param>
+/// <param name="TypeSecurity">收安全通知</param>
 public sealed record NotificationPreferenceResponse(bool ChannelInApp, bool ChannelEmail, bool ChannelSms, bool TypeAnnouncement, bool TypeTask, bool TypeSecurity)
 {
     /// <summary>
-    /// 一行偏好的投影。
+    /// 一行偏好的投影
     /// </summary>
     /// <remarks>
-    /// 没有行即缺省。
+    /// 没有行即缺省
     /// </remarks>
     public static NotificationPreferenceResponse From(SysUserNotificationPreference? preference)
     {
@@ -41,33 +41,33 @@ public sealed record NotificationPreferenceResponse(bool ChannelInApp, bool Chan
 }
 
 /// <summary>
-/// 保存通知偏好的请求。
+/// 保存通知偏好的请求
 /// </summary>
 /// <remarks>
-/// <c>profile.update-notification-preference</c> 的请求，整体覆盖，4.x 同。
+/// <c>profile.update-notification-preference</c> 的请求，整体覆盖，4.x 同
 /// </remarks>
-/// <param name="ChannelInApp">收站内信。</param>
-/// <param name="ChannelEmail">收邮件。</param>
-/// <param name="ChannelSms">收短信。</param>
-/// <param name="TypeAnnouncement">收公告（系统、业务等）。</param>
-/// <param name="TypeTask">收待办。</param>
-/// <param name="TypeSecurity">收安全通知。</param>
+/// <param name="ChannelInApp">收站内信</param>
+/// <param name="ChannelEmail">收邮件</param>
+/// <param name="ChannelSms">收短信</param>
+/// <param name="TypeAnnouncement">收公告（系统、业务等）</param>
+/// <param name="TypeTask">收待办</param>
+/// <param name="TypeSecurity">收安全通知</param>
 public sealed record UpdateNotificationPreferenceRequest(bool ChannelInApp, bool ChannelEmail, bool ChannelSms, bool TypeAnnouncement, bool TypeTask, bool TypeSecurity);
 
 /// <summary>
-/// 读本人的通知偏好。
+/// 读本人的通知偏好
 /// </summary>
 /// <remarks>
-/// <c>GET /api/profile:notification-preference</c>（4.x <c>Profile/NotificationPreference</c>）。已登录即可。
+/// <c>GET /api/profile:notification-preference</c>（4.x <c>Profile/NotificationPreference</c>）。已登录即可
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="preferences">偏好仓储。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="preferences">偏好仓储</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetNotificationPreference(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserNotificationPreference, Guid> preferences) : IOperation<ProfileRequest, NotificationPreferenceResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.notification-preference";
 
@@ -87,21 +87,21 @@ public sealed class GetNotificationPreference(IRepository<SysUser, Guid> users, 
 }
 
 /// <summary>
-/// 保存本人的通知偏好。
+/// 保存本人的通知偏好
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:update-notification-preference</c>（4.x 同，整体覆盖，第一次保存时建行）。
-/// 已登录即可；模仿会话不拒绝（4.x 同）。
+/// <c>POST /api/profile:update-notification-preference</c>（4.x 同，整体覆盖，第一次保存时建行）
+/// 已登录即可；模仿会话不拒绝（4.x 同）
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="preferences">偏好仓储。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="preferences">偏好仓储</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateNotificationPreference(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserNotificationPreference, Guid> preferences, IIdGenerator<Guid> ids) : IOperation<UpdateNotificationPreferenceRequest, NotificationPreferenceResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.update-notification-preference";
 
@@ -132,14 +132,14 @@ public sealed class UpdateNotificationPreference(IRepository<SysUser, Guid> user
 }
 
 /// <summary>
-/// 按用户取偏好行。
+/// 按用户取偏好行
 /// </summary>
 internal static class NotificationPreferenceRows
 {
     /// <summary>
-    /// 取本人的偏好行。
+    /// 取本人的偏好行
     /// </summary>
-    /// <returns>偏好行；没保存过为空。</returns>
+    /// <returns>偏好行；没保存过为空</returns>
     public static async Task<SysUserNotificationPreference?> FindAsync(IRepository<SysUserNotificationPreference, Guid> preferences, Guid userId, CancellationToken cancellationToken)
     {
         var rows = await preferences.ListAsync(EntityQuery.All<SysUserNotificationPreference>().Where(new Specification<SysUserNotificationPreference>(p => p.UserId == userId)).Page(0, 1), cancellationToken).ConfigureAwait(false);

@@ -11,17 +11,17 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Auditing.Domain.Services;
 
 /// <summary>
-/// 把 SqlSugar 差异日志转成数据变更日志。
+/// 把 SqlSugar 差异日志转成数据变更日志
 /// </summary>
 /// <remarks>
-/// 一条事件可带一批行：每行一条，修改按主键配对前后值，软删除列 <c>is_deleted</c> 由真变假的记为恢复（4.x 同）。
-/// 列名含 password / hash / secret / token / salt 的值一律打码；修改里只动了时间戳、操作人、并发戳这类随写入就变的列的，不算数据变更、不记。
-/// 前后值手写成 JSON 对象（按值的类型分支，不走反射序列化）。
+/// 一条事件可带一批行：每行一条，修改按主键配对前后值，软删除列 <c>is_deleted</c> 由真变假的记为恢复（4.x 同）
+/// 列名含 password / hash / secret / token / salt 的值一律打码；修改里只动了时间戳、操作人、并发戳这类随写入就变的列的，不算数据变更、不记
+/// 前后值手写成 JSON 对象（按值的类型分支，不走反射序列化）
 /// </remarks>
 public static class DiffLogRows
 {
     /// <summary>
-    /// 打码后的值。
+    /// 打码后的值
     /// </summary>
     public const string Masked = "***";
 
@@ -35,10 +35,10 @@ public static class DiffLogRows
     };
 
     /// <summary>
-    /// 转换一条差异事件。
+    /// 转换一条差异事件
     /// </summary>
     /// <remarks>
-    /// 公共列（时间、租户、调用方）由调用方填。
+    /// 公共列（时间、租户、调用方）由调用方填
     /// </remarks>
     public static IEnumerable<SysDiffLog> From(DiffLogModel model, string? operationId)
     {
@@ -101,10 +101,10 @@ public static class DiffLogRows
     }
 
     /// <summary>
-    /// 这一行的软删除标记。
+    /// 这一行的软删除标记
     /// </summary>
     /// <remarks>
-    /// 没有这一列为空；布尔、0 / 1 与文本都认（各库读回的类型不同）。
+    /// 没有这一列为空；布尔、0 / 1 与文本都认（各库读回的类型不同）
     /// </remarks>
     private static bool? IsSoftDeleted(DiffLogTableInfo? row)
     {

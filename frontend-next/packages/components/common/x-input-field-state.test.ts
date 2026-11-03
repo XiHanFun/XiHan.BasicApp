@@ -1,9 +1,9 @@
 /**
- * 封装控件的三态（disabled / readOnly / invalid）随外层 Field 走。
+ * 封装控件的三态（disabled / readOnly / invalid）随外层 Field 走
  *
  * XiHan.UI 的控件根按「本处写了 > 字段 > 表单」取值；封装若把这三个 prop 默认成 false，
  * 等于每一处都"写了"，字段校验出错、表单整体禁用都到不了画描边的 control 部件——
- * 登录页提交空表单时只剩字段组的红色竖条，输入盒本身不变红，就是这么来的。
+ * 登录页提交空表单时只剩字段组的红色竖条，输入盒本身不变红，就是这么来的
  */
 import { mount } from '@vue/test-utils'
 import { XhFieldControl, XhFieldRoot } from '@xihan-ui/vue'

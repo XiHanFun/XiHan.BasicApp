@@ -1,8 +1,8 @@
 /**
- * 会话图片组：同一会话里的图片按消息先后、附件先后串成一组，看片浮层里左右翻得到。
+ * 会话图片组：同一会话里的图片按消息先后、附件先后串成一组，看片浮层里左右翻得到
  *
  * 浮层只放一个，由消息流（ChatMessageThread）提供；图片消息（ChatMessageItemView）点缩略图时经 open
- * 从这一张打开。此前每条消息各带一个浮层，只能看点开的那一条里的图。
+ * 从这一张打开。此前每条消息各带一个浮层，只能看点开的那一条里的图
  */
 import type { ComputedRef, InjectionKey, MaybeRefOrGetter, Ref, WritableComputedRef } from 'vue'
 import type { ChatMessageItem } from '../types'
@@ -58,8 +58,8 @@ export interface ChatGalleryItem {
 }
 
 /**
- * 在消息流里提供会话图片组：整个会话一个看片浮层，按消息先后串起所有图片。
- * 返回浮层要绑的列表、开合与下标；往上翻出更早的历史、新图片进来时列表会变，按正在看的那张把下标对回去。
+ * 在消息流里提供会话图片组：整个会话一个看片浮层，按消息先后串起所有图片
+ * 返回浮层要绑的列表、开合与下标；往上翻出更早的历史、新图片进来时列表会变，按正在看的那张把下标对回去
  */
 export function provideChatImageGallery(messages: MaybeRefOrGetter<readonly ChatMessageItem[]>): {
   items: ComputedRef<ChatGalleryItem[]>

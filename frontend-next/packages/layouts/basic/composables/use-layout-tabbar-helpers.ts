@@ -59,8 +59,8 @@ export function buildTabContextOptions(params: {
     pinDisabled,
   } = getTabDisableState(tabs, path, closable)
 
-  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）。
-  // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」。
+  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）
+  // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」
   let splitItems: AppDropdownOption[] = []
   if (isSplitTab) {
     splitItems = [

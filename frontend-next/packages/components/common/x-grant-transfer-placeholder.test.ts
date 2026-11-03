@@ -1,8 +1,8 @@
 /**
- * 授权穿梭框两栏的在途与空态。
+ * 授权穿梭框两栏的在途与空态
  *
  * 穿梭框没有自动铺开的结构，empty / loading 两个部件得自己摆；漏了它们，
- * 授权清单加载中与一侧没有条目时两栏都是一片空白，分不清是还在取还是真的没有。
+ * 授权清单加载中与一侧没有条目时两栏都是一片空白，分不清是还在取还是真的没有
  */
 import type { GrantTransferItem } from './grant-transfer'
 import { flushPromises, mount } from '@vue/test-utils'

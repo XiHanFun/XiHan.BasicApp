@@ -290,9 +290,9 @@ async function loadMentionMembers() {
 }
 
 /**
- * 插入「@名字 」：打 @ 唤起的替换从那个 @ 到光标这一段，点 @ 钮唤起的直接插在光标处。
+ * 插入「@名字 」：打 @ 唤起的替换从那个 @ 到光标这一段，点 @ 钮唤起的直接插在光标处
  * 先把焦点交给正文框再改正文：浮层看到焦点移到了外面，按「已交出」收起、不把焦点还给 @ 钮；
- * 反过来先收浮层，它会把焦点还给触发器，正文框就接不着往下打字了。
+ * 反过来先收浮层，它会把焦点还给触发器，正文框就接不着往下打字了
  */
 function insertMention(member: ChatMemberItem) {
   const textarea = textInputRef.value?.el
@@ -849,20 +849,20 @@ function handlePaste(event: ClipboardEvent) {
 
 <style scoped>
 /* 表情浮层：卡片相（面/描边/投影/圆角）一律交给浮层皮肤，面板自己不再画一层，
-   否则既是两层卡片，硬编码的 10px 圆角与自制阴影也和站内其他浮层不是一套。
+   否则既是两层卡片，硬编码的 10px 圆角与自制阴影也和站内其他浮层不是一套
    这里只做两件事：
    ① 内边距归零，让面板贴着浮层的边；
    ② 抬高度上限——皮肤缺省是 --xh-overlay-max-h（16rem=256px），而表情面板固定 320px，
       缺省值会把底部裁掉半行。写 px 不写 rem：面板是第三方定的像素高，
-      而根字号是用户可调偏好，用 rem 卡在 12px 档下又会被裁。
-      仍写具体值而不是 none，是为了留住皮肤那条 min(上限, 可用高)，继续按视口可用高度收口。 */
+      而根字号是用户可调偏好，用 rem 卡在 12px 档下又会被裁
+      仍写具体值而不是 none，是为了留住皮肤那条 min(上限, 可用高)，继续按视口可用高度收口 */
 .chat-emoji-popover {
   --xh-popover-max-h: 336px;
   --xh-popover-px: 0px;
   --xh-popover-py: 0px;
 
   /* 宽度上限撤掉：皮肤缺省是 --xh-overlay-max-w（20rem=320px），比表情面板窄，
-     面板被压窄后最右一列表情与搜索框都会溢出、再被下面那条 overflow 裁掉。
+     面板被压窄后最右一列表情与搜索框都会溢出、再被下面那条 overflow 裁掉
      皮肤给的是 inline-size:max-content，撤掉上限即按面板实宽站好；
      视口方向的收口由面板自己的 max-width: calc(100vw - 24px) 兜着 */
   --xh-popover-max-w: none;

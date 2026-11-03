@@ -11,10 +11,10 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证宿主的反向代理转发头与跨域。
+/// 验证宿主的反向代理转发头与跨域
 /// </summary>
 /// <remarks>
-/// 转发头只认受信代理转来的 <c>X-Forwarded-For</c>（登录自动封禁记下的是还原后的客户端地址）；跨域只对配置的来源放行，没配来源即不启用；两节配置写错启动即报错。
+/// 转发头只认受信代理转来的 <c>X-Forwarded-For</c>（登录自动封禁记下的是还原后的客户端地址）；跨域只对配置的来源放行，没配来源即不启用；两节配置写错启动即报错
 /// </remarks>
 public sealed class HostNetworkingTests : IDisposable
 {

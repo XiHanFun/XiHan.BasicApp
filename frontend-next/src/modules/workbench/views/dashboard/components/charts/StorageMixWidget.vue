@@ -9,8 +9,8 @@ import { byteScale } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 存储占用：文件类型 → 扩展名的字节数层级（临时文件不算），可在矩形树、旭日、冰柱与圆堆积四种画法间切换，点块下钻、点根返回。
- * 后端给「类型/扩展名」的构成，这里拆成两层；单位按最大的一块挑（KB、MB 或 GB）。
+ * 存储占用：文件类型 → 扩展名的字节数层级（临时文件不算），可在矩形树、旭日、冰柱与圆堆积四种画法间切换，点块下钻、点根返回
+ * 后端给「类型/扩展名」的构成，这里拆成两层；单位按最大的一块挑（KB、MB 或 GB）
  */
 defineOptions({ name: 'StorageMixWidget' })
 

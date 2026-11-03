@@ -7,22 +7,22 @@ using XiHan.Framework.Persistence.Abstractions.Schema;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 
 /// <summary>
-/// 库里的列类型推出的生成类型。
+/// 库里的列类型推出的生成类型
 /// </summary>
-/// <param name="CSharpType">C# 类型（可空时带 <c>?</c>）。</param>
-/// <param name="TsType">TypeScript 类型。</param>
-/// <param name="HtmlType">缺省的表单控件。</param>
-/// <param name="QueryType">缺省的查询方式。</param>
+/// <param name="CSharpType">C# 类型（可空时带 <c>?</c>）</param>
+/// <param name="TsType">TypeScript 类型</param>
+/// <param name="HtmlType">缺省的表单控件</param>
+/// <param name="QueryType">缺省的查询方式</param>
 public sealed record CodeGenColumnType(string CSharpType, string TsType, CodeGenHtmlType HtmlType, CodeGenQueryType QueryType);
 
 /// <summary>
-/// 列类型到 C# 与 TypeScript 类型的映射。
+/// 列类型到 C# 与 TypeScript 类型的映射
 /// </summary>
 /// <remarks>
 /// 按各库的数据库类型名映射（框架读库结构的口径，修订（八十三））：Oracle 的 <c>NUMBER</c> 按精度与小数位分整数与定点数，
 /// 有小数位是 <c>decimal</c>，否则精度不超过 9 是 <c>int</c>、不超过 18 是 <c>long</c>，没写精度或更大是 <c>decimal</c>；Oracle 的 <c>DATE</c> 带时分秒，按日期时间；
-/// SQL Server 的 <c>timestamp</c> 是行版本，按二进制。
-/// 其余照 4.x 的映射，不认得的类型按字符串；只有 <c>long</c> 不同：6.0 的报文里 long 是数字（4.x 由全局转换器写成字符串），TypeScript 是 number、控件是数字框。
+/// SQL Server 的 <c>timestamp</c> 是行版本，按二进制
+/// 其余照 4.x 的映射，不认得的类型按字符串；只有 <c>long</c> 不同：6.0 的报文里 long 是数字（4.x 由全局转换器写成字符串），TypeScript 是 number、控件是数字框
 /// </remarks>
 public static class CodeGenTypeMapping
 {
@@ -39,10 +39,10 @@ public static class CodeGenTypeMapping
     private static readonly HashSet<string> _jsons = new(StringComparer.Ordinal) { "json", "jsonb" };
 
     /// <summary>
-    /// 推出一列的生成类型。
+    /// 推出一列的生成类型
     /// </summary>
-    /// <param name="database">数据库类型。</param>
-    /// <param name="column">读库结构得到的列。</param>
+    /// <param name="database">数据库类型</param>
+    /// <param name="column">读库结构得到的列</param>
     public static CodeGenColumnType Map(CodeGenDatabaseType database, ColumnInfo column)
     {
         ArgumentNullException.ThrowIfNull(column);
@@ -120,9 +120,9 @@ public static class CodeGenTypeMapping
     }
 
     /// <summary>
-    /// 去掉长度与精度括号、无符号与数组修饰，转小写。
+    /// 去掉长度与精度括号、无符号与数组修饰，转小写
     /// </summary>
-    /// <param name="dataType">库里的类型名。</param>
+    /// <param name="dataType">库里的类型名</param>
     public static string Normalize(string? dataType)
     {
         if (string.IsNullOrWhiteSpace(dataType))

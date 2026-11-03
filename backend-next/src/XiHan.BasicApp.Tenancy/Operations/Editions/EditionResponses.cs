@@ -7,22 +7,22 @@ using XiHan.BasicApp.Tenancy.Domain.Services;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 套餐的响应形态：列表项与详情里的基本信息共用。
+/// 套餐的响应形态：列表项与详情里的基本信息共用
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="Description">说明。</param>
-/// <param name="IsDefault">是否新租户的缺省套餐。</param>
-/// <param name="Order">排序号。</param>
-/// <param name="PermissionCount">白名单里的权限数。</param>
-/// <param name="TenantCount">绑定它的租户数。</param>
-/// <param name="UserLimit">席位上限；为空不限。</param>
-/// <param name="StorageLimitMb">存储空间上限（MB）；为空不限。</param>
-/// <param name="Price">价格（两位小数）；为空不标价。</param>
-/// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期。</param>
-/// <param name="IsFree">是否免费套餐（免费套餐不能标价）。</param>
-/// <param name="CreatedAt">创建时间（UTC）。</param>
+/// <param name="Id">主键</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Description">说明</param>
+/// <param name="IsDefault">是否新租户的缺省套餐</param>
+/// <param name="Order">排序号</param>
+/// <param name="PermissionCount">白名单里的权限数</param>
+/// <param name="TenantCount">绑定它的租户数</param>
+/// <param name="UserLimit">席位上限；为空不限</param>
+/// <param name="StorageLimitMb">存储空间上限（MB）；为空不限</param>
+/// <param name="Price">价格（两位小数）；为空不标价</param>
+/// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期</param>
+/// <param name="IsFree">是否免费套餐（免费套餐不能标价）</param>
+/// <param name="CreatedAt">创建时间（UTC）</param>
 public sealed record EditionResponse(
     Guid Id,
     string Code,
@@ -40,7 +40,7 @@ public sealed record EditionResponse(
     bool IsFree)
 {
     /// <summary>
-    /// 由实体与计数投影。
+    /// 由实体与计数投影
     /// </summary>
     public static EditionResponse From(SysEdition edition, int permissionCount, int tenantCount)
     {
@@ -50,23 +50,23 @@ public sealed record EditionResponse(
 }
 
 /// <summary>
-/// <c>editions.list</c> 的响应：全部套餐，按排序号、编码排列。
+/// <c>editions.list</c> 的响应：全部套餐，按排序号、编码排列
 /// </summary>
-/// <param name="Items">套餐。</param>
+/// <param name="Items">套餐</param>
 public sealed record EditionsResponse(IReadOnlyList<EditionResponse> Items);
 
 /// <summary>
-/// 套餐详情。
+/// 套餐详情
 /// </summary>
 /// <remarks>
-/// <c>editions.get / create / set-permissions</c> 的响应。
+/// <c>editions.get / create / set-permissions</c> 的响应
 /// </remarks>
-/// <param name="Edition">套餐。</param>
-/// <param name="Permissions">白名单（权限码，排序）。</param>
+/// <param name="Edition">套餐</param>
+/// <param name="Permissions">白名单（权限码，排序）</param>
 public sealed record EditionDetailResponse(EditionResponse Edition, IReadOnlyList<string> Permissions)
 {
     /// <summary>
-    /// 读白名单与绑定租户数，组装详情。
+    /// 读白名单与绑定租户数，组装详情
     /// </summary>
     public static async Task<EditionDetailResponse> LoadAsync(EditionService service, SysEdition edition, CancellationToken cancellationToken)
     {

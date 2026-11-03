@@ -7,27 +7,27 @@ using System.Net;
 namespace XiHan.BasicApp.Contracts.Security;
 
 /// <summary>
-/// 开放接口的 IP 白名单。
+/// 开放接口的 IP 白名单
 /// </summary>
 /// <remarks>
-/// 每条是一个 IP（v4 / v6）或 CIDR 网段。Identity 保存时校验，OpenPlatform 验签时匹配，两边同一套规则。
+/// 每条是一个 IP（v4 / v6）或 CIDR 网段。Identity 保存时校验，OpenPlatform 验签时匹配，两边同一套规则
 /// </remarks>
 public static class ApiIpAllowList
 {
     /// <summary>
-    /// 最多条数。
+    /// 最多条数
     /// </summary>
     public const int MaxEntries = 50;
 
     /// <summary>
-    /// 解析一条白名单。
+    /// 解析一条白名单
     /// </summary>
     /// <remarks>
-    /// 单个地址按全长前缀的网段处理；IPv4 映射的 IPv6 还原为 IPv4。
+    /// 单个地址按全长前缀的网段处理；IPv4 映射的 IPv6 还原为 IPv4
     /// </remarks>
-    /// <param name="entry">一条。</param>
-    /// <param name="network">网段。</param>
-    /// <returns>是否合法。</returns>
+    /// <param name="entry">一条</param>
+    /// <param name="network">网段</param>
+    /// <returns>是否合法</returns>
     public static bool TryParse(string? entry, out IPNetwork network)
     {
         network = default;
@@ -53,15 +53,15 @@ public static class ApiIpAllowList
     }
 
     /// <summary>
-    /// 规整一份白名单（按行或逗号分隔，去空去重）。
+    /// 规整一份白名单（按行或逗号分隔，去空去重）
     /// </summary>
     /// <remarks>
-    /// 有一条不合法即失败并给出那一条。
+    /// 有一条不合法即失败并给出那一条
     /// </remarks>
-    /// <param name="value">原文。</param>
-    /// <param name="entries">规整后的各条。</param>
-    /// <param name="invalid">不合法的那一条。</param>
-    /// <returns>是否合法。</returns>
+    /// <param name="value">原文</param>
+    /// <param name="entries">规整后的各条</param>
+    /// <param name="invalid">不合法的那一条</param>
+    /// <returns>是否合法</returns>
     public static bool TryNormalize(string? value, out IReadOnlyList<string> entries, [NotNullWhen(false)] out string? invalid)
     {
         var result = new List<string>();
@@ -89,14 +89,14 @@ public static class ApiIpAllowList
     }
 
     /// <summary>
-    /// 判断地址是否在白名单内。
+    /// 判断地址是否在白名单内
     /// </summary>
     /// <remarks>
-    /// 白名单为空即不限。解析不出的条目不放行任何地址。
+    /// 白名单为空即不限。解析不出的条目不放行任何地址
     /// </remarks>
-    /// <param name="entries">白名单。</param>
-    /// <param name="remoteAddress">客户端地址。</param>
-    /// <returns>是否放行。</returns>
+    /// <param name="entries">白名单</param>
+    /// <param name="remoteAddress">客户端地址</param>
+    /// <returns>是否放行</returns>
     public static bool Allows(IReadOnlyList<string> entries, string? remoteAddress)
     {
         ArgumentNullException.ThrowIfNull(entries);
@@ -115,10 +115,10 @@ public static class ApiIpAllowList
     }
 
     /// <summary>
-    /// 按换行或逗号拆开，去掉空白。
+    /// 按换行或逗号拆开，去掉空白
     /// </summary>
-    /// <param name="value">原文。</param>
-    /// <returns>各条。</returns>
+    /// <param name="value">原文</param>
+    /// <returns>各条</returns>
     public static IReadOnlyList<string> Split(string? value)
         => string.IsNullOrWhiteSpace(value)
             ? []

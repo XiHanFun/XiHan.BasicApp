@@ -4,16 +4,16 @@
 namespace XiHan.BasicApp.Files.Queries;
 
 /// <summary>
-/// 筛选值里的枚举（逗号分隔、按名称、不区分大小写）。
+/// 筛选值里的枚举（逗号分隔、按名称、不区分大小写）
 /// </summary>
 internal static class Enums
 {
     /// <summary>
-    /// 把筛选值解析成枚举列表。
+    /// 把筛选值解析成枚举列表
     /// </summary>
-    /// <typeparam name="TEnum">枚举类型。</typeparam>
-    /// <param name="value">筛选值。</param>
-    /// <returns>枚举值；有一项不认识或为空时为 <see langword="null"/>。</returns>
+    /// <typeparam name="TEnum">枚举类型</typeparam>
+    /// <param name="value">筛选值</param>
+    /// <returns>枚举值；有一项不认识或为空时为 <see langword="null"/></returns>
     public static List<TEnum>? Of<TEnum>(string value)
         where TEnum : struct, Enum
     {

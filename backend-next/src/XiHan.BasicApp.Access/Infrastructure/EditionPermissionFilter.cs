@@ -9,14 +9,14 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 把套餐门控接进框架的权限判定。
+/// 把套餐门控接进框架的权限判定
 /// </summary>
 /// <remarks>
-/// ADR-0039 的 <see cref="IPermissionFilter"/>，单例。
-/// 授予命中之后，租户主体的权限码还须在其套餐白名单里，否则视为不持有（<c>SECURITY_DENIED_004</c>）。
-/// 平台主体不门控；租户未绑定套餐（门控返回 <see langword="null"/>）不受限；没有任何 <see cref="IEditionGate"/> 时一律放行。与 <see cref="EffectivePermissions"/> 的收窄同源。
+/// ADR-0039 的 <see cref="IPermissionFilter"/>，单例
+/// 授予命中之后，租户主体的权限码还须在其套餐白名单里，否则视为不持有（<c>SECURITY_DENIED_004</c>）
+/// 平台主体不门控；租户未绑定套餐（门控返回 <see langword="null"/>）不受限；没有任何 <see cref="IEditionGate"/> 时一律放行。与 <see cref="EffectivePermissions"/> 的收窄同源
 /// </remarks>
-/// <param name="gates">套餐门控（Tenancy 实现，单例）。</param>
+/// <param name="gates">套餐门控（Tenancy 实现，单例）</param>
 public sealed class EditionPermissionFilter(IEnumerable<IEditionGate> gates) : IPermissionFilter
 {
     private readonly IEditionGate[] _gates = gates?.ToArray() ?? throw new ArgumentNullException(nameof(gates));

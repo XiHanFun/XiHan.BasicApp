@@ -176,9 +176,9 @@ export function createPreferencesSlice() {
   bindPersist(SHORTCUT_LOCK_KEY, shortcutLock, true)
   bindPersist(SHORTCUT_TAB_OVERVIEW_KEY, shortcutTabOverview, true)
 
-  // 语言 ref 是唯一入口：vue-i18n 跟着它走，而不是在切换函数里另外赋一次。
+  // 语言 ref 是唯一入口：vue-i18n 跟着它走，而不是在切换函数里另外赋一次
   // 否则其它设备推来的偏好只会改到这个 ref（applyRemotePreferenceSnapshot 直接给 ref 赋值），
-  // vue-i18n 收不到通知，表现为「提示已从其它端同步、界面语言却没变」。
+  // vue-i18n 收不到通知，表现为「提示已从其它端同步、界面语言却没变」
   watch(locale, (lang) => {
     if (!isLocale(lang) || i18n.global.locale.value === lang) {
       return

@@ -188,7 +188,7 @@ function finishCustomize() {
 
 // 边缘拖拽调宽：把像素位移换算成栅格列数，实时跟随光标；靠近预设档位时磁吸（左把手方向取反）
 const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
-/** 网格根节点。ref 落在组件上得到的是实例，按栅格折算宽度要的是那个元素。 */
+/** 网格根节点。ref 落在组件上得到的是实例，按栅格折算宽度要的是那个元素 */
 const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
 let resize: { item: BoardItem, startX: number, startSpan: number, colUnit: number, sign: number } | null = null
 

@@ -15,23 +15,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Infrastructure;
 
 /// <summary>
-/// 聊天 Hub（<c>/hubs/chat</c>）。
+/// 聊天 Hub（<c>/hubs/chat</c>）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>BasicAppChatHub</c>：认证、会话门禁与连接登记由 Realtime 的基类做；客户端可调进入、离开会话与正在输入，进入与正在输入先核对是会话成员（不是即忽略并记日志）。
-/// 进入会话只为正在输入的组播加入会话组（经基类记进连接登记，吊销会话时一并移出）；正在输入组播给组里的其他连接、不落库，配了 Redis 时经背板跨实例。
-/// Hub 绕过内核管道，核对成员时以连接所在的一侧开一次内部调用读库（租户经 Baggage，独立库的租户读它自己的库）。
+/// 照 4.x 的 <c>BasicAppChatHub</c>：认证、会话门禁与连接登记由 Realtime 的基类做；客户端可调进入、离开会话与正在输入，进入与正在输入先核对是会话成员（不是即忽略并记日志）
+/// 进入会话只为正在输入的组播加入会话组（经基类记进连接登记，吊销会话时一并移出）；正在输入组播给组里的其他连接、不落库，配了 Redis 时经背板跨实例
+/// Hub 绕过内核管道，核对成员时以连接所在的一侧开一次内部调用读库（租户经 Baggage，独立库的租户读它自己的库）
 /// </remarks>
-/// <param name="realtime">实时服务。</param>
-/// <param name="app">内核应用。</param>
-/// <param name="scopes">服务作用域工厂。</param>
-/// <param name="logger">日志。</param>
+/// <param name="realtime">实时服务</param>
+/// <param name="app">内核应用</param>
+/// <param name="scopes">服务作用域工厂</param>
+/// <param name="logger">日志</param>
 internal sealed partial class ChatHub(RealtimeHubServices realtime, App app, IServiceScopeFactory scopes, ILogger<ChatHub> logger) : RealtimeHub(realtime)
 {
     /// <summary>
-    /// 进入会话。
+    /// 进入会话
     /// </summary>
-    /// <param name="conversationId">会话 ID。</param>
+    /// <param name="conversationId">会话 ID</param>
     public async Task JoinConversation(string conversationId)
     {
         if (!Guid.TryParse(conversationId, out var id) || Connection is not { } connection)
@@ -50,16 +50,16 @@ internal sealed partial class ChatHub(RealtimeHubServices realtime, App app, ISe
     }
 
     /// <summary>
-    /// 离开会话。
+    /// 离开会话
     /// </summary>
-    /// <param name="conversationId">会话 ID。</param>
+    /// <param name="conversationId">会话 ID</param>
     public Task LeaveConversation(string conversationId)
         => Guid.TryParse(conversationId, out var id) ? LeaveGroupAsync(GroupOf(id)) : Task.CompletedTask;
 
     /// <summary>
-    /// 正在输入。
+    /// 正在输入
     /// </summary>
-    /// <param name="conversationId">会话 ID。</param>
+    /// <param name="conversationId">会话 ID</param>
     public async Task Typing(string conversationId)
     {
         if (!Guid.TryParse(conversationId, out var id) || Connection is not { } connection)
@@ -78,7 +78,7 @@ internal sealed partial class ChatHub(RealtimeHubServices realtime, App app, ISe
     }
 
     /// <summary>
-    /// 会话组名。
+    /// 会话组名
     /// </summary>
     internal static string GroupOf(Guid conversationId) => $"chat:c:{conversationId:N}";
 

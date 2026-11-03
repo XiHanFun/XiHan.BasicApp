@@ -15,29 +15,29 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 通知包给工作台的小组件。
+/// 通知包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 公告取本人收件箱里最近的几条（与收件箱同一口径，人人可见）；消息发送统计只看当前一侧的发件记录。
+/// 公告取本人收件箱里最近的几条（与收件箱同一口径，人人可见）；消息发送统计只看当前一侧的发件记录
 /// </remarks>
-/// <param name="inbox">收件箱查询。</param>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
-/// <param name="permissions">权限判定（短信发件记录另有权限）。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="inbox">收件箱查询</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
+/// <param name="permissions">权限判定（短信发件记录另有权限）</param>
+/// <param name="clock">时钟</param>
 public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork unitOfWork, IPermissionChecker permissions, TimeProvider clock) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 公告（本人收件箱里最近的几条）。
+    /// 公告（本人收件箱里最近的几条）
     /// </summary>
     public const string Announcements = "notification.announcements";
 
     /// <summary>
-    /// 消息发送（邮件与短信按发送状态的条数）。
+    /// 消息发送（邮件与短信按发送状态的条数）
     /// </summary>
     public const string Deliveries = "notification.deliveries";
 
     /// <summary>
-    /// 公告最多几条。
+    /// 公告最多几条
     /// </summary>
     private const int AnnouncementLimit = 6;
 
@@ -62,10 +62,10 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
     }
 
     /// <summary>
-    /// 本人收件箱里最近发布的几条。
+    /// 本人收件箱里最近发布的几条
     /// </summary>
     /// <remarks>
-    /// 条目的标识是收件箱这一条的 ID，类别是通知类型，时间是发布时间。
+    /// 条目的标识是收件箱这一条的 ID，类别是通知类型，时间是发布时间
     /// </remarks>
     private async Task<Result<WorkbenchWidgetData>> AnnouncementsAsync(InvocationContext context)
     {
@@ -81,10 +81,10 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
     }
 
     /// <summary>
-    /// 统计区间里邮件与短信按发送状态的条数。
+    /// 统计区间里邮件与短信按发送状态的条数
     /// </summary>
     /// <remarks>
-    /// 类目是 <c>email</c> 与 <c>sms</c>（没有短信发件记录的权限时只有邮件），序列是成功、失败、待发（含发送中）与取消。
+    /// 类目是 <c>email</c> 与 <c>sms</c>（没有短信发件记录的权限时只有邮件），序列是成功、失败、待发（含发送中）与取消
     /// </remarks>
     private async Task<Result<WorkbenchWidgetData>> DeliveriesAsync(WorkbenchWidgetQuery query, InvocationContext context)
     {
@@ -126,7 +126,7 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
     }
 
     /// <summary>
-    /// 一种发送状态的条数。
+    /// 一种发送状态的条数
     /// </summary>
     private sealed class StatusCount
     {

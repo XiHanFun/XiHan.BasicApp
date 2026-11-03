@@ -11,11 +11,11 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证租户所有权转移与运维支持成员。
+/// 验证租户所有权转移与运维支持成员
 /// </summary>
 /// <remarks>
 /// 所有者即租户的管理员（<c>adminUserId</c>）：转移只给注册地用户或生效中的普通成员（启用、未锁定），新所有者拿到管理员角色、原所有者保留，记权限变更日志；
-/// 所有者不能被删除、锁定或移出成员。运维支持成员只能是平台账号、不占席位、不进模仿候选，到期即不能进入。
+/// 所有者不能被删除、锁定或移出成员。运维支持成员只能是平台账号、不占席位、不进模仿候选，到期即不能进入
 /// </remarks>
 public sealed class TenantOwnershipTests : IDisposable
 {

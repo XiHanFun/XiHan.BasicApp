@@ -14,13 +14,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Queries;
 
 /// <summary>
-/// 聊天的查询（作用域）。
+/// 聊天的查询（作用域）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>ChatQueryService</c>：只看调用方所在一侧，会话里的内容只给成员看。历史按会话内序号取（4.x 按雪花主键），一次 1 到 100 条、多取一条判断还有没有更早的；
-/// 搜索匹配正文与附件、不含已撤回的，一次 1 到 50 条、按时间倒序、不带回应。
+/// 搜索匹配正文与附件、不含已撤回的，一次 1 到 50 条、按时间倒序、不带回应
 /// </remarks>
-/// <param name="store">按侧读写聊天表。</param>
+/// <param name="store">按侧读写聊天表</param>
 public sealed class ChatQueries(ChatStore store)
 {
     private const int DefaultHistoryTake = 30;
@@ -28,7 +28,7 @@ public sealed class ChatQueries(ChatStore store)
     private const int DefaultUserLimit = 50;
 
     /// <summary>
-    /// 我的会话（置顶优先，再按最后消息时间倒序）。
+    /// 我的会话（置顶优先，再按最后消息时间倒序）
     /// </summary>
     public async Task<ChatConversationsResponse> MineAsync(InvocationContext context, ChatCaller caller)
     {
@@ -89,7 +89,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 消息历史。
+    /// 消息历史
     /// </summary>
     public async Task<Result<ChatMessagePageResponse>> HistoryAsync(InvocationContext context, ChatCaller caller, ChatMessageHistoryRequest request)
     {
@@ -137,7 +137,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 会话内搜索。
+    /// 会话内搜索
     /// </summary>
     public async Task<Result<ChatMessagePageResponse>> SearchAsync(InvocationContext context, ChatCaller caller, ChatMessageSearchRequest request)
     {
@@ -172,7 +172,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 会话里置顶的消息（最近置顶的在前）。
+    /// 会话里置顶的消息（最近置顶的在前）
     /// </summary>
     public async Task<Result<ChatMessagesResponse>> PinnedAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
     {
@@ -187,7 +187,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 会话成员（按角色再按入会时间）。
+    /// 会话成员（按角色再按入会时间）
     /// </summary>
     public async Task<Result<ChatMembersResponse>> MembersAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
     {
@@ -201,7 +201,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 会话成员的条目（聊天审计也用）。
+    /// 会话成员的条目（聊天审计也用）
     /// </summary>
     public async Task<IReadOnlyList<ChatMemberItem>> MemberItemsAsync(string side, Guid conversationId, CancellationToken cancellationToken)
     {
@@ -218,7 +218,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 成员的已读位（群的已读回执）。
+    /// 成员的已读位（群的已读回执）
     /// </summary>
     public async Task<Result<ChatReadPositionsResponse>> ReadPositionsAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
     {
@@ -233,7 +233,7 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 当前一侧启用的部门树（平台没有部门）。
+    /// 当前一侧启用的部门树（平台没有部门）
     /// </summary>
     public static async Task<ChatDepartmentTreeResponse> DepartmentTreeAsync(InvocationContext context)
     {
@@ -246,10 +246,10 @@ public sealed class ChatQueries(ChatStore store)
     }
 
     /// <summary>
-    /// 选人：当前一侧的正常账号。
+    /// 选人：当前一侧的正常账号
     /// </summary>
     /// <remarks>
-    /// 平台是注册在平台的账号，租户是注册在本租户的用户与租户成员；按创建时间倒序。
+    /// 平台是注册在平台的账号，租户是注册在本租户的用户与租户成员；按创建时间倒序
     /// </remarks>
     public async Task<ChatUserOptionsResponse> UserOptionsAsync(InvocationContext context, ChatCaller caller, ChatUserOptionsRequest request)
     {

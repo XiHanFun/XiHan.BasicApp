@@ -19,11 +19,11 @@ import { VNodeRender } from '~/components'
 import { Icon } from '~/iconify'
 
 /**
- * 标签页右键菜单。
+ * 标签页右键菜单
  *
- * 开合与落点由父组件给（它在标签上监听右键并记下坐标），所以这里不接管右键事件。
- * 菜单钉在坐标上，坐标经实例命令 openAt 交进去，开合随之走命令而非受控 open。
- * 摆的是部件而非交 collection：带 children 的条目要渲染成二级子菜单，代铺那条路只吃扁平条目。
+ * 开合与落点由父组件给（它在标签上监听右键并记下坐标），所以这里不接管右键事件
+ * 菜单钉在坐标上，坐标经实例命令 openAt 交进去，开合随之走命令而非受控 open
+ * 摆的是部件而非交 collection：带 children 的条目要渲染成二级子菜单，代铺那条路只吃扁平条目
  */
 interface Props {
   show: boolean

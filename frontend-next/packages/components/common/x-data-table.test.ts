@@ -1,9 +1,9 @@
 /**
- * XDataTable 的外观与分页契约：弹窗、抽屉里的次级表格与列表页表格同一副样式。
+ * XDataTable 的外观与分页契约：弹窗、抽屉里的次级表格与列表页表格同一副样式
  *
  * 缺省是中档行高 + 列间分隔线（与 SchemaTablePanel 缺省的非单行模式一致）；
  * 给了 pagination 就在表格下方出与列表页同一副底栏（条数与页码 + 分页），
- * 此前 pagination 不是本组件的 prop，会被当成属性透传到包裹层，调用方以为有分页、界面上却没有。
+ * 此前 pagination 不是本组件的 prop，会被当成属性透传到包裹层，调用方以为有分页、界面上却没有
  */
 import type { TableColumnDef } from '@xihan-ui/headless'
 import { mount } from '@vue/test-utils'

@@ -14,23 +14,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 创建用户。
+/// 创建用户
 /// </summary>
 /// <remarks>
-/// JWT 认证 → 主体声明解析租户 → 按契约判定 <c>identity.users.create</c> → Validate 阶段按 Schema 与自校验拒绝坏请求 → 工作单元内写用户、账号安全（可带初始密码）与用户统计（租户库）。
-/// 注册地租户：租户主体只能建本租户的用户；平台主体可指定租户，不指定即平台账号。统计行只在当前租户就是注册地时创建（租户库写入需要租户上下文），其余情形在首次登录时补。
-/// 管理类写操作，按 5.4 只暴露给 HTTP（N0 曾同时暴露到 gRPC / MCP 做三协议冒烟，冒烟已改落到只读的 <c>users.get</c> / <c>users.list</c>）。
+/// JWT 认证 → 主体声明解析租户 → 按契约判定 <c>identity.users.create</c> → Validate 阶段按 Schema 与自校验拒绝坏请求 → 工作单元内写用户、账号安全（可带初始密码）与用户统计（租户库）
+/// 注册地租户：租户主体只能建本租户的用户；平台主体可指定租户，不指定即平台账号。统计行只在当前租户就是注册地时创建（租户库写入需要租户上下文），其余情形在首次登录时补
+/// 管理类写操作，按 5.4 只暴露给 HTTP（N0 曾同时暴露到 gRPC / MCP 做三协议冒烟，冒烟已改落到只读的 <c>users.get</c> / <c>users.list</c>）
 /// </remarks>
-/// <param name="users">用户仓储（默认连接）。</param>
-/// <param name="statistics">用户统计仓储（带分片的调用落 <c>shard</c> 连接）。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="ids">标识生成器（UUID v7）。</param>
-/// <param name="quotas">租户配额（租户一侧建用户占一个席位；没装 Tenancy 即不限）。</param>
+/// <param name="users">用户仓储（默认连接）</param>
+/// <param name="statistics">用户统计仓储（带分片的调用落 <c>shard</c> 连接）</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="ids">标识生成器（UUID v7）</param>
+/// <param name="quotas">租户配额（租户一侧建用户占一个席位；没装 Tenancy 即不限）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
 public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<SysUserStatistics, Guid> statistics, UserAccountService accounts, IIdGenerator<Guid> ids, IEnumerable<ITenantQuota> quotas) : IOperation<CreateUserRequest, UserResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "users.create";
 

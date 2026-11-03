@@ -1,7 +1,7 @@
 /**
- * useHtmlStyle 把图表配色写到 <html data-xh-chart-palette>。
+ * useHtmlStyle 把图表配色写到 <html data-xh-chart-palette>
  *
- * 组件库按这个属性整套换图表的分类色槽；多彩分类是不写属性时的缺省方案，选它就撤掉属性。
+ * 组件库按这个属性整套换图表的分类色槽；多彩分类是不写属性时的缺省方案，选它就撤掉属性
  */
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'

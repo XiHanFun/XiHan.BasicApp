@@ -16,36 +16,36 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 一次导出提交的内容。
+/// 一次导出提交的内容
 /// </summary>
-/// <param name="BusinessType">要导出的列表操作 ID。</param>
-/// <param name="TaskName">任务名称；为空按「操作 ID_时间」起名（4.x 同）。</param>
-/// <param name="Scope">范围。</param>
-/// <param name="Format">格式。</param>
-/// <param name="QuerySnapshot">查询快照（分页请求 JSON）。</param>
-/// <param name="FieldsSnapshot">列快照（JSON）。</param>
+/// <param name="BusinessType">要导出的列表操作 ID</param>
+/// <param name="TaskName">任务名称；为空按「操作 ID_时间」起名（4.x 同）</param>
+/// <param name="Scope">范围</param>
+/// <param name="Format">格式</param>
+/// <param name="QuerySnapshot">查询快照（分页请求 JSON）</param>
+/// <param name="FieldsSnapshot">列快照（JSON）</param>
 public sealed record ExportSubmission(string BusinessType, string? TaskName, ExportScope Scope, ExportFormat Format, string? QuerySnapshot, string FieldsSnapshot);
 
 /// <summary>
-/// 导出任务的提交、读取、取消与删除。
+/// 导出任务的提交、读取、取消与删除
 /// </summary>
 /// <remarks>
-/// 4.x 同。提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务。
-/// 与 4.x 不同：要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件。
+/// 4.x 同。提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务
+/// 与 4.x 不同：要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件
 /// </remarks>
-/// <param name="rows">任务读写。</param>
-/// <param name="files">文件服务（删除结果文件）。</param>
-/// <param name="queue">导出队列。</param>
-/// <param name="registry">操作登记表。</param>
-/// <param name="ids">ID 生成器。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="rows">任务读写</param>
+/// <param name="files">文件服务（删除结果文件）</param>
+/// <param name="queue">导出队列</param>
+/// <param name="registry">操作登记表</param>
+/// <param name="ids">ID 生成器</param>
+/// <param name="clock">时钟</param>
 public sealed class ExportTaskService(SideRows rows, FileService files, ExportJobs queue, OperationRegistry registry, IIdGenerator<Guid> ids, TimeProvider clock)
 {
     /// <summary>
-    /// 取调用方的用户 ID。
+    /// 取调用方的用户 ID
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>用户 ID；没有登录用户为空。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <returns>用户 ID；没有登录用户为空</returns>
     public static Guid? RequesterOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -53,14 +53,14 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 提交一个导出任务。
+    /// 提交一个导出任务
     /// </summary>
     /// <remarks>
-    /// 校验要导出的列表操作与列，写一条排队中的任务，把发起人这次调用的凭据带进作业入队。
+    /// 校验要导出的列表操作与列，写一条排队中的任务，把发起人这次调用的凭据带进作业入队
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="submission">提交内容。</param>
-    /// <returns>新任务。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="submission">提交内容</param>
+    /// <returns>新任务</returns>
     public async Task<Result<SysExportTask>> SubmitAsync(InvocationContext context, ExportSubmission submission)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -107,11 +107,11 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 调用方自己的一个任务。
+    /// 调用方自己的一个任务
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="id">任务 ID。</param>
-    /// <returns>任务；不存在或不是自己的为失败。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="id">任务 ID</param>
+    /// <returns>任务；不存在或不是自己的为失败</returns>
     public async Task<Result<SysExportTask>> FindAsync(InvocationContext context, Guid id)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -125,14 +125,14 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 取消：只在排队中，记为失败并写明已取消。
+    /// 取消：只在排队中，记为失败并写明已取消
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="task">任务。</param>
-    /// <returns>结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="task">任务</param>
+    /// <returns>结果</returns>
     public async Task<Result> CancelAsync(InvocationContext context, SysExportTask task)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -150,11 +150,11 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     }
 
     /// <summary>
-    /// 删除自己的任务，连同结果文件（执行中的任务等它结束）。
+    /// 删除自己的任务，连同结果文件（执行中的任务等它结束）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="taskIds">任务 ID。</param>
-    /// <returns>逐项结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="taskIds">任务 ID</param>
+    /// <returns>逐项结果</returns>
     public async Task<BatchResult> DeleteAsync(InvocationContext context, IReadOnlyList<Guid> taskIds)
     {
         ArgumentNullException.ThrowIfNull(context);

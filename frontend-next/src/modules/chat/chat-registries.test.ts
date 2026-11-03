@@ -1,8 +1,8 @@
 /**
- * 聊天模块两个注入缝的注册表语义：api-contract 与 assistant-provider。
+ * 聊天模块两个注入缝的注册表语义：api-contract 与 assistant-provider
  *
- * 职责边界：只验证「未注册时的行为」「注册后的可见性」「后注册覆盖先注册」这三件事。
- * 两个模块都持有模块级单例，因此每个用例都 vi.resetModules() 后重新动态导入，互不串状态。
+ * 职责边界：只验证「未注册时的行为」「注册后的可见性」「后注册覆盖先注册」这三件事
+ * 两个模块都持有模块级单例，因此每个用例都 vi.resetModules() 后重新动态导入，互不串状态
  */
 import type { ChatAssistantProvider } from './assistant-provider'
 import type { ChatApiContract } from './types'

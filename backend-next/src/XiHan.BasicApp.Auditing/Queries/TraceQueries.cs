@@ -14,25 +14,25 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 链路聚合查询。
+/// 链路聚合查询
 /// </summary>
 /// <remarks>
 /// 按维度在当前一侧的七张分表日志里各取至多「每类上限 + 1」条（多取一条判断截断），再取操作日志——维度是 trace-id 或用户时直接按列查，
-/// 其余维度（登录名、会话、客户端地址）操作日志没有对应的列，就按其他日志里出现过的 trace-id 去取。合并后按发生时间正序。
+/// 其余维度（登录名、会话、客户端地址）操作日志没有对应的列，就按其他日志里出现过的 trace-id 去取。合并后按发生时间正序
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
-/// <param name="operations">操作日志查询。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
+/// <param name="operations">操作日志查询</param>
 public sealed class TraceQueries(SqlSugarUnitOfWork unitOfWork, OperationLogQueries operations)
 {
     /// <summary>
-    /// 按 trace-id 反查操作日志时最多带多少个 trace-id。
+    /// 按 trace-id 反查操作日志时最多带多少个 trace-id
     /// </summary>
     private const int MaxTraceIds = 500;
 
     private static readonly DateTime _earliest = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     /// <summary>
-    /// 取时间线。
+    /// 取时间线
     /// </summary>
     public async ValueTask<Result<TraceTimelineResponse>> TimelineAsync(TraceTimelineRequest request, InvocationContext context)
     {

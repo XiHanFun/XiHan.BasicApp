@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
 
 <template>
   <XhPopoverRoot v-model:open="showPanel" placement="bottom-start">
-    <!-- 浮层触发器渲染成 button，不能再往里套一颗；星标钮的样式直接落在它身上。
+    <!-- 浮层触发器渲染成 button，不能再往里套一颗；星标钮的样式直接落在它身上
          anchorRef 仍留在外层 span 上——它是灵动岛的落位参照，不能跟着浮层开合动 -->
     <span ref="anchorRef" class="mr-1 inline-flex">
       <XhPopoverTrigger
@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
         :title="t('header.favorites.title')"
         :aria-label="t('header.favorites.title')"
       >
-        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算。
+        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算
              开着收藏夹同步时等后端那份回来再出数：本地那份可能是别的设备改动之前的旧值 -->
         <XhBadge
           size="sm"

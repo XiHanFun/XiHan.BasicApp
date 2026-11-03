@@ -12,10 +12,10 @@ using XiHan.BasicApp.OpenPlatform.Operations.Open;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包操作的请求 / 响应的序列化上下文。
+/// 开放平台包操作的请求 / 响应的序列化上下文
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。
+/// 源生成；枚举按字符串
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

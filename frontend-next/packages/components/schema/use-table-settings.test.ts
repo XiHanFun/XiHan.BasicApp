@@ -1,7 +1,7 @@
 /**
- * 表格设置的对齐：数据列一起换，缺省靠起始边；随「保存」落地、随「恢复默认」回到靠左。
- * 密度与竖线：直接存组件库的尺寸档与 ruled，旧版存的 small / medium / large 与 singleLine 读到时换算。
- * 跨端同步换成替身：这里只看本地状态与本地存储。
+ * 表格设置的对齐：数据列一起换，缺省靠起始边；随「保存」落地、随「恢复默认」回到靠左
+ * 密度与竖线：直接存组件库的尺寸档与 ruled，旧版存的 small / medium / large 与 singleLine 读到时换算
+ * 跨端同步换成替身：这里只看本地状态与本地存储
  */
 import type { ListFieldSchema } from './types'
 import { afterEach, describe, expect, it, vi } from 'vitest'

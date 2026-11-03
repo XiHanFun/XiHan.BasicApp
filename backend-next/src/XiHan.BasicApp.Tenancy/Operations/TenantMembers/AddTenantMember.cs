@@ -15,21 +15,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 
 /// <summary>
-/// 给租户加成员。
+/// 给租户加成员
 /// </summary>
 /// <remarks>
-/// <c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行。
-/// 平台账号只能以运维支持加入、运维支持只能是平台账号（对应 4.x 的支持人员入驻）；到期须晚于生效。
+/// <c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行
+/// 平台账号只能以运维支持加入、运维支持只能是平台账号（对应 4.x 的支持人员入驻）；到期须晚于生效
 /// </remarks>
-/// <param name="members">成员仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="members">成员仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="service">租户域服务</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersCreate)]
 public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, IRepository<SysUser, Guid> users, TenantService service, IIdGenerator<Guid> ids) : IOperation<AddTenantMemberRequest, TenantMemberResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "tenant-members.create";
 

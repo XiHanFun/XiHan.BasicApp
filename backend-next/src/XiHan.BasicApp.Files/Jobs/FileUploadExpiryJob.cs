@@ -14,24 +14,24 @@ using XiHan.Framework.Scheduling.Abstractions.Schedules;
 namespace XiHan.BasicApp.Files.Jobs;
 
 /// <summary>
-/// 分片上传的过期处理。
+/// 分片上传的过期处理
 /// </summary>
 /// <remarks>
-/// 内建作业，每小时一次：平台与目录里的每个租户逐个作用域、逐批（一批一个工作单元）把过了时限的分片上传记为过期，放弃存储里的分片。
-/// 一个作用域失败只记日志、计入失败，不影响其他。操作里遇到过时限的上传也按过期回答，不等这个作业。
+/// 内建作业，每小时一次：平台与目录里的每个租户逐个作用域、逐批（一批一个工作单元）把过了时限的分片上传记为过期，放弃存储里的分片
+/// 一个作用域失败只记日志、计入失败，不影响其他。操作里遇到过时限的上传也按过期回答，不等这个作业
 /// </remarks>
-/// <param name="tenants">租户目录。</param>
-/// <param name="scopes">作用域工厂。</param>
-/// <param name="logger">日志。</param>
+/// <param name="tenants">租户目录</param>
+/// <param name="scopes">作用域工厂</param>
+/// <param name="logger">日志</param>
 public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceScopeFactory scopes, ILogger<FileUploadExpiryJob> logger) : IJob
 {
     /// <summary>
-    /// 作业名。
+    /// 作业名
     /// </summary>
     public const string Name = "files.uploads.expire";
 
     /// <summary>
-    /// 计划：每小时第 15 分钟。
+    /// 计划：每小时第 15 分钟
     /// </summary>
     public static JobSchedule Schedule { get; } = JobSchedule.FromCron("15 * * * *");
 
@@ -68,10 +68,10 @@ public sealed partial class FileUploadExpiryJob(ITenantStore tenants, IServiceSc
     }
 
     /// <summary>
-    /// 在独立作用域、带租户的工作单元里处理一批。
+    /// 在独立作用域、带租户的工作单元里处理一批
     /// </summary>
     /// <remarks>
-    /// 成功即提交，抛出即回滚。
+    /// 成功即提交，抛出即回滚
     /// </remarks>
     private async Task<int> InScopeAsync(string side, CancellationToken cancellationToken)
     {

@@ -12,20 +12,20 @@ using XiHan.Framework.Security.Abstractions.Network;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 开会话时记下的客户端。
+/// 开会话时记下的客户端
 /// </summary>
 /// <remarks>
-/// 取调用来源（框架协议适配器填入的远端地址与 User-Agent，ADR-0043）；没有网络对端的调用（命令行、消息派发）为 <see langword="null"/>。
+/// 取调用来源（框架协议适配器填入的远端地址与 User-Agent，ADR-0043）；没有网络对端的调用（命令行、消息派发）为 <see langword="null"/>
 /// </remarks>
 public static class SessionClient
 {
     /// <summary>
-    /// 会话的 IP 列与客户端信息列的长度上限（实体没写长度，建表缺省 512）。
+    /// 会话的 IP 列与客户端信息列的长度上限（实体没写长度，建表缺省 512）
     /// </summary>
     private const int MaxLength = 512;
 
     /// <summary>
-    /// 远端地址。
+    /// 远端地址
     /// </summary>
     public static string? AddressOf(InvocationContext context)
     {
@@ -34,7 +34,7 @@ public static class SessionClient
     }
 
     /// <summary>
-    /// 客户端的 User-Agent。
+    /// 客户端的 User-Agent
     /// </summary>
     public static string? AgentOf(InvocationContext context)
     {
@@ -43,10 +43,10 @@ public static class SessionClient
     }
 
     /// <summary>
-    /// 填会话的浏览器、操作系统、设备类型与登录地点。
+    /// 填会话的浏览器、操作系统、设备类型与登录地点
     /// </summary>
     /// <remarks>
-    /// 按会话已记下的 User-Agent 与 IP 解析（在线用户页的列）。
+    /// 按会话已记下的 User-Agent 与 IP 解析（在线用户页的列）
     /// </remarks>
     public static void Describe(SysUserSession session, InvocationContext context)
     {

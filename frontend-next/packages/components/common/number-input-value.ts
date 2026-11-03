@@ -1,8 +1,8 @@
 /**
- * 数字输入的值换算：组件库那侧收发原始输入串，业务上下游一律是 `number | null`。
+ * 数字输入的值换算：组件库那侧收发原始输入串，业务上下游一律是 `number | null`
  *
  * 固定小数位（precision）收在这里：上抛的值按位数回舍，显示串按位数补齐，
- * 步进、失焦规范化与外部写值三处显示一致，整数字段不会提交出 1.5。
+ * 步进、失焦规范化与外部写值三处显示一致，整数字段不会提交出 1.5
  */
 
 /** 小数位数上限：双精度在 20 位以后已无意义，toFixed 也只认到这里以内的整数 */
@@ -39,8 +39,8 @@ export function defaultStep(precision?: number): number | undefined {
 }
 
 /**
- * 原始输入串 → 上抛的值。
- * 空串为 null；'-'、'1e' 这类还不成数的中间态为 undefined，表示这一次不上抛。
+ * 原始输入串 → 上抛的值
+ * 空串为 null；'-'、'1e' 这类还不成数的中间态为 undefined，表示这一次不上抛
  */
 export function toModelValue(text: string, precision?: number): number | null | undefined {
   if (text.trim() === '')
@@ -56,10 +56,10 @@ export interface NumberDraft {
 }
 
 /**
- * 框里该显示的串。
+ * 框里该显示的串
  *
  * 草稿仍对应当前值时沿用草稿：'-0'、'1.'、'1.50' 这类输入中途的写法按值格式化会被改掉，
- * 光标也跟着跳；值被外部改成别的数时草稿作废，按值格式化。
+ * 光标也跟着跳；值被外部改成别的数时草稿作废，按值格式化
  */
 export function resolveDisplayText(value: number | null, draft: NumberDraft | null, precision?: number): string {
   if (draft && draft.value === value)

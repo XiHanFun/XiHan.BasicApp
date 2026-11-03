@@ -8,7 +8,7 @@ import PermissionRequestsTab from './components/PermissionRequestsTab.vue'
 
 /**
  * 授权申请页（照 4.x 一页两签，设计稿 D3）：页面码与路由仍是 access.delegations / /access/delegations，
- * 菜单权限是 access.permission-requests.read；「申请」页签在前，「委托」页签按 access.delegations.read 显示。
+ * 菜单权限是 access.permission-requests.read；「申请」页签在前，「委托」页签按 access.delegations.read 显示
  */
 defineOptions({ name: 'AccessDelegationsView' })
 

@@ -12,28 +12,28 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Domain.Services;
 
 /// <summary>
-/// 追加了一条消息之后的消息与会话。
+/// 追加了一条消息之后的消息与会话
 /// </summary>
-/// <param name="Message">消息。</param>
-/// <param name="Conversation">会话（已更新最后消息）。</param>
+/// <param name="Message">消息</param>
+/// <param name="Conversation">会话（已更新最后消息）</param>
 public sealed record ChatAppended(SysChatMessage Message, SysChatConversation Conversation);
 
 /// <summary>
-/// 消息（作用域）。
+/// 消息（作用域）
 /// </summary>
 /// <remarks>
 /// 规则照 4.x 的 <c>ChatDomainService</c>：只有成员能发，禁言的不能发与编辑；文本必填不超过 4000，图片与文件至少一个附件，语音恰好一个附件、1 到 60 秒、没有正文；
 /// 系统提示与助手回复只由服务端追加；提及最多 20 人且都是成员；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
-/// 置顶消息单聊双方都能、群与部门群只有群主与管理员、每会话最多 10 条。附件以会话为访问范围（方案 H2）：发送时核对附件是自己在聊天里上传的文件，文件名与大小以文件记录为准。
-/// 转发（方案 H1）是服务端单条转发到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出。
+/// 置顶消息单聊双方都能、群与部门群只有群主与管理员、每会话最多 10 条。附件以会话为访问范围（方案 H2）：发送时核对附件是自己在聊天里上传的文件，文件名与大小以文件记录为准
+/// 转发（方案 H1）是服务端单条转发到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出
 /// </remarks>
-/// <param name="store">按侧读写聊天表。</param>
-/// <param name="attachments">附件文件（Files 实现）。</param>
-/// <param name="policy">聊天策略（敏感词）。</param>
-/// <param name="texts">预览文案。</param>
-/// <param name="push">推送。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="store">按侧读写聊天表</param>
+/// <param name="attachments">附件文件（Files 实现）</param>
+/// <param name="policy">聊天策略（敏感词）</param>
+/// <param name="texts">预览文案</param>
+/// <param name="push">推送</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时间源</param>
 public sealed class ChatMessageService(
     ChatStore store,
     IEnumerable<IAttachmentFiles> attachments,
@@ -46,7 +46,7 @@ public sealed class ChatMessageService(
     private readonly IAttachmentFiles? _files = attachments.FirstOrDefault();
 
     /// <summary>
-    /// 发一条消息。
+    /// 发一条消息
     /// </summary>
     public async Task<Result<ChatMessageItem>> SendAsync(InvocationContext context, ChatCaller caller, SendChatMessageRequest request)
     {
@@ -116,10 +116,10 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 转发一条消息到一个或多个会话：逐个会话成功或失败。
+    /// 转发一条消息到一个或多个会话：逐个会话成功或失败
     /// </summary>
     /// <remarks>
-    /// 调用方须是原消息所在会话的成员；系统提示与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败。
+    /// 调用方须是原消息所在会话的成员；系统提示与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败
     /// </remarks>
     public async Task<Result<BatchResult>> ForwardAsync(InvocationContext context, ChatCaller caller, Guid messageId, IReadOnlyList<Guid> conversationIds)
     {
@@ -188,7 +188,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 撤回（本人、限时内）。
+    /// 撤回（本人、限时内）
     /// </summary>
     public async Task<Result> RecallAsync(InvocationContext context, ChatCaller caller, Guid messageId)
     {
@@ -232,7 +232,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 编辑（本人的文本、限时内、没被禁言）。
+    /// 编辑（本人的文本、限时内、没被禁言）
     /// </summary>
     public async Task<Result<ChatMessageItem>> EditAsync(InvocationContext context, ChatCaller caller, Guid messageId, string content)
     {
@@ -301,7 +301,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 表情回应的开关（同一消息、同一用户、同一表情再点即取消）。
+    /// 表情回应的开关（同一消息、同一用户、同一表情再点即取消）
     /// </summary>
     public async Task<Result<ChatReactionResponse>> ReactAsync(InvocationContext context, ChatCaller caller, Guid messageId, string emoji)
     {
@@ -347,7 +347,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 置顶或取消置顶一条消息。
+    /// 置顶或取消置顶一条消息
     /// </summary>
     public async Task<Result> PinAsync(InvocationContext context, ChatCaller caller, Guid messageId, bool pin)
     {
@@ -398,7 +398,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 标记已读：未读清零、已读位前移（不回退），已读位推给全体成员。
+    /// 标记已读：未读清零、已读位前移（不回退），已读位推给全体成员
     /// </summary>
     public async Task<Result<ChatReadPosition>> MarkReadAsync(InvocationContext context, ChatCaller caller, Guid conversationId, Guid? upToMessageId)
     {
@@ -446,10 +446,10 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 追加一条系统提示（刷新会话预览，不加未读）。
+    /// 追加一条系统提示（刷新会话预览，不加未读）
     /// </summary>
     /// <remarks>
-    /// 发送人为空即中性的时间线提示；带操作人即公告这类有归属的提示。给了 <paramref name="memberCount"/> 就一并重算会话的成员数。
+    /// 发送人为空即中性的时间线提示；带操作人即公告这类有归属的提示。给了 <paramref name="memberCount"/> 就一并重算会话的成员数
     /// </remarks>
     public async Task<Result<ChatAppended>> AppendSystemAsync(InvocationContext context, string side, Guid conversationId, string content, string preview, Guid? senderUserId, string? senderName, int? memberCount = null)
     {
@@ -485,7 +485,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 秒传一个聊天附件。
+    /// 秒传一个聊天附件
     /// </summary>
     public async Task<Result<ChatAttachmentUploadResponse>> FastUploadAsync(InvocationContext context, FastUploadChatAttachmentRequest request)
     {
@@ -504,10 +504,10 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 会话成员凭会话换附件的下载地址。
+    /// 会话成员凭会话换附件的下载地址
     /// </summary>
     /// <remarks>
-    /// 附件须出现在这个会话的消息里、是会话现在的头像，或是调用方自己在聊天里上传、还没发出的文件（发送前的预览）。
+    /// 附件须出现在这个会话的消息里、是会话现在的头像，或是调用方自己在聊天里上传、还没发出的文件（发送前的预览）
     /// </remarks>
     public async Task<Result<ChatAttachmentUrlResponse>> PresignAsync(InvocationContext context, ChatCaller caller, PresignChatAttachmentRequest request)
     {
@@ -540,10 +540,10 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 核对群头像。
+    /// 核对群头像
     /// </summary>
     /// <remarks>
-    /// 给的是文件主键时须是调用方自己在聊天里上传的（会话成员凭会话换得到它的地址），没变的照旧；直链与清空不核对（4.x 同为「文件主键或直链」）。
+    /// 给的是文件主键时须是调用方自己在聊天里上传的（会话成员凭会话换得到它的地址），没变的照旧；直链与清空不核对（4.x 同为「文件主键或直链」）
     /// </remarks>
     internal async Task<Result> EnsureAvatarAsync(InvocationContext context, ChatCaller caller, string? current, string? avatar)
     {
@@ -562,10 +562,10 @@ public sealed class ChatMessageService(
         => string.Equals(file.Source, ChatRules.AttachmentSource, StringComparison.Ordinal) && Guid.TryParse(file.UploadedBy, out var uploader) && uploader == caller.UserId;
 
     /// <summary>
-    /// 追加一条用户消息。
+    /// 追加一条用户消息
     /// </summary>
     /// <remarks>
-    /// 取序号、落消息、刷新会话的最后消息、其余成员未读加一、发送人的已读位前移。
+    /// 取序号、落消息、刷新会话的最后消息、其余成员未读加一、发送人的已读位前移
     /// </remarks>
     private async Task<Result<ChatAppended>> AppendAsync(InvocationContext context, string side, Guid conversationId, SysChatMessage message, string? content, IReadOnlyList<ChatMessageAttachment> files, Guid senderUserId, SysChatConversationMember sender)
     {
@@ -594,7 +594,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 被撤回或编辑的是最后一条时刷新会话预览。
+    /// 被撤回或编辑的是最后一条时刷新会话预览
     /// </summary>
     private async Task<Result> RefreshPreviewAsync(string side, SysChatMessage message, string preview, CancellationToken cancellationToken)
     {
@@ -615,7 +615,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 按消息类型核对正文与附件，附件以文件记录为准。
+    /// 按消息类型核对正文与附件，附件以文件记录为准
     /// </summary>
     private async Task<Result<(string? Content, IReadOnlyList<ChatMessageAttachment> Attachments)>> PayloadOfAsync(InvocationContext context, ChatCaller caller, SendChatMessageRequest request)
     {
@@ -654,7 +654,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 核对附件是调用方自己在聊天里上传的文件（方案 H2），文件名与大小取文件记录。
+    /// 核对附件是调用方自己在聊天里上传的文件（方案 H2），文件名与大小取文件记录
     /// </summary>
     private async Task<Result<IReadOnlyList<ChatMessageAttachment>>> OwnAttachmentsAsync(InvocationContext context, ChatCaller caller, IReadOnlyList<ChatMessageAttachment> requested)
     {
@@ -684,7 +684,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 核对提及：都是成员、不超过上限。
+    /// 核对提及：都是成员、不超过上限
     /// </summary>
     private static Result<IReadOnlyList<Guid>> MentionsOf(IReadOnlyList<Guid>? mentionedUserIds, IReadOnlyList<SysChatConversationMember> current)
     {
@@ -699,7 +699,7 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 回复快照「发送人: 内容」（被回复的须在本会话、未撤回）。
+    /// 回复快照「发送人: 内容」（被回复的须在本会话、未撤回）
     /// </summary>
     private async Task<Result<Maybe<string>>> ReplyPreviewAsync(InvocationContext context, string side, Guid? replyToMessageId, Guid conversationId)
     {

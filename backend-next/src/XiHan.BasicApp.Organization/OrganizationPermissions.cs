@@ -6,72 +6,72 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包的权限码：全部只在租户侧（部门、岗位、归属都是租户库实体，平台没有组织）。
+/// 组织包的权限码：全部只在租户侧（部门、岗位、归属都是租户库实体，平台没有组织）
 /// </summary>
 public static class OrganizationPermissions
 {
     /// <summary>
-    /// 查看部门树与部门详情。
+    /// 查看部门树与部门详情
     /// </summary>
     public const string DepartmentsRead = "organization.departments.read";
 
     /// <summary>
-    /// 创建部门。
+    /// 创建部门
     /// </summary>
     public const string DepartmentsCreate = "organization.departments.create";
 
     /// <summary>
-    /// 修改与移动部门。
+    /// 修改与移动部门
     /// </summary>
     public const string DepartmentsUpdate = "organization.departments.update";
 
     /// <summary>
-    /// 删除部门。
+    /// 删除部门
     /// </summary>
     public const string DepartmentsDelete = "organization.departments.delete";
 
     /// <summary>
-    /// 查看岗位。
+    /// 查看岗位
     /// </summary>
     public const string PositionsRead = "organization.positions.read";
 
     /// <summary>
-    /// 创建岗位。
+    /// 创建岗位
     /// </summary>
     public const string PositionsCreate = "organization.positions.create";
 
     /// <summary>
-    /// 修改岗位。
+    /// 修改岗位
     /// </summary>
     public const string PositionsUpdate = "organization.positions.update";
 
     /// <summary>
-    /// 删除岗位。
+    /// 删除岗位
     /// </summary>
     public const string PositionsDelete = "organization.positions.delete";
 
     /// <summary>
-    /// 查看部门成员归属。
+    /// 查看部门成员归属
     /// </summary>
     public const string MembershipsRead = "organization.memberships.read";
 
     /// <summary>
-    /// 把用户加进部门。
+    /// 把用户加进部门
     /// </summary>
     public const string MembershipsCreate = "organization.memberships.create";
 
     /// <summary>
-    /// 修改归属（岗位、主部门、工号、职级、入职时间）。
+    /// 修改归属（岗位、主部门、工号、职级、入职时间）
     /// </summary>
     public const string MembershipsUpdate = "organization.memberships.update";
 
     /// <summary>
-    /// 把用户移出部门。
+    /// 把用户移出部门
     /// </summary>
     public const string MembershipsDelete = "organization.memberships.delete";
 
     /// <summary>
-    /// 全部权限描述。
+    /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

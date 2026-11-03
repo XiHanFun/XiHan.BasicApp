@@ -10,8 +10,8 @@ import WorkflowUserPicker from '../../../components/WorkflowUserPicker.vue'
 import { ASSIGNEE_RULE_TYPE_MAP, ASSIGNEE_RULE_TYPES, createRule, isRuleComplete, MAX_LEADER_LEVEL, readRules } from './assignee-rules'
 
 /**
- * 受理人规则编辑器：一组 `{ type, values }`，按顺序解析并合并（依次审批按此顺序排队）。
- * 角色 / 部门 / 岗位按编码选择，用户按主键选择，主管按层级，表达式引用流程变量。
+ * 受理人规则编辑器：一组 `{ type, values }`，按顺序解析并合并（依次审批按此顺序排队）
+ * 角色 / 部门 / 岗位按编码选择，用户按主键选择，主管按层级，表达式引用流程变量
  */
 defineOptions({ name: 'AssigneeRulesEditor' })
 

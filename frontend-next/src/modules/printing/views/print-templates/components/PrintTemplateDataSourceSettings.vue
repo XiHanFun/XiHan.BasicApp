@@ -1,5 +1,5 @@
 <!--
-  打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单。
+  打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
@@ -82,7 +82,7 @@ const FIELD_KIND_ICONS: Record<PrintFieldKind, string> = {
   table: 'tabler:table',
 }
 
-/** 切换为自由模板；只改弹窗里的草稿，保存成功才生效。 */
+/** 切换为自由模板；只改弹窗里的草稿，保存成功才生效 */
 function switchToFreeTemplate(): void {
   model.value.dataSourceCode = null
 }

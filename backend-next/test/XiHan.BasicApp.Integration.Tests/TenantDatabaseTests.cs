@@ -14,11 +14,11 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证租户独立库的配置与初始化。
+/// 验证租户独立库的配置与初始化
 /// </summary>
 /// <remarks>
-/// 配好连接即待初始化（连接串加密存放、不进响应），初始化建库建表并登记台账，之后不能再改；独立库的租户要先初始化数据库才能初始化管理员。
-/// 就绪之后落租户库的实体（部门）与该租户的审计日志都写进它自己的库，平台库里没有。
+/// 配好连接即待初始化（连接串加密存放、不进响应），初始化建库建表并登记台账，之后不能再改；独立库的租户要先初始化数据库才能初始化管理员
+/// 就绪之后落租户库的实体（部门）与该租户的审计日志都写进它自己的库，平台库里没有
 /// </remarks>
 public sealed class TenantDatabaseTests : IDisposable
 {

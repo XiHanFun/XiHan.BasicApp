@@ -1,8 +1,8 @@
 /**
- * 分屏对照 Store（split-view）单元测试。
+ * 分屏对照 Store（split-view）单元测试
  * 职责边界：分屏开启/关闭、锚定与副标签的互斥约束、宽度占比夹取、视觉反转与路径互换、
- * SessionStorage 持久化往返，以及「小屏禁用分屏」这条硬约束。
- * useIsMobile 被替换为可控 ref —— jsdom 的 matchMedia 替身恒为 false，无法驱动断点。
+ * SessionStorage 持久化往返，以及「小屏禁用分屏」这条硬约束
+ * useIsMobile 被替换为可控 ref —— jsdom 的 matchMedia 替身恒为 false，无法驱动断点
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -385,8 +385,8 @@ describe('小屏收敛', () => {
     setActivePinia(createPinia())
     // 先前用例创建的 store 实例并不会随 setActivePinia 销毁（createPinia 用的是 detached
     // effect scope），它们的 watcher 仍挂在本文件共享的 mobileRef 上，上一行的 setMobile(true)
-    // 会让这些遗留实例各写一次 sessionStorage。清掉它们的写入，本用例才只测新建 store 的行为。
-    // 不清的话用例通过与否取决于此前跑过哪些用例 —— 乱序执行时会随机失败。
+    // 会让这些遗留实例各写一次 sessionStorage。清掉它们的写入，本用例才只测新建 store 的行为
+    // 不清的话用例通过与否取决于此前跑过哪些用例 —— 乱序执行时会随机失败
     sessionStorage.removeItem(SPLIT_VIEW_KEY)
 
     useSplitViewStore()

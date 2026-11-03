@@ -14,12 +14,12 @@ using XiHan.Framework.Protocols.Grpc.Proto;
 namespace XiHan.BasicApp.Integration.Tests.Smoke;
 
 /// <summary>
-/// 验证 gRPC 与 HTTP 共用一份操作 Schema。
+/// 验证 gRPC 与 HTTP 共用一份操作 Schema
 /// </summary>
 /// <remarks>
-/// 方案 9.1 第四项。
+/// 方案 9.1 第四项
 /// gRPC 面上的操作（操作表里显式带 <c>Expose.Grpc</c> 的 <c>users.get</c> / <c>users.list</c>）
-/// 经 gRPC 调用得到与 HTTP 相同的结果与错误码；方法路径带包名 <c>xihan.basicapp</c>。
+/// 经 gRPC 调用得到与 HTTP 相同的结果与错误码；方法路径带包名 <c>xihan.basicapp</c>
 /// </remarks>
 public sealed class GrpcParitySmokeTests : IDisposable
 {

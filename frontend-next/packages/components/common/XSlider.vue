@@ -3,9 +3,9 @@ import { XhSliderControl, XhSliderLabel, XhSliderRange, XhSliderRoot, XhSliderTh
 import { computed } from 'vue'
 
 /**
- * 单值滑块。
+ * 单值滑块
  *
- * 组件库的滑块值恒为数组（它同时支持多滑块区间），业务侧一律是一个数；换算与部件摆放收在这里。
+ * 组件库的滑块值恒为数组（它同时支持多滑块区间），业务侧一律是一个数；换算与部件摆放收在这里
  */
 defineOptions({ name: 'XSlider' })
 

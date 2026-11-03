@@ -8,9 +8,9 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 通知偏好的查询：按用户取偏好行（平台库，不分租户），没有行的按缺省全收。
+/// 通知偏好的查询：按用户取偏好行（平台库，不分租户），没有行的按缺省全收
 /// </summary>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class NotificationPreferences(SqlSugarUnitOfWork unitOfWork) : INotificationPreferences
 {
     /// <inheritdoc />
@@ -29,7 +29,7 @@ public sealed class NotificationPreferences(SqlSugarUnitOfWork unitOfWork) : INo
     }
 
     /// <summary>
-    /// 一行偏好是否收：渠道与类别都开着。
+    /// 一行偏好是否收：渠道与类别都开着
     /// </summary>
     public static bool Accepts(SysUserNotificationPreference preference, NotificationPreferenceChannel channel, NotificationPreferenceTopic topic)
     {

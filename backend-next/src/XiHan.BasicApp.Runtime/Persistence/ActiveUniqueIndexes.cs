@@ -9,22 +9,22 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 软删除实体的部分唯一索引。
+/// 软删除实体的部分唯一索引
 /// </summary>
 /// <remarks>
-/// 按实体上的 <see cref="ActiveUniqueIndexAttribute"/> 建 <c>ux_&lt;表&gt;_&lt;列&gt;… WHERE is_deleted = false</c>，已有即跳过。
-/// 在建表之后调用：开发与测试由 <see cref="RuntimeFeature"/> 跟在框架的 <c>InitTables</c> 之后，租户独立库由 <c>TenantSchemas</c> 初始化时调用，生产库随基线脚本建出。
-/// 只支持 PostgreSQL 与 SQLite；索引名超出 PostgreSQL 的 63 字符上限即抛出 <see cref="InvalidOperationException"/>（结构测试先行拦下）。
+/// 按实体上的 <see cref="ActiveUniqueIndexAttribute"/> 建 <c>ux_&lt;表&gt;_&lt;列&gt;… WHERE is_deleted = false</c>，已有即跳过
+/// 在建表之后调用：开发与测试由 <see cref="RuntimeFeature"/> 跟在框架的 <c>InitTables</c> 之后，租户独立库由 <c>TenantSchemas</c> 初始化时调用，生产库随基线脚本建出
+/// 只支持 PostgreSQL 与 SQLite；索引名超出 PostgreSQL 的 63 字符上限即抛出 <see cref="InvalidOperationException"/>（结构测试先行拦下）
 /// </remarks>
 public static class ActiveUniqueIndexes
 {
     /// <summary>
-    /// 索引名的长度上限。
+    /// 索引名的长度上限
     /// </summary>
     public const int MaxNameLength = 63;
 
     /// <summary>
-    /// 索引名。
+    /// 索引名
     /// </summary>
     public static string NameOf(string table, IEnumerable<string> columns)
     {
@@ -34,7 +34,7 @@ public static class ActiveUniqueIndexes
     }
 
     /// <summary>
-    /// 在客户端当前的连接上补建这些实体的部分唯一索引。
+    /// 在客户端当前的连接上补建这些实体的部分唯一索引
     /// </summary>
     public static void Ensure(ISqlSugarClient client, IEnumerable<Type> entityTypes)
     {

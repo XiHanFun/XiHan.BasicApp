@@ -1,8 +1,8 @@
 /**
- * 文件引用上传：字段只存文件 ID。
+ * 文件引用上传：字段只存文件 ID
  *
  * 回填的 ID 按 getFileApi 显示原始文件名，取不到时如实标为不可用（不显示一个打不开的 ID）；
- * 移除发出空值，由表单决定报文里发不发。
+ * 移除发出空值，由表单决定报文里发不发
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'

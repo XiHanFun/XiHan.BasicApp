@@ -13,28 +13,28 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 机器人渠道的广播。
+/// 机器人渠道的广播
 /// </summary>
 /// <remarks>
 /// 正文按机器人渠道的模板渲染（当前一侧启用的同编码模板优先，没有取平台的，4.x 的机器人发送同），
 /// 给本侧每个服务商的缺省机器人各写一条排队中的消息，平台一侧另给每个启用的 Telegram 机器人的每个广播群各写一条
-/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。只用本侧的机器人（租户的通知不进平台的群，Telegram 只在平台，4.x 同）。
+/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。只用本侧的机器人（租户的通知不进平台的群，Telegram 只在平台，4.x 同）
 /// </remarks>
-/// <param name="templates">模板服务。</param>
-/// <param name="bots">机器人配置服务。</param>
-/// <param name="telegram">Telegram 机器人服务。</param>
-/// <param name="messages">机器人消息仓储。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="options">选项。</param>
-/// <param name="signal">唤醒信号。</param>
+/// <param name="templates">模板服务</param>
+/// <param name="bots">机器人配置服务</param>
+/// <param name="telegram">Telegram 机器人服务</param>
+/// <param name="messages">机器人消息仓储</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="options">选项</param>
+/// <param name="signal">唤醒信号</param>
 public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigService bots, TelegramBotService telegram, IRepository<SysBotMessage, Guid> messages, IIdGenerator<Guid> ids, NotificationOptions options, MessageDispatchSignal signal)
 {
     /// <summary>
-    /// 当前一侧有没有可用的机器人与模板。
+    /// 当前一侧有没有可用的机器人与模板
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="templateCode">机器人渠道的模板编码。</param>
-    /// <returns>是否有。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="templateCode">机器人渠道的模板编码</param>
+    /// <returns>是否有</returns>
     public async ValueTask<bool> CanBroadcastAsync(InvocationContext context, string templateCode)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -45,17 +45,17 @@ public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigSe
     }
 
     /// <summary>
-    /// 按模板渲染一条纯文本消息，排队到本侧每个服务商的缺省机器人。
+    /// 按模板渲染一条纯文本消息，排队到本侧每个服务商的缺省机器人
     /// </summary>
     /// <remarks>
-    /// 没给品牌名即补上配置的品牌名（与邮件、短信同）。
+    /// 没给品牌名即补上配置的品牌名（与邮件、短信同）
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="templateCode">机器人渠道的模板编码。</param>
-    /// <param name="parameters">模板参数。</param>
-    /// <param name="businessType">关联的业务类型。</param>
-    /// <param name="businessId">关联的业务 ID。</param>
-    /// <returns>排队的条数；没有模板即 <c>NOTIFICATION_UNAVAILABLE_002</c>，渲染失败即 <c>NOTIFICATION_VALIDATION_007</c>。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="templateCode">机器人渠道的模板编码</param>
+    /// <param name="parameters">模板参数</param>
+    /// <param name="businessType">关联的业务类型</param>
+    /// <param name="businessId">关联的业务 ID</param>
+    /// <returns>排队的条数；没有模板即 <c>NOTIFICATION_UNAVAILABLE_002</c>，渲染失败即 <c>NOTIFICATION_VALIDATION_007</c></returns>
     public async ValueTask<Result<int>> EnqueueAsync(InvocationContext context, string templateCode, IReadOnlyList<KeyValuePair<string, string?>> parameters, string? businessType, string? businessId)
     {
         ArgumentNullException.ThrowIfNull(context);

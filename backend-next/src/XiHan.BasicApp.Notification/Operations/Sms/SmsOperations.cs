@@ -15,14 +15,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.Sms;
 
 /// <summary>
-/// 分页列出当前一侧的短信发送记录：<c>POST /api/sms:list</c>。
+/// 分页列出当前一侧的短信发送记录：<c>POST /api/sms:list</c>
 /// </summary>
-/// <param name="queries">查询。</param>
+/// <param name="queries">查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsRead)]
 public sealed class ListSms(MessagingQueries queries) : IOperation<PageRequest, PageResult<SmsRecordResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "sms.list";
 
@@ -31,14 +31,14 @@ public sealed class ListSms(MessagingQueries queries) : IOperation<PageRequest, 
 }
 
 /// <summary>
-/// 取一条短信发送记录：<c>GET /api/sms/{id}</c>。
+/// 取一条短信发送记录：<c>GET /api/sms/{id}</c>
 /// </summary>
-/// <param name="sms">记录仓储。</param>
+/// <param name="sms">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsRead)]
 public sealed class GetSms(IRepository<SysSms, Guid> sms) : IOperation<MessagingIdRequest, SmsRecordResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "sms.get";
 
@@ -55,15 +55,15 @@ public sealed class GetSms(IRepository<SysSms, Guid> sms) : IOperation<Messaging
 }
 
 /// <summary>
-/// 重发短信：<c>POST /api/sms:resend</c>。
+/// 重发短信：<c>POST /api/sms:resend</c>
 /// </summary>
-/// <param name="sms">记录仓储。</param>
-/// <param name="service">记录服务。</param>
+/// <param name="sms">记录仓储</param>
+/// <param name="service">记录服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsResend)]
 public sealed class ResendSms(IRepository<SysSms, Guid> sms, MessageRecordService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "sms.resend";
 
@@ -77,14 +77,14 @@ public sealed class ResendSms(IRepository<SysSms, Guid> sms, MessageRecordServic
 }
 
 /// <summary>
-/// 取消排队中的短信：<c>POST /api/sms:cancel</c>。
+/// 取消排队中的短信：<c>POST /api/sms:cancel</c>
 /// </summary>
-/// <param name="sms">记录仓储。</param>
+/// <param name="sms">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsResend)]
 public sealed class CancelSms(IRepository<SysSms, Guid> sms) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "sms.cancel";
 
@@ -98,17 +98,17 @@ public sealed class CancelSms(IRepository<SysSms, Guid> sms) : IOperation<Messag
 }
 
 /// <summary>
-/// 批量删除短信发送记录。
+/// 批量删除短信发送记录
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/sms?ids=</c>（发送中的逐项拒绝）。
+/// <c>DELETE /api/sms?ids=</c>（发送中的逐项拒绝）
 /// </remarks>
-/// <param name="sms">记录仓储。</param>
+/// <param name="sms">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsDelete)]
 public sealed class DeleteSms(IRepository<SysSms, Guid> sms) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "sms.delete";
 

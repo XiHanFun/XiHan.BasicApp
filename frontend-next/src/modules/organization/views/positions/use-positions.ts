@@ -33,8 +33,8 @@ function failedCodes(result: { failed: { code: string }[] }): void {
 }
 
 /**
- * SchemaPage 的资源：分页、删除、启停与导入新建。
- * 搜索字段按后端白名单下发：关键字匹配编码与名称，状态精确匹配；可排序列是编码、名称、排序与创建时间。
+ * SchemaPage 的资源：分页、删除、启停与导入新建
+ * 搜索字段按后端白名单下发：关键字匹配编码与名称，状态精确匹配；可排序列是编码、名称、排序与创建时间
  */
 export function positionsResource(): SchemaResource<PositionRow> {
   return {
@@ -65,7 +65,7 @@ export function positionsResource(): SchemaResource<PositionRow> {
 }
 
 /**
- * 岗位页的编辑弹窗：新建、编辑。字段级错误挂回对应字段，其余错误给整条提示。
+ * 岗位页的编辑弹窗：新建、编辑。字段级错误挂回对应字段，其余错误给整条提示
  */
 export function usePositionEditor() {
   const open = ref(false)

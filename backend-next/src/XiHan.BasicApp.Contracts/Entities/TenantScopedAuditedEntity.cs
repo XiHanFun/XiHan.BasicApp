@@ -6,10 +6,10 @@ using XiHan.Framework.Domain.Entities;
 namespace XiHan.BasicApp.Contracts.Entities;
 
 /// <summary>
-/// 租户库全审计实体基类。
+/// 租户库全审计实体基类
 /// </summary>
 /// <remarks>
-/// <see cref="AppAuditedEntity"/> + <c>IMultiTenant</c>。租户库实体的默认选择。
+/// <see cref="AppAuditedEntity"/> + <c>IMultiTenant</c>。租户库实体的默认选择
 /// </remarks>
 public abstract class TenantScopedAuditedEntity : AppAuditedEntity, IMultiTenant
 {

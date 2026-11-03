@@ -10,18 +10,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Positions;
 
 /// <summary>
-/// 岗位列表。
+/// 岗位列表
 /// </summary>
 /// <remarks>
-/// <c>POST /api/positions:list</c>（分页、关键字、筛选、排序）。
-/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
+/// <c>POST /api/positions:list</c>（分页、关键字、筛选、排序）
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）
 /// </remarks>
-/// <param name="queries">岗位查询。</param>
+/// <param name="queries">岗位查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.PositionsRead)]
 public sealed class ListPositions(PositionQueries queries) : IOperation<PageRequest, PageResult<PositionResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "positions.list";
 

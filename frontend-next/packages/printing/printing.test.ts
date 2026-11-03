@@ -1,6 +1,6 @@
 /**
- * 公共打印包无设备单元测试。
- * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载。
+ * 公共打印包无设备单元测试
+ * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载
  */
 import type { PrintDocument, TextContent } from '@xihan-print/core'
 import type { PrintDevice, RemotePrintDataSourceDto, ResolvedPrintTemplate } from './types'
@@ -9,16 +9,16 @@ import { createDocument, createElementRegistry, createPage } from '@xihan-print/
 import { afterEach, beforeEach, it, vi } from 'vitest'
 // 预热依赖图：打印包经 printer-preference 引 ~/stores 桶文件，会牵出 pinia、~/locales、~/utils 等整张图，
 // 首次转换在满并行下超过 10 秒的钩子超时。静态导入让这笔开销落在文件收集阶段，不计入任何钩子或用例；
-// beforeEach 里的 vi.resetModules() 只清模块实例、保留转换结果，重新导入只剩求值开销。
-// 这份静态实例只用于预热、从不被使用：printing / pinia / stores 仍一律取自 resetModules 之后的同一次导入。
+// beforeEach 里的 vi.resetModules() 只清模块实例、保留转换结果，重新导入只剩求值开销
+// 这份静态实例只用于预热、从不被使用：printing / pinia / stores 仍一律取自 resetModules 之后的同一次导入
 import './index'
 
 /**
- * 被测模块的当前实例。
+ * 被测模块的当前实例
  *
  * 打印包有多处模块级可变单例、且不对外暴露重置入口：
  * remote-data-sources 的 loadPromise（目录拉取缓存）、print-service 的 directQueueTail（直打 FIFO 队列尾）、
- * configuration 的运行配置。每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例，乱序执行也成立。
+ * configuration 的运行配置。每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例，乱序执行也成立
  */
 let printing: typeof import('./index')
 let piniaModule: typeof import('pinia')
@@ -36,7 +36,7 @@ beforeEach(async () => {
     import('pinia'),
     import('~/stores'),
   ])
-  // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store。
+  // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store
   piniaModule.setActivePinia(piniaModule.createPinia())
 })
 
@@ -435,7 +435,7 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
   assert.equal(second.title, '示例')
 })
 
-/** 替身运行时：记下浏览器打印与客户端任务，打印机列表、错误与任务完成时机由用例控制。 */
+/** 替身运行时：记下浏览器打印与客户端任务，打印机列表、错误与任务完成时机由用例控制 */
 interface FakeRuntime {
   api: {
     printInBrowser: (document: unknown, records: readonly unknown[], options: { title?: string }) => Promise<number>
@@ -497,7 +497,7 @@ function createFakeRuntime(): FakeRuntime {
   return fake
 }
 
-/** 与客户端 SDK 同名的错误：打印服务按 name 与 code 认它。 */
+/** 与客户端 SDK 同名的错误：打印服务按 name 与 code 认它 */
 function clientError(code: string): Error {
   const error = new Error(code) as Error & { code: string }
   error.name = 'PrintClientError'
@@ -505,7 +505,7 @@ function clientError(code: string): Error {
   return error
 }
 
-/** 注册单字段测试数据源。 */
+/** 注册单字段测试数据源 */
 function registerSource(code: string): void {
   printing.registerPrintDataSource({
     code,
@@ -515,7 +515,7 @@ function registerSource(code: string): void {
   })
 }
 
-/** 注入返回指定模板与数据源的稳定解析函数。 */
+/** 注入返回指定模板与数据源的稳定解析函数 */
 function configureFor(code: string, rowVersion = '1', dataSourceCode: null | string = code, templateJson = TemplateJson): void {
   printing.configurePrinting({
     resolveTemplate: async (_templateCode, scope): Promise<ResolvedPrintTemplate> => ({
@@ -531,7 +531,7 @@ function configureFor(code: string, rowVersion = '1', dataSourceCode: null | str
   })
 }
 
-/** 注入指定目录取数函数（可为空）的运行配置。 */
+/** 注入指定目录取数函数（可为空）的运行配置 */
 function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceDto[]>) | undefined): void {
   printing.configurePrinting({
     resolveTemplate: async () => {
@@ -541,12 +541,12 @@ function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceD
   })
 }
 
-/** 安装本用例前的原始 localStorage 描述符，用于用例结束后原样还原。 */
+/** 安装本用例前的原始 localStorage 描述符，用于用例结束后原样还原 */
 let originalLocalStorageDescriptor: PropertyDescriptor | undefined
 
 /**
- * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试。
- * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例。
+ * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试
+ * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例
  */
 function installBrowserPreferenceContext(): void {
   // 6.0 的用户态是 auth 会话的投影：会话先写进替身存储，再建 pinia，auth store 创建时读出
@@ -570,7 +570,7 @@ function installBrowserPreferenceContext(): void {
   storesModule.useUserStore()
 }
 
-/** 还原被 installBrowserPreferenceContext 覆盖的全局 localStorage。 */
+/** 还原被 installBrowserPreferenceContext 覆盖的全局 localStorage */
 function restoreBrowserPreferenceContext(): void {
   if (!originalLocalStorageDescriptor)
     return
@@ -579,7 +579,7 @@ function restoreBrowserPreferenceContext(): void {
   originalLocalStorageDescriptor = undefined
 }
 
-/** 登记一个带单号、明细与备注的数据源，供模拟数据表单与字段比对用例共用。 */
+/** 登记一个带单号、明细与备注的数据源，供模拟数据表单与字段比对用例共用 */
 function registerSampleSchemaSource(code: string): void {
   printing.registerPrintDataSource({
     code,
@@ -593,7 +593,7 @@ function registerSampleSchemaSource(code: string): void {
   })
 }
 
-/** 一页模板，每个文本元素按给定的内容取值。 */
+/** 一页模板，每个文本元素按给定的内容取值 */
 function documentWithTexts(...contents: TextContent[]): PrintDocument {
   const registry = createElementRegistry()
   const page = createPage({ id: 'page-1' })
@@ -601,7 +601,7 @@ function documentWithTexts(...contents: TextContent[]): PrintDocument {
   return createDocument({ pages: [page] })
 }
 
-/** 生成不会与其它测试或应用启动数据源冲突的编码。 */
+/** 生成不会与其它测试或应用启动数据源冲突的编码 */
 function uniqueCode(prefix: string): string {
   return `test.${prefix}.${crypto.randomUUID()}`
 }

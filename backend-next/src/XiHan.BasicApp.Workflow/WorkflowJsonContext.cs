@@ -13,10 +13,10 @@ using XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
 namespace XiHan.BasicApp.Workflow;
 
 /// <summary>
-/// 工作流包的序列化上下文。
+/// 工作流包的序列化上下文
 /// </summary>
 /// <remarks>
-/// 本包全部请求与响应；枚举按名称字符串（框架的定义、实例与节点状态也是）。
+/// 本包全部请求与响应；枚举按名称字符串（框架的定义、实例与节点状态也是）
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

@@ -11,7 +11,7 @@ export type MessageTab = 'email' | 'sms'
 
 /**
  * 两种记录共用的后端筛选：关键字（邮件匹配收件地址与主题，短信匹配手机号与正文）；状态多选（合成 in）；
- * 模板编码与业务类型精确匹配；写入时间按区间（拆成 ge / le）。可排序的只有写入时间与发出时间。
+ * 模板编码与业务类型精确匹配；写入时间按区间（拆成 ge / le）。可排序的只有写入时间与发出时间
  */
 export const RECORD_QUERY: PageQueryMapping = {
   multiples: ['status'],

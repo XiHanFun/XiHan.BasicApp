@@ -1,9 +1,9 @@
 /**
- * SchemaPage 的系统字典取值与文件引用单元格。
+ * SchemaPage 的系统字典取值与文件引用单元格
  *
  * 字段声明 dictCode 后，列表单元格按字典项编码映射名称、搜索区渲下拉、导入按名称反查——
- * 三者都读 optionsFor 注入的 options；字典取不到时回退字段自带的静态 options。
- * image / file 字段的单元格交给文件引用单元格（缩略图 / 打开入口），空值仍显示占位。
+ * 三者都读 optionsFor 注入的 options；字典取不到时回退字段自带的静态 options
+ * image / file 字段的单元格交给文件引用单元格（缩略图 / 打开入口），空值仍显示占位
  */
 import type { VNode } from 'vue'
 import type { ListFieldSchema } from './types'

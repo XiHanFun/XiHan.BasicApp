@@ -11,29 +11,29 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// SqlSugar 方式一的配置回调。
+/// SqlSugar 方式一的配置回调
 /// </summary>
 /// <remarks>
-/// 由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次。
-/// 这里只负责库类型、连接串、操作人字段与 snake_case 命名；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加。
+/// 由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次
+/// 这里只负责库类型、连接串、操作人字段与 snake_case 命名；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加
 /// </remarks>
 public static class SqlSugarRuntime
 {
     /// <summary>
-    /// 数据库绑定名（<c>XiHan:Bindings:db</c>）。
+    /// 数据库绑定名（<c>XiHan:Bindings:db</c>）
     /// </summary>
     /// <remarks>
-    /// 主值是连接串，属性 <c>provider</c> 是库类型（缺省 PostgreSQL）。
+    /// 主值是连接串，属性 <c>provider</c> 是库类型（缺省 PostgreSQL）
     /// </remarks>
     public const string BindingName = "db";
 
     /// <summary>
-    /// 配置一个连接。
+    /// 配置一个连接
     /// </summary>
     /// <remarks>
-    /// 租户分片的绑定由框架按租户属性 <c>ConnectionString</c> / <c>DatabaseProvider</c> 推出后交到这里。
+    /// 租户分片的绑定由框架按租户属性 <c>ConnectionString</c> / <c>DatabaseProvider</c> 推出后交到这里
     /// </remarks>
-    /// <exception cref="FrameworkException">没有绑定即启动失败（数据库是硬要求，不做回退）。</exception>
+    /// <exception cref="FrameworkException">没有绑定即启动失败（数据库是硬要求，不做回退）</exception>
     public static void Configure(Maybe<BindingValue> binding, ConnectionConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -69,7 +69,7 @@ public static class SqlSugarRuntime
             column.DbColumnName = SnakeCaseNaming.Of(property.Name);
         }
 
-        // 建表（Development 的 InitTables）时字符串列缺省 varchar(255)，装不下契约允许的 256 字符：没写长度与类型的字符串列一律 512。
+        // 建表（Development 的 InitTables）时字符串列缺省 varchar(255)，装不下契约允许的 256 字符：没写长度与类型的字符串列一律 512
         // 写了 [LongText] / [StringLength] / [MaxLength] 的列留给框架约定：它在这个回调之后施加、只处理长度仍为 0 的列，这里先填了长度会把长文本建成 varchar(512)
         if (property.PropertyType == typeof(string) && column.Length == 0 && string.IsNullOrEmpty(column.DataType) && !HasLengthAnnotation(property))
         {
@@ -83,7 +83,7 @@ public static class SqlSugarRuntime
         || property.IsDefined(typeof(MaxLengthAttribute), inherit: true);
 
     /// <summary>
-    /// 没有显式长度的字符串列的建表长度。
+    /// 没有显式长度的字符串列的建表长度
     /// </summary>
     public const int DefaultStringLength = 512;
 }

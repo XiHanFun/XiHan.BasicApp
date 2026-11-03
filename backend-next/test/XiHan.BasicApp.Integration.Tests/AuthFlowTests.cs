@@ -16,10 +16,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证身份链路的登录、令牌、会话、刷新、注销与改密。
+/// 验证身份链路的登录、令牌、会话、刷新、注销与改密
 /// </summary>
 /// <remarks>
-/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、强制下线不被提交前的门禁核对回填、当前主体、租户账号登录与本人改密。
+/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、强制下线不被提交前的门禁核对回填、当前主体、租户账号登录与本人改密
 /// </remarks>
 public sealed class AuthFlowTests : IDisposable
 {

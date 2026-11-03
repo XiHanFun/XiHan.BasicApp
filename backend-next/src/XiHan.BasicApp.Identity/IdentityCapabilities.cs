@@ -6,20 +6,20 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包提供的包间能力 ID。
+/// 身份包提供的包间能力 ID
 /// </summary>
 /// <remarks>
-/// <c>Tenancy</c> 等下游包以 <c>basicapp.identity@1</c> 声明依赖。
+/// <c>Tenancy</c> 等下游包以 <c>basicapp.identity@1</c> 声明依赖
 /// </remarks>
 public static class IdentityCapabilities
 {
     /// <summary>
-    /// 身份能力：用户、会话、个人中心。
+    /// 身份能力：用户、会话、个人中心
     /// </summary>
     public const string Identity = AppInfo.CapabilityPrefix + "identity";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = AppInfo.CapabilityVersion;
 }

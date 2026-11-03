@@ -8,63 +8,63 @@ using XiHan.Framework.ObjectStorage.Abstractions.Multipart;
 namespace XiHan.BasicApp.Files;
 
 /// <summary>
-/// 文件包的配置（<c>BasicApp:Files</c>）。
+/// 文件包的配置（<c>BasicApp:Files</c>）
 /// </summary>
 public sealed class FilesOptions
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string Section = "BasicApp:Files";
 
     /// <summary>
-    /// 本地存储的根目录。
+    /// 本地存储的根目录
     /// </summary>
     /// <remarks>
-    /// 相对路径按内容根目录解析。缺省 <c>App_Data/files</c>。各本地存储配置的桶是它下面的子目录。
+    /// 相对路径按内容根目录解析。缺省 <c>App_Data/files</c>。各本地存储配置的桶是它下面的子目录
     /// </remarks>
     public string LocalRootPath { get; init; } = "App_Data/files";
 
     /// <summary>
-    /// 单个文件的大小上限（字节），缺省 100 MiB。
+    /// 单个文件的大小上限（字节），缺省 100 MiB
     /// </summary>
     public long MaxUploadBytes { get; init; } = 100L * 1024 * 1024;
 
     /// <summary>
-    /// 分片上传每片的大小（字节），缺省 8 MiB。
+    /// 分片上传每片的大小（字节），缺省 8 MiB
     /// </summary>
     /// <remarks>
-    /// 不小于存储的最小分片（5 MiB）；文件大到超过一万片时按文件大小放大。
+    /// 不小于存储的最小分片（5 MiB）；文件大到超过一万片时按文件大小放大
     /// </remarks>
     public long UploadPartBytes { get; init; } = 8L * 1024 * 1024;
 
     /// <summary>
-    /// 分片上传从发起到完成的时限，缺省 24 小时。
+    /// 分片上传从发起到完成的时限，缺省 24 小时
     /// </summary>
     public TimeSpan UploadLifetime { get; init; } = TimeSpan.FromHours(24);
 
     /// <summary>
-    /// 签名下载地址的缺省有效期，缺省 30 分钟。
+    /// 签名下载地址的缺省有效期，缺省 30 分钟
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public TimeSpan LinkLifetime { get; init; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// 签名下载地址的最长有效期，缺省 7 天。
+    /// 签名下载地址的最长有效期，缺省 7 天
     /// </summary>
     public TimeSpan MaxLinkLifetime { get; init; } = TimeSpan.FromDays(7);
 
     /// <summary>
-    /// 从配置读取文件包选项。
+    /// 从配置读取文件包选项
     /// </summary>
     /// <remarks>
-    /// 本地根目录按宿主的内容根目录解析成绝对路径。
+    /// 本地根目录按宿主的内容根目录解析成绝对路径
     /// </remarks>
-    /// <param name="configuration">配置。</param>
-    /// <param name="environment">宿主环境（没有时按当前目录解析）。</param>
-    /// <returns>选项。</returns>
+    /// <param name="configuration">配置</param>
+    /// <param name="environment">宿主环境（没有时按当前目录解析）</param>
+    /// <returns>选项</returns>
     public static FilesOptions FromConfiguration(IConfiguration configuration, IHostEnvironment? environment)
     {
         ArgumentNullException.ThrowIfNull(configuration);

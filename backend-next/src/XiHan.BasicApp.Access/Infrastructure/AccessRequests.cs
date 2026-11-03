@@ -13,22 +13,22 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 调用上下文 → 判定用的请求事实（权限条件与访问策略共用）。
+/// 调用上下文 → 判定用的请求事实（权限条件与访问策略共用）
 /// </summary>
 /// <remarks>
 /// HTTP 的请求目标是「方法 路径」，其他协议只有目标（gRPC 方法全名、MCP 工具名等）；
-/// 客户端类型未登录为 <c>anonymous</c>，否则为调用协议。
+/// 客户端类型未登录为 <c>anonymous</c>，否则为调用协议
 /// </remarks>
 public static class AccessRequests
 {
     /// <summary>
-    /// 组装。
+    /// 组装
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="roleIds">此刻持有的角色（访问策略取令牌声明，权限条件取判定所用的角色）。</param>
-    /// <param name="permissionCodes">本次调用要求的权限码。</param>
-    /// <param name="operationId">操作 ID。</param>
-    /// <param name="now">判定时刻。</param>
+    /// <param name="context">调用上下文</param>
+    /// <param name="roleIds">此刻持有的角色（访问策略取令牌声明，权限条件取判定所用的角色）</param>
+    /// <param name="permissionCodes">本次调用要求的权限码</param>
+    /// <param name="operationId">操作 ID</param>
+    /// <param name="now">判定时刻</param>
     public static ConditionRequest From(InvocationContext context, IReadOnlyList<Guid> roleIds, IReadOnlyList<string> permissionCodes, string? operationId, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -52,14 +52,14 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 登录时机看到的这次调用。
+    /// 登录时机看到的这次调用
     /// </summary>
     /// <remarks>
-    /// 主体取即将签发令牌的账号（调用本身还是匿名的），没有权限码，客户端类型为调用协议。
+    /// 主体取即将签发令牌的账号（调用本身还是匿名的），没有权限码，客户端类型为调用协议
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="attempt">这次登录。</param>
-    /// <param name="now">判定时刻。</param>
+    /// <param name="context">调用上下文</param>
+    /// <param name="attempt">这次登录</param>
+    /// <param name="now">判定时刻</param>
     public static ConditionRequest ForLogin(InvocationContext context, LoginAttempt attempt, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -83,17 +83,17 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 约束规则的条件类看到的一次指派。
+    /// 约束规则的条件类看到的一次指派
     /// </summary>
     /// <remarks>
-    /// 主体是被指派的用户（变更之后持有的角色），环境是发起这次指派的请求。
+    /// 主体是被指派的用户（变更之后持有的角色），环境是发起这次指派的请求
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="userId">被指派的用户。</param>
-    /// <param name="userName">登录名。</param>
-    /// <param name="roleIds">变更之后持有的角色。</param>
-    /// <param name="now">判定时刻。</param>
+    /// <param name="context">调用上下文</param>
+    /// <param name="owner">所属侧</param>
+    /// <param name="userId">被指派的用户</param>
+    /// <param name="userName">登录名</param>
+    /// <param name="roleIds">变更之后持有的角色</param>
+    /// <param name="now">判定时刻</param>
     public static ConditionRequest ForAssignment(InvocationContext context, string owner, Guid userId, string? userName, IEnumerable<Guid> roleIds, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -104,11 +104,11 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 访问策略看到的这次调用：角色取令牌声明，权限码取操作契约声明的那一个。
+    /// 访问策略看到的这次调用：角色取令牌声明，权限码取操作契约声明的那一个
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="options">安全配置（角色声明名）。</param>
-    /// <param name="now">判定时刻。</param>
+    /// <param name="context">调用上下文</param>
+    /// <param name="options">安全配置（角色声明名）</param>
+    /// <param name="now">判定时刻</param>
     public static ConditionRequest Current(InvocationContext context, SecurityOptions options, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -129,7 +129,7 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 令牌里的角色声明（访问策略用：不必为每次调用组装授予全貌）。
+    /// 令牌里的角色声明（访问策略用：不必为每次调用组装授予全貌）
     /// </summary>
     public static IReadOnlyList<Guid> ClaimedRoles(InvocationContext context, SecurityOptions options)
     {

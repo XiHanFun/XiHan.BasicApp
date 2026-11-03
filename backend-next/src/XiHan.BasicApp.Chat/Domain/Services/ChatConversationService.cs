@@ -13,20 +13,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Domain.Services;
 
 /// <summary>
-/// 会话与群治理（作用域）。
+/// 会话与群治理（作用域）
 /// </summary>
 /// <remarks>
 /// 规则照 4.x 的 <c>ChatDomainService</c>：单聊按两人唯一；建群含群主至少两人、发起人为群主；部门群只有本部门的成员能进、打开时补齐部门成员，没有群主与管理员（方案 H3，与 4.x 同）；
-/// 群治理（加人、移出、改信息、转让群主、禁言、设管理员）只在群聊，群主不能退群或被移出，没有解散。治理产生的系统提示与会话变更在提交之后推给成员。
-/// 平台没有部门（6.0 的部门是租户库实体），部门群只在租户一侧。
+/// 群治理（加人、移出、改信息、转让群主、禁言、设管理员）只在群聊，群主不能退群或被移出，没有解散。治理产生的系统提示与会话变更在提交之后推给成员
+/// 平台没有部门（6.0 的部门是租户库实体），部门群只在租户一侧
 /// </remarks>
-/// <param name="store">按侧读写聊天表。</param>
-/// <param name="departments">部门仓储。</param>
-/// <param name="messages">消息服务（系统提示）。</param>
-/// <param name="texts">系统提示文案。</param>
-/// <param name="push">推送。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="store">按侧读写聊天表</param>
+/// <param name="departments">部门仓储</param>
+/// <param name="messages">消息服务（系统提示）</param>
+/// <param name="texts">系统提示文案</param>
+/// <param name="push">推送</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时间源</param>
 public sealed class ChatConversationService(
     ChatStore store,
     IRepository<SysDepartment, Guid> departments,
@@ -37,7 +37,7 @@ public sealed class ChatConversationService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 打开单聊，没有即建。
+    /// 打开单聊，没有即建
     /// </summary>
     public async Task<Result<ChatConversationOpenResponse>> OpenSingleAsync(InvocationContext context, ChatCaller caller, Guid peerUserId)
     {
@@ -66,7 +66,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 建群：发起人为群主，追加建群提示。
+    /// 建群：发起人为群主，追加建群提示
     /// </summary>
     public async Task<Result<ChatConversationOpenResponse>> CreateGroupAsync(InvocationContext context, ChatCaller caller, string name, IReadOnlyList<Guid> memberUserIds)
     {
@@ -98,10 +98,10 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 打开部门群，没有即建，并把部门现有的成员补进群。
+    /// 打开部门群，没有即建，并把部门现有的成员补进群
     /// </summary>
     /// <remarks>
-    /// 只有本部门的成员能进（照 4.x）；离开部门的成员保留会话历史、不在这里移除（移除随部门归属事件）。
+    /// 只有本部门的成员能进（照 4.x）；离开部门的成员保留会话历史、不在这里移除（移除随部门归属事件）
     /// </remarks>
     public async Task<Result<ChatConversationOpenResponse>> OpenDepartmentAsync(InvocationContext context, ChatCaller caller, Guid departmentId)
     {
@@ -147,9 +147,9 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 加群成员（群主或管理员，只在群聊）。
+    /// 加群成员（群主或管理员，只在群聊）
     /// </summary>
-    /// <returns>请求里的用户都在群里时成功（已在群里的也算成功）。</returns>
+    /// <returns>请求里的用户都在群里时成功（已在群里的也算成功）</returns>
     public async Task<Result<BatchResult>> AddMembersAsync(InvocationContext context, ChatCaller caller, Guid conversationId, IReadOnlyList<Guid> userIds)
     {
         var governed = await GroupForManagerAsync(context, caller, conversationId).ConfigureAwait(false);
@@ -181,10 +181,10 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 移出群成员（群主或管理员，只在群聊）：逐个成功或失败。
+    /// 移出群成员（群主或管理员，只在群聊）：逐个成功或失败
     /// </summary>
     /// <remarks>
-    /// 不是成员、群主、自己（自己用退群）逐项失败；移出的人一并写一条系统提示，剩下的成员收到会话变更与提示，被移出的人只收会话变更。
+    /// 不是成员、群主、自己（自己用退群）逐项失败；移出的人一并写一条系统提示，剩下的成员收到会话变更与提示，被移出的人只收会话变更
     /// </remarks>
     public async Task<Result<BatchResult>> RemoveMembersAsync(InvocationContext context, ChatCaller caller, Guid conversationId, IReadOnlyList<Guid> userIds)
     {
@@ -242,7 +242,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 退群（只在群聊，群主须先转让）。
+    /// 退群（只在群聊，群主须先转让）
     /// </summary>
     public async Task<Result> LeaveAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
     {
@@ -283,10 +283,10 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 改群信息。
+    /// 改群信息
     /// </summary>
     /// <remarks>
-    /// 群主或管理员；部门群不能改名，公告变了追加以操作人身份发出的公告。
+    /// 群主或管理员；部门群不能改名，公告变了追加以操作人身份发出的公告
     /// </remarks>
     public async Task<Result> UpdateInfoAsync(InvocationContext context, ChatCaller caller, UpdateConversationInfoRequest request)
     {
@@ -369,10 +369,10 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 转让群主。
+    /// 转让群主
     /// </summary>
     /// <remarks>
-    /// 只在群聊、只有群主；旧群主降为普通成员。
+    /// 只在群聊、只有群主；旧群主降为普通成员
     /// </remarks>
     public async Task<Result> TransferOwnerAsync(InvocationContext context, ChatCaller caller, Guid conversationId, Guid newOwnerUserId)
     {
@@ -417,10 +417,10 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 禁言或解除：逐个成功或失败。
+    /// 禁言或解除：逐个成功或失败
     /// </summary>
     /// <remarks>
-    /// 群聊与部门群的群主或管理员；群主与管理员不能禁言。
+    /// 群聊与部门群的群主或管理员；群主与管理员不能禁言
     /// </remarks>
     public async Task<Result<BatchResult>> SilenceAsync(InvocationContext context, ChatCaller caller, Guid conversationId, IReadOnlyList<Guid> userIds, bool isSilenced)
     {
@@ -478,7 +478,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 设管理员或取消（只在群聊、只有群主，在管理员与普通成员之间切换）。
+    /// 设管理员或取消（只在群聊、只有群主，在管理员与普通成员之间切换）
     /// </summary>
     public async Task<Result<ChatMemberItem>> SetRoleAsync(InvocationContext context, ChatCaller caller, Guid conversationId, Guid userId, ChatMemberRole role)
     {
@@ -533,7 +533,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 会话置顶或免打扰（个人设置，只推本人的其他端）。
+    /// 会话置顶或免打扰（个人设置，只推本人的其他端）
     /// </summary>
     public async Task<Result<ChatToggleResponse>> SetPersonalAsync(InvocationContext context, ChatCaller caller, Guid conversationId, bool? isPinned, bool? isMuted)
     {
@@ -551,7 +551,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 部门对应的部门群。
+    /// 部门对应的部门群
     /// </summary>
     public async Task<SysChatConversation?> DepartmentConversationAsync(string side, Guid departmentId, CancellationToken cancellationToken)
     {
@@ -560,7 +560,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 加成员行。
+    /// 加成员行
     /// </summary>
     public Task AddMemberRowsAsync(string side, Guid conversationId, IReadOnlyCollection<Guid> userIds, Guid? ownerUserId, CancellationToken cancellationToken)
     {
@@ -578,7 +578,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 重算会话的成员数。
+    /// 重算会话的成员数
     /// </summary>
     public async Task<Result<SysChatConversation>> RecountAsync(string side, Guid conversationId, CancellationToken cancellationToken)
     {
@@ -596,7 +596,7 @@ public sealed class ChatConversationService(
     private static ChatConversationOpenResponse OpenedOf(SysChatConversation conversation, bool created) => new(conversation.Id, conversation.Type, conversation.Name, created);
 
     /// <summary>
-    /// 群聊里的治理：会话存在、是群聊、调用方是群主或管理员。
+    /// 群聊里的治理：会话存在、是群聊、调用方是群主或管理员
     /// </summary>
     private async Task<Result<SysChatConversation>> GroupForManagerAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
     {
@@ -616,7 +616,7 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
-    /// 治理之后：写中性的系统提示（可同时重算成员数），推会话变更与提示给接收人。
+    /// 治理之后：写中性的系统提示（可同时重算成员数），推会话变更与提示给接收人
     /// </summary>
     private async Task<Result> AnnounceAsync(InvocationContext context, ChatCaller caller, Guid conversationId, string text, string changeType, IReadOnlyCollection<Guid> recipients, int? memberCount)
     {

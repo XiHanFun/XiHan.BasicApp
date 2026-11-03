@@ -14,14 +14,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 委托列表查询（当前一侧）。
+/// 委托列表查询（当前一侧）
 /// </summary>
 /// <remarks>
-/// 关键字匹配权限码与原因；筛选状态（按撤销时间与有效期换算成条件）、委托人、被委托人、权限码与角色；排序创建、生效与到期时间。
+/// 关键字匹配权限码与原因；筛选状态（按撤销时间与有效期换算成条件）、委托人、被委托人、权限码与角色；排序创建、生效与到期时间
 /// </remarks>
-/// <param name="unitOfWork">工作单元（取委托所在的连接）。</param>
-/// <param name="service">委托服务（显示名）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="unitOfWork">工作单元（取委托所在的连接）</param>
+/// <param name="service">委托服务（显示名）</param>
+/// <param name="clock">时间源</param>
 public sealed class DelegationQueries(SqlSugarUnitOfWork unitOfWork, DelegationService service, TimeProvider clock)
 {
     private const string FieldStatus = "status";
@@ -34,7 +34,7 @@ public sealed class DelegationQueries(SqlSugarUnitOfWork unitOfWork, DelegationS
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出。
+    /// 分页列出
     /// </summary>
     public async ValueTask<Result<PageResult<DelegationResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -101,7 +101,7 @@ public sealed class DelegationQueries(SqlSugarUnitOfWork unitOfWork, DelegationS
         };
     }
 
-    // 状态不落库：各状态换算成撤销时间与有效期上的条件，多个状态取或（照 Runtime 数据范围的写法拼表达式树）。
+    // 状态不落库：各状态换算成撤销时间与有效期上的条件，多个状态取或（照 Runtime 数据范围的写法拼表达式树）
     // SqlSugar 把「!可空.HasValue || …」译丢 OR，生效中写成 !(HasValue && 生效时间 > now)；可空时间不取 .Value，否则绕过列转换器
     private static Expression<Func<SysPermissionDelegation, bool>> StatusPredicate(IReadOnlyCollection<DelegationStatus> statuses, DateTimeOffset now)
     {

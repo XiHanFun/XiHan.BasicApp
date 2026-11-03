@@ -12,11 +12,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证第三方登录与账号绑定（假的 GitHub）。
+/// 验证第三方登录与账号绑定（假的 GitHub）
 /// </summary>
 /// <remarks>
 /// 登录页列出配置的提供商；发起即带 state 跳去授权页并种 Cookie；回调 state 与 Cookie 都对上才换身份、发一次性票据（用户拒绝、Cookie 不对都带错误回前端）；
-/// 没绑定的不能登录（拍板，不自动建号）；绑定要本人先领意图才能发起、票据只能由本人确认，票据分登录与绑定、只能用一次；绑定按注册地分开；绑定后能登录、资料随登录刷新；解绑后又不能登录。
+/// 没绑定的不能登录（拍板，不自动建号）；绑定要本人先领意图才能发起、票据只能由本人确认，票据分登录与绑定、只能用一次；绑定按注册地分开；绑定后能登录、资料随登录刷新；解绑后又不能登录
 /// </remarks>
 public sealed class ExternalLoginTests : IDisposable
 {
@@ -38,7 +38,7 @@ public sealed class ExternalLoginTests : IDisposable
         });
 
     /// <summary>
-    /// 走一遍发起与回调，返回前端回调页拿到的查询参数。
+    /// 走一遍发起与回调，返回前端回调页拿到的查询参数
     /// </summary>
     private static async Task<Dictionary<string, string>> RoundTripAsync(BasicAppTestServer server, string query, bool keepCookie = true, string code = "c-1")
     {
@@ -65,7 +65,7 @@ public sealed class ExternalLoginTests : IDisposable
     }
 
     /// <summary>
-    /// 领一个绑定意图，返回发起地址的查询串。
+    /// 领一个绑定意图，返回发起地址的查询串
     /// </summary>
     private static async Task<string> BindQueryAsync(BasicAppTestServer server, string token)
     {
@@ -146,7 +146,7 @@ public sealed class ExternalLoginTests : IDisposable
     }
 
     /// <summary>
-    /// 假的 GitHub：换码与取用户。
+    /// 假的 GitHub：换码与取用户
     /// </summary>
     private sealed class FakeGitHub : HttpMessageHandler
     {

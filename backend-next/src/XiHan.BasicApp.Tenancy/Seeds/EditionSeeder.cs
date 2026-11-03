@@ -12,36 +12,36 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Seeds;
 
 /// <summary>
-/// 套餐种子（阶段 <see cref="SeedOrders.Editions"/>）。
+/// 套餐种子（阶段 <see cref="SeedOrders.Editions"/>）
 /// </summary>
 /// <remarks>
-/// 沿用 4.x 的四档：免费版（新租户缺省）、基础版、专业版、企业版及各自的白名单。
-/// 运营数据只首写：编码已存在的套餐（含运营改过或自建的同码套餐）整个跳过，之后新增的权限进哪些套餐由运营在套餐页授予。
+/// 沿用 4.x 的四档：免费版（新租户缺省）、基础版、专业版、企业版及各自的白名单
+/// 运营数据只首写：编码已存在的套餐（含运营改过或自建的同码套餐）整个跳过，之后新增的权限进哪些套餐由运营在套餐页授予
 /// 白名单按规则从租户能生效的权限目录里取（Tenancy 不引用后面的包，不能写它们的权限常量）：
-/// 免费版只读（动作 <c>read</c>）；基础版再加身份、组织与设置三包的管理（不含模仿登录）；专业版再加授权包；企业版是创建时的全部。
+/// 免费版只读（动作 <c>read</c>）；基础版再加身份、组织与设置三包的管理（不含模仿登录）；专业版再加授权包；企业版是创建时的全部
 /// </remarks>
-/// <param name="editions">套餐仓储。</param>
-/// <param name="service">套餐域服务。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="editions">套餐仓储</param>
+/// <param name="service">套餐域服务</param>
+/// <param name="ids">标识生成器</param>
 public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, EditionService service, IIdGenerator<Guid> ids) : ISeeder
 {
     /// <summary>
-    /// 免费版编码（新租户缺省）。
+    /// 免费版编码（新租户缺省）
     /// </summary>
     public const string Free = "free";
 
     /// <summary>
-    /// 基础版编码。
+    /// 基础版编码
     /// </summary>
     public const string Basic = "basic";
 
     /// <summary>
-    /// 专业版编码。
+    /// 专业版编码
     /// </summary>
     public const string Pro = "pro";
 
     /// <summary>
-    /// 企业版编码。
+    /// 企业版编码
     /// </summary>
     public const string Enterprise = "enterprise";
 

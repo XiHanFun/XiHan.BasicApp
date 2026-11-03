@@ -21,15 +21,15 @@ import { useMenuExternalLinks } from '../sidebar/menu-links'
 import HeaderTopMenuPanel from './HeaderTopMenuPanel.vue'
 
 /**
- * 顶栏横向菜单。
+ * 顶栏横向菜单
  *
  * 顶级入口由导航菜单负责（键盘横向遍历、浮层落位、指示条），但整套结构是手摆的而不是喂
- * collection 让它自动铺：collection 里的 label 只能是纯串，而顶栏标签要带角标与外链图标。
- * 入口之下的整棵子树走面板自绘——组件库的 menu / menubar 都只支持两级，路由菜单可以更深。
+ * collection 让它自动铺：collection 里的 label 只能是纯串，而顶栏标签要带角标与外链图标
+ * 入口之下的整棵子树走面板自绘——组件库的 menu / menubar 都只支持两级，路由菜单可以更深
  *
- * 入口一行排不下时横向滚动（与标签栏同款：箭头 + 滚轮），而不是折行把顶栏撑高。
+ * 入口一行排不下时横向滚动（与标签栏同款：箭头 + 滚轮），而不是折行把顶栏撑高
  * 面板因此不能再留在各自那一项里——列表成了滚动容器会把它裁掉——改放进组件库的共享外壳
- * （viewport）：它挂在根上、在滚动容器之外，水平落位由下面按当前入口算好写进 --panel-inset-start。
+ * （viewport）：它挂在根上、在滚动容器之外，水平落位由下面按当前入口算好写进 --panel-inset-start
  */
 defineOptions({ name: 'HeaderTopMenu' })
 
@@ -56,7 +56,7 @@ const router = useRouter()
 const externalLinkOf = useMenuExternalLinks()
 
 /**
- * 无子级入口的真实地址：外链菜单就是外链本身，站内取路由解析出的地址。
+ * 无子级入口的真实地址：外链菜单就是外链本身，站内取路由解析出的地址
  * 有了真地址，中键、Ctrl+点击与「在新标签页打开」才落得到对的页面
  */
 function entryHref(key: string): string {
@@ -64,8 +64,8 @@ function entryHref(key: string): string {
 }
 
 /**
- * collection 仍要给：它是入口身份、禁用与键盘序列的事实源。
- * 无子级的入口带上真实地址，与标记里那枚链接同一个 href。
+ * collection 仍要给：它是入口身份、禁用与键盘序列的事实源
+ * 无子级的入口带上真实地址，与标记里那枚链接同一个 href
  */
 const entries = computed<NavigationMenuNode[]>(() =>
   props.options.map<NavigationMenuNode>(option => ({
@@ -89,7 +89,7 @@ const listJustify = computed(() => (props.align === 'center' ? 'center' : props.
 const panelOptions = computed(() => props.options.filter(option => option.children?.length))
 
 /**
- * 普通左键点无子级入口：拦下整页跳转，交给上层走路由（外链、分栏模式的首个子页都由上层判断）。
+ * 普通左键点无子级入口：拦下整页跳转，交给上层走路由（外链、分栏模式的首个子页都由上层判断）
  * 拦在滚动区而不是链接本身：作者在链接上 preventDefault 会让组件库跳过它自己的 click（收起已展开的面板），
  * 冒泡到这里时那一步已经做完。带修饰键或非主键的点击原样交给浏览器，按链接的真实地址开新标签
  */
@@ -114,7 +114,7 @@ function scrollBehavior(): ScrollBehavior {
 
 /**
  * 入口一行摆开要多宽。不能用 scrollWidth：列表带 min-width:100%（排得下时铺满滚动区好让对齐生效），
- * 装得下时 scrollWidth 恒等于可视宽，富余多少就看不出来了，顶栏那边也就判不出还能不能放回命令面板。
+ * 装得下时 scrollWidth 恒等于可视宽，富余多少就看不出来了，顶栏那边也就判不出还能不能放回命令面板
  */
 function measureContentWidth(list: HTMLElement): number {
   const items = [...list.children] as HTMLElement[]
@@ -189,7 +189,7 @@ function rootElement(): HTMLElement | null {
 
 /**
  * 把共享外壳挪到当前入口下方：量的是入口与根的内联起点之差，
- * 再按视口右缘回拉，贴边的入口不会把面板顶出屏幕。
+ * 再按视口右缘回拉，贴边的入口不会把面板顶出屏幕
  */
 async function syncPanelInset() {
   const value = openValue.value
@@ -355,9 +355,9 @@ watch(() => props.activeKey, () => {
 </template>
 
 <style scoped>
-/* 顶级入口的观感对齐旧版顶栏：大档控件高（40px）、左右 10px、圆角 6px、正文字号。
+/* 顶级入口的观感对齐旧版顶栏：大档控件高（40px）、左右 10px、圆角 6px、正文字号
    几何与各态配色走组件库的公开槽：展开中的入口套品牌淡底、指向当前页的链接染品牌字，
-   悬停 / 按下 / 焦点环由 Collection Item 家族按状态给，这里不再直接盖 background / color。
+   悬停 / 按下 / 焦点环由 Collection Item 家族按状态给，这里不再直接盖 background / color
    无子级的入口（link）与触发器同一副几何，取值直接引触发器那几支 */
 .header-top-menu {
   --xh-navigation-menu-font-size: var(--xh-text-body-size);
@@ -398,7 +398,7 @@ watch(() => props.activeKey, () => {
   display: none;
 }
 
-/* 入口不折行、不被压扁：排不下就交给滚动。
+/* 入口不折行、不被压扁：排不下就交给滚动
    min-width:100% 让排得下时列表仍铺满滚动区，对齐方式才有地方生效 */
 .header-top-menu__list {
   flex-wrap: nowrap;

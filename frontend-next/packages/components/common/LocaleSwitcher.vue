@@ -23,12 +23,12 @@ import { useAppStore } from '~/stores'
 import LocaleFlag from './LocaleFlag.vue'
 
 /**
- * 语言切换组件（统一封装：选项 + 国旗 + 切换逻辑）。
- * - variant=select：行内下拉框（偏好设置、个人中心）。
- * - variant=dropdown：触发器 + 菜单（顶栏、登录页），触发器经默认插槽传入。
- * - apply=true：直接切换并同步应用语言（appStore.locale）；否则受控，仅 emit（如个人中心的资料字段）。
+ * 语言切换组件（统一封装：选项 + 国旗 + 切换逻辑）
+ * - variant=select：行内下拉框（偏好设置、个人中心）
+ * - variant=dropdown：触发器 + 菜单（顶栏、登录页），触发器经默认插槽传入
+ * - apply=true：直接切换并同步应用语言（appStore.locale）；否则受控，仅 emit（如个人中心的资料字段）
  *
- * 选项里要带国旗，所以这里不走 XSelect，直接摆部件：条目与选中态各自出一面旗。
+ * 选项里要带国旗，所以这里不走 XSelect，直接摆部件：条目与选中态各自出一面旗
  */
 defineOptions({ name: 'LocaleSwitcher' })
 

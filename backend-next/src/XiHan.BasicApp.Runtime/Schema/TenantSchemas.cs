@@ -16,38 +16,38 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Schema;
 
 /// <summary>
-/// 租户独立库的建库、建表与升级。
+/// 租户独立库的建库、建表与升级
 /// </summary>
 /// <remarks>
 /// 与 4.x 同语义（方案 5.10、5.14）：库隔离租户的独立库只建落租户库的实体（<see cref="EntityTypeCatalog.TenantScoped"/>），按当前实体建表即是最新结构，
-/// 随即在该库自己的台账（<see cref="SysVersion"/>）登记当前结构版本；之后升级只跑比台账新的 <c>Schema/&lt;版本&gt;/tenant/*.sql</c>，没有租户脚本的版本只推进台账。
-/// 都在该租户的分片连接上做：自建服务作用域、先经框架的 <see cref="TenantShardScope"/> 按租户目录绑定分片（不经管道，不看应用状态与租户是否启用），再取持久化客户端。
+/// 随即在该库自己的台账（<see cref="SysVersion"/>）登记当前结构版本；之后升级只跑比台账新的 <c>Schema/&lt;版本&gt;/tenant/*.sql</c>，没有租户脚本的版本只推进台账
+/// 都在该租户的分片连接上做：自建服务作用域、先经框架的 <see cref="TenantShardScope"/> 按租户目录绑定分片（不经管道，不看应用状态与租户是否启用），再取持久化客户端
 /// </remarks>
-/// <param name="scopes">服务作用域工厂。</param>
-/// <param name="entities">实体类型清单。</param>
-/// <param name="options">结构升级配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="logger">日志。</param>
+/// <param name="scopes">服务作用域工厂</param>
+/// <param name="entities">实体类型清单</param>
+/// <param name="options">结构升级配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="logger">日志</param>
 public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTypeCatalog entities, SchemaOptions options, TimeProvider clock, ILogger<TenantSchemas> logger)
 {
     /// <summary>
-    /// 租户脚本所在的子目录名。
+    /// 租户脚本所在的子目录名
     /// </summary>
     public const string TenantDirectory = "tenant";
 
     /// <summary>
-    /// 租户目录里标记独立库已就绪的属性。
+    /// 租户目录里标记独立库已就绪的属性
     /// </summary>
     /// <remarks>
-    /// 值为 <c>true</c> 时启动升级才去升这个租户的库（配了连接还没初始化的库可能还不存在）。
+    /// 值为 <c>true</c> 时启动升级才去升这个租户的库（配了连接还没初始化的库可能还不存在）
     /// </remarks>
     public const string ReadyProperty = "BasicApp.DatabaseReady";
 
     /// <summary>
-    /// 在租户的分片上建库、建表并登记台账。
+    /// 在租户的分片上建库、建表并登记台账
     /// </summary>
     /// <remarks>
-    /// 幂等：库与表已有即不动，台账已有即保留。建库不能在事务里执行，框架的事务在第一次写入时才开，这里先于任何写入。
+    /// 幂等：库与表已有即不动，台账已有即保留。建库不能在事务里执行，框架的事务在第一次写入时才开，这里先于任何写入
     /// </remarks>
     public async Task<Result<string>> InitializeAsync(string tenantId, CancellationToken cancellationToken)
     {
@@ -95,10 +95,10 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     }
 
     /// <summary>
-    /// 把租户的分片升到应用带的结构版本。
+    /// 把租户的分片升到应用带的结构版本
     /// </summary>
     /// <remarks>
-    /// 只对已初始化的库调用；库比应用新即 <see cref="RuntimeErrors.SchemaNewerThanApp"/>。每个脚本一个事务，成功与失败都记进该库的升级记录，失败即停。
+    /// 只对已初始化的库调用；库比应用新即 <see cref="RuntimeErrors.SchemaNewerThanApp"/>。每个脚本一个事务，成功与失败都记进该库的升级记录，失败即停
     /// </remarks>
     public async Task<Result<SchemaUpgradeReport>> UpgradeAsync(string tenantId, string node, CancellationToken cancellationToken)
     {
@@ -162,13 +162,13 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     }
 
     /// <summary>
-    /// 已就绪（建好库）的租户独立库。
+    /// 已就绪（建好库）的租户独立库
     /// </summary>
     /// <remarks>
-    /// 租户目录里标了 <see cref="ReadyProperty"/> 的；没有租户目录即没有。
+    /// 租户目录里标了 <see cref="ReadyProperty"/> 的；没有租户目录即没有
     /// </remarks>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>租户 ID。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户 ID</returns>
     public async Task<IReadOnlyList<string>> ReadyTenantsAsync(CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
@@ -183,14 +183,14 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     }
 
     /// <summary>
-    /// 读租户独立库的版本台账。
+    /// 读租户独立库的版本台账
     /// </summary>
     /// <remarks>
-    /// 没有台账行为无值；连不上或读失败即 <see cref="RuntimeErrors.TenantDatabaseFailed"/>。
+    /// 没有台账行为无值；连不上或读失败即 <see cref="RuntimeErrors.TenantDatabaseFailed"/>
     /// </remarks>
-    /// <param name="tenantId">租户 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>台账行。</returns>
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>台账行</returns>
     public async Task<Result<Maybe<SysVersion>>> ReadVersionAsync(string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
@@ -246,10 +246,10 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     }
 
     /// <summary>
-    /// 在作用域里绑定租户的分片并取分片连接。
+    /// 在作用域里绑定租户的分片并取分片连接
     /// </summary>
     /// <remarks>
-    /// 绑定要在作用域第一次取持久化客户端之前；租户目录里没有连接串（共库或未知租户）即 <see cref="RuntimeErrors.TenantShardMissing"/>。
+    /// 绑定要在作用域第一次取持久化客户端之前；租户目录里没有连接串（共库或未知租户）即 <see cref="RuntimeErrors.TenantShardMissing"/>
     /// </remarks>
     private static async Task<Result<ISqlSugarClient>> BindAsync(IServiceProvider services, string tenantId, CancellationToken cancellationToken)
     {

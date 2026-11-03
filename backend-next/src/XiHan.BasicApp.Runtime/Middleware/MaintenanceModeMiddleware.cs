@@ -8,20 +8,20 @@ using XiHan.BasicApp.Runtime.Schema;
 namespace XiHan.BasicApp.Runtime.Middleware;
 
 /// <summary>
-/// 维护模式：别的节点升级共享的库期间返回 503。
+/// 维护模式：别的节点升级共享的库期间返回 503
 /// </summary>
 /// <remarks>
 /// ASP.NET Core 中间件，宿主排在最前（普通端点与 Hub 也一样挡住）。放行健康检查与 <c>/.well-known/</c>，
-/// 其余回 <c>application/problem+json</c>（错误码 <see cref="RuntimeErrors.MaintenanceMode"/>），带 <c>Retry-After</c>。
+/// 其余回 <c>application/problem+json</c>（错误码 <see cref="RuntimeErrors.MaintenanceMode"/>），带 <c>Retry-After</c>
 /// </remarks>
-/// <param name="next">下一个中间件。</param>
-/// <param name="state">维护模式状态。</param>
+/// <param name="next">下一个中间件</param>
+/// <param name="state">维护模式状态</param>
 public sealed class MaintenanceModeMiddleware(RequestDelegate next, MaintenanceModeState state)
 {
     private static readonly string[] _allowed = ["/health", "/.well-known/"];
 
     /// <summary>
-    /// 处理请求。
+    /// 处理请求
     /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {

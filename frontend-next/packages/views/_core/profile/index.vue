@@ -96,9 +96,9 @@ const tabComponents: Record<string, Component> = {
   oauth: markRaw(ProfileTabOAuth),
 }
 
-// 初始选中页签：URL ?tab=（深链兼容）> 会话记忆 > 默认「个人资料」。
+// 初始选中页签：URL ?tab=（深链兼容）> 会话记忆 > 默认「个人资料」
 // 注意：个人中心是「一个页面」，子页签切换只改内部状态，不再写入路由 query，
-// 否则带不同 ?tab= 的 fullPath 会被标签栏识别为新标签，导致每点一次就多开一个标签。
+// 否则带不同 ?tab= 的 fullPath 会被标签栏识别为新标签，导致每点一次就多开一个标签
 activeTab.value = (() => {
   const queryTab = typeof route.query.tab === 'string' ? route.query.tab : ''
   if (queryTab && queryTab in tabComponents) {

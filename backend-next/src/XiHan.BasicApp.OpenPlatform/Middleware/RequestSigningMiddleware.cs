@@ -18,29 +18,29 @@ using XiHan.Framework.Protocols.Http.Routing;
 namespace XiHan.BasicApp.OpenPlatform.Middleware;
 
 /// <summary>
-/// 签名开放接口的验签。
+/// 签名开放接口的验签
 /// </summary>
 /// <remarks>
 /// Authenticate 阶段，只对 <c>open.*</c> 操作：照 4.x 的请求头与规范串，依次校验请求头、时间窗、凭证（停用、归属人账号不正常都算无效）、IP 白名单、
-/// 算法、请求体（超限、解密）、内容签名与请求签名，最后才占用随机串防重放（4.x 在验签之前就占用，伪造的请求也能把正常请求的随机串占掉）。
-/// 加密的请求体解密后重新绑定载荷；要求加密响应或请求本身加密了，就把成功的 JSON 响应换成信封 <c>{alg, data, iv, contentSign}</c>。
-/// 每次调用无论成败都登记一条开放接口日志（<see cref="OpenApiLogEntry"/>，由 Auditing 在 Observe 阶段落库），验签通过即记下凭证的最近使用时间。
+/// 算法、请求体（超限、解密）、内容签名与请求签名，最后才占用随机串防重放（4.x 在验签之前就占用，伪造的请求也能把正常请求的随机串占掉）
+/// 加密的请求体解密后重新绑定载荷；要求加密响应或请求本身加密了，就把成功的 JSON 响应换成信封 <c>{alg, data, iv, contentSign}</c>
+/// 每次调用无论成败都登记一条开放接口日志（<see cref="OpenApiLogEntry"/>，由 Auditing 在 Observe 阶段落库），验签通过即记下凭证的最近使用时间
 /// 与 4.x 不同：明文请求不必带 <c>X-Encrypt-Algorithm: NONE</c>；算法以凭证的设置为准（请求头只能与之一致）；签名恒定时间比较；不再有「允许不签名」的开关；
-/// 失败按错误类别给 400 / 403 / 409（4.x 多数是 401）。
+/// 失败按错误类别给 400 / 403 / 409（4.x 多数是 401）
 /// </remarks>
-/// <param name="credentials">凭证目录。</param>
-/// <param name="nonces">随机串的占用存储。</param>
-/// <param name="options">开放平台配置。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="credentials">凭证目录</param>
+/// <param name="nonces">随机串的占用存储</param>
+/// <param name="options">开放平台配置</param>
+/// <param name="clock">时间源</param>
 public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials, ICacheStore nonces, OpenPlatformOptions options, TimeProvider clock) : IPipelineMiddleware
 {
     /// <summary>
-    /// 日志里正文摘要的上限（字符）。
+    /// 日志里正文摘要的上限（字符）
     /// </summary>
     private const int BodySummaryLength = 4096;
 
     /// <summary>
-    /// 必带的请求头。
+    /// 必带的请求头
     /// </summary>
     private const string RequiredHeaders = OpenApiSignature.AccessKeyHeader + ", " + OpenApiSignature.TimestampHeader + ", " + OpenApiSignature.NonceHeader + ", " + OpenApiSignature.SignatureHeader;
 
@@ -102,9 +102,9 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
     }
 
     /// <summary>
-    /// 验签，并写好调用方、解密后的载荷与日志细节。
+    /// 验签，并写好调用方、解密后的载荷与日志细节
     /// </summary>
-    /// <returns>成功时为是否加密响应。</returns>
+    /// <returns>成功时为是否加密响应</returns>
     private async Task<Result<bool>> VerifyAsync(InvocationContext context, OperationDescriptor operation, OpenApiRequest? state, OpenApiLogEntry log)
     {
         var httpContext = state?.HttpContext;
@@ -262,12 +262,12 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
     }
 
     /// <summary>
-    /// 解开加密的请求体。
+    /// 解开加密的请求体
     /// </summary>
     /// <remarks>
-    /// 信封 <c>{"data": Base64, "iv"?: Base64}</c> 或整段 Base64（也认 JSON 字符串）。
+    /// 信封 <c>{"data": Base64, "iv"?: Base64}</c> 或整段 Base64（也认 JSON 字符串）
     /// </remarks>
-    /// <returns>明文；解不开为 <see langword="null"/>。</returns>
+    /// <returns>明文；解不开为 <see langword="null"/></returns>
     private static byte[]? Decrypt(string secret, byte[] raw, string ivHeader, string nonce)
     {
         string? data = null;
@@ -303,7 +303,7 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
     }
 
     /// <summary>
-    /// 加密响应的信封：每次随机 IV，<c>contentSign</c> 是明文的 SHA256。
+    /// 加密响应的信封：每次随机 IV，<c>contentSign</c> 是明文的 SHA256
     /// </summary>
     private static byte[]? Envelope(string? secret, byte[] plain)
     {

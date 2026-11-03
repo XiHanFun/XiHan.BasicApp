@@ -1,7 +1,7 @@
 import type { XihanWorkflowDefinition } from '@xihan-flow/core/presets/xihan-workflow'
 
 /**
- * 框架 5 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow rc.2）认的 4.x 引擎定义。
+ * 框架 5 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow rc.2）认的 4.x 引擎定义
  *
  * 预设只认 4.x 引擎的定义格式，6.0 后端收发的是框架 5 的 WorkflowJson（camelCase），两边逐项换算：
  * - 定义：WorkflowJson 的 name（定义名，即 4.x 的编码）↔ code，displayName ↔ name；
@@ -12,12 +12,12 @@ import type { XihanWorkflowDefinition } from '@xihan-flow/core/presets/xihan-wor
  * - 节点属性里预设沿用 4.x 引擎、框架 5 改了名的四个键：DurationSeconds ↔ Duration（延时）、ItemsExpression ↔ Items、
  *   ItemVariableName ↔ ItemVariable（遍历）、DefinitionCode ↔ DefinitionName（子流程与遍历）；
  * - 缺 id 的节点与连线补上合法的元素 id（框架的 [A-Za-z0-9][A-Za-z0-9._-]{0,63}），不交给预设补出含 -> 与 # 的 id；
- * - 回写时去掉 4.x 才有、框架不认的 creationTime、publishTime 与数字形式的 tenantId。
+ * - 回写时去掉 4.x 才有、框架不认的 creationTime、publishTime 与数字形式的 tenantId
  *
- * 没列出的字段原样往返，值为 null 的字段去掉（WorkflowJson 不写 null，二者同义）；往返两次的结果一致。
+ * 没列出的字段原样往返，值为 null 的字段去掉（WorkflowJson 不写 null，二者同义）；往返两次的结果一致
  */
 
-/** WorkflowJson 里的节点重试策略：firstDelay 是 TimeSpan 文本。 */
+/** WorkflowJson 里的节点重试策略：firstDelay 是 TimeSpan 文本 */
 export interface WorkflowJsonRetryPolicy {
   readonly maxAttempts?: number
   readonly firstDelay?: string
@@ -25,20 +25,20 @@ export interface WorkflowJsonRetryPolicy {
   readonly [key: string]: unknown
 }
 
-/** WorkflowJson 里的节点。 */
+/** WorkflowJson 里的节点 */
 export interface WorkflowJsonNode {
   readonly id?: string
   readonly activityType?: string
   readonly displayName?: string | null
   readonly properties?: Readonly<Record<string, unknown>>
   readonly retryPolicy?: WorkflowJsonRetryPolicy | null
-  /** 挂起超时，TimeSpan 文本（d.hh:mm:ss 或 hh:mm:ss）。 */
+  /** 挂起超时，TimeSpan 文本（d.hh:mm:ss 或 hh:mm:ss） */
   readonly timeout?: string | null
   readonly continueOnError?: boolean
   readonly [key: string]: unknown
 }
 
-/** WorkflowJson 里的连线。 */
+/** WorkflowJson 里的连线 */
 export interface WorkflowJsonTransition {
   readonly id?: string
   readonly sourceNodeId?: string
@@ -50,10 +50,10 @@ export interface WorkflowJsonTransition {
   readonly [key: string]: unknown
 }
 
-/** 框架 5 的流程定义（WorkflowJson）；没列出的字段原样往返。 */
+/** 框架 5 的流程定义（WorkflowJson）；没列出的字段原样往返 */
 export interface WorkflowJsonDefinition {
   readonly id?: string
-  /** 定义名（同名的各版本共用；关联审批业务时即业务码）。 */
+  /** 定义名（同名的各版本共用；关联审批业务时即业务码） */
   readonly name?: string
   readonly version?: number
   readonly displayName?: string | null
@@ -64,27 +64,27 @@ export interface WorkflowJsonDefinition {
   readonly variables?: readonly Readonly<Record<string, unknown>>[]
   readonly nodes?: readonly WorkflowJsonNode[]
   readonly transitions?: readonly WorkflowJsonTransition[]
-  /** 应用的扩展属性：设计器的画面数据放在 designerLayout / designerEdges / designerExtensions。 */
+  /** 应用的扩展属性：设计器的画面数据放在 designerLayout / designerEdges / designerExtensions */
   readonly properties?: Readonly<Record<string, unknown>> | null
   readonly [key: string]: unknown
 }
 
 type JsonRecord = Record<string, unknown>
 
-/** 设计器画面数据的键：WorkflowJson 的 properties 下是对象，4.x 的 extraProperties 下是 JSON 字符串。 */
+/** 设计器画面数据的键：WorkflowJson 的 properties 下是对象，4.x 的 extraProperties 下是 JSON 字符串 */
 const DESIGNER_KEYS: ReadonlySet<string> = new Set(['designerLayout', 'designerEdges', 'designerExtensions'])
 
-/** 4.x 才有、框架不认的定义字段。 */
+/** 4.x 才有、框架不认的定义字段 */
 const LEGACY_ONLY_KEYS: ReadonlySet<string> = new Set(['creationTime', 'publishTime'])
 
-/** 回写 WorkflowJson 时排在前面的字段，其余按原顺序跟在后面。 */
+/** 回写 WorkflowJson 时排在前面的字段，其余按原顺序跟在后面 */
 const DEFINITION_ORDER = ['id', 'name', 'version', 'displayName', 'description', 'category', 'status', 'enableCompensation'] as const
 const DEFINITION_TAIL = ['variables', 'nodes', 'transitions', 'properties'] as const
 const NODE_ORDER = ['id', 'activityType', 'displayName', 'properties', 'retryPolicy', 'timeout', 'continueOnError'] as const
 const TRANSITION_ORDER = ['id', 'sourceNodeId', 'targetNodeId', 'condition', 'priority', 'isDefault', 'displayName'] as const
 const RETRY_ORDER = ['maxAttempts', 'firstDelay', 'backoffFactor'] as const
 
-/** TimeSpan 的常量格式（c）：[d.]hh:mm[:ss[.fffffff]]，或只有天数。 */
+/** TimeSpan 的常量格式（c）：[d.]hh:mm[:ss[.fffffff]]，或只有天数 */
 const TIME_SPAN = /^(?:(\d+)\.)?(\d{1,2}):(\d{1,2})(?::(\d{1,2})(?:\.(\d{1,7}))?)?$/
 const DAYS_ONLY = /^\d+$/
 const TICKS_PER_SECOND = 10_000_000
@@ -101,7 +101,7 @@ function present(value: unknown): boolean {
   return value !== null && value !== undefined
 }
 
-/** 按给定顺序排出字段：列出的在前、其余按原顺序在后，值为 null 或缺省的去掉。 */
+/** 按给定顺序排出字段：列出的在前、其余按原顺序在后，值为 null 或缺省的去掉 */
 function ordered(source: JsonRecord, head: readonly string[], tail: readonly string[] = []): JsonRecord {
   const result: JsonRecord = {}
   const listed = new Set([...head, ...tail])
@@ -120,7 +120,7 @@ function ordered(source: JsonRecord, head: readonly string[], tail: readonly str
   return result
 }
 
-/** 取一个没用过的元素 id：前缀加从 1 起的序号，与设计器新建节点、连线的写法一致。 */
+/** 取一个没用过的元素 id：前缀加从 1 起的序号，与设计器新建节点、连线的写法一致 */
 function freeId(prefix: string, used: Set<string>): string {
   let index = 1
   while (used.has(`${prefix}${index}`))
@@ -134,7 +134,7 @@ function hasId(value: unknown): value is JsonRecord & { id: string } {
   return isRecord(value) && typeof value.id === 'string' && value.id !== ''
 }
 
-/** 缺 id 的节点与连线补上 id；已有的原样保留。 */
+/** 缺 id 的节点与连线补上 id；已有的原样保留 */
 function withIds(items: readonly unknown[], prefixOf: (item: JsonRecord) => string): unknown[] {
   const used = new Set(items.filter(hasId).map(item => item.id))
   return items.map((item) => {
@@ -157,8 +157,8 @@ function listOf(value: unknown, field: string): readonly unknown[] {
 }
 
 /**
- * TimeSpan 文本换成秒数（可带小数）。
- * @param value TimeSpan 的常量格式，如 01:00:00、1.02:03:04、00:00:00.5000000。
+ * TimeSpan 文本换成秒数（可带小数）
+ * @param value TimeSpan 的常量格式，如 01:00:00、1.02:03:04、00:00:00.5000000
  */
 export function timeSpanToSeconds(value: string): number {
   const text = value.trim()
@@ -175,8 +175,8 @@ export function timeSpanToSeconds(value: string): number {
 }
 
 /**
- * 秒数换成 TimeSpan 文本，与框架序列化的写法相同：不满一天写 hh:mm:ss，满一天写 d.hh:mm:ss，有小数时带七位小数。
- * @param seconds 非负的秒数。
+ * 秒数换成 TimeSpan 文本，与框架序列化的写法相同：不满一天写 hh:mm:ss，满一天写 d.hh:mm:ss，有小数时带七位小数
+ * @param seconds 非负的秒数
  */
 export function secondsToTimeSpan(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0)
@@ -192,7 +192,7 @@ export function secondsToTimeSpan(seconds: number): string {
 
 // ── WorkflowJson → 4.x 引擎定义 ─────────────────────────────────
 
-/** 预设（4.x 引擎）与框架 5 叫法不同的节点属性：前者是预设的键，后者是 WorkflowJson 的键。 */
+/** 预设（4.x 引擎）与框架 5 叫法不同的节点属性：前者是预设的键，后者是 WorkflowJson 的键 */
 const PROPERTY_RENAMES: readonly (readonly [string, string])[] = [
   ['DurationSeconds', 'Duration'],
   ['ItemsExpression', 'Items'],
@@ -200,7 +200,7 @@ const PROPERTY_RENAMES: readonly (readonly [string, string])[] = [
   ['DefinitionCode', 'DefinitionName'],
 ]
 
-/** 按对照表改节点属性的键（direction 0：预设 → WorkflowJson，1：WorkflowJson → 预设），别的键与顺序不变。 */
+/** 按对照表改节点属性的键（direction 0：预设 → WorkflowJson，1：WorkflowJson → 预设），别的键与顺序不变 */
 function renameProperties(properties: unknown, direction: 0 | 1): unknown {
   if (!isRecord(properties))
     return properties
@@ -244,8 +244,8 @@ function transitionFromJson(transition: unknown): unknown {
 }
 
 /**
- * WorkflowJson 换成预设认的 4.x 引擎定义，交给 fromWorkflowDefinition 打开。
- * 结构不对（不是对象、nodes / transitions 不是数组、TimeSpan 文本不合法）时抛 TypeError。
+ * WorkflowJson 换成预设认的 4.x 引擎定义，交给 fromWorkflowDefinition 打开
+ * 结构不对（不是对象、nodes / transitions 不是数组、TimeSpan 文本不合法）时抛 TypeError
  */
 export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflowDefinition {
   if (!isRecord(document))
@@ -278,7 +278,7 @@ export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflo
 
 // ── 4.x 引擎定义 → WorkflowJson ─────────────────────────────────
 
-/** 设计器写进 extraProperties 的 JSON 字符串解析回对象；解析不出时原样留着字符串（交给后端报错，不吞掉）。 */
+/** 设计器写进 extraProperties 的 JSON 字符串解析回对象；解析不出时原样留着字符串（交给后端报错，不吞掉） */
 function parseDesignerValue(value: string): unknown {
   try {
     return JSON.parse(value) as unknown
@@ -320,7 +320,7 @@ function transitionToJson(transition: unknown): unknown {
 }
 
 /**
- * 预设写出的 4.x 引擎定义（toWorkflowDefinition 的结果）换成 WorkflowJson，交给后端保存。
+ * 预设写出的 4.x 引擎定义（toWorkflowDefinition 的结果）换成 WorkflowJson，交给后端保存
  */
 export function toWorkflowJson(definition: XihanWorkflowDefinition): WorkflowJsonDefinition {
   if (!isRecord(definition))

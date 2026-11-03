@@ -1,8 +1,8 @@
 /**
- * 流程实例页展示规则（instance-labels.ts）的单元测试。
+ * 流程实例页展示规则（instance-labels.ts）的单元测试
  *
  * 锁定：结果色调与标准结果（自定义结果原样显示）；运行轨迹取每个节点最近一次执行的状态、等待中的补 waiting；
- * 执行历史的节点名从实例所用的定义文档里取。
+ * 执行历史的节点名从实例所用的定义文档里取
  */
 import { describe, expect, it } from 'vitest'
 import { graphStatuses, instanceStatusTone, nodeStatusTone, nodeTitles, outcomeTone, standardOutcome } from './instance-labels'

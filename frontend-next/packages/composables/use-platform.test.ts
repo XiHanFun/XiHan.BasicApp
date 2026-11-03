@@ -1,7 +1,7 @@
 /**
- * usePlatform 平台检测与快捷键标签单元测试。
+ * usePlatform 平台检测与快捷键标签单元测试
  * 职责：锁定 isMac 在导入期由 userAgent 一次性判定（会话内恒定）、
- * Mac 下修饰键换符号且去掉 + 分隔、非 Mac 平台原样返回这几条约定。
+ * Mac 下修饰键换符号且去掉 + 分隔、非 Mac 平台原样返回这几条约定
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 

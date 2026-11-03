@@ -1,9 +1,9 @@
 /**
- * useDynamicIsland 灵动岛单元测试。
+ * useDynamicIsland 灵动岛单元测试
  * 职责：锁定「消息堆叠而非排队」「按状态各自倒计时」「面板展开暂停计时、收起重排」
  * 「消息条数上限 5 / 历史上限 20」「只有 success/error 入历史」
  * 「服务端进行中任务与历史写 sessionStorage、刷新恢复且序号续接」
- * 「灵动岛关闭时终态由轻提示接管、常驻状态整体静默」这几条约定，以及计时器卸载清理。
+ * 「灵动岛关闭时终态由轻提示接管、常驻状态整体静默」这几条约定，以及计时器卸载清理
  */
 import type { IslandTask } from './useDynamicIsland'
 import { afterEach, describe, expect, it, vi } from 'vitest'

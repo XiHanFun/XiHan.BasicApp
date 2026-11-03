@@ -1,5 +1,5 @@
 /**
- * 聊天壳层扩展：顶栏按钮 + 全局浮动面板 + 实时集成钩子，经 registerShellExtension 挂进布局。
+ * 聊天壳层扩展：顶栏按钮 + 全局浮动面板 + 实时集成钩子，经 registerShellExtension 挂进布局
  */
 import type { ShellExtension } from '~/stores'
 import AppChatPanel from './AppChatPanel.vue'

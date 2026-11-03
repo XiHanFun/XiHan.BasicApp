@@ -1,9 +1,9 @@
 /**
- * 流程定义元数据（definition-metadata.ts）的单元测试。
+ * 流程定义元数据（definition-metadata.ts）的单元测试
  *
  * 锁定：从定义文档（WorkflowJson）读出编码（name）、名称（displayName）、分类、描述；新建是一份没有节点与连线的空白流程，
  * 编码是审批业务时带上它声明的变量；编辑只改名称、分类、描述，编码与其它字段原样；选审批业务时编码换成业务编码，名称空着才带业务名；
- * 编码要合框架的定义名语法。
+ * 编码要合框架的定义名语法
  */
 import type { WorkflowBusinessType } from './definition-metadata'
 import { describe, expect, it } from 'vitest'

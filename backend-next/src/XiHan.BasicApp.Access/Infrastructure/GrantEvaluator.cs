@@ -11,22 +11,22 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一个授予来源（用户本身或一个角色）在判定那一刻的授予、规则与条件。
+/// 一个授予来源（用户本身或一个角色）在判定那一刻的授予、规则与条件
 /// </summary>
-/// <param name="Kind">主体类别。</param>
-/// <param name="SubjectId">主体 ID。</param>
-/// <param name="Grants">框架授予存储里的权限码（可含 <c>*</c>）。</param>
-/// <param name="Rules">授予规则（Deny 与有效期）。</param>
-/// <param name="Conditions">启用的条件子句（按绑定：权限码 × 授予或拒绝）。</param>
+/// <param name="Kind">主体类别</param>
+/// <param name="SubjectId">主体 ID</param>
+/// <param name="Grants">框架授予存储里的权限码（可含 <c>*</c>）</param>
+/// <param name="Rules">授予规则（Deny 与有效期）</param>
+/// <param name="Conditions">启用的条件子句（按绑定：权限码 × 授予或拒绝）</param>
 public sealed record GrantSource(GrantSubjectKind Kind, Guid SubjectId, IReadOnlyCollection<string> Grants, IReadOnlyList<PermissionRuleView> Rules, IReadOnlyList<ConditionClauseView> Conditions)
 {
     /// <summary>
-    /// 取某一时刻拒绝权限码的绑定。
+    /// 取某一时刻拒绝权限码的绑定
     /// </summary>
     /// <remarks>
-    /// 同码或 <c>*</c> 上在有效期内的 Deny。
+    /// 同码或 <c>*</c> 上在有效期内的 Deny
     /// </remarks>
-    /// <returns>绑定的权限码。</returns>
+    /// <returns>绑定的权限码</returns>
     public IEnumerable<string> DenyBindings(string permission, DateTimeOffset now)
     {
         foreach (var rule in Rules)
@@ -39,12 +39,12 @@ public sealed record GrantSource(GrantSubjectKind Kind, Guid SubjectId, IReadOnl
     }
 
     /// <summary>
-    /// 取某一时刻授予权限码的绑定。
+    /// 取某一时刻授予权限码的绑定
     /// </summary>
     /// <remarks>
-    /// 同码或 <c>*</c> 的授予，有 Grant 规则行时还要在它的有效期内。
+    /// 同码或 <c>*</c> 的授予，有 Grant 规则行时还要在它的有效期内
     /// </remarks>
-    /// <returns>绑定的权限码。</returns>
+    /// <returns>绑定的权限码</returns>
     public IEnumerable<string> GrantBindings(string permission, DateTimeOffset now)
     {
         foreach (var code in new[] { permission, PermissionGrant.All })
@@ -57,28 +57,28 @@ public sealed record GrantSource(GrantSubjectKind Kind, Guid SubjectId, IReadOnl
     }
 
     /// <summary>
-    /// 取一个绑定上启用的条件子句。
+    /// 取一个绑定上启用的条件子句
     /// </summary>
-    /// <returns>启用的条件子句；没有即无条件。</returns>
+    /// <returns>启用的条件子句；没有即无条件</returns>
     public IReadOnlyList<ConditionClauseView> ConditionsOf(string binding, PermissionAction action)
         => Conditions.Count == 0 ? [] : [.. Conditions.Where(c => c.Action == action && string.Equals(c.Permission, binding, StringComparison.Ordinal))];
 
     /// <summary>
-    /// 某一时刻是否拒绝权限码。
+    /// 某一时刻是否拒绝权限码
     /// </summary>
     /// <remarks>
-    /// 条件生效时只算无条件的拒绝（有条件的由调用时按请求判定），条件不生效时有条件的拒绝也算。
+    /// 条件生效时只算无条件的拒绝（有条件的由调用时按请求判定），条件不生效时有条件的拒绝也算
     /// </remarks>
     public bool DeniesAt(string permission, DateTimeOffset now, bool conditionsApply)
         => DenyBindings(permission, now).Any(b => !conditionsApply || ConditionsOf(b, PermissionAction.Deny).Count == 0);
 
     /// <summary>
-    /// 某一时刻是否授予权限码（有条件的授予也算：调用时再按请求判定）。
+    /// 某一时刻是否授予权限码（有条件的授予也算：调用时再按请求判定）
     /// </summary>
     public bool GrantsAt(string permission, DateTimeOffset now) => GrantBindings(permission, now).Any();
 
     /// <summary>
-    /// 某一时刻这个来源在权限码上有没有挂条件的绑定。
+    /// 某一时刻这个来源在权限码上有没有挂条件的绑定
     /// </summary>
     public bool HasConditions(string permission, DateTimeOffset now)
         => Conditions.Count > 0
@@ -104,43 +104,43 @@ public sealed record GrantSource(GrantSubjectKind Kind, Guid SubjectId, IReadOnl
 }
 
 /// <summary>
-/// 一条角色链：一个角色与它此刻传得到授予的上级。
+/// 一条角色链：一个角色与它此刻传得到授予的上级
 /// </summary>
 /// <remarks>
-/// 见方案 5.9 角色继承，4.x 同。链上任一角色的 Deny 只拿走这条链，不影响别的角色。
+/// 见方案 5.9 角色继承，4.x 同。链上任一角色的 Deny 只拿走这条链，不影响别的角色
 /// </remarks>
-/// <param name="RoleId">链首的角色（持有或受委托的那个）。</param>
-/// <param name="Members">链上的来源：首个是角色本身，其后是上级。</param>
+/// <param name="RoleId">链首的角色（持有或受委托的那个）</param>
+/// <param name="Members">链上的来源：首个是角色本身，其后是上级</param>
 public sealed record RoleChain(Guid RoleId, IReadOnlyList<GrantSource> Members)
 {
     /// <summary>
-    /// 这条链某一时刻是否给出权限码。
+    /// 这条链某一时刻是否给出权限码
     /// </summary>
     /// <remarks>
-    /// 有条件的授予算给出；条件生效时有条件的拒绝不算拿走。
+    /// 有条件的授予算给出；条件生效时有条件的拒绝不算拿走
     /// </remarks>
     public bool Allows(string permission, DateTimeOffset now, bool conditionsApply)
         => !Members.Any(m => m.DeniesAt(permission, now, conditionsApply)) && Members.Any(m => m.GrantsAt(permission, now));
 }
 
 /// <summary>
-/// 一个主体此刻的授予全貌。
+/// 一个主体此刻的授予全貌
 /// </summary>
 /// <remarks>
-/// 用户本身、此刻算数的角色链（令牌声明 ∩ 有效指派）、受委托的权限码与角色链，以及判定所用的时间。
-/// 合并次序沿用 4.x：用户 Deny &gt; 用户 Grant ≈ 委托的权限码 &gt; 角色链 Deny（只拿走本链）&gt; 角色链 Grant；不在有效期内的 Grant 与 Deny 都不算数。
-/// 权限条件生效时这里是乐观的结论（有条件的授予算持有、有条件的拒绝不拿走），调用时由 <see cref="ConditionDecider"/> 按请求属性给出精确结论。
+/// 用户本身、此刻算数的角色链（令牌声明 ∩ 有效指派）、受委托的权限码与角色链，以及判定所用的时间
+/// 合并次序沿用 4.x：用户 Deny &gt; 用户 Grant ≈ 委托的权限码 &gt; 角色链 Deny（只拿走本链）&gt; 角色链 Grant；不在有效期内的 Grant 与 Deny 都不算数
+/// 权限条件生效时这里是乐观的结论（有条件的授予算持有、有条件的拒绝不拿走），调用时由 <see cref="ConditionDecider"/> 按请求属性给出精确结论
 /// </remarks>
-/// <param name="Now">判定时间。</param>
-/// <param name="User">用户本身。</param>
-/// <param name="Roles">此刻算数的角色链。</param>
-/// <param name="Delegated">此刻受委托的权限码。</param>
-/// <param name="DelegatedRoles">此刻受委托的角色链。</param>
-/// <param name="ConditionsApply">权限条件是否生效（模式不是 Disabled）。</param>
+/// <param name="Now">判定时间</param>
+/// <param name="User">用户本身</param>
+/// <param name="Roles">此刻算数的角色链</param>
+/// <param name="Delegated">此刻受委托的权限码</param>
+/// <param name="DelegatedRoles">此刻受委托的角色链</param>
+/// <param name="ConditionsApply">权限条件是否生效（模式不是 Disabled）</param>
 public sealed record GrantView(DateTimeOffset Now, GrantSource User, IReadOnlyList<RoleChain> Roles, IReadOnlySet<string> Delegated, IReadOnlyList<RoleChain> DelegatedRoles, bool ConditionsApply = true)
 {
     /// <summary>
-    /// 是否持有权限码。
+    /// 是否持有权限码
     /// </summary>
     public bool Allows(string permission)
     {
@@ -157,7 +157,7 @@ public sealed record GrantView(DateTimeOffset Now, GrantSource User, IReadOnlyLi
     }
 
     /// <summary>
-    /// 持有的权限码上有没有要按请求判定的条件（条件不生效时一律没有）。
+    /// 持有的权限码上有没有要按请求判定的条件（条件不生效时一律没有）
     /// </summary>
     public bool RequiresConditions(string permission)
     {
@@ -168,10 +168,10 @@ public sealed record GrantView(DateTimeOffset Now, GrantSource User, IReadOnlyLi
     }
 
     /// <summary>
-    /// 取授予存储之外的授予。
+    /// 取授予存储之外的授予
     /// </summary>
     /// <remarks>
-    /// 上级角色与委托给出的权限码（交给框架的 <see cref="IPermissionGrantSource"/>，命中后仍由 <see cref="Allows"/> 精确判定）。
+    /// 上级角色与委托给出的权限码（交给框架的 <see cref="IPermissionGrantSource"/>，命中后仍由 <see cref="Allows"/> 精确判定）
     /// </remarks>
     public IReadOnlyCollection<string> ExtraGrants()
     {
@@ -197,31 +197,31 @@ public sealed record GrantView(DateTimeOffset Now, GrantSource User, IReadOnlyLi
 }
 
 /// <summary>
-/// 组装主体此刻的授予全貌（单例）。
+/// 组装主体此刻的授予全貌（单例）
 /// </summary>
 /// <remarks>
-/// 权限过滤器、授予来源与 <c>auth.permissions</c> 同源。
+/// 权限过滤器、授予来源与 <c>auth.permissions</c> 同源
 /// 授予取框架授予存储（带缓存），规则、条件、指派、继承图与委托取 <see cref="PermissionRules"/>、<see cref="PermissionConditions"/>、<see cref="RoleAssignments"/>、<see cref="RoleHierarchy"/> 与 <see cref="Delegations"/>；
-/// 主体 ID 不是本应用用户（外部签发的令牌）时没有全貌，不按本包规则收窄。
+/// 主体 ID 不是本应用用户（外部签发的令牌）时没有全貌，不按本包规则收窄
 /// </remarks>
-/// <param name="store">框架授予存储。</param>
-/// <param name="rules">授予规则。</param>
-/// <param name="assignments">角色指派。</param>
-/// <param name="hierarchy">角色继承图。</param>
-/// <param name="delegations">委托。</param>
-/// <param name="conditions">权限条件。</param>
-/// <param name="accessOptions">授权包配置（条件生效模式）。</param>
-/// <param name="options">安全选项（角色声明名）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="store">框架授予存储</param>
+/// <param name="rules">授予规则</param>
+/// <param name="assignments">角色指派</param>
+/// <param name="hierarchy">角色继承图</param>
+/// <param name="delegations">委托</param>
+/// <param name="conditions">权限条件</param>
+/// <param name="accessOptions">授权包配置（条件生效模式）</param>
+/// <param name="options">安全选项（角色声明名）</param>
+/// <param name="clock">时间源</param>
 public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules rules, RoleAssignments assignments, RoleHierarchy hierarchy, Delegations delegations, PermissionConditions conditions, AccessOptions accessOptions, SecurityOptions options, TimeProvider clock)
 {
     /// <summary>
-    /// 组装主体此刻的授予全貌。
+    /// 组装主体此刻的授予全貌
     /// </summary>
     /// <remarks>
-    /// 框架授予存储读不到时把它的失败原样返回（框架按 <c>SECURITY_UNAVAILABLE_001</c> 给出 503），不当作没有授予。
+    /// 框架授予存储读不到时把它的失败原样返回（框架按 <c>SECURITY_UNAVAILABLE_001</c> 给出 503），不当作没有授予
     /// </remarks>
-    /// <returns>授予全貌；不是本应用用户时为空。</returns>
+    /// <returns>授予全貌；不是本应用用户时为空</returns>
     public async Task<Result<Maybe<GrantView>>> ViewAsync(SecurityContext security, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(security);
@@ -250,12 +250,12 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     }
 
     /// <summary>
-    /// 按用户此刻的有效指派组装全貌（不看令牌）：条件试算与影响试算用。
+    /// 按用户此刻的有效指派组装全貌（不看令牌）：条件试算与影响试算用
     /// </summary>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="userId">用户。</param>
-    /// <param name="now">判定时刻（试算可以给别的时刻）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="owner">所属侧</param>
+    /// <param name="userId">用户</param>
+    /// <param name="now">判定时刻（试算可以给别的时刻）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<GrantView>> ViewOfAsync(string owner, Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(owner);
@@ -289,16 +289,16 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     }
 
     /// <summary>
-    /// 此刻持有的角色（有效指派且角色启用）。
+    /// 此刻持有的角色（有效指派且角色启用）
     /// </summary>
     private async Task<HashSet<Guid>> HoldingAsync(string owner, Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
         => (await assignments.OfAsync(owner, userId, cancellationToken).ConfigureAwait(false)).Where(a => a.HoldsAt(now)).Select(static a => a.RoleId).ToHashSet();
 
     /// <summary>
-    /// 取此刻算数的委托。
+    /// 取此刻算数的委托
     /// </summary>
     /// <remarks>
-    /// 在有效期内，且委托人此刻仍持有所委托的权限码（按委托人的指派判定，不再顺着委托人的委托传下去）或角色。
+    /// 在有效期内，且委托人此刻仍持有所委托的权限码（按委托人的指派判定，不再顺着委托人的委托传下去）或角色
     /// </remarks>
     private async Task<Result<DelegatedGrants>> DelegatedAsync(ViewBuilder context, Guid userId, CancellationToken cancellationToken)
     {
@@ -347,16 +347,16 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     }
 
     /// <summary>
-    /// 用户此刻是否持有权限码或角色。
+    /// 用户此刻是否持有权限码或角色
     /// </summary>
     /// <remarks>
-    /// 按指派判定，不看令牌、不算委托。委托的新建校验与判定共用。
+    /// 按指派判定，不看令牌、不算委托。委托的新建校验与判定共用
     /// </remarks>
-    /// <param name="owner">所属侧。</param>
-    /// <param name="userId">用户。</param>
-    /// <param name="permission">权限码（与 <paramref name="roleId"/> 二选一）。</param>
-    /// <param name="roleId">角色。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="owner">所属侧</param>
+    /// <param name="userId">用户</param>
+    /// <param name="permission">权限码（与 <paramref name="roleId"/> 二选一）</param>
+    /// <param name="roleId">角色</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<bool>> HoldsAsync(string owner, Guid userId, string? permission, Guid? roleId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(owner);
@@ -379,7 +379,7 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     }
 
     /// <summary>
-    /// 用户自己的授予（本身与持有角色的链），不含委托：委托不再顺着委托人的委托传下去。
+    /// 用户自己的授予（本身与持有角色的链），不含委托：委托不再顺着委托人的委托传下去
     /// </summary>
     private static async Task<Result<GrantView>> OwnViewAsync(ViewBuilder context, Guid userId, HashSet<Guid> holding, CancellationToken cancellationToken)
     {
@@ -394,14 +394,14 @@ public sealed class GrantEvaluator(IPermissionGrantStore store, PermissionRules 
     }
 
     /// <summary>
-    /// 委托带来的授予：权限码与角色的链。
+    /// 委托带来的授予：权限码与角色的链
     /// </summary>
-    /// <param name="Permissions">委托来的权限码。</param>
-    /// <param name="Roles">委托来的角色的链。</param>
+    /// <param name="Permissions">委托来的权限码</param>
+    /// <param name="Roles">委托来的角色的链</param>
     private sealed record DelegatedGrants(IReadOnlySet<string> Permissions, IReadOnlyList<RoleChain> Roles);
 
     /// <summary>
-    /// 一次组装的上下文：同一侧、同一时刻、同一份继承图。
+    /// 一次组装的上下文：同一侧、同一时刻、同一份继承图
     /// </summary>
     private sealed class ViewBuilder(IPermissionGrantStore store, PermissionRules rules, PermissionConditions conditions, string owner, string? tenant, DateTimeOffset now, RoleGraph graph)
     {

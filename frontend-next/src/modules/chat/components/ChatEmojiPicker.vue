@@ -72,8 +72,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* em-emoji-picker 宿主默认 width:min-content（按内容自适应）：外壳贴内容宽，别强拉 100% 造成左右间隙不等。
-   面/描边/投影/圆角都归调用处的浮层皮肤，这里只排布，不再自画一层卡片。 */
+/* em-emoji-picker 宿主默认 width:min-content（按内容自适应）：外壳贴内容宽，别强拉 100% 造成左右间隙不等
+   面/描边/投影/圆角都归调用处的浮层皮肤，这里只排布，不再自画一层卡片 */
 .chat-emoji-picker {
   width: fit-content;
   max-width: calc(100vw - 24px);

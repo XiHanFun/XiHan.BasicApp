@@ -1,7 +1,7 @@
 /**
- * 审批流程步骤条的步骤模型（纯函数，抽屉与测试共用；照 4.x 的 approval-steps）。
+ * 审批流程步骤条的步骤模型（纯函数，抽屉与测试共用；照 4.x 的 approval-steps）
  * 把审批轨迹归并成步骤：每次办理、转办、加签、自动处理各占一步；同一节点的待办人合成「当前步」，
- * 同一节点连续的抄送合成一步；流程还没结束时末尾补一个「结束」占位步，结束后末步写明结论。
+ * 同一节点连续的抄送合成一步；流程还没结束时末尾补一个「结束」占位步，结束后末步写明结论
  */
 import type { Tone } from '@xihan-ui/core'
 import type { Translate } from './approval-labels'
@@ -75,9 +75,9 @@ function finishedStep(t: Translate, item: ApprovalTimelineItem, key: string): Dr
 }
 
 /**
- * 审批轨迹 → 步骤条。
- * @param t 文案函数。
- * @param timeline 审批轨迹（按时间）。
+ * 审批轨迹 → 步骤条
+ * @param t 文案函数
+ * @param timeline 审批轨迹（按时间）
  */
 export function buildApprovalSteps(t: Translate, timeline: readonly ApprovalTimelineItem[]): ApprovalSteps {
   const steps: DraftStep[] = []

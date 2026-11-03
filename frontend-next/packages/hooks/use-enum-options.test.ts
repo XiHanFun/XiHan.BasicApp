@@ -1,19 +1,19 @@
 import type { ComputedRef } from 'vue'
 import type { EnumOptionItem } from './useEnumOptions'
 /**
- * useEnumOptions 下拉选项单元测试。
+ * useEnumOptions 下拉选项单元测试
  * 职责：锁定「挂载即触发整库拉取」「后端元数据优先、为空才回退静态兜底」
  * 「非 string/number 的枚举值被剔除」「返回的兜底项是副本而非原引用」这几条约定，
- * 以及数据到达后 computed 自动重算。
+ * 以及数据到达后 computed 自动重算
  */
 import type { AppEnumBatchQuery, AppEnumDefinition, AppEnumOption } from '~/types'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-// 预热依赖图：useEnumService 引 ~/stores 桶文件，会牵出 router、i18n 等整张图，首次转换在满并行下要数秒。
+// 预热依赖图：useEnumService 引 ~/stores 桶文件，会牵出 router、i18n 等整张图，首次转换在满并行下要数秒
 // 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；用例里 vi.resetModules()
-// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的
 import './useEnumOptions'
 
 type BatchFn = (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>

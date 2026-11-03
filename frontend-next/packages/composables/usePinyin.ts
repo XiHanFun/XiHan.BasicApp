@@ -1,11 +1,11 @@
 import { ref } from 'vue'
 
 /**
- * 拼音搜索索引（命令面板等用）。
+ * 拼音搜索索引（命令面板等用）
  *
  * - 懒加载：词典较大，首次调用 ensurePinyin()（如命令面板打开时）才动态加载 pinyin-pro，
- *   不影响首屏体积；加载完成前匹配静默退化为原样（仅标题/关键词匹配）。
- * - 索引缓存：按文本缓存 { 全拼, 全拼→字符位置映射, 首字母 }，高亮可精确映射回原字符。
+ *   不影响首屏体积；加载完成前匹配静默退化为原样（仅标题/关键词匹配）
+ * - 索引缓存：按文本缓存 { 全拼, 全拼→字符位置映射, 首字母 }，高亮可精确映射回原字符
  */
 
 export interface PinyinIndex {
@@ -45,8 +45,8 @@ export function ensurePinyin(): Promise<void> {
 }
 
 /**
- * 取文本的拼音索引；词典未就绪 / 文本不含汉字时返回 null。
- * 逐字符建索引以保证 全拼下标 → 原字符下标 的精确映射（结果按文本缓存）。
+ * 取文本的拼音索引；词典未就绪 / 文本不含汉字时返回 null
+ * 逐字符建索引以保证 全拼下标 → 原字符下标 的精确映射（结果按文本缓存）
  */
 export function getPinyinIndex(text: string): PinyinIndex | null {
   if (!pinyinFn || !HAN_RE.test(text)) {
@@ -57,8 +57,8 @@ export function getPinyinIndex(text: string): PinyinIndex | null {
     let full = ''
     const fullMap: number[] = []
     let initials = ''
-    // 按码点遍历（for...of 迭代的是码点）：emoji 等代理对不会被拆成两半各占一位。
-    // i 仍是 UTF-16 码元下标——fullMap 的值直接喂给按码元切段的高亮函数。
+    // 按码点遍历（for...of 迭代的是码点）：emoji 等代理对不会被拆成两半各占一位
+    // i 仍是 UTF-16 码元下标——fullMap 的值直接喂给按码元切段的高亮函数
     let i = 0
     for (const char of text) {
       const syllable = HAN_RE.test(char) ? pinyinFn(char, { toneType: 'none' }).toLowerCase() : char.toLowerCase()

@@ -87,8 +87,8 @@ export function findDictItem(nodes: readonly DictItemNode[], id: null | string |
 }
 
 /**
- * 字典项可选的上级：同一字典的树，去掉 `excludeId` 这一项连同它的整棵子树（项不能挂到自己或自己的下级下面）。
- * 不选即顶层。
+ * 字典项可选的上级：同一字典的树，去掉 `excludeId` 这一项连同它的整棵子树（项不能挂到自己或自己的下级下面）
+ * 不选即顶层
  */
 export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?: string): TreeSelectOption[] {
   return nodes
@@ -100,8 +100,8 @@ export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?
 }
 
 /**
- * 左栏字典的 SchemaPage 资源：分页（读共享：平台字典 + 本侧字典）、删除、启停与导入新建。
- * 搜索字段按后端白名单下发：分类 / 所属 / 状态 / 是否内置精确匹配，关键字匹配编码、名称与分类。
+ * 左栏字典的 SchemaPage 资源：分页（读共享：平台字典 + 本侧字典）、删除、启停与导入新建
+ * 搜索字段按后端白名单下发：分类 / 所属 / 状态 / 是否内置精确匹配，关键字匹配编码、名称与分类
  */
 export function dictsResource(): SchemaResource<DictRow> {
   return {
@@ -128,8 +128,8 @@ export function dictsResource(): SchemaResource<DictRow> {
 }
 
 /**
- * 右栏字典项的 SchemaPage 资源（树形，不分页）：取当前字典的全部项挂成树。
- * `editable`（字典在调用方这一侧）时才带删除、启停与导入新建（导入的项都在顶层）；另一侧的字典只读，这些入口一概不出。
+ * 右栏字典项的 SchemaPage 资源（树形，不分页）：取当前字典的全部项挂成树
+ * `editable`（字典在调用方这一侧）时才带删除、启停与导入新建（导入的项都在顶层）；另一侧的字典只读，这些入口一概不出
  */
 export function dictItemsResource(dictId: string, editable: boolean): SchemaResource<DictItemNode> {
   const tree = async () => buildDictItemTree((await dictItemsApi.list({ dictId })).items)
@@ -180,8 +180,8 @@ function capture(error: unknown, fieldErrors: { value: Record<string, string[]> 
 }
 
 /**
- * 字典的编辑弹窗（两侧都有）：新建（写在调用方这一侧，编码平台与租户之间也不重）、编辑本侧字典。
- * 另一侧的字典只读；字段级错误挂回对应字段。
+ * 字典的编辑弹窗（两侧都有）：新建（写在调用方这一侧，编码平台与租户之间也不重）、编辑本侧字典
+ * 另一侧的字典只读；字段级错误挂回对应字段
  */
 export function useDictEditor(isPlatformCaller: () => boolean) {
   const open = ref(false)
@@ -251,8 +251,8 @@ export function useDictEditor(isPlatformCaller: () => boolean) {
 }
 
 /**
- * 字典项的编辑弹窗：新建（字典要在本侧且启用）、编辑本侧字典的项。
- * 上级只能选同一字典里不是自己、也不是自己下级的项；元数据是 JSON 文本，后端校验。字段级错误挂回对应字段。
+ * 字典项的编辑弹窗：新建（字典要在本侧且启用）、编辑本侧字典的项
+ * 上级只能选同一字典里不是自己、也不是自己下级的项；元数据是 JSON 文本，后端校验。字段级错误挂回对应字段
  */
 export function useDictItemEditor() {
   const open = ref(false)

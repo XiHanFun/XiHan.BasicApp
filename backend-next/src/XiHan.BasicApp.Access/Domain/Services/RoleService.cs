@@ -13,16 +13,16 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 角色域服务（作用域）。
+/// 角色域服务（作用域）
 /// </summary>
 /// <remarks>
-/// 作用侧解析（当前租户或平台）、按侧找角色、角色码唯一、角色对应的授予主体与授予行的租户列。
+/// 作用侧解析（当前租户或平台）、按侧找角色、角色码唯一、角色对应的授予主体与授予行的租户列
 /// </remarks>
-/// <param name="roles">角色仓储。</param>
+/// <param name="roles">角色仓储</param>
 public sealed class RoleService(IRepository<SysRole, Guid> roles)
 {
     /// <summary>
-    /// 当前主体的作用侧：租户主体是它的租户，平台主体是 <see cref="TenantIds.Platform"/>。
+    /// 当前主体的作用侧：租户主体是它的租户，平台主体是 <see cref="TenantIds.Platform"/>
     /// </summary>
     public static string OwnerOf(InvocationContext context)
     {
@@ -31,14 +31,14 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 是否平台侧。
+    /// 是否平台侧
     /// </summary>
     public static bool IsPlatform(string owner) => string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal);
 
     /// <summary>
-    /// 取角色的授予主体。
+    /// 取角色的授予主体
     /// </summary>
-    /// <returns><c>role:&lt;ID&gt;</c>，与访问令牌里的 <c>role</c> 声明一致。</returns>
+    /// <returns><c>role:&lt;ID&gt;</c>，与访问令牌里的 <c>role</c> 声明一致</returns>
     public static GrantSubject SubjectOf(SysRole role)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -46,7 +46,7 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 角色授予行的租户列：平台角色是全局行（<see langword="null"/>），租户角色是该租户。
+    /// 角色授予行的租户列：平台角色是全局行（<see langword="null"/>），租户角色是该租户
     /// </summary>
     public static string? GrantTenantOf(SysRole role)
     {
@@ -55,10 +55,10 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 按 ID 在作用侧内找角色。
+    /// 按 ID 在作用侧内找角色
     /// </summary>
     /// <remarks>
-    /// 别的侧的角色视为不存在。
+    /// 别的侧的角色视为不存在
     /// </remarks>
     public async Task<Maybe<SysRole>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
@@ -67,7 +67,7 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 作用侧内按角色码找角色。
+    /// 作用侧内按角色码找角色
     /// </summary>
     public async Task<Maybe<SysRole>> FindByCodeAsync(string owner, string code, CancellationToken cancellationToken)
     {
@@ -76,7 +76,7 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 作用侧内按 ID 批量取角色（只取本侧的）。
+    /// 作用侧内按 ID 批量取角色（只取本侧的）
     /// </summary>
     public async Task<IReadOnlyList<SysRole>> FindManyAsync(IReadOnlyList<Guid> ids, string owner, CancellationToken cancellationToken)
     {

@@ -10,11 +10,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证个人资料的保存、改用户名与头像。
+/// 验证个人资料的保存、改用户名与头像
 /// </summary>
 /// <remarks>
 /// 整体覆盖保存（空白当作没填）；改用户名要当前密码、与现在的相同或被占用即拒绝、改后新名字能登录、90 天一次；
-/// 头像按文件头认 JPEG / PNG、不超过 2 MB，存平台侧的公开级别文件（租户一侧的人也能换签名地址、不进租户的文件列表），换头像与去掉头像都回收旧文件。
+/// 头像按文件头认 JPEG / PNG、不超过 2 MB，存平台侧的公开级别文件（租户一侧的人也能换签名地址、不进租户的文件列表），换头像与去掉头像都回收旧文件
 /// </remarks>
 public sealed class ProfileInfoTests : IDisposable
 {

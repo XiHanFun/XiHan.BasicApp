@@ -5,10 +5,10 @@ import { resolveAvatarUrl, toast, useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 
 /**
- * 列表单元格里的文件引用：image 显示缩略图，file 显示「打开」入口。
+ * 列表单元格里的文件引用：image 显示缩略图，file 显示「打开」入口
  *
- * 单元格值是文件主键（兼容直链），访问地址按需换取（预签名地址会过期，不落库）。
- * 点击只打开文件，不冒泡到行（行点击是速览）。
+ * 单元格值是文件主键（兼容直链），访问地址按需换取（预签名地址会过期，不落库）
+ * 点击只打开文件，不冒泡到行（行点击是速览）
  */
 defineOptions({ name: 'SchemaFileRefCell' })
 

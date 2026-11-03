@@ -12,12 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Queries;
 
 /// <summary>
-/// 岗位列表查询（SqlSugar 直查，租户库）。
+/// 岗位列表查询（SqlSugar 直查，租户库）
 /// </summary>
 /// <remarks>
-/// 关键字匹配编码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>。
+/// 关键字匹配编码与名称；筛选 <c>code</c>、<c>name</c>、<c>status</c>；排序 <c>code</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class PositionQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldCode = "code";
@@ -27,7 +27,7 @@ public sealed class PositionQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出岗位。
+    /// 分页列出岗位
     /// </summary>
     public async ValueTask<Result<PageResult<PositionResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {

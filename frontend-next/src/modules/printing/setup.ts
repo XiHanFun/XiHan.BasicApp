@@ -4,9 +4,9 @@ import { registerModuleLocales } from '~/locales'
 import { configurePrinting } from '~/printing'
 
 /**
- * 打印模块的启动钩子：登记本模块文案，把后端的模板解析与数据源目录接进公共打印包（照 4.x 的 configurePrinting）。
- * 数据源目录以后端注册表为单一事实源（含 system.print-demo），惰性拉取；打印运行时与设计器在首次打印或打开设计器时才加载。
- * 页面由后端菜单下发（BasicApp:Modules:Printing:Enabled 关掉即不下发），这里登记的只是函数，模块关着也无副作用。
+ * 打印模块的启动钩子：登记本模块文案，把后端的模板解析与数据源目录接进公共打印包（照 4.x 的 configurePrinting）
+ * 数据源目录以后端注册表为单一事实源（含 system.print-demo），惰性拉取；打印运行时与设计器在首次打印或打开设计器时才加载
+ * 页面由后端菜单下发（BasicApp:Modules:Printing:Enabled 关掉即不下发），这里登记的只是函数，模块关着也无副作用
  */
 export default function setup(): void {
   registerModuleLocales(import.meta.glob<{ default: Record<string, unknown> }>('./locales/*.ts'))

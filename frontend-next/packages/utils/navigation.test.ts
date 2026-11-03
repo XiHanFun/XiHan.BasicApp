@@ -1,8 +1,8 @@
 /**
- * packages/utils/navigation.ts 单元测试。
+ * packages/utils/navigation.ts 单元测试
  *
  * 职责边界：路由 full path 拼接、可见路径存在性判定、以及「点菜单落到第一个可导航子页」的
- * 递归解析。hidden 元信息、redirect 是否指向可见子路由、隐藏父级仍需下钻这几条分支是重点。
+ * 递归解析。hidden 元信息、redirect 是否指向可见子路由、隐藏父级仍需下钻这几条分支是重点
  */
 import type { NavigableRouteLike } from './navigation'
 import { describe, expect, it } from 'vitest'

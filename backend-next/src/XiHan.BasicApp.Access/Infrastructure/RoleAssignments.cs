@@ -14,35 +14,35 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 一条指派的判定视图。
+/// 一条指派的判定视图
 /// </summary>
-/// <param name="RoleId">角色。</param>
-/// <param name="EffectiveAt">生效时间。</param>
-/// <param name="ExpiresAt">到期时间（不含）。</param>
-/// <param name="RoleActive">角色是否启用。</param>
+/// <param name="RoleId">角色</param>
+/// <param name="EffectiveAt">生效时间</param>
+/// <param name="ExpiresAt">到期时间（不含）</param>
+/// <param name="RoleActive">角色是否启用</param>
 public sealed record RoleAssignmentView(Guid RoleId, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, bool RoleActive)
 {
     /// <summary>
-    /// 此刻这条指派是否算数：角色启用且在有效期内。
+    /// 此刻这条指派是否算数：角色启用且在有效期内
     /// </summary>
     public bool HoldsAt(DateTimeOffset now) => RoleActive && (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 }
 
 /// <summary>
-/// 用户在一侧的角色指派（单例）。
+/// 用户在一侧的角色指派（单例）
 /// </summary>
 /// <remarks>
-/// 按（侧、用户）缓存在共享缓存里，指派变化时由写入方失效；角色停用经缓存存活期（一分钟）传到判定。
-/// 令牌里的角色声明是签发那一刻的快照：权限过滤器拿它与这里的指派求交，到期、被解除或停用的角色立即不再算数。
+/// 按（侧、用户）缓存在共享缓存里，指派变化时由写入方失效；角色停用经缓存存活期（一分钟）传到判定
+/// 令牌里的角色声明是签发那一刻的快照：权限过滤器拿它与这里的指派求交，到期、被解除或停用的角色立即不再算数
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂</param>
 public sealed class RoleAssignments(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 用户在一侧的全部指派。
+    /// 用户在一侧的全部指派
     /// </summary>
     public async Task<IReadOnlyList<RoleAssignmentView>> OfAsync(string owner, Guid userId, CancellationToken cancellationToken)
     {
@@ -60,10 +60,10 @@ public sealed class RoleAssignments(ISharedCache cache, IServiceScopeFactory sco
     }
 
     /// <summary>
-    /// 用户的指派有变：失效缓存。
+    /// 用户的指派有变：失效缓存
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, Guid userId, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner, userId), cancellationToken).ConfigureAwait(false);

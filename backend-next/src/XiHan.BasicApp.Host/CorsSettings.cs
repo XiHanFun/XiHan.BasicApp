@@ -6,83 +6,83 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 跨域 <c>BasicApp:Cors</c>。
+/// 跨域 <c>BasicApp:Cors</c>
 /// </summary>
 /// <remarks>
-/// 前端与后端不同源部署时打开（照 4.x 的 <c>Api:Cors</c>）：<c>AllowedOrigins</c> 列出来源（协议 + 主机 + 端口，不带路径），或 <c>AllowAnyOrigin</c> 放开全部来源。
-/// 两样都没写即不启用跨域，只能同源访问。方法与请求头缺省放开；携带凭据缺省开，与任意来源互斥（同时写启动即报错，不悄悄丢掉其一）。
+/// 前端与后端不同源部署时打开（照 4.x 的 <c>Api:Cors</c>）：<c>AllowedOrigins</c> 列出来源（协议 + 主机 + 端口，不带路径），或 <c>AllowAnyOrigin</c> 放开全部来源
+/// 两样都没写即不启用跨域，只能同源访问。方法与请求头缺省放开；携带凭据缺省开，与任意来源互斥（同时写启动即报错，不悄悄丢掉其一）
 /// </remarks>
 public sealed record CorsSettings
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string ConfigurationSection = "BasicApp:Cors";
 
     /// <summary>
-    /// 允许的来源。
+    /// 允许的来源
     /// </summary>
     public IReadOnlyList<string> AllowedOrigins { get; init; } = [];
 
     /// <summary>
-    /// 是否允许任意来源。
+    /// 是否允许任意来源
     /// </summary>
     public bool AllowAnyOrigin { get; init; }
 
     /// <summary>
-    /// 允许的方法。
+    /// 允许的方法
     /// </summary>
     /// <remarks>
-    /// <see cref="AllowAnyMethod"/> 为假时才用。
+    /// <see cref="AllowAnyMethod"/> 为假时才用
     /// </remarks>
     public IReadOnlyList<string> AllowedMethods { get; init; } = [];
 
     /// <summary>
-    /// 是否允许任意方法。
+    /// 是否允许任意方法
     /// </summary>
     public bool AllowAnyMethod { get; init; } = true;
 
     /// <summary>
-    /// 允许的请求头。
+    /// 允许的请求头
     /// </summary>
     /// <remarks>
-    /// <see cref="AllowAnyHeader"/> 为假时才用。
+    /// <see cref="AllowAnyHeader"/> 为假时才用
     /// </remarks>
     public IReadOnlyList<string> AllowedHeaders { get; init; } = [];
 
     /// <summary>
-    /// 是否允许任意请求头。
+    /// 是否允许任意请求头
     /// </summary>
     public bool AllowAnyHeader { get; init; } = true;
 
     /// <summary>
-    /// 是否允许携带凭据。
+    /// 是否允许携带凭据
     /// </summary>
     public bool AllowCredentials { get; init; } = true;
 
     /// <summary>
-    /// 暴露给前端脚本的响应头。
+    /// 暴露给前端脚本的响应头
     /// </summary>
     public IReadOnlyList<string> ExposedHeaders { get; init; } = [];
 
     /// <summary>
-    /// 预检结果的缓存秒数。
+    /// 预检结果的缓存秒数
     /// </summary>
     /// <remarks>
-    /// 0 为不设置。
+    /// 0 为不设置
     /// </remarks>
     public int PreflightMaxAgeSeconds { get; init; }
 
     /// <summary>
-    /// 是否启用跨域。
+    /// 是否启用跨域
     /// </summary>
     public bool Enabled => AllowAnyOrigin || AllowedOrigins.Count > 0;
 
     /// <summary>
-    /// 从配置读取跨域设置。
+    /// 从配置读取跨域设置
     /// </summary>
     /// <remarks>
-    /// 来源不是不带路径的 http(s) 地址、任意来源与凭据或列出的来源同时写、方法或请求头放开为假却一个没列、缓存秒数为负时抛出 <see cref="ArgumentException"/>。
+    /// 来源不是不带路径的 http(s) 地址、任意来源与凭据或列出的来源同时写、方法或请求头放开为假却一个没列、缓存秒数为负时抛出 <see cref="ArgumentException"/>
     /// </remarks>
     public static CorsSettings FromConfiguration(IConfiguration configuration)
     {
@@ -130,7 +130,7 @@ public sealed record CorsSettings
     }
 
     /// <summary>
-    /// 写进缺省的跨域策略。
+    /// 写进缺省的跨域策略
     /// </summary>
     public void Apply(CorsPolicyBuilder policy)
     {

@@ -11,8 +11,8 @@ import { attributeLabel, operatorLabel } from '../../roles/condition-labels'
 import { outcomeLabel, outcomeTone, pathLabel, trialBlocks, verdictLabel, verdictTone } from '../../roles/condition-trial'
 
 /**
- * 条件试算：选人和权限码，填模拟的请求情形，看走了哪条授予路径、每组每个子句取到什么值、结果如何。
- * 按这个人此刻的有效指派与委托判定，不看令牌；不填的情形即取不到，时刻不填即现在。
+ * 条件试算：选人和权限码，填模拟的请求情形，看走了哪条授予路径、每组每个子句取到什么值、结果如何
+ * 按这个人此刻的有效指派与委托判定，不看令牌；不填的情形即取不到，时刻不填即现在
  */
 defineOptions({ name: 'ConditionTrialDrawer' })
 

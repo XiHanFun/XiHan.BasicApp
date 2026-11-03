@@ -8,11 +8,11 @@ using XiHan.Framework.Persistence.Abstractions.Queries;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证身份包配置的取值范围。
+/// 验证身份包配置的取值范围
 /// </summary>
 /// <remarks>
 /// 密码历史按一次查询取出比对，框架一次查询最多取 <see cref="EntityQuery.DefaultMaxTake"/> 条：
-/// 深度配到这个上限为止，再大在读配置时就失败，不等到改密码时才抛。
+/// 深度配到这个上限为止，再大在读配置时就失败，不等到改密码时才抛
 /// </remarks>
 public sealed class IdentityOptionsTests
 {

@@ -10,11 +10,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证实时 Hub 与在线用户。
+/// 验证实时 Hub 与在线用户
 /// </summary>
 /// <remarks>
 /// Hub 只认本系统签发、会话仍有效的访问令牌；在线列表按会话列出并标出实时在线与当前会话；
-/// 强制下线在提交后推 <c>ForceLogout</c> 给被下线的会话并断开它的连接，不能下线自己当前的会话；写用户设置推 <c>UserSettingChanged</c> 给同一用户的其他端。
+/// 强制下线在提交后推 <c>ForceLogout</c> 给被下线的会话并断开它的连接，不能下线自己当前的会话；写用户设置推 <c>UserSettingChanged</c> 给同一用户的其他端
 /// </remarks>
 public sealed class RealtimeTests : IDisposable
 {
@@ -52,7 +52,7 @@ public sealed class RealtimeTests : IDisposable
     }
 
     /// <summary>
-    /// 等这些会话在在线列表里都显示在线再推送。
+    /// 等这些会话在在线列表里都显示在线再推送
     /// </summary>
     private static async Task WaitOnlineAsync(BasicAppTestServer server, string token, int count)
     {

@@ -18,29 +18,29 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Host.Endpoints;
 
 /// <summary>
-/// 文件的普通端点。
+/// 文件的普通端点
 /// </summary>
 /// <remarks>
-/// 方案 5.4：只有 JSON 能进操作，上传与下载内容是普通端点，元数据管理是操作。
+/// 方案 5.4：只有 JSON 能进操作，上传与下载内容是普通端点，元数据管理是操作
 /// <list type="bullet">
-/// <item><c>POST /api/files/upload</c>：multipart 表单上传一个文件（字段 <c>file</c>，可选 <c>accessLevel</c>、<c>isTemporary</c>、<c>expiresAt</c>、<c>tags</c>、<c>remark</c>），要 <c>files.files.create</c>，返回文件。</item>
-/// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用），支持单个区间的 <c>Range</c> 请求（206，不可满足 416）。</item>
+/// <item><c>POST /api/files/upload</c>：multipart 表单上传一个文件（字段 <c>file</c>，可选 <c>accessLevel</c>、<c>isTemporary</c>、<c>expiresAt</c>、<c>tags</c>、<c>remark</c>），要 <c>files.files.create</c>，返回文件</item>
+/// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用），支持单个区间的 <c>Range</c> 请求（206，不可满足 416）</item>
 /// </list>
-/// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。两者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c> 记录。
-/// 浏览器的图片、链接与新窗口用 <c>files.presign</c> 换的签名地址：对象存储签出，本地存储的由框架的签名端点（<c>MapXiHanBlobs()</c>，访问日志记 <c>xihan.objectstorage.blob.download</c>）收发。
+/// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。两者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c> 记录
+/// 浏览器的图片、链接与新窗口用 <c>files.presign</c> 换的签名地址：对象存储签出，本地存储的由框架的签名端点（<c>MapXiHanBlobs()</c>，访问日志记 <c>xihan.objectstorage.blob.download</c>）收发
 /// </remarks>
 internal static class FileEndpoints
 {
     /// <summary>
-    /// 表单除文件外的开销上限（字段与分隔）。
+    /// 表单除文件外的开销上限（字段与分隔）
     /// </summary>
     private const long FormOverhead = 1024 * 1024;
 
     /// <summary>
-    /// 映射文件端点。
+    /// 映射文件端点
     /// </summary>
-    /// <param name="endpoints">端点构建器。</param>
-    /// <returns>同一构建器。</returns>
+    /// <param name="endpoints">端点构建器</param>
+    /// <returns>同一构建器</returns>
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -152,10 +152,10 @@ internal static class FileEndpoints
     }
 
     /// <summary>
-    /// 读 multipart 表单里上传的一个文件（字段 <c>file</c>，没有即第一个文件）。
+    /// 读 multipart 表单里上传的一个文件（字段 <c>file</c>，没有即第一个文件）
     /// </summary>
     /// <remarks>
-    /// Kestrel 缺省只收 30 MB 的请求体，按文件上限放宽到这个请求；不是表单、没有文件或空文件是 <c>FILES_VALIDATION</c> 的「没有文件」，超过上限是「文件太大」。
+    /// Kestrel 缺省只收 30 MB 的请求体，按文件上限放宽到这个请求；不是表单、没有文件或空文件是 <c>FILES_VALIDATION</c> 的「没有文件」，超过上限是「文件太大」
     /// </remarks>
     internal static async Task<Result<(IFormCollection Form, IFormFile File)>> ReadFormFileAsync(HttpContext http, FilesOptions options)
     {
@@ -184,10 +184,10 @@ internal static class FileEndpoints
     }
 
     /// <summary>
-    /// 请求的字节范围。
+    /// 请求的字节范围
     /// </summary>
     /// <remarks>
-    /// 只认单个 <c>bytes</c> 区间（多区间与不合法的头按整读，RFC 9110 允许忽略）；后缀区间（<c>bytes=-n</c>）按文件大小换算成起点。
+    /// 只认单个 <c>bytes</c> 区间（多区间与不合法的头按整读，RFC 9110 允许忽略）；后缀区间（<c>bytes=-n</c>）按文件大小换算成起点
     /// </remarks>
     private static BlobRange? RangeOf(HttpRequest request, long size)
     {
@@ -208,7 +208,7 @@ internal static class FileEndpoints
     }
 
     /// <summary>
-    /// 失败：结果交给框架按 Problem Details 写出（响应还没开始写）。
+    /// 失败：结果交给框架按 Problem Details 写出（响应还没开始写）
     /// </summary>
     internal static IResult Fail(InvocationContext context, Error error)
     {
@@ -217,7 +217,7 @@ internal static class FileEndpoints
     }
 
     /// <summary>
-    /// 端点的调用上下文（端点都在框架管道里执行，一定有）。
+    /// 端点的调用上下文（端点都在框架管道里执行，一定有）
     /// </summary>
     internal static InvocationContext ContextOf(HttpContext http)
         => http.GetXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The file endpoints must run inside the XiHan pipeline.");

@@ -7,15 +7,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 登录守卫的调用。
+/// 登录守卫的调用
 /// </summary>
 /// <remarks>
-/// Access 实现 <see cref="ILoginGuard"/>。没装即没有守卫，全部放行、不计数。
+/// Access 实现 <see cref="ILoginGuard"/>。没装即没有守卫，全部放行、不计数
 /// </remarks>
 internal static class LoginGuards
 {
     /// <summary>
-    /// 签发之前逐个判定，第一个失败即返回。
+    /// 签发之前逐个判定，第一个失败即返回
     /// </summary>
     public static async ValueTask<Result> CheckAllAsync(this IEnumerable<ILoginGuard> guards, LoginAttempt attempt, InvocationContext context)
     {
@@ -32,7 +32,7 @@ internal static class LoginGuards
     }
 
     /// <summary>
-    /// 记一次认证失败。
+    /// 记一次认证失败
     /// </summary>
     public static async ValueTask RecordFailureAsync(this IEnumerable<ILoginGuard> guards, InvocationContext context)
     {

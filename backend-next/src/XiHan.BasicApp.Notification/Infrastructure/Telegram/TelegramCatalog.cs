@@ -8,26 +8,26 @@ using System.Text.RegularExpressions;
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
 /// <summary>
-/// 命令名的规整与常驻命令。
+/// 命令名的规整与常驻命令
 /// </summary>
 /// <remarks>
-/// 4.x TelegramCommandGuards 同。规整：去掉 <c>@机器人名</c>、补斜杠、转小写。
+/// 4.x TelegramCommandGuards 同。规整：去掉 <c>@机器人名</c>、补斜杠、转小写
 /// </remarks>
 public static class TelegramCommands
 {
     /// <summary>
-    /// 不受群组白名单限制的常驻命令。
+    /// 不受群组白名单限制的常驻命令
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public static IReadOnlySet<string> AlwaysAvailable { get; } = new HashSet<string>(["/start", "/myid", "/id", "/help", "/h"], StringComparer.Ordinal);
 
     /// <summary>
-    /// 规整一个命令 token。
+    /// 规整一个命令 token
     /// </summary>
-    /// <param name="token">token（可带 <c>@bot</c>，可不带斜杠）。</param>
-    /// <returns>规整后的命令；不是命令即 <see langword="null"/>。</returns>
+    /// <param name="token">token（可带 <c>@bot</c>，可不带斜杠）</param>
+    /// <returns>规整后的命令；不是命令即 <see langword="null"/></returns>
     public static string? Normalize(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -51,10 +51,10 @@ public static class TelegramCommands
     }
 
     /// <summary>
-    /// token 里 <c>@</c> 后面的机器人名（没有为 <see langword="null"/>）。
+    /// token 里 <c>@</c> 后面的机器人名（没有为 <see langword="null"/>）
     /// </summary>
-    /// <param name="token">token。</param>
-    /// <returns>机器人名。</returns>
+    /// <param name="token">token</param>
+    /// <returns>机器人名</returns>
     public static string? AddressedBot(string token)
     {
         ArgumentNullException.ThrowIfNull(token);
@@ -63,46 +63,46 @@ public static class TelegramCommands
     }
 
     /// <summary>
-    /// 一条命令是不是常驻命令。
+    /// 一条命令是不是常驻命令
     /// </summary>
-    /// <param name="text">消息文本。</param>
-    /// <returns>是否。</returns>
+    /// <param name="text">消息文本</param>
+    /// <returns>是否</returns>
     public static bool IsAlwaysAvailable(string? text) => Normalize(FirstToken(text)) is { } command && AlwaysAvailable.Contains(command);
 
     /// <summary>
-    /// 第一个 token（按空格切）。
+    /// 第一个 token（按空格切）
     /// </summary>
-    /// <param name="text">文本。</param>
-    /// <returns>token。</returns>
+    /// <param name="text">文本</param>
+    /// <returns>token</returns>
     public static string? FirstToken(string? text)
         => string.IsNullOrWhiteSpace(text) ? null : text.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[0];
 
     /// <summary>
-    /// 命令后面按空格切的参数。
+    /// 命令后面按空格切的参数
     /// </summary>
-    /// <param name="text">文本。</param>
-    /// <returns>参数。</returns>
+    /// <param name="text">文本</param>
+    /// <returns>参数</returns>
     public static IReadOnlyList<string> Arguments(string? text)
         => string.IsNullOrWhiteSpace(text) ? [] : text.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToList();
 }
 
 /// <summary>
-/// 一条已登记的命令路由。
+/// 一条已登记的命令路由
 /// </summary>
-/// <param name="Command">登记（主命令已规整）。</param>
-/// <param name="Handler">处理器。</param>
-/// <param name="Aliases">规整后的别名。</param>
-/// <param name="Pattern">正则。</param>
+/// <param name="Command">登记（主命令已规整）</param>
+/// <param name="Handler">处理器</param>
+/// <param name="Aliases">规整后的别名</param>
+/// <param name="Pattern">正则</param>
 public sealed record TelegramCommandRoute(TelegramCommand Command, ITelegramCommandHandler Handler, IReadOnlyList<string> Aliases, Regex? Pattern)
 {
     /// <summary>
-    /// 主命令或任一别名在白名单里。
+    /// 主命令或任一别名在白名单里
     /// </summary>
     /// <remarks>
-    /// 白名单为空即放行，4.x 同。
+    /// 白名单为空即放行，4.x 同
     /// </remarks>
-    /// <param name="allowed">白名单（规整后）。</param>
-    /// <returns>是否放行。</returns>
+    /// <param name="allowed">白名单（规整后）</param>
+    /// <returns>是否放行</returns>
     public bool IsAllowed(IReadOnlyList<string> allowed)
     {
         ArgumentNullException.ThrowIfNull(allowed);
@@ -111,10 +111,10 @@ public sealed record TelegramCommandRoute(TelegramCommand Command, ITelegramComm
 }
 
 /// <summary>
-/// 一次处理用的处理器目录。
+/// 一次处理用的处理器目录
 /// </summary>
 /// <remarks>
-/// 从作用域里的处理器建，登记有误即抛出：命令或别名重复、action 重复、正则写错，4.x 同在构建时报错。
+/// 从作用域里的处理器建，登记有误即抛出：命令或别名重复、action 重复、正则写错，4.x 同在构建时报错
 /// </remarks>
 public sealed class TelegramCatalog
 {
@@ -123,15 +123,15 @@ public sealed class TelegramCatalog
     private readonly Dictionary<string, ITelegramCallbackHandler> _callbacks = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// 建目录。
+    /// 建目录
     /// </summary>
-    /// <param name="commands">命令处理器。</param>
-    /// <param name="callbacks">回调处理器。</param>
-    /// <param name="inlineQueries">内联查询处理器。</param>
-    /// <param name="startPayloads">深链处理器。</param>
-    /// <param name="replies">回复处理器。</param>
-    /// <param name="messages">普通消息处理器。</param>
-    /// <param name="states">会话状态处理器。</param>
+    /// <param name="commands">命令处理器</param>
+    /// <param name="callbacks">回调处理器</param>
+    /// <param name="inlineQueries">内联查询处理器</param>
+    /// <param name="startPayloads">深链处理器</param>
+    /// <param name="replies">回复处理器</param>
+    /// <param name="messages">普通消息处理器</param>
+    /// <param name="states">会话状态处理器</param>
     public TelegramCatalog(
         IEnumerable<ITelegramCommandHandler> commands,
         IEnumerable<ITelegramCallbackHandler> callbacks,
@@ -185,47 +185,47 @@ public sealed class TelegramCatalog
     }
 
     /// <summary>
-    /// 命令路由（按登记顺序）。
+    /// 命令路由（按登记顺序）
     /// </summary>
     public IReadOnlyList<TelegramCommandRoute> Routes => _routes;
 
     /// <summary>
-    /// 内联查询处理器（按顺序）。
+    /// 内联查询处理器（按顺序）
     /// </summary>
     public IReadOnlyList<ITelegramInlineQueryHandler> InlineQueries { get; }
 
     /// <summary>
-    /// 深链处理器（按顺序）。
+    /// 深链处理器（按顺序）
     /// </summary>
     public IReadOnlyList<ITelegramStartPayloadHandler> StartPayloads { get; }
 
     /// <summary>
-    /// 回复处理器（按顺序）。
+    /// 回复处理器（按顺序）
     /// </summary>
     public IReadOnlyList<ITelegramReplyHandler> Replies { get; }
 
     /// <summary>
-    /// 普通消息处理器（按顺序）。
+    /// 普通消息处理器（按顺序）
     /// </summary>
     public IReadOnlyList<ITelegramMessageHandler> Messages { get; }
 
     /// <summary>
-    /// 会话状态处理器（按顺序）。
+    /// 会话状态处理器（按顺序）
     /// </summary>
     public IReadOnlyList<ITelegramStateHandler> States { get; }
 
     /// <summary>
-    /// 按主命令或别名找路由。
+    /// 按主命令或别名找路由
     /// </summary>
-    /// <param name="command">规整后的命令。</param>
-    /// <returns>路由。</returns>
+    /// <param name="command">规整后的命令</param>
+    /// <returns>路由</returns>
     public TelegramCommandRoute? Find(string command) => _commands.GetValueOrDefault(command);
 
     /// <summary>
-    /// 用整段文本依次匹配正则路由：参数取非空的捕获组，没有捕获组即匹配到的文本。
+    /// 用整段文本依次匹配正则路由：参数取非空的捕获组，没有捕获组即匹配到的文本
     /// </summary>
-    /// <param name="text">文本。</param>
-    /// <returns>路由与参数。</returns>
+    /// <param name="text">文本</param>
+    /// <returns>路由与参数</returns>
     public (TelegramCommandRoute Route, IReadOnlyList<string> Arguments)? Match(string text)
     {
         foreach (var route in _routes.Where(static r => r.Pattern is not null))
@@ -253,21 +253,21 @@ public sealed class TelegramCatalog
     }
 
     /// <summary>
-    /// 按 action 找回调处理器。
+    /// 按 action 找回调处理器
     /// </summary>
-    /// <param name="action">action。</param>
-    /// <returns>处理器。</returns>
+    /// <param name="action">action</param>
+    /// <returns>处理器</returns>
     public ITelegramCallbackHandler? Callback(string action) => _callbacks.GetValueOrDefault(action);
 
     /// <summary>
-    /// <c>/help</c> 的列表。
+    /// <c>/help</c> 的列表
     /// </summary>
     /// <remarks>
-    /// 按命令白名单过滤、非管理员不列只给管理员的、按登记顺序、不列别名（4.x 同）。
+    /// 按命令白名单过滤、非管理员不列只给管理员的、按登记顺序、不列别名（4.x 同）
     /// </remarks>
-    /// <param name="bot">机器人。</param>
-    /// <param name="isAdmin">是否管理员。</param>
-    /// <returns>各行。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="isAdmin">是否管理员</param>
+    /// <returns>各行</returns>
     public IReadOnlyList<string> HelpLines(TelegramBot bot, bool isAdmin)
     {
         ArgumentNullException.ThrowIfNull(bot);
@@ -278,14 +278,14 @@ public sealed class TelegramCatalog
     }
 
     /// <summary>
-    /// 命令菜单（<c>setMyCommands</c>）。
+    /// 命令菜单（<c>setMyCommands</c>）
     /// </summary>
     /// <remarks>
-    /// 不含只给管理员的、按白名单过滤；命令名去掉斜杠，说明为空用命令名、不足 3 个字补成「说明 / 命令」（4.x 同）。
+    /// 不含只给管理员的、按白名单过滤；命令名去掉斜杠，说明为空用命令名、不足 3 个字补成「说明 / 命令」（4.x 同）
     /// </remarks>
-    /// <param name="bot">机器人。</param>
-    /// <param name="preferAlias">群组菜单用第一个别名（4.x 同）。</param>
-    /// <returns>菜单。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="preferAlias">群组菜单用第一个别名（4.x 同）</param>
+    /// <returns>菜单</returns>
     public JsonArray Menu(TelegramBot bot, bool preferAlias)
     {
         ArgumentNullException.ThrowIfNull(bot);
@@ -308,12 +308,12 @@ public sealed class TelegramCatalog
 }
 
 /// <summary>
-/// 内置 <c>/start</c>：欢迎语。
+/// 内置 <c>/start</c>：欢迎语
 /// </summary>
 /// <remarks>
-/// 没有用户名用机器人名称，忽略深链参数，4.x 同。
+/// 没有用户名用机器人名称，忽略深链参数，4.x 同
 /// </remarks>
-/// <param name="options">选项。</param>
+/// <param name="options">选项</param>
 public sealed class StartCommandHandler(TelegramOptions options) : ITelegramCommandHandler
 {
     /// <inheritdoc />
@@ -329,12 +329,12 @@ public sealed class StartCommandHandler(TelegramOptions options) : ITelegramComm
 }
 
 /// <summary>
-/// 内置 <c>/help</c>（别名 <c>/h</c>）。
+/// 内置 <c>/help</c>（别名 <c>/h</c>）
 /// </summary>
 /// <remarks>
-/// 「可用命令：」加每行一条；列表为空即不发（4.x 同）。
+/// 「可用命令：」加每行一条；列表为空即不发（4.x 同）
 /// </remarks>
-/// <param name="options">选项。</param>
+/// <param name="options">选项</param>
 public sealed class HelpCommandHandler(TelegramOptions options) : ITelegramCommandHandler
 {
     /// <inheritdoc />
@@ -355,12 +355,12 @@ public sealed class HelpCommandHandler(TelegramOptions options) : ITelegramComma
 }
 
 /// <summary>
-/// 内置 <c>/myid</c>（别名 <c>/id</c>）：会话与用户 ID。
+/// 内置 <c>/myid</c>（别名 <c>/id</c>）：会话与用户 ID
 /// </summary>
 /// <remarks>
-/// 不带千分位，4.x 同。
+/// 不带千分位，4.x 同
 /// </remarks>
-/// <param name="options">选项。</param>
+/// <param name="options">选项</param>
 public sealed class MyIdCommandHandler(TelegramOptions options) : ITelegramCommandHandler
 {
     /// <inheritdoc />

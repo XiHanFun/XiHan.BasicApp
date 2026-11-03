@@ -20,8 +20,8 @@ import { computed } from 'vue'
 import { useControlAttrs } from './control-attrs'
 
 /**
- * 逐列下钻的层级选择器。
- * 机器的值是整条路径，这里对外只暴露末级的键——调用点绑的是单个 id。
+ * 逐列下钻的层级选择器
+ * 机器的值是整条路径，这里对外只暴露末级的键——调用点绑的是单个 id
  */
 defineOptions({ name: 'XCascader', inheritAttrs: false })
 

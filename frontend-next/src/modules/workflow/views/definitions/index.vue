@@ -64,7 +64,7 @@ onMounted(async () => {
 })
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用。
+// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 // 「流程编码」是定义名（name），「流程名称」是显示名（displayName）；照 4.x 六列可排序、可 Shift 追加次级排序，不排序时名字升序、版本降序
 const asRow = (row: object) => row as WorkflowDefinitionRow
 

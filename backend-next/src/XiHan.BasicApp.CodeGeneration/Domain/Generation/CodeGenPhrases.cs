@@ -4,16 +4,16 @@
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 生成的文案里固定的用语，10 种区域。
+/// 生成的文案里固定的用语，10 种区域
 /// </summary>
 /// <remarks>
-/// 用户已定：固定用语按区域内置，表与列的注释在 10 种区域里都原样用（不机器翻译），生成之后由人改。
-/// 用语里 <c>%name%</c> 一类是生成时代入的（业务对象名、列名、包名），花括号的是运行时的消息参数、原样留着。
+/// 用户已定：固定用语按区域内置，表与列的注释在 10 种区域里都原样用（不机器翻译），生成之后由人改
+/// 用语里 <c>%name%</c> 一类是生成时代入的（业务对象名、列名、包名），花括号的是运行时的消息参数、原样留着
 /// </remarks>
 public static class CodeGenPhrases
 {
     /// <summary>
-    /// 10 种区域，与各包 <c>Localization/&lt;区域&gt;.json</c> 一致。
+    /// 10 种区域，与各包 <c>Localization/&lt;区域&gt;.json</c> 一致
     /// </summary>
     public static IReadOnlyList<string> Locales { get; } = ["en-US", "zh-CN", "zh-TW", "ja-JP", "ko-KR", "de-DE", "es-ES", "fr-FR", "pt-BR", "ru-RU"];
 
@@ -54,11 +54,11 @@ public static class CodeGenPhrases
     };
 
     /// <summary>
-    /// 一句用语在某个区域的写法，代入生成时的参数。
+    /// 一句用语在某个区域的写法，代入生成时的参数
     /// </summary>
-    /// <param name="key">用语键。</param>
-    /// <param name="locale">区域。</param>
-    /// <param name="values">生成时的参数（如 <c>name</c>、<c>label</c>）。</param>
+    /// <param name="key">用语键</param>
+    /// <param name="locale">区域</param>
+    /// <param name="values">生成时的参数（如 <c>name</c>、<c>label</c>）</param>
     public static string Text(string key, string locale, params (string Name, string Value)[] values)
     {
         ArgumentNullException.ThrowIfNull(values);
@@ -73,13 +73,13 @@ public static class CodeGenPhrases
     }
 
     /// <summary>
-    /// 全部用语键（用例核对每句都有 10 种区域）。
+    /// 全部用语键（用例核对每句都有 10 种区域）
     /// </summary>
     public static IReadOnlyCollection<string> Keys => _phrases.Keys;
 
     /// <summary>
-    /// 一句用语的全部区域写法（用例用）。
+    /// 一句用语的全部区域写法（用例用）
     /// </summary>
-    /// <param name="key">用语键。</param>
+    /// <param name="key">用语键</param>
     public static IReadOnlyList<string> All(string key) => _phrases[key];
 }

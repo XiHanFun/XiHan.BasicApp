@@ -2,9 +2,9 @@
 import XSelect from '../common/XSelect.vue'
 
 /**
- * 搜索多选下拉组件（封装：枚举/字典多选）。
- * - 值为选项值数组（string|number）或 null，受控 v-model:value。
- * - 标签过多时折叠，避免撑高搜索行。
+ * 搜索多选下拉组件（封装：枚举/字典多选）
+ * - 值为选项值数组（string|number）或 null，受控 v-model:value
+ * - 标签过多时折叠，避免撑高搜索行
  */
 defineOptions({ name: 'SchemaSearchMultiSelect' })
 

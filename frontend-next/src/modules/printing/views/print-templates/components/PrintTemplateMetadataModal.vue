@@ -1,6 +1,6 @@
 <!--
-  打印模板的新增、编辑弹窗：只改元数据（名称、编码、数据源、状态、开放给租户、排序、备注），版面在设计器里改。
-  新增时建一份空白版面的模板；编辑时沿用详情里的版面与并发戳。
+  打印模板的新增、编辑弹窗：只改元数据（名称、编码、数据源、状态、开放给租户、排序、备注），版面在设计器里改
+  新增时建一份空白版面的模板；编辑时沿用详情里的版面与并发戳
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetail, PrintTemplateFormModel } from './models'
@@ -47,20 +47,20 @@ watch(() => props.show, (show) => {
     reset()
 })
 
-/** 每次打开按详情重填一份表单，取消不留痕。 */
+/** 每次打开按详情重填一份表单，取消不留痕 */
 function reset(): void {
   form.value = props.detail ? toPrintTemplateForm(props.detail) : createDefaultPrintTemplateForm()
   formKey.value += 1
 }
 
-/** 保存进行中不许关；取消、关闭钮与 Esc 都走这里。 */
+/** 保存进行中不许关；取消、关闭钮与 Esc 都走这里 */
 function updateShow(value: boolean): void {
   if (!value && saving.value)
     return
   emit('update:show', value)
 }
 
-/** 新增建一份空白版面的模板，编辑沿用详情里的版面与并发戳；接口成功才关弹窗。 */
+/** 新增建一份空白版面的模板，编辑沿用详情里的版面与并发戳；接口成功才关弹窗 */
 async function save(): Promise<void> {
   if (saving.value || !complete.value)
     return

@@ -1,6 +1,6 @@
 <!--
-  聊天审计的会话成员（方案 H4，4.x 没有）：会话摘要 + 现有成员表（按角色再按入会时间）。
-  持有审计权限即可看，不要求是成员；表格与列表页同样式（XDataTable 缺省尺寸 + 列分隔线）。
+  聊天审计的会话成员（方案 H4，4.x 没有）：会话摘要 + 现有成员表（按角色再按入会时间）
+  持有审计权限即可看，不要求是成员；表格与列表页同样式（XDataTable 缺省尺寸 + 列分隔线）
 -->
 <script setup lang="ts">
 import type { ChatAuditMember, ChatAuditMembers } from '../use-chat-audit'

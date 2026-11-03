@@ -6,266 +6,266 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 授权包的权限码与它们的描述。
+/// 授权包的权限码与它们的描述
 /// </summary>
 /// <remarks>
-/// 权限码形如 <c>access.&lt;资源&gt;.&lt;动作&gt;</c>；在 <see cref="AccessFeature.Configure"/> 登记进内核，并进入权限目录。
+/// 权限码形如 <c>access.&lt;资源&gt;.&lt;动作&gt;</c>；在 <see cref="AccessFeature.Configure"/> 登记进内核，并进入权限目录
 /// </remarks>
 public static class AccessPermissions
 {
     /// <summary>
-    /// 查看角色（含成员与授予）。
+    /// 查看角色（含成员与授予）
     /// </summary>
     public const string RolesRead = "access.roles.read";
 
     /// <summary>
-    /// 创建角色。
+    /// 创建角色
     /// </summary>
     public const string RolesCreate = "access.roles.create";
 
     /// <summary>
-    /// 修改角色。
+    /// 修改角色
     /// </summary>
     public const string RolesUpdate = "access.roles.update";
 
     /// <summary>
-    /// 删除角色。
+    /// 删除角色
     /// </summary>
     public const string RolesDelete = "access.roles.delete";
 
     /// <summary>
-    /// 给角色授予 / 撤销权限。
+    /// 给角色授予 / 撤销权限
     /// </summary>
     public const string RolesGrant = "access.roles.grant";
 
     /// <summary>
-    /// 给角色指派 / 解除成员。
+    /// 给角色指派 / 解除成员
     /// </summary>
     public const string RolesAssign = "access.roles.assign";
 
     /// <summary>
-    /// 设置角色的上级（继承）。
+    /// 设置角色的上级（继承）
     /// </summary>
     public const string RolesSetParents = "access.roles.set-parents";
 
     /// <summary>
-    /// 查看用户的直接授权：<c>user-grants.list</c>。
+    /// 查看用户的直接授权：<c>user-grants.list</c>
     /// </summary>
     public const string UserGrantsRead = "access.user-grants.read";
 
     /// <summary>
-    /// 给用户直接授予、拒绝与撤销。
+    /// 给用户直接授予、拒绝与撤销
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>user-grants.grant / deny / revoke</c>。
+    /// 对应操作 <c>user-grants.grant / deny / revoke</c>
     /// </remarks>
     public const string UserGrantsGrant = "access.user-grants.grant";
 
     /// <summary>
-    /// 查看用户级数据范围覆盖：<c>user-data-scopes.get</c>（只在租户侧）。
+    /// 查看用户级数据范围覆盖：<c>user-data-scopes.get</c>（只在租户侧）
     /// </summary>
     public const string UserDataScopesRead = "access.user-data-scopes.read";
 
     /// <summary>
-    /// 设置或清除用户级数据范围覆盖。
+    /// 设置或清除用户级数据范围覆盖
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>user-data-scopes.set</c>（只在租户侧）。
+    /// 对应操作 <c>user-data-scopes.set</c>（只在租户侧）
     /// </remarks>
     public const string UserDataScopesUpdate = "access.user-data-scopes.update";
 
     /// <summary>
-    /// 查看字段安全规则与实体目录。
+    /// 查看字段安全规则与实体目录
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>field-security.list / get / entities</c>。
+    /// 对应操作 <c>field-security.list / get / entities</c>
     /// </remarks>
     public const string FieldSecurityRead = "access.field-security.read";
 
     /// <summary>
-    /// 新建字段安全规则。
+    /// 新建字段安全规则
     /// </summary>
     public const string FieldSecurityCreate = "access.field-security.create";
 
     /// <summary>
-    /// 修改与启停字段安全规则。
+    /// 修改与启停字段安全规则
     /// </summary>
     public const string FieldSecurityUpdate = "access.field-security.update";
 
     /// <summary>
-    /// 删除字段安全规则。
+    /// 删除字段安全规则
     /// </summary>
     public const string FieldSecurityDelete = "access.field-security.delete";
 
     /// <summary>
-    /// 查看委托。
+    /// 查看委托
     /// </summary>
     public const string DelegationsRead = "access.delegations.read";
 
     /// <summary>
-    /// 新建委托。
+    /// 新建委托
     /// </summary>
     public const string DelegationsCreate = "access.delegations.create";
 
     /// <summary>
-    /// 撤销委托。
+    /// 撤销委托
     /// </summary>
     public const string DelegationsRevoke = "access.delegations.revoke";
 
     /// <summary>
-    /// 删除委托记录。
+    /// 删除委托记录
     /// </summary>
     public const string DelegationsDelete = "access.delegations.delete";
 
     /// <summary>
-    /// 查看授权申请（含审批进度）。
+    /// 查看授权申请（含审批进度）
     /// </summary>
     public const string PermissionRequestsRead = "access.permission-requests.read";
 
     /// <summary>
-    /// 提交授权申请。
+    /// 提交授权申请
     /// </summary>
     public const string PermissionRequestsCreate = "access.permission-requests.create";
 
     /// <summary>
-    /// 修改并重新提交自己的申请。
+    /// 修改并重新提交自己的申请
     /// </summary>
     public const string PermissionRequestsUpdate = "access.permission-requests.update";
 
     /// <summary>
-    /// 撤回自己的申请。
+    /// 撤回自己的申请
     /// </summary>
     public const string PermissionRequestsWithdraw = "access.permission-requests.withdraw";
 
     /// <summary>
-    /// 手工驳回或撤回别人的申请。
+    /// 手工驳回或撤回别人的申请
     /// </summary>
     public const string PermissionRequestsStatus = "access.permission-requests.status";
 
     /// <summary>
-    /// 查看权限条件与条件属性目录。
+    /// 查看权限条件与条件属性目录
     /// </summary>
     public const string PermissionConditionsRead = "access.permission-conditions.read";
 
     /// <summary>
-    /// 新建权限条件。
+    /// 新建权限条件
     /// </summary>
     public const string PermissionConditionsCreate = "access.permission-conditions.create";
 
     /// <summary>
-    /// 修改与启停权限条件。
+    /// 修改与启停权限条件
     /// </summary>
     public const string PermissionConditionsUpdate = "access.permission-conditions.update";
 
     /// <summary>
-    /// 删除权限条件。
+    /// 删除权限条件
     /// </summary>
     public const string PermissionConditionsDelete = "access.permission-conditions.delete";
 
     /// <summary>
-    /// 条件试算、影响试算与盘点。
+    /// 条件试算、影响试算与盘点
     /// </summary>
     public const string PermissionConditionsTrial = "access.permission-conditions.trial";
 
     /// <summary>
-    /// 查看访问策略与模板。
+    /// 查看访问策略与模板
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>policies.list / get / templates</c>。
+    /// 对应操作 <c>policies.list / get / templates</c>
     /// </remarks>
     public const string PoliciesRead = "access.policies.read";
 
     /// <summary>
-    /// 新建访问策略（一律只记录）：<c>policies.create</c>。
+    /// 新建访问策略（一律只记录）：<c>policies.create</c>
     /// </summary>
     public const string PoliciesCreate = "access.policies.create";
 
     /// <summary>
-    /// 修改访问策略、改动作与启停。
+    /// 修改访问策略、改动作与启停
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>policies.update / set-action / set-status</c>。
+    /// 对应操作 <c>policies.update / set-action / set-status</c>
     /// </remarks>
     public const string PoliciesUpdate = "access.policies.update";
 
     /// <summary>
-    /// 删除访问策略：<c>policies.delete</c>。
+    /// 删除访问策略：<c>policies.delete</c>
     /// </summary>
     public const string PoliciesDelete = "access.policies.delete";
 
     /// <summary>
-    /// 试运行访问策略：<c>policies.trial</c>。
+    /// 试运行访问策略：<c>policies.trial</c>
     /// </summary>
     public const string PoliciesTrial = "access.policies.trial";
 
     /// <summary>
-    /// 查看登录失败自动封禁的参数与当前封禁（只在平台）。
+    /// 查看登录失败自动封禁的参数与当前封禁（只在平台）
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>login-bans.list</c>。
+    /// 对应操作 <c>login-bans.list</c>
     /// </remarks>
     public const string LoginBansRead = "access.login-bans.read";
 
     /// <summary>
-    /// 解封一个地址（只在平台）：<c>login-bans.lift</c>。
+    /// 解封一个地址（只在平台）：<c>login-bans.lift</c>
     /// </summary>
     public const string LoginBansLift = "access.login-bans.lift";
 
     /// <summary>
-    /// 查看约束规则：<c>constraint-rules.list / get</c>。
+    /// 查看约束规则：<c>constraint-rules.list / get</c>
     /// </summary>
     public const string ConstraintRulesRead = "access.constraint-rules.read";
 
     /// <summary>
-    /// 新建约束规则：<c>constraint-rules.create</c>。
+    /// 新建约束规则：<c>constraint-rules.create</c>
     /// </summary>
     public const string ConstraintRulesCreate = "access.constraint-rules.create";
 
     /// <summary>
-    /// 修改与启停约束规则。
+    /// 修改与启停约束规则
     /// </summary>
     /// <remarks>
-    /// 对应操作 <c>constraint-rules.update / set-status</c>。
+    /// 对应操作 <c>constraint-rules.update / set-status</c>
     /// </remarks>
     public const string ConstraintRulesUpdate = "access.constraint-rules.update";
 
     /// <summary>
-    /// 删除约束规则：<c>constraint-rules.delete</c>。
+    /// 删除约束规则：<c>constraint-rules.delete</c>
     /// </summary>
     public const string ConstraintRulesDelete = "access.constraint-rules.delete";
 
     /// <summary>
-    /// 查看会话激活的角色：<c>session-roles.list / get</c>。
+    /// 查看会话激活的角色：<c>session-roles.list / get</c>
     /// </summary>
     public const string SessionRolesRead = "access.session-roles.read";
 
     /// <summary>
-    /// 查看权限目录。
+    /// 查看权限目录
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
 
     /// <summary>
-    /// 查看菜单：<c>menus.list / get</c>。
+    /// 查看菜单：<c>menus.list / get</c>
     /// </summary>
     public const string MenusRead = "access.menus.read";
 
     /// <summary>
-    /// 新建目录与外链：<c>menus.create</c>。
+    /// 新建目录与外链：<c>menus.create</c>
     /// </summary>
     public const string MenusCreate = "access.menus.create";
 
     /// <summary>
-    /// 修改菜单与恢复页面默认：<c>menus.update / reset</c>。
+    /// 修改菜单与恢复页面默认：<c>menus.update / reset</c>
     /// </summary>
     public const string MenusUpdate = "access.menus.update";
 
     /// <summary>
-    /// 删除目录与外链：<c>menus.delete</c>。
+    /// 删除目录与外链：<c>menus.delete</c>
     /// </summary>
     public const string MenusDelete = "access.menus.delete";
 
     /// <summary>
-    /// 全部权限描述。
+    /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

@@ -12,17 +12,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 修改角色：<c>PUT /api/roles/{id}</c>。
+/// 修改角色：<c>PUT /api/roles/{id}</c>
 /// </summary>
-/// <param name="roles">角色仓储。</param>
-/// <param name="service">角色域服务。</param>
-/// <param name="scopes">角色数据范围服务。</param>
-/// <param name="hierarchy">继承图缓存（启停后失效）。</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="service">角色域服务</param>
+/// <param name="scopes">角色数据范围服务</param>
+/// <param name="hierarchy">继承图缓存（启停后失效）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesUpdate)]
 public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes, RoleHierarchy hierarchy) : IOperation<UpdateRoleRequest, RoleResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.update";
 

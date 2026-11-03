@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包提供的能力。
+/// {{ ModuleName }} 包提供的能力
 /// </summary>
 public static class {{ ModuleName }}Capabilities
 {
     /// <summary>
-    /// {{ ModuleName }} 能力。
+    /// {{ ModuleName }} 能力
     /// </summary>
     public const string {{ ModuleName }} = AppInfo.CapabilityPrefix + "{{ ModuleCode }}";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = 1;
 }

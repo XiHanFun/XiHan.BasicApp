@@ -13,18 +13,18 @@ using XiHan.BasicApp.Settings.Operations.NumberingRules;
 namespace XiHan.BasicApp.Settings;
 
 /// <summary>
-/// 设置包登记的字段安全实体。
+/// 设置包登记的字段安全实体
 /// </summary>
 /// <remarks>
 /// 4.x 同五个实体：参数、字典、字典项、业务编号规则与编号分配记录。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
-/// 字典项的修改按字典项本身比对（层级深度不参与）。
+/// 字典项的修改按字典项本身比对（层级深度不参与）
 /// </remarks>
 public static class SettingsFieldSecurity
 {
     /// <summary>
-    /// 登记本包的实体与操作。
+    /// 登记本包的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("settings", SettingsJsonContext.Default, fields => fields
             .Entity<ConfigResponse>("settings.configs", "settings.configs.title", "settings.configs.fields.")

@@ -8,7 +8,7 @@ using XiHan.BasicApp.Workbench.Operations.Workbench;
 namespace XiHan.BasicApp.Workbench;
 
 /// <summary>
-/// 工作台模块操作的 JSON 源生成上下文。
+/// 工作台模块操作的 JSON 源生成上下文
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

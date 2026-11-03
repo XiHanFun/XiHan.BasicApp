@@ -8,10 +8,10 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证服务监控。
+/// 验证服务监控
 /// </summary>
 /// <remarks>
-/// 运行信息取自框架的 IHostMonitor（运行时、处理器、内存、磁盘、网卡、显卡、主板），健康项取自各 Provider 的最近一次检查；只在平台侧。
+/// 运行信息取自框架的 IHostMonitor（运行时、处理器、内存、磁盘、网卡、显卡、主板），健康项取自各 Provider 的最近一次检查；只在平台侧
 /// </remarks>
 public sealed class MaintenanceServerTests : IDisposable
 {

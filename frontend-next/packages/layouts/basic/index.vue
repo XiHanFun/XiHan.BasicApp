@@ -158,7 +158,7 @@ function onSideOpen(side: 'left' | 'right'): void {
 }
 
 /**
- * 工具组不在分隔条里，按下冒泡不到它：手柄、标签与留白处按下时把这一下原样转交给分隔条，照旧能拖。
+ * 工具组不在分隔条里，按下冒泡不到它：手柄、标签与留白处按下时把这一下原样转交给分隔条，照旧能拖
  * 按钮自己拦了 pointerdown，点按钮不会顺带拖动
  */
 function forwardSplitDrag(event: PointerEvent): void {
@@ -171,7 +171,7 @@ function forwardSplitDrag(event: PointerEvent): void {
 }
 
 // ── 左右互换（收缩成页面大图标 → 图标交叉飞行 → 展开为交换后内容）──
-// 互换 = 翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新。
+// 互换 = 翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新
 // shrink：两屏向中心收缩淡出、各自中央弹出页面大图标 → fly：两枚图标互飞对方位置
 // →（翻转 order，幕后瞬时完成）→ expand：图标弹出消失、两屏展开
 const swapPhase = ref<'idle' | 'shrink' | 'fly' | 'expand'>('idle')
@@ -459,8 +459,8 @@ const sidebarEnableState = computed(
                 :style="{ order: 2 }"
               />
 
-              <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作。
-                   放在分隔条外面：分隔条是 role=separator，子孙对读屏一律按展示处理，按钮放进去就没人念得到。
+              <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作
+                   放在分隔条外面：分隔条是 role=separator，子孙对读屏一律按展示处理，按钮放进去就没人念得到
                    这里是排在分隔条后面的一个零宽锚点，工具组从它那儿居中压在分隔条上 -->
               <div class="split-tools-anchor" :style="{ order: 2 }">
                 <div class="split-tools" @pointerdown="forwardSplitDrag">
@@ -631,7 +631,7 @@ const sidebarEnableState = computed(
   --xh-splitter-trigger-bg-dragging: hsl(var(--primary) / 50%);
 }
 
-/* 工具组的锚点：零宽的一列，紧跟分隔条，再往回拉半条分隔条宽——正好落在分隔条中线上。
+/* 工具组的锚点：零宽的一列，紧跟分隔条，再往回拉半条分隔条宽——正好落在分隔条中线上
    两侧外边距一负一正、合计为零，不占面板的宽度；逻辑方向属性让 rtl（左右互换）下照样对齐 */
 .split-tools-anchor {
   position: relative;
@@ -640,7 +640,7 @@ const sidebarEnableState = computed(
   margin-inline: calc(var(--xh-splitter-trigger-thickness) / -2) calc(var(--xh-splitter-trigger-thickness) / 2);
 }
 
-/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间。
+/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间
    默认隐藏，悬停分割线或工具组自身、分隔条获得焦点、工具组内有焦点或拖拽中才显示 */
 .split-tools {
   position: absolute;

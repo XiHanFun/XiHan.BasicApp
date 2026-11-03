@@ -11,18 +11,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 批量删除编号规则。
+/// 批量删除编号规则
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/numbering-rules?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_004</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，
-/// 发过号的 <c>SETTINGS_CONFLICT_009</c>（发号记录是永久事实，停用即可）。
+/// 发过号的 <c>SETTINGS_CONFLICT_009</c>（发号记录是永久事实，停用即可）
 /// </remarks>
-/// <param name="rules">规则仓储。</param>
+/// <param name="rules">规则仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesDelete)]
 public sealed class DeleteNumberingRules(IRepository<SysNumberingRule, Guid> rules) : IOperation<NumberingRuleIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "numbering-rules.delete";
 

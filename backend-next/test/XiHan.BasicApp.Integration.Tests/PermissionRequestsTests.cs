@@ -8,11 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 授权申请（N3 第三批之五）。
+/// 授权申请（N3 第三批之五）
 /// </summary>
 /// <remarks>
 /// 平台一侧：提交即发起缺省的「管理员审批」流程（当前分区第一次时建并发布），审批通过即按申请指派角色或直授权限并生效，驳回、撤回、重新提交、
-/// 管理员手工处理与取消流程的中止回写；对象二选一、关键字匹配申请人；模仿会话里对申请的写操作一律拒绝；发起即故障时整单回滚；Workflow 关掉时列表照常、提交即审批未启用（方案 W1）。
+/// 管理员手工处理与取消流程的中止回写；对象二选一、关键字匹配申请人；模仿会话里对申请的写操作一律拒绝；发起即故障时整单回滚；Workflow 关掉时列表照常、提交即审批未启用（方案 W1）
 /// </remarks>
 public sealed class PermissionRequestsTests : IDisposable
 {

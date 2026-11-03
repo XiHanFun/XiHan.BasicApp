@@ -8,16 +8,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 在管道之外、独立作用域里开一个工作单元跑仓储。
+/// 在管道之外、独立作用域里开一个工作单元跑仓储
 /// </summary>
 /// <remarks>
-/// 供 Authenticate 阶段的单例（会话门禁）、后台作业，以及必须在调用失败时也落库的写入（登录失败计数）使用。
-/// 不经 <c>App.InvokeAsync</c>：嵌套调用会再过一遍 Tenant / Authorize 阶段，而且会随外层调用一起回滚。平台级数据不带租户。
+/// 供 Authenticate 阶段的单例（会话门禁）、后台作业，以及必须在调用失败时也落库的写入（登录失败计数）使用
+/// 不经 <c>App.InvokeAsync</c>：嵌套调用会再过一遍 Tenant / Authorize 阶段，而且会随外层调用一起回滚。平台级数据不带租户
 /// </remarks>
 public static class StoreScope
 {
     /// <summary>
-    /// 只读工作单元：读完即提交（只读工作单元没有事务）。
+    /// 只读工作单元：读完即提交（只读工作单元没有事务）
     /// </summary>
     public static async Task<T> ReadAsync<T>(IServiceScopeFactory scopes, Func<IServiceProvider, CancellationToken, Task<T>> read, CancellationToken cancellationToken)
     {
@@ -44,12 +44,12 @@ public static class StoreScope
     }
 
     /// <summary>
-    /// 在读写工作单元里执行委托。
+    /// 在读写工作单元里执行委托
     /// </summary>
     /// <remarks>
-    /// 委托返回成功即提交，返回失败或抛出即回滚。
+    /// 委托返回成功即提交，返回失败或抛出即回滚
     /// </remarks>
-    /// <returns>委托返回的失败，或提交的结果；提交失败作为结果返回。</returns>
+    /// <returns>委托返回的失败，或提交的结果；提交失败作为结果返回</returns>
     public static async Task<Result> WriteAsync(IServiceScopeFactory scopes, Func<IServiceProvider, CancellationToken, Task<Result>> write, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(scopes);

@@ -6,13 +6,13 @@ using XiHan.BasicApp.Contracts.Realtime;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// <see cref="IRealtimePresence"/> 的实现（单例）。
+/// <see cref="IRealtimePresence"/> 的实现（单例）
 /// </summary>
 /// <remarks>
-/// 本实例的连接直接查登记表；配了 Redis（有 <paramref name="board"/>）时再并上别的实例登记在共享缓存里的连接。
+/// 本实例的连接直接查登记表；配了 Redis（有 <paramref name="board"/>）时再并上别的实例登记在共享缓存里的连接
 /// </remarks>
-/// <param name="registry">本实例的连接登记。</param>
-/// <param name="board">共享的在线登记板；不配 Redis 时为空。</param>
+/// <param name="registry">本实例的连接登记</param>
+/// <param name="board">共享的在线登记板；不配 Redis 时为空</param>
 internal sealed class RealtimePresence(ConnectionRegistry registry, PresenceBoard? board) : IRealtimePresence
 {
     /// <inheritdoc />

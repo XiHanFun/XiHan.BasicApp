@@ -10,13 +10,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="IRoleMemberDirectory"/> 的实现。
+/// <see cref="IRoleMemberDirectory"/> 的实现
 /// </summary>
 /// <remarks>
-/// 角色与指派是平台库实体，按调用所在的一侧（<see cref="RoleService.OwnerOf"/>）读；指派的有效期按此刻判定（与 <see cref="RoleRecipientSource"/> 同口径）。
+/// 角色与指派是平台库实体，按调用所在的一侧（<see cref="RoleService.OwnerOf"/>）读；指派的有效期按此刻判定（与 <see cref="RoleRecipientSource"/> 同口径）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="clock">时钟</param>
 public sealed class RoleMemberDirectory(SqlSugarUnitOfWork unitOfWork, TimeProvider clock) : IRoleMemberDirectory
 {
     /// <inheritdoc />

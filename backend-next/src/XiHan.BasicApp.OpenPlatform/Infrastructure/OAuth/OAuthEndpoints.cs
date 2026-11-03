@@ -19,26 +19,26 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
 
 /// <summary>
-/// OAuth 2.0 / OIDC 服务端的普通端点。
+/// OAuth 2.0 / OIDC 服务端的普通端点
 /// </summary>
 /// <remarks>
 /// 宿主映射，前缀 <c>/api/oauth2</c>，开发时经前端代理、生产与前端同源：
 /// <c>GET authorize</c> 把查询串原样带去前端的同意页；<c>POST token</c>（表单，authorization_code + PKCE、refresh_token）、<c>POST revoke</c>（RFC 7009）、<c>GET|POST userinfo</c>、
 /// <c>GET .well-known/openid-configuration</c> 与 <c>GET jwks</c> 回原始 OAuth JSON（不是 Problem Details），绕过内核管道（客户端的 Basic 认证与不透明令牌不是本系统的凭据），
-/// 读写在一次平台调用里做（工作单元，失败回滚、出错的回应照样提交吊销）。签发者取配置 <c>BasicApp:OpenPlatform:Issuer</c>，不配即请求的来源加前缀。
+/// 读写在一次平台调用里做（工作单元，失败回滚、出错的回应照样提交吊销）。签发者取配置 <c>BasicApp:OpenPlatform:Issuer</c>，不配即请求的来源加前缀
 /// </remarks>
 public static class OAuthEndpoints
 {
     /// <summary>
-    /// 路由前缀。
+    /// 路由前缀
     /// </summary>
     public const string Prefix = "/api/oauth2";
 
     /// <summary>
-    /// 映射端点。
+    /// 映射端点
     /// </summary>
-    /// <param name="endpoints">端点。</param>
-    /// <returns>端点。</returns>
+    /// <param name="endpoints">端点</param>
+    /// <returns>端点</returns>
     public static IEndpointRouteBuilder MapOAuthServer(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -54,7 +54,7 @@ public static class OAuthEndpoints
     private static void Bypass(IEndpointConventionBuilder builder) => PipelineBypassMetadata.BypassXiHanPipeline(builder.ExcludeFromDescription());
 
     /// <summary>
-    /// 签发者。
+    /// 签发者
     /// </summary>
     public static string IssuerOf(HttpContext http, OpenPlatformOptions options)
     {
@@ -251,10 +251,10 @@ public static class OAuthEndpoints
     }
 
     /// <summary>
-    /// 在一次平台调用里做读写。
+    /// 在一次平台调用里做读写
     /// </summary>
     /// <remarks>
-    /// 调用失败（异常、提交失败）时 <c>Ok</c> 为否。
+    /// 调用失败（异常、提交失败）时 <c>Ok</c> 为否
     /// </remarks>
     private static async Task<(bool Ok, T? Value)> RunAsync<T>(HttpContext http, Func<IServiceProvider, CancellationToken, Task<T>> work)
     {
@@ -270,10 +270,10 @@ public static class OAuthEndpoints
     }
 
     /// <summary>
-    /// 取客户端凭据。
+    /// 取客户端凭据
     /// </summary>
     /// <remarks>
-    /// <c>Authorization: Basic</c>（用户名与密码各自 form-url 解码，RFC 6749 §2.3.1）优先，其次表单。
+    /// <c>Authorization: Basic</c>（用户名与密码各自 form-url 解码，RFC 6749 §2.3.1）优先，其次表单
     /// </remarks>
     private static (string? ClientId, string? ClientSecret, bool Basic) ClientCredentials(HttpRequest request, IFormCollection form)
     {

@@ -8,21 +8,21 @@ using XiHan.BasicApp.CodeGeneration.Domain.Services;
 namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenHistories;
 
 /// <summary>
-/// 生成历史的一行。
+/// 生成历史的一行
 /// </summary>
-/// <param name="Id">ID。</param>
-/// <param name="TableId">表配置 ID。</param>
-/// <param name="TableName">表名。</param>
-/// <param name="BatchNumber">批次号。</param>
-/// <param name="GenerationStatus">结果。</param>
-/// <param name="DeliveryType">交付方式。</param>
-/// <param name="GeneratedAt">生成时间。</param>
-/// <param name="Duration">耗时（毫秒）。</param>
-/// <param name="FileCount">产物文件数。</param>
-/// <param name="TotalSize">产物总大小（字节）。</param>
-/// <param name="GenPath">写进项目时写到的根目录。</param>
-/// <param name="PackageExpiresAt">产物包到期时间；没有产物包为空。</param>
-/// <param name="OperatorName">操作人。</param>
+/// <param name="Id">ID</param>
+/// <param name="TableId">表配置 ID</param>
+/// <param name="TableName">表名</param>
+/// <param name="BatchNumber">批次号</param>
+/// <param name="GenerationStatus">结果</param>
+/// <param name="DeliveryType">交付方式</param>
+/// <param name="GeneratedAt">生成时间</param>
+/// <param name="Duration">耗时（毫秒）</param>
+/// <param name="FileCount">产物文件数</param>
+/// <param name="TotalSize">产物总大小（字节）</param>
+/// <param name="GenPath">写进项目时写到的根目录</param>
+/// <param name="PackageExpiresAt">产物包到期时间；没有产物包为空</param>
+/// <param name="OperatorName">操作人</param>
 public sealed record CodegenHistoryResponse(
     Guid Id,
     Guid TableId,
@@ -39,9 +39,9 @@ public sealed record CodegenHistoryResponse(
     string? OperatorName)
 {
     /// <summary>
-    /// 由实体建出。
+    /// 由实体建出
     /// </summary>
-    /// <param name="history">生成历史。</param>
+    /// <param name="history">生成历史</param>
     public static CodegenHistoryResponse From(SysCodeGenHistory history)
     {
         ArgumentNullException.ThrowIfNull(history);
@@ -63,18 +63,18 @@ public sealed record CodegenHistoryResponse(
 }
 
 /// <summary>
-/// 表配置在生成时的快照。
+/// 表配置在生成时的快照
 /// </summary>
-/// <param name="TableName">表名。</param>
-/// <param name="TableComment">表注释。</param>
-/// <param name="ClassName">类名。</param>
-/// <param name="Namespace">命名空间。</param>
-/// <param name="ModuleName">包名。</param>
-/// <param name="BusinessName">业务名。</param>
-/// <param name="TemplateType">生成模式。</param>
-/// <param name="Scope">生成范围。</param>
-/// <param name="Target">生成目标。</param>
-/// <param name="EnabledActions">勾选的操作。</param>
+/// <param name="TableName">表名</param>
+/// <param name="TableComment">表注释</param>
+/// <param name="ClassName">类名</param>
+/// <param name="Namespace">命名空间</param>
+/// <param name="ModuleName">包名</param>
+/// <param name="BusinessName">业务名</param>
+/// <param name="TemplateType">生成模式</param>
+/// <param name="Scope">生成范围</param>
+/// <param name="Target">生成目标</param>
+/// <param name="EnabledActions">勾选的操作</param>
 public sealed record CodegenTableSnapshot(
     string TableName,
     string? TableComment,
@@ -88,16 +88,16 @@ public sealed record CodegenTableSnapshot(
     string? EnabledActions);
 
 /// <summary>
-/// 生成历史的详情。
+/// 生成历史的详情
 /// </summary>
-/// <param name="History">生成历史。</param>
-/// <param name="GeneratedFiles">产物文件（包内路径）。</param>
-/// <param name="UsedTemplates">用到的模板编码。</param>
-/// <param name="TableSnapshot">表配置快照。</param>
-/// <param name="ErrorMessage">失败原因（错误码与生成时的文案）。</param>
-/// <param name="OperatorId">操作人 ID。</param>
-/// <param name="OperatorIp">操作人 IP。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="History">生成历史</param>
+/// <param name="GeneratedFiles">产物文件（包内路径）</param>
+/// <param name="UsedTemplates">用到的模板编码</param>
+/// <param name="TableSnapshot">表配置快照</param>
+/// <param name="ErrorMessage">失败原因（错误码与生成时的文案）</param>
+/// <param name="OperatorId">操作人 ID</param>
+/// <param name="OperatorIp">操作人 IP</param>
+/// <param name="Remark">备注</param>
 public sealed record CodegenHistoryDetailResponse(
     CodegenHistoryResponse History,
     IReadOnlyList<string> GeneratedFiles,
@@ -109,9 +109,9 @@ public sealed record CodegenHistoryDetailResponse(
     string? Remark)
 {
     /// <summary>
-    /// 由实体建出。
+    /// 由实体建出
     /// </summary>
-    /// <param name="history">生成历史。</param>
+    /// <param name="history">生成历史</param>
     public static CodegenHistoryDetailResponse From(SysCodeGenHistory history)
     {
         ArgumentNullException.ThrowIfNull(history);
@@ -131,7 +131,7 @@ public sealed record CodegenHistoryDetailResponse(
 }
 
 /// <summary>
-/// 按 ID 取一条生成历史的请求。
+/// 按 ID 取一条生成历史的请求
 /// </summary>
-/// <param name="Id">生成历史 ID。</param>
+/// <param name="Id">生成历史 ID</param>
 public sealed record CodegenHistoryIdRequest(Guid Id);

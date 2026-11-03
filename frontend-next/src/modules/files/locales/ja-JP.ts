@@ -1,4 +1,4 @@
-// 文言ファイル：キー集合は en-US.ts と完全に一致させること（scripts/check-i18n.mjs で検査）。
+// 文言ファイル：キー集合は en-US.ts と完全に一致させること（scripts/check-i18n.mjs で検査）
 export default {
   files: {
     library: {

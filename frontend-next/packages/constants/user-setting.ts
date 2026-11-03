@@ -1,9 +1,9 @@
 // ==================== 用户设置（全场景跨端同步） ====================
 // 与后端 XiHan.BasicApp.Saas 的 UserSettingScene 枚举对齐：
-// 一条用户设置记录由 (scene, settingKey) 唯一定位，覆盖偏好设置 / 页面设置等全部场景。
+// 一条用户设置记录由 (scene, settingKey) 唯一定位，覆盖偏好设置 / 页面设置等全部场景
 
 /**
- * 用户设置场景（值与后端 UserSettingScene 枚举一致）。
+ * 用户设置场景（值与后端 UserSettingScene 枚举一致）
  */
 export const UserSettingScene = {
   /** 偏好/全局：应用偏好（主题/外观/布局/组件/快捷键）、收藏夹等全局用户级设置，按 settingKey 区分 */
@@ -24,7 +24,7 @@ export const FAVORITES_SETTING_KEY = 'favorites'
 
 /**
  * 本端会话标识（每标签页唯一）：保存用户设置时随请求上行，
- * 后端推送 UserSettingChanged 时原样回传 sourceClientId，本端据此过滤自身回显。
+ * 后端推送 UserSettingChanged 时原样回传 sourceClientId，本端据此过滤自身回显
  */
 export const USER_SETTING_CLIENT_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
 

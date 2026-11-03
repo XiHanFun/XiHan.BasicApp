@@ -1,10 +1,10 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 /**
- * 语音录制（浏览器原生 MediaRecorder，不引第三方）。
+ * 语音录制（浏览器原生 MediaRecorder，不引第三方）
  *
- * 格式由浏览器决定：Chrome / Firefox 产出 audio/webm;codecs=opus，Safari 产出 audio/mp4。
- * 不做转码，因此跨浏览器互通有限——Safari 放不了 webm/opus。
+ * 格式由浏览器决定：Chrome / Firefox 产出 audio/webm;codecs=opus，Safari 产出 audio/mp4
+ * 不做转码，因此跨浏览器互通有限——Safari 放不了 webm/opus
  */
 
 /** 录音时长上限（秒），与后端 MaxVoiceSeconds 对齐 */
@@ -82,7 +82,7 @@ export function useVoiceRecorder() {
   }
 
   /**
-   * 开始录音。麦克风被拒绝或不支持时抛出，调用方负责提示。
+   * 开始录音。麦克风被拒绝或不支持时抛出，调用方负责提示
    */
   async function start(): Promise<void> {
     if (recording.value || !supported.value) {
@@ -134,7 +134,7 @@ export function useVoiceRecorder() {
   }
 
   /**
-   * 停止并取回录音；时长不足或无数据时返回 null。
+   * 停止并取回录音；时长不足或无数据时返回 null
    */
   function stop(): Promise<VoiceRecording | null> {
     if (!recorder || recorder.state !== 'recording') {

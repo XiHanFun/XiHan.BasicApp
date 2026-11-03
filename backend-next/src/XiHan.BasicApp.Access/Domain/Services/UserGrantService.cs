@@ -13,26 +13,26 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 给用户直接授予。
+/// 给用户直接授予
 /// </summary>
 /// <remarks>
 /// 直授的规则（权限目录与作用侧、约束规则的互斥筛查、有效期与理由、去掉同码的禁止、权限变更日志）集中在这里：
-/// <c>user-grants.grant</c> 与审批通过后的授予（授权申请）都经它，规则只有一份。
+/// <c>user-grants.grant</c> 与审批通过后的授予（授权申请）都经它，规则只有一份
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="grants">用户授予。</param>
-/// <param name="rules">授予规则（有效期与理由）。</param>
-/// <param name="conditions">权限条件。</param>
-/// <param name="enforcer">约束规则求值。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="grants">用户授予</param>
+/// <param name="rules">授予规则（有效期与理由）</param>
+/// <param name="conditions">权限条件</param>
+/// <param name="enforcer">约束规则求值</param>
 public sealed class UserGrantService(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer)
 {
     /// <summary>
-    /// 给用户直接授予。
+    /// 给用户直接授予
     /// </summary>
-    /// <param name="request">用户、权限码、有效期与理由。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>逐个权限码的结果；用户不存在或有效期不合法时整体失败。</returns>
+    /// <param name="request">用户、权限码、有效期与理由</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>逐个权限码的结果；用户不存在或有效期不合法时整体失败</returns>
     public async Task<Result<PermissionBatchResult>> GrantAsync(UserPermissionsRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

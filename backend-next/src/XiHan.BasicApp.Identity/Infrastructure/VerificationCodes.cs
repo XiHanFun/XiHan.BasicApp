@@ -11,39 +11,39 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 邮件 / 短信验证码的签发、限频与校验。
+/// 邮件 / 短信验证码的签发、限频与校验
 /// </summary>
 /// <remarks>
 /// 单例服务，状态都在共享缓存里（多实例共用），4.x 的规则：6 位数字、有效期 <see cref="IdentityOptions.VerificationCodeLifetime"/>，
 /// 同一用途同一主体再发即覆盖旧码；同一用途同一目标两次发码至少隔 <see cref="IdentityOptions.VerificationCodeInterval"/>，
 /// 一个目标（邮箱 / 手机号）与一个客户端地址每天（UTC）各有上限、不分用途；输错 <see cref="IdentityOptions.VerificationCodeMaxFailures"/> 次即作废，
-/// 这一用途这一主体锁定 <see cref="IdentityOptions.VerificationCodeLockout"/>。缓存里只存码的 SHA-256，校验成功即删（先删再算成功，并发的两次只有一次过）。
-/// 与 4.x 不同：码不存明文；输错有次数而不是错一次即作废。
+/// 这一用途这一主体锁定 <see cref="IdentityOptions.VerificationCodeLockout"/>。缓存里只存码的 SHA-256，校验成功即删（先删再算成功，并发的两次只有一次过）
+/// 与 4.x 不同：码不存明文；输错有次数而不是错一次即作废
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="codes">码源（与图形验证码共用，测试换成固定码）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="options">身份配置</param>
+/// <param name="codes">码源（与图形验证码共用，测试换成固定码）</param>
+/// <param name="clock">时间源</param>
 public sealed class VerificationCodes(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes, TimeProvider clock)
 {
     /// <summary>
-    /// 码的长度。
+    /// 码的长度
     /// </summary>
     public const int CodeLength = 6;
 
     /// <summary>
-    /// 签发一个验证码。
+    /// 签发一个验证码
     /// </summary>
     /// <remarks>
-    /// 先看锁定、间隔与每日上限，都过了才签发并计数。
+    /// 先看锁定、间隔与每日上限，都过了才签发并计数
     /// </remarks>
-    /// <param name="purpose">用途（如 <c>contact-verify:email</c>）。</param>
-    /// <param name="subject">码归属的主体（如用户 ID、登录的账号）。</param>
-    /// <param name="target">收码的邮箱或手机号（限频与每日上限按它算）。</param>
-    /// <param name="payload">随码保存、校验成功时取回的内容（如要换成的新邮箱）。</param>
-    /// <param name="address">客户端地址；没有即不计地址的每日上限。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>验证码与有效秒数；被锁定或超出频率时失败。</returns>
+    /// <param name="purpose">用途（如 <c>contact-verify:email</c>）</param>
+    /// <param name="subject">码归属的主体（如用户 ID、登录的账号）</param>
+    /// <param name="target">收码的邮箱或手机号（限频与每日上限按它算）</param>
+    /// <param name="payload">随码保存、校验成功时取回的内容（如要换成的新邮箱）</param>
+    /// <param name="address">客户端地址；没有即不计地址的每日上限</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>验证码与有效秒数；被锁定或超出频率时失败</returns>
     public async Task<Result<(string Code, int ExpiresInSeconds)>> IssueAsync(string purpose, string subject, string target, string payload, string? address, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(purpose);
@@ -89,16 +89,16 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
     }
 
     /// <summary>
-    /// 校验并作废验证码。
+    /// 校验并作废验证码
     /// </summary>
     /// <remarks>
-    /// 码对即删并返回签发时保存的内容；码错计一次，用完次数即作废并锁定。没有码、已过期或已用过都是 <c>IDENTITY_VALIDATION_018</c>。
+    /// 码对即删并返回签发时保存的内容；码错计一次，用完次数即作废并锁定。没有码、已过期或已用过都是 <c>IDENTITY_VALIDATION_018</c>
     /// </remarks>
-    /// <param name="purpose">用途。</param>
-    /// <param name="subject">主体。</param>
-    /// <param name="code">输入的码。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>签发时保存的内容。</returns>
+    /// <param name="purpose">用途</param>
+    /// <param name="subject">主体</param>
+    /// <param name="code">输入的码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>签发时保存的内容</returns>
     public async Task<Result<string>> ConsumeAsync(string purpose, string subject, string? code, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(purpose);

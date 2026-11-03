@@ -11,21 +11,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Menus;
 
 /// <summary>
-/// 新建运营节点。
+/// 新建运营节点
 /// </summary>
 /// <remarks>
 /// <c>POST /api/menus</c>（平台侧）。只能建目录或外链（页面 <c>ACCESS_VALIDATION_008</c>）；编码存为 <c>custom.&lt;名&gt;</c> 且唯一（<c>ACCESS_CONFLICT_003</c>）；
-/// 目录只在顶层、外链可挂目录（<c>ACCESS_VALIDATION_006</c>）；外链地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>）；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）。
+/// 目录只在顶层、外链可挂目录（<c>ACCESS_VALIDATION_006</c>）；外链地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>）；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）
 /// </remarks>
-/// <param name="menus">菜单仓储。</param>
-/// <param name="service">菜单域服务。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="menus">菜单仓储</param>
+/// <param name="service">菜单域服务</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusCreate)]
 public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService service, PermissionCatalog catalog, IIdGenerator<Guid> ids) : IOperation<CreateMenuRequest, MenuResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "menus.create";
 
@@ -81,15 +81,15 @@ public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
 }
 
 /// <summary>
-/// 运营节点的外链与权限规则（新建与修改共用）。
+/// 运营节点的外链与权限规则（新建与修改共用）
 /// </summary>
 internal static class MenuRules
 {
     /// <summary>
-    /// 校验外链地址与权限码。
+    /// 校验外链地址与权限码
     /// </summary>
     /// <remarks>
-    /// 外链必须有合规地址、目录不能有地址；权限码可空，非空须在目录里。
+    /// 外链必须有合规地址、目录不能有地址；权限码可空，非空须在目录里
     /// </remarks>
     public static Error? CheckUrlAndPermission(MenuKind kind, string? url, string? permission, PermissionCatalog catalog)
     {

@@ -16,16 +16,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Printing.Seeds;
 
 /// <summary>
-/// 打印演示模板的种子。
+/// 打印演示模板的种子
 /// </summary>
 /// <remarks>
-/// 号段 900 + 50（照 4.x 的 <c>Demo + 50</c>），<c>BasicApp:Seed:EnableDemoData</c> 打开才写：六张平台全局模板，向租户开放、启用，排序 10～60。
-/// 按编码先查后写（含已删除的行）：已有的不改，删掉的不补回（只首写）。模板内容见 <see cref="PrintingDemoCatalog"/>。
+/// 号段 900 + 50（照 4.x 的 <c>Demo + 50</c>），<c>BasicApp:Seed:EnableDemoData</c> 打开才写：六张平台全局模板，向租户开放、启用，排序 10～60
+/// 按编码先查后写（含已删除的行）：已有的不改，删掉的不补回（只首写）。模板内容见 <see cref="PrintingDemoCatalog"/>
 /// </remarks>
-/// <param name="templates">模板仓储。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="options">种子配置。</param>
-/// <param name="cache">共享缓存（失效此前缓存的「没有」）。</param>
+/// <param name="templates">模板仓储</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="options">种子配置</param>
+/// <param name="cache">共享缓存（失效此前缓存的「没有」）</param>
 public sealed class DemoPrintTemplateSeeder(IRepository<SysPrintTemplate, Guid> templates, IIdGenerator<Guid> ids, SeedOptions options, ISharedCache cache) : ISeeder
 {
     /// <inheritdoc />

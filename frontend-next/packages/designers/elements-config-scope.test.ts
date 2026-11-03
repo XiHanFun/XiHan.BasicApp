@@ -1,6 +1,6 @@
 /**
- * 设计器全局配置跟随应用语言的那个 watch，不随第一次登记它的组件卸载而停（elements-config.ts）。
- * 单独一个文件：模块里「已在跟随」的状态是全局的，这里的第一次登记必须发生在组件的作用域里。
+ * 设计器全局配置跟随应用语言的那个 watch，不随第一次登记它的组件卸载而停（elements-config.ts）
+ * 单独一个文件：模块里「已在跟随」的状态是全局的，这里的第一次登记必须发生在组件的作用域里
  */
 import { describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick, ref } from 'vue'

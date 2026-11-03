@@ -19,8 +19,8 @@ type PageFilter = PageRequest['filters'][number]
 export type JobRunStatus = 'Running' | 'Paused' | 'Failed' | 'Success' | 'Pending'
 
 /**
- * 列表行：作业本身加上 4.x 列表直接给、6.0 要推出来的几列。
- * 分组取作业名第一段（登记它的包），触发类型取第一个触发器，已执行是各触发器触发次数之和，上次执行取上次结果的开始时间。
+ * 列表行：作业本身加上 4.x 列表直接给、6.0 要推出来的几列
+ * 分组取作业名第一段（登记它的包），触发类型取第一个触发器，已执行是各触发器触发次数之和，上次执行取上次结果的开始时间
  */
 export type JobRow = JobResponse & {
   group: null | string
@@ -253,7 +253,7 @@ export function assertBatch(t: Translate, result: { failed: readonly { code: str
 
 /**
  * 列表的后端筛选：关键字匹配作业名、显示名与说明；触发类型、启停与登记来源精确匹配；作业类型多选（`in`，逗号分隔）；
- * 运行状态不是后端字段，由 runStatusFilters 换成 running / paused 两条。
+ * 运行状态不是后端字段，由 runStatusFilters 换成 running / paused 两条
  */
 export const JOB_QUERY: PageQueryMapping = {
   filters: { kind: 'eq', paused: 'eq', source: 'eq' },
@@ -518,7 +518,7 @@ export function runFailedOptions(t: Translate): { label: string, value: string }
 
 /**
  * 执行日志抽屉的查询：按作业过滤，状态单选，是否出错（有无错误码）、触发器名与节点精确匹配，
- * 关键字匹配触发器名、节点与错误（替 4.x 的批次号）；后端按计划时间倒序，总数为真实总数。
+ * 关键字匹配触发器名、节点与错误（替 4.x 的批次号）；后端按计划时间倒序，总数为真实总数
  */
 export interface JobRunsQuery {
   job: string

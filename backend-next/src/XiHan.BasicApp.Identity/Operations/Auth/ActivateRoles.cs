@@ -18,28 +18,28 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.activate-roles</c> 的请求：本会话要激活的角色。
+/// <c>auth.activate-roles</c> 的请求：本会话要激活的角色
 /// </summary>
-/// <param name="RoleIds">要激活的角色 ID，1 到 100 个；须都此刻持有，且合起来不违反动态职责分离。</param>
+/// <param name="RoleIds">要激活的角色 ID，1 到 100 个；须都此刻持有，且合起来不违反动态职责分离</param>
 public sealed record ActivateRolesRequest([Required, MinLength(1), MaxLength(100)] IReadOnlyList<Guid> RoleIds);
 
 /// <summary>
-/// 切换本会话激活的角色并换签令牌。
+/// 切换本会话激活的角色并换签令牌
 /// </summary>
 /// <remarks>
-/// 操作 <c>auth.activate-roles</c>（自助操作，只要求已认证）。换签同 <c>auth.switch-tenant</c> 的续接方式：会话续用、刷新令牌轮换。
-/// 要激活的须都此刻持有、且不违反动态职责分离（拦截类违规即 <c>ACCESS_CONFLICT_012</c>）；其余持有的记停用。
-/// 模仿态的会话不能切换。
-/// 登录日志记为 <see cref="LoginEvent.RoleActivation"/>。
+/// 操作 <c>auth.activate-roles</c>（自助操作，只要求已认证）。换签同 <c>auth.switch-tenant</c> 的续接方式：会话续用、刷新令牌轮换
+/// 要激活的须都此刻持有、且不违反动态职责分离（拦截类违规即 <c>ACCESS_CONFLICT_012</c>）；其余持有的记停用
+/// 模仿态的会话不能切换
+/// 登录日志记为 <see cref="LoginEvent.RoleActivation"/>
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="activators">会话角色激活。</param>
-/// <param name="issuer">令牌签发器。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="tenants">框架租户目录。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="activators">会话角色激活</param>
+/// <param name="issuer">令牌签发器</param>
+/// <param name="options">身份配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="tenants">框架租户目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ActivateRoles(
     IRepository<SysUser, Guid> users,
@@ -52,7 +52,7 @@ public sealed class ActivateRoles(
     ITenantStore tenants) : IOperation<ActivateRolesRequest, TokenResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.activate-roles";
 

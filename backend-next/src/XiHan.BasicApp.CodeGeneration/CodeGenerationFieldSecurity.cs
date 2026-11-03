@@ -12,17 +12,17 @@ using XiHan.BasicApp.Runtime.Queries;
 namespace XiHan.BasicApp.CodeGeneration;
 
 /// <summary>
-/// 代码生成模块的字段安全登记。
+/// 代码生成模块的字段安全登记
 /// </summary>
 /// <remarks>
-/// 照 4.x：数据源（新建、修改、启停）、表配置（修改、启停）与模板（新建、修改、启停）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用。
+/// 照 4.x：数据源（新建、修改、启停）、表配置（修改、启停）与模板（新建、修改、启停）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
 /// </remarks>
 public static class CodeGenerationFieldSecurity
 {
     /// <summary>
-    /// 登记本模块的实体与操作。
+    /// 登记本模块的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("codegeneration", CodeGenerationJsonContext.Default, fields => fields
             .Entity<CodegenDatasourceDetailResponse>("codegeneration.codegen-datasources", "codegeneration.code_gen.datasource.title", "codegeneration.code_gen.datasource.fields.")

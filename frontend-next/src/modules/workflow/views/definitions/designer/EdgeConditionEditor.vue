@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
 
 /**
- * 连线条件的编辑器（设计器属性面板「条件」一行）：条件表达式，加上源节点常见办理结果的一键填入。
+ * 连线条件的编辑器（设计器属性面板「条件」一行）：条件表达式，加上源节点常见办理结果的一键填入
  */
 defineOptions({ name: 'EdgeConditionEditor' })
 

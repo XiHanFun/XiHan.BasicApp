@@ -11,8 +11,8 @@ export type VersionRow = ResponseOf<'versions.list'>['items'][number]
 export const PLATFORM_DATABASE = 'platform'
 
 /**
- * 列表的后端筛选：关键字匹配库名、应用版本、数据库版本与升级节点；应用版本、数据库版本与是否升级中精确匹配。
- * 台账由升级执行器写入（升级中即持有升级锁），页面只读。
+ * 列表的后端筛选：关键字匹配库名、应用版本、数据库版本与升级节点；应用版本、数据库版本与是否升级中精确匹配
+ * 台账由升级执行器写入（升级中即持有升级锁），页面只读
  */
 export const VERSION_QUERY: PageQueryMapping = {
   filters: { appVersion: 'eq', dbVersion: 'eq', isUpgrading: 'eq' },

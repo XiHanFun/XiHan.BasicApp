@@ -6,52 +6,52 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
 /// <summary>
-/// 部门（租户库实体，严格按租户过滤）。
+/// 部门（租户库实体，严格按租户过滤）
 /// </summary>
 /// <remarks>
-/// 层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）。
+/// 层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）
 /// </remarks>
 [ActiveUniqueIndex(nameof(TenantId), nameof(Code))]
 public sealed class SysDepartment : TenantScopedAuditedEntity
 {
     /// <summary>
-    /// 部门编码：租户内唯一，字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>-</c>，最长 64。
+    /// 部门编码：租户内唯一，字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>-</c>，最长 64
     /// </summary>
     public string Code { get; set; } = string.Empty;
 
     /// <summary>
-    /// 名称。
+    /// 名称
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 直接上级部门。
+    /// 直接上级部门
     /// </summary>
     /// <remarks>
-    /// 为空即顶层。
+    /// 为空即顶层
     /// </remarks>
     public Guid? ParentId { get; set; }
 
     /// <summary>
-    /// 负责人（本租户的用户）。
+    /// 负责人（本租户的用户）
     /// </summary>
     /// <remarks>
-    /// 为空即未指定。
+    /// 为空即未指定
     /// </remarks>
     public Guid? LeaderUserId { get; set; }
 
     /// <summary>
-    /// 状态。
+    /// 状态
     /// </summary>
     public OrganizationStatus Status { get; set; } = OrganizationStatus.Active;
 
     /// <summary>
-    /// 同级排序号。
+    /// 同级排序号
     /// </summary>
     public int Order { get; set; }
 
     /// <summary>
-    /// 说明。
+    /// 说明
     /// </summary>
     public string? Description { get; set; }
 }

@@ -1,9 +1,9 @@
 /**
- * composables/useVoiceRecorder.ts 的录音状态机。
+ * composables/useVoiceRecorder.ts 的录音状态机
  *
  * 职责边界：容器格式选择、计时与自动停止、结果产出的三条淘汰规则（太短 / 无数据 / 被取消）、
- * 以及**组件卸载后必须停掉麦克风轨道与全部定时器**。
- * MediaRecorder / navigator.mediaDevices 在 jsdom 中不存在，这里用最小替身注入，并在 afterEach 全部还原。
+ * 以及**组件卸载后必须停掉麦克风轨道与全部定时器**
+ * MediaRecorder / navigator.mediaDevices 在 jsdom 中不存在，这里用最小替身注入，并在 afterEach 全部还原
  */
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

@@ -1,7 +1,7 @@
 <!--
-  模拟打印数据单值编辑器。
-  职责：根据注册字段类型或当前样例值选择输入控件，并保持打印数据的字符串、数值和布尔类型。
-  开关与日期没有占位文字可作名字：字段里由字段标签起名（aria-labelledby 优先），明细表单元格里靠 aria-label 取列名。
+  模拟打印数据单值编辑器
+  职责：根据注册字段类型或当前样例值选择输入控件，并保持打印数据的字符串、数值和布尔类型
+  开关与日期没有占位文字可作名字：字段里由字段标签起名（aria-labelledby 优先），明细表单元格里靠 aria-label 取列名
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleInputType } from '~/printing'
@@ -40,18 +40,18 @@ const dateValue = computed(() => {
 })
 
 /**
- * 发布文本值；不自动转换数字，避免条码、二维码和前导零编码被破坏。
- * @param value 输入框的新值。
- * @returns 无返回值。
+ * 发布文本值；不自动转换数字，避免条码、二维码和前导零编码被破坏
+ * @param value 输入框的新值
+ * @returns 无返回值
  */
 function updateText(value: string): void {
   emit('update:value', value)
 }
 
 /**
- * 发布日期格式化字符串，清空时使用空字符串，打印出来是空白。
- * @param value DatePicker 格式化值。
- * @returns 无返回值。
+ * 发布日期格式化字符串，清空时使用空字符串，打印出来是空白
+ * @param value DatePicker 格式化值
+ * @returns 无返回值
  */
 function updateDate(value: null | number | [number, number]): void {
   if (value == null || Array.isArray(value)) {

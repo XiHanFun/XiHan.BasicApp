@@ -369,7 +369,7 @@ function handleItemClick(item: NotificationItem) {
 /*
  * 浮层的面、描边、圆角、投影、层级与进出场都由 popover 皮肤给，这里只调它开放的几个令牌：
  * 内缩归零（头、尾、列表各自带内缩），限高交给内部那块滚动区，
- * 面板本身不滚——滚的话头尾会跟着走。
+ * 面板本身不滚——滚的话头尾会跟着走
  */
 .notification-panel {
   --xh-popover-px: 0;

@@ -11,18 +11,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
 /// <summary>
-/// 套餐列表。
+/// 套餐列表
 /// </summary>
 /// <remarks>
-/// <c>GET /api/editions</c>（平台侧），带白名单条数与绑定租户数。
+/// <c>GET /api/editions</c>（平台侧），带白名单条数与绑定租户数
 /// </remarks>
-/// <param name="editions">套餐仓储。</param>
-/// <param name="service">套餐域服务。</param>
+/// <param name="editions">套餐仓储</param>
+/// <param name="service">套餐域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsRead)]
 public sealed class ListEditions(IRepository<SysEdition, Guid> editions, EditionService service) : IOperation<ListEditionsRequest, EditionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "editions.list";
 

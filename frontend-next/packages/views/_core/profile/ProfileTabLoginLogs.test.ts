@@ -1,7 +1,7 @@
 /**
  * 个人中心「登录日志」（ProfileTabLoginLogs.vue，4.x 原样搬入）：
  * 结果标签用本地文案（6.0 没有枚举元数据，4.x 取后端 LoginResult），认证失败类用危险配色；
- * 说明行拼 IP（没有即「未知 IP」）、浏览器与系统；超过一页才出分页，翻页按页码重取；加载失败提示后端文案并显示空态。
+ * 说明行拼 IP（没有即「未知 IP」）、浏览器与系统；超过一页才出分页，翻页按页码重取；加载失败提示后端文案并显示空态
  */
 import type { AppContextApis, LoginAuditResult, LoginLogItem } from '~/types'
 import { flushPromises, mount } from '@vue/test-utils'

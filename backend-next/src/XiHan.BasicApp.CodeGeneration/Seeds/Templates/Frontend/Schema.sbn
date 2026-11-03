@@ -32,8 +32,8 @@
 {{~ end ~}}
 {{~ end ~}}
 /**
- * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手改。
- * 列定义与表单缺省值的微调写在 {{ Resource }}.schema.ts（在那里对下列 base* 做 transform）。
+ * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手改
+ * 列定义与表单缺省值的微调写在 {{ Resource }}.schema.ts（在那里对下列 base* 做 transform）
  */
 import type { ListFieldSchema, PageSchema, SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, {{ if can_create || can_update }}RequestOf, {{ end }}ResponseOf } from '~/contracts'
@@ -81,7 +81,7 @@ export interface {{ ClassName }}FormModel {
 /**
  * 页面元信息
  *
- * 导出、导入、批量删除与批量启停按权限码门控：取消勾选后重新生成，按钮随之消失，页面不必改。
+ * 导出、导入、批量删除与批量启停按权限码门控：取消勾选后重新生成，按钮随之消失，页面不必改
  */
 export const basePageMeta = {
   pageCode: '{{ PageCode }}',
@@ -128,7 +128,7 @@ export function {{ col.Field }}Options(t: Translate) {
  * 列定义
  *
  * 不进列表但要参与搜索或导入的列以 visible: false 声明：表格与列设置里都不出现，
- * 搜索区照常渲染它的搜索框，导入模板照常带上它这一列。
+ * 搜索区照常渲染它的搜索框，导入模板照常带上它这一列
  */
 export function baseFields(t: Translate): ListFieldSchema[] {
   return [
@@ -290,11 +290,11 @@ export function toUpdateRequest(id: string, form: {{ ClassName }}FormModel): {{ 
 const IMPORT_DATE_PATTERN = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
 
 /**
- * 导入的日期单元格按本地时间换成时刻（ISO 8601）。
+ * 导入的日期单元格按本地时间换成时刻（ISO 8601）
  *
  * 表格软件另存的 CSV 常写成 2026/9/30，原样交给 Date 解析不了；纯 yyyy-MM-dd 交给 Date
  * 又会被当成 UTC 零点，西半球会退一天。所以认得的写法按字面取年月日时分秒，
- * 其余写法已过导入的日期校验，交给 Date 按本地时间解析。
+ * 其余写法已过导入的日期校验，交给 Date 按本地时间解析
  */
 function toImportInstant(value: unknown) {
   const text = String(value).trim()
@@ -310,7 +310,7 @@ function toImportInstant(value: unknown) {
  * 导入记录 → 新建请求（导入逐行调用新建操作）
  *
  * 记录里只有表格填了值的列，值已按字段类型换算好（下拉按选项文本反查成值）；
- * 必填列没填过不了导入校验，其余没填的列与新建表单留空同口径补齐。
+ * 必填列没填过不了导入校验，其余没填的列与新建表单留空同口径补齐
  */
 export function toCreateInputFromImport(record: Record<string, unknown>): {{ ClassName }}CreateRequest {
   return {
@@ -332,7 +332,7 @@ function failedCodes(result: { failed: { code: string }[] }): void {
 {{~ end ~}}
 
 /**
- * SchemaPage 的资源：分页{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}。
+ * SchemaPage 的资源：分页{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}
  */
 export function baseResource(): SchemaResource<{{ ClassName }}Row> {
   return {

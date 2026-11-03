@@ -12,19 +12,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 管理员重置密码。
+/// 管理员重置密码
 /// </summary>
 /// <remarks>
-/// <c>POST /api/users/{id}:reset-password</c>。设新密码并标记下次登录必须改密，吊销该用户全部会话。
+/// <c>POST /api/users/{id}:reset-password</c>。设新密码并标记下次登录必须改密，吊销该用户全部会话
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersResetPassword)]
 public sealed class ResetPassword(IRepository<SysUser, Guid> users, UserAccountService accounts, TimeProvider clock) : IOperation<ResetPasswordRequest, PasswordChangedResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "users.reset-password";
 

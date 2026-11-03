@@ -1,9 +1,9 @@
 /**
  * 流程定义的元数据：编码、名称、分类、描述。列表页的新建、编辑弹窗读写定义文档（框架 5 的 WorkflowJson）里的这几项，别的字段原样留着；
- * 节点、连线、启动变量与执行设置在设计器里改。
+ * 节点、连线、启动变量与执行设置在设计器里改
  *
  * 界面沿用 4.x 的叫法：「流程编码」是 WorkflowJson 的 name（定义名，同名各版本共用、关联审批业务时即业务码，创建后不可改），
- * 「流程名称」是 displayName。
+ * 「流程名称」是 displayName
  */
 
 import type { ResponseOf } from '~/contracts'
@@ -66,11 +66,11 @@ export function bindDefinitionBusiness(metadata: WorkflowDefinitionMetadata, bus
 }
 
 /**
- * 新建：一份没有节点与连线的空白流程；编码是某个审批业务时带上它声明的变量，与设计器里绑定业务时一样。
- * ID 与版本由后端定（建草稿按同名最大版本加一）。
- * @param metadata 弹窗里填的元数据。
- * @param businessTypes 已登记的审批业务。
- * @param translate 把业务变量的显示名文案键翻成当前语言，写进变量说明。
+ * 新建：一份没有节点与连线的空白流程；编码是某个审批业务时带上它声明的变量，与设计器里绑定业务时一样
+ * ID 与版本由后端定（建草稿按同名最大版本加一）
+ * @param metadata 弹窗里填的元数据
+ * @param businessTypes 已登记的审批业务
+ * @param translate 把业务变量的显示名文案键翻成当前语言，写进变量说明
  */
 export function createDefinitionJson(metadata: WorkflowDefinitionMetadata, businessTypes: readonly WorkflowBusinessType[], translate: (key: string) => string): string {
   const code = metadata.code.trim()

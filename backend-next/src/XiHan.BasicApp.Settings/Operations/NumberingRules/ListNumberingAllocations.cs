@@ -10,19 +10,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 
 /// <summary>
-/// 规则的发号记录。
+/// 规则的发号记录
 /// </summary>
 /// <remarks>
 /// <c>POST /api/numbering-rules/{id}:allocations</c>（声明只读，请求带分页对象仍走 POST）。按发号时刻倒序；
-/// 平台看全部，租户看自己规则的全部、供租户使用的平台规则只看自己发起的。
+/// 平台看全部，租户看自己规则的全部、供租户使用的平台规则只看自己发起的
 /// </remarks>
-/// <param name="service">规则域服务。</param>
-/// <param name="queries">发号记录查询。</param>
+/// <param name="service">规则域服务</param>
+/// <param name="queries">发号记录查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
 public sealed class ListNumberingAllocations(NumberingRuleService service, NumberingAllocationQueries queries) : IOperation<NumberingAllocationsRequest, PageResult<NumberingAllocationResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "numbering-rules.allocations";
 

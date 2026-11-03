@@ -19,12 +19,12 @@ using XiHan.Framework.Workflow.Abstractions.Instances;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 宿主装上数据库工作流之后的两项先行核对（方案 N3 第三批第一步）。
+/// 宿主装上数据库工作流之后的两项先行核对（方案 N3 第三批第一步）
 /// </summary>
 /// <remarks>
 /// 一是框架在调用之外（到期书签的轮询）自己经完整管道开的调用：没有主体、没有操作描述，BasicApp 的会话门禁、访问策略、字段安全、
 /// 审计与实时推送都要放行它，且不记进访问日志、异常日志与操作日志；二是 <c>workflow.*</c> 事件写进调用方事务里的发件箱，
-/// 随调用提交才发出、回滚即不发，经内存代理与 RabbitMQ（环境变量 <c>XIHAN_TEST_RABBITMQ</c>，没设即跳过）都收得到。
+/// 随调用提交才发出、回滚即不发，经内存代理与 RabbitMQ（环境变量 <c>XIHAN_TEST_RABBITMQ</c>，没设即跳过）都收得到
 /// </remarks>
 public sealed class WorkflowHostingTests : IDisposable
 {
@@ -159,7 +159,7 @@ public sealed class WorkflowHostingTests : IDisposable
     }
 
     /// <summary>
-    /// 把收到的消息记进共享队列的测试处理器。
+    /// 把收到的消息记进共享队列的测试处理器
     /// </summary>
     private sealed class RecordingHandler(ConcurrentQueue<MessageDelivery> received) : IMessageHandler
     {

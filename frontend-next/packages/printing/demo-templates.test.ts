@@ -1,9 +1,9 @@
 /**
- * 打印演示种子（后端 backend-next/src/XiHan.BasicApp.Printing/Seeds/Demo）的模板与数据源。
+ * 打印演示种子（后端 backend-next/src/XiHan.BasicApp.Printing/Seeds/Demo）的模板与数据源
  *
  * 读后端随程序集发布的同一批 JSON：每张模板都要通过打印设计器的完整校验，用所绑数据源的样例数据排版时
  * 不出错误级诊断（条码、二维码取值不合法，图片地址不安全，表达式出错等，预览里就是报错占位），也不出格式失败；
- * 模板引用的字段都要在所绑数据源里登记。
+ * 模板引用的字段都要在所绑数据源里登记
  */
 import type { PrintDocument } from '@xihan-print/core'
 import type { PrintFieldDefinition } from './types'

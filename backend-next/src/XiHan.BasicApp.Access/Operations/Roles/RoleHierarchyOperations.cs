@@ -12,62 +12,62 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.set-parents</c> 的请求。
+/// <c>roles.set-parents</c> 的请求
 /// </summary>
 /// <remarks>
-/// 把角色的直接上级整体设为给定的一组（空即解除全部继承）。
+/// 把角色的直接上级整体设为给定的一组（空即解除全部继承）
 /// </remarks>
-/// <param name="Id">角色 ID。</param>
-/// <param name="ParentIds">直接上级，最多 50 个。</param>
+/// <param name="Id">角色 ID</param>
+/// <param name="ParentIds">直接上级，最多 50 个</param>
 public sealed record SetRoleParentsRequest([Required] Guid Id, [Required, MaxLength(50)] IReadOnlyList<Guid> ParentIds);
 
 /// <summary>
-/// 继承链上的一个角色。
+/// 继承链上的一个角色
 /// </summary>
-/// <param name="RoleId">角色 ID。</param>
-/// <param name="Code">角色码。</param>
-/// <param name="Name">角色名。</param>
-/// <param name="Status">状态。</param>
-/// <param name="Depth">最短的继承深度（直接为 1）。</param>
-/// <param name="Path">最短路径上的角色名，按「上级 → 下级」排列，含两端。</param>
-/// <param name="IsEffective">授予此刻是否沿继承传到（路径上作为上级的角色都启用）。</param>
+/// <param name="RoleId">角色 ID</param>
+/// <param name="Code">角色码</param>
+/// <param name="Name">角色名</param>
+/// <param name="Status">状态</param>
+/// <param name="Depth">最短的继承深度（直接为 1）</param>
+/// <param name="Path">最短路径上的角色名，按「上级 → 下级」排列，含两端</param>
+/// <param name="IsEffective">授予此刻是否沿继承传到（路径上作为上级的角色都启用）</param>
 public sealed record RoleRelativeResponse(Guid RoleId, string Code, string Name, RoleStatus Status, int Depth, IReadOnlyList<string> Path, bool IsEffective);
 
 /// <summary>
-/// 从此刻传得到授予的上级继承来的一条授予或拒绝。
+/// 从此刻传得到授予的上级继承来的一条授予或拒绝
 /// </summary>
 /// <remarks>
-/// 同一权限码来自多个上级时逐条列出。
+/// 同一权限码来自多个上级时逐条列出
 /// </remarks>
-/// <param name="Permission">权限码。</param>
-/// <param name="Action">授予或拒绝（上级的拒绝同样作用于本角色）。</param>
-/// <param name="SourceRoleId">来源上级。</param>
-/// <param name="SourceRoleName">来源上级的名称。</param>
-/// <param name="Depth">来源上级的深度。</param>
+/// <param name="Permission">权限码</param>
+/// <param name="Action">授予或拒绝（上级的拒绝同样作用于本角色）</param>
+/// <param name="SourceRoleId">来源上级</param>
+/// <param name="SourceRoleName">来源上级的名称</param>
+/// <param name="Depth">来源上级的深度</param>
 public sealed record InheritedPermissionResponse(string Permission, PermissionAction Action, Guid SourceRoleId, string SourceRoleName, int Depth);
 
 /// <summary>
-/// 角色的继承关系：全部上级、全部下级与继承来的授予。
+/// 角色的继承关系：全部上级、全部下级与继承来的授予
 /// </summary>
-/// <param name="RoleId">角色 ID。</param>
-/// <param name="Ancestors">全部上级（含停用与被截断的），按深度排列。</param>
-/// <param name="Descendants">全部下级，按深度排列。</param>
-/// <param name="Inherited">继承来的授予与拒绝。</param>
+/// <param name="RoleId">角色 ID</param>
+/// <param name="Ancestors">全部上级（含停用与被截断的），按深度排列</param>
+/// <param name="Descendants">全部下级，按深度排列</param>
+/// <param name="Inherited">继承来的授予与拒绝</param>
 public sealed record RoleHierarchyResponse(Guid RoleId, IReadOnlyList<RoleRelativeResponse> Ancestors, IReadOnlyList<RoleRelativeResponse> Descendants, IReadOnlyList<InheritedPermissionResponse> Inherited);
 
 /// <summary>
-/// 取角色的继承关系。
+/// 取角色的继承关系
 /// </summary>
 /// <remarks>
-/// <c>GET /api/roles:hierarchy?id=</c>。数据范围与字段安全不继承，这里只列授予。
+/// <c>GET /api/roles:hierarchy?id=</c>。数据范围与字段安全不继承，这里只列授予
 /// </remarks>
-/// <param name="service">角色查找。</param>
-/// <param name="reader">继承关系的组装。</param>
+/// <param name="service">角色查找</param>
+/// <param name="reader">继承关系的组装</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader reader) : IOperation<GetRoleRequest, RoleHierarchyResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.hierarchy";
 
@@ -86,22 +86,22 @@ public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader re
 }
 
 /// <summary>
-/// 设置角色的直接上级。
+/// 设置角色的直接上级
 /// </summary>
 /// <remarks>
 /// <c>POST /api/roles:set-parents</c>。本角色的持有人随即拿到上级（及其上级）的授予，上级的拒绝同样作用于本角色；
-/// 只在同一侧的角色之间，内置角色不参与，停用的角色不能新设为上级，不能成环，直接上级之间不能互为祖先。
-/// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>，4.x 同）。
+/// 只在同一侧的角色之间，内置角色不参与，停用的角色不能新设为上级，不能成环，直接上级之间不能互为祖先
+/// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>，4.x 同）
 /// </remarks>
-/// <param name="service">角色查找。</param>
-/// <param name="hierarchy">继承写入。</param>
-/// <param name="reader">继承关系的组装。</param>
-/// <param name="enforcer">约束规则求值。</param>
+/// <param name="service">角色查找</param>
+/// <param name="hierarchy">继承写入</param>
+/// <param name="reader">继承关系的组装</param>
+/// <param name="enforcer">约束规则求值</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesSetParents)]
 public sealed class SetRoleParents(RoleService service, RoleHierarchyService hierarchy, RoleHierarchyReader reader, ConstraintEnforcer enforcer) : IOperation<SetRoleParentsRequest, RoleHierarchyResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.set-parents";
 
@@ -147,16 +147,16 @@ public sealed class SetRoleParents(RoleService service, RoleHierarchyService hie
 }
 
 /// <summary>
-/// 组装角色的继承关系（按本次调用的工作单元读继承图，写入之后的响应看得到新边）。
+/// 组装角色的继承关系（按本次调用的工作单元读继承图，写入之后的响应看得到新边）
 /// </summary>
-/// <param name="hierarchy">继承写入与读取。</param>
-/// <param name="roles">角色查找。</param>
-/// <param name="grants">角色授予。</param>
-/// <param name="rules">授予规则。</param>
+/// <param name="hierarchy">继承写入与读取</param>
+/// <param name="roles">角色查找</param>
+/// <param name="grants">角色授予</param>
+/// <param name="rules">授予规则</param>
 public sealed class RoleHierarchyReader(RoleHierarchyService hierarchy, RoleService roles, RoleGrants grants, PermissionRuleWriter rules)
 {
     /// <summary>
-    /// 读一个角色的继承关系。
+    /// 读一个角色的继承关系
     /// </summary>
     public async Task<RoleHierarchyResponse> ReadAsync(SysRole role, CancellationToken cancellationToken)
     {

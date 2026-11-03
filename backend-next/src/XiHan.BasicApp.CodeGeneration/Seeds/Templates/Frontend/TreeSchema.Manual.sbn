@@ -11,7 +11,7 @@
 /**
  * {{ DisplayName | block_comment }}页面 schema（树形·自定义部分）
  *
- * 本文件只在首次生成时创建，重新生成时不会覆盖，自定义写在这里是安全的。
+ * 本文件只在首次生成时创建，重新生成时不会覆盖，自定义写在这里是安全的
  * 由表结构推导的 base* 在 {{ Resource }}.schema.generated.ts，随表结构变化重新生成；
  * 本文件在其之上做 transform 后导出最终结果，index.vue 只从这里导入。例如
  *   export function fields(t: Translate) {

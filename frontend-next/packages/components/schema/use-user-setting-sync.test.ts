@@ -1,8 +1,8 @@
 /**
- * 页面设置的分区绑定（useUserSettingSync.bindSection）。
+ * 页面设置的分区绑定（useUserSettingSync.bindSection）
  * 锁定：分区关着同步不请求后端；同一页的几个分区只拉一次，回来后各自应用并写回本地；
  * 本会话拉过的页再绑直接用缓存；其它设备推来的分发给对应分区并写回本地；推来以后再保存，hydrate 取的是保存后的值；
- * 退出登录后缓存清掉、再绑重新拉取。
+ * 退出登录后缓存清掉、再绑重新拉取
  */
 import type { SyncedSettingTarget } from '~/composables/useSyncedSetting'
 import { createPinia, setActivePinia } from 'pinia'

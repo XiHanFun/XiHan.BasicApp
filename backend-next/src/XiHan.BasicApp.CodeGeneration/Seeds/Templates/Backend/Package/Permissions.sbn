@@ -6,10 +6,10 @@ using XiHan.BasicApp.Contracts.Security;
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包的权限码。
+/// {{ ModuleName }} 包的权限码
 /// </summary>
 /// <remarks>
-/// 全部只在租户侧：业务数据是租户库实体，平台没有。写操作记审计。
+/// 全部只在租户侧：业务数据是租户库实体，平台没有。写操作记审计
 /// </remarks>
 public static class {{ ModuleName }}Permissions
 {
@@ -21,7 +21,7 @@ public static class {{ ModuleName }}Permissions
 
 {{~ end ~}}
     /// <summary>
-    /// 全部权限描述。
+    /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [

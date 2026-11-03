@@ -1,9 +1,9 @@
 /**
- * 日期选择封装与组件库 3.0.0 的接法。
+ * 日期选择封装与组件库 3.0.0 的接法
  *
- * 1. showTime：输入行多出时、分两段，分隔按段类型出；选出的时刻随时间戳上抛，不再归零到当日零点。
- * 2. 字段接线落在 role=group 的段位组上；输入行同时有清空钮与日历钮。
- * 3. 区间受控值填到一半时交给本地草稿：组件库收到的仍是那一半，上游只收两端齐备或 null。
+ * 1. showTime：输入行多出时、分两段，分隔按段类型出；选出的时刻随时间戳上抛，不再归零到当日零点
+ * 2. 字段接线落在 role=group 的段位组上；输入行同时有清空钮与日历钮
+ * 3. 区间受控值填到一半时交给本地草稿：组件库收到的仍是那一半，上游只收两端齐备或 null
  */
 import { mount } from '@vue/test-utils'
 import { XhDatePickerRoot, XhDateRangePickerRoot, XhFieldControl, XhFieldLabel, XhFieldRoot } from '@xihan-ui/vue'

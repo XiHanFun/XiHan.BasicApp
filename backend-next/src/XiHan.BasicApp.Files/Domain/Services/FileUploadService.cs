@@ -14,38 +14,38 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Domain.Services;
 
 /// <summary>
-/// 发起分片上传时给的内容。
+/// 发起分片上传时给的内容
 /// </summary>
-/// <param name="OriginalName">原始文件名。</param>
-/// <param name="Size">大小（字节）。</param>
-/// <param name="ContentType">上传方给的内容类型。</param>
-/// <param name="Details">完成后文件的附加信息。</param>
+/// <param name="OriginalName">原始文件名</param>
+/// <param name="Size">大小（字节）</param>
+/// <param name="ContentType">上传方给的内容类型</param>
+/// <param name="Details">完成后文件的附加信息</param>
 public sealed record FileUploadDefinition(string OriginalName, long Size, string? ContentType, FileDetails Details);
 
 /// <summary>
-/// 签出的分片上传地址。
+/// 签出的分片上传地址
 /// </summary>
-/// <param name="PartNumber">分片编号。</param>
-/// <param name="Url">地址。</param>
-/// <param name="ExpiresAt">到期时间。</param>
+/// <param name="PartNumber">分片编号</param>
+/// <param name="Url">地址</param>
+/// <param name="ExpiresAt">到期时间</param>
 public sealed record SignedPart(int PartNumber, string Url, DateTimeOffset ExpiresAt);
 
 /// <summary>
-/// 分片上传的发起、续传、完成与放弃。
+/// 分片上传的发起、续传、完成与放弃
 /// </summary>
 /// <remarks>
-/// 各分片经对象存储签出的地址直传（ADR-0049：S3 兼容存储直连存储，本地存储走宿主的 <c>/blobs</c> 端点），不经应用转发。
+/// 各分片经对象存储签出的地址直传（ADR-0049：S3 兼容存储直连存储，本地存储走宿主的 <c>/blobs</c> 端点），不经应用转发
 /// 完成时不用客户端报的分片清单，而按存储列出的分片核对编号齐全、总大小与声明的一致，拼好后回读算 SHA-256（客户端不必自己算），
-/// 再经 <see cref="FileService"/> 落文件：存储配额在发起与完成时各核对一次，内容与同一侧已有的相同即共用已有的对象。
+/// 再经 <see cref="FileService"/> 落文件：存储配额在发起与完成时各核对一次，内容与同一侧已有的相同即共用已有的对象
 /// </remarks>
-/// <param name="rows">按侧读写。</param>
-/// <param name="configs">存储配置。</param>
-/// <param name="stores">存储配置对应的对象存储实例。</param>
-/// <param name="files">文件服务。</param>
-/// <param name="options">文件包配置。</param>
-/// <param name="ids">ID 生成器。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="logger">日志。</param>
+/// <param name="rows">按侧读写</param>
+/// <param name="configs">存储配置</param>
+/// <param name="stores">存储配置对应的对象存储实例</param>
+/// <param name="files">文件服务</param>
+/// <param name="options">文件包配置</param>
+/// <param name="ids">ID 生成器</param>
+/// <param name="clock">时钟</param>
+/// <param name="logger">日志</param>
 public sealed partial class FileUploadService(
     SideRows rows,
     StorageConfigService configs,
@@ -57,26 +57,26 @@ public sealed partial class FileUploadService(
     ILogger<FileUploadService> logger)
 {
     /// <summary>
-    /// 一次至多签出的分片地址数。
+    /// 一次至多签出的分片地址数
     /// </summary>
     public const int MaxSignedParts = 100;
 
     /// <summary>
-    /// 过期处理一批的条数。
+    /// 过期处理一批的条数
     /// </summary>
     public const int ExpireBatchSize = 100;
 
     /// <summary>
-    /// 发起一次分片上传。
+    /// 发起一次分片上传
     /// </summary>
     /// <remarks>
     /// 大小不超过单个文件的上限、核对存储配额，选当前一侧的上传目标，在它的存储里开一次分片上传；
-    /// 每片大小取配置（文件大到超过一万片时按文件大小放大），最后一片可以更小。
+    /// 每片大小取配置（文件大到超过一万片时按文件大小放大），最后一片可以更小
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="userId">发起的用户。</param>
-    /// <param name="definition">发起的内容。</param>
-    /// <returns>新的分片上传。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="userId">发起的用户</param>
+    /// <param name="definition">发起的内容</param>
+    /// <returns>新的分片上传</returns>
     public async Task<Result<SysFileUpload>> StartAsync(InvocationContext context, Guid userId, FileUploadDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -163,12 +163,12 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 取这个用户在当前一侧发起的一次分片上传。
+    /// 取这个用户在当前一侧发起的一次分片上传
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="userId">发起的用户。</param>
-    /// <param name="id">分片上传 ID。</param>
-    /// <returns>分片上传；不存在或不是这个用户发起的为失败。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="userId">发起的用户</param>
+    /// <param name="id">分片上传 ID</param>
+    /// <returns>分片上传；不存在或不是这个用户发起的为失败</returns>
     public async Task<Result<SysFileUpload>> FindAsync(InvocationContext context, Guid userId, Guid id)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -178,10 +178,10 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 当前的状态（上传中但已过时限的算过期）。
+    /// 当前的状态（上传中但已过时限的算过期）
     /// </summary>
-    /// <param name="upload">分片上传。</param>
-    /// <returns>状态。</returns>
+    /// <param name="upload">分片上传</param>
+    /// <returns>状态</returns>
     public FileUploadStatus StatusOf(SysFileUpload upload)
     {
         ArgumentNullException.ThrowIfNull(upload);
@@ -189,14 +189,14 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 存储里已经上传的分片。
+    /// 存储里已经上传的分片
     /// </summary>
     /// <remarks>
-    /// 只有上传中的才去存储里列，已结束的为空。
+    /// 只有上传中的才去存储里列，已结束的为空
     /// </remarks>
-    /// <param name="upload">分片上传。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>已上传的分片，按编号升序。</returns>
+    /// <param name="upload">分片上传</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已上传的分片，按编号升序</returns>
     public async Task<Result<IReadOnlyList<BlobPart>>> UploadedPartsAsync(SysFileUpload upload, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(upload);
@@ -215,15 +215,15 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 签出分片的上传地址。
+    /// 签出分片的上传地址
     /// </summary>
     /// <remarks>
-    /// 客户端不带凭据把这一片 PUT 到地址；同一片再传即覆盖。地址有效期取签名下载地址的缺省有效期。
+    /// 客户端不带凭据把这一片 PUT 到地址；同一片再传即覆盖。地址有效期取签名下载地址的缺省有效期
     /// </remarks>
-    /// <param name="upload">分片上传。</param>
-    /// <param name="partNumbers">分片编号。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>签出的地址。</returns>
+    /// <param name="upload">分片上传</param>
+    /// <param name="partNumbers">分片编号</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>签出的地址</returns>
     public async Task<Result<IReadOnlyList<SignedPart>>> SignPartsAsync(SysFileUpload upload, IReadOnlyList<int> partNumbers, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(upload);
@@ -264,15 +264,15 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 完成分片上传，得到文件。
+    /// 完成分片上传，得到文件
     /// </summary>
     /// <remarks>
     /// 按存储列出的分片核对编号齐全（缺的片 <c>FILES_CONFLICT_009</c>）、总大小与声明的一致（<c>FILES_CONFLICT_010</c>），这两种可以补传后再完成；
-    /// 再核对一次配额，拼成对象、回读算 SHA-256 与大小，经 <see cref="FileService"/> 落文件，上传记为已完成并指向得到的文件。
+    /// 再核对一次配额，拼成对象、回读算 SHA-256 与大小，经 <see cref="FileService"/> 落文件，上传记为已完成并指向得到的文件
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="upload">分片上传。</param>
-    /// <returns>得到的文件。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="upload">分片上传</param>
+    /// <returns>得到的文件</returns>
     public async Task<Result<SysFile>> CompleteAsync(InvocationContext context, SysFileUpload upload)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -351,14 +351,14 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 放弃分片上传。
+    /// 放弃分片上传
     /// </summary>
     /// <remarks>
-    /// 丢弃存储里已上传的分片（存储那边已经没有也算成功）；已结束的不能放弃。
+    /// 丢弃存储里已上传的分片（存储那边已经没有也算成功）；已结束的不能放弃
     /// </remarks>
-    /// <param name="upload">分片上传。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>放弃后的分片上传。</returns>
+    /// <param name="upload">分片上传</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>放弃后的分片上传</returns>
     public async Task<Result<SysFileUpload>> AbortAsync(SysFileUpload upload, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(upload);
@@ -385,14 +385,14 @@ public sealed partial class FileUploadService(
     }
 
     /// <summary>
-    /// 把一侧过了时限的上传记为过期，放弃存储里的分片。
+    /// 把一侧过了时限的上传记为过期，放弃存储里的分片
     /// </summary>
     /// <remarks>
-    /// 一次至多 <see cref="ExpireBatchSize"/> 条；存储里放弃不了（存储不可用、配置已删）只记警告，记录照样记为过期。
+    /// 一次至多 <see cref="ExpireBatchSize"/> 条；存储里放弃不了（存储不可用、配置已删）只记警告，记录照样记为过期
     /// </remarks>
-    /// <param name="side">侧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>这一批记为过期的条数。</returns>
+    /// <param name="side">侧</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>这一批记为过期的条数</returns>
     public async Task<int> ExpireAsync(string side, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
@@ -435,7 +435,7 @@ public sealed partial class FileUploadService(
     private static BlobMultipartUpload MultipartOf(SysFileUpload upload) => new(upload.Bucket, upload.Key, upload.UploadId);
 
     /// <summary>
-    /// 上传的存储配置、对象存储与它的分片上传接口。
+    /// 上传的存储配置、对象存储与它的分片上传接口
     /// </summary>
     private async Task<Result<Located>> LocateAsync(SysFileUpload upload, CancellationToken cancellationToken)
     {

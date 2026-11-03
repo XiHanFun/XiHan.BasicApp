@@ -10,11 +10,11 @@ using XiHan.Framework.Security.Jwt;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 签发 HS256 访问令牌。
+/// 签发 HS256 访问令牌
 /// </summary>
 /// <remarks>
-/// 与框架 <c>Security.Jwt</c> 共用 <c>XiHan:Security:Jwt</c> 的密钥、签发者与受众，由它校验。
-/// 声明：<c>sub</c> 用户 ID、<c>name</c>、<c>preferred_username</c>、<c>tenant</c>（平台账号没有）、<c>sid</c> 会话、<c>role</c>（可多条）、<c>act</c>（模仿会话才有：发起人用户 ID）。
+/// 与框架 <c>Security.Jwt</c> 共用 <c>XiHan:Security:Jwt</c> 的密钥、签发者与受众，由它校验
+/// 声明：<c>sub</c> 用户 ID、<c>name</c>、<c>preferred_username</c>、<c>tenant</c>（平台账号没有）、<c>sid</c> 会话、<c>role</c>（可多条）、<c>act</c>（模仿会话才有：发起人用户 ID）
 /// </remarks>
 public sealed class AccessTokenIssuer
 {
@@ -25,7 +25,7 @@ public sealed class AccessTokenIssuer
     private readonly TimeProvider _clock;
 
     /// <summary>
-    /// 构造签发器。
+    /// 构造签发器
     /// </summary>
     public AccessTokenIssuer(JwtOptions jwt, IdentityOptions options, TimeProvider clock)
     {
@@ -36,13 +36,13 @@ public sealed class AccessTokenIssuer
     }
 
     /// <summary>
-    /// 为用户的某个会话签发访问令牌。
+    /// 为用户的某个会话签发访问令牌
     /// </summary>
-    /// <param name="user">用户。</param>
-    /// <param name="sessionId">会话 ID。</param>
-    /// <param name="tenantId">当前租户；平台账号传 <see langword="null"/>。</param>
-    /// <param name="roles">角色（进 <c>role</c> 声明）。</param>
-    /// <param name="actorId">模仿会话的发起人；普通会话传 <see langword="null"/>。</param>
+    /// <param name="user">用户</param>
+    /// <param name="sessionId">会话 ID</param>
+    /// <param name="tenantId">当前租户；平台账号传 <see langword="null"/></param>
+    /// <param name="roles">角色（进 <c>role</c> 声明）</param>
+    /// <param name="actorId">模仿会话的发起人；普通会话传 <see langword="null"/></param>
     public IssuedToken Issue(SysUser user, Guid sessionId, string? tenantId, IReadOnlyList<string> roles, Guid? actorId = null)
     {
         ArgumentNullException.ThrowIfNull(user);

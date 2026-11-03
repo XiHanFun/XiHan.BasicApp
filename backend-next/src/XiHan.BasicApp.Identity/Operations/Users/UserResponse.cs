@@ -6,22 +6,22 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 用户的响应形态。
+/// 用户的响应形态
 /// </summary>
 /// <remarks>
-/// <c>users.create / get / update</c> 的响应、<c>users.list</c> 的列表项与登录响应里的资料共用。
+/// <c>users.create / get / update</c> 的响应、<c>users.list</c> 的列表项与登录响应里的资料共用
 /// </remarks>
-/// <param name="Id">用户 ID。</param>
-/// <param name="UserName">登录名。</param>
-/// <param name="DisplayName">显示名。</param>
-/// <param name="Email">邮箱。</param>
-/// <param name="PhoneNumber">手机号。</param>
-/// <param name="HomeTenantId">注册地租户 ID；平台账号为 <c>platform</c>。</param>
-/// <param name="Status">状态。</param>
-/// <param name="LastLoginAt">最近登录时间（UTC）。</param>
-/// <param name="CreatedAt">创建时间（UTC）。</param>
-/// <param name="CreatedBy">创建人（主体 ID）。</param>
-/// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空。</param>
+/// <param name="Id">用户 ID</param>
+/// <param name="UserName">登录名</param>
+/// <param name="DisplayName">显示名</param>
+/// <param name="Email">邮箱</param>
+/// <param name="PhoneNumber">手机号</param>
+/// <param name="HomeTenantId">注册地租户 ID；平台账号为 <c>platform</c></param>
+/// <param name="Status">状态</param>
+/// <param name="LastLoginAt">最近登录时间（UTC）</param>
+/// <param name="CreatedAt">创建时间（UTC）</param>
+/// <param name="CreatedBy">创建人（主体 ID）</param>
+/// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空</param>
 public sealed record UserResponse(
     Guid Id,
     string UserName,
@@ -36,7 +36,7 @@ public sealed record UserResponse(
     Guid? AvatarFileId)
 {
     /// <summary>
-    /// 由实体投影。
+    /// 由实体投影
     /// </summary>
     public static UserResponse From(SysUser user)
     {

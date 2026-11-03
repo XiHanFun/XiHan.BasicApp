@@ -2,9 +2,9 @@ import { registerModuleLocales } from '~/locales'
 import { registerWorkbenchWidget } from '~/stores'
 
 /**
- * 工作流包的启动钩子：登记本包文案与看板的「我的待办」小组件。
- * 页面由后端菜单下发（BasicApp:Modules:Workflow:Enabled 关掉即不下发）；流程设计器与查看器在打开对应页面时才注册。
- * 小组件挂在审批中心页上：后端不下发这个页面（模块关掉）时看板上随之隐藏。
+ * 工作流包的启动钩子：登记本包文案与看板的「我的待办」小组件
+ * 页面由后端菜单下发（BasicApp:Modules:Workflow:Enabled 关掉即不下发）；流程设计器与查看器在打开对应页面时才注册
+ * 小组件挂在审批中心页上：后端不下发这个页面（模块关掉）时看板上随之隐藏
  */
 export default function setup(): void {
   registerModuleLocales(import.meta.glob<{ default: Record<string, unknown> }>('./locales/*.ts'))

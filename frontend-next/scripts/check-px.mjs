@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// 门禁：样式里的裸 px 按文件计数、只许减不许增（方案 6.7 修订（十一）：壳层整体从 4.x 搬入，白名单从搬入时的计数起步）。
-// 计数口径：.css 全文与 .vue 的 <style> 块，去掉注释后的 <数字>px 字面量；不计 0px、1px / 2px（描边与发丝线）、9999px（胶囊圆角）。
-// 白名单 scripts/px-allowlist.json 记每个文件允许的上限：超出或出现名单外的文件即失败；少于上限时提示把上限降下来（传 --update 自动收紧）。
+// 门禁：样式里的裸 px 按文件计数、只许减不许增（方案 6.7 修订（十一）：壳层整体从 4.x 搬入，白名单从搬入时的计数起步）
+// 计数口径：.css 全文与 .vue 的 <style> 块，去掉注释后的 <数字>px 字面量；不计 0px、1px / 2px（描边与发丝线）、9999px（胶囊圆角）
+// 白名单 scripts/px-allowlist.json 记每个文件允许的上限：超出或出现名单外的文件即失败；少于上限时提示把上限降下来（传 --update 自动收紧）
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'

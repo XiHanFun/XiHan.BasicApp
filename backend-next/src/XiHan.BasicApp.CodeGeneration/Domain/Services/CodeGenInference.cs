@@ -9,199 +9,199 @@ using XiHan.Framework.Persistence.Abstractions.Schema;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 
 /// <summary>
-/// 按库表结构推出的表配置。
+/// 按库表结构推出的表配置
 /// </summary>
 public sealed class CodeGenTableSuggestion
 {
     /// <summary>
-    /// 实体类名。
+    /// 实体类名
     /// </summary>
     public string ClassName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 包的根命名空间（沿用已有实体时才有）。
+    /// 包的根命名空间（沿用已有实体时才有）
     /// </summary>
     public string? Namespace { get; set; }
 
     /// <summary>
-    /// 包名（沿用已有实体时才有）。
+    /// 包名（沿用已有实体时才有）
     /// </summary>
     public string? ModuleName { get; set; }
 
     /// <summary>
-    /// 业务名。
+    /// 业务名
     /// </summary>
     public string? BusinessName { get; set; }
 
     /// <summary>
-    /// 功能名。
+    /// 功能名
     /// </summary>
     public string? FunctionName { get; set; }
 
     /// <summary>
-    /// 作者。
+    /// 作者
     /// </summary>
     public string? Author { get; set; }
 
     /// <summary>
-    /// 主键列名。
+    /// 主键列名
     /// </summary>
     public string? PrimaryKeyColumn { get; set; }
 
     /// <summary>
-    /// 生成模式。
+    /// 生成模式
     /// </summary>
     public CodeGenTemplateType TemplateType { get; set; } = CodeGenTemplateType.Single;
 
     /// <summary>
-    /// 树表的父级列名。
+    /// 树表的父级列名
     /// </summary>
     public string? TreeParentColumn { get; set; }
 
     /// <summary>
-    /// 树表的名称列名。
+    /// 树表的名称列名
     /// </summary>
     public string? TreeNameColumn { get; set; }
 
     /// <summary>
-    /// 是否由已登记的实体建出。
+    /// 是否由已登记的实体建出
     /// </summary>
     public bool FromRegisteredEntity { get; set; }
 
     /// <summary>
-    /// 列。
+    /// 列
     /// </summary>
     public IReadOnlyList<CodeGenColumnSuggestion> Columns { get; set; } = [];
 }
 
 /// <summary>
-/// 按库列结构推出的列配置。
+/// 按库列结构推出的列配置
 /// </summary>
 public sealed class CodeGenColumnSuggestion
 {
     /// <summary>
-    /// 列名。
+    /// 列名
     /// </summary>
     public string ColumnName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 列注释。
+    /// 列注释
     /// </summary>
     public string? ColumnComment { get; set; }
 
     /// <summary>
-    /// 库里的类型名。
+    /// 库里的类型名
     /// </summary>
     public string? ColumnType { get; set; }
 
     /// <summary>
-    /// C# 类型。
+    /// C# 类型
     /// </summary>
     public string CSharpType { get; set; } = "string";
 
     /// <summary>
-    /// C# 属性名。
+    /// C# 属性名
     /// </summary>
     public string CSharpProperty { get; set; } = string.Empty;
 
     /// <summary>
-    /// TypeScript 类型。
+    /// TypeScript 类型
     /// </summary>
     public string TsType { get; set; } = "string";
 
     /// <summary>
-    /// 是否主键。
+    /// 是否主键
     /// </summary>
     public bool IsPrimaryKey { get; set; }
 
     /// <summary>
-    /// 是否自增。
+    /// 是否自增
     /// </summary>
     public bool IsIdentity { get; set; }
 
     /// <summary>
-    /// 是否可空。
+    /// 是否可空
     /// </summary>
     public bool IsNullable { get; set; }
 
     /// <summary>
-    /// 是否必填。
+    /// 是否必填
     /// </summary>
     public bool IsRequired { get; set; }
 
     /// <summary>
-    /// 长度（只有字符与二进制类型有）。
+    /// 长度（只有字符与二进制类型有）
     /// </summary>
     public int? Length { get; set; }
 
     /// <summary>
-    /// 小数位数。
+    /// 小数位数
     /// </summary>
     public int? DecimalDigits { get; set; }
 
     /// <summary>
-    /// 是否实体基类的列。
+    /// 是否实体基类的列
     /// </summary>
     public bool IsBase { get; set; }
 
     /// <summary>
-    /// 是否在列表里显示。
+    /// 是否在列表里显示
     /// </summary>
     public bool IsList { get; set; } = true;
 
     /// <summary>
-    /// 是否进新建表单。
+    /// 是否进新建表单
     /// </summary>
     public bool IsInsert { get; set; } = true;
 
     /// <summary>
-    /// 是否进编辑表单。
+    /// 是否进编辑表单
     /// </summary>
     public bool IsEdit { get; set; } = true;
 
     /// <summary>
-    /// 是否可查询。
+    /// 是否可查询
     /// </summary>
     public bool IsQuery { get; set; }
 
     /// <summary>
-    /// 表单控件。
+    /// 表单控件
     /// </summary>
     public CodeGenHtmlType HtmlType { get; set; } = CodeGenHtmlType.Input;
 
     /// <summary>
-    /// 查询方式。
+    /// 查询方式
     /// </summary>
     public CodeGenQueryType QueryType { get; set; } = CodeGenQueryType.Equal;
 
     /// <summary>
-    /// 选项来源。
+    /// 选项来源
     /// </summary>
     public CodeGenDictSelectorType? DictSelectorType { get; set; }
 
     /// <summary>
-    /// 枚举类型全名。
+    /// 枚举类型全名
     /// </summary>
     public string? EnumTypeName { get; set; }
 
     /// <summary>
-    /// 排序号。
+    /// 排序号
     /// </summary>
     public int Order { get; set; }
 }
 
 /// <summary>
-/// 按库表结构推断表与列配置。
+/// 按库表结构推断表与列配置
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>TableConfigInferenceEngine</c>：类名去掉表名前缀后转 PascalCase，业务名取表注释（去掉末尾的「表」），
 /// 列的类型按库映射（<see cref="CodeGenTypeMapping"/>），字符类的列按列名语义推控件，含名称、编码、状态、类型、时间、日期的列缺省可查询，
-/// 有父级列与名称列即推为树表。基类的列（主键、租户、审计、软删与并发戳，取自 6.0 实体基类的属性）不进表单与列表。
+/// 有父级列与名称列即推为树表。基类的列（主键、租户、审计、软删与并发戳，取自 6.0 实体基类的属性）不进表单与列表
 /// 「沿用已有实体」按 6.0 登记的实体识别（框架的 <see cref="IEntityCatalog"/>，4.x 靠扫描 <c>[SugarTable]</c>）：只认主库的表，
-/// 类名、命名空间、包名与属性名取实体，枚举属性推为枚举选项。
+/// 类名、命名空间、包名与属性名取实体，枚举属性推为枚举选项
 /// </remarks>
-/// <param name="catalog">框架的实体目录。</param>
-/// <param name="options">代码生成选项。</param>
+/// <param name="catalog">框架的实体目录</param>
+/// <param name="options">代码生成选项</param>
 public sealed class CodeGenInference(IEntityCatalog catalog, CodeGenerationOptions options)
 {
     private static readonly string[] _treeParentCandidates = ["ParentId", "Pid", "ParentCode"];
@@ -218,7 +218,7 @@ public sealed class CodeGenInference(IEntityCatalog catalog, CodeGenerationOptio
     ];
 
     /// <summary>
-    /// 6.0 实体基类的列（去掉下划线、不分大小写）。
+    /// 6.0 实体基类的列（去掉下划线、不分大小写）
     /// </summary>
     public static IReadOnlySet<string> BaseColumns { get; } = typeof(TenantScopedAuditedEntity)
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -226,20 +226,20 @@ public sealed class CodeGenInference(IEntityCatalog catalog, CodeGenerationOptio
         .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// 是否实体基类的列。
+    /// 是否实体基类的列
     /// </summary>
-    /// <param name="columnName">列名。</param>
+    /// <param name="columnName">列名</param>
     public static bool IsBaseColumn(string columnName)
         => !string.IsNullOrWhiteSpace(columnName) && BaseColumns.Contains(columnName.Replace("_", string.Empty, StringComparison.Ordinal));
 
     /// <summary>
-    /// 推断一张表。
+    /// 推断一张表
     /// </summary>
-    /// <param name="schema">读库结构得到的表。</param>
-    /// <param name="database">数据库类型。</param>
-    /// <param name="isPrimaryDatabase">是否主库的表（只有主库的表才沿用已有实体）。</param>
-    /// <param name="author">作者（调用方的名字）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="schema">读库结构得到的表</param>
+    /// <param name="database">数据库类型</param>
+    /// <param name="isPrimaryDatabase">是否主库的表（只有主库的表才沿用已有实体）</param>
+    /// <param name="author">作者（调用方的名字）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<CodeGenTableSuggestion> InferAsync(TableSchema schema, CodeGenDatabaseType database, bool isPrimaryDatabase, string? author, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(schema);

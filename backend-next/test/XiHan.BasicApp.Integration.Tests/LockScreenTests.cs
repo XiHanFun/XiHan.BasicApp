@@ -8,12 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证服务端强制的锁屏。
+/// 验证服务端强制的锁屏
 /// </summary>
 /// <remarks>
-/// 4.x 行为，服务端强制。
+/// 4.x 行为，服务端强制
 /// 没有密码不能锁；锁定的会话除解锁与注销外一律 <c>IDENTITY_DENIED_002</c>（带原因），同一用户的其他会话不受影响；
-/// 刷新照旧可用但新令牌仍锁着；密码不对带剩余次数，连错 5 次会话被吊销；解对即恢复，没锁时解锁无事；锁定中能注销。
+/// 刷新照旧可用但新令牌仍锁着；密码不对带剩余次数，连错 5 次会话被吊销；解对即恢复，没锁时解锁无事；锁定中能注销
 /// </remarks>
 public sealed class LockScreenTests : IDisposable
 {

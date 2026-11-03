@@ -16,39 +16,39 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.MyActivity;
 
 /// <summary>
-/// <c>my-activity.summary</c> 的请求。
+/// <c>my-activity.summary</c> 的请求
 /// </summary>
-/// <param name="TimeZone">按哪个时区分天（IANA 名称，如 <c>Asia/Shanghai</c>；缺省 UTC）。</param>
+/// <param name="TimeZone">按哪个时区分天（IANA 名称，如 <c>Asia/Shanghai</c>；缺省 UTC）</param>
 public sealed record MyActivityRequest([StringLength(64)] string? TimeZone = null);
 
 /// <summary>
-/// 一段时间里的次数。
+/// 一段时间里的次数
 /// </summary>
-/// <param name="Logins">登录（成功的）。</param>
-/// <param name="Accesses">访问（接口调用）。</param>
-/// <param name="Operations">操作（记审计的写操作）。</param>
-/// <param name="OnlineSeconds">在线时长（秒，按会话算）。</param>
+/// <param name="Logins">登录（成功的）</param>
+/// <param name="Accesses">访问（接口调用）</param>
+/// <param name="Operations">操作（记审计的写操作）</param>
+/// <param name="OnlineSeconds">在线时长（秒，按会话算）</param>
 public sealed record ActivityCountsResponse(int Logins, int Accesses, int Operations, long OnlineSeconds);
 
 /// <summary>
-/// 有活动的一天。
+/// 有活动的一天
 /// </summary>
-/// <param name="Date">日期（按请求的时区）。</param>
-/// <param name="Operations">操作次数。</param>
-/// <param name="Accesses">访问次数。</param>
-/// <param name="OnlineMinutes">在线分钟数。</param>
+/// <param name="Date">日期（按请求的时区）</param>
+/// <param name="Operations">操作次数</param>
+/// <param name="Accesses">访问次数</param>
+/// <param name="OnlineMinutes">在线分钟数</param>
 public sealed record ActivityDayResponse(DateOnly Date, int Operations, int Accesses, int OnlineMinutes);
 
 /// <summary>
-/// 本人的活跃度。
+/// 本人的活跃度
 /// </summary>
-/// <param name="Today">今天。</param>
-/// <param name="ThisWeek">本周（周一起）。</param>
-/// <param name="ThisMonth">本月。</param>
-/// <param name="LastLoginAt">最后登录（近一年内）。</param>
-/// <param name="LastAccessAt">最后访问（近一年内）。</param>
-/// <param name="LastOperationAt">最后操作（近一年内）。</param>
-/// <param name="Trend">近 371 天里有活动的日子（稀疏，按日期正序；4.x 同）。</param>
+/// <param name="Today">今天</param>
+/// <param name="ThisWeek">本周（周一起）</param>
+/// <param name="ThisMonth">本月</param>
+/// <param name="LastLoginAt">最后登录（近一年内）</param>
+/// <param name="LastAccessAt">最后访问（近一年内）</param>
+/// <param name="LastOperationAt">最后操作（近一年内）</param>
+/// <param name="Trend">近 371 天里有活动的日子（稀疏，按日期正序；4.x 同）</param>
 public sealed record MyActivityResponse(
     ActivityCountsResponse Today,
     ActivityCountsResponse ThisWeek,
@@ -59,29 +59,29 @@ public sealed record MyActivityResponse(
     IReadOnlyList<ActivityDayResponse> Trend);
 
 /// <summary>
-/// 本人的活跃度。
+/// 本人的活跃度
 /// </summary>
 /// <remarks>
 /// <c>GET /api/my-activity:summary</c>（4.x <c>Profile/Activity</c>）。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
-/// 次数直接按原始日志算，在线时长按会话算（<see cref="OnlineTime"/>，4.x 同口径；4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可。
-/// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）。
+/// 次数直接按原始日志算，在线时长按会话算（<see cref="OnlineTime"/>，4.x 同口径；4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可
+/// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="sessions">会话时段（Identity 提供，没装即没有在线时长）。</param>
+/// <param name="unitOfWork">工作单元</param>
+/// <param name="clock">时钟</param>
+/// <param name="sessions">会话时段（Identity 提供，没装即没有在线时长）</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider clock, IEnumerable<ISessionHistory> sessions) : IOperation<MyActivityRequest, MyActivityResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "my-activity.summary";
 
     /// <summary>
-    /// 趋势覆盖的天数（含今天）。
+    /// 趋势覆盖的天数（含今天）
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const int TrendDays = 371;
 

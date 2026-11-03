@@ -8,24 +8,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 写进项目的结果。
+/// 写进项目的结果
 /// </summary>
-/// <param name="Written">写了几个文件。</param>
-/// <param name="Skipped">跳过的只首次写的文件（已存在）。</param>
-/// <param name="Roots">写到的根目录。</param>
+/// <param name="Written">写了几个文件</param>
+/// <param name="Skipped">跳过的只首次写的文件（已存在）</param>
+/// <param name="Roots">写到的根目录</param>
 public sealed record CodeGenWriteResult(int Written, IReadOnlyList<string> Skipped, IReadOnlyList<string> Roots);
 
 /// <summary>
-/// 把产物写进项目。
+/// 把产物写进项目
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>ProjectArtifactWriter</c>：只在 Development 且打开 <c>BasicApp:CodeGeneration:EnableGenerateToProject</c> 时可用（方案 C1）；位置按配置的前后端根目录，不接受表配置给的任意路径；
 /// 全部产物定好位置、都落在所属根目录之内才动磁盘，有一项不合即整体拒绝；每次覆盖的直接覆盖，只首次写的已存在即跳过；
-/// 只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写代码，整体拒绝（否则重复定义编译不过）。
-/// 6.0 的产物路径相对前后端根目录（4.x 相对按命名空间找到的项目目录）；「加入已有包」要求包已在 <c>src/&lt;命名空间&gt;</c>；登记片段写在那一侧根目录的 <c>_registration/</c>。
+/// 只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写代码，整体拒绝（否则重复定义编译不过）
+/// 6.0 的产物路径相对前后端根目录（4.x 相对按命名空间找到的项目目录）；「加入已有包」要求包已在 <c>src/&lt;命名空间&gt;</c>；登记片段写在那一侧根目录的 <c>_registration/</c>
 /// </remarks>
-/// <param name="options">代码生成的选项。</param>
-/// <param name="environment">宿主环境。</param>
+/// <param name="options">代码生成的选项</param>
+/// <param name="environment">宿主环境</param>
 public sealed class CodeGenProjectWriter(CodeGenerationOptions options, IHostEnvironment environment)
 {
     private const string ManualSuffix = ".manual";
@@ -33,12 +33,12 @@ public sealed class CodeGenProjectWriter(CodeGenerationOptions options, IHostEnv
     private const string FrontendKey = CodeGenerationOptions.Section + ":" + nameof(CodeGenerationOptions.FrontendRootPath);
 
     /// <summary>
-    /// 写进项目。
+    /// 写进项目
     /// </summary>
-    /// <param name="table">表配置。</param>
-    /// <param name="ns">包的命名空间。</param>
-    /// <param name="artifacts">产物。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="table">表配置</param>
+    /// <param name="ns">包的命名空间</param>
+    /// <param name="artifacts">产物</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<CodeGenWriteResult>> WriteAsync(SysCodeGenTable table, string ns, IReadOnlyList<CodeGenArtifact> artifacts, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(table);

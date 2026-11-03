@@ -4,36 +4,36 @@
 namespace XiHan.BasicApp.Contracts.Realtime;
 
 /// <summary>
-/// 推送的受众种类。
+/// 推送的受众种类
 /// </summary>
 public enum RealtimeAudienceKind
 {
     /// <summary>
-    /// 指定会话（访问令牌的 <c>sid</c>）上的连接。
+    /// 指定会话（访问令牌的 <c>sid</c>）上的连接
     /// </summary>
     Sessions = 0,
 
     /// <summary>
-    /// 指定用户在某一侧的连接（同一个人切到别的租户时收不到）。
+    /// 指定用户在某一侧的连接（同一个人切到别的租户时收不到）
     /// </summary>
     UsersInSide = 1,
 
     /// <summary>
-    /// 指定用户在所有侧的连接（随人走的数据，如用户设置）。
+    /// 指定用户在所有侧的连接（随人走的数据，如用户设置）
     /// </summary>
     Users = 2,
 
     /// <summary>
-    /// 某一侧的全部连接。
+    /// 某一侧的全部连接
     /// </summary>
     Side = 3,
 }
 
 /// <summary>
-/// 推送的受众：会话、某一侧的用户、所有侧的用户或某一侧的全部连接。
+/// 推送的受众：会话、某一侧的用户、所有侧的用户或某一侧的全部连接
 /// </summary>
 /// <remarks>
-/// 侧是租户 ID，平台一侧为 <see cref="TenantIds.Platform"/>。
+/// 侧是租户 ID，平台一侧为 <see cref="TenantIds.Platform"/>
 /// </remarks>
 public sealed record RealtimeAudience
 {
@@ -45,33 +45,33 @@ public sealed record RealtimeAudience
     }
 
     /// <summary>
-    /// 受众种类。
+    /// 受众种类
     /// </summary>
     public RealtimeAudienceKind Kind { get; }
 
     /// <summary>
-    /// 受众所在的侧。
+    /// 受众所在的侧
     /// </summary>
     /// <remarks>
-    /// 只有 <see cref="RealtimeAudienceKind.UsersInSide"/> 与 <see cref="RealtimeAudienceKind.Side"/> 有值；其余为 <see langword="null"/>。
+    /// 只有 <see cref="RealtimeAudienceKind.UsersInSide"/> 与 <see cref="RealtimeAudienceKind.Side"/> 有值；其余为 <see langword="null"/>
     /// </remarks>
     public string? SideId { get; }
 
     /// <summary>
-    /// 会话或用户 ID。
+    /// 会话或用户 ID
     /// </summary>
     /// <remarks>
-    /// <see cref="RealtimeAudienceKind.Side"/> 为空。
+    /// <see cref="RealtimeAudienceKind.Side"/> 为空
     /// </remarks>
     public IReadOnlyList<Guid> Ids { get; }
 
     /// <summary>
-    /// 指定会话上的连接。
+    /// 指定会话上的连接
     /// </summary>
     public static RealtimeAudience Sessions(IEnumerable<Guid> sessionIds) => new(RealtimeAudienceKind.Sessions, null, Unique(sessionIds));
 
     /// <summary>
-    /// 指定用户在某一侧的连接。
+    /// 指定用户在某一侧的连接
     /// </summary>
     public static RealtimeAudience UsersIn(string side, IEnumerable<Guid> userIds)
     {
@@ -80,12 +80,12 @@ public sealed record RealtimeAudience
     }
 
     /// <summary>
-    /// 指定用户在所有侧的连接。
+    /// 指定用户在所有侧的连接
     /// </summary>
     public static RealtimeAudience Users(IEnumerable<Guid> userIds) => new(RealtimeAudienceKind.Users, null, Unique(userIds));
 
     /// <summary>
-    /// 某一侧的全部连接。
+    /// 某一侧的全部连接
     /// </summary>
     public static RealtimeAudience Side(string side)
     {
@@ -94,7 +94,7 @@ public sealed record RealtimeAudience
     }
 
     /// <summary>
-    /// 没有任何接收者（空的会话或用户列表）。
+    /// 没有任何接收者（空的会话或用户列表）
     /// </summary>
     public bool IsEmpty => Kind != RealtimeAudienceKind.Side && Ids.Count == 0;
 

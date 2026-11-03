@@ -1,7 +1,7 @@
 /**
  * 个人中心「登录设备」（ProfileTabDevices.vue，4.x 原样搬入）：
  * 当前会话打「当前」标签、其余给「踢下线」；标题取浏览器（6.0 不给设备名），说明行拼 IP、地点、系统与最近活动；
- * 踢下线确认后按会话主键下线并重拉列表，被拒即提示后端文案；登出其他设备先确认，没有其他设备只提示。
+ * 踢下线确认后按会话主键下线并重拉列表，被拒即提示后端文案；登出其他设备先确认，没有其他设备只提示
  */
 import type { AppContextApis, UserSessionItem } from '~/types'
 import { flushPromises, mount } from '@vue/test-utils'

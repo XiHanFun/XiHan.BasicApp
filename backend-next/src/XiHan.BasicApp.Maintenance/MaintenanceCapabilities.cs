@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Maintenance;
 
 /// <summary>
-/// 运维包提供的能力。
+/// 运维包提供的能力
 /// </summary>
 public static class MaintenanceCapabilities
 {
     /// <summary>
-    /// 运维管理面。
+    /// 运维管理面
     /// </summary>
     public const string Maintenance = AppInfo.CapabilityPrefix + "maintenance";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = 1;
 }

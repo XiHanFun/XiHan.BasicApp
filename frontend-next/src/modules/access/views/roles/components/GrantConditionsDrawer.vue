@@ -12,8 +12,8 @@ import { conditionsOf, toGrantConditionTargets } from '../permission-condition'
 import PermissionConditionPanel from './PermissionConditionPanel.vue'
 
 /**
- * 授权条件抽屉：左边是这个角色（或用户）此刻的授予与拒绝，右边编辑选中那条上的条件。
- * 只有在授权上才能挂条件，未授予的权限不在这里出现。
+ * 授权条件抽屉：左边是这个角色（或用户）此刻的授予与拒绝，右边编辑选中那条上的条件
+ * 只有在授权上才能挂条件，未授予的权限不在这里出现
  */
 defineOptions({ name: 'GrantConditionsDrawer' })
 

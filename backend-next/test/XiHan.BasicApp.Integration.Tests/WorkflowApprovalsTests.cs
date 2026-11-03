@@ -25,11 +25,11 @@ using XiHan.Framework.Workflow.Abstractions.Tasks;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 待办、审批中心与审批业务（N3 第三批之四）。
+/// 待办、审批中心与审批业务（N3 第三批之四）
 /// </summary>
 /// <remarks>
 /// 平台一侧：办理、转办、加签与审批记录，我已审批 / 抄送我的 / 我发起的，详情按参与关系鉴权与审批轨迹，撤回与中止回写，通知与按消息去重，工作台的「我的待办」，审批业务服务；
-/// 演示租户：四个演示流程照 4.x 的走向跑到结论（采购另走一遍节点超时）。
+/// 演示租户：四个演示流程照 4.x 的走向跑到结论（采购另走一遍节点超时）
 /// </remarks>
 public sealed class WorkflowApprovalsTests : IDisposable
 {
@@ -393,7 +393,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
     }
 
     /// <summary>
-    /// 审批业务回调的记录。
+    /// 审批业务回调的记录
     /// </summary>
     private sealed class BusinessLog
     {
@@ -405,10 +405,10 @@ public sealed class WorkflowApprovalsTests : IDisposable
     }
 
     /// <summary>
-    /// 记下各回调的审批业务。
+    /// 记下各回调的审批业务
     /// </summary>
     /// <remarks>
-    /// 驳回时办理前校验拒绝（测试待办保留）。
+    /// 驳回时办理前校验拒绝（测试待办保留）
     /// </remarks>
     private sealed class RecordingBusiness(BusinessLog log) : IWorkflowBusinessHandler
     {
@@ -443,7 +443,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
     }
 
     /// <summary>
-    /// 带缺省定义的审批业务：找不到人即自动同意，发起即走完。
+    /// 带缺省定义的审批业务：找不到人即自动同意，发起即走完
     /// </summary>
     private sealed class DefaultedBusiness(BusinessLog log) : IWorkflowBusinessHandler
     {

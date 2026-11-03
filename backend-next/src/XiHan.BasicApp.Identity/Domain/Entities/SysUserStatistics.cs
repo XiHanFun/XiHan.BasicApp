@@ -6,25 +6,25 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 用户统计。
+/// 用户统计
 /// </summary>
 /// <remarks>
-/// 租户库，表 <c>sys_user_statistics</c>。随用户创建在其注册地租户初始化一行，由框架仓储按租户过滤并随租户分库落到 <c>shard</c> 连接。
+/// 租户库，表 <c>sys_user_statistics</c>。随用户创建在其注册地租户初始化一行，由框架仓储按租户过滤并随租户分库落到 <c>shard</c> 连接
 /// </remarks>
 public sealed class SysUserStatistics : TenantScopedAuditedEntity
 {
     /// <summary>
-    /// 用户 ID。
+    /// 用户 ID
     /// </summary>
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 登录次数。
+    /// 登录次数
     /// </summary>
     public int LoginCount { get; set; }
 
     /// <summary>
-    /// 最近登录时间。
+    /// 最近登录时间
     /// </summary>
     public DateTimeOffset? LastLoginAt { get; set; }
 }

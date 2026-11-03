@@ -8,29 +8,29 @@ using XiHan.BasicApp.CodeGeneration.Domain.Services;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 登记片段：<c>_registration/&lt;资源&gt;.md</c>。
+/// 登记片段：<c>_registration/&lt;资源&gt;.md</c>
 /// </summary>
 /// <remarks>
-/// 用户已定：片段由引擎拼出、不做成模板（照 4.x 的接线产物也是 C# 拼的）。
-/// 「加入已有包」按文件列出要人工合入的行（错误码序号写成待填 <c>NNN</c>）；「新建包」写明加进解决方案、宿主与架构测试的 Tier 表（按 Tier 3 登记）。
-/// 操作 ID 已被别的包占用时在开头告警（照 4.x 生成前的权限码预检，只提示、不拦）。
+/// 用户已定：片段由引擎拼出、不做成模板（照 4.x 的接线产物也是 C# 拼的）
+/// 「加入已有包」按文件列出要人工合入的行（错误码序号写成待填 <c>NNN</c>）；「新建包」写明加进解决方案、宿主与架构测试的 Tier 表（按 Tier 3 登记）
+/// 操作 ID 已被别的包占用时在开头告警（照 4.x 生成前的权限码预检，只提示、不拦）
 /// </remarks>
 public static class CodeGenRegistration
 {
     /// <summary>
-    /// 新建包登记的页面图标。
+    /// 新建包登记的页面图标
     /// </summary>
     public const string PageIcon = "lucide:table";
 
     /// <summary>
-    /// 新建包登记的页面排序号。
+    /// 新建包登记的页面排序号
     /// </summary>
     public const int PageOrder = 100;
 
     /// <summary>
-    /// 片段的路径。
+    /// 片段的路径
     /// </summary>
-    /// <param name="context">生成上下文。</param>
+    /// <param name="context">生成上下文</param>
     public static string PathOf(CodeGenContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -38,11 +38,11 @@ public static class CodeGenRegistration
     }
 
     /// <summary>
-    /// 拼出片段。
+    /// 拼出片段
     /// </summary>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="items">要登记的操作、权限码与错误码。</param>
-    /// <param name="takenOperations">已被占用的操作 ID。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="items">要登记的操作、权限码与错误码</param>
+    /// <param name="takenOperations">已被占用的操作 ID</param>
     public static string Build(CodeGenContext context, CodeGenItems items, IReadOnlyCollection<string> takenOperations)
     {
         ArgumentNullException.ThrowIfNull(context);

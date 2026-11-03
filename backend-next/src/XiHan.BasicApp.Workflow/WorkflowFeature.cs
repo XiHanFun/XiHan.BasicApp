@@ -30,12 +30,12 @@ using EngineCapabilities = XiHan.Framework.Workflow.Abstractions.WorkflowCapabil
 namespace XiHan.BasicApp.Workflow;
 
 /// <summary>
-/// 工作流模块（Tier 3，可选）。
+/// 工作流模块（Tier 3，可选）
 /// </summary>
 /// <remarks>
 /// 引擎、定义目录与存储是框架的数据库工作流（宿主恒装，能力 <c>workflow.execution@1</c>）；本包登记组织类受理人（角色、部门、部门负责人、岗位、发起人主管与主管链）、
 /// 审批业务登记表（各包经 Contracts 的 <c>AddWorkflowBusiness</c> 登记，同一业务码两次即启动失败）、定义与实例的管理操作、选人操作、权限目录与页面，
-/// 以及演示数据打开时在演示租户里建四个演示流程。宿主按 <c>BasicApp:Modules:Workflow:Enabled</c> 装配。
+/// 以及演示数据打开时在演示租户里建四个演示流程。宿主按 <c>BasicApp:Modules:Workflow:Enabled</c> 装配
 /// </remarks>
 public sealed class WorkflowFeature : IFeature
 {
@@ -91,7 +91,7 @@ public sealed class WorkflowFeature : IFeature
         context.Services.AddMessageHandler<InstanceFaultedHandler>(WorkflowTopics.InstanceFaulted);
         context.Services.AddScoped<IWorkbenchWidgetProvider, WorkflowWidgets>();
 
-        // 构造一次登记表：同一业务码登记两次在启动阶段就失败（照 4.x 的「同编码多个即抛错」，提前到装配）。
+        // 构造一次登记表：同一业务码登记两次在启动阶段就失败（照 4.x 的「同编码多个即抛错」，提前到装配）
         // 业务处理器依赖工作单元，作用域只能异步释放；启动核对是同步的，这里同步等释放完（没打开过连接，立即完成）
         context.AddStartupCheck(static services =>
         {

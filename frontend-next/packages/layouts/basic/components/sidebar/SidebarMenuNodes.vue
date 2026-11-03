@@ -16,14 +16,14 @@ import { VNodeRender } from '~/components'
 import { Icon } from '~/iconify'
 
 /**
- * 侧栏菜单条目的递归渲染。
+ * 侧栏菜单条目的递归渲染
  *
  * 菜单树深度不定，SFC 里递归要靠组件自引用——本组件按 name 自引用，
- * 每层只管「有子级就出分支、没有就出链接」。
- * label / icon 允许是渲染函数（角标、外链图标），故一律经 VNodeRender 出。
+ * 每层只管「有子级就出分支、没有就出链接」
+ * label / icon 允许是渲染函数（角标、外链图标），故一律经 VNodeRender 出
  *
  * 叶子是真链接：link 部件 as-child 借 RouterLink（外链借原生 <a target=_blank>）渲染，
- * 点击、Enter、中键与 Ctrl+点击都走浏览器的链接语义；组件库只管选中与键盘，跳转归链接本身。
+ * 点击、Enter、中键与 Ctrl+点击都走浏览器的链接语义；组件库只管选中与键盘，跳转归链接本身
  */
 defineOptions({ name: 'SidebarMenuNodes' })
 

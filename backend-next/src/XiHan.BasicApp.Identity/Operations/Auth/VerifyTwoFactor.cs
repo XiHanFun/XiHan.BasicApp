@@ -15,27 +15,27 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 两步验证的第二步：凭票据与验证码完成登录。
+/// 两步验证的第二步：凭票据与验证码完成登录
 /// </summary>
 /// <remarks>
-/// 匿名操作，登记在架构测试的匿名白名单。成功即开会话、签令牌对，票据作废。
+/// 匿名操作，登记在架构测试的匿名白名单。成功即开会话、签令牌对，票据作废
 /// 票据不存在、过期或已作废一律 <see cref="IdentityErrors.TwoFactorTicketInvalid"/>（须重新登录）；
 /// 码错计入票据的输错次数（用完即作废）、账号的失败计数（可触发锁定）与登录节流。认证器的码按时间步防重放；
-/// 邮箱与短信的码先调 <c>auth.send-two-factor-code</c> 发出，一次有效，发码之后联系方式变了即作废。方式须是票据能用的。
-/// 账号状态、锁定期与租户在第二步重新核对：签发票据之后被锁定或停用的账号同样进不来。
+/// 邮箱与短信的码先调 <c>auth.send-two-factor-code</c> 发出，一次有效，发码之后联系方式变了即作废。方式须是票据能用的
+/// 账号状态、锁定期与租户在第二步重新核对：签发票据之后被锁定或停用的账号同样进不来
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="attempts">账号的失败计数与锁定。</param>
-/// <param name="throttle">登录节流。</param>
-/// <param name="tickets">两步验证票据。</param>
-/// <param name="logins">登录完成（开会话、签令牌）。</param>
-/// <param name="codes">邮件与短信验证码。</param>
-/// <param name="protector">密钥解密。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="tenants">框架租户目录。</param>
-/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="attempts">账号的失败计数与锁定</param>
+/// <param name="throttle">登录节流</param>
+/// <param name="tickets">两步验证票据</param>
+/// <param name="logins">登录完成（开会话、签令牌）</param>
+/// <param name="codes">邮件与短信验证码</param>
+/// <param name="protector">密钥解密</param>
+/// <param name="options">身份配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="tenants">框架租户目录</param>
+/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class VerifyTwoFactor(
     IRepository<SysUser, Guid> users,
@@ -52,12 +52,12 @@ public sealed class VerifyTwoFactor(
     IEnumerable<ILoginGuard> guards) : IOperation<VerifyTwoFactorRequest, TokenResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.verify-two-factor";
 
     /// <summary>
-    /// 认证器密钥加密的用途名。
+    /// 认证器密钥加密的用途名
     /// </summary>
     internal const string SecretPurpose = "identity.totp";
 

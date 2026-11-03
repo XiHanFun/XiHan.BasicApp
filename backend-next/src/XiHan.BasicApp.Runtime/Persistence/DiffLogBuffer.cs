@@ -9,19 +9,19 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Runtime.Persistence;
 
 /// <summary>
-/// 一次调用里仓储写入产生的差异日志（作用域服务）。
+/// 一次调用里仓储写入产生的差异日志（作用域服务）
 /// </summary>
 /// <remarks>
 /// SqlSugar 在写入执行后、提交之前同步回调（ADR-0044），这里只收集；
-/// 调用以成功结束时由 Auditing 取走落库，失败的调用已回滚，取走后丢弃。
-/// 收集时复制一份：SqlSugar 在分表插入的各组之间复用同一个 <see cref="DiffLogModel"/>，留下引用会被后一组改掉。
+/// 调用以成功结束时由 Auditing 取走落库，失败的调用已回滚，取走后丢弃
+/// 收集时复制一份：SqlSugar 在分表插入的各组之间复用同一个 <see cref="DiffLogModel"/>，留下引用会被后一组改掉
 /// </remarks>
 public sealed class DiffLogBuffer
 {
     private readonly List<DiffLogModel> _changes = [];
 
     /// <summary>
-    /// 取走已收集的差异并清空。
+    /// 取走已收集的差异并清空
     /// </summary>
     public IReadOnlyList<DiffLogModel> Drain()
     {
@@ -31,10 +31,10 @@ public sealed class DiffLogBuffer
     }
 
     /// <summary>
-    /// 判断仓储是否对该实体开差异日志。
+    /// 判断仓储是否对该实体开差异日志
     /// </summary>
     /// <remarks>
-    /// 开的是全审计实体（有修改与删除的业务数据），标了 <see cref="DiffLogIgnoredAttribute"/> 的除外。
+    /// 开的是全审计实体（有修改与删除的业务数据），标了 <see cref="DiffLogIgnoredAttribute"/> 的除外
     /// </remarks>
     public static bool IsLogged(Type entityType)
     {
@@ -43,10 +43,10 @@ public sealed class DiffLogBuffer
     }
 
     /// <summary>
-    /// <c>AopEvents.OnDiffLogEvent</c> 的回调。
+    /// <c>AopEvents.OnDiffLogEvent</c> 的回调
     /// </summary>
     /// <remarks>
-    /// 业务数据带着仓储所在的作用域，差异交给那个作用域的缓冲。
+    /// 业务数据带着仓储所在的作用域，差异交给那个作用域的缓冲
     /// </remarks>
     public static void OnDiffLog(DiffLogModel model)
     {

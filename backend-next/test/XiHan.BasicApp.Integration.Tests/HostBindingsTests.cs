@@ -7,11 +7,11 @@ using XiHan.Framework.Kernel.Hosting;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证宿主的配置文件不盖掉部署环境挂进来的绑定。
+/// 验证宿主的配置文件不盖掉部署环境挂进来的绑定
 /// </summary>
 /// <remarks>
 /// 框架的 <c>BindingResolver</c> 先读 <c>SERVICE_BINDING_ROOT</c> 目录、再读配置节，同名绑定整体由配置节覆盖：
-/// <c>appsettings.json</c> 里写了值为空的 <c>db</c>、<c>cache</c>、<c>queue</c>，就会把 Kubernetes 经 Service Binding 挂进来的 Secret 整个盖掉。
+/// <c>appsettings.json</c> 里写了值为空的 <c>db</c>、<c>cache</c>、<c>queue</c>，就会把 Kubernetes 经 Service Binding 挂进来的 Secret 整个盖掉
 /// </remarks>
 public sealed class HostBindingsTests : IDisposable
 {

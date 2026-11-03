@@ -1,8 +1,8 @@
-// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts。
+// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts
 
 import type { OperationId } from './operations'
 
-/** 权限定义表（码、显示名、说明）：授权界面按它生成。 */
+/** 权限定义表（码、显示名、说明）：授权界面按它生成 */
 export const permissionDefinitions = {
   'access.constraint-rules.create': { code: 'access.constraint-rules.create', displayName: 'Create constraint rules', description: 'Create constraint rules on roles, permissions or users.' },
   'access.constraint-rules.delete': { code: 'access.constraint-rules.delete', displayName: 'Delete constraint rules', description: 'Delete constraint rules together with their items.' },
@@ -213,10 +213,10 @@ export const permissionDefinitions = {
   'workflow.workflow-instances.update': { code: 'workflow.workflow-instances.update', displayName: 'Suspend and resume workflow instances', description: 'Suspend and resume running workflow instances.' },
 } as const
 
-/** 权限码字面量联合；`can()` 只认精确匹配，不认通配。 */
+/** 权限码字面量联合；`can()` 只认精确匹配，不认通配 */
 export type Permission = keyof typeof permissionDefinitions
 
-/** 操作 → 保护它的权限码（按钮即操作：门控直接用操作的权限码）。 */
+/** 操作 → 保护它的权限码（按钮即操作：门控直接用操作的权限码） */
 export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'access-logs.get': 'auditing.access-logs.read',
   'access-logs.list': 'auditing.access-logs.read',
@@ -580,7 +580,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'workflow-instances.terminate': 'workflow.workflow-instances.execute',
 }
 
-/** 操作 → 策略名（如 `authenticated`）；与权限码二选一。 */
+/** 操作 → 策略名（如 `authenticated`）；与权限码二选一 */
 export const operationPolicy: Partial<Record<OperationId, string>> = {
   'approvals.get': 'authenticated',
   'approvals.list-cc': 'authenticated',

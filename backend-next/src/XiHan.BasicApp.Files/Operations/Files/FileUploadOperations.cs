@@ -10,18 +10,18 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Files.Operations.Files;
 
 /// <summary>
-/// 发起一次分片上传。
+/// 发起一次分片上传
 /// </summary>
 /// <remarks>
 /// <c>POST /api/files:start-upload</c>。大文件分段直传存储：发起后按 <c>files.sign-upload-parts</c> 签出的地址逐片 PUT，再 <c>files.complete-upload</c>；
-/// 小文件仍走普通端点 <c>POST /api/files/upload</c>。大小上限与存储配额同普通上传。
+/// 小文件仍走普通端点 <c>POST /api/files/upload</c>。大小上限与存储配额同普通上传
 /// </remarks>
-/// <param name="uploads">分片上传服务。</param>
+/// <param name="uploads">分片上传服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class StartUpload(FileUploadService uploads) : IOperation<StartUploadRequest, FileUploadResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.start-upload";
 
@@ -41,17 +41,17 @@ public sealed class StartUpload(FileUploadService uploads) : IOperation<StartUpl
 }
 
 /// <summary>
-/// 取自己的一次分片上传。
+/// 取自己的一次分片上传
 /// </summary>
 /// <remarks>
-/// <c>GET /api/files:upload-session?uploadId=</c>。上传中的带上存储里已上传的分片编号，断点续传时据此跳过已传的分片。
+/// <c>GET /api/files:upload-session?uploadId=</c>。上传中的带上存储里已上传的分片编号，断点续传时据此跳过已传的分片
 /// </remarks>
-/// <param name="uploads">分片上传服务。</param>
+/// <param name="uploads">分片上传服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class GetUploadSession(FileUploadService uploads) : IOperation<UploadSessionRequest, FileUploadResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.upload-session";
 
@@ -77,17 +77,17 @@ public sealed class GetUploadSession(FileUploadService uploads) : IOperation<Upl
 }
 
 /// <summary>
-/// 签出分片的上传地址。
+/// 签出分片的上传地址
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:sign-upload-parts</c>。一次至多 100 片；地址缺省 30 分钟到期，过期了再签。
+/// <c>POST /api/files:sign-upload-parts</c>。一次至多 100 片；地址缺省 30 分钟到期，过期了再签
 /// </remarks>
-/// <param name="uploads">分片上传服务。</param>
+/// <param name="uploads">分片上传服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class SignUploadParts(FileUploadService uploads) : IOperation<SignUploadPartsRequest, SignUploadPartsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.sign-upload-parts";
 
@@ -110,17 +110,17 @@ public sealed class SignUploadParts(FileUploadService uploads) : IOperation<Sign
 }
 
 /// <summary>
-/// 完成分片上传，得到文件。
+/// 完成分片上传，得到文件
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:complete-upload</c>。按存储里已上传的分片拼成对象（不用客户端报分片清单），缺片或总大小不符可以补传后再完成。
+/// <c>POST /api/files:complete-upload</c>。按存储里已上传的分片拼成对象（不用客户端报分片清单），缺片或总大小不符可以补传后再完成
 /// </remarks>
-/// <param name="uploads">分片上传服务。</param>
+/// <param name="uploads">分片上传服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class CompleteUpload(FileUploadService uploads) : IOperation<UploadSessionRequest, FileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.complete-upload";
 
@@ -141,17 +141,17 @@ public sealed class CompleteUpload(FileUploadService uploads) : IOperation<Uploa
 }
 
 /// <summary>
-/// 放弃分片上传。
+/// 放弃分片上传
 /// </summary>
 /// <remarks>
-/// <c>POST /api/files:abort-upload</c>。丢弃存储里已上传的分片；已结束的不能放弃。
+/// <c>POST /api/files:abort-upload</c>。丢弃存储里已上传的分片；已结束的不能放弃
 /// </remarks>
-/// <param name="uploads">分片上传服务。</param>
+/// <param name="uploads">分片上传服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class AbortUpload(FileUploadService uploads) : IOperation<UploadSessionRequest, FileUploadResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "files.abort-upload";
 
@@ -172,15 +172,15 @@ public sealed class AbortUpload(FileUploadService uploads) : IOperation<UploadSe
 }
 
 /// <summary>
-/// 按调用方找自己发起的分片上传。
+/// 按调用方找自己发起的分片上传
 /// </summary>
 internal static class FileUploadLookup
 {
     /// <summary>
-    /// 取调用方在当前一侧发起的分片上传。
+    /// 取调用方在当前一侧发起的分片上传
     /// </summary>
     /// <remarks>
-    /// 调用方不是登录用户（没有用户 ID）时与找不到同一种回答。
+    /// 调用方不是登录用户（没有用户 ID）时与找不到同一种回答
     /// </remarks>
     public static Task<Result<SysFileUpload>> FindAsync(FileUploadService uploads, InvocationContext context, Guid id)
         => ExportTaskService.RequesterOf(context) is { } userId

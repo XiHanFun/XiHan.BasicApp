@@ -1,7 +1,7 @@
 /**
- * useScrollRoot 滚动源登记单元测试。
+ * useScrollRoot 滚动源登记单元测试
  * 职责：锁定「布局挂载时登记、卸载时撤销、无布局壳的页面取到 null」这条约定，
- * 以及登记本体必须是同一个可被 watch 的 ref（换滚动源时依赖方据此重新接线）。
+ * 以及登记本体必须是同一个可被 watch 的 ref（换滚动源时依赖方据此重新接线）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { watch } from 'vue'

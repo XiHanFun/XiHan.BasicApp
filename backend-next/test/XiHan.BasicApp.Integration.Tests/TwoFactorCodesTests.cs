@@ -15,11 +15,11 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证邮件与短信双因素。
+/// 验证邮件与短信双因素
 /// </summary>
 /// <remarks>
 /// 开关要本人已验证的联系方式与发到那里的码；登录第二步凭票据发码、按票据能用的方式核对；
-/// 验证码登录的第二步不能再用收码的那种（只剩它即拒绝）；管理员改了联系方式即不再可用，只有它时登录被拒。
+/// 验证码登录的第二步不能再用收码的那种（只剩它即拒绝）；管理员改了联系方式即不再可用，只有它时登录被拒
 /// </remarks>
 public sealed class TwoFactorCodesTests : IDisposable
 {

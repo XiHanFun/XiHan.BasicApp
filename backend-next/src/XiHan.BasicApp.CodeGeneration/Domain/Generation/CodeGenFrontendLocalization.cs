@@ -8,12 +8,12 @@ using XiHan.BasicApp.CodeGeneration.Domain.Services;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 生成的前端文案：每个区域一份 <c>locales/&lt;区域&gt;.ts</c>。
+/// 生成的前端文案：每个区域一份 <c>locales/&lt;区域&gt;.ts</c>
 /// </summary>
 /// <remarks>
-/// 键在 <c>&lt;包&gt;.&lt;资源&gt;</c> 下（连字符换成下划线），与前端模板里的 <c>t('…')</c> 一一对应：页面标题（也是菜单标题键）、字段名、按钮、弹窗标题、必填提示与枚举选项。
-/// 用户已定：固定用语按区域内置，表与列的注释在 10 种区域里都原样用；值按 vue-i18n 的消息语法转义（<c>@ | { }</c> 折成字面量插值）。
-/// 「新建包」拼成 10 个文件，「加入已有包」写进登记片段。
+/// 键在 <c>&lt;包&gt;.&lt;资源&gt;</c> 下（连字符换成下划线），与前端模板里的 <c>t('…')</c> 一一对应：页面标题（也是菜单标题键）、字段名、按钮、弹窗标题、必填提示与枚举选项
+/// 用户已定：固定用语按区域内置，表与列的注释在 10 种区域里都原样用；值按 vue-i18n 的消息语法转义（<c>@ | { }</c> 折成字面量插值）
+/// 「新建包」拼成 10 个文件，「加入已有包」写进登记片段
 /// </remarks>
 public static class CodeGenFrontendLocalization
 {
@@ -37,13 +37,13 @@ public static class CodeGenFrontendLocalization
     };
 
     /// <summary>
-    /// 一个区域在资源下的键值。
+    /// 一个区域在资源下的键值
     /// </summary>
     /// <remarks>
-    /// 键相对 <c>&lt;包&gt;.&lt;资源&gt;</c>、点分；值已是 TypeScript 单引号字面量里的写法。
+    /// 键相对 <c>&lt;包&gt;.&lt;资源&gt;</c>、点分；值已是 TypeScript 单引号字面量里的写法
     /// </remarks>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="locale">区域。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="locale">区域</param>
     public static IReadOnlyList<KeyValuePair<string, string>> Entries(CodeGenContext context, string locale)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -116,15 +116,15 @@ public static class CodeGenFrontendLocalization
     }
 
     /// <summary>
-    /// 一个区域的文案文件（新建包）。
+    /// 一个区域的文案文件（新建包）
     /// </summary>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="locale">区域。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="locale">区域</param>
     public static string File(CodeGenContext context, string locale)
     {
         ArgumentNullException.ThrowIfNull(context);
         var ts = new StringBuilder();
-        ts.Append("// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。").Append('\n');
+        ts.Append("// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）").Append('\n');
         ts.Append("export default {").Append('\n');
         ts.Append("  ").Append(context.ModuleCode).Append(": {").Append('\n');
         Block(ts, context, locale, indent: 2);
@@ -134,10 +134,10 @@ public static class CodeGenFrontendLocalization
     }
 
     /// <summary>
-    /// 资源这一块（加入已有包时合进 <c>&lt;包&gt;</c> 对象里）。
+    /// 资源这一块（加入已有包时合进 <c>&lt;包&gt;</c> 对象里）
     /// </summary>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="locale">区域。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="locale">区域</param>
     public static string Block(CodeGenContext context, string locale)
     {
         ArgumentNullException.ThrowIfNull(context);

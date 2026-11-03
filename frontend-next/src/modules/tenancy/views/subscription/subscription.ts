@@ -28,7 +28,7 @@ export interface QuotaLevel {
 }
 
 /**
- * 配额水位（4.x 同）：不限时没有比例；上限为 0 视同已满；到上限即超限，到 80% 即吃紧。
+ * 配额水位（4.x 同）：不限时没有比例；上限为 0 视同已满；到上限即超限，到 80% 即吃紧
  */
 export function quotaLevel(used: number, limit: number | null | undefined): QuotaLevel {
   if (limit === null || limit === undefined)
@@ -119,7 +119,7 @@ export interface PricingView {
 
 /**
  * 价格与计费周期（4.x 的订阅页不显示，6.0 随订阅一起返回）：免费套餐只标免费；
- * 有价格标价格、有周期标周期，都没有为 null（不显示）。
+ * 有价格标价格、有周期标周期，都没有为 null（不显示）
  */
 export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'billingPeriodMonths' | 'isFree' | 'price'>): null | PricingView {
   if (value.isFree)
@@ -142,7 +142,7 @@ export function statusTone(status: SubscriptionStatus): 'danger' | 'success' | '
 }
 
 /**
- * 本租户的订阅（`subscription.get`，只在租户侧）：加载失败给出原因（平台一侧调用即 TENANCY_DENIED_002）。
+ * 本租户的订阅（`subscription.get`，只在租户侧）：加载失败给出原因（平台一侧调用即 TENANCY_DENIED_002）
  */
 export function useSubscription() {
   const subscription = ref<null | Subscription>(null)

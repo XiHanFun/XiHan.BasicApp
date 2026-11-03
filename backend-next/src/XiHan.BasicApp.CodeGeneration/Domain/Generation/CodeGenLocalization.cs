@@ -8,24 +8,24 @@ using System.Text.Json;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 生成的后端文案：每个区域一组键值。
+/// 生成的后端文案：每个区域一组键值
 /// </summary>
 /// <remarks>
 /// 键与各包 <c>Localization/&lt;区域&gt;.json</c> 的约定一致（架构测试按它核对）：操作的 <c>&lt;操作&gt;.title</c> / <c>.description</c>、错误消息、
-/// <c>openapi.tags.&lt;资源&gt;</c>、<c>permissions.&lt;权限码&gt;</c>；新建包另有 <c>openapi.groups.&lt;包&gt;</c>。连字符一律换成下划线。
-/// 「新建包」拼成 10 个 JSON 文件，「加入已有包」写进登记片段。
+/// <c>openapi.tags.&lt;资源&gt;</c>、<c>permissions.&lt;权限码&gt;</c>；新建包另有 <c>openapi.groups.&lt;包&gt;</c>。连字符一律换成下划线
+/// 「新建包」拼成 10 个 JSON 文件，「加入已有包」写进登记片段
 /// </remarks>
 public static class CodeGenLocalization
 {
     private static readonly JsonWriterOptions _writerOptions = new() { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     /// <summary>
-    /// 一个区域的键值，按登记顺序。
+    /// 一个区域的键值，按登记顺序
     /// </summary>
-    /// <param name="context">生成上下文。</param>
-    /// <param name="items">要登记的操作、权限码与错误码。</param>
-    /// <param name="locale">区域。</param>
-    /// <param name="includeGroup">是否带包的 OpenAPI 分组（新建包）。</param>
+    /// <param name="context">生成上下文</param>
+    /// <param name="items">要登记的操作、权限码与错误码</param>
+    /// <param name="locale">区域</param>
+    /// <param name="includeGroup">是否带包的 OpenAPI 分组（新建包）</param>
     public static IReadOnlyList<KeyValuePair<string, string>> Entries(CodeGenContext context, CodeGenItems items, string locale, bool includeGroup)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -65,9 +65,9 @@ public static class CodeGenLocalization
     }
 
     /// <summary>
-    /// 一个区域的 JSON 文件内容。
+    /// 一个区域的 JSON 文件内容
     /// </summary>
-    /// <param name="entries">键值。</param>
+    /// <param name="entries">键值</param>
     public static string Json(IReadOnlyList<KeyValuePair<string, string>> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);

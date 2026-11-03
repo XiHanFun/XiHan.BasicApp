@@ -16,17 +16,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Delegations;
 
 /// <summary>
-/// 分页列出当前一侧的委托。
+/// 分页列出当前一侧的委托
 /// </summary>
 /// <remarks>
-/// <c>POST /api/delegations:list</c>。状态按撤销时间与有效期推出（未到生效时间、生效中、已到期、已撤销）。
+/// <c>POST /api/delegations:list</c>。状态按撤销时间与有效期推出（未到生效时间、生效中、已到期、已撤销）
 /// </remarks>
-/// <param name="queries">委托查询。</param>
+/// <param name="queries">委托查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRead)]
 public sealed class ListDelegations(DelegationQueries queries) : IOperation<PageRequest, PageResult<DelegationResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "delegations.list";
 
@@ -40,20 +40,20 @@ public sealed class ListDelegations(DelegationQueries queries) : IOperation<Page
 }
 
 /// <summary>
-/// 新建委托。
+/// 新建委托
 /// </summary>
 /// <remarks>
-/// <c>POST /api/delegations:create</c>。委托人此刻须持有所委托的权限码或角色；被委托人在有效期内按无条件授予拿到权限码，或按角色的继承链拿到授予（不拿数据范围与字段安全）。
-/// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件（4.x 的权限申请通过时同样判定）。
+/// <c>POST /api/delegations:create</c>。委托人此刻须持有所委托的权限码或角色；被委托人在有效期内按无条件授予拿到权限码，或按角色的继承链拿到授予（不拿数据范围与字段安全）
+/// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件（4.x 的权限申请通过时同样判定）
 /// </remarks>
-/// <param name="service">委托服务。</param>
-/// <param name="enforcer">约束规则求值。</param>
-/// <param name="users">用户仓储（被委托人的登录名）。</param>
+/// <param name="service">委托服务</param>
+/// <param name="enforcer">约束规则求值</param>
+/// <param name="users">用户仓储（被委托人的登录名）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsCreate)]
 public sealed class CreateDelegation(DelegationService service, ConstraintEnforcer enforcer, IRepository<SysUser, Guid> users) : IOperation<CreateDelegationRequest, DelegationResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "delegations.create";
 
@@ -86,17 +86,17 @@ public sealed class CreateDelegation(DelegationService service, ConstraintEnforc
 }
 
 /// <summary>
-/// 撤销委托。
+/// 撤销委托
 /// </summary>
 /// <remarks>
-/// <c>POST /api/delegations:revoke</c>。只撤销未到生效时间或生效中的，保留记录；撤销即刻失效。
+/// <c>POST /api/delegations:revoke</c>。只撤销未到生效时间或生效中的，保留记录；撤销即刻失效
 /// </remarks>
-/// <param name="service">委托服务。</param>
+/// <param name="service">委托服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRevoke)]
 public sealed class RevokeDelegation(DelegationService service) : IOperation<RevokeDelegationRequest, DelegationResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "delegations.revoke";
 
@@ -123,17 +123,17 @@ public sealed class RevokeDelegation(DelegationService service) : IOperation<Rev
 }
 
 /// <summary>
-/// 删除委托记录。
+/// 删除委托记录
 /// </summary>
 /// <remarks>
-/// <c>POST /api/delegations:delete</c>。任何状态都可删；生效中的随之失效。
+/// <c>POST /api/delegations:delete</c>。任何状态都可删；生效中的随之失效
 /// </remarks>
-/// <param name="service">委托服务。</param>
+/// <param name="service">委托服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsDelete)]
 public sealed class DeleteDelegations(DelegationService service) : IOperation<DelegationIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "delegations.delete";
 
@@ -168,15 +168,15 @@ public sealed class DeleteDelegations(DelegationService service) : IOperation<De
 }
 
 /// <summary>
-/// 委托的权限变更日志与响应组装。
+/// 委托的权限变更日志与响应组装
 /// </summary>
 internal static class DelegationLog
 {
     /// <summary>
-    /// 记一条权限变更日志（Delegation）。
+    /// 记一条权限变更日志（Delegation）
     /// </summary>
     /// <remarks>
-    /// 目标用户是被委托人，明细写动作、委托人与目标。
+    /// 目标用户是被委托人，明细写动作、委托人与目标
     /// </remarks>
     public static void Record(InvocationContext context, SysPermissionDelegation delegation, string action)
     {
@@ -190,7 +190,7 @@ internal static class DelegationLog
     }
 
     /// <summary>
-    /// 带显示名的响应。
+    /// 带显示名的响应
     /// </summary>
     public static async Task<DelegationResponse> RespondAsync(DelegationService service, SysPermissionDelegation delegation, InvocationContext context)
     {

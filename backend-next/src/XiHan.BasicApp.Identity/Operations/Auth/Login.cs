@@ -14,24 +14,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 密码登录。
+/// 密码登录
 /// </summary>
 /// <remarks>
-/// 匿名操作，登记在架构测试的匿名白名单。按注册地租户与登录名找账号，校验状态、锁定期与密码。
+/// 匿名操作，登记在架构测试的匿名白名单。按注册地租户与登录名找账号，校验状态、锁定期与密码
 /// 依次过三道关：登录节流（<see cref="LoginThrottle"/>，超限直接拒绝）、图形验证码（开启时，一次性）、账号与密码；
-/// 账号开了双因素即签发两步验证票据、不开会话（日志记为 <see cref="LoginEvent.TwoFactorChallenge"/>），否则开会话并签发令牌对。
-/// 失败计数在独立作用域里提交（<see cref="LoginAttempts"/>），否则随本次失败调用一起回滚。用户名或密码错误不区分哪一个。
+/// 账号开了双因素即签发两步验证票据、不开会话（日志记为 <see cref="LoginEvent.TwoFactorChallenge"/>），否则开会话并签发令牌对
+/// 失败计数在独立作用域里提交（<see cref="LoginAttempts"/>），否则随本次失败调用一起回滚。用户名或密码错误不区分哪一个
 /// </remarks>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="attempts">账号的失败计数与锁定。</param>
-/// <param name="throttle">登录节流。</param>
-/// <param name="captchas">图形验证码。</param>
-/// <param name="tickets">两步验证票据。</param>
-/// <param name="logins">登录完成（开会话、签令牌）。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用。</param>
-/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）。</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="attempts">账号的失败计数与锁定</param>
+/// <param name="throttle">登录节流</param>
+/// <param name="captchas">图形验证码</param>
+/// <param name="tickets">两步验证票据</param>
+/// <param name="logins">登录完成（开会话、签令牌）</param>
+/// <param name="options">身份配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用</param>
+/// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
@@ -46,7 +46,7 @@ public sealed class Login(
     IEnumerable<ILoginGuard> guards) : IOperation<LoginRequest, LoginResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.login";
 
@@ -149,7 +149,7 @@ public sealed class Login(
     }
 
     /// <summary>
-    /// 节流的账号键：注册地租户与登录名（第二步按同一个键计）。
+    /// 节流的账号键：注册地租户与登录名（第二步按同一个键计）
     /// </summary>
     internal static string ThrottleKeyOf(string tenant, string userName) => tenant + "/" + userName;
 

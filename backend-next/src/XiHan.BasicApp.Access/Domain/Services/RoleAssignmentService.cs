@@ -16,26 +16,26 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 角色指派。
+/// 角色指派
 /// </summary>
 /// <remarks>
 /// 「给角色指派成员」的规则（同侧、约束规则、权限变更日志、指派缓存失效）集中在这里：
-/// <c>roles.assign</c> 与审批通过后的授予（授权申请）都经它，规则只有一份。
+/// <c>roles.assign</c> 与审批通过后的授予（授权申请）都经它，规则只有一份
 /// </remarks>
-/// <param name="service">角色域服务。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="assignments">指派缓存（新成员的判定立即看到）。</param>
-/// <param name="enforcer">约束规则求值。</param>
+/// <param name="service">角色域服务</param>
+/// <param name="users">用户仓储</param>
+/// <param name="members">指派仓储</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="assignments">指派缓存（新成员的判定立即看到）</param>
+/// <param name="enforcer">约束规则求值</param>
 public sealed class RoleAssignmentService(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments, ConstraintEnforcer enforcer)
 {
     /// <summary>
-    /// 给角色指派成员。
+    /// 给角色指派成员
     /// </summary>
-    /// <param name="request">角色与成员、有效期。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>逐个成员的结果；角色不存在或有效期不合法时整体失败。</returns>
+    /// <param name="request">角色与成员、有效期</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>逐个成员的结果；角色不存在或有效期不合法时整体失败</returns>
     public async Task<Result<BatchResult>> AssignAsync(RoleMembersRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

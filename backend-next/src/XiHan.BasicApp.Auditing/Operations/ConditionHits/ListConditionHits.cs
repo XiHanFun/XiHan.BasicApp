@@ -9,17 +9,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.ConditionHits;
 
 /// <summary>
-/// 条件命中记录列表。
+/// 条件命中记录列表
 /// </summary>
 /// <remarks>
-/// <c>POST /api/condition-hits:list</c>。只看当前一侧（平台主体看平台的，租户主体看本租户的）。
+/// <c>POST /api/condition-hits:list</c>。只看当前一侧（平台主体看平台的，租户主体看本租户的）
 /// </remarks>
-/// <param name="queries">条件命中记录查询。</param>
+/// <param name="queries">条件命中记录查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.ConditionHitsRead)]
 public sealed class ListConditionHits(ConditionHitQueries queries) : IOperation<PageRequest, PageResult<ConditionHitResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "condition-hits.list";
 

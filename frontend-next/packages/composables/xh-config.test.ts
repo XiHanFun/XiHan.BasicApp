@@ -1,7 +1,7 @@
 /**
- * 组件库文案随应用语言取语言包的单元测试。
+ * 组件库文案随应用语言取语言包的单元测试
  * 职责边界：组件库有语言包的应用语言取自己的那一份；没登记语言包的标记取英文、不冒出中文；
- * 应用新上架一种语言时，这里逼着先决定它对应哪一份语言包。
+ * 应用新上架一种语言时，这里逼着先决定它对应哪一份语言包
  */
 import { deDE, enUS, jaJP, zhTW } from '@xihan-ui/vue/locale'
 import { afterEach, describe, expect, it } from 'vitest'

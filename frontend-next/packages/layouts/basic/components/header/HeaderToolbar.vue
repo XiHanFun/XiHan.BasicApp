@@ -41,7 +41,7 @@ const emit = defineEmits<{
 const shellHeaderItems = computed(() => useShellExtensions().flatMap(extension => extension.headerToolbarItems ?? []))
 
 const { t } = useI18n()
-// 命令面板、语言、时区、主题、全屏按各自的位置落到顶栏或悬浮组（AppFloatToolbar），只有落到顶栏的在这里画。
+// 命令面板、语言、时区、主题、全屏按各自的位置落到顶栏或悬浮组（AppFloatToolbar），只有落到顶栏的在这里画
 // 小屏（< 768）顶栏放不下，除隐藏的以外一律回落悬浮组，右上角的账号入口不被挤掉；用户名文字另由断点收起
 const placement = useWidgetPlacement()
 </script>
@@ -158,7 +158,7 @@ const placement = useWidgetPlacement()
       <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
     </XihanIconButton>
 
-    <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致。
+    <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致
          窄屏只剩头像，名字经 tooltip 进 aria-label：菜单触发钮任何宽度下都有名字 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
       <XihanIconButton class="xihan-icon-btn--labeled ml-1" :tooltip="props.userStore.nickname || props.userStore.username">

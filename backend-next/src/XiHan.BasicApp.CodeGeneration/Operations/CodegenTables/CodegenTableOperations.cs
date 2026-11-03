@@ -18,17 +18,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
 
 /// <summary>
-/// 表配置列表。
+/// 表配置列表
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-tables:list</c>。筛选与排序见 <see cref="CodegenTableQueries"/>。
+/// <c>POST /api/codegen-tables:list</c>。筛选与排序见 <see cref="CodegenTableQueries"/>
 /// </remarks>
-/// <param name="queries">表配置查询。</param>
+/// <param name="queries">表配置查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
 public sealed class ListCodegenTables(CodegenTableQueries queries) : IOperation<PageRequest, PageResult<CodegenTableResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.list";
 
@@ -42,17 +42,17 @@ public sealed class ListCodegenTables(CodegenTableQueries queries) : IOperation<
 }
 
 /// <summary>
-/// 表配置下拉选项。
+/// 表配置下拉选项
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-tables:options</c>。全部表配置，按表名；列配置的关联表与表配置的主表从这里选（照 4.x）。
+/// <c>GET /api/codegen-tables:options</c>。全部表配置，按表名；列配置的关联表与表配置的主表从这里选（照 4.x）
 /// </remarks>
-/// <param name="queries">表配置查询。</param>
+/// <param name="queries">表配置查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
 public sealed class ListCodegenTableOptions(CodegenTableQueries queries) : IOperation<ListCodegenTableOptionsRequest, CodegenTableOptionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.options";
 
@@ -66,17 +66,17 @@ public sealed class ListCodegenTableOptions(CodegenTableQueries queries) : IOper
 }
 
 /// <summary>
-/// 表配置详情。
+/// 表配置详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-tables/{id}</c>。带列配置（照 4.x）。
+/// <c>GET /api/codegen-tables/{id}</c>。带列配置（照 4.x）
 /// </remarks>
-/// <param name="service">表配置规则。</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
 public sealed class GetCodegenTable(CodeGenTableService service) : IOperation<CodegenTableIdRequest, CodegenTableDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.get";
 
@@ -97,19 +97,19 @@ public sealed class GetCodegenTable(CodeGenTableService service) : IOperation<Co
 }
 
 /// <summary>
-/// 列出库里可以导入的表。
+/// 列出库里可以导入的表
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-tables:db-tables</c>。数据源为空即主库；外部库要存在且启用（停用 <c>CODEGENERATION_CONFLICT_003</c>，照 4.x）。
-/// 关键字匹配表名与注释，分表按逻辑名折叠；页码换算成跳过与取的条数交给框架，越界错误原样返回（修订（八十三））。
-/// 照 4.x 只要读权限。
+/// <c>POST /api/codegen-tables:db-tables</c>。数据源为空即主库；外部库要存在且启用（停用 <c>CODEGENERATION_CONFLICT_003</c>，照 4.x）
+/// 关键字匹配表名与注释，分表按逻辑名折叠；页码换算成跳过与取的条数交给框架，越界错误原样返回（修订（八十三））
+/// 照 4.x 只要读权限
 /// </remarks>
-/// <param name="service">表配置规则。</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
 public sealed class ListCodegenDbTables(CodeGenTableService service) : IOperation<ListCodegenDbTablesRequest, PageResult<CodegenDbTableResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.db-tables";
 
@@ -135,18 +135,18 @@ public sealed class ListCodegenDbTables(CodeGenTableService service) : IOperatio
 }
 
 /// <summary>
-/// 导入一批库表。
+/// 导入一批库表
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-tables:import</c>。照 4.x 按表隔离：读不到、已导入（<c>CODEGENERATION_CONFLICT_004</c>）或没有列（<c>CODEGENERATION_VALIDATION_002</c>）的表记一条失败，其余照常导入；
-/// 类名、业务名、类型、控件与查询方式按库结构推断，「沿用已有实体」按登记的实体识别（只认主库）。整批读不了（连不上、来源停用）即失败。
+/// 类名、业务名、类型、控件与查询方式按库结构推断，「沿用已有实体」按登记的实体识别（只认主库）。整批读不了（连不上、来源停用）即失败
 /// </remarks>
-/// <param name="service">表配置规则。</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesImport)]
 public sealed class ImportCodegenTables(CodeGenTableService service) : IOperation<ImportCodegenTablesRequest, CodegenImportResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.import";
 
@@ -187,18 +187,18 @@ public sealed class ImportCodegenTables(CodeGenTableService service) : IOperatio
 }
 
 /// <summary>
-/// 按最新库结构同步表配置。
+/// 按最新库结构同步表配置
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-tables/{id}:sync-schema</c>。照 4.x：表注释与主键、列的结构字段以库为准；类名等与列的类型、控件、查询方式没被人工改过才跟随新的推断；
-/// 新列补进来，库里已删的列删掉列配置。来源库连不上或表不在了即失败、配置不变。
+/// 新列补进来，库里已删的列删掉列配置。来源库连不上或表不在了即失败、配置不变
 /// </remarks>
-/// <param name="service">表配置规则。</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesImport)]
 public sealed class SyncCodegenTableSchema(CodeGenTableService service) : IOperation<CodegenTableIdRequest, CodegenSyncResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.sync-schema";
 
@@ -221,19 +221,19 @@ public sealed class SyncCodegenTableSchema(CodeGenTableService service) : IOpera
 }
 
 /// <summary>
-/// 修改表配置。
+/// 修改表配置
 /// </summary>
 /// <remarks>
 /// <c>PUT /api/codegen-tables/{id}</c>。照 4.x 整体修改：表名唯一（<c>CODEGENERATION_CONFLICT_004</c>），生成模式不能是通用（<c>CODEGENERATION_VALIDATION_003</c>），
-/// 勾了导入必须勾新建（<c>CODEGENERATION_VALIDATION_004</c>）；值变了的被跟踪字段记为人工改过。交回的并发戳与当前的不同即冲突。
+/// 勾了导入必须勾新建（<c>CODEGENERATION_VALIDATION_004</c>）；值变了的被跟踪字段记为人工改过。交回的并发戳与当前的不同即冲突
 /// </remarks>
-/// <param name="tables">表配置仓储。</param>
-/// <param name="service">表配置规则。</param>
+/// <param name="tables">表配置仓储</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesUpdate)]
 public sealed class UpdateCodegenTable(IRepository<SysCodeGenTable, Guid> tables, CodeGenTableService service) : IOperation<UpdateCodegenTableRequest, CodegenTableResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.update";
 
@@ -297,18 +297,18 @@ public sealed class UpdateCodegenTable(IRepository<SysCodeGenTable, Guid> tables
 }
 
 /// <summary>
-/// 启用或停用表配置。
+/// 启用或停用表配置
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-tables/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（4.x 同）。停用的表配置不能用于零代码运行时。
+/// <c>POST /api/codegen-tables/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（4.x 同）。停用的表配置不能用于零代码运行时
 /// </remarks>
-/// <param name="tables">表配置仓储。</param>
-/// <param name="service">表配置规则。</param>
+/// <param name="tables">表配置仓储</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesUpdate)]
 public sealed class SetCodegenTableStatus(IRepository<SysCodeGenTable, Guid> tables, CodeGenTableService service) : IOperation<SetCodegenTableStatusRequest, CodegenTableResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.set-status";
 
@@ -332,18 +332,18 @@ public sealed class SetCodegenTableStatus(IRepository<SysCodeGenTable, Guid> tab
 }
 
 /// <summary>
-/// 批量删除表配置。
+/// 批量删除表配置
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/codegen-tables?ids=...</c>。连带软删它的列配置（照 4.x）；逐项：不存在 <c>CODEGENERATION_NOTFOUND_002</c>。
+/// <c>DELETE /api/codegen-tables?ids=...</c>。连带软删它的列配置（照 4.x）；逐项：不存在 <c>CODEGENERATION_NOTFOUND_002</c>
 /// </remarks>
-/// <param name="tables">表配置仓储。</param>
-/// <param name="service">表配置规则。</param>
+/// <param name="tables">表配置仓储</param>
+/// <param name="service">表配置规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesDelete)]
 public sealed class DeleteCodegenTables(IRepository<SysCodeGenTable, Guid> tables, CodeGenTableService service) : IOperation<CodegenTableIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.delete";
 
@@ -377,17 +377,17 @@ public sealed class DeleteCodegenTables(IRepository<SysCodeGenTable, Guid> table
 }
 
 /// <summary>
-/// 预览一张表生成的代码。
+/// 预览一张表生成的代码
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-tables/{id}:preview</c>。只渲染、不打包、不写历史（照 4.x），要读权限；配置检查不过 <c>CODEGENERATION_VALIDATION_007</c>，模板渲染失败 <c>CODEGENERATION_VALIDATION_008</c>（带模板编码），没有可用模板 <c>CODEGENERATION_VALIDATION_009</c>。
+/// <c>GET /api/codegen-tables/{id}:preview</c>。只渲染、不打包、不写历史（照 4.x），要读权限；配置检查不过 <c>CODEGENERATION_VALIDATION_007</c>，模板渲染失败 <c>CODEGENERATION_VALIDATION_008</c>（带模板编码），没有可用模板 <c>CODEGENERATION_VALIDATION_009</c>
 /// </remarks>
-/// <param name="engine">生成管线。</param>
+/// <param name="engine">生成管线</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesRead)]
 public sealed class PreviewCodegenTable(CodeGenEngine engine) : IOperation<PreviewCodegenTableRequest, CodegenPreviewResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.preview";
 
@@ -402,18 +402,18 @@ public sealed class PreviewCodegenTable(CodeGenEngine engine) : IOperation<Previ
 }
 
 /// <summary>
-/// 生成一张表的代码。
+/// 生成一张表的代码
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-tables/{id}:generate</c>。照 4.x 按交付方式分流：打包的存成 7 天的临时文件、从生成历史下载；写进项目只在开发环境且打开开关时（方案 C1），否则 <c>CODEGENERATION_VALIDATION_010</c>。
-/// 不论成败都记一条生成历史，成功才回写表的生成状态；配置检查与渲染的失败同预览。
+/// <c>POST /api/codegen-tables/{id}:generate</c>。照 4.x 按交付方式分流：打包的存成 7 天的临时文件、从生成历史下载；写进项目只在开发环境且打开开关时（方案 C1），否则 <c>CODEGENERATION_VALIDATION_010</c>
+/// 不论成败都记一条生成历史，成功才回写表的生成状态；配置检查与渲染的失败同预览
 /// </remarks>
-/// <param name="service">生成代码。</param>
+/// <param name="service">生成代码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesExecute)]
 public sealed class GenerateCodegenTable(CodeGenGenerationService service) : IOperation<GenerateCodegenTableRequest, CodegenGenerateResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-tables.generate";
 

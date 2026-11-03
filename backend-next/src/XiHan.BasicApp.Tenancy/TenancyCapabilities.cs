@@ -6,17 +6,17 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Tenancy;
 
 /// <summary>
-/// 租户包提供的能力名。
+/// 租户包提供的能力名
 /// </summary>
 public static class TenancyCapabilities
 {
     /// <summary>
-    /// 租户业务：开通、启停、管理员初始化。
+    /// 租户业务：开通、启停、管理员初始化
     /// </summary>
     public const string Tenancy = AppInfo.CapabilityPrefix + "tenancy";
 
     /// <summary>
-    /// 能力版本。
+    /// 能力版本
     /// </summary>
     public const int Version = AppInfo.CapabilityVersion;
 }

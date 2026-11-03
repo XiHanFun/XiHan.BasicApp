@@ -11,19 +11,19 @@ using XiHan.Framework.Scheduling.Abstractions.Schedules;
 namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 
 /// <summary>
-/// 分页列出作业。
+/// 分页列出作业
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs:list</c>。代码登记与运行时登记的作业都在（框架调度的全部作业），按作业名排序。
+/// <c>POST /api/jobs:list</c>。代码登记与运行时登记的作业都在（框架调度的全部作业），按作业名排序
 /// 关键字匹配作业名、显示名与说明；筛选支持 <c>paused</c>、<c>running</c>（<c>eq</c>）、<c>source</c>、<c>kind</c>、<c>jobType</c>（<c>eq</c> / <c>in</c>，<c>kind</c> 看任一触发器，<c>jobType</c> 的候选见 <c>jobs.types</c>）；
-/// 排序支持 <c>name</c>、<c>title</c>、<c>nextRunAt</c>、<c>lastRunAt</c>、<c>updatedAt</c>。作业不多，在内存里筛选与分页。只在平台一侧。
+/// 排序支持 <c>name</c>、<c>title</c>、<c>nextRunAt</c>、<c>lastRunAt</c>、<c>updatedAt</c>。作业不多，在内存里筛选与分页。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, PageResult<JobResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.list";
 
@@ -98,17 +98,17 @@ public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, 
 }
 
 /// <summary>
-/// 取一个作业。
+/// 取一个作业
 /// </summary>
 /// <remarks>
-/// <c>GET /api/jobs/{id}</c>，<c>id</c> 是作业名。只在平台一侧。
+/// <c>GET /api/jobs/{id}</c>，<c>id</c> 是作业名。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class GetJob(IJobScheduler scheduler) : IOperation<JobIdRequest, JobResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.get";
 
@@ -138,18 +138,18 @@ public sealed class GetJob(IJobScheduler scheduler) : IOperation<JobIdRequest, J
 }
 
 /// <summary>
-/// 暂停作业。
+/// 暂停作业
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs:pause</c>。暂停的作业不再按计划触发（立即执行仍可以），正在运行的不受影响；已暂停的照样算成功。
-/// 代码登记的作业重启之后仍是暂停的。只在平台一侧。
+/// <c>POST /api/jobs:pause</c>。暂停的作业不再按计划触发（立即执行仍可以），正在运行的不受影响；已暂停的照样算成功
+/// 代码登记的作业重启之后仍是暂停的。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
 public sealed class PauseJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.pause";
 
@@ -163,17 +163,17 @@ public sealed class PauseJobs(IJobScheduler scheduler) : IOperation<JobIdsReques
 }
 
 /// <summary>
-/// 恢复作业。
+/// 恢复作业
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs:resume</c>。恢复后按计划从下一次触发时间接着跑；没暂停的照样算成功。只在平台一侧。
+/// <c>POST /api/jobs:resume</c>。恢复后按计划从下一次触发时间接着跑；没暂停的照样算成功。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
 public sealed class ResumeJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.resume";
 
@@ -187,17 +187,17 @@ public sealed class ResumeJobs(IJobScheduler scheduler) : IOperation<JobIdsReque
 }
 
 /// <summary>
-/// 立即执行一次作业。
+/// 立即执行一次作业
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs/{id}:trigger</c>。排进一个一次性的手动触发器、由任一节点执行，不等结果，返回触发器名（运行历史里看结果）；暂停的作业也可以立即执行。只在平台一侧。
+/// <c>POST /api/jobs/{id}:trigger</c>。排进一个一次性的手动触发器、由任一节点执行，不等结果，返回触发器名（运行历史里看结果）；暂停的作业也可以立即执行。只在平台一侧
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsTrigger)]
 public sealed class TriggerJob(IJobScheduler scheduler) : IOperation<JobIdRequest, JobQueuedResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.trigger";
 
@@ -234,17 +234,17 @@ public sealed class TriggerJob(IJobScheduler scheduler) : IOperation<JobIdReques
 }
 
 /// <summary>
-/// 校验计划并列出接下来的运行时间。
+/// 校验计划并列出接下来的运行时间
 /// </summary>
 /// <remarks>
-/// <c>GET /api/jobs:validate-schedule</c>。接受 Cron 表达式（5 到 7 段，Quartz 写法的超集）或计划的文本写法；写错即 <see cref="MaintenanceErrors.ScheduleInvalid"/>。不改任何作业。只在平台一侧。
+/// <c>GET /api/jobs:validate-schedule</c>。接受 Cron 表达式（5 到 7 段，Quartz 写法的超集）或计划的文本写法；写错即 <see cref="MaintenanceErrors.ScheduleInvalid"/>。不改任何作业。只在平台一侧
 /// </remarks>
-/// <param name="clock">时间源。</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class ValidateSchedule(TimeProvider clock) : IOperation<ValidateScheduleRequest, ScheduleCheckResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.validate-schedule";
 
@@ -276,12 +276,12 @@ public sealed class ValidateSchedule(TimeProvider clock) : IOperation<ValidateSc
 }
 
 /// <summary>
-/// 按作业名的批量操作。
+/// 按作业名的批量操作
 /// </summary>
 internal static class JobBatches
 {
     /// <summary>
-    /// 先认出存在的作业，再对它们执行一次批量调用。
+    /// 先认出存在的作业，再对它们执行一次批量调用
     /// </summary>
     public static async ValueTask<Result<JobBatchResult>> RunAsync(IJobScheduler scheduler, JobIdsRequest request, InvocationContext context, Func<IJobScheduler, IReadOnlyList<JobName>, CancellationToken, ValueTask<IReadOnlyList<Result>>> apply)
     {

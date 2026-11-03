@@ -1,11 +1,11 @@
 /**
- * store.ts 的会话维度行为。
+ * store.ts 的会话维度行为
  *
  * 职责边界：会话列表拉取与并发去重、排序（置顶优先 + 最后消息时间倒序）、未读合计与免打扰、
- * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关。
- * 消息流与助手流分别在 chat-store-messages / chat-store-assistant 两个文件里。
+ * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关
+ * 消息流与助手流分别在 chat-store-messages / chat-store-assistant 两个文件里
  *
- * SignalR 被整体替身掉（不建立真实连接），并记录每次 invoke 以便断言进出组顺序。
+ * SignalR 被整体替身掉（不建立真实连接），并记录每次 invoke 以便断言进出组顺序
  */
 import type { ChatApiContract, ChatConversationListItem } from './types'
 import type { Session } from '~/stores'

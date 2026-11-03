@@ -11,18 +11,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 按 ID 取用户。
+/// 按 ID 取用户
 /// </summary>
 /// <remarks>
-/// <c>GET /api/users/{id}</c>。租户主体只能看自己租户的用户；平台主体（无租户）能看全部。
-/// 只读目录类操作，同时作为 MCP / AI 工具暴露；与 <c>users.list</c> 一起是内部服务查用户目录的 gRPC 面。
+/// <c>GET /api/users/{id}</c>。租户主体只能看自己租户的用户；平台主体（无租户）能看全部
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露；与 <c>users.list</c> 一起是内部服务查用户目录的 gRPC 面
 /// </remarks>
-/// <param name="users">用户仓储。</param>
+/// <param name="users">用户仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai, Permission = IdentityPermissions.UsersRead)]
 public sealed class GetUser(IRepository<SysUser, Guid> users) : IOperation<GetUserRequest, UserResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "users.get";
 

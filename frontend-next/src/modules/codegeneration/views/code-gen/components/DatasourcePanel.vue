@@ -1,6 +1,6 @@
 <!--
-  代码生成 / 数据源页签（照 4.x datasource-panel）。
-  接口取自后端契约（codegen-datasources.*）：测试连接要修改权限；删除逐项拒绝仍被表配置引用的数据源；口令与连接串不回显，编辑时留空即不改。
+  代码生成 / 数据源页签（照 4.x datasource-panel）
+  接口取自后端契约（codegen-datasources.*）：测试连接要修改权限；删除逐项拒绝仍被表配置引用的数据源；口令与连接串不回显，编辑时留空即不改
 -->
 <script setup lang="ts">
 import type { DatasourceRow, DatasourceStatus } from './use-datasources'

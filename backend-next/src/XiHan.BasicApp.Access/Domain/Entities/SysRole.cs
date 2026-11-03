@@ -6,11 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 角色（平台库实体，不实现 <c>IMultiTenant</c>）。
+/// 角色（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台角色，否则是该租户的角色。
-/// 授予写在框架的 <c>PermissionGrantRecord</c>，主体是 <c>role:&lt;角色 ID&gt;</c>（跨租户不撞），租户列按所属侧；角色码在同一侧唯一且创建后不可改。
+/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台角色，否则是该租户的角色
+/// 授予写在框架的 <c>PermissionGrantRecord</c>，主体是 <c>role:&lt;角色 ID&gt;</c>（跨租户不撞），租户列按所属侧；角色码在同一侧唯一且创建后不可改
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysRole : AppAuditedEntity, IOwnedByTenant
@@ -19,40 +19,40 @@ public sealed class SysRole : AppAuditedEntity, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 角色码：小写字母开头，只含小写字母、数字、<c>-</c>。
+    /// 角色码：小写字母开头，只含小写字母、数字、<c>-</c>
     /// </summary>
     public string Code { get; set; } = string.Empty;
 
     /// <summary>
-    /// 显示名。
+    /// 显示名
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 说明。
+    /// 说明
     /// </summary>
     public string? Description { get; set; }
 
     /// <summary>
-    /// 排序号。
+    /// 排序号
     /// </summary>
     public int Order { get; set; }
 
     /// <summary>
-    /// 内建（种子写入）：不能删除。
+    /// 内建（种子写入）：不能删除
     /// </summary>
     public bool IsBuiltIn { get; set; }
 
     /// <summary>
-    /// 状态。
+    /// 状态
     /// </summary>
     public RoleStatus Status { get; set; } = RoleStatus.Active;
 
     /// <summary>
-    /// 数据范围。
+    /// 数据范围
     /// </summary>
     /// <remarks>
-    /// 租户角色缺省只看自己，平台角色固定为全部；<see cref="Entities.DataScope.Custom"/> 的部门在 <see cref="SysRoleDataScope"/>。
+    /// 租户角色缺省只看自己，平台角色固定为全部；<see cref="Entities.DataScope.Custom"/> 的部门在 <see cref="SysRoleDataScope"/>
     /// </remarks>
     public DataScope DataScope { get; set; } = DataScope.SelfOnly;
 }

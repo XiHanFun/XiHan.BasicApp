@@ -23,23 +23,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Seeds;
 
 /// <summary>
-/// 演示角色种子。
+/// 演示角色种子
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 20 + 5（排在演示组织之后），<c>BasicApp:Seed:EnableDemoData</c> 打开才写。照 4.x 示例企业，在演示租户 <c>demo</c> 里建两个角色并指派：
 /// 普通员工 <c>employee</c>（只看本人数据，工作流的查看与发起、聊天的查看与发送）给 <c>manager</c>、<c>lead</c>、<c>hr</c>；
-/// 人事专员 <c>hr_specialist</c>（自定义数据范围：研发部与市场部，成员与部门归属的日常维护）给 <c>hr</c>。
-/// 可选模块的权限码照 4.x 按字符串写，只授出权限目录里已登记、租户一侧可用的那些（模块关掉即跳过）。角色按编码只首写，删掉的不补。
+/// 人事专员 <c>hr_specialist</c>（自定义数据范围：研发部与市场部，成员与部门归属的日常维护）给 <c>hr</c>
+/// 可选模块的权限码照 4.x 按字符串写，只授出权限目录里已登记、租户一侧可用的那些（模块关掉即跳过）。角色按编码只首写，删掉的不补
 /// </remarks>
-/// <param name="roles">角色仓储。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="scopes">自定义数据范围仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="grants">角色授予。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="runner">按租户发起调用的运行器（读演示部门）。</param>
-/// <param name="options">种子配置。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="members">指派仓储</param>
+/// <param name="scopes">自定义数据范围仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="grants">角色授予</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="runner">按租户发起调用的运行器（读演示部门）</param>
+/// <param name="options">种子配置</param>
+/// <param name="ids">标识生成器</param>
 public sealed class DemoAccessSeeder(
     IRepository<SysRole, Guid> roles,
     IRepository<SysUserRole, Guid> members,
@@ -52,12 +52,12 @@ public sealed class DemoAccessSeeder(
     IIdGenerator<Guid> ids) : ISeeder
 {
     /// <summary>
-    /// 普通员工的角色编码。
+    /// 普通员工的角色编码
     /// </summary>
     public const string EmployeeRoleCode = "employee";
 
     /// <summary>
-    /// 人事专员的角色编码。
+    /// 人事专员的角色编码
     /// </summary>
     public const string HrSpecialistRoleCode = "hr_specialist";
 

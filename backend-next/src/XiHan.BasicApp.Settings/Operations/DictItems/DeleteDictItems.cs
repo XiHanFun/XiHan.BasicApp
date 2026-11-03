@@ -13,18 +13,18 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.DictItems;
 
 /// <summary>
-/// 批量删除字典项。
+/// 批量删除字典项
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/dict-items?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_003</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，还有下级的 <c>SETTINGS_CONFLICT_005</c>。
-/// 同一批里先删下级再删上级也按删除时的状态判（入参顺序即处理顺序）。
+/// <c>DELETE /api/dict-items?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_003</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，还有下级的 <c>SETTINGS_CONFLICT_005</c>
+/// 同一批里先删下级再删上级也按删除时的状态判（入参顺序即处理顺序）
 /// </remarks>
-/// <param name="items">字典项仓储。</param>
+/// <param name="items">字典项仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsDelete)]
 public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items) : IOperation<DictItemIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "dict-items.delete";
 

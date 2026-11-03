@@ -1,10 +1,10 @@
 /**
- * packages/types 的运行时契约面。
+ * packages/types 的运行时契约面
  *
  * 职责边界：本包绝大部分是纯类型，运行时只剩两组枚举（enums.ts 的通知枚举、
  * contracts.ts 的查询算子与排序方向；租户成员类型直接用契约层生成的值集）。这里锁定它们与后端序列化口径的一致性、取值唯一性，
  * 以及「包入口不导出任何运行时值」这条分层约定——入口一旦泄漏运行时值，
- * 纯类型导入就会在打包产物里留下真实模块。
+ * 纯类型导入就会在打包产物里留下真实模块
  */
 import { describe, expect, it } from 'vitest'
 import { TenantMemberType } from '~/contracts'

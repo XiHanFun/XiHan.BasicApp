@@ -11,7 +11,7 @@ import { describeCondition } from '../../roles/condition-labels'
 import { conclusionLabel, conclusionTone, diagnosticLabel, inventoryToCsv } from '../../roles/condition-trial'
 
 /**
- * 条件盘点：当前一侧每条条件的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论，可导出 CSV。
+ * 条件盘点：当前一侧每条条件的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论，可导出 CSV
  */
 defineOptions({ name: 'ConditionInventoryDrawer' })
 

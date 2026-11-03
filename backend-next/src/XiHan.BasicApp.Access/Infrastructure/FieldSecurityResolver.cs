@@ -15,22 +15,22 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="IFieldSecurity"/> 的实现。
+/// <see cref="IFieldSecurity"/> 的实现
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，语义沿用 4.x。
+/// 见方案 5.9，语义沿用 4.x
 /// 取当前一侧在实体上的启用规则，按目标命中当前主体后合并——
-/// 用户规则认本人；角色规则认此刻持有的角色（令牌里的角色声明与有效指派的交集，角色启用，只认直接持有）；部门规则认所在部门及其上级（只在租户侧，停用的部门不算）。
-/// 同一次调用（作用域）内按（侧、主体、实体）缓存结果。
+/// 用户规则认本人；角色规则认此刻持有的角色（令牌里的角色声明与有效指派的交集，角色启用，只认直接持有）；部门规则认所在部门及其上级（只在租户侧，停用的部门不算）
+/// 同一次调用（作用域）内按（侧、主体、实体）缓存结果
 /// </remarks>
-/// <param name="catalog">字段安全实体目录。</param>
-/// <param name="rules">字段安全规则。</param>
-/// <param name="assignments">角色指派。</param>
-/// <param name="options">安全选项（角色声明名）。</param>
-/// <param name="memberships">部门归属仓储（租户库）。</param>
-/// <param name="hierarchy">部门闭包表仓储（租户库）。</param>
-/// <param name="departments">部门仓储（租户库）。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="catalog">字段安全实体目录</param>
+/// <param name="rules">字段安全规则</param>
+/// <param name="assignments">角色指派</param>
+/// <param name="options">安全选项（角色声明名）</param>
+/// <param name="memberships">部门归属仓储（租户库）</param>
+/// <param name="hierarchy">部门闭包表仓储（租户库）</param>
+/// <param name="departments">部门仓储（租户库）</param>
+/// <param name="clock">时钟</param>
 public sealed class FieldSecurityResolver(
     FieldSecurityCatalog catalog,
     FieldSecurityRules rules,
@@ -101,7 +101,7 @@ public sealed class FieldSecurityResolver(
     }
 
     /// <summary>
-    /// 所在部门沿上级链展开（闭包表里的全部祖先，含自己），只留启用的部门。
+    /// 所在部门沿上级链展开（闭包表里的全部祖先，含自己），只留启用的部门
     /// </summary>
     private async Task<HashSet<Guid>> DepartmentsOfAsync(Guid userId, CancellationToken cancellationToken)
     {

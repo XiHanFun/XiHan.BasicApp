@@ -1,6 +1,6 @@
 <!--
-  代码生成 / 编辑表配置弹窗（照 4.x table-edit-modal）。
-  4.x 的父菜单不再需要（6.0 生成的页面登记在所属包的 Pages.cs、目录按包），另加生成目标（新建包或加入已有包）；状态随整体修改一起提交。
+  代码生成 / 编辑表配置弹窗（照 4.x table-edit-modal）
+  4.x 的父菜单不再需要（6.0 生成的页面登记在所属包的 Pages.cs、目录按包），另加生成目标（新建包或加入已有包）；状态随整体修改一起提交
 -->
 <script setup lang="ts">
 import type { DeliveryType, GenerationScope, GenerationTarget, TableAction, TableDetail, TemplateType } from './use-tables'

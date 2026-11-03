@@ -10,24 +10,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 参数值的规则：按数据类型校验、加密值的保护与还原。
+/// 参数值的规则：按数据类型校验、加密值的保护与还原
 /// </summary>
 /// <remarks>
-/// 加密只针对值，缺省值不加密。
+/// 加密只针对值，缺省值不加密
 /// </remarks>
-/// <param name="protector">数据保护。</param>
+/// <param name="protector">数据保护</param>
 public sealed class ConfigValues(ISecretProtector protector)
 {
     /// <summary>
-    /// 参数值的数据保护用途。
+    /// 参数值的数据保护用途
     /// </summary>
     public const string Purpose = "XiHan.BasicApp.Settings.ConfigValue";
 
     /// <summary>
-    /// 值是否符合数据类型。
+    /// 值是否符合数据类型
     /// </summary>
     /// <remarks>
-    /// 空值不校验（表示没有值）。
+    /// 空值不校验（表示没有值）
     /// </remarks>
     public static bool Matches(ConfigDataType type, string? value)
     {
@@ -48,7 +48,7 @@ public sealed class ConfigValues(ISecretProtector protector)
     }
 
     /// <summary>
-    /// 校验值与缺省值，不符的字段报 <see cref="SettingsErrors.ValueTypeMismatch"/>。
+    /// 校验值与缺省值，不符的字段报 <see cref="SettingsErrors.ValueTypeMismatch"/>
     /// </summary>
     public static Result Validate(ConfigDataType type, string? value, string? defaultValue)
     {
@@ -63,18 +63,18 @@ public sealed class ConfigValues(ISecretProtector protector)
     }
 
     /// <summary>
-    /// 加密明文。
+    /// 加密明文
     /// </summary>
-    /// <returns>密文；空值原样返回。</returns>
+    /// <returns>密文；空值原样返回</returns>
     public string? Protect(string? plaintext) => string.IsNullOrEmpty(plaintext) ? plaintext : protector.Protect(Purpose, plaintext);
 
     /// <summary>
-    /// 取参数存着的明文。
+    /// 取参数存着的明文
     /// </summary>
     /// <remarks>
-    /// 加密的解密，解不开报 <see cref="SettingsErrors.ConfigUndecryptable"/>。
+    /// 加密的解密，解不开报 <see cref="SettingsErrors.ConfigUndecryptable"/>
     /// </remarks>
-    /// <returns>明文；没有值为 <c>None</c>。</returns>
+    /// <returns>明文；没有值为 <c>None</c></returns>
     public Result<Maybe<string>> PlaintextOf(SysConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);

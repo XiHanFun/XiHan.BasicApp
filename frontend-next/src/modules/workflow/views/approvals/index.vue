@@ -16,9 +16,9 @@ import { instanceStatusLabel, outcomeLabel, recordActionLabel } from './approval
 import ApprovalDetailDrawer from './ApprovalDetailDrawer.vue'
 
 /**
- * 审批中心：待我审批 / 我已审批 / 我发起的 / 抄送我的（照 4.x）。
- * 主体由服务端锁定为当前用户；办理、转办、加签与撤回都在详情抽屉里完成。
- * 路由参数 tab 选中页签，instanceId 直接打开该流程的详情（业务页「查看审批」、通知与工作台待办跳转过来），taskId 指明办哪一条待办。
+ * 审批中心：待我审批 / 我已审批 / 我发起的 / 抄送我的（照 4.x）
+ * 主体由服务端锁定为当前用户；办理、转办、加签与撤回都在详情抽屉里完成
+ * 路由参数 tab 选中页签，instanceId 直接打开该流程的详情（业务页「查看审批」、通知与工作台待办跳转过来），taskId 指明办哪一条待办
  */
 defineOptions({ name: 'WorkflowApprovalsView' })
 

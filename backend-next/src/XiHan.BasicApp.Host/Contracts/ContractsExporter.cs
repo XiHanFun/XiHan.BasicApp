@@ -11,34 +11,34 @@ using XiHan.Framework.Protocols.Http.OpenApi;
 namespace XiHan.BasicApp.Host.Contracts;
 
 /// <summary>
-/// <c>contracts export</c> 命令：把接口文档与推送方法清单写到目录。
+/// <c>contracts export</c> 命令：把接口文档与推送方法清单写到目录
 /// </summary>
 /// <remarks>
-/// <c>contracts export --out &lt;目录&gt;</c>：把宿主装配后的接口文档（<c>openapi.json</c>，含操作、权限码扩展与普通端点）写到目录，不启动应用、不连数据库。
-/// 文档输入由框架 <see cref="OpenApiDocumentSource.FromServices"/> 组装，与 <c>MapXiHanOpenApi</c> 服务的 <c>/openapi.json</c> 同源（集成测试逐字节比对）。
-/// 同目录另出 <c>realtime.json</c>：Hub 路径与服务端推送的方法名清单（方案 5.11，不是第二份 API 文档）。
-/// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这两个文件。
+/// <c>contracts export --out &lt;目录&gt;</c>：把宿主装配后的接口文档（<c>openapi.json</c>，含操作、权限码扩展与普通端点）写到目录，不启动应用、不连数据库
+/// 文档输入由框架 <see cref="OpenApiDocumentSource.FromServices"/> 组装，与 <c>MapXiHanOpenApi</c> 服务的 <c>/openapi.json</c> 同源（集成测试逐字节比对）
+/// 同目录另出 <c>realtime.json</c>：Hub 路径与服务端推送的方法名清单（方案 5.11，不是第二份 API 文档）
+/// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这两个文件
 /// </remarks>
 public static class ContractsExporter
 {
     /// <summary>
-    /// 输出文件名。
+    /// 输出文件名
     /// </summary>
     public const string FileName = "openapi.json";
 
     /// <summary>
-    /// 推送方法清单的文件名。
+    /// 推送方法清单的文件名
     /// </summary>
     public const string RealtimeFileName = "realtime.json";
 
     /// <summary>
-    /// 解析 <c>contracts export</c> 命令行。
+    /// 解析 <c>contracts export</c> 命令行
     /// </summary>
     /// <remarks>
-    /// 写法 <c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）。
+    /// 写法 <c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）
     /// </remarks>
-    /// <returns>是这条命令即为真，不是这条命令返回假。</returns>
-    /// <exception cref="ArgumentException">是这条命令但缺 <c>--out</c>（用法错误）。</exception>
+    /// <returns>是这条命令即为真，不是这条命令返回假</returns>
+    /// <exception cref="ArgumentException">是这条命令但缺 <c>--out</c>（用法错误）</exception>
     public static bool TryParse(IReadOnlyList<string> args, [NotNullWhen(true)] out string? outputDirectory)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -67,12 +67,12 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成文档与推送方法清单并写到 <paramref name="outputDirectory"/>。
+    /// 生成文档与推送方法清单并写到 <paramref name="outputDirectory"/>
     /// </summary>
     /// <remarks>
-    /// 把完整路径打到 stdout。
+    /// 把完整路径打到 stdout
     /// </remarks>
-    /// <returns>进程退出码。</returns>
+    /// <returns>进程退出码</returns>
     public static int Export(WebApplication app, string outputDirectory)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -89,11 +89,11 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成推送方法清单。
+    /// 生成推送方法清单
     /// </summary>
     /// <remarks>
     /// 格式 <c>{"hubs":[{"path":"/hubs/chat","methods":[...],"invocations":[...]}, ...]}</c>：Hub 按路径排序，<c>methods</c> 是服务端推送的方法、
-    /// <c>invocations</c> 是客户端可调的方法（没有即不写），都按字母序，缩进两格、LF 换行。聊天 Hub 不论聊天模块开没开都列出（它是契约的一部分）。
+    /// <c>invocations</c> 是客户端可调的方法（没有即不写），都按字母序，缩进两格、LF 换行。聊天 Hub 不论聊天模块开没开都列出（它是契约的一部分）
     /// </remarks>
     public static byte[] BuildRealtime()
     {
@@ -140,10 +140,10 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成接口文档的字节。
+    /// 生成接口文档的字节
     /// </summary>
     /// <remarks>
-    /// 标题与版本取 <see cref="AppInfo"/>，端点取宿主全部数据源，摘要按默认区域。
+    /// 标题与版本取 <see cref="AppInfo"/>，端点取宿主全部数据源，摘要按默认区域
     /// </remarks>
     public static byte[] Build(WebApplication app)
     {

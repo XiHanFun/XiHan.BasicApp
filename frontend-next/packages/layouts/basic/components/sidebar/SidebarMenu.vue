@@ -17,9 +17,9 @@ const props = defineProps<SidebarMenuPropsContract & {
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
 
 /**
- * 喂给组件库的 collection：条目身份、层级与禁用的事实源。
+ * 喂给组件库的 collection：条目身份、层级与禁用的事实源
  * 标签在这里给纯文本兜底（读屏与连打检索取它），真正的显示由标记里的部件渲染——
- * 菜单标签可能带角标或外链图标，塞不进一个字符串。
+ * 菜单标签可能带角标或外链图标，塞不进一个字符串
  */
 function toCollection(nodes: AppMenuOption[]): SideNavNode[] {
   return nodes.map<SideNavNode>(node => ({
@@ -60,14 +60,14 @@ const collection = computed(() => toCollection(props.menuOptions))
 
 <style scoped>
 .sidebar-menu {
-  /* 组件库的侧栏根自带 --xh-sider-w / --xh-sider-collapsed-w（15rem / 4rem）的固定宽度（它设计上自己就是侧栏）。
+  /* 组件库的侧栏根自带 --xh-sider-w / --xh-sider-collapsed-w（15rem / 4rem）的固定宽度（它设计上自己就是侧栏）
      本应用的侧栏宽度由用户偏好控制，外层 aside 说了算，故让根跟着容器走，
      否则菜单比容器宽的那一截会被 overflow-x:hidden 裁掉，行尾的箭头首当其冲 */
   --xh-side-nav-w: 100%;
   --xh-side-nav-collapsed-w: 100%;
 
   /* 行的几何与各态配色走组件库的公开槽：悬停 / 按下 / 当前 / 展开路径的面由
-     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color。
+     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color
      行高与配色对齐旧版侧栏 */
   --xh-side-nav-link-h: 38px;
   --xh-side-nav-link-px: 12px;
@@ -97,7 +97,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-block: 0;
 }
 
-/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给。
+/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给
    组件库把行定为 inline-size: 100%，下面各档又加了左右外边距：不改回 auto 的话行宽是 100% 再加两侧外边距，
    右边越出侧栏的滚动区一截，行的右缘连同画在行盒内的聚焦环一起被裁掉、左右也不对称 */
 .sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
@@ -164,7 +164,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-inline: 6px;
 }
 
-/* 标签不能 display:none：它是图标栏里链接与分支钮唯一的可及名。
+/* 标签不能 display:none：它是图标栏里链接与分支钮唯一的可及名
    裁法与皮肤折叠落定后的那条相同，只是折叠过程中也不占位，图标从头到尾都居中 */
 .sidebar-menu--collapsed-icon :deep(.sidebar-menu__label) {
   position: absolute;

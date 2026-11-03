@@ -4,25 +4,25 @@
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
 /// <summary>
-/// 用户状态。
+/// 用户状态
 /// </summary>
 /// <remarks>
-/// JSON 上是字符串枚举。
+/// JSON 上是字符串枚举
 /// </remarks>
 public enum UserStatus
 {
     /// <summary>
-    /// 正常。
+    /// 正常
     /// </summary>
     Active = 0,
 
     /// <summary>
-    /// 已禁用，不能登录。
+    /// 已禁用，不能登录
     /// </summary>
     Disabled = 1,
 
     /// <summary>
-    /// 已锁定（安全策略触发），待解锁。
+    /// 已锁定（安全策略触发），待解锁
     /// </summary>
     Locked = 2,
 }

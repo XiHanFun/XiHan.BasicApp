@@ -12,17 +12,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Domain.Services;
 
 /// <summary>
-/// 套餐域服务。
+/// 套餐域服务
 /// </summary>
 /// <remarks>
-/// 按编码 / 缺省查找、白名单的校验与整体替换、缺省标记互斥、哪些租户在用。
-/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取各包登记的 <see cref="PermissionCatalogSection"/>（Tenancy 不引用 Access）。
+/// 按编码 / 缺省查找、白名单的校验与整体替换、缺省标记互斥、哪些租户在用
+/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取各包登记的 <see cref="PermissionCatalogSection"/>（Tenancy 不引用 Access）
 /// </remarks>
-/// <param name="editions">套餐仓储。</param>
-/// <param name="permissions">白名单仓储。</param>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="sections">各包登记的权限目录片段。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="editions">套餐仓储</param>
+/// <param name="permissions">白名单仓储</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="sections">各包登记的权限目录片段</param>
+/// <param name="ids">标识生成器</param>
 public sealed class EditionService(
     IRepository<SysEdition, Guid> editions,
     IRepository<SysEditionGrant, Guid> permissions,
@@ -31,12 +31,12 @@ public sealed class EditionService(
     IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 套餐白名单最多的权限数。
+    /// 套餐白名单最多的权限数
     /// </summary>
     public const int MaxPermissions = 500;
 
     /// <summary>
-    /// 租户能生效的全部权限（作用侧 Tenant / Both），按权限码排序。
+    /// 租户能生效的全部权限（作用侧 Tenant / Both），按权限码排序
     /// </summary>
     public IReadOnlyList<PermissionDescriptor> TenantEffective { get; } = sections
         .SelectMany(static s => s.Permissions)
@@ -45,12 +45,12 @@ public sealed class EditionService(
         .ToList();
 
     /// <summary>
-    /// 按主键查找。
+    /// 按主键查找
     /// </summary>
     public ValueTask<Maybe<SysEdition>> FindAsync(Guid id, CancellationToken cancellationToken) => editions.FindAsync(id, cancellationToken);
 
     /// <summary>
-    /// 按编码查找（区分大小写，编码本身只有小写）。
+    /// 按编码查找（区分大小写，编码本身只有小写）
     /// </summary>
     public async Task<Maybe<SysEdition>> FindByCodeAsync(string code, CancellationToken cancellationToken)
     {
@@ -59,9 +59,9 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 查找缺省套餐。
+    /// 查找缺省套餐
     /// </summary>
-    /// <returns>缺省套餐；没有即空。</returns>
+    /// <returns>缺省套餐；没有即空</returns>
     public async Task<Maybe<SysEdition>> FindDefaultAsync(CancellationToken cancellationToken)
     {
         var rows = await editions.ListAsync(EntityQuery.All<SysEdition>().Where(new Specification<SysEdition>(e => e.IsDefault)).OrderBy(static e => e.Order).Page(0, 1), cancellationToken).ConfigureAwait(false);
@@ -69,7 +69,7 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 套餐的白名单（权限码，排序）。
+    /// 套餐的白名单（权限码，排序）
     /// </summary>
     public async Task<IReadOnlyList<string>> PermissionsOfAsync(Guid editionId, CancellationToken cancellationToken)
     {
@@ -78,10 +78,10 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 校验白名单。
+    /// 校验白名单
     /// </summary>
     /// <remarks>
-    /// 去重后每个码都须是租户能生效的权限；第一个不合格的码返回 <c>TENANCY_VALIDATION_002</c>。
+    /// 去重后每个码都须是租户能生效的权限；第一个不合格的码返回 <c>TENANCY_VALIDATION_002</c>
     /// </remarks>
     public Result<IReadOnlyList<string>> Normalize(IReadOnlyList<string> codes)
     {
@@ -100,7 +100,7 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 把白名单整体替换为 <paramref name="codes"/>（已校验）：多的删、少的补，没变的行不动。
+    /// 把白名单整体替换为 <paramref name="codes"/>（已校验）：多的删、少的补，没变的行不动
     /// </summary>
     public async Task<Result> ReplacePermissionsAsync(Guid editionId, IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
     {
@@ -136,7 +136,7 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 清掉 <paramref name="keepId"/> 之外的缺省标记（缺省套餐至多一个）。
+    /// 清掉 <paramref name="keepId"/> 之外的缺省标记（缺省套餐至多一个）
     /// </summary>
     public async Task<Result> ClearOtherDefaultsAsync(Guid keepId, CancellationToken cancellationToken)
     {
@@ -163,7 +163,7 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 绑定该套餐的租户 ID（目录键）。
+    /// 绑定该套餐的租户 ID（目录键）
     /// </summary>
     public async Task<IReadOnlyList<string>> TenantsUsingAsync(Guid editionId, CancellationToken cancellationToken)
     {
@@ -172,7 +172,7 @@ public sealed class EditionService(
     }
 
     /// <summary>
-    /// 各套餐的白名单条数与绑定租户数（列表用）。
+    /// 各套餐的白名单条数与绑定租户数（列表用）
     /// </summary>
     public async Task<(IReadOnlyDictionary<Guid, int> Permissions, IReadOnlyDictionary<Guid, int> Tenants)> CountsAsync(CancellationToken cancellationToken)
     {

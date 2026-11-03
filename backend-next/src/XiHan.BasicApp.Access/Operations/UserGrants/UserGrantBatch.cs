@@ -12,15 +12,15 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
 /// <summary>
-/// 用户直接授权的共同骨架。
+/// 用户直接授权的共同骨架
 /// </summary>
 /// <remarks>
-/// 用户须在这一侧（注册地相同），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// 用户须在这一侧（注册地相同），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志
 /// </remarks>
 internal static class UserGrantBatch
 {
     /// <summary>
-    /// 找到这一侧的用户。
+    /// 找到这一侧的用户
     /// </summary>
     public static async Task<Result<SysUser>> FindUserAsync(IRepository<SysUser, Guid> users, Guid userId, string owner, CancellationToken cancellationToken)
         => (await users.FindAsync(userId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) && string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal)
@@ -28,7 +28,7 @@ internal static class UserGrantBatch
             : Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", userId)));
 
     /// <summary>
-    /// 执行一批。
+    /// 执行一批
     /// </summary>
     public static async ValueTask<Result<PermissionBatchResult>> RunAsync(
         UserPermissionsRequest request,

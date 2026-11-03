@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 门禁：src/modules/<包> 与后端能力包同名（kebab）；每个模块有 setup.ts 与 locales/；视图键（去掉模块段的路径）全局唯一，供后端菜单的 component 字段映射（方案 6.5）。
+// 门禁：src/modules/<包> 与后端能力包同名（kebab）；每个模块有 setup.ts 与 locales/；视图键（去掉模块段的路径）全局唯一，供后端菜单的 component 字段映射（方案 6.5）
 import { readdirSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'

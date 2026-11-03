@@ -20,22 +20,22 @@ import { createWorkflowHostExtension } from './workflow-host-extension'
 import { paletteCategoryNames, restrictActivityTypes } from './workflow-palette'
 
 /**
- * 流程定义设计器：XiHan 流程设计器（<xh-flow-designer>）装上工作流引擎预设与 BasicApp 的扩展。
+ * 流程定义设计器：XiHan 流程设计器（<xh-flow-designer>）装上工作流引擎预设与 BasicApp 的扩展
  *
  * 菜单栏、画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
  * 这里只管装载与保存、引擎定义 JSON 的弹窗，以及经扩展接入的应用语义（见 workflow-extension.ts）；
- * 物料只放后端能跑的活动（见 workflow-palette.ts）。定义文档是框架 5 的 WorkflowJson，经 definition-codec.ts 互转。
+ * 物料只放后端能跑的活动（见 workflow-palette.ts）。定义文档是框架 5 的 WorkflowJson，经 definition-codec.ts 互转
  * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 经宿主扩展挂进菜单栏
  * （见 workflow-host-extension.ts）；回列表用设计器自带的关闭钮（closable），保存中按了不理；
- * 流程名称与编码放在菜单栏正中，保存状态放在状态栏右端。
+ * 流程名称与编码放在菜单栏正中，保存状态放在状态栏右端
  */
 
 const props = defineProps<{
   initialJson: string
   saving?: boolean
   /**
-   * 本机草稿的键：定义 id，不同流程的草稿不串。
-   * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿。
+   * 本机草稿的键：定义 id，不同流程的草稿不串
+   * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿
    */
   draftKey?: string
   /** 最近一次发布失败时后端给的问题（见 server-diagnostics.ts），标在对应的节点与连线上 */
@@ -87,8 +87,8 @@ void loadOrganizationDirectory(true).catch(() => undefined)
 const appContext = getCurrentInstance()?.appContext ?? null
 
 /**
- * 预设的文案随语言换：换语言就换一个扩展对象，设计器按卸下再装上处理，流程定义不变。
- * 受理人只用受理人规则一种写法，属性面板不显示旧的受理人三项；节点类型按后端的活动类型目录收窄（取不到时只去掉 Script）。
+ * 预设的文案随语言换：换语言就换一个扩展对象，设计器按卸下再装上处理，流程定义不变
+ * 受理人只用受理人规则一种写法，属性面板不显示旧的受理人三项；节点类型按后端的活动类型目录收窄（取不到时只去掉 Script）
  */
 const preset = computed(() => restrictActivityTypes(createXihanWorkflow({ texts: xihanWorkflowTexts(locale.value), legacyAssignees: false }), activityTypes.value))
 

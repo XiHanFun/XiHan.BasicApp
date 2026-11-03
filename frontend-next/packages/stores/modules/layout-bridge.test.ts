@@ -1,8 +1,8 @@
 /**
- * 布局桥接 Store（layout-bridge）单元测试。
+ * 布局桥接 Store（layout-bridge）单元测试
  * 职责边界：它只是一组「请求计数器」——顶栏等外部组件把动作请求投递给布局层，
  * 布局层 watch 版本号自增来响应。这里锁住每个请求各自独立自增、互不串号，
- * 以及计数器从 0 起步（watch 首次触发靠的是「值变了」而不是「值为真」）。
+ * 以及计数器从 0 起步（watch 首次触发靠的是「值变了」而不是「值为真」）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

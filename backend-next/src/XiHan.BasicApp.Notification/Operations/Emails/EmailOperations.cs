@@ -15,14 +15,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.Emails;
 
 /// <summary>
-/// 分页列出当前一侧的邮件发送记录：<c>POST /api/emails:list</c>。
+/// 分页列出当前一侧的邮件发送记录：<c>POST /api/emails:list</c>
 /// </summary>
-/// <param name="queries">查询。</param>
+/// <param name="queries">查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsRead)]
 public sealed class ListEmails(MessagingQueries queries) : IOperation<PageRequest, PageResult<EmailRecordResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "emails.list";
 
@@ -31,14 +31,14 @@ public sealed class ListEmails(MessagingQueries queries) : IOperation<PageReques
 }
 
 /// <summary>
-/// 取一条邮件发送记录：<c>GET /api/emails/{id}</c>。
+/// 取一条邮件发送记录：<c>GET /api/emails/{id}</c>
 /// </summary>
-/// <param name="emails">记录仓储。</param>
+/// <param name="emails">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsRead)]
 public sealed class GetEmail(IRepository<SysEmail, Guid> emails) : IOperation<MessagingIdRequest, EmailRecordResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "emails.get";
 
@@ -55,18 +55,18 @@ public sealed class GetEmail(IRepository<SysEmail, Guid> emails) : IOperation<Me
 }
 
 /// <summary>
-/// 重发邮件。
+/// 重发邮件
 /// </summary>
 /// <remarks>
-/// <c>POST /api/emails:resend</c>（改回排队中、清零尝试次数；排队中与发送中的逐项拒绝）。
+/// <c>POST /api/emails:resend</c>（改回排队中、清零尝试次数；排队中与发送中的逐项拒绝）
 /// </remarks>
-/// <param name="emails">记录仓储。</param>
-/// <param name="service">记录服务。</param>
+/// <param name="emails">记录仓储</param>
+/// <param name="service">记录服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsResend)]
 public sealed class ResendEmails(IRepository<SysEmail, Guid> emails, MessageRecordService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "emails.resend";
 
@@ -80,14 +80,14 @@ public sealed class ResendEmails(IRepository<SysEmail, Guid> emails, MessageReco
 }
 
 /// <summary>
-/// 取消排队中的邮件：<c>POST /api/emails:cancel</c>。
+/// 取消排队中的邮件：<c>POST /api/emails:cancel</c>
 /// </summary>
-/// <param name="emails">记录仓储。</param>
+/// <param name="emails">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsResend)]
 public sealed class CancelEmails(IRepository<SysEmail, Guid> emails) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "emails.cancel";
 
@@ -101,17 +101,17 @@ public sealed class CancelEmails(IRepository<SysEmail, Guid> emails) : IOperatio
 }
 
 /// <summary>
-/// 批量删除邮件发送记录。
+/// 批量删除邮件发送记录
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/emails?ids=</c>（发送中的逐项拒绝）。
+/// <c>DELETE /api/emails?ids=</c>（发送中的逐项拒绝）
 /// </remarks>
-/// <param name="emails">记录仓储。</param>
+/// <param name="emails">记录仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.EmailsDelete)]
 public sealed class DeleteEmails(IRepository<SysEmail, Guid> emails) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "emails.delete";
 

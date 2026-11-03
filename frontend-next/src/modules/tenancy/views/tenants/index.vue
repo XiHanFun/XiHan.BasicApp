@@ -320,8 +320,8 @@ async function onSubmit() {
 }
 
 /**
- * 初始化独立库：确认后发起，建库与建表期间确认钮转圈；初始化失败也是正常响应，按返回的状态提示，改正连接后可再试。
- * 开通后接着来的（thenAdmin）在就绪后接着初始化管理员，等确认框收起再开。
+ * 初始化独立库：确认后发起，建库与建表期间确认钮转圈；初始化失败也是正常响应，按返回的状态提示，改正连接后可再试
+ * 开通后接着来的（thenAdmin）在就绪后接着初始化管理员，等确认框收起再开
  */
 async function confirmInitializeDatabase(row: TenantRow, content: string, thenAdmin = false) {
   // 在 onOk 里写入：声明处不让类型收窄成 null

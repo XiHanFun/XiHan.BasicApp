@@ -1,8 +1,8 @@
 /**
- * 布局偏好组合式（layout-preferences）单元测试。
- * 职责边界：它是 layout-state store 的一层可写 computed 视图，供偏好抽屉 v-model 直接绑定。
+ * 布局偏好组合式（layout-preferences）单元测试
+ * 职责边界：它是 layout-state store 的一层可写 computed 视图，供偏好抽屉 v-model 直接绑定
  * 覆盖字段集合（只暴露偏好抽屉需要的九项、不含导航三项与 toggleSidebar）、
- * 双向绑定的读与写，以及写入最终仍落到 appStore setter 的约束链。
+ * 双向绑定的读与写，以及写入最终仍落到 appStore setter 的约束链
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

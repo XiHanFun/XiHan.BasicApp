@@ -1,7 +1,7 @@
 /**
  * 第三方登录回调页（oauth-callback.vue，4.x 原样搬入、换成 6.0 的一次性票据）：
  * 后端回跳的错误码换成友好文案、只认本标签页发起的流程带回来的票据、
- * 绑定由登录着的人确认后回个人中心「账号绑定」、换票据 / 确认失败显示后端本地化的 detail，稍后回登录页或个人中心。
+ * 绑定由登录着的人确认后回个人中心「账号绑定」、换票据 / 确认失败显示后端本地化的 detail，稍后回登录页或个人中心
  */
 import type { AppContextApis } from '~/types'
 import { flushPromises, mount } from '@vue/test-utils'

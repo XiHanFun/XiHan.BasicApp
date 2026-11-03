@@ -9,7 +9,7 @@ import ChartWidget from './ChartWidget.vue'
 
 /**
  * 登录失败原因：近 30 天失败的登录按错误码排行（显示名取该错误码的失败原因），棒棒糖条形、末端写数；
- * 只列最多的几种，其余并成「其他」。
+ * 只列最多的几种，其余并成「其他」
  */
 defineOptions({ name: 'LoginFailuresWidget' })
 

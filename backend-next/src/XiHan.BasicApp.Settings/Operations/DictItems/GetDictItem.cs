@@ -10,15 +10,15 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Operations.DictItems;
 
 /// <summary>
-/// 字典项详情：<c>GET /api/dict-items/{id}</c>（带层级）。
+/// 字典项详情：<c>GET /api/dict-items/{id}</c>（带层级）
 /// </summary>
-/// <param name="items">字典项仓储。</param>
-/// <param name="service">字典域服务。</param>
+/// <param name="items">字典项仓储</param>
+/// <param name="service">字典域服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsRead)]
 public sealed class GetDictItem(IRepository<SysDictItem, Guid> items, DictService service) : IOperation<GetDictItemRequest, DictItemResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "dict-items.get";
 

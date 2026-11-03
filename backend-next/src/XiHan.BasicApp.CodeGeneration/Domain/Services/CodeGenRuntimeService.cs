@@ -17,24 +17,24 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 
 /// <summary>
-/// 零代码运行时：按表配置只读查看数据。
+/// 零代码运行时：按表配置只读查看数据
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>DynamicRuntimeAppService</c>：表名只取已配置且启用的表配置（不接受请求给的表名，没有注入面），按列配置给出表结构，按表名分页只读，不生成也不编译代码。
-/// 主库的表照 4.x 补上与实体读同口径的条件：有租户列的只看调用方这一侧的行，有软删列的不看已删的。
+/// 照 4.x 的 <c>DynamicRuntimeAppService</c>：表名只取已配置且启用的表配置（不接受请求给的表名，没有注入面），按列配置给出表结构，按表名分页只读，不生成也不编译代码
+/// 主库的表照 4.x 补上与实体读同口径的条件：有租户列的只看调用方这一侧的行，有软删列的不看已删的
 /// 与 4.x 不同（按缺陷修，方案 C2）：按表配置的数据源查（4.x 一律查主库）；外部库的表不套这两个条件（租户与软删是 BasicApp 表的约定）；
-/// 只按列配置逐列取（4.x 取 *），数据行按属性名（camelCase）给键（4.x 按库里的列名给键，前端按属性名取，取不到）；列配置里有、库里已没有的列读不出，先同步结构。
+/// 只按列配置逐列取（4.x 取 *），数据行按属性名（camelCase）给键（4.x 按库里的列名给键，前端按属性名取，取不到）；列配置里有、库里已没有的列读不出，先同步结构
 /// </remarks>
-/// <param name="tables">表配置服务。</param>
-/// <param name="dataSources">数据源服务。</param>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="tables">表配置服务</param>
+/// <param name="dataSources">数据源服务</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class CodeGenRuntimeService(CodeGenTableService tables, CodeGenDataSourceService dataSources, SqlSugarUnitOfWork unitOfWork)
 {
     /// <summary>
-    /// 表结构。
+    /// 表结构
     /// </summary>
-    /// <param name="id">表配置 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="id">表配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<CodegenRuntimeSchemaResponse>> SchemaAsync(Guid id, CancellationToken cancellationToken)
     {
         var enabled = await EnabledAsync(id, cancellationToken).ConfigureAwait(false);
@@ -57,10 +57,10 @@ public sealed class CodeGenRuntimeService(CodeGenTableService tables, CodeGenDat
     }
 
     /// <summary>
-    /// 分页只读数据。
+    /// 分页只读数据
     /// </summary>
-    /// <param name="request">请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">请求</param>
+    /// <param name="context">调用上下文</param>
     public async Task<Result<PageResult<IReadOnlyDictionary<string, JsonElement>>>> ListAsync(ListCodegenRuntimeRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

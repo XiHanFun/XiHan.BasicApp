@@ -54,8 +54,8 @@ export function actionsConflict(actions: readonly TableAction[]): boolean {
 }
 
 /**
- * SchemaPage 的资源：分页与删除。
- * 生成模式、交付方式、生成结果与状态多选合成 in；关键字匹配表名、类名与表注释。
+ * SchemaPage 的资源：分页与删除
+ * 生成模式、交付方式、生成结果与状态多选合成 in；关键字匹配表名、类名与表注释
  */
 export function tablesResource(): SchemaResource<TableRow> {
   return {

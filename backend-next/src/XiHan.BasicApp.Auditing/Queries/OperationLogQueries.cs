@@ -16,22 +16,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Queries;
 
 /// <summary>
-/// 操作日志查询。
+/// 操作日志查询
 /// </summary>
 /// <remarks>
-/// SqlSugar 直查框架 <c>Auditing.Database</c> 的 <c>AuditRecord</c> 表，它不分表、不实现 <c>IMultiTenant</c>。
+/// SqlSugar 直查框架 <c>Auditing.Database</c> 的 <c>AuditRecord</c> 表，它不分表、不实现 <c>IMultiTenant</c>
 /// 租户主体只看本租户的记录，平台主体只看没有租户的记录。关键字匹配操作 ID、资源与错误码；筛选 <c>occurredAt</c>（ge / gt / le / lt）、<c>operationId</c>（eq / contains）、
-/// <c>succeeded</c>、<c>errorCode</c>、<c>traceId</c>、<c>userId</c>；排序 <c>occurredAt</c>（缺省倒序）、<c>operationId</c>。
-/// 列表要页码与总数，框架查询契约 <c>IAuditTrail</c> 只有按写入序号的续页，所以管理端列表走表本身（ADR-0028 写明表结构归应用登记）。
+/// <c>succeeded</c>、<c>errorCode</c>、<c>traceId</c>、<c>userId</c>；排序 <c>occurredAt</c>（缺省倒序）、<c>operationId</c>
+/// 列表要页码与总数，框架查询契约 <c>IAuditTrail</c> 只有按写入序号的续页，所以管理端列表走表本身（ADR-0028 写明表结构归应用登记）
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldOccurredAt = "occurredAt";
     private const string FieldOperationId = "operationId";
 
     /// <summary>
-    /// 分页列出操作日志。
+    /// 分页列出操作日志
     /// </summary>
     public async ValueTask<Result<PageResult<OperationLogResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
@@ -81,10 +81,10 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 按主键取一条操作日志。
+    /// 按主键取一条操作日志
     /// </summary>
     /// <remarks>
-    /// 不在当前一侧即找不到。
+    /// 不在当前一侧即找不到
     /// </remarks>
     public async ValueTask<Result<OperationLogDetailResponse>> GetAsync(Guid id, InvocationContext context)
     {
@@ -100,7 +100,7 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 按 trace-id 取当前一侧的记录（链路聚合用），按写入序号正序。
+    /// 按 trace-id 取当前一侧的记录（链路聚合用），按写入序号正序
     /// </summary>
     public async Task<IReadOnlyList<OperationLogResponse>> ListByTracesAsync(IReadOnlyCollection<string> traceIds, int take, InvocationContext context)
     {
@@ -117,7 +117,7 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 按用户取当前一侧的记录（链路聚合用），按写入序号正序。
+    /// 按用户取当前一侧的记录（链路聚合用），按写入序号正序
     /// </summary>
     public async Task<IReadOnlyList<OperationLogResponse>> ListByUserAsync(Guid userId, DateTimeOffset? from, DateTimeOffset? to, int take, InvocationContext context)
     {
@@ -179,11 +179,11 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 把审计记录投影成列表项。
+    /// 把审计记录投影成列表项
     /// </summary>
     /// <remarks>
     /// 登录名、会话、耗时与写入时记下的客户端信息取细节；描述是操作的本地化标题（与 OpenAPI 摘要同一个键，取不到为空）；
-    /// 有消息键的错误按调用方语言重新渲染（错误细节列就是模板参数），字面错误用落库时的文本。
+    /// 有消息键的错误按调用方语言重新渲染（错误细节列就是模板参数），字面错误用落库时的文本
     /// </remarks>
     private static OperationLogResponse Item(AuditRecord record, InvocationContext context)
     {
@@ -242,10 +242,10 @@ public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 操作的本地化标题。
+    /// 操作的本地化标题
     /// </summary>
     /// <remarks>
-    /// 键为操作 ID（<c>-</c> 换成 <c>_</c>）加 <c>.title</c>，按调用方的区域取，回退链用尽仍没有即为空。
+    /// 键为操作 ID（<c>-</c> 换成 <c>_</c>）加 <c>.title</c>，按调用方的区域取，回退链用尽仍没有即为空
     /// </remarks>
     private static string? TitleOf(string operationId, InvocationContext context)
     {

@@ -17,45 +17,45 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.lock</c> 的请求。
+/// <c>auth.lock</c> 的请求
 /// </summary>
-/// <param name="Password">锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了，4.x 同）。</param>
+/// <param name="Password">锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了，4.x 同）</param>
 public sealed record LockRequest([StringLength(128)] string? Password);
 
 /// <summary>
-/// <c>auth.lock</c> 的结果。
+/// <c>auth.lock</c> 的结果
 /// </summary>
-/// <param name="Reason">锁定原因（<c>ScreenLock</c>）。</param>
-/// <param name="LockedAt">锁定时间。</param>
+/// <param name="Reason">锁定原因（<c>ScreenLock</c>）</param>
+/// <param name="LockedAt">锁定时间</param>
 public sealed record LockResponse(string Reason, DateTimeOffset LockedAt);
 
 /// <summary>
-/// <c>auth.unlock</c> 的请求。
+/// <c>auth.unlock</c> 的请求
 /// </summary>
-/// <param name="Password">锁屏密码。</param>
+/// <param name="Password">锁屏密码</param>
 public sealed record UnlockRequest([StringLength(128)] string? Password);
 
 /// <summary>
-/// <c>auth.unlock</c> 的结果。
+/// <c>auth.unlock</c> 的结果
 /// </summary>
-/// <param name="Unlocked">是否解开了（本来没锁为 <see langword="false"/>）。</param>
+/// <param name="Unlocked">是否解开了（本来没锁为 <see langword="false"/>）</param>
 public sealed record UnlockResponse(bool Unlocked);
 
 /// <summary>
-/// 锁屏当前会话。
+/// 锁屏当前会话
 /// </summary>
 /// <remarks>
 /// 服务端强制，4.x 同。给当前令牌的 <c>sid</c> 会话记下锁定原因与锁屏密码的哈希，之后这个会话的请求除解锁与注销外都以 <c>IDENTITY_DENIED_002</c> 拒绝，
-/// 只作用于这一个会话、不影响同一用户的其他端。只要求已认证。
+/// 只作用于这一个会话、不影响同一用户的其他端。只要求已认证
 /// </remarks>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="gate">会话门禁。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="gate">会话门禁</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class LockSession(IRepository<SysUserSession, Guid> sessions, SessionGate gate, TimeProvider clock) : IOperation<LockRequest, LockResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.lock";
 
@@ -92,22 +92,22 @@ public sealed class LockSession(IRepository<SysUserSession, Guid> sessions, Sess
 }
 
 /// <summary>
-/// 用锁屏密码解锁。
+/// 用锁屏密码解锁
 /// </summary>
 /// <remarks>
 /// 4.x 同。本来没锁即无事；锁定原因不是锁屏即 <c>IDENTITY_CONFLICT_006</c>（别的锁定不能用锁屏密码开）；
-/// 密码不对计一次失败（<c>IDENTITY_DENIED_013</c>，带剩余次数），连错 5 次吊销会话（<c>IDENTITY_DENIED_014</c>）；锁屏密码的哈希缺了也直接吊销。
-/// 失败的调用会回滚，所以计数与吊销在调用之外的独立事务里写。锁定中的会话也能调用（门禁放行）。只要求已认证。
+/// 密码不对计一次失败（<c>IDENTITY_DENIED_013</c>，带剩余次数），连错 5 次吊销会话（<c>IDENTITY_DENIED_014</c>）；锁屏密码的哈希缺了也直接吊销
+/// 失败的调用会回滚，所以计数与吊销在调用之外的独立事务里写。锁定中的会话也能调用（门禁放行）。只要求已认证
 /// </remarks>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="gate">会话门禁。</param>
-/// <param name="scopes">作用域工厂（调用之外写计数与吊销）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="gate">会话门禁</param>
+/// <param name="scopes">作用域工厂（调用之外写计数与吊销）</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class Unlock(IRepository<SysUserSession, Guid> sessions, SessionGate gate, IServiceScopeFactory scopes, TimeProvider clock) : IOperation<UnlockRequest, UnlockResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.unlock";
 
@@ -176,7 +176,7 @@ public sealed class Unlock(IRepository<SysUserSession, Guid> sessions, SessionGa
     }
 
     /// <summary>
-    /// 吊销并清掉锁屏态（否则留下一个既锁屏又失效的会话），在调用之外提交。
+    /// 吊销并清掉锁屏态（否则留下一个既锁屏又失效的会话），在调用之外提交
     /// </summary>
     private async Task RevokeAsync(Guid sessionId, string reason, CancellationToken cancellationToken)
     {
@@ -196,15 +196,15 @@ public sealed class Unlock(IRepository<SysUserSession, Guid> sessions, SessionGa
 }
 
 /// <summary>
-/// 当前令牌的会话（锁屏、解锁只作用于这一个会话）。
+/// 当前令牌的会话（锁屏、解锁只作用于这一个会话）
 /// </summary>
 internal static class CurrentSessions
 {
     /// <summary>
-    /// 取当前令牌 <c>sid</c> 的会话。
+    /// 取当前令牌 <c>sid</c> 的会话
     /// </summary>
     /// <remarks>
-    /// 令牌不带会话即 <c>IDENTITY_VALIDATION</c> 的无会话，会话不在或已失效即 <c>IDENTITY_DENIED_001</c>。
+    /// 令牌不带会话即 <c>IDENTITY_VALIDATION</c> 的无会话，会话不在或已失效即 <c>IDENTITY_DENIED_001</c>
     /// </remarks>
     public static async ValueTask<Result<SysUserSession>> FindAsync(IRepository<SysUserSession, Guid> sessions, InvocationContext context)
     {

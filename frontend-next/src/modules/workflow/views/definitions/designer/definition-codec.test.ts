@@ -1,8 +1,8 @@
 /**
- * 后端定义文档（WorkflowJson）↔ 流程设计器流程定义的单元测试。
+ * 后端定义文档（WorkflowJson）↔ 流程设计器流程定义的单元测试
  *
- * 职责边界：只测 BasicApp 这一层——存过的定义照原坐标打开、往返不丢字段、旧版受理人写法的迁移。
- * WorkflowJson 与 4.x 写法的逐项换算由 ~/designers 的映射层测试覆盖，预设自身的互转规则由流程设计器仓库的测试覆盖。
+ * 职责边界：只测 BasicApp 这一层——存过的定义照原坐标打开、往返不丢字段、旧版受理人写法的迁移
+ * WorkflowJson 与 4.x 写法的逐项换算由 ~/designers 的映射层测试覆盖，预设自身的互转规则由流程设计器仓库的测试覆盖
  */
 import { describe, expect, it } from 'vitest'
 import { openDefinition, serializeDefinition } from './definition-codec'

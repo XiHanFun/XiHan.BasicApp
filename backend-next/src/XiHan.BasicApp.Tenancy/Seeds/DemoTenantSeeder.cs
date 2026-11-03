@@ -18,23 +18,23 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Seeds;
 
 /// <summary>
-/// 演示租户种子。
+/// 演示租户种子
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。写入：
 /// 租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
-/// 平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿），以及流程演示要用的三个成员账号 <see cref="DemoStaff"/>（密码同管理员、首次登录须改密，照 4.x 的部门主管、项目负责人与人事专员）。
-/// 新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写，成员账号按登录名只首写、删掉的不补。
+/// 平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿），以及流程演示要用的三个成员账号 <see cref="DemoStaff"/>（密码同管理员、首次登录须改密，照 4.x 的部门主管、项目负责人与人事专员）
+/// 新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写，成员账号按登录名只首写、删掉的不补
 /// </remarks>
-/// <param name="tenants">租户仓储。</param>
-/// <param name="members">成员仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）。</param>
-/// <param name="service">租户域服务。</param>
-/// <param name="editions">套餐域服务。</param>
-/// <param name="options">种子配置。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="tenants">租户仓储</param>
+/// <param name="members">成员仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）</param>
+/// <param name="service">租户域服务</param>
+/// <param name="editions">套餐域服务</param>
+/// <param name="options">种子配置</param>
+/// <param name="ids">标识生成器</param>
 public sealed class DemoTenantSeeder(
     IRepository<SysTenant, Guid> tenants,
     IRepository<SysTenantMember, Guid> members,
@@ -47,25 +47,25 @@ public sealed class DemoTenantSeeder(
     IIdGenerator<Guid> ids) : ISeeder
 {
     /// <summary>
-    /// 演示租户 ID。
+    /// 演示租户 ID
     /// </summary>
     public const string DemoTenantId = "demo";
 
     /// <summary>
-    /// 演示租户管理员登录名。
+    /// 演示租户管理员登录名
     /// </summary>
     public const string DemoAdminUserName = "admin";
 
     /// <summary>
-    /// 演示租户管理员初始密码。
+    /// 演示租户管理员初始密码
     /// </summary>
     public const string DemoAdminPassword = "Demo@123456";
 
     /// <summary>
-    /// 流程演示要用的成员账号。
+    /// 流程演示要用的成员账号
     /// </summary>
     /// <remarks>
-    /// 登录名与显示名；部门、岗位与负责人由 Organization 的演示种子写，角色由 Access 的演示种子写。
+    /// 登录名与显示名；部门、岗位与负责人由 Organization 的演示种子写，角色由 Access 的演示种子写
     /// </remarks>
     public static IReadOnlyList<(string UserName, string DisplayName)> DemoStaff { get; } = [("manager", "Demo Manager"), ("lead", "Demo Lead"), ("hr", "Demo HR")];
 

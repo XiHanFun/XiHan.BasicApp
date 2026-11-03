@@ -1,8 +1,8 @@
 /**
- * 浏览器语言偵测单元测试。
+ * 浏览器语言偵测单元测试
  *
  * 职责边界：resolveBrowserLocale 的比对规则（完全相符 / 中文繁简 / 主语言 / 退回），
- * 以及 resolveInitialLocale 的优先序（本地存储 → 浏览器 → 默认语言）。
+ * 以及 resolveInitialLocale 的优先序（本地存储 → 浏览器 → 默认语言）
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE_KEY } from '~/constants'

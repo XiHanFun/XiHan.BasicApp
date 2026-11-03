@@ -16,10 +16,10 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Domain.Services;
 
 /// <summary>
-/// 账号域服务。
+/// 账号域服务
 /// </summary>
 /// <remarks>
-/// 作用域，用调用方的工作单元。按名找用户、取安全行、设密码（策略 + 历史 + 安全戳）、吊销会话。业务失败返回 <see cref="Result"/>。
+/// 作用域，用调用方的工作单元。按名找用户、取安全行、设密码（策略 + 历史 + 安全戳）、吊销会话。业务失败返回 <see cref="Result"/>
 /// </remarks>
 public sealed class UserAccountService
 {
@@ -36,7 +36,7 @@ public sealed class UserAccountService
     private readonly IUnitOfWork _unitOfWork;
 
     /// <summary>
-    /// 构造服务。
+    /// 构造服务
     /// </summary>
     public UserAccountService(
         IRepository<SysUser, Guid> users,
@@ -67,7 +67,7 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 按注册地租户与登录名找用户（不含已删除）。
+    /// 按注册地租户与登录名找用户（不含已删除）
     /// </summary>
     public async Task<Maybe<SysUser>> FindByNameAsync(string homeTenantId, string userName, CancellationToken cancellationToken)
     {
@@ -76,16 +76,16 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 按注册地租户与联系方式找能用验证码登录的用户。
+    /// 按注册地租户与联系方式找能用验证码登录的用户
     /// </summary>
     /// <remarks>
-    /// 邮箱不分大小写；手机号要已验证（4.x 同）。只取正常状态的，至多两个：调用方据此判断「恰好一个」。
+    /// 邮箱不分大小写；手机号要已验证（4.x 同）。只取正常状态的，至多两个：调用方据此判断「恰好一个」
     /// </remarks>
-    /// <param name="homeTenantId">注册地租户。</param>
-    /// <param name="channel">渠道。</param>
-    /// <param name="target">邮箱（已转小写）或手机号。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>匹配的用户，至多两个。</returns>
+    /// <param name="homeTenantId">注册地租户</param>
+    /// <param name="channel">渠道</param>
+    /// <param name="target">邮箱（已转小写）或手机号</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>匹配的用户，至多两个</returns>
     public async Task<IReadOnlyList<SysUser>> FindByContactAsync(string homeTenantId, ContactChannel channel, string target, CancellationToken cancellationToken)
     {
         var active = UserStatus.Active;
@@ -96,11 +96,11 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 取用户的安全行。
+    /// 取用户的安全行
     /// </summary>
     /// <remarks>
     /// 没有即建一行空的（没有密码、不能登录）。只读调用里不建（框架拒绝只读工作单元里的写入）：
-    /// 安全行在建用户、注册、种子与登录这些写入里建（4.x 在建用户时建），只读调用读到缺行按缺省值给出一行不落库的。
+    /// 安全行在建用户、注册、种子与登录这些写入里建（4.x 在建用户时建），只读调用读到缺行按缺省值给出一行不落库的
     /// </remarks>
     public async Task<Result<SysUserSecurity>> SecurityOfAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -121,10 +121,10 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 设置密码。
+    /// 设置密码
     /// </summary>
     /// <remarks>
-    /// 策略校验、与最近 N 个历史密码比对、写散列与安全戳、追加历史；<paramref name="mustChange"/> 为真时要求下次登录改密。
+    /// 策略校验、与最近 N 个历史密码比对、写散列与安全戳、追加历史；<paramref name="mustChange"/> 为真时要求下次登录改密
     /// </remarks>
     public async Task<Result> SetPasswordAsync(SysUserSecurity security, string password, bool mustChange, CancellationToken cancellationToken)
     {
@@ -162,10 +162,10 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 吊销用户的有效会话。
+    /// 吊销用户的有效会话
     /// </summary>
     /// <remarks>
-    /// 用于改密、重置、锁定、删除时。经 <see cref="RevokeAsync"/> 让门禁缓存失效并在提交后通知这些会话的客户端；<paramref name="except"/> 指定要保留的会话（本人改密时保留当前会话）。
+    /// 用于改密、重置、锁定、删除时。经 <see cref="RevokeAsync"/> 让门禁缓存失效并在提交后通知这些会话的客户端；<paramref name="except"/> 指定要保留的会话（本人改密时保留当前会话）
     /// </remarks>
     public async Task<Result> RevokeSessionsAsync(Guid userId, string reason, CancellationToken cancellationToken, Guid? except = null)
     {
@@ -180,15 +180,15 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 吊销一批有效会话。
+    /// 吊销一批有效会话
     /// </summary>
     /// <remarks>
-    /// 记吊销时间与原因、让门禁缓存失效；调用提交之后经实时连接推送 <see cref="RealtimeMethods.ForceLogout"/> 并断开这些会话的连接。
+    /// 记吊销时间与原因、让门禁缓存失效；调用提交之后经实时连接推送 <see cref="RealtimeMethods.ForceLogout"/> 并断开这些会话的连接
     /// </remarks>
-    /// <param name="sessions">要吊销的会话（调用方已核对过有效与可见）。</param>
-    /// <param name="reason">吊销原因（<c>revoked</c>、<c>locked</c> 等，落库）。</param>
-    /// <param name="message">给被下线用户看的说明；为空即客户端的缺省文案。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="sessions">要吊销的会话（调用方已核对过有效与可见）</param>
+    /// <param name="reason">吊销原因（<c>revoked</c>、<c>locked</c> 等，落库）</param>
+    /// <param name="message">给被下线用户看的说明；为空即客户端的缺省文案</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result> RevokeAsync(IReadOnlyList<SysUserSession> sessions, string reason, string? message, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(sessions);
@@ -223,10 +223,10 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 取用户在某个租户侧的角色 ID。
+    /// 取用户在某个租户侧的角色 ID
     /// </summary>
     /// <remarks>
-    /// 租户侧为 <see langword="null"/> 即平台。角色 ID 进入访问令牌的 <c>role</c> 声明；由 Access 包的 <see cref="IUserRoleResolver"/> 提供，没有实现即空。
+    /// 租户侧为 <see langword="null"/> 即平台。角色 ID 进入访问令牌的 <c>role</c> 声明；由 Access 包的 <see cref="IUserRoleResolver"/> 提供，没有实现即空
     /// </remarks>
     public async Task<IReadOnlyList<string>> RolesOfAsync(Guid userId, string? tenantId, CancellationToken cancellationToken)
     {
@@ -245,7 +245,7 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 新安全戳。
+    /// 新安全戳
     /// </summary>
     public static string NewStamp() => Guid.NewGuid().ToString("N");
 }

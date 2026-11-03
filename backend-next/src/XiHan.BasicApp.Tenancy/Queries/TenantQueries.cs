@@ -12,12 +12,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Queries;
 
 /// <summary>
-/// 租户列表查询（SqlSugar 直查，平台库）。
+/// 租户列表查询（SqlSugar 直查，平台库）
 /// </summary>
 /// <remarks>
-/// 关键字匹配租户 ID 与名称；筛选 <c>tenantId</c>、<c>name</c>、<c>status</c>；排序 <c>tenantId</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>、<c>expiresAt</c>。
+/// 关键字匹配租户 ID 与名称；筛选 <c>tenantId</c>、<c>name</c>、<c>status</c>；排序 <c>tenantId</c>、<c>name</c>、<c>order</c>、<c>createdAt</c>、<c>expiresAt</c>
 /// </remarks>
-/// <param name="unitOfWork">SqlSugar 工作单元。</param>
+/// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class TenantQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldTenantId = "tenantId";
@@ -28,7 +28,7 @@ public sealed class TenantQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldExpiresAt = "expiresAt";
 
     /// <summary>
-    /// 分页列出租户。
+    /// 分页列出租户
     /// </summary>
     public async ValueTask<Result<PageResult<TenantResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {

@@ -6,8 +6,8 @@ import CronExpression from '~/components/common/CronExpression.vue'
 import { intervalExpression, intervalSecondsOf } from '../job'
 
 /**
- * 计划编辑：照 4.x 任务表单的「触发方式」——Cron 用 4.x 的 Cron 构建器（输入框加「构建」弹窗），间隔填秒数。
- * 对外只有一个计划文本（v-model:expression）：Cron 即表达式本身，间隔写成 `every [d.]hh:mm:ss`，与后端的计划写法一致。
+ * 计划编辑：照 4.x 任务表单的「触发方式」——Cron 用 4.x 的 Cron 构建器（输入框加「构建」弹窗），间隔填秒数
+ * 对外只有一个计划文本（v-model:expression）：Cron 即表达式本身，间隔写成 `every [d.]hh:mm:ss`，与后端的计划写法一致
  */
 defineOptions({ name: 'JobScheduleEditor' })
 

@@ -13,13 +13,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Queries;
 
 /// <summary>
-/// 当前一侧的文件列表查询。
+/// 当前一侧的文件列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；按大类、状态、访问级别多选，按临时、来源、扩展名、内容类型筛选，上传时间与到期时间可按区间；缺省按上传时间倒序（4.x 同）。
-/// 数据范围（方案 5.9）按上传人套用：受限的主体只看得到自己与可见部门里的用户上传的文件；下载与预签名仍按访问级别。
+/// 关键字匹配原始文件名、系统文件名、扩展名、内容类型与标签；按大类、状态、访问级别多选，按临时、来源、扩展名、内容类型筛选，上传时间与到期时间可按区间；缺省按上传时间倒序（4.x 同）
+/// 数据范围（方案 5.9）按上传人套用：受限的主体只看得到自己与可见部门里的用户上传的文件；下载与预签名仍按访问级别
 /// </remarks>
-/// <param name="rows">文件读写。</param>
+/// <param name="rows">文件读写</param>
 public sealed class FileQueries(SideRows rows)
 {
     private const string FieldKind = "kind";
@@ -36,11 +36,11 @@ public sealed class FileQueries(SideRows rows)
     private const string FieldDownloadCount = "downloadCount";
 
     /// <summary>
-    /// 分页列出。
+    /// 分页列出
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>一页文件。</returns>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>一页文件</returns>
     public async ValueTask<Result<PageResult<FileResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);

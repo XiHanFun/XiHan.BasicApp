@@ -35,6 +35,7 @@ public sealed record CreateConfigRequest(
 - 时间字段用 `DateTimeOffset`（UTC）；主键 `Guid`；租户 ID `string`。
 - 请求与响应类型登记进本包的 `<包>JsonContext`（源生成的 `JsonSerializerContext`），枚举按字符串序列化。
 - XML 文档注释的 `<summary>` 只写一句，细节写进 `<remarks>` / `<param>`：DTO 的注释会成为 OpenAPI 的字段说明，`XmlDocumentationTests` 检查格式。
+- 注释（文档注释与行注释，前端同样）句末不加「。」，一行里有多句时句间照常用「。」；`XmlDocumentationTests` 守护后端，消息目录与本地化文案照常带标点。
 
 ## 三、实现操作
 

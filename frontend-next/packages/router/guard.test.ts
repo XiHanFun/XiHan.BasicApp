@@ -2,7 +2,7 @@ import type { Router, RouteRecordRaw } from 'vue-router'
 /**
  * 路由守卫（guard.ts，与 4.x 同一套行为）：
  * 登录态分支、后端菜单装载与失败收敛、首页与 404、meta 权限校验，以及 UI 副作用——
- * 顶部进度条与页面 loading 遮罩的开收、document.title、标签栏的写入 / 固定 / 裁剪。
+ * 顶部进度条与页面 loading 遮罩的开收、document.title、标签栏的写入 / 固定 / 裁剪
  */
 import type { MenuNode, Permissions, Session } from '~/stores'
 import { createPinia, setActivePinia } from 'pinia'

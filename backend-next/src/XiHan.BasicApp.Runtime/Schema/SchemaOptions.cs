@@ -7,52 +7,52 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Runtime.Schema;
 
 /// <summary>
-/// 结构升级的配置。
+/// 结构升级的配置
 /// </summary>
 /// <remarks>
-/// 配置节 <c>BasicApp:Schema</c>。
+/// 配置节 <c>BasicApp:Schema</c>
 /// </remarks>
 public sealed record SchemaOptions
 {
     /// <summary>
-    /// 配置节。
+    /// 配置节
     /// </summary>
     public const string ConfigurationSection = "BasicApp:Schema";
 
     /// <summary>
-    /// 启动时是否自动升级。
+    /// 启动时是否自动升级
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>AutoUpgrade</c>，缺省开。关掉时由运维先执行 <c>schema upgrade</c> 命令再启动。
+    /// 配置键 <c>AutoUpgrade</c>，缺省开。关掉时由运维先执行 <c>schema upgrade</c> 命令再启动
     /// </remarks>
     public bool AutoUpgrade { get; init; } = true;
 
     /// <summary>
-    /// 脚本目录。
+    /// 脚本目录
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>Directory</c>，缺省应用目录下的 <c>Schema</c>；其下每个版本一个子目录（如 <c>6.0.0</c>），目录里的 <c>.sql</c> 按文件名顺序执行。
+    /// 配置键 <c>Directory</c>，缺省应用目录下的 <c>Schema</c>；其下每个版本一个子目录（如 <c>6.0.0</c>），目录里的 <c>.sql</c> 按文件名顺序执行
     /// </remarks>
     public string Directory { get; init; } = Path.Combine(AppContext.BaseDirectory, "Schema");
 
     /// <summary>
-    /// 升级锁的失效时间。
+    /// 升级锁的失效时间
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>LockExpiryMinutes</c>，缺省 30 分钟；持锁节点中途退出时，过了这么久别的节点才能接手。
+    /// 配置键 <c>LockExpiryMinutes</c>，缺省 30 分钟；持锁节点中途退出时，过了这么久别的节点才能接手
     /// </remarks>
     public TimeSpan LockExpiry { get; init; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
-    /// 等别的节点升级完的最长时间。
+    /// 等别的节点升级完的最长时间
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>LockWaitMinutes</c>，缺省 10 分钟；等不到即升级失败、中断启动。
+    /// 配置键 <c>LockWaitMinutes</c>，缺省 10 分钟；等不到即升级失败、中断启动
     /// </remarks>
     public TimeSpan LockWait { get; init; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// 读取配置。
+    /// 读取配置
     /// </summary>
     public static SchemaOptions FromConfiguration(IConfiguration configuration)
     {

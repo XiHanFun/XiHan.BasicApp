@@ -13,57 +13,57 @@ using XiHan.Framework.Workflow.Abstractions.Assignees;
 namespace XiHan.BasicApp.Workflow.Infrastructure;
 
 /// <summary>
-/// 组织类受理人规则的类型名。
+/// 组织类受理人规则的类型名
 /// </summary>
 /// <remarks>
-/// 与 4.x 同名（设计器预设的规则编辑器按这些名字），框架内置的是 <c>User</c>、<c>Starter</c>、<c>Expression</c>。
+/// 与 4.x 同名（设计器预设的规则编辑器按这些名字），框架内置的是 <c>User</c>、<c>Starter</c>、<c>Expression</c>
 /// </remarks>
 public static class OrganizationAssigneeRuleTypes
 {
     /// <summary>
-    /// 角色成员（按角色编码）。
+    /// 角色成员（按角色编码）
     /// </summary>
     public const string Role = "Role";
 
     /// <summary>
-    /// 部门成员（按部门编码，不含下级）。
+    /// 部门成员（按部门编码，不含下级）
     /// </summary>
     public const string Department = "Department";
 
     /// <summary>
-    /// 部门负责人（按部门编码）。
+    /// 部门负责人（按部门编码）
     /// </summary>
     public const string DepartmentLeader = "DepartmentLeader";
 
     /// <summary>
-    /// 岗位任职（按岗位编码）。
+    /// 岗位任职（按岗位编码）
     /// </summary>
     public const string Position = "Position";
 
     /// <summary>
-    /// 发起人第 N 级主管。
+    /// 发起人第 N 级主管
     /// </summary>
     public const string StarterLeader = "StarterLeader";
 
     /// <summary>
-    /// 发起人第 1 到 N 级主管链。
+    /// 发起人第 1 到 N 级主管链
     /// </summary>
     public const string StarterLeaderChain = "StarterLeaderChain";
 
     /// <summary>
-    /// 主管层级的上限。
+    /// 主管层级的上限
     /// </summary>
     public const int MaxLevel = 10;
 }
 
 /// <summary>
-/// 组织类受理人的公共部分。
+/// 组织类受理人的公共部分
 /// </summary>
 /// <remarks>
 /// 照 4.x：一切候选人最后与「实例所在一侧可见的在用账号」求交（平台是平台账号，租户是注册在该租户的账号与普通成员，运维支持成员不算），
-/// 停用的账号、离开租户的成员收不到待办；保持候选的顺序、去重。解析在实例所属分区的调用里执行（组织数据按调用的租户读）。
+/// 停用的账号、离开租户的成员收不到待办；保持候选的顺序、去重。解析在实例所属分区的调用里执行（组织数据按调用的租户读）
 /// </remarks>
-/// <param name="users">用户目录。</param>
+/// <param name="users">用户目录</param>
 public abstract class OrganizationAssigneeProvider(IUserDirectory users) : IAssigneeProvider
 {
     /// <inheritdoc />
@@ -87,31 +87,31 @@ public abstract class OrganizationAssigneeProvider(IUserDirectory users) : IAssi
     }
 
     /// <summary>
-    /// 规则给出的候选人（求交之前）。
+    /// 规则给出的候选人（求交之前）
     /// </summary>
-    /// <param name="resolution">解析上下文。</param>
-    /// <returns>按规则顺序的候选用户 ID。</returns>
+    /// <param name="resolution">解析上下文</param>
+    /// <returns>按规则顺序的候选用户 ID</returns>
     protected abstract Task<IReadOnlyList<Guid>> CandidatesAsync(AssigneeResolution resolution);
 
     /// <summary>
-    /// 实例所在的一侧。
+    /// 实例所在的一侧
     /// </summary>
-    /// <param name="resolution">解析上下文。</param>
-    /// <returns>平台为 <c>platform</c>，否则是租户 ID。</returns>
+    /// <param name="resolution">解析上下文</param>
+    /// <returns>平台为 <c>platform</c>，否则是租户 ID</returns>
     protected static string SideOf(AssigneeResolution resolution) => resolution.Instance.TenantId ?? TenantIds.Platform;
 
     /// <summary>
-    /// 编码类规则的编码。
+    /// 编码类规则的编码
     /// </summary>
-    /// <param name="rule">规则。</param>
-    /// <returns>去空白的编码。</returns>
+    /// <param name="rule">规则</param>
+    /// <returns>去空白的编码</returns>
     protected static IReadOnlyList<string> CodesOf(AssigneeRule rule) => rule.Values.Where(static v => !string.IsNullOrWhiteSpace(v)).Select(static v => v.Trim()).ToList();
 
     /// <summary>
-    /// 编码类规则至少要一个编码。
+    /// 编码类规则至少要一个编码
     /// </summary>
-    /// <param name="rule">规则。</param>
-    /// <returns>是否合法。</returns>
+    /// <param name="rule">规则</param>
+    /// <returns>是否合法</returns>
     protected static Result RequireCodes(AssigneeRule rule)
         => CodesOf(rule).Count > 0
             ? Result.Success()
@@ -119,10 +119,10 @@ public abstract class OrganizationAssigneeProvider(IUserDirectory users) : IAssi
 }
 
 /// <summary>
-/// 角色成员。
+/// 角色成员
 /// </summary>
-/// <param name="roles">角色成员目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="roles">角色成员目录</param>
+/// <param name="users">用户目录</param>
 public sealed class RoleAssigneeProvider(IRoleMemberDirectory roles, IUserDirectory users) : OrganizationAssigneeProvider(users)
 {
     /// <inheritdoc />
@@ -136,10 +136,10 @@ public sealed class RoleAssigneeProvider(IRoleMemberDirectory roles, IUserDirect
 }
 
 /// <summary>
-/// 部门成员。
+/// 部门成员
 /// </summary>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public sealed class DepartmentAssigneeProvider(IOrganizationDirectory organization, IUserDirectory users) : OrganizationAssigneeProvider(users)
 {
     /// <inheritdoc />
@@ -153,10 +153,10 @@ public sealed class DepartmentAssigneeProvider(IOrganizationDirectory organizati
 }
 
 /// <summary>
-/// 部门负责人。
+/// 部门负责人
 /// </summary>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public sealed class DepartmentLeaderAssigneeProvider(IOrganizationDirectory organization, IUserDirectory users) : OrganizationAssigneeProvider(users)
 {
     /// <inheritdoc />
@@ -170,10 +170,10 @@ public sealed class DepartmentLeaderAssigneeProvider(IOrganizationDirectory orga
 }
 
 /// <summary>
-/// 岗位任职。
+/// 岗位任职
 /// </summary>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public sealed class PositionAssigneeProvider(IOrganizationDirectory organization, IUserDirectory users) : OrganizationAssigneeProvider(users)
 {
     /// <inheritdoc />
@@ -187,13 +187,13 @@ public sealed class PositionAssigneeProvider(IOrganizationDirectory organization
 }
 
 /// <summary>
-/// 发起人主管类规则的公共部分。
+/// 发起人主管类规则的公共部分
 /// </summary>
 /// <remarks>
-/// 照 4.x 的主管链：从发起人的主部门起逐级上溯，跳过停用的部门、没设负责人的、发起人自己负责的、已经数过的负责人与当前一侧不可见的账号，最多数到要的层级。
+/// 照 4.x 的主管链：从发起人的主部门起逐级上溯，跳过停用的部门、没设负责人的、发起人自己负责的、已经数过的负责人与当前一侧不可见的账号，最多数到要的层级
 /// </remarks>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public abstract class StarterLeaderAssigneeProviderBase(IOrganizationDirectory organization, IUserDirectory users) : OrganizationAssigneeProvider(users)
 {
     private readonly IUserDirectory _users = users;
@@ -240,11 +240,11 @@ public abstract class StarterLeaderAssigneeProviderBase(IOrganizationDirectory o
     }
 
     /// <summary>
-    /// 从主管链里取受理人。
+    /// 从主管链里取受理人
     /// </summary>
-    /// <param name="chain">由近到远的主管链（至多 <paramref name="level"/> 级）。</param>
-    /// <param name="level">层级。</param>
-    /// <returns>受理人。</returns>
+    /// <param name="chain">由近到远的主管链（至多 <paramref name="level"/> 级）</param>
+    /// <param name="level">层级</param>
+    /// <returns>受理人</returns>
     protected abstract IReadOnlyList<Guid> Pick(IReadOnlyList<Guid> chain, int level);
 
     private static bool TryParseLevel(string text, out int level)
@@ -252,10 +252,10 @@ public abstract class StarterLeaderAssigneeProviderBase(IOrganizationDirectory o
 }
 
 /// <summary>
-/// 发起人第 N 级主管。
+/// 发起人第 N 级主管
 /// </summary>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public sealed class StarterLeaderAssigneeProvider(IOrganizationDirectory organization, IUserDirectory users) : StarterLeaderAssigneeProviderBase(organization, users)
 {
     /// <inheritdoc />
@@ -266,10 +266,10 @@ public sealed class StarterLeaderAssigneeProvider(IOrganizationDirectory organiz
 }
 
 /// <summary>
-/// 发起人第 1 到 N 级主管链。
+/// 发起人第 1 到 N 级主管链
 /// </summary>
-/// <param name="organization">组织目录。</param>
-/// <param name="users">用户目录。</param>
+/// <param name="organization">组织目录</param>
+/// <param name="users">用户目录</param>
 public sealed class StarterLeaderChainAssigneeProvider(IOrganizationDirectory organization, IUserDirectory users) : StarterLeaderAssigneeProviderBase(organization, users)
 {
     /// <inheritdoc />

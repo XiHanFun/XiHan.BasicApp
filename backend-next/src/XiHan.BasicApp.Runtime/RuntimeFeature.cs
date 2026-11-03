@@ -28,11 +28,11 @@ using XiHan.Framework.Primitives.Manifests;
 namespace XiHan.BasicApp.Runtime;
 
 /// <summary>
-/// 运行时基座能力包（Tier 0）。
+/// 运行时基座能力包（Tier 0）
 /// </summary>
 /// <remarks>
-/// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；把调用里的缓存失效推到工作单元之后（<see cref="Persistence.CacheInvalidation"/>）；提供 <c>basicapp.runtime@1</c> 供各能力包依赖。
-/// 依赖关系型持久化，启动排在框架建表之后：打开 <c>InitTables</c> 时随即补建软删除实体的部分唯一索引（<see cref="ActiveUniqueIndexes"/>）。
+/// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；把调用里的缓存失效推到工作单元之后（<see cref="Persistence.CacheInvalidation"/>）；提供 <c>basicapp.runtime@1</c> 供各能力包依赖
+/// 依赖关系型持久化，启动排在框架建表之后：打开 <c>InitTables</c> 时随即补建软删除实体的部分唯一索引（<see cref="ActiveUniqueIndexes"/>）
 /// </remarks>
 public sealed class RuntimeFeature : IHostedFeature
 {

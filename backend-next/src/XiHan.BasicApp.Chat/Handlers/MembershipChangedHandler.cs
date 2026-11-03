@@ -13,17 +13,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Handlers;
 
 /// <summary>
-/// 部门归属变了：同步部门群的成员。
+/// 部门归属变了：同步部门群的成员
 /// </summary>
 /// <remarks>
 /// 订阅 Organization 的领域事件 <see cref="Topics.OrganizationMembershipChanged"/>（竞争消费，信封带租户）。照 4.x 的 <c>ChatDepartmentMemberSyncEventHandler</c>：
-/// 只同步已经建了的部门群，进了部门即入群、移出部门即出群，推会话变更给群里的人（被移出的人也收到）。
-/// 以消息里的用户与部门为线索、按处理时的归属核对（同一用户进出部门的消息可能乱序到达），重复投递也只做一次，即按消息幂等。
-/// 解不开或写库失败即投递失败、由代理重试（4.x 只记日志）。
+/// 只同步已经建了的部门群，进了部门即入群、移出部门即出群，推会话变更给群里的人（被移出的人也收到）
+/// 以消息里的用户与部门为线索、按处理时的归属核对（同一用户进出部门的消息可能乱序到达），重复投递也只做一次，即按消息幂等
+/// 解不开或写库失败即投递失败、由代理重试（4.x 只记日志）
 /// </remarks>
-/// <param name="store">按侧读写聊天表。</param>
-/// <param name="conversations">会话服务。</param>
-/// <param name="push">推送。</param>
+/// <param name="store">按侧读写聊天表</param>
+/// <param name="conversations">会话服务</param>
+/// <param name="push">推送</param>
 public sealed class MembershipChangedHandler(ChatStore store, ChatConversationService conversations, ChatPush push) : IMessageHandler
 {
     /// <inheritdoc />

@@ -19,20 +19,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 刷新令牌：轮换刷新令牌并签发新的访问令牌。
+/// 刷新令牌：轮换刷新令牌并签发新的访问令牌
 /// </summary>
 /// <remarks>
-/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>。
+/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>
 /// </remarks>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="issuer">令牌签发器。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签。</param>
-/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
-/// <param name="memberships">成员关系（Tenancy 实现）：会话在成员租户里时，成员关系被移除或到期即不再续签。</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="users">用户仓储</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="issuer">令牌签发器</param>
+/// <param name="options">身份配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
+/// <param name="memberships">成员关系（Tenancy 实现）：会话在成员租户里时，成员关系被移除或到期即不再续签</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Refresh(
     UserAccountService accounts,
@@ -46,7 +46,7 @@ public sealed class Refresh(
     IEnumerable<ITenantMembershipResolver> memberships) : IOperation<RefreshRequest, TokenResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.refresh";
 

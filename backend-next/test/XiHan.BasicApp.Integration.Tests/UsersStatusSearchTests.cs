@@ -9,11 +9,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证用户的启停与高级搜索。
+/// 验证用户的启停与高级搜索
 /// </summary>
 /// <remarks>
 /// 停用即吊销会话、登录给 <c>IDENTITY_DENIED_018</c>，启用回到正常（锁定中的要先解锁）；
-/// 列表按手机号、状态多选、创建时间、角色（启用的角色、生效的指派）与部门（含下级）筛选。
+/// 列表按手机号、状态多选、创建时间、角色（启用的角色、生效的指派）与部门（含下级）筛选
 /// </remarks>
 public sealed class UsersStatusSearchTests : IDisposable
 {

@@ -1,6 +1,6 @@
 /**
- * 日志详情的视图模型（纯函数，抽屉与测试共用）：把一份详情定义与一条记录排成抬头、分组与代码块。
- * 空值一律不出现；抬头用到的字段不在分组里重复。
+ * 日志详情的视图模型（纯函数，抽屉与测试共用）：把一份详情定义与一条记录排成抬头、分组与代码块
+ * 空值一律不出现；抬头用到的字段不在分组里重复
  */
 import type { Tone } from '@xihan-ui/core'
 import type { LogDetailField, LogDetailGroup, LogDetailSchema } from './log-detail.types'

@@ -36,14 +36,14 @@ import { isoToTimestamp, segmentLiteralBefore, timestampToIso } from './date-pic
 import { segmentGroupWiring } from './date-picker-wiring'
 
 /**
- * 日期选择（单选）。区间选择是另一件组件，见 XDateRangePicker。
+ * 日期选择（单选）。区间选择是另一件组件，见 XDateRangePicker
  *
- * 组件库那侧是二十来个部件的完整日历，摆一遍要六十行；这里摆一次，全站复用。
+ * 组件库那侧是二十来个部件的完整日历，摆一遍要六十行；这里摆一次，全站复用
  * 另一件必须收口的事是值类型：组件库收发 ISO 串，本应用上下游一律用时间戳（毫秒），
- * 换算在这里做（见 date-picker-value.ts）。
+ * 换算在这里做（见 date-picker-value.ts）
  *
- * placeholder 是整条占位：一段都没填、焦点不在段上时代替各段的 yyyy / mm / dd 显示，只是视觉提示。
- * 不在字段里时，由调用方写 aria-label 给段位组起名。
+ * placeholder 是整条占位：一段都没填、焦点不在段上时代替各段的 yyyy / mm / dd 显示，只是视觉提示
+ * 不在字段里时，由调用方写 aria-label 给段位组起名
  */
 defineOptions({ name: 'XDatePicker', inheritAttrs: false })
 
@@ -141,7 +141,7 @@ function onValueChange(next: string[]): void {
         <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
         <XhDatePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
           <XhDatePickerHeader>
-            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张。
+            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张
                    年钮在外、月钮在内：一大步在外圈，一小步在内圈 -->
             <XhDatePickerPrevYearTrigger
               v-if="panel.index === 0"

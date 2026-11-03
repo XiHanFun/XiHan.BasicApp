@@ -18,19 +18,19 @@ using XiHan.Framework.Workflow.Abstractions.Serialization;
 namespace XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
 
 /// <summary>
-/// 流程实例列表。
+/// 流程实例列表
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:list</c>。当前一侧的实例（含子流程），框架在存储里按关键字（标题、关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤、
-/// 按多列排序（照 4.x）并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>。
+/// 按多列排序（照 4.x）并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="users">用户目录（发起人显示名）。</param>
+/// <param name="engine">引擎</param>
+/// <param name="users">用户目录（发起人显示名）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesRead)]
 public sealed class ListWorkflowInstances(IWorkflowEngine engine, IUserDirectory users) : IOperation<PageRequest, PageResult<WorkflowInstanceResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.list";
 
@@ -63,19 +63,19 @@ public sealed class ListWorkflowInstances(IWorkflowEngine engine, IUserDirectory
 }
 
 /// <summary>
-/// 流程实例详情。
+/// 流程实例详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-instances/{id}</c>。带变量、节点执行历史、待恢复的等待与实例所用的定义；别的分区的当作不存在。
+/// <c>GET /api/workflow-instances/{id}</c>。带变量、节点执行历史、待恢复的等待与实例所用的定义；别的分区的当作不存在
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="catalog">定义目录。</param>
-/// <param name="users">用户目录（发起人显示名）。</param>
+/// <param name="engine">引擎</param>
+/// <param name="catalog">定义目录</param>
+/// <param name="users">用户目录（发起人显示名）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesRead)]
 public sealed class GetWorkflowInstance(IWorkflowEngine engine, IWorkflowDefinitionCatalog catalog, IUserDirectory users) : IOperation<GetWorkflowInstanceRequest, WorkflowInstanceDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.get";
 
@@ -122,18 +122,18 @@ public sealed class GetWorkflowInstance(IWorkflowEngine engine, IWorkflowDefinit
 }
 
 /// <summary>
-/// 发起流程。
+/// 发起流程
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:start</c>。发起人是调用方；按名字取已发布的定义（给了版本取那个版本）。缺必填变量、定义不存在或没有已发布版本由引擎报（<c>WORKFLOW_*</c>）。
+/// <c>POST /api/workflow-instances:start</c>。发起人是调用方；按名字取已发布的定义（给了版本取那个版本）。缺必填变量、定义不存在或没有已发布版本由引擎报（<c>WORKFLOW_*</c>）
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="users">用户目录（发起人显示名）。</param>
+/// <param name="engine">引擎</param>
+/// <param name="users">用户目录（发起人显示名）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
 public sealed class StartWorkflowInstance(IWorkflowEngine engine, IUserDirectory users) : IOperation<StartWorkflowInstanceRequest, WorkflowInstanceResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.start";
 
@@ -169,20 +169,20 @@ public sealed class StartWorkflowInstance(IWorkflowEngine engine, IUserDirectory
 }
 
 /// <summary>
-/// 取消流程实例。
+/// 取消流程实例
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:cancel</c>。批量；运行中、挂起与故障的实例可取消（启用了补偿的逆序补偿），已结束的算成功。
-/// 审批业务的顶层实例取消前先问业务的改动前校验，不过的那一项记失败、不取消；取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）。
+/// <c>POST /api/workflow-instances:cancel</c>。批量；运行中、挂起与故障的实例可取消（启用了补偿的逆序补偿），已结束的算成功
+/// 审批业务的顶层实例取消前先问业务的改动前校验，不过的那一项记失败、不取消；取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="aborts">中止回写。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="aborts">中止回写</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
 public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.cancel";
 
@@ -198,19 +198,19 @@ public sealed class CancelWorkflowInstances(IWorkflowEngine engine, WorkflowBusi
 }
 
 /// <summary>
-/// 终止流程实例。
+/// 终止流程实例
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿，审批业务同样先问改动前校验、之后回调中止回写。
+/// <c>POST /api/workflow-instances:terminate</c>。批量；同取消但不补偿，审批业务同样先问改动前校验、之后回调中止回写
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="aborts">中止回写。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="aborts">中止回写</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
 public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessAborts aborts, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.terminate";
 
@@ -226,18 +226,18 @@ public sealed class TerminateWorkflowInstances(IWorkflowEngine engine, WorkflowB
 }
 
 /// <summary>
-/// 重试故障的流程实例。
+/// 重试故障的流程实例
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:retry</c>。批量；只对有故障节点的故障实例，从故障节点重跑；审批业务的顶层实例先问改动前校验。
+/// <c>POST /api/workflow-instances:retry</c>。批量；只对有故障节点的故障实例，从故障节点重跑；审批业务的顶层实例先问改动前校验
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
 public sealed class RetryWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.retry";
 
@@ -252,18 +252,18 @@ public sealed class RetryWorkflowInstances(IWorkflowEngine engine, WorkflowBusin
 }
 
 /// <summary>
-/// 挂起流程实例。
+/// 挂起流程实例
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:suspend</c>。批量；只对运行中的；审批业务的顶层实例先问改动前校验。
+/// <c>POST /api/workflow-instances:suspend</c>。批量；只对运行中的；审批业务的顶层实例先问改动前校验
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesUpdate)]
 public sealed class SuspendWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceControlRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.suspend";
 
@@ -278,18 +278,18 @@ public sealed class SuspendWorkflowInstances(IWorkflowEngine engine, WorkflowBus
 }
 
 /// <summary>
-/// 恢复挂起的流程实例。
+/// 恢复挂起的流程实例
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:resume</c>。批量；只对挂起的；审批业务的顶层实例先问改动前校验。
+/// <c>POST /api/workflow-instances:resume</c>。批量；只对挂起的；审批业务的顶层实例先问改动前校验
 /// </remarks>
-/// <param name="engine">引擎。</param>
-/// <param name="changes">审批业务的改动前校验。</param>
+/// <param name="engine">引擎</param>
+/// <param name="changes">审批业务的改动前校验</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesUpdate)]
 public sealed class ResumeWorkflowInstances(IWorkflowEngine engine, WorkflowBusinessChanges changes) : IOperation<WorkflowInstanceIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.resume";
 
@@ -304,17 +304,17 @@ public sealed class ResumeWorkflowInstances(IWorkflowEngine engine, WorkflowBusi
 }
 
 /// <summary>
-/// 发信号。
+/// 发信号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-instances:signal</c>。恢复当前一侧在等这个信号的实例（给了关联 ID 只恢复关联上的），返回恢复数。
+/// <c>POST /api/workflow-instances:signal</c>。恢复当前一侧在等这个信号的实例（给了关联 ID 只恢复关联上的），返回恢复数
 /// </remarks>
-/// <param name="engine">引擎。</param>
+/// <param name="engine">引擎</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = WorkflowPermissions.InstancesExecute)]
 public sealed class SignalWorkflowInstances(IWorkflowEngine engine) : IOperation<SignalWorkflowInstancesRequest, SignalWorkflowInstancesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "workflow-instances.signal";
 
@@ -335,7 +335,7 @@ public sealed class SignalWorkflowInstances(IWorkflowEngine engine) : IOperation
 }
 
 /// <summary>
-/// 实例操作共用的读取与换算。
+/// 实例操作共用的读取与换算
 /// </summary>
 internal static class WorkflowInstances
 {

@@ -1,8 +1,8 @@
 /**
- * 打印模板编辑器挂进设计器的宿主操作（print-host-extension.ts）的单元测试。
+ * 打印模板编辑器挂进设计器的宿主操作（print-host-extension.ts）的单元测试
  *
  * 锁定：样例预览、直接打印进「文件」菜单并上工具栏；打印机是文件菜单里的单选子菜单，末尾一条刷新；
- * 各条按编辑会话此刻的状态可用，执行时交给编辑会话。回列表走设计器自带的关闭钮（closable），不再有「返回列表」宿主命令。
+ * 各条按编辑会话此刻的状态可用，执行时交给编辑会话。回列表走设计器自带的关闭钮（closable），不再有「返回列表」宿主命令
  */
 import type { DesignerCommandMenuItem } from '~/designers'
 import { describe, expect, it, vi } from 'vitest'

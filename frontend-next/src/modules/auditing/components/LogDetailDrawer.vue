@@ -11,9 +11,9 @@ import { buildLogDetailView } from './log-detail-view'
 import { gotoTraceDimension } from './trace-nav'
 
 /**
- * 日志详情抽屉（各日志页与链路追踪共用）。
+ * 日志详情抽屉（各日志页与链路追踪共用）
  * 抬头一眼看懂「谁、什么时候、做了什么、成没成功」，其余字段按分组排成描边、标签在上的描述列表，
- * 原始数据（请求体、堆栈、User-Agent 等）排在最后；空值不显示，标识类的值可复制，追踪维度可点开链路追踪。
+ * 原始数据（请求体、堆栈、User-Agent 等）排在最后；空值不显示，标识类的值可复制，追踪维度可点开链路追踪
  */
 const props = withDefaults(
   defineProps<{

@@ -14,10 +14,10 @@ function reasonOf(error: unknown): string {
 }
 
 /**
- * 调用选项加载器（并发去重）。
+ * 调用选项加载器（并发去重）
  *
  * 同一页面里表单下拉与列表（显示名、搜索下拉、导入反查）往往同时要同一份选项，
- * 在途时共用一次请求；失败就地提示一次再抛出，空下拉不能无声无息。
+ * 在途时共用一次请求；失败就地提示一次再抛出，空下拉不能无声无息
  */
 export function loadAsyncOptions<T>(loader: AsyncOptionsLoader<T>): Promise<ReadonlyArray<T>> {
   let pending = inflight.get(loader) as Promise<ReadonlyArray<T>> | undefined
@@ -37,7 +37,7 @@ export function loadAsyncOptions<T>(loader: AsyncOptionsLoader<T>): Promise<Read
 }
 
 /**
- * 响应式异步选项：调用即加载，未加载或失败时为空数组（失败已在 loadAsyncOptions 里提示）。
+ * 响应式异步选项：调用即加载，未加载或失败时为空数组（失败已在 loadAsyncOptions 里提示）
  */
 export function useAsyncOptions<T>(loader: AsyncOptionsLoader<T>): Readonly<ShallowRef<ReadonlyArray<T>>> {
   const options = shallowRef<ReadonlyArray<T>>([])

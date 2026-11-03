@@ -20,8 +20,8 @@ export const BOT_WEBHOOK_HOSTS: Readonly<Record<BotProvider, readonly string[]>>
 }
 
 /**
- * Webhook 地址是否这个服务商的官方地址：https、缺省端口、主机在官方清单里（不分大小写）。
- * 后端不合规即 NOTIFICATION_VALIDATION_011；这里先拦一道免得白提交。
+ * Webhook 地址是否这个服务商的官方地址：https、缺省端口、主机在官方清单里（不分大小写）
+ * 后端不合规即 NOTIFICATION_VALIDATION_011；这里先拦一道免得白提交
  */
 export function isOfficialWebhook(provider: BotProvider, value: string): boolean {
   let url: URL
@@ -129,7 +129,7 @@ export function toUpdateBody(form: BotConfigForm & { id: string }): RequestOf<'b
 
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（签名密钥不带即保留）；
- * 默认机器人不能删除、不能停用、不能换服务商（NOTIFICATION_CONFLICT_005）。
+ * 默认机器人不能删除、不能停用、不能换服务商（NOTIFICATION_CONFLICT_005）
  */
 export function botConfigResource(t: Translate): SchemaResource<BotConfigRow> {
   return {

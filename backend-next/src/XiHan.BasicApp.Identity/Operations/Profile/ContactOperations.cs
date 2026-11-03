@@ -19,20 +19,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 发验证码到本人当前的邮箱或手机号。
+/// 发验证码到本人当前的邮箱或手机号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:send-verification-code</c>。自助操作，只要求已认证（4.x 同，不要密码）；没有绑定即 <c>IDENTITY_VALIDATION_019</c>。
-/// 码 6 位、10 分钟有效，限频与每日上限见 <see cref="VerificationCodes"/>；收到后 <c>profile.verify-contact</c> 确认。
+/// <c>POST /api/profile:send-verification-code</c>。自助操作，只要求已认证（4.x 同，不要密码）；没有绑定即 <c>IDENTITY_VALIDATION_019</c>
+/// 码 6 位、10 分钟有效，限频与每日上限见 <see cref="VerificationCodes"/>；收到后 <c>profile.verify-contact</c> 确认
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="contacts">发码。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="contacts">发码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SendVerificationCode(IRepository<SysUser, Guid> users, UserAccountService accounts, ContactCodes contacts) : IOperation<SendVerificationCodeRequest, CodeSentResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.send-verification-code";
 
@@ -60,19 +60,19 @@ public sealed class SendVerificationCode(IRepository<SysUser, Guid> users, UserA
 }
 
 /// <summary>
-/// 用收到的验证码确认本人当前的邮箱或手机号。
+/// 用收到的验证码确认本人当前的邮箱或手机号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:verify-contact</c>。码对且发码之后联系方式没变即记为已验证（4.x 同）；码错计次，5 次锁定 10 分钟。
+/// <c>POST /api/profile:verify-contact</c>。码对且发码之后联系方式没变即记为已验证（4.x 同）；码错计次，5 次锁定 10 分钟
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="codes">验证码。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="codes">验证码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class VerifyContact(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes) : IOperation<ContactCodeRequest, ProfileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.verify-contact";
 
@@ -107,21 +107,21 @@ public sealed class VerifyContact(IRepository<SysUser, Guid> users, UserAccountS
 }
 
 /// <summary>
-/// 换绑邮箱或手机号的第一步：验密码，发验证码到新的。
+/// 换绑邮箱或手机号的第一步：验密码，发验证码到新的
 /// </summary>
 /// <remarks>
 /// <c>POST /api/profile:send-change-contact-code</c>。模仿会话不能用（4.x 同）。新的要合格式、与现在的不同，
-/// 同一注册地租户里不能已被别人使用（<c>IDENTITY_CONFLICT_010</c>）；收到后 <c>profile.change-contact</c> 确认。
-/// 与 4.x 不同：手机号也查重（4.x 不查，手机号登录时再要求恰好一个），查重按注册地租户（6.0 的账号属于注册地租户，4.x 的邮箱全局唯一）。
+/// 同一注册地租户里不能已被别人使用（<c>IDENTITY_CONFLICT_010</c>）；收到后 <c>profile.change-contact</c> 确认
+/// 与 4.x 不同：手机号也查重（4.x 不查，手机号登录时再要求恰好一个），查重按注册地租户（6.0 的账号属于注册地租户，4.x 的邮箱全局唯一）
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="contacts">发码。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="contacts">发码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SendChangeContactCode(IRepository<SysUser, Guid> users, UserAccountService accounts, ContactCodes contacts) : IOperation<SendChangeContactCodeRequest, CodeSentResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.send-change-contact-code";
 
@@ -155,19 +155,19 @@ public sealed class SendChangeContactCode(IRepository<SysUser, Guid> users, User
 }
 
 /// <summary>
-/// 换绑邮箱或手机号的第二步：用新的收到的码确认。
+/// 换绑邮箱或手机号的第二步：用新的收到的码确认
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:change-contact</c>。码对即换成第一步给的新值、记为已验证（4.x 同）；确认时再查一次重。模仿会话不能用。
+/// <c>POST /api/profile:change-contact</c>。码对即换成第一步给的新值、记为已验证（4.x 同）；确认时再查一次重。模仿会话不能用
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="codes">验证码。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="codes">验证码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ChangeContact(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes) : IOperation<ContactCodeRequest, ProfileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.change-contact";
 
@@ -211,40 +211,40 @@ public sealed class ChangeContact(IRepository<SysUser, Guid> users, UserAccountS
 }
 
 /// <summary>
-/// 联系方式的用途、模板、格式与查重。
+/// 联系方式的用途、模板、格式与查重
 /// </summary>
 internal static partial class Contacts
 {
     /// <summary>
-    /// 验证当前联系方式的码的用途。
+    /// 验证当前联系方式的码的用途
     /// </summary>
     public static string VerifyPurpose(ContactChannel channel) => "contact-verify:" + Name(channel);
 
     /// <summary>
-    /// 换绑联系方式的码的用途。
+    /// 换绑联系方式的码的用途
     /// </summary>
     public static string ChangePurpose(ContactChannel channel) => "contact-change:" + Name(channel);
 
     /// <summary>
-    /// 验证类的消息模板编码。
+    /// 验证类的消息模板编码
     /// </summary>
     public static string VerificationTemplate(ContactChannel channel)
         => channel == ContactChannel.Email ? MessageTemplateCodes.EmailVerificationCode : MessageTemplateCodes.SmsVerificationCode;
 
     /// <summary>
-    /// 用户当前的邮箱或手机号。
+    /// 用户当前的邮箱或手机号
     /// </summary>
     public static string? Current(SysUser user, ContactChannel channel)
         => channel == ContactChannel.Email ? user.Email : user.PhoneNumber;
 
     /// <summary>
-    /// 两个联系方式是否相同（邮箱不分大小写）。
+    /// 两个联系方式是否相同（邮箱不分大小写）
     /// </summary>
     public static bool SameAs(ContactChannel channel, string? left, string? right)
         => left is not null && right is not null && string.Equals(left.Trim(), right.Trim(), channel == ContactChannel.Email ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
     /// <summary>
-    /// 记为已验证。
+    /// 记为已验证
     /// </summary>
     public static void MarkVerified(SysUser user, ContactChannel channel)
     {
@@ -259,9 +259,9 @@ internal static partial class Contacts
     }
 
     /// <summary>
-    /// 核对要换成的联系方式：合格式、与现在的不同、同一注册地租户里没被别人用。
+    /// 核对要换成的联系方式：合格式、与现在的不同、同一注册地租户里没被别人用
     /// </summary>
-    /// <returns>规范化后的值（邮箱转小写、去首尾空白）。</returns>
+    /// <returns>规范化后的值（邮箱转小写、去首尾空白）</returns>
     public static async Task<Result<string>> AcceptAsync(IRepository<SysUser, Guid> users, SysUser user, ContactChannel channel, string value, CancellationToken cancellationToken)
     {
         var normalized = channel == ContactChannel.Email ? value.Trim().ToLowerInvariant() : value.Trim();

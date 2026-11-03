@@ -8,14 +8,14 @@ using XiHan.BasicApp.Contracts;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// 实时 Hub 的基类。
+/// 实时 Hub 的基类
 /// </summary>
 /// <remarks>
 /// 各包的 Hub 继承它并经 <see cref="RealtimeHubServiceCollectionExtensions.AddRealtimeHub{THub}"/> 登记，由宿主统一映射（绕过内核管道，经框架的认证方案 <c>XiHan</c> 认证，
 /// 会话仍有效由 <see cref="SessionAuthenticationFilter"/> 在认证时核对）。连上即加入会话 / 用户 / 侧的组，再登记连接（在线状态显示为在线时一定已经收得到推送）；
-/// 派生的 Hub 要让连接加入别的组时用 <see cref="JoinGroupAsync"/>，这样吊销会话时它们一并被移出。
+/// 派生的 Hub 要让连接加入别的组时用 <see cref="JoinGroupAsync"/>，这样吊销会话时它们一并被移出
 /// </remarks>
-/// <param name="realtime">实时服务。</param>
+/// <param name="realtime">实时服务</param>
 public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
 {
     // Identity 签发的访问令牌声明（方案 5.8），按原始类型名读
@@ -25,7 +25,7 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
     private const string ConnectionItem = "xihan.basicapp.realtime.connection";
 
     /// <summary>
-    /// 当前连接（连上之后才有）。
+    /// 当前连接（连上之后才有）
     /// </summary>
     protected RealtimeConnection? Connection => Context.Items.TryGetValue(ConnectionItem, out var value) ? value as RealtimeConnection : null;
 
@@ -61,9 +61,9 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
     }
 
     /// <summary>
-    /// 让当前连接加入一个组并记进登记。
+    /// 让当前连接加入一个组并记进登记
     /// </summary>
-    /// <param name="group">组名。</param>
+    /// <param name="group">组名</param>
     protected async Task JoinGroupAsync(string group)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(group);
@@ -72,9 +72,9 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
     }
 
     /// <summary>
-    /// 让当前连接退出一个组。
+    /// 让当前连接退出一个组
     /// </summary>
-    /// <param name="group">组名。</param>
+    /// <param name="group">组名</param>
     protected async Task LeaveGroupAsync(string group)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(group);
@@ -84,10 +84,10 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
 }
 
 /// <summary>
-/// 实时 Hub 用到的服务。
+/// 实时 Hub 用到的服务
 /// </summary>
 /// <remarks>
-/// 派生的 Hub 经构造注入后交给 <see cref="RealtimeHub"/>。
+/// 派生的 Hub 经构造注入后交给 <see cref="RealtimeHub"/>
 /// </remarks>
 public sealed class RealtimeHubServices
 {
@@ -105,10 +105,10 @@ public sealed class RealtimeHubServices
 }
 
 /// <summary>
-/// 通知 Hub（<c>/hubs/notification</c>）。
+/// 通知 Hub（<c>/hubs/notification</c>）
 /// </summary>
 /// <remarks>
-/// 只推不收，客户端没有可调用的方法。
+/// 只推不收，客户端没有可调用的方法
 /// </remarks>
-/// <param name="realtime">实时服务。</param>
+/// <param name="realtime">实时服务</param>
 internal sealed class NotificationHub(RealtimeHubServices realtime) : RealtimeHub(realtime);

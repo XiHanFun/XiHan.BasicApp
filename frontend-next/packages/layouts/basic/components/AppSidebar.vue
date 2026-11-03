@@ -258,7 +258,7 @@ const headerMixSecondaryOptions = computed(() =>
  */
 const stowed = computed(() => !props.isMobile && !props.showSidebar)
 
-// 收起与放出的那一帧占位列不走过渡，宽度一步到位；等这一帧真正画出来，再交还给原有的折叠过渡。
+// 收起与放出的那一帧占位列不走过渡，宽度一步到位；等这一帧真正画出来，再交还给原有的折叠过渡
 // 只等一帧不够：rAF 回调排在本帧绘制之前，那时撤掉 none，宽度变化照样会被过渡接住
 const placeholderSnap = ref(false)
 let snapFrame = 0
@@ -452,8 +452,8 @@ const asideRef = ref<HTMLElement | null>(null)
 // 触摸设备没有真正的悬停：轻点也会走 pointerenter/pointerleave，交给悬停意图会一抬指就收起
 const hoverCapable = typeof window !== 'undefined' && (window.matchMedia?.('(hover: hover)').matches ?? true)
 
-// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素。
-// 必须在 setup 顶层调用：它自己挂 onMounted 等模板 ref 就位，放进 onMounted 回调里那一层永远不会执行。
+// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素
+// 必须在 setup 顶层调用：它自己挂 onMounted 等模板 ref 就位，放进 onMounted 回调里那一层永远不会执行
 // 触摸设备交给下面的 mouseenter / mouseleave，这里取不到触发元素即不跟踪
 useHoverIntent({
   getTriggerEl: () => (hoverCapable ? asideRef.value : null),

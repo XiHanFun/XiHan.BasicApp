@@ -17,60 +17,60 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 本人绑定的一个第三方账号。
+/// 本人绑定的一个第三方账号
 /// </summary>
-/// <param name="Provider">提供商类型。</param>
-/// <param name="DisplayName">第三方的显示名。</param>
-/// <param name="Email">第三方的邮箱。</param>
-/// <param name="AvatarUrl">第三方的头像。</param>
-/// <param name="BoundAt">绑定时间。</param>
-/// <param name="LastLoginAt">最近一次用它登录的时间。</param>
+/// <param name="Provider">提供商类型</param>
+/// <param name="DisplayName">第三方的显示名</param>
+/// <param name="Email">第三方的邮箱</param>
+/// <param name="AvatarUrl">第三方的头像</param>
+/// <param name="BoundAt">绑定时间</param>
+/// <param name="LastLoginAt">最近一次用它登录的时间</param>
 public sealed record ExternalLoginResponse(string Provider, string? DisplayName, string? Email, string? AvatarUrl, DateTimeOffset BoundAt, DateTimeOffset? LastLoginAt);
 
 /// <summary>
-/// 本人绑定的全部第三方账号。
+/// 本人绑定的全部第三方账号
 /// </summary>
-/// <param name="Items">绑定。</param>
+/// <param name="Items">绑定</param>
 public sealed record ExternalLoginsResponse(IReadOnlyList<ExternalLoginResponse> Items);
 
 /// <summary>
-/// <c>profile.begin-external-bind</c> 的请求。
+/// <c>profile.begin-external-bind</c> 的请求
 /// </summary>
-/// <param name="Provider">提供方标识（登录页配置里的名称）。</param>
+/// <param name="Provider">提供方标识（登录页配置里的名称）</param>
 public sealed record BeginExternalBindRequest([Required, StringLength(32)] string Provider);
 
 /// <summary>
-/// 发起绑定的地址。
+/// 发起绑定的地址
 /// </summary>
-/// <param name="Url">去第三方授权的地址（相对于后端根，带着一次性的绑定意图）。</param>
+/// <param name="Url">去第三方授权的地址（相对于后端根，带着一次性的绑定意图）</param>
 public sealed record BeginExternalBindResponse(string Url);
 
 /// <summary>
-/// <c>profile.link-external</c> 的请求。
+/// <c>profile.link-external</c> 的请求
 /// </summary>
-/// <param name="Ticket">绑定流程回调发给前端的一次性票据。</param>
+/// <param name="Ticket">绑定流程回调发给前端的一次性票据</param>
 public sealed record LinkExternalLoginRequest([Required, StringLength(128)] string Ticket);
 
 /// <summary>
-/// <c>profile.unlink-external</c> 的请求。
+/// <c>profile.unlink-external</c> 的请求
 /// </summary>
-/// <param name="Provider">提供商类型或名称。</param>
+/// <param name="Provider">提供商类型或名称</param>
 public sealed record UnlinkExternalLoginRequest([Required, StringLength(32)] string Provider);
 
 /// <summary>
-/// 列出本人绑定的第三方账号。
+/// 列出本人绑定的第三方账号
 /// </summary>
 /// <remarks>
-/// <c>GET /api/profile:external-logins</c>（4.x <c>Profile/LinkedAccounts</c>）。已登录即可。
+/// <c>GET /api/profile:external-logins</c>（4.x <c>Profile/LinkedAccounts</c>）。已登录即可
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="bindings">第三方绑定仓储。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="bindings">第三方绑定仓储</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListExternalLogins(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings) : IOperation<ProfileRequest, ExternalLoginsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.external-logins";
 
@@ -92,21 +92,21 @@ public sealed class ListExternalLogins(IRepository<SysUser, Guid> users, UserAcc
 }
 
 /// <summary>
-/// 发起第三方账号绑定。
+/// 发起第三方账号绑定
 /// </summary>
 /// <remarks>
 /// <c>POST /api/profile:begin-external-bind</c>。给当前登录的人领一个绑定意图（十分钟、用一次），返回带着它的发起地址；
-/// 没有意图的绑定发起不认，回调的票据记着这个人（见 <see cref="ExternalLoginFlow"/>）。提供方不存在或没启用即 <c>IDENTITY_NOTFOUND_005</c>。模仿会话不能做。
+/// 没有意图的绑定发起不认，回调的票据记着这个人（见 <see cref="ExternalLoginFlow"/>）。提供方不存在或没启用即 <c>IDENTITY_NOTFOUND_005</c>。模仿会话不能做
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="options">第三方登录配置。</param>
-/// <param name="cache">共享缓存（绑定意图）。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="options">第三方登录配置</param>
+/// <param name="cache">共享缓存（绑定意图）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAccountService accounts, ExternalLoginOptions options, ISharedCache cache) : IOperation<BeginExternalBindRequest, BeginExternalBindResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.begin-external-bind";
 
@@ -131,24 +131,24 @@ public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAcco
 }
 
 /// <summary>
-/// 确认第三方账号绑定。
+/// 确认第三方账号绑定
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:link-external</c>。
+/// <c>POST /api/profile:link-external</c>
 /// 凭绑定流程的一次性票据，把第三方账号绑到当前登录的人；票据记着发起绑定的人，不是本人即 <c>IDENTITY_VALIDATION_015</c>
 /// （发起要本人领的意图、确认要本人：拿着别人发起的链接或别人完成的回调地址都绑不上）；
-/// 已被同一注册地的别人绑定即 <c>IDENTITY_CONFLICT_008</c>，本人已绑过这个提供商的另一个账号即换成这一个。模仿会话不能做（4.x 同）。
+/// 已被同一注册地的别人绑定即 <c>IDENTITY_CONFLICT_008</c>，本人已绑过这个提供商的另一个账号即换成这一个。模仿会话不能做（4.x 同）
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="bindings">第三方绑定仓储。</param>
-/// <param name="cache">共享缓存（票据）。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="bindings">第三方绑定仓储</param>
+/// <param name="cache">共享缓存（票据）</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings, ISharedCache cache, IIdGenerator<Guid> ids) : IOperation<LinkExternalLoginRequest, ExternalLoginResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.link-external";
 
@@ -198,20 +198,20 @@ public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAcco
 }
 
 /// <summary>
-/// 解绑本人的第三方账号。
+/// 解绑本人的第三方账号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:unlink-external</c>（4.x <c>Profile/UnlinkAccount</c>）。没绑过即 <c>IDENTITY_NOTFOUND_004</c>。
-/// 账号都有密码（不自动建号），不需要 4.x「这是唯一的登录方式」的限制。模仿会话不能做。
+/// <c>POST /api/profile:unlink-external</c>（4.x <c>Profile/UnlinkAccount</c>）。没绑过即 <c>IDENTITY_NOTFOUND_004</c>
+/// 账号都有密码（不自动建号），不需要 4.x「这是唯一的登录方式」的限制。模仿会话不能做
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="bindings">第三方绑定仓储。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="bindings">第三方绑定仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UnlinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings) : IOperation<UnlinkExternalLoginRequest, ExternalLoginsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.unlink-external";
 

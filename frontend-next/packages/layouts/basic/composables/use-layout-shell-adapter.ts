@@ -322,7 +322,7 @@ export function useLayoutShellAdapter() {
 
   /**
    * 顶栏 Logo 位要占多宽：有侧栏在下面时按侧栏宽预留，两者才对得齐；
-   * 纯顶部导航没有侧栏可对齐，占着这一截只会把横向菜单挤窄，改为按内容宽。
+   * 纯顶部导航没有侧栏可对齐，占着这一截只会把横向菜单挤窄，改为按内容宽
    */
   const headerLogoMinWidth = computed(() => {
     if (isMobile.value) {
@@ -422,7 +422,7 @@ export function useLayoutShellAdapter() {
     handleAutoScrollHeader()
   }
 
-  // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）。
+  // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）
   // 组件实例取 $el 拿到它的根元素，收到的必须是真正 overflow:auto 的那层
   function setContentScrollEl(el: ComponentPublicInstance | Element | null) {
     const host = el && '$el' in el ? (el.$el as HTMLElement | null) : el

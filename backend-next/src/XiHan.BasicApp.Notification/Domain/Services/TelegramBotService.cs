@@ -16,45 +16,45 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// Telegram 机器人内容。
+/// Telegram 机器人内容
 /// </summary>
 /// <remarks>
-/// 令牌为空即保留原值；新建时必填。
+/// 令牌为空即保留原值；新建时必填
 /// </remarks>
-/// <param name="Name">名称。</param>
-/// <param name="Token">令牌。</param>
-/// <param name="AdminUsers">管理员用户 ID（逗号分隔）。</param>
-/// <param name="AllowedGroupChatIds">群组白名单（逗号分隔）。</param>
-/// <param name="AllowedCommands">命令白名单（逗号分隔）。</param>
-/// <param name="EnableFallbackReply">是否兜底回复。</param>
-/// <param name="BroadcastChatIds">广播群（逗号分隔）。</param>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="Order">排序。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="Name">名称</param>
+/// <param name="Token">令牌</param>
+/// <param name="AdminUsers">管理员用户 ID（逗号分隔）</param>
+/// <param name="AllowedGroupChatIds">群组白名单（逗号分隔）</param>
+/// <param name="AllowedCommands">命令白名单（逗号分隔）</param>
+/// <param name="EnableFallbackReply">是否兜底回复</param>
+/// <param name="BroadcastChatIds">广播群（逗号分隔）</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="Order">排序</param>
+/// <param name="Remark">备注</param>
 public sealed record TelegramBotDraft(string Name, string? Token, string? AdminUsers, string? AllowedGroupChatIds, string? AllowedCommands, bool EnableFallbackReply, string? BroadcastChatIds, bool IsEnabled, int Order, string? Remark);
 
 /// <summary>
-/// Telegram 机器人的规则（平台托管）。
+/// Telegram 机器人的规则（平台托管）
 /// </summary>
 /// <remarks>
-/// 名称唯一；令牌形如 <c>数字:字符串</c>、加密存储；用户与会话 ID 是逗号分隔的整数，命令是逗号分隔的命令名（去掉斜杠、转小写、去重）。
+/// 名称唯一；令牌形如 <c>数字:字符串</c>、加密存储；用户与会话 ID 是逗号分隔的整数，命令是逗号分隔的命令名（去掉斜杠、转小写、去重）
 /// </remarks>
-/// <param name="bots">机器人仓储。</param>
-/// <param name="secrets">密钥保护。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="bots">机器人仓储</param>
+/// <param name="secrets">密钥保护</param>
+/// <param name="ids">标识生成器</param>
 public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid> bots, ISecretProtector secrets, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 令牌的加密用途。
+    /// 令牌的加密用途
     /// </summary>
     public const string TokenPurpose = "XiHan.BasicApp.Notification.TelegramToken";
 
     /// <summary>
-    /// 取一个机器人。
+    /// 取一个机器人
     /// </summary>
-    /// <param name="id">机器人 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>机器人；不存在即 <c>NOTIFICATION_NOTFOUND_009</c>。</returns>
+    /// <param name="id">机器人 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>机器人；不存在即 <c>NOTIFICATION_NOTFOUND_009</c></returns>
     public async Task<Result<SysTelegramBot>> FindAsync(Guid id, CancellationToken cancellationToken)
     {
         var found = await bots.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -64,10 +64,10 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 广播目标：每个启用的机器人的每个广播群。
+    /// 广播目标：每个启用的机器人的每个广播群
     /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>机器人与 chat ID。</returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>机器人与 chat ID</returns>
     public async Task<IReadOnlyList<(SysTelegramBot Bot, string ChatId)>> BroadcastTargetsAsync(CancellationToken cancellationToken)
     {
         var rows = await bots.ListAsync(EntityQuery.All<SysTelegramBot>().Where(new Specification<SysTelegramBot>(b => b.IsEnabled && b.BroadcastChatIds != null)), cancellationToken).ConfigureAwait(false);
@@ -77,11 +77,11 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 新建。
+    /// 新建
     /// </summary>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新机器人。</returns>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新机器人</returns>
     public async Task<Result<SysTelegramBot>> CreateAsync(TelegramBotDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -102,12 +102,12 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 修改（令牌不填即保留）。
+    /// 修改（令牌不填即保留）
     /// </summary>
-    /// <param name="bot">机器人。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateAsync(SysTelegramBot bot, TelegramBotDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(bot);
@@ -117,11 +117,11 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 批量删除。
+    /// 批量删除
     /// </summary>
-    /// <param name="botIds">机器人 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="botIds">机器人 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteAsync(IReadOnlyList<Guid> botIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(botIds);
@@ -148,14 +148,14 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 发到某个会话用的目标（令牌解密）。
+    /// 发到某个会话用的目标（令牌解密）
     /// </summary>
     /// <remarks>
-    /// 令牌解不开即 <see langword="null"/>。
+    /// 令牌解不开即 <see langword="null"/>
     /// </remarks>
-    /// <param name="bot">机器人。</param>
-    /// <param name="chatId">chat ID。</param>
-    /// <returns>目标。</returns>
+    /// <param name="bot">机器人</param>
+    /// <param name="chatId">chat ID</param>
+    /// <returns>目标</returns>
     public BotEndpoint? EndpointOf(SysTelegramBot bot, string chatId)
     {
         ArgumentNullException.ThrowIfNull(bot);
@@ -165,10 +165,10 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 逗号分隔的列表。
+    /// 逗号分隔的列表
     /// </summary>
-    /// <param name="value">原文。</param>
-    /// <returns>各项。</returns>
+    /// <param name="value">原文</param>
+    /// <returns>各项</returns>
     public static IReadOnlyList<string> Split(string? value)
         => string.IsNullOrWhiteSpace(value) ? [] : value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -181,7 +181,7 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     private static Error TokenInvalid() => Error.Validation(NotificationErrors.TelegramTokenInvalid, NotificationMessages.TelegramTokenInvalid);
 
     /// <summary>
-    /// 整数 ID 列表：规整成「a,b,c」，有一项不是整数即错误。
+    /// 整数 ID 列表：规整成「a,b,c」，有一项不是整数即错误
     /// </summary>
     private static (string? Value, Error? Error) NormalizeIds(string? value, string field)
     {
@@ -198,7 +198,7 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
     }
 
     /// <summary>
-    /// 命令列表：去掉斜杠、转小写、去重，有一项不是命令名即错误。
+    /// 命令列表：去掉斜杠、转小写、去重，有一项不是命令名即错误
     /// </summary>
     private static (string? Value, Error? Error) NormalizeCommands(string? value)
     {

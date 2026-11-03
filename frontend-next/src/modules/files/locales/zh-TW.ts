@@ -1,4 +1,4 @@
-// 文案檔：鍵集須與 en-US.ts 完全對稱（scripts/check-i18n.mjs 守護）。
+// 文案檔：鍵集須與 en-US.ts 完全對稱（scripts/check-i18n.mjs 守護）
 export default {
   files: {
     library: {

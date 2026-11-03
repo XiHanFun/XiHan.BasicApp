@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 门禁：视图与包里引用的权限码必须存在于生成的 packages/contracts/permissions.ts（方案 6.3）。
-// 扫描 src 与 packages 里形如 'identity.users.read' 的三段点分字面量（排除生成物与契约 JSON）。
+// 门禁：视图与包里引用的权限码必须存在于生成的 packages/contracts/permissions.ts（方案 6.3）
+// 扫描 src 与 packages 里形如 'identity.users.read' 的三段点分字面量（排除生成物与契约 JSON）
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'

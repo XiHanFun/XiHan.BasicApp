@@ -1,16 +1,16 @@
 /**
- * 打印模板 JSON 的读入。
+ * 打印模板 JSON 的读入
  * 职责：在交给打印设计器、预览与客户端之前确认它是当前格式的打印模板（schemaVersion 1、至少一张页面模板）；
- * 不是时抛出明确的格式错误，不静默退回、不临时转换。完整校验由打印设计器的 validate / validateDocument 做。
+ * 不是时抛出明确的格式错误，不静默退回、不临时转换。完整校验由打印设计器的 validate / validateDocument 做
  */
 import type { PrintDocument } from '@xihan-print/core'
 
-/** 当前支持的打印模板格式版本。 */
+/** 当前支持的打印模板格式版本 */
 export const PRINT_TEMPLATE_SCHEMA_VERSION = 1
 
-/** 模板 JSON 不是当前格式的打印模板（如此前旧格式保存的内容）。 */
+/** 模板 JSON 不是当前格式的打印模板（如此前旧格式保存的内容） */
 export class PrintTemplateFormatError extends Error {
-  /** 出错模板的编码；读入未保存的草稿时为空。 */
+  /** 出错模板的编码；读入未保存的草稿时为空 */
   readonly templateCode?: string
 
   constructor(message: string, templateCode?: string, options?: ErrorOptions) {
@@ -25,11 +25,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * 解析模板 JSON 并确认它是当前格式的打印模板。
- * @param json 后端保存的模板 JSON。
- * @param templateCode 模板编码，写进错误信息。
- * @returns 打印模板。
- * @throws PrintTemplateFormatError JSON 无效或不是当前格式。
+ * 解析模板 JSON 并确认它是当前格式的打印模板
+ * @param json 后端保存的模板 JSON
+ * @param templateCode 模板编码，写进错误信息
+ * @returns 打印模板
+ * @throws PrintTemplateFormatError JSON 无效或不是当前格式
  */
 export function parsePrintTemplateJson(json: string, templateCode?: string): PrintDocument {
   const subject = templateCode ? `打印模板 ${templateCode}` : '打印模板'

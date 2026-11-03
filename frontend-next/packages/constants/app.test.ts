@@ -1,9 +1,9 @@
 /**
- * packages/constants/app.ts 契约测试。
+ * packages/constants/app.ts 契约测试
  *
  * 职责边界：主题模式取值、默认配置字面量、主题色预设分组（色值/文案 key 的唯一性与格式）、
- * ALL_THEME_COLORS 的派生规则，以及页脚底座项目清单。
- * 这些值同时被持久化 key 与后端用户设置引用，改动即破坏历史数据的可读性。
+ * ALL_THEME_COLORS 的派生规则，以及页脚底座项目清单
+ * 这些值同时被持久化 key 与后端用户设置引用，改动即破坏历史数据的可读性
  */
 import { describe, expect, it } from 'vitest'
 import {

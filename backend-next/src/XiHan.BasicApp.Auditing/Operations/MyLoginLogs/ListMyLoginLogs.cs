@@ -16,41 +16,41 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Auditing.Operations.MyLoginLogs;
 
 /// <summary>
-/// <c>my-login-logs.list</c> 的请求。
+/// <c>my-login-logs.list</c> 的请求
 /// </summary>
-/// <param name="Page">页码，从 1 起。</param>
-/// <param name="PageSize">页大小（1–50，缺省 10；4.x 同）。</param>
+/// <param name="Page">页码，从 1 起</param>
+/// <param name="PageSize">页大小（1–50，缺省 10；4.x 同）</param>
 public sealed record MyLoginLogsRequest([Range(1, 10000)] int Page = 1, [Range(1, 50)] int PageSize = 10);
 
 /// <summary>
-/// 本人的一条登录日志。
+/// 本人的一条登录日志
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="OccurredAt">发生时间。</param>
-/// <param name="Event">事件。</param>
-/// <param name="Succeeded">是否成功。</param>
-/// <param name="ErrorCode">失败的错误码。</param>
-/// <param name="ErrorMessage">失败的错误消息。</param>
-/// <param name="ClientIp">客户端地址。</param>
-/// <param name="Browser">浏览器。</param>
-/// <param name="Os">操作系统。</param>
-/// <param name="Device">设备类型。</param>
-/// <param name="Impersonated">是否别人模仿本人时记下的。</param>
+/// <param name="Id">主键</param>
+/// <param name="OccurredAt">发生时间</param>
+/// <param name="Event">事件</param>
+/// <param name="Succeeded">是否成功</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="ErrorMessage">失败的错误消息</param>
+/// <param name="ClientIp">客户端地址</param>
+/// <param name="Browser">浏览器</param>
+/// <param name="Os">操作系统</param>
+/// <param name="Device">设备类型</param>
+/// <param name="Impersonated">是否别人模仿本人时记下的</param>
 public sealed record MyLoginLogResponse(Guid Id, DateTimeOffset OccurredAt, LoginEvent Event, bool Succeeded, string? ErrorCode, string? ErrorMessage, string? ClientIp, string? Browser, string? Os, string? Device, bool Impersonated);
 
 /// <summary>
-/// 本人的登录日志。
+/// 本人的登录日志
 /// </summary>
 /// <remarks>
-/// <c>GET /api/my-login-logs</c>（4.x <c>Profile/LoginLogs</c>）。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可。
-/// 模仿会话里看到的是被模仿的人的日志（4.x 同）。
+/// <c>GET /api/my-login-logs</c>（4.x <c>Profile/LoginLogs</c>）。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可
+/// 模仿会话里看到的是被模仿的人的日志（4.x 同）
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyLoginLogs(SqlSugarUnitOfWork unitOfWork) : IOperation<MyLoginLogsRequest, PageResult<MyLoginLogResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "my-login-logs.list";
 

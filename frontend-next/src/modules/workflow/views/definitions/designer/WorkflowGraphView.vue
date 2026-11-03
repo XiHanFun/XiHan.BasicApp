@@ -8,7 +8,7 @@ import { openDefinition } from './definition-codec'
 /**
  * 工作流只读图查看器：XiHan 流程查看器（<xh-flow-viewer>）装上工作流引擎预设
  *
- * 用途：定义只读预览、实例运行轨迹（statuses 给节点运行态着色）。只能平移、缩放与点选，不能编辑。
+ * 用途：定义只读预览、实例运行轨迹（statuses 给节点运行态着色）。只能平移、缩放与点选，不能编辑
  */
 
 const props = defineProps<{

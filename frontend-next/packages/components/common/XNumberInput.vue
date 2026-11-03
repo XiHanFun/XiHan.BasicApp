@@ -22,11 +22,11 @@ import {
 } from './number-input-value'
 
 /**
- * 数字输入。
+ * 数字输入
  *
  * 组件库那侧收发的是**原始输入串**（空串即未填），而业务上下游一律是 `number | null`，
- * 换算收在 number-input-value.ts；加减钮也是部件，按 showButton 决定摆不摆。
- * 钮里不放字：皮肤在空钮上画加减字形，放了字就盖掉了。
+ * 换算收在 number-input-value.ts；加减钮也是部件，按 showButton 决定摆不摆
+ * 钮里不放字：皮肤在空钮上画加减字形，放了字就盖掉了
  */
 defineOptions({ name: 'XNumberInput', inheritAttrs: false })
 

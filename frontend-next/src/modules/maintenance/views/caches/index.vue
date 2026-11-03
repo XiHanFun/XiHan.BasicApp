@@ -43,7 +43,7 @@ const canUpdate = computed(() => hasPermission('maintenance.caches.update'))
 
 /**
  * 卡片内容容器样式：让内容区成为定高 flex 列，
- * 使内部滚动壳能撑满并收敛——与 SchemaPage 的做法一致。
+ * 使内部滚动壳能撑满并收敛——与 SchemaPage 的做法一致
  */
 const cardContentStyle = {
   display: 'flex',
@@ -168,8 +168,8 @@ async function loadNamespaceList() {
 }
 
 /**
- * 选择变化：级联收敛后 keys 仅含叶子，分组键（若有）在此滤掉。
- * 本次只新增一个键时把它加载到右侧详情；勾目录一次进来一批，右侧不动。
+ * 选择变化：级联收敛后 keys 仅含叶子，分组键（若有）在此滤掉
+ * 本次只新增一个键时把它加载到右侧详情；勾目录一次进来一批，右侧不动
  */
 function handleSelect(keys: string[]) {
   const leaves = leafKeys(keys)
@@ -276,8 +276,8 @@ function showToast(result: CacheToast) {
 }
 
 /**
- * 删掉之后：列表里拿掉这些键（续页标记不动，已加载的后几页不丢），选中与详情里的一并清掉。
- * 4.x 删完整表重查；6.0 按续页分页，重查会丢掉已加载的后几页。
+ * 删掉之后：列表里拿掉这些键（续页标记不动，已加载的后几页不丢），选中与详情里的一并清掉
+ * 4.x 删完整表重查；6.0 按续页分页，重查会丢掉已加载的后几页
  */
 function afterDelete(gone: readonly string[]) {
   const set = new Set(gone)
@@ -651,8 +651,8 @@ onMounted(async () => {
 }
 
 /*
- * 左右行容器：flex:1 + height:0 收敛到视口剩余高度（同 SchemaPage 表格区 class="flex-1" style="height:0"）。
- * height:0 是关键——给 flex item 一个确定的 0 起点，避免 flex-basis 退化为内容高度（树自然高）反向撑破父链。
+ * 左右行容器：flex:1 + height:0 收敛到视口剩余高度（同 SchemaPage 表格区 class="flex-1" style="height:0"）
+ * height:0 是关键——给 flex item 一个确定的 0 起点，避免 flex-basis 退化为内容高度（树自然高）反向撑破父链
  */
 .cache-body {
   display: flex;
@@ -705,10 +705,10 @@ onMounted(async () => {
 }
 
 /*
- * 滚动区：相对壳 + 绝对内胆。
+ * 滚动区：相对壳 + 绝对内胆
  * 内胆 position:absolute 脱离文档流，对外固有高度为 0——树/详情再高也不会经 flex-basis
  * 把内容高度灌进框架的内容高度链（该链为内容驱动 + 视口下限），页面恒收敛于视口，
- * 滚动只发生在内胆里。
+ * 滚动只发生在内胆里
  */
 .cache-scroll-host {
   position: relative;
@@ -723,7 +723,7 @@ onMounted(async () => {
 }
 
 /* 内胆里这一层是唯一的内容承载层：撑满内胆并成为 flex 列，
-   下面的树 / pre / 编辑器才有可分配的高度。
+   下面的树 / pre / 编辑器才有可分配的高度
    内容多时自然撑高，由内胆滚动 */
 .cache-scroll-body > .xh-loading-stage {
   display: flex;

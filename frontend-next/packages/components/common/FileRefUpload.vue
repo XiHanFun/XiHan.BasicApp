@@ -8,11 +8,11 @@ import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores/app-context'
 
 /**
- * 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID。
+ * 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID
  *
- * 展示地址按需换取（签名地址会过期，不落库）；也兼容历史数据里的直链。
+ * 展示地址按需换取（签名地址会过期，不落库）；也兼容历史数据里的直链
  * image 显示预览图，file 显示原始文件名与打开入口。上传与查看走文件库的接口，
- * 使用者要有文件的上传与查看权限。
+ * 使用者要有文件的上传与查看权限
  */
 defineOptions({ name: 'XFileRefUpload' })
 

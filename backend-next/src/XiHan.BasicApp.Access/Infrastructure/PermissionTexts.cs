@@ -9,20 +9,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 权限显示名与说明的区域文案。
+/// 权限显示名与说明的区域文案
 /// </summary>
 /// <remarks>
-/// 约定键 <c>permissions.&lt;权限码&gt;.name</c> / <c>.description</c>（权限码的 <c>-</c> 换 <c>_</c>，与框架 OpenAPI 生成器读的是同一套键），在所属包的语言文件里，按调用方的区域取。
-/// 每个码在 10 种区域都有显示名与说明（<c>PackageStructureTests</c> 守着）；回退链用尽仍没有时才用描述表里的英文。
+/// 约定键 <c>permissions.&lt;权限码&gt;.name</c> / <c>.description</c>（权限码的 <c>-</c> 换 <c>_</c>，与框架 OpenAPI 生成器读的是同一套键），在所属包的语言文件里，按调用方的区域取
+/// 每个码在 10 种区域都有显示名与说明（<c>PackageStructureTests</c> 守着）；回退链用尽仍没有时才用描述表里的英文
 /// </remarks>
 public static class PermissionTexts
 {
     /// <summary>
-    /// 调用方区域的显示名。
+    /// 调用方区域的显示名
     /// </summary>
-    /// <param name="permission">权限描述。</param>
-    /// <param name="context">当前调用。</param>
-    /// <returns>显示名。</returns>
+    /// <param name="permission">权限描述</param>
+    /// <param name="context">当前调用</param>
+    /// <returns>显示名</returns>
     public static string NameOf(PermissionDescriptor permission, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(permission);
@@ -30,11 +30,11 @@ public static class PermissionTexts
     }
 
     /// <summary>
-    /// 调用方区域的说明。
+    /// 调用方区域的说明
     /// </summary>
-    /// <param name="permission">权限描述。</param>
-    /// <param name="context">当前调用。</param>
-    /// <returns>说明；描述表里也没有时为空。</returns>
+    /// <param name="permission">权限描述</param>
+    /// <param name="context">当前调用</param>
+    /// <returns>说明；描述表里也没有时为空</returns>
     public static string? DescriptionOf(PermissionDescriptor permission, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(permission);

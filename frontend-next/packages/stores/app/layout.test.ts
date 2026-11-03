@@ -1,8 +1,8 @@
 /**
- * 布局切片（app/layout）单元测试。
+ * 布局切片（app/layout）单元测试
  * 职责边界：布局模式、品牌、侧栏、顶栏、导航、内容区、标签栏、面包屑等布局偏好的
  * 默认值与本地还原、侧栏宽度夹取（读与写两侧）、顶栏对齐的旧值迁移、
- * 以及 setBranding 的逐字段语义（注释点名：logo 空串要回落默认，防止上一租户 Logo 泄漏）。
+ * 以及 setBranding 的逐字段语义（注释点名：logo 空串要回落默认，防止上一租户 Logo 泄漏）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

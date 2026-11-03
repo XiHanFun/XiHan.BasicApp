@@ -1,5 +1,5 @@
 /**
- * 各日志的结果、类型配色（列表单元格与详情抬头共用，同一个值在两处颜色一致）。
+ * 各日志的结果、类型配色（列表单元格与详情抬头共用，同一个值在两处颜色一致）
  */
 import type { Tone } from '@xihan-ui/core'
 import type { AccessResult, ConditionHitAction, DiffKind, LoginEvent, PermissionChangeType, TraceItemStatus } from '~/contracts'

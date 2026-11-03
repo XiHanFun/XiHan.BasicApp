@@ -16,19 +16,19 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="ITenantInitializer"/> 的实现，为新租户建内建角色。
+/// <see cref="ITenantInitializer"/> 的实现，为新租户建内建角色
 /// </summary>
 /// <remarks>
-/// 为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去。
-/// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用。
-/// 转移所有权时新所有者同样指派进 <c>admin</c>（新加的记一条指派日志），原所有者的角色不动；两人的指派缓存随即失效（判定与下次续签立即看到）。
+/// 为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去
+/// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用
+/// 转移所有权时新所有者同样指派进 <c>admin</c>（新加的记一条指派日志），原所有者的角色不动；两人的指派缓存随即失效（判定与下次续签立即看到）
 /// </remarks>
-/// <param name="roles">角色仓储。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="service">角色域服务。</param>
-/// <param name="grants">角色授予。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="assignments">指派缓存。</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="members">指派仓储</param>
+/// <param name="service">角色域服务</param>
+/// <param name="grants">角色授予</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="assignments">指派缓存</param>
 public sealed class TenantRoleInitializer(
     IRepository<SysRole, Guid> roles,
     IRepository<SysUserRole, Guid> members,
@@ -74,9 +74,9 @@ public sealed class TenantRoleInitializer(
     }
 
     /// <summary>
-    /// 备好租户的 <c>admin</c> 角色并把用户指派进去。
+    /// 备好租户的 <c>admin</c> 角色并把用户指派进去
     /// </summary>
-    /// <returns>角色，以及这次是否新加了指派。</returns>
+    /// <returns>角色，以及这次是否新加了指派</returns>
     private async Task<Result<(SysRole Role, bool Assigned)>> EnsureAdminAsync(string tenantId, Guid adminUserId, InvocationContext context)
     {
         SysRole admin;

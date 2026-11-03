@@ -11,10 +11,10 @@ using XiHan.BasicApp.Contracts.Paging;
 namespace {{ Namespace }};
 
 /// <summary>
-/// {{ ModuleName }} 包的 JSON 序列化上下文（源生成）。
+/// {{ ModuleName }} 包的 JSON 序列化上下文（源生成）
 /// </summary>
 /// <remarks>
-/// 加新的资源时把它的请求与响应类型补进来（见生成产物里的 <c>_registration</c>）。
+/// 加新的资源时把它的请求与响应类型补进来（见生成产物里的 <c>_registration</c>）
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

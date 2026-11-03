@@ -32,7 +32,7 @@ const favoritesStore = useFavoritesStore()
 const splitViewStore = useSplitViewStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const { formatShortcut } = usePlatform()
-// 标签总览按钮 title 里的键位提示，键位取自全局快捷键声明。
+// 标签总览按钮 title 里的键位提示，键位取自全局快捷键声明
 const tabOverviewShortcut = formatShortcut(GLOBAL_HOTKEYS.tabOverview.join('+'))
 
 // 隐藏被合并到右侧分屏的标签（视为已并入分屏锚定标签）
@@ -262,7 +262,7 @@ function handleMiddleClose(path: string) {
 // 流程：@before-enter 设初始态 → @enter 强制 reflow + 设 transition 动到终态
 // 时长与曲线取组件库的语义令牌：入场整段走 slide（减弱动效下 1ms，直接出现）；
 // 离场是「列表移除」，淡出走 exit（减弱动效下仍保留 120ms），位移量取幅度令牌 distance-lg——
-// 减弱动效下它归零，只剩淡出。不能把位移挂在 enter / exit 时长上：这两支在减弱动效下不降到 1ms，标签照样滑。
+// 减弱动效下它归零，只剩淡出。不能把位移挂在 enter / exit 时长上：这两支在减弱动效下不降到 1ms，标签照样滑
 // 下面两个毫秒数只用作兜底定时器的上限
 const TAB_ENTER = 'var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong)'
 const TAB_LEAVE = 'var(--xh-motion-duration-exit) var(--xh-motion-ease-exit)'
@@ -279,7 +279,7 @@ function clearTabTransition(el: HTMLElement) {
 }
 
 /**
- * 等这枚标签自己的淡变走完再收尾，超时兜底只收一次。
+ * 等这枚标签自己的淡变走完再收尾，超时兜底只收一次
  * 子元素的过渡结束事件也会冒泡上来，只认本元素的 opacity：减弱动效下位移 1ms 就结束，淡变还在走
  */
 function afterOwnFade(el: HTMLElement, timeoutMs: number, finish: () => void) {
@@ -341,7 +341,7 @@ function onTabLeaveCancelled(el: Element) {
 }
 
 // 拖拽结束：按路径提交新顺序。固定标签（pinned）在 TabbarTabItem 中已被禁用拖拽，
-// 此处再以数据校验「固定 / 非固定不互换」，保证最终顺序不破坏约束。
+// 此处再以数据校验「固定 / 非固定不互换」，保证最终顺序不破坏约束
 function onTabSort(move: { from: number, to: number }) {
   const tabs = localizedTabs.value
   if (Boolean(tabs[move.from]?.pinned) !== Boolean(tabs[move.to]?.pinned)) {
@@ -378,7 +378,7 @@ const debouncedCalc = useDebounceFn(() => {
 
 const debouncedEdge = useDebounceFn(updateScrollEdge, 80)
 
-/** 减少动效时改为瞬时滚动。 */
+/** 减少动效时改为瞬时滚动 */
 function scrollBehavior(): ScrollBehavior {
   return resolveMotionPreference() === 'reduce' ? 'instant' : 'smooth'
 }

@@ -10,28 +10,28 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Tenancy.Operations.Subscription;
 
 /// <summary>
-/// <c>subscription.get</c> 的请求（取调用方所在的租户，没有参数）。
+/// <c>subscription.get</c> 的请求（取调用方所在的租户，没有参数）
 /// </summary>
 public sealed record GetSubscriptionRequest;
 
 /// <summary>
-/// 本租户的订阅。
+/// 本租户的订阅
 /// </summary>
-/// <param name="TenantId">租户 ID。</param>
-/// <param name="TenantName">租户名称。</param>
-/// <param name="Status">租户状态。</param>
-/// <param name="ExpiresAt">到期时间；为空即长期有效。</param>
-/// <param name="IsExpired">是否已到期。</param>
-/// <param name="EditionCode">套餐编码；没有套餐为空。</param>
-/// <param name="EditionName">套餐名称。</param>
-/// <param name="EditionDescription">套餐说明。</param>
-/// <param name="IsFree">是否免费套餐。</param>
-/// <param name="Price">套餐价格；为空不标价。</param>
-/// <param name="BillingPeriodMonths">计费周期（月）。</param>
-/// <param name="UserLimit">有效的席位上限；为空不限。</param>
-/// <param name="UsedSeats">已用席位。</param>
-/// <param name="StorageLimitMb">有效的存储上限（MB）；为空不限。</param>
-/// <param name="UsedStorageBytes">已用存储（字节）。</param>
+/// <param name="TenantId">租户 ID</param>
+/// <param name="TenantName">租户名称</param>
+/// <param name="Status">租户状态</param>
+/// <param name="ExpiresAt">到期时间；为空即长期有效</param>
+/// <param name="IsExpired">是否已到期</param>
+/// <param name="EditionCode">套餐编码；没有套餐为空</param>
+/// <param name="EditionName">套餐名称</param>
+/// <param name="EditionDescription">套餐说明</param>
+/// <param name="IsFree">是否免费套餐</param>
+/// <param name="Price">套餐价格；为空不标价</param>
+/// <param name="BillingPeriodMonths">计费周期（月）</param>
+/// <param name="UserLimit">有效的席位上限；为空不限</param>
+/// <param name="UsedSeats">已用席位</param>
+/// <param name="StorageLimitMb">有效的存储上限（MB）；为空不限</param>
+/// <param name="UsedStorageBytes">已用存储（字节）</param>
 public sealed record SubscriptionResponse(
     string TenantId,
     string TenantName,
@@ -50,19 +50,19 @@ public sealed record SubscriptionResponse(
     long UsedStorageBytes);
 
 /// <summary>
-/// 本租户的订阅。
+/// 本租户的订阅
 /// </summary>
 /// <remarks>
-/// <c>GET /api/subscription</c>（4.x 的「我的订阅」）。只在租户侧；价格与周期只作展示，没有续费与付款流程。
+/// <c>GET /api/subscription</c>（4.x 的「我的订阅」）。只在租户侧；价格与周期只作展示，没有续费与付款流程
 /// </remarks>
-/// <param name="service">租户域服务。</param>
-/// <param name="quotas">租户配额。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="service">租户域服务</param>
+/// <param name="quotas">租户配额</param>
+/// <param name="clock">时钟</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.SubscriptionRead)]
 public sealed class GetSubscription(TenantService service, TenantQuotas quotas, TimeProvider clock) : IOperation<GetSubscriptionRequest, SubscriptionResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "subscription.get";
 

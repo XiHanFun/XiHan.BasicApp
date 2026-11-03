@@ -7,10 +7,10 @@ import GrantTransfer from './GrantTransfer.vue'
 import { groupPermissions } from './permission-grant-panel'
 
 /**
- * 权限穿梭框：按资源分段、条目为「权限名 + 权限码」的授权穿梭框。
+ * 权限穿梭框：按资源分段、条目为「权限名 + 权限码」的授权穿梭框
  *
  * 只表达「授予 / 未授予」一个维度。三态直授（允许 / 拒绝）用两个本组件各管一态，
- * 行尾一格（suffix 插槽）用来标出条目在另一态里的归属。
+ * 行尾一格（suffix 插槽）用来标出条目在另一态里的归属
  */
 defineOptions({ name: 'XPermissionTransfer' })
 

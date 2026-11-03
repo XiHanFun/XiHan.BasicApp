@@ -14,8 +14,8 @@ export const WRITE_MODES: readonly WriteMode[] = ['AlwaysOverwrite', 'WriteOnce'
 export const TEMPLATE_ENGINES: readonly TemplateEngine[] = ['Scriban']
 
 /**
- * SchemaPage 的资源：分页与删除。
- * 生成模式、写入方式与状态多选合成 in；关键字匹配编码、名称与描述（照 4.x）。
+ * SchemaPage 的资源：分页与删除
+ * 生成模式、写入方式与状态多选合成 in；关键字匹配编码、名称与描述（照 4.x）
  */
 export function templatesResource(): SchemaResource<TemplateRow> {
   return {
@@ -37,8 +37,8 @@ export interface ArtifactTreeNode {
 }
 
 /**
- * 产物按路径组成目录树（照 4.x）：路径逐段建目录，文件挂到末级目录下；目录在前、各自按名称排。
- * entries 带上产物在完整列表里的下标，分栏过滤后选中态仍按它定位。
+ * 产物按路径组成目录树（照 4.x）：路径逐段建目录，文件挂到末级目录下；目录在前、各自按名称排
+ * entries 带上产物在完整列表里的下标，分栏过滤后选中态仍按它定位
  */
 export function buildArtifactTree(entries: readonly { artifact: Artifact, index: number }[]): ArtifactTreeNode[] {
   const roots: ArtifactTreeNode[] = []

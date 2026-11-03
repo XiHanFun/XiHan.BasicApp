@@ -15,17 +15,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
 
 /// <summary>
-/// 数据源列表。
+/// 数据源列表
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-datasources:list</c>。筛选与排序见 <see cref="CodegenDatasourceQueries"/>。
+/// <c>POST /api/codegen-datasources:list</c>。筛选与排序见 <see cref="CodegenDatasourceQueries"/>
 /// </remarks>
-/// <param name="queries">数据源查询。</param>
+/// <param name="queries">数据源查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesRead)]
 public sealed class ListCodegenDatasources(CodegenDatasourceQueries queries) : IOperation<PageRequest, PageResult<CodegenDatasourceResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.list";
 
@@ -39,17 +39,17 @@ public sealed class ListCodegenDatasources(CodegenDatasourceQueries queries) : I
 }
 
 /// <summary>
-/// 数据源下拉选项。
+/// 数据源下拉选项
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-datasources:options</c>。全部数据源（含停用的，照 4.x），按排序号与名称。
+/// <c>GET /api/codegen-datasources:options</c>。全部数据源（含停用的，照 4.x），按排序号与名称
 /// </remarks>
-/// <param name="queries">数据源查询。</param>
+/// <param name="queries">数据源查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesRead)]
 public sealed class ListCodegenDatasourceOptions(CodegenDatasourceQueries queries) : IOperation<ListCodegenDatasourceOptionsRequest, CodegenDatasourceOptionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.options";
 
@@ -63,17 +63,17 @@ public sealed class ListCodegenDatasourceOptions(CodegenDatasourceQueries querie
 }
 
 /// <summary>
-/// 数据源详情。
+/// 数据源详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-datasources/{id}</c>。口令与连接串不回显。
+/// <c>GET /api/codegen-datasources/{id}</c>。口令与连接串不回显
 /// </remarks>
-/// <param name="service">数据源规则。</param>
+/// <param name="service">数据源规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesRead)]
 public sealed class GetCodegenDatasource(CodeGenDataSourceService service) : IOperation<CodegenDatasourceIdRequest, CodegenDatasourceDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.get";
 
@@ -88,20 +88,20 @@ public sealed class GetCodegenDatasource(CodeGenDataSourceService service) : IOp
 }
 
 /// <summary>
-/// 新建数据源。
+/// 新建数据源
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-datasources</c>。名称已被占用 <c>CODEGENERATION_CONFLICT_001</c>（并发重复由部分唯一索引兜住）；口令与显式连接串加密存储；
-/// 设为缺省时其余数据源取消缺省（照 4.x）。
+/// 设为缺省时其余数据源取消缺省（照 4.x）
 /// </remarks>
-/// <param name="dataSources">数据源仓储。</param>
-/// <param name="service">数据源规则。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="dataSources">数据源仓储</param>
+/// <param name="service">数据源规则</param>
+/// <param name="ids">标识生成器</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesCreate)]
 public sealed class CreateCodegenDatasource(IRepository<SysCodeGenDataSource, Guid> dataSources, CodeGenDataSourceService service, IIdGenerator<Guid> ids) : IOperation<CreateCodegenDatasourceRequest, CodegenDatasourceDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.create";
 
@@ -150,19 +150,19 @@ public sealed class CreateCodegenDatasource(IRepository<SysCodeGenDataSource, Gu
 }
 
 /// <summary>
-/// 修改数据源。
+/// 修改数据源
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/codegen-datasources/{id}</c>。口令与显式连接串留空即不改（照 4.x）；交回的并发戳与当前的不同即冲突。
-/// 写入后注销这个数据源的连接，下次使用按新定义重建。
+/// <c>PUT /api/codegen-datasources/{id}</c>。口令与显式连接串留空即不改（照 4.x）；交回的并发戳与当前的不同即冲突
+/// 写入后注销这个数据源的连接，下次使用按新定义重建
 /// </remarks>
-/// <param name="dataSources">数据源仓储。</param>
-/// <param name="service">数据源规则。</param>
+/// <param name="dataSources">数据源仓储</param>
+/// <param name="service">数据源规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesUpdate)]
 public sealed class UpdateCodegenDatasource(IRepository<SysCodeGenDataSource, Guid> dataSources, CodeGenDataSourceService service) : IOperation<UpdateCodegenDatasourceRequest, CodegenDatasourceDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.update";
 
@@ -220,18 +220,18 @@ public sealed class UpdateCodegenDatasource(IRepository<SysCodeGenDataSource, Gu
 }
 
 /// <summary>
-/// 启用或停用数据源。
+/// 启用或停用数据源
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-datasources/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（4.x 同）。写入后注销这个数据源的连接。
+/// <c>POST /api/codegen-datasources/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（4.x 同）。写入后注销这个数据源的连接
 /// </remarks>
-/// <param name="dataSources">数据源仓储。</param>
-/// <param name="service">数据源规则。</param>
+/// <param name="dataSources">数据源仓储</param>
+/// <param name="service">数据源规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesUpdate)]
 public sealed class SetCodegenDatasourceStatus(IRepository<SysCodeGenDataSource, Guid> dataSources, CodeGenDataSourceService service) : IOperation<SetCodegenDatasourceStatusRequest, CodegenDatasourceDetailResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.set-status";
 
@@ -261,19 +261,19 @@ public sealed class SetCodegenDatasourceStatus(IRepository<SysCodeGenDataSource,
 }
 
 /// <summary>
-/// 批量删除数据源。
+/// 批量删除数据源
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/codegen-datasources?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_001</c>，仍被表配置引用 <c>CODEGENERATION_CONFLICT_002</c>（4.x 不查引用，方案 C2）。
-/// 软删除，同名可以重建；删除后注销连接。
+/// <c>DELETE /api/codegen-datasources?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_001</c>，仍被表配置引用 <c>CODEGENERATION_CONFLICT_002</c>（4.x 不查引用，方案 C2）
+/// 软删除，同名可以重建；删除后注销连接
 /// </remarks>
-/// <param name="dataSources">数据源仓储。</param>
-/// <param name="service">数据源规则。</param>
+/// <param name="dataSources">数据源仓储</param>
+/// <param name="service">数据源规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesDelete)]
 public sealed class DeleteCodegenDatasources(IRepository<SysCodeGenDataSource, Guid> dataSources, CodeGenDataSourceService service) : IOperation<CodegenDatasourceIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.delete";
 
@@ -314,21 +314,21 @@ public sealed class DeleteCodegenDatasources(IRepository<SysCodeGenDataSource, G
 }
 
 /// <summary>
-/// 测试数据源的连接。
+/// 测试数据源的连接
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-datasources/{id}:test-connection</c>。按当前定义临时连一次（停用的也能测，照 4.x），把结果写回最近一次测试的时间、结果与说明；
-/// 连不上不是失败的调用，结果里 <c>success</c> 为否、说明是框架给的原因（脱敏）。要修改权限：4.x 只要读权限却写库（方案 C2）。
-/// 口令或连接串解不开即 <c>CODEGENERATION_UNAVAILABLE_001</c>。
+/// 连不上不是失败的调用，结果里 <c>success</c> 为否、说明是框架给的原因（脱敏）。要修改权限：4.x 只要读权限却写库（方案 C2）
+/// 口令或连接串解不开即 <c>CODEGENERATION_UNAVAILABLE_001</c>
 /// </remarks>
-/// <param name="dataSources">数据源仓储。</param>
-/// <param name="service">数据源规则。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="dataSources">数据源仓储</param>
+/// <param name="service">数据源规则</param>
+/// <param name="clock">时钟</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesUpdate)]
 public sealed class TestCodegenDatasource(IRepository<SysCodeGenDataSource, Guid> dataSources, CodeGenDataSourceService service, TimeProvider clock) : IOperation<CodegenDatasourceIdRequest, CodegenDatasourceTestResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "codegen-datasources.test-connection";
 

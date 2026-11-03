@@ -13,17 +13,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Operations.BotConfigs;
 
 /// <summary>
-/// 分页列出当前一侧的机器人配置。
+/// 分页列出当前一侧的机器人配置
 /// </summary>
 /// <remarks>
-/// <c>POST /api/bot-configs:list</c>（签名密钥不回显）。
+/// <c>POST /api/bot-configs:list</c>（签名密钥不回显）
 /// </remarks>
-/// <param name="queries">查询。</param>
+/// <param name="queries">查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsRead)]
 public sealed class ListBotConfigs(MessagingQueries queries) : IOperation<PageRequest, PageResult<BotConfigResponse>>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.list";
 
@@ -32,14 +32,14 @@ public sealed class ListBotConfigs(MessagingQueries queries) : IOperation<PageRe
 }
 
 /// <summary>
-/// 取一个机器人配置：<c>GET /api/bot-configs/{id}</c>。
+/// 取一个机器人配置：<c>GET /api/bot-configs/{id}</c>
 /// </summary>
-/// <param name="service">配置服务。</param>
+/// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsRead)]
 public sealed class GetBotConfig(BotConfigService service) : IOperation<MessagingIdRequest, BotConfigResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.get";
 
@@ -54,17 +54,17 @@ public sealed class GetBotConfig(BotConfigService service) : IOperation<Messagin
 }
 
 /// <summary>
-/// 新建机器人配置。
+/// 新建机器人配置
 /// </summary>
 /// <remarks>
-/// <c>POST /api/bot-configs</c>（Webhook 只认服务商的官方 https 地址，<c>NOTIFICATION_VALIDATION_011</c>；这个服务商的第一个即缺省）。
+/// <c>POST /api/bot-configs</c>（Webhook 只认服务商的官方 https 地址，<c>NOTIFICATION_VALIDATION_011</c>；这个服务商的第一个即缺省）
 /// </remarks>
-/// <param name="service">配置服务。</param>
+/// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsCreate)]
 public sealed class CreateBotConfig(BotConfigService service) : IOperation<CreateBotConfigRequest, BotConfigResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.create";
 
@@ -79,17 +79,17 @@ public sealed class CreateBotConfig(BotConfigService service) : IOperation<Creat
 }
 
 /// <summary>
-/// 修改机器人配置。
+/// 修改机器人配置
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/bot-configs/{id}</c>（签名密钥不填即保留；缺省的不能停用也不能换服务商）。
+/// <c>PUT /api/bot-configs/{id}</c>（签名密钥不填即保留；缺省的不能停用也不能换服务商）
 /// </remarks>
-/// <param name="service">配置服务。</param>
+/// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsUpdate)]
 public sealed class UpdateBotConfig(BotConfigService service) : IOperation<UpdateBotConfigRequest, BotConfigResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.update";
 
@@ -110,17 +110,17 @@ public sealed class UpdateBotConfig(BotConfigService service) : IOperation<Updat
 }
 
 /// <summary>
-/// 设为这个服务商的缺省机器人。
+/// 设为这个服务商的缺省机器人
 /// </summary>
 /// <remarks>
-/// <c>POST /api/bot-configs/{id}:set-default</c>（须启用）。
+/// <c>POST /api/bot-configs/{id}:set-default</c>（须启用）
 /// </remarks>
-/// <param name="service">配置服务。</param>
+/// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsUpdate)]
 public sealed class SetDefaultBotConfig(BotConfigService service) : IOperation<MessagingIdRequest, BotConfigResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.set-default";
 
@@ -141,17 +141,17 @@ public sealed class SetDefaultBotConfig(BotConfigService service) : IOperation<M
 }
 
 /// <summary>
-/// 批量删除机器人配置。
+/// 批量删除机器人配置
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/bot-configs?ids=</c>（缺省的逐项拒绝）。
+/// <c>DELETE /api/bot-configs?ids=</c>（缺省的逐项拒绝）
 /// </remarks>
-/// <param name="service">配置服务。</param>
+/// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsDelete)]
 public sealed class DeleteBotConfigs(BotConfigService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "bot-configs.delete";
 

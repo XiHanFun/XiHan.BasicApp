@@ -1,5 +1,5 @@
-// 工作流模块文案（workflow 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
-// 菜单标题键来自后端页面登记（workflow.approvals.title、workflow.definitions.title、workflow.instances.title）；@ 是 vue-i18n 链接消息的保留字符，不要写进文案。
+// 工作流模块文案（workflow 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（workflow.approvals.title、workflow.definitions.title、workflow.instances.title）；@ 是 vue-i18n 链接消息的保留字符，不要写进文案
 export default {
   workflow: {
     todo_widget: {

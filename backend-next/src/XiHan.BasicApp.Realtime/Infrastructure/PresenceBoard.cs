@@ -9,58 +9,58 @@ using XiHan.Framework.Caching.Abstractions.Stores;
 namespace XiHan.BasicApp.Realtime.Infrastructure;
 
 /// <summary>
-/// 共享缓存里一条连接的登记。
+/// 共享缓存里一条连接的登记
 /// </summary>
-/// <param name="ConnectionId">连接 ID。</param>
-/// <param name="Hub">Hub 路径。</param>
-/// <param name="SessionId">会话。</param>
-/// <param name="UserId">用户。</param>
-/// <param name="Side">侧。</param>
-/// <param name="Groups">Hub 另外让它加入的组。</param>
+/// <param name="ConnectionId">连接 ID</param>
+/// <param name="Hub">Hub 路径</param>
+/// <param name="SessionId">会话</param>
+/// <param name="UserId">用户</param>
+/// <param name="Side">侧</param>
+/// <param name="Groups">Hub 另外让它加入的组</param>
 internal sealed record PresenceEntry(string ConnectionId, string Hub, Guid SessionId, Guid UserId, string Side, IReadOnlyList<string> Groups);
 
 /// <summary>
-/// 一个实例的连接快照。
+/// 一个实例的连接快照
 /// </summary>
-/// <param name="Connections">连接。</param>
+/// <param name="Connections">连接</param>
 internal sealed record PresenceSnapshot(IReadOnlyList<PresenceEntry> Connections);
 
 /// <summary>
-/// 实例名册里的一项。
+/// 实例名册里的一项
 /// </summary>
-/// <param name="Id">实例标识。</param>
-/// <param name="ExpiresAt">心跳续到的时刻。</param>
+/// <param name="Id">实例标识</param>
+/// <param name="ExpiresAt">心跳续到的时刻</param>
 internal sealed record PresenceNode(string Id, DateTimeOffset ExpiresAt);
 
 /// <summary>
-/// 实例名册。
+/// 实例名册
 /// </summary>
-/// <param name="Nodes">实例。</param>
+/// <param name="Nodes">实例</param>
 internal sealed record PresenceNodes(IReadOnlyList<PresenceNode> Nodes);
 
 /// <summary>
-/// 配了 Redis 时的在线登记板（单例）。
+/// 配了 Redis 时的在线登记板（单例）
 /// </summary>
 /// <remarks>
 /// 每个实例把本实例的连接快照写在自己的键下（<c>realtime:presence:node:&lt;实例&gt;</c>，只有它自己写），连接变化即重写，并按心跳续期；
-/// 实例名册（<c>realtime:presence:nodes</c>）记各实例与续到的时刻，读在线状态时汇总名册里未过期实例的快照。
-/// 名册是读改写：并发写丢掉的一项在那个实例的下一次心跳补回；停了心跳的实例在 <see cref="Lifetime"/> 之后从汇总里消失。
-/// 写缓存失败只记日志，在线状态等下一次心跳修复，不影响连接本身。
+/// 实例名册（<c>realtime:presence:nodes</c>）记各实例与续到的时刻，读在线状态时汇总名册里未过期实例的快照
+/// 名册是读改写：并发写丢掉的一项在那个实例的下一次心跳补回；停了心跳的实例在 <see cref="Lifetime"/> 之后从汇总里消失
+/// 写缓存失败只记日志，在线状态等下一次心跳修复，不影响连接本身
 /// </remarks>
-/// <param name="node">本实例的标识。</param>
-/// <param name="cache">共享缓存。</param>
-/// <param name="registry">本实例的连接登记。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="logger">日志。</param>
+/// <param name="node">本实例的标识</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="registry">本实例的连接登记</param>
+/// <param name="clock">时间源</param>
+/// <param name="logger">日志</param>
 internal sealed partial class PresenceBoard(RealtimeNode node, ISharedCache cache, ConnectionRegistry registry, TimeProvider clock, ILogger<PresenceBoard> logger) : IDisposable
 {
     /// <summary>
-    /// 心跳间隔。
+    /// 心跳间隔
     /// </summary>
     public static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// 快照与名册项的存活时间（三次心跳）。
+    /// 快照与名册项的存活时间（三次心跳）
     /// </summary>
     public static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(45);
 
@@ -69,12 +69,12 @@ internal sealed partial class PresenceBoard(RealtimeNode node, ISharedCache cach
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     /// <summary>
-    /// 本实例的标识（每次启动不同）。
+    /// 本实例的标识（每次启动不同）
     /// </summary>
     public string NodeId => node.Id;
 
     /// <summary>
-    /// 把本实例此刻的连接写进共享缓存。
+    /// 把本实例此刻的连接写进共享缓存
     /// </summary>
     public async Task PublishAsync(CancellationToken cancellationToken)
     {
@@ -97,7 +97,7 @@ internal sealed partial class PresenceBoard(RealtimeNode node, ISharedCache cach
     }
 
     /// <summary>
-    /// 心跳：重写快照并把本实例续进名册。
+    /// 心跳：重写快照并把本实例续进名册
     /// </summary>
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
@@ -117,7 +117,7 @@ internal sealed partial class PresenceBoard(RealtimeNode node, ISharedCache cach
     }
 
     /// <summary>
-    /// 停机时把本实例从名册与缓存里拿掉。
+    /// 停机时把本实例从名册与缓存里拿掉
     /// </summary>
     public async Task LeaveAsync(CancellationToken cancellationToken)
     {
@@ -136,7 +136,7 @@ internal sealed partial class PresenceBoard(RealtimeNode node, ISharedCache cach
     }
 
     /// <summary>
-    /// 别的实例此刻登记的连接（不含本实例）。
+    /// 别的实例此刻登记的连接（不含本实例）
     /// </summary>
     public async Task<IReadOnlyList<PresenceEntry>> OthersAsync(CancellationToken cancellationToken)
     {

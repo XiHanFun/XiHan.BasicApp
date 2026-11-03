@@ -16,8 +16,8 @@ const { t } = useI18n()
 <template>
   <XhTooltipRoot>
     <!--
-      触发器借这个 span：它只是个状态标记，不该是按钮。
-      默认渲染出的 button 会被浮层打开时的初始焦点探测选中，一开面板提示就自动弹出来盖住内容。
+      触发器借这个 span：它只是个状态标记，不该是按钮
+      默认渲染出的 button 会被浮层打开时的初始焦点探测选中，一开面板提示就自动弹出来盖住内容
     -->
     <XhTooltipTrigger as-child>
       <span

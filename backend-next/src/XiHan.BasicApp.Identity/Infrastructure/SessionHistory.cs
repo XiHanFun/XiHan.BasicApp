@@ -8,12 +8,12 @@ using XiHan.Framework.Persistence.SqlSugar;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// <see cref="ISessionHistory"/> 的实现。
+/// <see cref="ISessionHistory"/> 的实现
 /// </summary>
 /// <remarks>
-/// 在调用的工作单元里直接查会话表；模仿会话（带发起人）不列。
+/// 在调用的工作单元里直接查会话表；模仿会话（带发起人）不列
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class SessionHistory(SqlSugarUnitOfWork unitOfWork) : ISessionHistory
 {
     /// <inheritdoc />

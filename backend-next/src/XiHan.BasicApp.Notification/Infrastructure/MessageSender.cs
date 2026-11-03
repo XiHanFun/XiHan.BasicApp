@@ -14,17 +14,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 有新的发送记录时提前唤醒发送循环（单例）。
+/// 有新的发送记录时提前唤醒发送循环（单例）
 /// </summary>
 /// <remarks>
-/// 记录可能还没提交，循环取不到就等下一轮。
+/// 记录可能还没提交，循环取不到就等下一轮
 /// </remarks>
 public sealed class MessageDispatchSignal : IDisposable
 {
     private readonly SemaphoreSlim _signal = new(0, 1);
 
     /// <summary>
-    /// 唤醒。
+    /// 唤醒
     /// </summary>
     public void Pulse()
     {
@@ -42,11 +42,11 @@ public sealed class MessageDispatchSignal : IDisposable
     }
 
     /// <summary>
-    /// 等到被唤醒或超时。
+    /// 等到被唤醒或超时
     /// </summary>
-    /// <param name="timeout">最长等多久。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>等待。</returns>
+    /// <param name="timeout">最长等多久</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>等待</returns>
     public Task WaitAsync(TimeSpan timeout, CancellationToken cancellationToken) => _signal.WaitAsync(timeout, cancellationToken);
 
     /// <inheritdoc />
@@ -54,19 +54,19 @@ public sealed class MessageDispatchSignal : IDisposable
 }
 
 /// <summary>
-/// 渲染模板并排队发送记录的 <see cref="IMessageSender"/> 实现。
+/// 渲染模板并排队发送记录的 <see cref="IMessageSender"/> 实现
 /// </summary>
 /// <remarks>
 /// 按模板编码取当前一侧（没有取平台）的模板渲染主题与正文，确认有可用的配置，写一条排队中的发送记录
-/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。短信另存调用方给的参数（品牌名只用于本地渲染，不交给服务商，免得参数个数对不上）。
+/// （在调用的工作单元里，随业务一起提交），再唤醒发送循环。短信另存调用方给的参数（品牌名只用于本地渲染，不交给服务商，免得参数个数对不上）
 /// </remarks>
-/// <param name="templates">模板服务。</param>
-/// <param name="configs">配置服务。</param>
-/// <param name="emails">邮件记录仓储。</param>
-/// <param name="sms">短信记录仓储。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="options">选项。</param>
-/// <param name="signal">唤醒信号。</param>
+/// <param name="templates">模板服务</param>
+/// <param name="configs">配置服务</param>
+/// <param name="emails">邮件记录仓储</param>
+/// <param name="sms">短信记录仓储</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="options">选项</param>
+/// <param name="signal">唤醒信号</param>
 public sealed class MessageSender(
     MessageTemplateService templates,
     ChannelConfigService configs,

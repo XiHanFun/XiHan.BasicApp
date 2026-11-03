@@ -57,7 +57,7 @@ function isRunning(row: WorkflowInstanceRow) {
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用。
+// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 // 照 4.x 五列可排序、可 Shift 追加次级排序，不排序时创建时间降序；关键字匹配实例名称（标题）与关联 ID
 const asRow = (row: object) => row as WorkflowInstanceRow
 
@@ -362,7 +362,7 @@ function onAction(payload: SchemaActionPayload) {
             </XhDescriptionsItem>
           </XhDescriptionsRoot>
 
-          <!-- 运行轨迹（只读图 + 节点状态着色）：实例详情带着所用的定义，不再回查。
+          <!-- 运行轨迹（只读图 + 节点状态着色）：实例详情带着所用的定义，不再回查
                分节文字放进分隔线的默认插槽；separator 的子节点对读屏是展示性的，名字另由 aria-label 给 -->
           <template v-if="detailData.document">
             <XhSeparator class="my-3" :aria-label="t('workflow.instances.graph_label')">

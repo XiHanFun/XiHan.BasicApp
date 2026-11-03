@@ -6,18 +6,18 @@ using SqlSugar;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 测试用的临时 PostgreSQL 库。
+/// 测试用的临时 PostgreSQL 库
 /// </summary>
 /// <remarks>
-/// 经维护库 <c>postgres</c> 建库，释放时 <c>DROP DATABASE … WITH (FORCE)</c>。服务器连接串来自环境变量 <see cref="Variable"/>（不含 Database）。
+/// 经维护库 <c>postgres</c> 建库，释放时 <c>DROP DATABASE … WITH (FORCE)</c>。服务器连接串来自环境变量 <see cref="Variable"/>（不含 Database）
 /// </remarks>
 public sealed class PostgresDatabase : IAsyncDisposable
 {
     /// <summary>
-    /// 服务器连接串所在的环境变量。
+    /// 服务器连接串所在的环境变量
     /// </summary>
     /// <remarks>
-    /// 没设即跳过需要真库的用例。
+    /// 没设即跳过需要真库的用例
     /// </remarks>
     public const string Variable = "XIHAN_TEST_POSTGRES";
 
@@ -32,15 +32,15 @@ public sealed class PostgresDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// 指向这个临时库的连接串。
+    /// 指向这个临时库的连接串
     /// </summary>
     public string ConnectionString { get; }
 
     /// <summary>
-    /// 取环境变量里的服务器连接串。
+    /// 取环境变量里的服务器连接串
     /// </summary>
     /// <remarks>
-    /// 没设即跳过当前用例。
+    /// 没设即跳过当前用例
     /// </remarks>
     public static string RequireServer()
     {
@@ -50,7 +50,7 @@ public sealed class PostgresDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// 建一个名字唯一的空库。
+    /// 建一个名字唯一的空库
     /// </summary>
     public static async Task<PostgresDatabase> CreateAsync(string server, string prefix)
     {

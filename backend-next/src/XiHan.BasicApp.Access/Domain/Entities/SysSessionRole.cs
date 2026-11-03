@@ -8,11 +8,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 会话激活的角色（平台库实体）。
+/// 会话激活的角色（平台库实体）
 /// </summary>
 /// <remarks>
 /// 对应 4.x 的 SysSessionRole。会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
-/// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询。
+/// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询
 /// </remarks>
 [SugarIndex("ux_{table}_session_id_owner_tenant_id_role_id", nameof(SessionId), OrderByType.Asc, nameof(OwnerTenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
 [SugarIndex("ix_{table}_owner_tenant_id_activated_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(ActivatedAt), OrderByType.Asc)]
@@ -23,65 +23,65 @@ public sealed class SysSessionRole : AppRecord, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 会话 ID（访问令牌的 <c>sid</c>）。
+    /// 会话 ID（访问令牌的 <c>sid</c>）
     /// </summary>
     public Guid SessionId { get; set; }
 
     /// <summary>
-    /// 用户 ID。
+    /// 用户 ID
     /// </summary>
     public Guid UserId { get; set; }
 
     /// <summary>
-    /// 角色 ID。
+    /// 角色 ID
     /// </summary>
     public Guid RoleId { get; set; }
 
     /// <summary>
-    /// 状态。
+    /// 状态
     /// </summary>
     public SessionRoleStatus Status { get; set; } = SessionRoleStatus.Active;
 
     /// <summary>
-    /// 激活时间。
+    /// 激活时间
     /// </summary>
     public DateTimeOffset ActivatedAt { get; set; }
 
     /// <summary>
-    /// 停用或到期的时间。
+    /// 停用或到期的时间
     /// </summary>
     public DateTimeOffset? DeactivatedAt { get; set; }
 
     /// <summary>
-    /// 激活、停用或到期的原因。
+    /// 激活、停用或到期的原因
     /// </summary>
     /// <remarks>
-    /// 激活时为 <c>login</c>、<c>switch-tenant</c>、<c>impersonation</c>、<c>refresh</c> 或 <c>manual</c>；停用时为 <c>manual</c>、<c>switch-tenant</c>、<c>dsd:&lt;规则编码&gt;</c>，到期为 <c>not-held</c>。
+    /// 激活时为 <c>login</c>、<c>switch-tenant</c>、<c>impersonation</c>、<c>refresh</c> 或 <c>manual</c>；停用时为 <c>manual</c>、<c>switch-tenant</c>、<c>dsd:&lt;规则编码&gt;</c>，到期为 <c>not-held</c>
     /// </remarks>
     [StringLength(500)]
     public string? Reason { get; set; }
 }
 
 /// <summary>
-/// 会话角色的状态。
+/// 会话角色的状态
 /// </summary>
 /// <remarks>
-/// 4.x 同。
+/// 4.x 同
 /// </remarks>
 public enum SessionRoleStatus
 {
     /// <summary>
-    /// 激活中。
+    /// 激活中
     /// </summary>
     Active = 0,
 
     /// <summary>
-    /// 已停用（本人换了激活集、切换租户或续签时按 DSD 停掉）。
+    /// 已停用（本人换了激活集、切换租户或续签时按 DSD 停掉）
     /// </summary>
     Inactive = 1,
 
     /// <summary>
-    /// 已到期（不再持有这个角色）。
+    /// 已到期（不再持有这个角色）
     /// </summary>
     Expired = 2,
 }

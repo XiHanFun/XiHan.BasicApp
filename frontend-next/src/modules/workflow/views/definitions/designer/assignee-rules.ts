@@ -1,9 +1,9 @@
 /**
- * 人工任务受理人规则（AssigneeRules / CcRules / FallbackAssigneeRules）的前端模型。
+ * 人工任务受理人规则（AssigneeRules / CcRules / FallbackAssigneeRules）的前端模型
  *
  * 规则 `{ type, values }` 原样写进节点属性，后端按类型交给已注册的解析器：
  * 框架内置 User / Starter / Expression；BasicApp 注册角色、部门、部门负责人、岗位、发起人主管（与后端
- * OrganizationAssigneeRuleTypes 一一对应）。角色、部门、岗位按编码引用，用户按主键引用。
+ * OrganizationAssigneeRuleTypes 一一对应）。角色、部门、岗位按编码引用，用户按主键引用
  */
 
 export type AssigneeValueEditor = 'users' | 'roles' | 'departments' | 'positions' | 'level' | 'expression' | 'none'
@@ -51,8 +51,8 @@ export function createRule(type: string): AssigneeRule {
 }
 
 /**
- * 把节点属性里的规则值归一成 `{ type, values }[]`。
- * 后端经 JSON 往返后是驼峰（type/values），手写 JSON 也可能是帕斯卡（Type/Values），两种都认；无法识别的项丢弃。
+ * 把节点属性里的规则值归一成 `{ type, values }[]`
+ * 后端经 JSON 往返后是驼峰（type/values），手写 JSON 也可能是帕斯卡（Type/Values），两种都认；无法识别的项丢弃
  */
 export function readRules(value: unknown): AssigneeRule[] {
   if (!Array.isArray(value))
@@ -92,8 +92,8 @@ export function isRuleComplete(rule: AssigneeRule): boolean {
 
 /**
  * 把旧版受理人写法并入规则：Assignees（主键列表）→ User 规则、AssigneesExpression → Expression 规则、
- * CcUserIds → 抄送 User 规则。设计器只编辑规则，打开旧定义时就地改写，保存即落为新写法（已发布版本不受影响）。
- * 返回是否发生了改写。
+ * CcUserIds → 抄送 User 规则。设计器只编辑规则，打开旧定义时就地改写，保存即落为新写法（已发布版本不受影响）
+ * 返回是否发生了改写
  */
 export function migrateLegacyAssignees(properties: Record<string, unknown>): boolean {
   let changed = false

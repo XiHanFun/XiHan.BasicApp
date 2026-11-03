@@ -10,14 +10,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 业务产出的临时文件。
+/// 业务产出的临时文件
 /// </summary>
 /// <remarks>
 /// 存在调用方所在的一侧，标为临时、带到期时间（同导出中心的结果文件），访问级别「需要授权」、记上业务给的来源；
-/// 读取不核对通用的文件权限，由业务按自己的权限先核对。到期的按不存在处理。
+/// 读取不核对通用的文件权限，由业务按自己的权限先核对。到期的按不存在处理
 /// </remarks>
-/// <param name="files">文件服务。</param>
-/// <param name="clock">时钟。</param>
+/// <param name="files">文件服务</param>
+/// <param name="clock">时钟</param>
 public sealed class TemporaryFiles(FileService files, TimeProvider clock) : ITemporaryFiles
 {
     /// <inheritdoc />

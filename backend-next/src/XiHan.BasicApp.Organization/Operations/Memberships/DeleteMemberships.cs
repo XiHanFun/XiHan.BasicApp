@@ -11,20 +11,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Memberships;
 
 /// <summary>
-/// 把用户移出部门。
+/// 把用户移出部门
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/memberships?ids=...</c>。移出的是主部门时，该用户剩下的第一条归属自动成为主部门。
-/// 移出即发出领域事件 <c>basicapp.organization.membership-changed</c>（Chat 据此把用户移出部门群）。
+/// <c>DELETE /api/memberships?ids=...</c>。移出的是主部门时，该用户剩下的第一条归属自动成为主部门
+/// 移出即发出领域事件 <c>basicapp.organization.membership-changed</c>（Chat 据此把用户移出部门群）
 /// </remarks>
-/// <param name="memberships">归属仓储。</param>
-/// <param name="service">归属域服务。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="memberships">归属仓储</param>
+/// <param name="service">归属域服务</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsDelete)]
 public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> memberships, MembershipService service, TimeProvider clock) : IOperation<MembershipIdsRequest, BatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "memberships.delete";
 

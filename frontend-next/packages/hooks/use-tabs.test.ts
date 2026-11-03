@@ -1,9 +1,9 @@
 /**
- * useTabs / useRefresh 标签页组合式单元测试。
+ * useTabs / useRefresh 标签页组合式单元测试
  * 职责：锁定 currentTab 与当前路由的绑定、disableState 五个禁用位的判定口径、
- * 各关闭动作对 tabbarStore 的委托与随后的路由跳转，以及刷新种子的递增。
+ * 各关闭动作对 tabbarStore 的委托与随后的路由跳转，以及刷新种子的递增
  *
- * vue-router 用可控替身注入，不启真实路由。
+ * vue-router 用可控替身注入，不启真实路由
  */
 import type { TabItem } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
@@ -154,7 +154,7 @@ describe('useTabs.disableState 禁用位判定', () => {
 
   // 回归锚点（清单条目 17）：currentIndex 为 -1 时 slice(0, -1) / slice(0) 会误判「左右有可关闭项」，
   // 但 store 的 closeLeft/closeRight 在找不到 key 时直接 return，菜单项可点却无效；
-  // closeOthers 更会把全部可关闭标签清空。故除「关闭全部」外必须全部禁用。
+  // closeOthers 更会把全部可关闭标签清空。故除「关闭全部」外必须全部禁用
   it('当前路由不在标签列表中时，除关闭全部外的动作一律禁用', () => {
     seedTabs()
     routeStub.path = '/ghost'
@@ -168,7 +168,7 @@ describe('useTabs.disableState 禁用位判定', () => {
     })
   })
 
-  // 回归锚点（清单条目 17）：无当前标签且没有任何可关闭标签时，关闭全部也应禁用。
+  // 回归锚点（清单条目 17）：无当前标签且没有任何可关闭标签时，关闭全部也应禁用
   it('当前路由不在标签列表中且无可关闭标签时，关闭全部同样禁用', () => {
     const store = useTabbarStore()
     store.tabs = [tab(HOME_PATH, false)]

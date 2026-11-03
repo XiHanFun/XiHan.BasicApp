@@ -6,17 +6,17 @@ using XiHan.BasicApp.Organization.Domain.Entities;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 部门的网络契约。
+/// 部门的网络契约
 /// </summary>
-/// <param name="Id">主键。</param>
-/// <param name="Code">编码。</param>
-/// <param name="Name">名称。</param>
-/// <param name="ParentId">直接上级；为空即顶层。</param>
-/// <param name="LeaderUserId">负责人。</param>
-/// <param name="Status">状态。</param>
-/// <param name="Order">同级排序号。</param>
-/// <param name="Description">说明。</param>
-/// <param name="CreatedAt">创建时间（UTC）。</param>
+/// <param name="Id">主键</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="ParentId">直接上级；为空即顶层</param>
+/// <param name="LeaderUserId">负责人</param>
+/// <param name="Status">状态</param>
+/// <param name="Order">同级排序号</param>
+/// <param name="Description">说明</param>
+/// <param name="CreatedAt">创建时间（UTC）</param>
 public sealed record DepartmentResponse(
     Guid Id,
     string Code,
@@ -29,7 +29,7 @@ public sealed record DepartmentResponse(
     DateTimeOffset CreatedAt)
 {
     /// <summary>
-    /// 从实体投影。
+    /// 从实体投影
     /// </summary>
     public static DepartmentResponse From(SysDepartment department)
     {

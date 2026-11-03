@@ -1,9 +1,9 @@
 /**
- * 应用上下文（app-context）单元测试。
- * 职责边界：packages 只从这里取 src 注入的 API/路由/视图模块。
+ * 应用上下文（app-context）单元测试
+ * 职责边界：packages 只从这里取 src 注入的 API/路由/视图模块
  * 覆盖未注册时的默认值与失败提示、逐字段注册（合并 vs 整体替换）的差异，
- * 以及注释里点名的坑：shellRoutes 必须逐字段拷贝，漏掉分支会静默丢配置。
- * 上下文是模块级单例，每个用例通过 vi.resetModules + 动态 import 拿到全新副本，保证可任意顺序执行。
+ * 以及注释里点名的坑：shellRoutes 必须逐字段拷贝，漏掉分支会静默丢配置
+ * 上下文是模块级单例，每个用例通过 vi.resetModules + 动态 import 拿到全新副本，保证可任意顺序执行
  */
 import type { AppContext } from './app-context'
 import type { AppContextApis } from '~/types'

@@ -13,19 +13,19 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 继承链上的一个角色：上级链里是上级，下级链里是下级。
+/// 继承链上的一个角色：上级链里是上级，下级链里是下级
 /// </summary>
-/// <param name="RoleId">角色。</param>
-/// <param name="Depth">最短的继承深度（直接上级或直接下级为 1）。</param>
-/// <param name="Path">最短路径上的角色，按「上级 → 下级」排列，含两端。</param>
-/// <param name="IsEffective">授予此刻是否沿继承传到（路径上作为上级的角色都启用）。</param>
+/// <param name="RoleId">角色</param>
+/// <param name="Depth">最短的继承深度（直接上级或直接下级为 1）</param>
+/// <param name="Path">最短路径上的角色，按「上级 → 下级」排列，含两端</param>
+/// <param name="IsEffective">授予此刻是否沿继承传到（路径上作为上级的角色都启用）</param>
 public sealed record RoleRelative(Guid RoleId, int Depth, IReadOnlyList<Guid> Path, bool IsEffective);
 
 /// <summary>
-/// 一侧的角色继承图。
+/// 一侧的角色继承图
 /// </summary>
 /// <remarks>
-/// 直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承（4.x 同）。
+/// 直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承（4.x 同）
 /// </remarks>
 public sealed class RoleGraph
 {
@@ -34,10 +34,10 @@ public sealed class RoleGraph
     private readonly HashSet<Guid> _inactive = [];
 
     /// <summary>
-    /// 由直接边与停用的角色组装。
+    /// 由直接边与停用的角色组装
     /// </summary>
-    /// <param name="edges">直接边（下级，上级）。</param>
-    /// <param name="inactive">边上停用的角色。</param>
+    /// <param name="edges">直接边（下级，上级）</param>
+    /// <param name="inactive">边上停用的角色</param>
     public RoleGraph(IEnumerable<(Guid RoleId, Guid ParentId)> edges, IEnumerable<Guid> inactive)
     {
         ArgumentNullException.ThrowIfNull(edges);
@@ -52,20 +52,20 @@ public sealed class RoleGraph
     }
 
     /// <summary>
-    /// 直接上级。
+    /// 直接上级
     /// </summary>
     public IReadOnlyList<Guid> ParentsOf(Guid roleId) => _parents.TryGetValue(roleId, out var parents) ? parents : [];
 
     /// <summary>
-    /// 是否有下级。
+    /// 是否有下级
     /// </summary>
     public bool HasChildren(Guid roleId) => _children.ContainsKey(roleId);
 
     /// <summary>
-    /// 取此刻传得到授予的上级与深度（不含自身）。
+    /// 取此刻传得到授予的上级与深度（不含自身）
     /// </summary>
     /// <remarks>
-    /// 只经过启用的上级，停用的上级与它之上的不算。
+    /// 只经过启用的上级，停用的上级与它之上的不算
     /// </remarks>
     public IReadOnlyList<(Guid RoleId, int Depth)> EffectiveAncestorsOf(Guid roleId)
     {
@@ -91,7 +91,7 @@ public sealed class RoleGraph
     }
 
     /// <summary>
-    /// 全部上级（不含自身，含停用与被截断的），按深度排列。
+    /// 全部上级（不含自身，含停用与被截断的），按深度排列
     /// </summary>
     public IReadOnlyList<RoleRelative> AncestorsOf(Guid roleId)
     {
@@ -100,10 +100,10 @@ public sealed class RoleGraph
     }
 
     /// <summary>
-    /// 取全部下级（不含自身），按深度排列。
+    /// 取全部下级（不含自身），按深度排列
     /// </summary>
     /// <remarks>
-    /// 本角色停用时都不传到。
+    /// 本角色停用时都不传到
     /// </remarks>
     public IReadOnlyList<RoleRelative> DescendantsOf(Guid roleId)
     {
@@ -129,7 +129,7 @@ public sealed class RoleGraph
     }
 
     /// <summary>
-    /// 按一个方向广度优先走（不看启停），带最短路径（从起点到该角色）。
+    /// 按一个方向广度优先走（不看启停），带最短路径（从起点到该角色）
     /// </summary>
     private static List<(Guid RoleId, int Depth, List<Guid> Path)> Walk(Guid start, Dictionary<Guid, List<Guid>> next)
     {
@@ -167,19 +167,19 @@ public sealed class RoleGraph
 }
 
 /// <summary>
-/// 角色继承图的缓存（单例）。
+/// 角色继承图的缓存（单例）
 /// </summary>
 /// <remarks>
-/// 每侧一份，放在共享缓存里 60 秒，继承变更与角色启停、删除时失效。
+/// 每侧一份，放在共享缓存里 60 秒，继承变更与角色启停、删除时失效
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）</param>
 public sealed class RoleHierarchy(ISharedCache cache, IServiceScopeFactory scopes)
 {
     private static readonly TimeSpan _timeToLive = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// 一侧的继承图。
+    /// 一侧的继承图
     /// </summary>
     public async Task<RoleGraph> GraphOfAsync(string owner, CancellationToken cancellationToken)
     {
@@ -203,10 +203,10 @@ public sealed class RoleHierarchy(ISharedCache cache, IServiceScopeFactory scope
     }
 
     /// <summary>
-    /// 一侧的继承图失效。
+    /// 一侧的继承图失效
     /// </summary>
     /// <remarks>
-    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存。
+    /// 调用里推到工作单元结束之后再删除（<see cref="CacheInvalidation"/>），提交前的旧数据不会被回填进缓存
     /// </remarks>
     public async Task InvalidateAsync(string owner, CancellationToken cancellationToken)
         => await CacheInvalidation.RemoveAsync(cache, KeyOf(owner), cancellationToken).ConfigureAwait(false);

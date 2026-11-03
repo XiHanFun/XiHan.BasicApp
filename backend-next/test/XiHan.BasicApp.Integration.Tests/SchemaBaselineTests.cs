@@ -14,12 +14,12 @@ using XiHan.BasicApp.Runtime.Schema;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证结构升级的基线。
+/// 验证结构升级的基线
 /// </summary>
 /// <remarks>
 /// 同一台 PostgreSQL 上两个空库：一个由 InitTables 建表，一个由升级执行器跑基线脚本建表，两边的表、列（类型、可空、缺省、自增）、约束与索引须完全一致；
-/// 基线只执行一次（再跑没有要执行的脚本），台账记下版本与执行记录，跑完基线的库能正常启动。
-/// 设 <c>XIHAN_UPDATE_SCHEMA_BASELINE=1</c> 时先把 InitTables 建出的结构渲染成基线脚本写回源码（实体改了之后用它重新生成，再提交）。
+/// 基线只执行一次（再跑没有要执行的脚本），台账记下版本与执行记录，跑完基线的库能正常启动
+/// 设 <c>XIHAN_UPDATE_SCHEMA_BASELINE=1</c> 时先把 InitTables 建出的结构渲染成基线脚本写回源码（实体改了之后用它重新生成，再提交）
 /// </remarks>
 public sealed class SchemaBaselineTests
 {

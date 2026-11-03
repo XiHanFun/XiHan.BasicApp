@@ -17,34 +17,34 @@ using Microsoft.Extensions.Logging;
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 /// <summary>
-/// 集成测试用的 S3 兼容服务。
+/// 集成测试用的 S3 兼容服务
 /// </summary>
 /// <remarks>
 /// 端点来自环境变量 <see cref="Variable"/>（如 <c>http://localhost:9000</c>，要认条件写入，如 RustFS），密钥来自 <c>XIHAN_TEST_S3_ACCESS_KEY</c> / <c>XIHAN_TEST_S3_SECRET_KEY</c>
-/// （缺省 <c>rustfsadmin</c>，即 RustFS 镜像不设密钥时的根凭据），与框架 S3 测试同一组变量。端点没设即跳过。
+/// （缺省 <c>rustfsadmin</c>，即 RustFS 镜像不设密钥时的根凭据），与框架 S3 测试同一组变量。端点没设即跳过
 /// </remarks>
 internal static class S3TestService
 {
     /// <summary>
-    /// 端点的环境变量。
+    /// 端点的环境变量
     /// </summary>
     public const string Variable = "XIHAN_TEST_S3";
 
     /// <summary>
-    /// 访问密钥 ID。
+    /// 访问密钥 ID
     /// </summary>
     public static string AccessKey => Environment.GetEnvironmentVariable("XIHAN_TEST_S3_ACCESS_KEY") is { Length: > 0 } key ? key : "rustfsadmin";
 
     /// <summary>
-    /// 访问密钥。
+    /// 访问密钥
     /// </summary>
     public static string SecretKey => Environment.GetEnvironmentVariable("XIHAN_TEST_S3_SECRET_KEY") is { Length: > 0 } key ? key : "rustfsadmin";
 
     /// <summary>
-    /// 取端点。
+    /// 取端点
     /// </summary>
     /// <remarks>
-    /// 没设即跳过用例。
+    /// 没设即跳过用例
     /// </remarks>
     public static Uri RequireEndpoint()
     {
@@ -54,13 +54,13 @@ internal static class S3TestService
     }
 
     /// <summary>
-    /// 直连服务的客户端（路径式访问），用来建删桶、核对对象。
+    /// 直连服务的客户端（路径式访问），用来建删桶、核对对象
     /// </summary>
     public static AmazonS3Client Client(Uri endpoint)
         => new(new BasicAWSCredentials(AccessKey, SecretKey), new AmazonS3Config { ServiceURL = endpoint.ToString(), ForcePathStyle = true, AuthenticationRegion = "us-east-1" });
 
     /// <summary>
-    /// 清空并删除桶。
+    /// 清空并删除桶
     /// </summary>
     public static async Task DeleteBucketAsync(IAmazonS3 client, string bucket)
     {
@@ -84,11 +84,11 @@ internal static class S3TestService
 }
 
 /// <summary>
-/// 不认条件写入的 S3 兼容服务的替身。
+/// 不认条件写入的 S3 兼容服务的替身
 /// </summary>
 /// <remarks>
 /// 在真实服务前转发全部请求（签名依赖的 Host 原样带过去），只把服务对 <c>If-None-Match: *</c> 回的 412 改成 200：
-/// 就像服务不看这个条件、照常写入（Garage、Zenko CloudServer 那样）。框架的条件写入探测据此判定服务不认。
+/// 就像服务不看这个条件、照常写入（Garage、Zenko CloudServer 那样）。框架的条件写入探测据此判定服务不认
 /// </remarks>
 internal sealed class IgnoringConditionsS3Proxy : IAsyncDisposable
 {
@@ -103,14 +103,14 @@ internal sealed class IgnoringConditionsS3Proxy : IAsyncDisposable
     }
 
     /// <summary>
-    /// 替身的地址。
+    /// 替身的地址
     /// </summary>
     public Uri Url { get; }
 
     /// <summary>
-    /// 在本机随机端口上起替身。
+    /// 在本机随机端口上起替身
     /// </summary>
-    /// <param name="service">真实服务的端点。</param>
+    /// <param name="service">真实服务的端点</param>
     public static async Task<IgnoringConditionsS3Proxy> StartAsync(Uri service)
     {
         // 不读测试目录里的 appsettings（宿主的 Kestrel 端点会盖掉这里的地址）

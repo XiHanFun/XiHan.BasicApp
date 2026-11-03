@@ -368,8 +368,8 @@ function userRef(sender: null | string | undefined, receiver: null | string | un
   height: 100%;
 }
 
-/* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）。
-   包在标签页里时高度链在标签页根上断开，这里补全传递链（4.x 同）。 */
+/* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）
+   包在标签页里时高度链在标签页根上断开，这里补全传递链（4.x 同） */
 .message-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;

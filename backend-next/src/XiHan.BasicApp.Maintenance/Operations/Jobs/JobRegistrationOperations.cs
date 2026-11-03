@@ -12,20 +12,20 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 
 /// <summary>
-/// <c>jobs.create</c> 的请求。
+/// <c>jobs.create</c> 的请求
 /// </summary>
-/// <param name="Name">作业名（如 <c>reports.daily</c>，首段即分组）。</param>
-/// <param name="JobType">作业类型的登记键（<c>jobs.types</c> 列出的）。</param>
-/// <param name="Expression">计划：Cron 表达式（5 到 7 段），或计划的文本写法（<c>cron …</c>、<c>every …</c>、<c>once …</c>）。</param>
-/// <param name="TimeZone">Cron 表达式的时区（如 <c>Asia/Shanghai</c>）；不填按 UTC。</param>
-/// <param name="Data">作业参数（JSON 对象的文本）；不填即没有参数。</param>
-/// <param name="AllowConcurrent">是否允许上一次没跑完时再跑。</param>
-/// <param name="TimeoutSeconds">单次执行的时限（秒）；不填不限。超过即取消并记失败（<c>SCHEDULING_TIMEOUT_001</c>）。</param>
-/// <param name="MaxRetries">失败后最多重试几次；不填不重试。</param>
-/// <param name="RetryDelaySeconds">第一次重试前等几秒（设了重试次数才用）。</param>
-/// <param name="RetryBackoff">重试的等待方式：每次相同或指数退避。</param>
-/// <param name="RetryMaxDelaySeconds">指数退避的等待上限（秒）；不填只受 30 天约束。</param>
-/// <param name="Description">说明。</param>
+/// <param name="Name">作业名（如 <c>reports.daily</c>，首段即分组）</param>
+/// <param name="JobType">作业类型的登记键（<c>jobs.types</c> 列出的）</param>
+/// <param name="Expression">计划：Cron 表达式（5 到 7 段），或计划的文本写法（<c>cron …</c>、<c>every …</c>、<c>once …</c>）</param>
+/// <param name="TimeZone">Cron 表达式的时区（如 <c>Asia/Shanghai</c>）；不填按 UTC</param>
+/// <param name="Data">作业参数（JSON 对象的文本）；不填即没有参数</param>
+/// <param name="AllowConcurrent">是否允许上一次没跑完时再跑</param>
+/// <param name="TimeoutSeconds">单次执行的时限（秒）；不填不限。超过即取消并记失败（<c>SCHEDULING_TIMEOUT_001</c>）</param>
+/// <param name="MaxRetries">失败后最多重试几次；不填不重试</param>
+/// <param name="RetryDelaySeconds">第一次重试前等几秒（设了重试次数才用）</param>
+/// <param name="RetryBackoff">重试的等待方式：每次相同或指数退避</param>
+/// <param name="RetryMaxDelaySeconds">指数退避的等待上限（秒）；不填只受 30 天约束</param>
+/// <param name="Description">说明</param>
 public sealed record CreateJobRequest(
     [Required, StringLength(JobName.MaxLength, MinimumLength = 1)] string Name,
     [Required, StringLength(256, MinimumLength = 1)] string JobType,
@@ -41,20 +41,20 @@ public sealed record CreateJobRequest(
     [StringLength(500)] string? Description = null);
 
 /// <summary>
-/// 新建运行时作业。
+/// 新建运行时作业
 /// </summary>
 /// <remarks>
 /// <c>POST /api/jobs</c>（平台侧，照 4.x 的新建任务，替代 4.x 的 DynamicJobWorker）。经框架 <c>ScheduleAsync</c> 运行时登记：
 /// 类型须在作业类型登记里（否则 <c>MAINTENANCE_CONFLICT_001</c>），同名作业已存在 <c>MAINTENANCE_CONFLICT_003</c>，
-/// 作业名不合规 <c>MAINTENANCE_VALIDATION_004</c>，参数不是 JSON 对象 <c>MAINTENANCE_VALIDATION_005</c>，计划写得不对 <c>MAINTENANCE_VALIDATION_002</c>。
+/// 作业名不合规 <c>MAINTENANCE_VALIDATION_004</c>，参数不是 JSON 对象 <c>MAINTENANCE_VALIDATION_005</c>，计划写得不对 <c>MAINTENANCE_VALIDATION_002</c>
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
-/// <param name="types">作业类型登记。</param>
+/// <param name="scheduler">框架调度</param>
+/// <param name="types">作业类型登记</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsCreate)]
 public sealed class CreateJob(IJobScheduler scheduler, JobTypeRegistry types) : IOperation<CreateJobRequest, JobResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.create";
 
@@ -134,18 +134,18 @@ public sealed class CreateJob(IJobScheduler scheduler, JobTypeRegistry types) : 
 }
 
 /// <summary>
-/// 删除运行时作业。
+/// 删除运行时作业
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/jobs</c>（平台侧）。只删运行时登记的作业（框架 <c>UnscheduleAsync</c>，连同触发器与等待中的运行）；
-/// 代码登记的（含运行时改过计划的）逐项报 <c>MAINTENANCE_CONFLICT_004</c>，不存在的报 <c>MAINTENANCE_NOTFOUND_001</c>。
+/// 代码登记的（含运行时改过计划的）逐项报 <c>MAINTENANCE_CONFLICT_004</c>，不存在的报 <c>MAINTENANCE_NOTFOUND_001</c>
 /// </remarks>
-/// <param name="scheduler">框架调度。</param>
+/// <param name="scheduler">框架调度</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsDelete)]
 public sealed class DeleteJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "jobs.delete";
 

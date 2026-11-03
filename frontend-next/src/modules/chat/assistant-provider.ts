@@ -1,7 +1,7 @@
 /**
- * AI 助手提供方扩展点。
+ * AI 助手提供方扩展点
  * 职责：助手能力（可用助手/开会话/触发回复）由 AI 模块注册进来，聊天壳层按注册与否
- * 显隐助手入口——聊天不依赖 AI，删除 AI 模块后助手入口消失、其余聊天照常。
+ * 显隐助手入口——聊天不依赖 AI，删除 AI 模块后助手入口消失、其余聊天照常
  */
 import type { ChatAssistantConversationResult, ChatAssistantOption, ChatAssistantReplyResult } from './types'
 
@@ -18,24 +18,24 @@ export interface ChatAssistantProvider {
 let provider: ChatAssistantProvider | null = null
 
 /**
- * 注册助手提供方；AI 模块 setup 钩子调用。
- * @param impl 提供方实现。
+ * 注册助手提供方；AI 模块 setup 钩子调用
+ * @param impl 提供方实现
  */
 export function registerChatAssistantProvider(impl: ChatAssistantProvider): void {
   provider = impl
 }
 
 /**
- * 获取助手提供方。
- * @returns 已注册的提供方；未注册返回 null（助手入口应据此隐藏）。
+ * 获取助手提供方
+ * @returns 已注册的提供方；未注册返回 null（助手入口应据此隐藏）
  */
 export function getChatAssistantProvider(): ChatAssistantProvider | null {
   return provider
 }
 
 /**
- * 助手提供方是否已注册。
- * @returns 已注册返回 true。
+ * 助手提供方是否已注册
+ * @returns 已注册返回 true
  */
 export function hasChatAssistantProvider(): boolean {
   return provider !== null

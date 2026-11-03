@@ -15,25 +15,25 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.OpenPlatform.Domain.Services;
 
 /// <summary>
-/// OAuth 应用的内容（新建与修改共用）。
+/// OAuth 应用的内容（新建与修改共用）
 /// </summary>
 /// <remarks>
-/// ClientId 与客户端类型只在新建时定。
+/// ClientId 与客户端类型只在新建时定
 /// </remarks>
-/// <param name="AppName">应用名称。</param>
-/// <param name="AppDescription">描述。</param>
-/// <param name="AppType">应用类型。</param>
-/// <param name="GrantTypes">授权类型。</param>
-/// <param name="RedirectUris">回调地址。</param>
-/// <param name="Scopes">授权范围。</param>
-/// <param name="AccessTokenLifetime">访问令牌有效期（秒）。</param>
-/// <param name="RefreshTokenLifetime">刷新令牌有效期（秒）。</param>
-/// <param name="AuthorizationCodeLifetime">授权码有效期（秒）。</param>
-/// <param name="Logo">Logo 地址。</param>
-/// <param name="Homepage">主页。</param>
-/// <param name="SkipConsent">跳过同意页。</param>
-/// <param name="IsEnabled">是否启用。</param>
-/// <param name="Remark">备注。</param>
+/// <param name="AppName">应用名称</param>
+/// <param name="AppDescription">描述</param>
+/// <param name="AppType">应用类型</param>
+/// <param name="GrantTypes">授权类型</param>
+/// <param name="RedirectUris">回调地址</param>
+/// <param name="Scopes">授权范围</param>
+/// <param name="AccessTokenLifetime">访问令牌有效期（秒）</param>
+/// <param name="RefreshTokenLifetime">刷新令牌有效期（秒）</param>
+/// <param name="AuthorizationCodeLifetime">授权码有效期（秒）</param>
+/// <param name="Logo">Logo 地址</param>
+/// <param name="Homepage">主页</param>
+/// <param name="SkipConsent">跳过同意页</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="Remark">备注</param>
 public sealed record OAuthAppDraft(
     string AppName,
     string? AppDescription,
@@ -51,63 +51,63 @@ public sealed record OAuthAppDraft(
     string? Remark);
 
 /// <summary>
-/// OAuth 应用的维护与规则校验。
+/// OAuth 应用的维护与规则校验
 /// </summary>
 /// <remarks>
 /// 授权类型只有授权码与刷新令牌（令牌只用于身份，没有用户的客户端凭证模式用不上，4.x 有）、授权范围只有身份类的 <c>openid profile email phone</c>（且须带 <c>openid</c>）；
-/// 回调地址须是绝对地址、不带片段，http 只认本机回环（原生应用的自定义协议照收，RFC 8252）；ClientId 全局唯一（新建不填即 32 位十六进制）；机密客户端的密钥是 64 位十六进制、只返回一次、只存 SHA-256。
+/// 回调地址须是绝对地址、不带片段，http 只认本机回环（原生应用的自定义协议照收，RFC 8252）；ClientId 全局唯一（新建不填即 32 位十六进制）；机密客户端的密钥是 64 位十六进制、只返回一次、只存 SHA-256
 /// </remarks>
-/// <param name="apps">应用仓储。</param>
-/// <param name="ids">标识生成器。</param>
+/// <param name="apps">应用仓储</param>
+/// <param name="ids">标识生成器</param>
 public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 授权码模式。
+    /// 授权码模式
     /// </summary>
     public const string AuthorizationCode = "authorization_code";
 
     /// <summary>
-    /// 刷新令牌模式。
+    /// 刷新令牌模式
     /// </summary>
     public const string RefreshToken = "refresh_token";
 
     /// <summary>
-    /// 回调地址最多条数。
+    /// 回调地址最多条数
     /// </summary>
     public const int MaxRedirectUris = 10;
 
     /// <summary>
-    /// 可用的授权类型。
+    /// 可用的授权类型
     /// </summary>
     public static IReadOnlyList<string> SupportedGrantTypes { get; } = [AuthorizationCode, RefreshToken];
 
     /// <summary>
-    /// 可用的授权范围（身份类）。
+    /// 可用的授权范围（身份类）
     /// </summary>
     public static IReadOnlyList<string> SupportedScopes { get; } = ["openid", "profile", "email", "phone"];
 
     /// <summary>
-    /// 我的应用的固定授权类型。
+    /// 我的应用的固定授权类型
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public static IReadOnlyList<string> PersonalGrantTypes { get; } = [AuthorizationCode, RefreshToken];
 
     /// <summary>
-    /// 我的应用的固定授权范围。
+    /// 我的应用的固定授权范围
     /// </summary>
     /// <remarks>
-    /// 4.x 是 <c>basicapp</c>，6.0 的令牌只用于身份。
+    /// 4.x 是 <c>basicapp</c>，6.0 的令牌只用于身份
     /// </remarks>
     public static IReadOnlyList<string> PersonalScopes { get; } = ["openid", "profile", "email"];
 
     /// <summary>
-    /// 取一个应用。
+    /// 取一个应用
     /// </summary>
-    /// <param name="id">应用 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用；不存在即 <c>OPENPLATFORM_NOTFOUND_001</c>。</returns>
+    /// <param name="id">应用 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>应用；不存在即 <c>OPENPLATFORM_NOTFOUND_001</c></returns>
     public async Task<Result<SysOAuthApp>> FindAsync(Guid id, CancellationToken cancellationToken)
     {
         var found = await apps.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -115,15 +115,15 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 取本人的一个应用。
+    /// 取本人的一个应用
     /// </summary>
     /// <remarks>
-    /// 别人的与平台的都当作不存在。
+    /// 别人的与平台的都当作不存在
     /// </remarks>
-    /// <param name="userId">用户。</param>
-    /// <param name="id">应用 ID。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用。</returns>
+    /// <param name="userId">用户</param>
+    /// <param name="id">应用 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>应用</returns>
     public async Task<Result<SysOAuthApp>> FindOwnedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
     {
         var found = await apps.FindAsync(id, cancellationToken).ConfigureAwait(false);
@@ -131,11 +131,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 本人的全部应用（按创建先后）。
+    /// 本人的全部应用（按创建先后）
     /// </summary>
-    /// <param name="userId">用户。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用。</returns>
+    /// <param name="userId">用户</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>应用</returns>
     public async Task<IReadOnlyList<SysOAuthApp>> ListOwnedAsync(Guid userId, CancellationToken cancellationToken)
     {
         var rows = await apps.ListAsync(EntityQuery.All<SysOAuthApp>().Where(new Specification<SysOAuthApp>(a => a.OwnerUserId == userId)), cancellationToken).ConfigureAwait(false);
@@ -143,18 +143,18 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 新建应用。
+    /// 新建应用
     /// </summary>
     /// <remarks>
-    /// ClientId 不填即生成；机密客户端返回密钥明文（只此一次）。
+    /// ClientId 不填即生成；机密客户端返回密钥明文（只此一次）
     /// </remarks>
-    /// <param name="clientId">ClientId；为空即生成。</param>
-    /// <param name="clientType">客户端类型。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="ownerUserId">归属人；平台建的为空。</param>
-    /// <param name="ownerUserName">归属人的登录名。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>应用与密钥明文（公开客户端为空）。</returns>
+    /// <param name="clientId">ClientId；为空即生成</param>
+    /// <param name="clientType">客户端类型</param>
+    /// <param name="draft">内容</param>
+    /// <param name="ownerUserId">归属人；平台建的为空</param>
+    /// <param name="ownerUserName">归属人的登录名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>应用与密钥明文（公开客户端为空）</returns>
     public async Task<Result<(SysOAuthApp App, string? Secret)>> CreateAsync(string? clientId, OAuthClientType clientType, OAuthAppDraft draft, Guid? ownerUserId, string? ownerUserName, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -188,15 +188,15 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 修改应用（整体覆盖）。
+    /// 修改应用（整体覆盖）
     /// </summary>
     /// <remarks>
-    /// ClientId、客户端类型与密钥不变。
+    /// ClientId、客户端类型与密钥不变
     /// </remarks>
-    /// <param name="app">应用。</param>
-    /// <param name="draft">内容。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>结果。</returns>
+    /// <param name="app">应用</param>
+    /// <param name="draft">内容</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateAsync(SysOAuthApp app, OAuthAppDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -205,14 +205,14 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 重置客户端密钥。
+    /// 重置客户端密钥
     /// </summary>
     /// <remarks>
-    /// 旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>（4.x 会把公开客户端重置成机密客户端）。
+    /// 旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>（4.x 会把公开客户端重置成机密客户端）
     /// </remarks>
-    /// <param name="app">应用。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>新密钥明文。</returns>
+    /// <param name="app">应用</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新密钥明文</returns>
     public async Task<Result<string>> ResetSecretAsync(SysOAuthApp app, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(app);
@@ -228,15 +228,15 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 批量删除应用（软删除）。
+    /// 批量删除应用（软删除）
     /// </summary>
     /// <remarks>
-    /// 发出的令牌随应用失效；<paramref name="ownerUserId"/> 不为空时只删本人的，别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>。
+    /// 发出的令牌随应用失效；<paramref name="ownerUserId"/> 不为空时只删本人的，别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>
     /// </remarks>
-    /// <param name="appIds">应用 ID。</param>
-    /// <param name="ownerUserId">只删这个人的；平台管理为空。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="appIds">应用 ID</param>
+    /// <param name="ownerUserId">只删这个人的；平台管理为空</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteAsync(IReadOnlyList<Guid> appIds, Guid? ownerUserId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(appIds);
@@ -263,17 +263,17 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 密钥的 SHA-256（小写十六进制）。
+    /// 密钥的 SHA-256（小写十六进制）
     /// </summary>
-    /// <param name="secret">密钥明文。</param>
-    /// <returns>散列。</returns>
+    /// <param name="secret">密钥明文</param>
+    /// <returns>散列</returns>
     public static string HashSecret(string secret) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
 
     /// <summary>
-    /// 拆分存储的列表（空白分隔）。
+    /// 拆分存储的列表（空白分隔）
     /// </summary>
-    /// <param name="value">原文。</param>
-    /// <returns>各项。</returns>
+    /// <param name="value">原文</param>
+    /// <returns>各项</returns>
     public static IReadOnlyList<string> Split(string? value)
         => string.IsNullOrWhiteSpace(value) ? [] : value.Split([' ', '\n', '\r', '\t', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -353,10 +353,10 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     }
 
     /// <summary>
-    /// 判定能否用作回调地址。
+    /// 判定能否用作回调地址
     /// </summary>
     /// <remarks>
-    /// 须是绝对地址、不带片段与凭据；http 只认本机回环，<c>javascript</c> / <c>data</c> / <c>file</c> 不收，其余协议（含原生应用的自定义协议）照收。
+    /// 须是绝对地址、不带片段与凭据；http 只认本机回环，<c>javascript</c> / <c>data</c> / <c>file</c> 不收，其余协议（含原生应用的自定义协议）照收
     /// </remarks>
     private static bool IsRedirectUri(string value)
     {

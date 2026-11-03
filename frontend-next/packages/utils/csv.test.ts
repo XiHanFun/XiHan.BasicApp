@@ -1,9 +1,9 @@
 /**
- * packages/utils/csv.ts 单元测试。
+ * packages/utils/csv.ts 单元测试
  *
  * 职责边界：parseCsvRows 是应用层唯一的 CSV 入口（papaparse 被收敛在此包内），
  * 导入的表格数据全部经它落地，属注入面。用例覆盖分隔符探测、引号包裹、内嵌引号转义、
- * 内嵌逗号与换行、CRLF、BOM、空行跳过，以及公式注入前缀不被处理的现状。
+ * 内嵌逗号与换行、CRLF、BOM、空行跳过，以及公式注入前缀不被处理的现状
  */
 import { describe, expect, it } from 'vitest'
 import { parseCsvRows } from './csv'

@@ -12,13 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Queries;
 
 /// <summary>
-/// 表配置的列表查询。
+/// 表配置的列表查询
 /// </summary>
 /// <remarks>
 /// 关键字匹配表名、类名与表注释（照 4.x）；筛选：生成模式、交付方式、生成结果、状态（<c>eq</c> / <c>in</c>，4.x 前端是多选）、生成目标与数据源（<c>eq</c>）、包名（<c>eq</c> / <c>contains</c>）；
-/// 排序：表名、类名、表注释、包名、生成模式、交付方式、生成结果、状态、最近生成时间、创建时间，没给即创建时间降序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>。
+/// 排序：表名、类名、表注释、包名、生成模式、交付方式、生成结果、状态、最近生成时间、创建时间，没给即创建时间降序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class CodegenTableQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldTableName = "tableName";
@@ -35,10 +35,10 @@ public sealed class CodegenTableQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldCreatedAt = "createdAt";
 
     /// <summary>
-    /// 分页列出表配置。
+    /// 分页列出表配置
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
     public async ValueTask<Result<PageResult<CodegenTableResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -95,9 +95,9 @@ public sealed class CodegenTableQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 全部表配置，按表名。
+    /// 全部表配置，按表名
     /// </summary>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="context">调用上下文</param>
     public async Task<IReadOnlyList<CodegenTableResponse>> OptionsAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

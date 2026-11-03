@@ -11,7 +11,7 @@ function csvCell(value: string): string {
 }
 
 /**
- * 将行集合按导出字段序列化为 CSV 文本（带 UTF-8 BOM，便于 Excel 正确识别中文）。
+ * 将行集合按导出字段序列化为 CSV 文本（带 UTF-8 BOM，便于 Excel 正确识别中文）
  */
 export function toCsv<TRow extends object>(fields: ListFieldSchema<TRow>[], rows: TRow[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')
@@ -27,8 +27,8 @@ export function downloadText(filename: string, content: string, mime = 'text/csv
 }
 
 /**
- * Schema 同步导出（当前筛选结果 → CSV）。
- * 字段、文件名、取数由 SchemaPage 提供（取数通常翻页拉全集，受安全上限约束）。
+ * Schema 同步导出（当前筛选结果 → CSV）
+ * 字段、文件名、取数由 SchemaPage 提供（取数通常翻页拉全集，受安全上限约束）
  */
 export interface UseSchemaExportOptions<TRow extends object> {
   /** 导出字段（已按权限过滤） */

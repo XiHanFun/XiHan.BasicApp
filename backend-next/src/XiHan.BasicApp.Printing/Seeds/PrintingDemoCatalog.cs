@@ -8,26 +8,26 @@ using XiHan.BasicApp.Printing.Domain.Services;
 namespace XiHan.BasicApp.Printing.Seeds;
 
 /// <summary>
-/// 一张演示模板的登记。
+/// 一张演示模板的登记
 /// </summary>
-/// <param name="Code">模板编码。</param>
-/// <param name="Name">模板名称。</param>
-/// <param name="DataSourceCode">所绑数据源的编码。</param>
-/// <param name="Remark">备注：对应的打印设计器文档站示例。</param>
+/// <param name="Code">模板编码</param>
+/// <param name="Name">模板名称</param>
+/// <param name="DataSourceCode">所绑数据源的编码</param>
+/// <param name="Remark">备注：对应的打印设计器文档站示例</param>
 public sealed record PrintingDemoTemplate(string Code, string Name, string DataSourceCode, string Remark);
 
 /// <summary>
-/// 打印演示目录：五个演示数据源与六张演示模板。
+/// 打印演示目录：五个演示数据源与六张演示模板
 /// </summary>
 /// <remarks>
 /// 数据源（字段与样例）与模板（打印设计器的模板 JSON）是嵌入的 <c>Seeds/Demo/DataSources</c>、<c>Seeds/Demo/Templates</c>，与 4.x 同一批文件原样搬入；
-/// 前端用例读同一批文件核对每张模板能通过设计器的完整校验、按样例排版不出错误级诊断。五张模板对应打印设计器文档站的示例，「元素总览」摆出全部元素种类、绑内置数据源 <c>system.print-demo</c>。
-/// 演示数据源只在演示开关打开时登记（4.x 同），演示模板由 <see cref="DemoPrintTemplateSeeder"/> 写入。
+/// 前端用例读同一批文件核对每张模板能通过设计器的完整校验、按样例排版不出错误级诊断。五张模板对应打印设计器文档站的示例，「元素总览」摆出全部元素种类、绑内置数据源 <c>system.print-demo</c>
+/// 演示数据源只在演示开关打开时登记（4.x 同），演示模板由 <see cref="DemoPrintTemplateSeeder"/> 写入
 /// </remarks>
 public static class PrintingDemoCatalog
 {
     /// <summary>
-    /// 演示模板，按排序先后。
+    /// 演示模板，按排序先后
     /// </summary>
     public static IReadOnlyList<PrintingDemoTemplate> Templates { get; } =
     [
@@ -40,7 +40,7 @@ public static class PrintingDemoCatalog
     ];
 
     /// <summary>
-    /// 演示数据源的编码。
+    /// 演示数据源的编码
     /// </summary>
     public static IReadOnlyList<string> DataSourceCodes { get; } =
     [
@@ -52,19 +52,19 @@ public static class PrintingDemoCatalog
     ];
 
     /// <summary>
-    /// 读出演示数据源的定义。
+    /// 读出演示数据源的定义
     /// </summary>
-    /// <returns>五个演示数据源。</returns>
-    /// <exception cref="InvalidOperationException">资源缺失或与编码不符。</exception>
+    /// <returns>五个演示数据源</returns>
+    /// <exception cref="InvalidOperationException">资源缺失或与编码不符</exception>
     public static IReadOnlyList<PrintDataSourceDefinition> LoadDataSources()
         => [.. DataSourceCodes.Select(static code => ParseDataSource(code, ReadResource("DataSources", code)))];
 
     /// <summary>
-    /// 读出演示模板的模板 JSON。
+    /// 读出演示模板的模板 JSON
     /// </summary>
-    /// <param name="code">模板编码。</param>
-    /// <returns>打印设计器的模板 JSON。</returns>
-    /// <exception cref="InvalidOperationException">资源缺失。</exception>
+    /// <param name="code">模板编码</param>
+    /// <returns>打印设计器的模板 JSON</returns>
+    /// <exception cref="InvalidOperationException">资源缺失</exception>
     public static string LoadTemplateJson(string code) => ReadResource("Templates", code);
 
     private static PrintDataSourceDefinition ParseDataSource(string code, string json)

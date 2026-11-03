@@ -7,7 +7,7 @@ import { COUNT_COMPACT, useFormatters } from './chart-helpers'
 import ChartWidget from './ChartWidget.vue'
 
 /**
- * 在线设备：当前一侧有效会话按设备类型（桌面、手机、平板、爬虫）的占比，环形、环心写会话总数。
+ * 在线设备：当前一侧有效会话按设备类型（桌面、手机、平板、爬虫）的占比，环形、环心写会话总数
  */
 defineOptions({ name: 'SessionDevicesWidget' })
 

@@ -12,20 +12,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 字典与字典项的规则。
+/// 字典与字典项的规则
 /// </summary>
 /// <remarks>
-/// 编码占用（字典不覆盖）、项的树（同字典、无环、深度优先展平）、缺省项唯一、元数据是 JSON。
+/// 编码占用（字典不覆盖）、项的树（同字典、无环、深度优先展平）、缺省项唯一、元数据是 JSON
 /// </remarks>
-/// <param name="dicts">字典仓储。</param>
-/// <param name="items">字典项仓储。</param>
+/// <param name="dicts">字典仓储</param>
+/// <param name="items">字典项仓储</param>
 public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items)
 {
     /// <summary>
-    /// 编码是否已被占用。
+    /// 编码是否已被占用
     /// </summary>
     /// <remarks>
-    /// 平台建字典查全库，租户建字典查平台与本租户（字典不覆盖，平台与租户之间也不能同码）。
+    /// 平台建字典查全库，租户建字典查平台与本租户（字典不覆盖，平台与租户之间也不能同码）
     /// </remarks>
     public async Task<bool> IsCodeTakenAsync(string code, string owner, CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 在这一侧可见的字典里按编码找。
+    /// 在这一侧可见的字典里按编码找
     /// </summary>
     public async Task<Maybe<SysDict>> FindVisibleByCodeAsync(string code, string owner, CancellationToken cancellationToken)
     {
@@ -49,7 +49,7 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 在这一侧可见的字典里按主键找。
+    /// 在这一侧可见的字典里按主键找
     /// </summary>
     public async Task<Maybe<SysDict>> FindVisibleAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
@@ -58,11 +58,11 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 字典的全部项（按主键排序）。
+    /// 字典的全部项（按主键排序）
     /// </summary>
     /// <remarks>
     /// 编码唯一、无环与缺省项唯一都要看全部项，不能截断：一次查询最多取 <see cref="EntityQuery.DefaultMaxTake"/> 条，
-    /// 按主键排序逐页取到不足一页为止。
+    /// 按主键排序逐页取到不足一页为止
     /// </remarks>
     public async Task<IReadOnlyList<SysDictItem>> ItemsOfAsync(Guid dictId, CancellationToken cancellationToken)
     {
@@ -82,12 +82,12 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 深度优先展平字典项。
+    /// 深度优先展平字典项
     /// </summary>
     /// <remarks>
-    /// 同级按排序号、再按编码；上级缺失的项当顶层。
+    /// 同级按排序号、再按编码；上级缺失的项当顶层
     /// </remarks>
-    /// <returns>（项, 层级）列表。</returns>
+    /// <returns>（项, 层级）列表</returns>
     public static IReadOnlyList<(SysDictItem Item, int Depth)> Flatten(IReadOnlyList<SysDictItem> all)
     {
         ArgumentNullException.ThrowIfNull(all);
@@ -124,7 +124,7 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 一项的层级（顶层为 0）。
+    /// 一项的层级（顶层为 0）
     /// </summary>
     public static int DepthOf(SysDictItem item, IReadOnlyList<SysDictItem> all)
     {
@@ -143,10 +143,10 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 校验字典项的上级。
+    /// 校验字典项的上级
     /// </summary>
     /// <remarks>
-    /// 上级在同一字典里，不是自己，也不是自己的下级（<paramref name="itemId"/> 为空即新建，只查存在）。
+    /// 上级在同一字典里，不是自己，也不是自己的下级（<paramref name="itemId"/> 为空即新建，只查存在）
     /// </remarks>
     public static Result CheckParent(Guid? parentId, Guid? itemId, IReadOnlyList<SysDictItem> all)
     {
@@ -180,7 +180,7 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 元数据为空或是 JSON。
+    /// 元数据为空或是 JSON
     /// </summary>
     public static Result CheckMetadata(string? metadata)
     {
@@ -201,7 +201,7 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
-    /// 把字典里除 <paramref name="keep"/> 之外的缺省项都取消。
+    /// 把字典里除 <paramref name="keep"/> 之外的缺省项都取消
     /// </summary>
     public async Task<Result> ClearOtherDefaultsAsync(Guid dictId, Guid keep, CancellationToken cancellationToken)
     {

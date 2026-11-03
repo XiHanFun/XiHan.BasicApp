@@ -53,8 +53,8 @@ export function failedDeleteCodes(result: { failed: { code: string }[] }): strin
 }
 
 /**
- * SchemaPage 的资源：分页与删除。
- * 搜索字段按后端白名单下发：数据库类型与状态多选，关键字匹配名称、描述、主机与库名。
+ * SchemaPage 的资源：分页与删除
+ * 搜索字段按后端白名单下发：数据库类型与状态多选，关键字匹配名称、描述、主机与库名
  */
 export function datasourcesResource(): SchemaResource<DatasourceRow> {
   return {
@@ -66,8 +66,8 @@ export function datasourcesResource(): SchemaResource<DatasourceRow> {
 }
 
 /**
- * 数据源的编辑弹窗：新建与编辑（照 4.x：编辑时口令留空即不改，状态变了另调启停）。
- * 详情不回显口令与连接串，只说有没有显式连接串；字段级错误挂回对应字段。
+ * 数据源的编辑弹窗：新建与编辑（照 4.x：编辑时口令留空即不改，状态变了另调启停）
+ * 详情不回显口令与连接串，只说有没有显式连接串；字段级错误挂回对应字段
  */
 export function useDatasourceEditor() {
   const open = ref(false)

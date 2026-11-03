@@ -8,7 +8,7 @@ import { expectedValidity, requestStatusLabel } from '../delegations/use-permiss
 
 /**
  * 授权申请单据（照 4.x，设计稿 D4）：审批中心按审批业务 permission-request 登记的组件路径 access/permission-request-approval/index 加载，
- * data 是与 permission-requests.get 同一形态的响应。只读展示申请人、申请对象、理由与期望有效期；审批人没有补填字段，不暴露 getVariables。
+ * data 是与 permission-requests.get 同一形态的响应。只读展示申请人、申请对象、理由与期望有效期；审批人没有补填字段，不暴露 getVariables
  */
 defineOptions({ name: 'AccessPermissionRequestApproval' })
 

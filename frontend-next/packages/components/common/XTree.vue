@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<{
   /** 联动下回传哪些键：all 全部勾中节点、parent 只收最高整枝、child 只留叶，缺省 child */
   checkedStrategy?: 'all' | 'parent' | 'child'
   /**
-   * 树的可及名：渲染成只给读屏的 label 部件（树上的 aria-labelledby 指向它）。
+   * 树的可及名：渲染成只给读屏的 label 部件（树上的 aria-labelledby 指向它）
    * 不给时那条引用落空，读屏只念「树」，调用方都应传
    */
   ariaLabel?: string

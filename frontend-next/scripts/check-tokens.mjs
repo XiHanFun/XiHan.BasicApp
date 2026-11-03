@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 门禁：引用的 --xh-* 令牌在当前安装的组件库版本里都存在。
-// CSS 解析不到 var() 的值时整条声明作废，页面上看不出报错；真源是 node_modules 里的 tokens.css 与 styles/index.css，加本仓 packages/design 自己声明的名字。
+// 门禁：引用的 --xh-* 令牌在当前安装的组件库版本里都存在
+// CSS 解析不到 var() 的值时整条声明作废，页面上看不出报错；真源是 node_modules 里的 tokens.css 与 styles/index.css，加本仓 packages/design 自己声明的名字
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'

@@ -10,17 +10,17 @@ using XiHan.BasicApp.Runtime.Queries;
 namespace XiHan.BasicApp.OpenPlatform;
 
 /// <summary>
-/// 开放平台包登记的字段安全实体。
+/// 开放平台包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同：OAuth 应用（管理面，本人的「我的应用」不套用）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用。
+/// 4.x 同：OAuth 应用（管理面，本人的「我的应用」不套用）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用
 /// </remarks>
 public static class OpenPlatformFieldSecurity
 {
     /// <summary>
-    /// 登记本包的实体与操作。
+    /// 登记本包的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("openplatform", OpenPlatformJsonContext.Default, fields => fields
             .Entity<OAuthAppResponse>("openplatform.oauth-apps", "openplatform.oauth_apps.title", "openplatform.oauth_apps.fields.")

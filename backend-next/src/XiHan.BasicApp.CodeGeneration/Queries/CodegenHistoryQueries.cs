@@ -13,13 +13,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Queries;
 
 /// <summary>
-/// 生成历史的列表查询。
+/// 生成历史的列表查询
 /// </summary>
 /// <remarks>
 /// 关键字匹配表名与批次号（照 4.x 的表名搜索）；筛选：表配置（<c>eq</c>）、结果与交付方式（<c>eq</c> / <c>in</c>，4.x 前端是多选）、生成时间（<c>ge</c> / <c>le</c>）；
-/// 排序：表名、批次号、结果、交付方式、文件数、大小、耗时、操作人、生成时间，没给即生成时间降序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>。
+/// 排序：表名、批次号、结果、交付方式、文件数、大小、耗时、操作人、生成时间，没给即生成时间降序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
-/// <param name="unitOfWork">工作单元。</param>
+/// <param name="unitOfWork">工作单元</param>
 public sealed class CodegenHistoryQueries(SqlSugarUnitOfWork unitOfWork)
 {
     private const string FieldTableId = "tableId";
@@ -34,10 +34,10 @@ public sealed class CodegenHistoryQueries(SqlSugarUnitOfWork unitOfWork)
     private const string FieldGeneratedAt = "generatedAt";
 
     /// <summary>
-    /// 分页列出生成历史。
+    /// 分页列出生成历史
     /// </summary>
-    /// <param name="request">分页请求。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="request">分页请求</param>
+    /// <param name="context">调用上下文</param>
     public async ValueTask<Result<PageResult<CodegenHistoryResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -93,10 +93,10 @@ public sealed class CodegenHistoryQueries(SqlSugarUnitOfWork unitOfWork)
     }
 
     /// <summary>
-    /// 按 ID 取一条生成历史。
+    /// 按 ID 取一条生成历史
     /// </summary>
-    /// <param name="id">生成历史 ID。</param>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="id">生成历史 ID</param>
+    /// <param name="context">调用上下文</param>
     public async Task<Result<SysCodeGenHistory>> FindAsync(Guid id, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

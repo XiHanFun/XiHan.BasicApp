@@ -1,6 +1,6 @@
 /**
- * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信 / 机器人配置、Telegram 机器人、我的消息）共用的枚举文案、语气与报错文案。
- * 6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对。
+ * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信 / 机器人配置、Telegram 机器人、我的消息）共用的枚举文案、语气与报错文案
+ * 6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
  */
 import type { Tone } from '@xihan-ui/core'
 import type { BotProvider, DeliveryChannel, MessageSendStatus, NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType, SmsProvider, TemplateChannel } from '~/contracts'

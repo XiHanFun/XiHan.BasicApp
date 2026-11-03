@@ -1,8 +1,8 @@
 /**
- * 偏好持久化与跨端同步内核（helpers）单元测试。
+ * 偏好持久化与跨端同步内核（helpers）单元测试
  * 职责边界：偏好注册表、localStorage 落地、后端防抖上行的三道门（草稿 / 会话回写 / 用户开关）、
- * 草稿模式的预览-保存-还原三态、登录水合与远端推送的应用规则，以及构建时间失效清缓存。
- * 后端 API 经 AppContext 注入替身，不发真实请求；灵动岛提示不做断言。
+ * 草稿模式的预览-保存-还原三态、登录水合与远端推送的应用规则，以及构建时间失效清缓存
+ * 后端 API 经 AppContext 注入替身，不发真实请求；灵动岛提示不做断言
  */
 import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
@@ -372,7 +372,7 @@ describe('偏好草稿：预览 / 保存 / 还原', () => {
   })
 
   // 回归锚点（缺陷 11）：定时器回调原先只复查同步开关，进入草稿前排队的那一次上行会照常触发，
-  // 用当前内存值构建整份快照，把未保存的草稿预览值落库并实时推给其它设备。
+  // 用当前内存值构建整份快照，把未保存的草稿预览值落库并实时推给其它设备
   it('进入草稿前排队的防抖上行到期时被草稿门拦下，草稿预览值不会上行', async () => {
     vi.useFakeTimers()
     getApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY, settingValue: '{}' })

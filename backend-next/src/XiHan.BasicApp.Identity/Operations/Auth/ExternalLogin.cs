@@ -19,27 +19,27 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// <c>auth.external-login</c> 的请求。
+/// <c>auth.external-login</c> 的请求
 /// </summary>
-/// <param name="Ticket">第三方登录回调发给前端的一次性票据。</param>
+/// <param name="Ticket">第三方登录回调发给前端的一次性票据</param>
 public sealed record ExternalLoginRequest([Required, StringLength(128)] string Ticket);
 
 /// <summary>
-/// 凭第三方身份票据登录。
+/// 凭第三方身份票据登录
 /// </summary>
 /// <remarks>
-/// 匿名操作，登记在架构测试的匿名白名单。凭回调发的一次性票据，在登录页选的注册地里按（提供商, 第三方标识）找绑定的账号。
+/// 匿名操作，登记在架构测试的匿名白名单。凭回调发的一次性票据，在登录页选的注册地里按（提供商, 第三方标识）找绑定的账号
 /// 没绑定即 <c>IDENTITY_DENIED_015</c>（拍板：不自动建号，先用账号密码登录、到个人中心绑定；4.x 在租户 1 自动建号，建出的账号没有可用的密码与邮箱）；
-/// 之后与密码登录同样过租户、账号状态、锁定期与双因素（4.x 第三方登录全跳过），开会话前过登录守卫，并刷新绑定上的显示名、邮箱、头像与最近登录时间。
+/// 之后与密码登录同样过租户、账号状态、锁定期与双因素（4.x 第三方登录全跳过），开会话前过登录守卫，并刷新绑定上的显示名、邮箱、头像与最近登录时间
 /// </remarks>
-/// <param name="cache">共享缓存（票据）。</param>
-/// <param name="bindings">第三方绑定仓储。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="tickets">两步验证票据。</param>
-/// <param name="logins">登录完成（开会话、签令牌）。</param>
-/// <param name="tenants">框架租户目录。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="cache">共享缓存（票据）</param>
+/// <param name="bindings">第三方绑定仓储</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="tickets">两步验证票据</param>
+/// <param name="logins">登录完成（开会话、签令牌）</param>
+/// <param name="tenants">框架租户目录</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class ExternalLogin(
     ISharedCache cache,
@@ -52,7 +52,7 @@ public sealed class ExternalLogin(
     TimeProvider clock) : IOperation<ExternalLoginRequest, LoginResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.external-login";
 

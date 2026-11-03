@@ -13,21 +13,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 发开关邮箱或短信双因素用的验证码。
+/// 发开关邮箱或短信双因素用的验证码
 /// </summary>
 /// <remarks>
 /// <c>POST /api/profile:send-two-factor-code</c>。发到本人已验证的邮箱或手机号（没有绑定 <c>IDENTITY_VALIDATION_019</c>、
-/// 没验证 <c>IDENTITY_VALIDATION_023</c>），收到后交给 <c>profile.enable-two-factor</c> 或 <c>profile.disable-two-factor</c>；认证器不发码。
-/// 模仿会话被拒。限频同其他验证码。
+/// 没验证 <c>IDENTITY_VALIDATION_023</c>），收到后交给 <c>profile.enable-two-factor</c> 或 <c>profile.disable-two-factor</c>；认证器不发码
+/// 模仿会话被拒。限频同其他验证码
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="contacts">发码。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="contacts">发码</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SendTwoFactorSetupCode(IRepository<SysUser, Guid> users, UserAccountService accounts, ContactCodes contacts) : IOperation<TwoFactorMethodRequest, CodeSentResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.send-two-factor-code";
 
@@ -61,17 +61,17 @@ public sealed class SendTwoFactorSetupCode(IRepository<SysUser, Guid> users, Use
 }
 
 /// <summary>
-/// 开关邮箱与短信双因素的验证码。
+/// 开关邮箱与短信双因素的验证码
 /// </summary>
 internal static class TwoFactorSetup
 {
     /// <summary>
-    /// 码的用途。
+    /// 码的用途
     /// </summary>
     public static string Purpose(ContactChannel channel) => "two-factor-setup:" + LoginMethods.Of(channel);
 
     /// <summary>
-    /// 本人已验证的邮箱或手机号。
+    /// 本人已验证的邮箱或手机号
     /// </summary>
     public static Result<string> VerifiedContactOf(SysUser user, ContactChannel channel)
     {
@@ -85,10 +85,10 @@ internal static class TwoFactorSetup
     }
 
     /// <summary>
-    /// 核对并作废收到的码。
+    /// 核对并作废收到的码
     /// </summary>
     /// <remarks>
-    /// 联系方式须仍已验证，且与发码时的相同。
+    /// 联系方式须仍已验证，且与发码时的相同
     /// </remarks>
     public static async Task<Result> ConfirmAsync(VerificationCodes codes, SysUser user, ContactChannel channel, string code, CancellationToken cancellationToken)
     {

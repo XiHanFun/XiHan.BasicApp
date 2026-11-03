@@ -14,17 +14,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Maintenance.Operations.Caches;
 
 /// <summary>
-/// 列出开放的缓存键命名空间。
+/// 列出开放的缓存键命名空间
 /// </summary>
 /// <remarks>
-/// <c>GET /api/caches:namespaces</c>（平台侧）。只有各包登记过的命名空间（<see cref="CacheNamespace"/>），框架自己的键不开放。
+/// <c>GET /api/caches:namespaces</c>（平台侧）。只有各包登记过的命名空间（<see cref="CacheNamespace"/>），框架自己的键不开放
 /// </remarks>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) : IOperation<CacheNamespacesRequest, CacheNamespacesResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.namespaces";
 
@@ -44,20 +44,20 @@ public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) 
 }
 
 /// <summary>
-/// 按前缀分页列出缓存键。
+/// 按前缀分页列出缓存键
 /// </summary>
 /// <remarks>
-/// <c>GET /api/caches:keys</c>（平台侧）。前缀须落在开放的命名空间里；两层合起来列：先对象缓存、再字节存储，对象缓存列完而本页没满时接着从字节存储取，每个键标出所在的层。
-/// 按续页标记往下翻（标记里带着所在的层，认不出即 <c>MAINTENANCE_VALIDATION_006</c>；Redis 是 SCAN 游标，同一个键可能出现在两页，同一页内去重）。
-/// 本页没满且还有续页时在操作里接着列，攒满、列完或往返 100 次才返回（Redis 的 SCAN 一次可能一个都没有，原先第一页常是空的）。
+/// <c>GET /api/caches:keys</c>（平台侧）。前缀须落在开放的命名空间里；两层合起来列：先对象缓存、再字节存储，对象缓存列完而本页没满时接着从字节存储取，每个键标出所在的层
+/// 按续页标记往下翻（标记里带着所在的层，认不出即 <c>MAINTENANCE_VALIDATION_006</c>；Redis 是 SCAN 游标，同一个键可能出现在两页，同一页内去重）
+/// 本页没满且还有续页时在操作里接着列，攒满、列完或往返 100 次才返回（Redis 的 SCAN 一次可能一个都没有，原先第一页常是空的）
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeysRequest, CacheKeysResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.keys";
 
@@ -137,20 +137,20 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
     }
 
     /// <summary>
-    /// 攒一页缓存键。
+    /// 攒一页缓存键
     /// </summary>
     /// <remarks>
     /// Redis 的列键是 SCAN：每次只扫一段、页大小只是提示值，前缀稀疏时一次可能一个都没有。本页没满且这一层还有续页就接着列，
     /// 提示值取还差的个数、扫空一段就加倍（上限 <see cref="CacheKeyQuery.MaxLimit"/>），直到攒满、列完或往返次数到 <see cref="MaxRounds"/>
-    /// （到了仍没满就带着续页标记返回，标记的写法不变）；进程内的存储一次就按页大小给满。
-    /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。列键失败（如每页上限越界 <c>CACHING_VALIDATION_003</c>）原样返回，已攒的不作数。
+    /// （到了仍没满就带着续页标记返回，标记的写法不变）；进程内的存储一次就按页大小给满
+    /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。列键失败（如每页上限越界 <c>CACHING_VALIDATION_003</c>）原样返回，已攒的不作数
     /// </remarks>
-    /// <param name="prefix">前缀。</param>
-    /// <param name="limit">本页要几个键。</param>
+    /// <param name="prefix">前缀</param>
+    /// <param name="limit">本页要几个键</param>
     private sealed class PageFill(string prefix, int limit)
     {
         /// <summary>
-        /// 一页最多向缓存发起的列键次数。
+        /// 一页最多向缓存发起的列键次数
         /// </summary>
         public const int MaxRounds = 100;
 
@@ -159,34 +159,34 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
         private int _rounds;
 
         /// <summary>
-        /// 本页是否已经攒满。
+        /// 本页是否已经攒满
         /// </summary>
         public bool IsFull => _items.Count >= limit;
 
         /// <summary>
-        /// 本页是否还能接着列。
+        /// 本页是否还能接着列
         /// </summary>
         /// <remarks>
-        /// 没攒满且往返次数没用完。
+        /// 没攒满且往返次数没用完
         /// </remarks>
         public bool CanContinue => !IsFull && _rounds < MaxRounds;
 
         /// <summary>
-        /// 刚列过的那一层的续页游标。
+        /// 刚列过的那一层的续页游标
         /// </summary>
         /// <remarks>
-        /// 由 <see cref="FillAsync"/> 设置；这一层列完为空。
+        /// 由 <see cref="FillAsync"/> 设置；这一层列完为空
         /// </remarks>
         public string? Continuation { get; private set; }
 
         /// <summary>
-        /// 从一层里接着列，这一层的续页游标记到 <see cref="Continuation"/>。
+        /// 从一层里接着列，这一层的续页游标记到 <see cref="Continuation"/>
         /// </summary>
-        /// <param name="list">这一层的列键方法。</param>
-        /// <param name="layer">所在的层。</param>
-        /// <param name="cursor">这一层的游标，从头列为空。</param>
-        /// <param name="cancellationToken">取消令牌。</param>
-        /// <returns>成功；列键失败时为那次的错误。</returns>
+        /// <param name="list">这一层的列键方法</param>
+        /// <param name="layer">所在的层</param>
+        /// <param name="cursor">这一层的游标，从头列为空</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns>成功；列键失败时为那次的错误</returns>
         public async ValueTask<Result> FillAsync(Func<CacheKeyQuery, CancellationToken, ValueTask<Result<CacheKeyPage>>> list, CacheLayer layer, string? cursor, CancellationToken cancellationToken)
         {
             var hint = 0;
@@ -229,27 +229,27 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
         }
 
         /// <summary>
-        /// 生成本页的响应。
+        /// 生成本页的响应
         /// </summary>
-        /// <param name="continuation">下一页的续页标记，没有下一页为空。</param>
+        /// <param name="continuation">下一页的续页标记，没有下一页为空</param>
         public CacheKeysResponse Response(string? continuation) => new([.. _items], continuation);
     }
 }
 
 /// <summary>
-/// 查看一个缓存项。
+/// 查看一个缓存项
 /// </summary>
 /// <remarks>
 /// <c>GET /api/caches:inspect</c>（平台侧）。先找对象缓存：给出值的类型、剩余存活与滑动过期，值按 JSON 写出（写不出即不给文本），不能改写；
-/// 再找字节存储：大小、剩余存活与滑动过期取自存储，值按 UTF-8 解出文本（不是合法 UTF-8 即不给文本、也不能改写）。
+/// 再找字节存储：大小、剩余存活与滑动过期取自存储，值按 UTF-8 解出文本（不是合法 UTF-8 即不给文本、也不能改写）
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeyRequest, CacheEntryResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.inspect";
 
@@ -290,18 +290,18 @@ public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNames
 }
 
 /// <summary>
-/// 改写一个缓存项的值。
+/// 改写一个缓存项的值
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/caches</c>（平台侧）。只能改可改写的命名空间里、字节存储中已存在且原值是文本的项（对象缓存的值不是文本，<c>MAINTENANCE_VALIDATION_003</c>）；新值按 UTF-8 存，剩余存活或滑动过期沿用原项。
+/// <c>PUT /api/caches</c>（平台侧）。只能改可改写的命名空间里、字节存储中已存在且原值是文本的项（对象缓存的值不是文本，<c>MAINTENANCE_VALIDATION_003</c>）；新值按 UTF-8 存，剩余存活或滑动过期沿用原项
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesUpdate)]
 public sealed class UpdateCacheEntry(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<UpdateCacheRequest, CacheEntryResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.update";
 
@@ -354,19 +354,19 @@ public sealed class UpdateCacheEntry(ISharedCache cache, IEnumerable<CacheNamesp
 }
 
 /// <summary>
-/// 批量删除缓存项。
+/// 批量删除缓存项
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/caches</c>（平台侧）。每个键须在开放的命名空间里（不在的逐项报 <c>MAINTENANCE_DENIED_002</c>），只读的命名空间也能删（删了缓存按需重建）；
-/// 对象缓存与字节存储里的都删，本来就没有的键不算删掉。
+/// 对象缓存与字节存储里的都删，本来就没有的键不算删掉
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
 public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeysDeleteRequest, CacheDeleteResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.delete";
 
@@ -405,18 +405,18 @@ public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheName
 }
 
 /// <summary>
-/// 按前缀删除缓存项。
+/// 按前缀删除缓存项
 /// </summary>
 /// <remarks>
-/// <c>POST /api/caches:delete-by-prefix</c>（平台侧）。前缀须落在开放的命名空间里（4.x 按模式删，6.0 按前缀，不支持通配）；对象缓存与字节存储里的都删，删除数是两层之和。
+/// <c>POST /api/caches:delete-by-prefix</c>（平台侧）。前缀须落在开放的命名空间里（4.x 按模式删，6.0 按前缀，不支持通配）；对象缓存与字节存储里的都删，删除数是两层之和
 /// </remarks>
-/// <param name="cache">共享缓存。</param>
-/// <param name="namespaces">各包登记的命名空间。</param>
+/// <param name="cache">共享缓存</param>
+/// <param name="namespaces">各包登记的命名空间</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
 public sealed class DeleteCacheByPrefix(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CachePrefixRequest, CachePrefixDeleteResult>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "caches.delete-by-prefix";
 
@@ -447,20 +447,20 @@ public sealed class DeleteCacheByPrefix(ISharedCache cache, IEnumerable<CacheNam
 }
 
 /// <summary>
-/// 缓存管理能看到的两层。
+/// 缓存管理能看到的两层
 /// </summary>
-/// <param name="Namespace">键或前缀所在的开放命名空间。</param>
-/// <param name="Objects">对象缓存的键管理；序列化缓存没有。</param>
-/// <param name="Store">字节存储的键管理；存储不支持时没有。</param>
+/// <param name="Namespace">键或前缀所在的开放命名空间</param>
+/// <param name="Objects">对象缓存的键管理；序列化缓存没有</param>
+/// <param name="Store">字节存储的键管理；存储不支持时没有</param>
 internal sealed record CacheScope(CacheNamespace Namespace, ICacheInspector? Objects, ICacheStoreInspector? Store);
 
 /// <summary>
-/// 缓存管理的公共校验。
+/// 缓存管理的公共校验
 /// </summary>
 internal static class CacheAccess
 {
     /// <summary>
-    /// 平台侧、至少一层支持键管理、键或前缀落在开放的命名空间里。
+    /// 平台侧、至少一层支持键管理、键或前缀落在开放的命名空间里
     /// </summary>
     public static Result<CacheScope> Check(InvocationContext context, ISharedCache cache, IEnumerable<CacheNamespace> namespaces, string keyOrPrefix)
     {
@@ -482,29 +482,29 @@ internal static class CacheAccess
     }
 
     /// <summary>
-    /// 键或前缀所在的开放命名空间。
+    /// 键或前缀所在的开放命名空间
     /// </summary>
     public static CacheNamespace? NamespaceOf(IEnumerable<CacheNamespace> namespaces, string keyOrPrefix)
         => namespaces.FirstOrDefault(n => keyOrPrefix.StartsWith(n.Prefix, StringComparison.Ordinal));
 
     /// <summary>
-    /// 缓存项不存在。
+    /// 缓存项不存在
     /// </summary>
     public static Error NotFound(string key) => Error.NotFound(MaintenanceErrors.CacheEntryNotFound, MaintenanceMessages.CacheEntryNotFound, MessageArguments.Of(("key", key)));
 
     /// <summary>
-    /// 时长的整秒数。
+    /// 时长的整秒数
     /// </summary>
     /// <remarks>
-    /// 不足一秒按一秒，没有为空。
+    /// 不足一秒按一秒，没有为空
     /// </remarks>
     public static long? Seconds(TimeSpan? span) => span is { } value ? (long)Math.Ceiling(value.TotalSeconds) : null;
 
     /// <summary>
-    /// 载荷按 UTF-8 解出的文本。
+    /// 载荷按 UTF-8 解出的文本
     /// </summary>
     /// <remarks>
-    /// 不是合法 UTF-8 为空。
+    /// 不是合法 UTF-8 为空
     /// </remarks>
     public static string? TextOf(ReadOnlyMemory<byte> bytes)
     {
@@ -519,10 +519,10 @@ internal static class CacheAccess
     }
 
     /// <summary>
-    /// 对象缓存的值按 JSON 写出的文本。
+    /// 对象缓存的值按 JSON 写出的文本
     /// </summary>
     /// <remarks>
-    /// 与序列化缓存（Redis）写进存储的同一种写法（反射、Web 缺省）；类型写不出 JSON（如有环引用）时为空。
+    /// 与序列化缓存（Redis）写进存储的同一种写法（反射、Web 缺省）；类型写不出 JSON（如有环引用）时为空
     /// </remarks>
     public static string? JsonOf(object value)
     {

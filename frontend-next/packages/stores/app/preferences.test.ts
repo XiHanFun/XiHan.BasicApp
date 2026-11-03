@@ -1,8 +1,8 @@
 /**
- * 通用偏好切片（app/preferences）单元测试。
+ * 通用偏好切片（app/preferences）单元测试
  * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧版开关迁移）、
  * 快捷键、页脚版权等偏好的默认值、本地还原与落地；以及
- * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点。
+ * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

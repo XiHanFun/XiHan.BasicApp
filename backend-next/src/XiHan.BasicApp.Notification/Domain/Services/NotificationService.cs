@@ -16,27 +16,27 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
 /// <summary>
-/// 新建与修改共用的通知内容。
+/// 新建与修改共用的通知内容
 /// </summary>
-/// <param name="Title">标题。</param>
-/// <param name="Content">正文。</param>
-/// <param name="ContentFormat">正文格式。</param>
-/// <param name="NotificationType">类型。</param>
-/// <param name="Priority">优先级。</param>
-/// <param name="TargetType">投递目标。</param>
-/// <param name="TargetIds">目标 ID。</param>
-/// <param name="Icon">图标。</param>
-/// <param name="Link">链接。</param>
-/// <param name="BusinessType">关联的业务类型。</param>
-/// <param name="BusinessId">关联的业务 ID。</param>
-/// <param name="NeedConfirm">需要确认。</param>
-/// <param name="IsMandatory">强制阅读。</param>
-/// <param name="IsBanner">横幅。</param>
-/// <param name="IsPopup">登录后弹窗。</param>
-/// <param name="StartsAt">可见起始时间。</param>
-/// <param name="ExpiresAt">到期时间。</param>
-/// <param name="Remark">备注。</param>
-/// <param name="Channels">投递渠道。</param>
+/// <param name="Title">标题</param>
+/// <param name="Content">正文</param>
+/// <param name="ContentFormat">正文格式</param>
+/// <param name="NotificationType">类型</param>
+/// <param name="Priority">优先级</param>
+/// <param name="TargetType">投递目标</param>
+/// <param name="TargetIds">目标 ID</param>
+/// <param name="Icon">图标</param>
+/// <param name="Link">链接</param>
+/// <param name="BusinessType">关联的业务类型</param>
+/// <param name="BusinessId">关联的业务 ID</param>
+/// <param name="NeedConfirm">需要确认</param>
+/// <param name="IsMandatory">强制阅读</param>
+/// <param name="IsBanner">横幅</param>
+/// <param name="IsPopup">登录后弹窗</param>
+/// <param name="StartsAt">可见起始时间</param>
+/// <param name="ExpiresAt">到期时间</param>
+/// <param name="Remark">备注</param>
+/// <param name="Channels">投递渠道</param>
 public sealed record NotificationDraft(
     string Title,
     string? Content,
@@ -59,29 +59,29 @@ public sealed record NotificationDraft(
     MessageChannels Channels);
 
 /// <summary>
-/// 投递渠道在请求与响应里按名称列出，在实体里按位组合。
+/// 投递渠道在请求与响应里按名称列出，在实体里按位组合
 /// </summary>
 public static class NotificationChannelSet
 {
     /// <summary>
-    /// 把渠道列表换成按位组合。
+    /// 把渠道列表换成按位组合
     /// </summary>
     /// <remarks>
-    /// 没给即只有站内信。
+    /// 没给即只有站内信
     /// </remarks>
-    /// <param name="channels">渠道。</param>
-    /// <returns>按位组合。</returns>
+    /// <param name="channels">渠道</param>
+    /// <returns>按位组合</returns>
     public static MessageChannels FromList(IReadOnlyList<DeliveryChannel>? channels)
         => channels is null ? MessageChannels.InApp : channels.Aggregate(MessageChannels.None, static (all, c) => all | (MessageChannels)(int)c);
 
     /// <summary>
-    /// 把按位组合换成渠道列表。
+    /// 把按位组合换成渠道列表
     /// </summary>
     /// <remarks>
-    /// 4.x 的老数据为 0 时按只有站内信。
+    /// 4.x 的老数据为 0 时按只有站内信
     /// </remarks>
-    /// <param name="channels">按位组合。</param>
-    /// <returns>渠道。</returns>
+    /// <param name="channels">按位组合</param>
+    /// <returns>渠道</returns>
     public static IReadOnlyList<DeliveryChannel> ToList(MessageChannels channels)
     {
         var effective = channels == MessageChannels.None ? MessageChannels.InApp : channels;
@@ -90,18 +90,18 @@ public static class NotificationChannelSet
 }
 
 /// <summary>
-/// 目标 ID 在实体里存成 JSON 数组。
+/// 目标 ID 在实体里存成 JSON 数组
 /// </summary>
 public static class NotificationTargets
 {
     /// <summary>
-    /// 解析目标 ID 的 JSON。
+    /// 解析目标 ID 的 JSON
     /// </summary>
     /// <remarks>
-    /// 空或坏的 JSON 即空列表。
+    /// 空或坏的 JSON 即空列表
     /// </remarks>
-    /// <param name="json">JSON。</param>
-    /// <returns>目标 ID。</returns>
+    /// <param name="json">JSON</param>
+    /// <returns>目标 ID</returns>
     public static IReadOnlyList<Guid> Parse(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -120,74 +120,74 @@ public static class NotificationTargets
     }
 
     /// <summary>
-    /// 把目标 ID 序列化成 JSON。
+    /// 把目标 ID 序列化成 JSON
     /// </summary>
     /// <remarks>
-    /// 全部目标或空列表存为 <see langword="null"/>。
+    /// 全部目标或空列表存为 <see langword="null"/>
     /// </remarks>
-    /// <param name="type">投递目标。</param>
-    /// <param name="ids">目标 ID。</param>
-    /// <returns>JSON。</returns>
+    /// <param name="type">投递目标</param>
+    /// <param name="ids">目标 ID</param>
+    /// <returns>JSON</returns>
     public static string? Serialize(NotificationTargetType type, IReadOnlyList<Guid> ids)
         => type == NotificationTargetType.All || ids.Count == 0 ? null : JsonSerializer.Serialize(ids.Distinct().ToList(), NotificationJsonContext.Default.ListGuid);
 }
 
 /// <summary>
-/// <c>ReceiveNotification</c> 的推送载荷。
+/// <c>ReceiveNotification</c> 的推送载荷
 /// </summary>
 /// <remarks>
 /// 与壳层 <c>use-signalr-integration</c> 读的字段一致。<see cref="Type"/> 是提示的色调，
-/// 由类型换算（紧急 → Error、安全 → Warning、业务 → Success、其余 Info）；各人收件箱的那一条 ID 不同，载荷里不带，客户端收到后重取收件箱。
+/// 由类型换算（紧急 → Error、安全 → Warning、业务 → Success、其余 Info）；各人收件箱的那一条 ID 不同，载荷里不带，客户端收到后重取收件箱
 /// </remarks>
-/// <param name="Type">提示色调：Info、Success、Warning、Error。</param>
-/// <param name="Title">标题。</param>
-/// <param name="Content">正文。</param>
-/// <param name="ContentFormat">正文格式。</param>
-/// <param name="NotificationId">通知 ID。</param>
-/// <param name="NotificationType">类型。</param>
-/// <param name="NotificationStatus">阅读状态（推送时都是未读）。</param>
-/// <param name="SendTime">发布时间。</param>
+/// <param name="Type">提示色调：Info、Success、Warning、Error</param>
+/// <param name="Title">标题</param>
+/// <param name="Content">正文</param>
+/// <param name="ContentFormat">正文格式</param>
+/// <param name="NotificationId">通知 ID</param>
+/// <param name="NotificationType">类型</param>
+/// <param name="NotificationStatus">阅读状态（推送时都是未读）</param>
+/// <param name="SendTime">发布时间</param>
 public sealed record NotificationPushPayload(string Type, string Title, string? Content, NotificationContentFormat ContentFormat, Guid NotificationId, NotificationType NotificationType, UserNotificationStatus NotificationStatus, DateTimeOffset SendTime);
 
 /// <summary>
-/// 通知公告的规则。
+/// 通知公告的规则
 /// </summary>
 /// <remarks>
 /// 草稿可改可删；发布时按目标解析出当前一侧此刻正常的接收人（角色、部门的候选再经 <see cref="RecipientKind.User"/> 筛一遍），
-/// 写进各自的收件箱，调用提交之后经实时连接推送；提醒只推给未读或未确认的；删除已发布的通知同时从收件箱里移除。
+/// 写进各自的收件箱，调用提交之后经实时连接推送；提醒只推给未读或未确认的；删除已发布的通知同时从收件箱里移除
 /// </remarks>
-/// <param name="rows">按侧读写。</param>
-/// <param name="ids">标识生成器。</param>
-/// <param name="clock">时钟。</param>
-/// <param name="sources">接收人来源。</param>
-/// <param name="pushes">实时推送（没装 Realtime 即没有）。</param>
-/// <param name="sender">邮件与短信的发送（扇出）。</param>
-/// <param name="directory">用户目录（接收人的邮箱与手机号）。</param>
-/// <param name="bots">机器人渠道的广播。</param>
-/// <param name="preferences">用户的通知偏好（没装 Identity 即不过滤）。</param>
+/// <param name="rows">按侧读写</param>
+/// <param name="ids">标识生成器</param>
+/// <param name="clock">时钟</param>
+/// <param name="sources">接收人来源</param>
+/// <param name="pushes">实时推送（没装 Realtime 即没有）</param>
+/// <param name="sender">邮件与短信的发送（扇出）</param>
+/// <param name="directory">用户目录（接收人的邮箱与手机号）</param>
+/// <param name="bots">机器人渠道的广播</param>
+/// <param name="preferences">用户的通知偏好（没装 Identity 即不过滤）</param>
 public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory, BotBroadcaster bots, IEnumerable<INotificationPreferences> preferences)
 {
     /// <summary>
-    /// 通知邮件的模板编码。
+    /// 通知邮件的模板编码
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const string EmailTemplate = "notification-email";
 
     /// <summary>
-    /// 通知短信的模板编码。
+    /// 通知短信的模板编码
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const string SmsTemplate = "notification-sms";
 
     /// <summary>
-    /// 机器人渠道的通知模板编码。
+    /// 机器人渠道的通知模板编码
     /// </summary>
     /// <remarks>
-    /// 变量 <c>title / content / link / brand</c>，空的正文与链接为空值。
+    /// 变量 <c>title / content / link / brand</c>，空的正文与链接为空值
     /// </remarks>
     public const string BotTemplate = "notification-bot";
 
@@ -197,10 +197,10 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     private readonly INotificationPreferences? _preferences = preferences.FirstOrDefault();
 
     /// <summary>
-    /// 调用方本人（访问令牌的 <c>sub</c>）。
+    /// 调用方本人（访问令牌的 <c>sub</c>）
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <returns>用户 ID；外部令牌不是本应用用户即为 <see langword="null"/>。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <returns>用户 ID；外部令牌不是本应用用户即为 <see langword="null"/></returns>
     public static Guid? CallerOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -208,11 +208,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 校验草稿内容。
+    /// 校验草稿内容
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="draft">草稿。</param>
-    /// <returns>结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="draft">草稿</param>
+    /// <returns>结果</returns>
     public static Result Validate(InvocationContext context, NotificationDraft draft)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -246,11 +246,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 新建草稿。
+    /// 新建草稿
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="draft">内容。</param>
-    /// <returns>新通知。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="draft">内容</param>
+    /// <returns>新通知</returns>
     public async Task<Result<SysNotification>> CreateAsync(InvocationContext context, NotificationDraft draft)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -267,15 +267,15 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 修改草稿。
+    /// 修改草稿
     /// </summary>
     /// <remarks>
-    /// 已发布的不能改。
+    /// 已发布的不能改
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notification">通知。</param>
-    /// <param name="draft">新内容。</param>
-    /// <returns>结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notification">通知</param>
+    /// <param name="draft">新内容</param>
+    /// <returns>结果</returns>
     public async Task<Result> UpdateAsync(InvocationContext context, SysNotification notification, NotificationDraft draft)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -297,11 +297,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 按 ID 取当前一侧的通知。
+    /// 按 ID 取当前一侧的通知
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="id">通知 ID。</param>
-    /// <returns>通知；不存在即 <c>NOTIFICATION_NOTFOUND_001</c>。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="id">通知 ID</param>
+    /// <returns>通知；不存在即 <c>NOTIFICATION_NOTFOUND_001</c></returns>
     public async Task<Result<SysNotification>> FindAsync(InvocationContext context, Guid id)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -312,11 +312,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 发布：解析接收人、写收件箱、提交后推送。
+    /// 发布：解析接收人、写收件箱、提交后推送
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notification">草稿。</param>
-    /// <returns>送达结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notification">草稿</param>
+    /// <returns>送达结果</returns>
     public async Task<Result<int>> PublishAsync(InvocationContext context, SysNotification notification)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -377,11 +377,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 提醒：再推给未读或（需要确认时）未确认的接收人。
+    /// 提醒：再推给未读或（需要确认时）未确认的接收人
     /// </summary>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notification">已发布的通知。</param>
-    /// <returns>推送的人数。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notification">已发布的通知</param>
+    /// <returns>推送的人数</returns>
     public async Task<Result<int>> RemindAsync(InvocationContext context, SysNotification notification)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -400,14 +400,14 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 批量删除通知。
+    /// 批量删除通知
     /// </summary>
     /// <remarks>
-    /// 已发布的连同收件箱里的那一条一起软删除。
+    /// 已发布的连同收件箱里的那一条一起软删除
     /// </remarks>
-    /// <param name="context">调用上下文。</param>
-    /// <param name="notificationIds">通知 ID。</param>
-    /// <returns>批量结果。</returns>
+    /// <param name="context">调用上下文</param>
+    /// <param name="notificationIds">通知 ID</param>
+    /// <returns>批量结果</returns>
     public async Task<BatchResult> DeleteAsync(InvocationContext context, IReadOnlyList<Guid> notificationIds)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -474,10 +474,10 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
-    /// 按目标找人。
+    /// 按目标找人
     /// </summary>
     /// <remarks>
-    /// 全部、角色与部门先各自给出候选，再与指定用户一样经 <see cref="RecipientKind.User"/> 只留当前一侧此刻正常的账号。
+    /// 全部、角色与部门先各自给出候选，再与指定用户一样经 <see cref="RecipientKind.User"/> 只留当前一侧此刻正常的账号
     /// </remarks>
     private async Task<Result<IReadOnlyCollection<Guid>>> RecipientsAsync(InvocationContext context, SysNotification notification)
     {
@@ -510,13 +510,13 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 机器人消息的模板参数。
+    /// 机器人消息的模板参数
     /// </summary>
     /// <remarks>
-    /// 标题、正文与链接（4.x 发标题与正文）；空白的正文与链接给空值，模板里按有无分段。
+    /// 标题、正文与链接（4.x 发标题与正文）；空白的正文与链接给空值，模板里按有无分段
     /// </remarks>
-    /// <param name="notification">通知。</param>
-    /// <returns>参数。</returns>
+    /// <param name="notification">通知</param>
+    /// <returns>参数</returns>
     public static IReadOnlyList<KeyValuePair<string, string?>> BotParametersOf(SysNotification notification)
     {
         ArgumentNullException.ThrowIfNull(notification);
@@ -529,10 +529,10 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 邮件、短信与机器人的扇出。
+    /// 邮件、短信与机器人的扇出
     /// </summary>
     /// <remarks>
-    /// 给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；机器人按本侧每个服务商的缺省机器人各一条；随发布一起提交，由发送循环发出。
+    /// 给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；机器人按本侧每个服务商的缺省机器人各一条；随发布一起提交，由发送循环发出
     /// </remarks>
     private async Task<Result> FanOutAsync(InvocationContext context, SysNotification notification, MessageChannels channels, IReadOnlyCollection<Guid> recipients)
     {
@@ -580,10 +580,10 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     }
 
     /// <summary>
-    /// 接收人里愿意从这个渠道收这类通知的那些。
+    /// 接收人里愿意从这个渠道收这类通知的那些
     /// </summary>
     /// <remarks>
-    /// 保持原顺序。强制阅读、紧急通知或没装偏好即全部。
+    /// 保持原顺序。强制阅读、紧急通知或没装偏好即全部
     /// </remarks>
     private async Task<IReadOnlyCollection<Guid>> AcceptingAsync(SysNotification notification, IReadOnlyCollection<Guid> users, NotificationPreferenceChannel channel, CancellationToken cancellationToken)
     {

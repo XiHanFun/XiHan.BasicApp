@@ -15,19 +15,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 修改本人的密码。
+/// 修改本人的密码
 /// </summary>
 /// <remarks>
-/// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话。
+/// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ChangePassword(IRepository<SysUser, Guid> users, UserAccountService accounts, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.change-password";
 

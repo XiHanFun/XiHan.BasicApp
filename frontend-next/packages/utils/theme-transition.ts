@@ -16,18 +16,18 @@ export interface ThemeTransitionOptions {
 }
 
 /**
- * 明暗切换的圆形扩散动画。
+ * 明暗切换的圆形扩散动画
  *
  * 本机点击切换与其它设备推送来的偏好变更共用同一实现：远端推送没有点击位置，
- * 省略 origin 即从视口中心扩散，观感与本机一致。
+ * 省略 origin 即从视口中心扩散，观感与本机一致
  */
 export async function runThemeTransition(options: ThemeTransitionOptions): Promise<void> {
   const { toDark, commit, origin, enabled = true } = options
   const root = document.documentElement
 
-  // 无动画 / 浏览器不支持 / 页面不可见时直接切换，抑制 CSS 过渡一帧。
+  // 无动画 / 浏览器不支持 / 页面不可见时直接切换，抑制 CSS 过渡一帧
   // 后台标签页必须绕开：此时 ViewTransition 的 ready 可能长期不结算，
-  // 而其它设备推来的偏好正等着它落地，卡住会让同步回写门一直关着。
+  // 而其它设备推来的偏好正等着它落地，卡住会让同步回写门一直关着
   if (!enabled || !('startViewTransition' in document) || document.hidden) {
     root.classList.add('theme-switching')
     await commit()
@@ -43,7 +43,7 @@ export async function runThemeTransition(options: ThemeTransitionOptions): Promi
   const endRadius = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y))
 
   // 一律用百分比而非 px：::view-transition-* 伪元素的几何空间不跟随浏览器页面缩放，
-  // 写 px 会被按缩放比整体压缩（圆心偏向左上），百分比相对伪元素自身盒子解析，与缩放无关。
+  // 写 px 会被按缩放比整体压缩（圆心偏向左上），百分比相对伪元素自身盒子解析，与缩放无关
   const xPercent = (x / vw) * 100
   const yPercent = (y / vh) * 100
   // circle() 的百分比半径按规范以 √(w²+h²)/√2 为参照解析

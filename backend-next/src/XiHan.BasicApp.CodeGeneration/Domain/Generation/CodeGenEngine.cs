@@ -13,37 +13,37 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 /// <summary>
-/// 代码生成的管线：建上下文 → 选模板 → 渲染 → 产出。
+/// 代码生成的管线：建上下文 → 选模板 → 渲染 → 产出
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 <c>CodeGenerationEngine</c>：
-/// 选模板时显式给了编码就用那几个，否则取启用的通用模板与本类型的模板；按生成范围裁（分组含 backend / frontend）；沿用已有实体时不出实体。
-/// 一份模板渲染失败即整次失败，原因带模板编码（4.x 同）。
+/// 选模板时显式给了编码就用那几个，否则取启用的通用模板与本类型的模板；按生成范围裁（分组含 backend / frontend）；沿用已有实体时不出实体
+/// 一份模板渲染失败即整次失败，原因带模板编码（4.x 同）
 /// 与 4.x 不同（6.0 的两种目标）：目标是「加入已有包」时去掉包级模板（分组 <c>*-package</c>）；
 /// 引擎另外拼出「新建包」的 <c>Localization/&lt;区域&gt;.json</c> 与两种目标都有的 <c>_registration/&lt;资源&gt;.md</c>；
-/// 一份模板渲染出空白即不产出这个文件（按勾选的操作一份模板一个文件）。
+/// 一份模板渲染出空白即不产出这个文件（按勾选的操作一份模板一个文件）
 /// </remarks>
-/// <param name="builder">上下文的建法。</param>
-/// <param name="templates">模板仓储。</param>
-/// <param name="operations">操作登记表（查操作 ID 是否已被占用）。</param>
+/// <param name="builder">上下文的建法</param>
+/// <param name="templates">模板仓储</param>
+/// <param name="operations">操作登记表（查操作 ID 是否已被占用）</param>
 public sealed class CodeGenEngine(CodeGenContextBuilder builder, IRepository<SysCodeGenTemplate, Guid> templates, OperationRegistry operations)
 {
     /// <summary>
-    /// 实体模板（自动部分）的编码。
+    /// 实体模板（自动部分）的编码
     /// </summary>
     public const string EntityTemplate = "backend.entity";
 
     /// <summary>
-    /// 实体模板（手写部分）的编码。
+    /// 实体模板（手写部分）的编码
     /// </summary>
     public const string EntityManualTemplate = "backend.entity.manual";
 
     /// <summary>
-    /// 渲染出一张表的全部产物。
+    /// 渲染出一张表的全部产物
     /// </summary>
-    /// <param name="tableId">表配置 ID。</param>
-    /// <param name="templateCodes">指定的模板编码；为空按表的生成模式取。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="tableId">表配置 ID</param>
+    /// <param name="templateCodes">指定的模板编码；为空按表的生成模式取</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<Result<IReadOnlyList<CodeGenArtifact>>> RenderAsync(Guid tableId, IReadOnlyList<string>? templateCodes, CancellationToken cancellationToken)
     {
         var built = await builder.BuildAsync(tableId, cancellationToken).ConfigureAwait(false);

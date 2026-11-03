@@ -1,7 +1,7 @@
 /**
- * 标签栏 Store（tabbar）单元测试。
+ * 标签栏 Store（tabbar）单元测试
  * 职责边界：标签的增（去重合并）、删（固定页不可关）、批量关闭（其它/左侧/右侧/全部）、
- * 拖拽排序、固定切换、刷新种子，以及 tabbarPersist 开关对 SessionStorage 落地的门控。
+ * 拖拽排序、固定切换、刷新种子，以及 tabbarPersist 开关对 SessionStorage 落地的门控
  */
 import type { TabItem } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'

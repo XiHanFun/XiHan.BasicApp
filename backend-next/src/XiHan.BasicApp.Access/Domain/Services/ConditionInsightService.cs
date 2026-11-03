@@ -15,27 +15,27 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 权限条件的试算、影响试算与盘点。
+/// 权限条件的试算、影响试算与盘点
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 PermissionConditionTrialService 与 InventoryService。
+/// 对应 4.x 的 PermissionConditionTrialService 与 InventoryService
 /// 试算按用户此刻的有效指派与委托组装授予全貌、
-/// 按给定的请求情形逐组逐子句说明；影响试算列出一个绑定影响到的人（角色即它及其下级角色的有效成员，最多 200 人按登录名）；盘点给出这一侧每条子句的诊断与所在组的结论。
+/// 按给定的请求情形逐组逐子句说明；影响试算列出一个绑定影响到的人（角色即它及其下级角色的有效成员，最多 200 人按登录名）；盘点给出这一侧每条子句的诊断与所在组的结论
 /// </remarks>
-/// <param name="evaluator">授予全貌。</param>
-/// <param name="decider">条件判定。</param>
-/// <param name="conditions">条件写入规则（绑定）。</param>
-/// <param name="hierarchy">继承图。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="members">角色指派仓储。</param>
-/// <param name="conditionRows">条件仓储。</param>
-/// <param name="roles">角色查找。</param>
-/// <param name="catalog">权限目录。</param>
-/// <param name="registry">条件属性登记表。</param>
-/// <param name="compiler">条件编译器。</param>
-/// <param name="options">授权包配置。</param>
-/// <param name="services">服务提供器（属性来源查库）。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="evaluator">授予全貌</param>
+/// <param name="decider">条件判定</param>
+/// <param name="conditions">条件写入规则（绑定）</param>
+/// <param name="hierarchy">继承图</param>
+/// <param name="users">用户仓储</param>
+/// <param name="members">角色指派仓储</param>
+/// <param name="conditionRows">条件仓储</param>
+/// <param name="roles">角色查找</param>
+/// <param name="catalog">权限目录</param>
+/// <param name="registry">条件属性登记表</param>
+/// <param name="compiler">条件编译器</param>
+/// <param name="options">授权包配置</param>
+/// <param name="services">服务提供器（属性来源查库）</param>
+/// <param name="clock">时间源</param>
 public sealed class ConditionInsightService(
     GrantEvaluator evaluator,
     ConditionDecider decider,
@@ -53,15 +53,15 @@ public sealed class ConditionInsightService(
     TimeProvider clock)
 {
     /// <summary>
-    /// 影响试算最多列几人。
+    /// 影响试算最多列几人
     /// </summary>
     /// <remarks>
-    /// 4.x 同。
+    /// 4.x 同
     /// </remarks>
     public const int BatchLimit = 200;
 
     /// <summary>
-    /// 单人试算。
+    /// 单人试算
     /// </summary>
     public async Task<Result<ConditionTrialResponse>> TrialAsync(string owner, ConditionTrialRequest request, Func<Error, string> localize, CancellationToken cancellationToken)
     {
@@ -108,7 +108,7 @@ public sealed class ConditionInsightService(
     }
 
     /// <summary>
-    /// 影响试算：一个绑定影响到的人此刻各自的结论。
+    /// 影响试算：一个绑定影响到的人此刻各自的结论
     /// </summary>
     public async Task<Result<ConditionBatchTrialResponse>> BatchTrialAsync(string owner, ConditionBatchTrialRequest request, CancellationToken cancellationToken)
     {
@@ -149,7 +149,7 @@ public sealed class ConditionInsightService(
     }
 
     /// <summary>
-    /// 盘点：这一侧每条子句的诊断与所在组的结论。
+    /// 盘点：这一侧每条子句的诊断与所在组的结论
     /// </summary>
     public async Task<ConditionInventoryResponse> InventoryAsync(string owner, Func<Error, string> localize, CancellationToken cancellationToken)
     {

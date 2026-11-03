@@ -14,16 +14,16 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Chat.Domain.Services;
 
 /// <summary>
-/// 发起调用的用户与所在的一侧。
+/// 发起调用的用户与所在的一侧
 /// </summary>
-/// <param name="UserId">用户。</param>
-/// <param name="Side">侧（租户 ID，平台为 <c>platform</c>）。</param>
+/// <param name="UserId">用户</param>
+/// <param name="Side">侧（租户 ID，平台为 <c>platform</c>）</param>
 public sealed record ChatCaller(Guid UserId, string Side)
 {
     /// <summary>
-    /// 取调用方。
+    /// 取调用方
     /// </summary>
-    /// <param name="context">调用上下文。</param>
+    /// <param name="context">调用上下文</param>
     public static Result<ChatCaller> Of(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -35,65 +35,65 @@ public sealed record ChatCaller(Guid UserId, string Side)
 }
 
 /// <summary>
-/// 聊天的规则常量。
+/// 聊天的规则常量
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ChatDomainService</c>。
+/// 照 4.x 的 <c>ChatDomainService</c>
 /// </remarks>
 public static class ChatRules
 {
     /// <summary>
-    /// 撤回时限（分钟）。
+    /// 撤回时限（分钟）
     /// </summary>
     public const int RecallWindowMinutes = 2;
 
     /// <summary>
-    /// 编辑时限（分钟）。
+    /// 编辑时限（分钟）
     /// </summary>
     public const int EditWindowMinutes = 5;
 
     /// <summary>
-    /// 文本正文的长度上限。
+    /// 文本正文的长度上限
     /// </summary>
     public const int MaxContentLength = 4000;
 
     /// <summary>
-    /// 会话预览的长度上限。
+    /// 会话预览的长度上限
     /// </summary>
     public const int MaxPreviewLength = 200;
 
     /// <summary>
-    /// 回复快照的长度上限。
+    /// 回复快照的长度上限
     /// </summary>
     public const int MaxReplyPreviewLength = 300;
 
     /// <summary>
-    /// 每会话置顶消息的上限。
+    /// 每会话置顶消息的上限
     /// </summary>
     public const int MaxPinnedMessages = 10;
 
     /// <summary>
-    /// 一条消息提及人数的上限。
+    /// 一条消息提及人数的上限
     /// </summary>
     public const int MaxMentionCount = 20;
 
     /// <summary>
-    /// 语音时长的上限（秒）。
+    /// 语音时长的上限（秒）
     /// </summary>
     public const int MaxVoiceSeconds = 60;
 
     /// <summary>
-    /// 系统提示里直接列出的名字上限。
+    /// 系统提示里直接列出的名字上限
     /// </summary>
     public const int MaxNamesInSystemMessage = 3;
 
     /// <summary>
-    /// 聊天附件在文件里的来源。
+    /// 聊天附件在文件里的来源
     /// </summary>
     public const string AttachmentSource = "chat";
 
     /// <summary>
-    /// 单聊的唯一键（两个用户 ID 小者在前）。
+    /// 单聊的唯一键（两个用户 ID 小者在前）
     /// </summary>
     public static string PairKeyOf(Guid userId, Guid peerUserId)
     {
@@ -102,27 +102,27 @@ public static class ChatRules
     }
 
     /// <summary>
-    /// 截断到上限。
+    /// 截断到上限
     /// </summary>
     public static string Truncate(string value, int maxLength) => value.Length <= maxLength ? value : value[..maxLength];
 
     /// <summary>
-    /// 可选文本：空白为空，超长截断。
+    /// 可选文本：空白为空，超长截断
     /// </summary>
     public static string? Optional(string? value, int maxLength) => string.IsNullOrWhiteSpace(value) ? null : Truncate(value.Trim(), maxLength);
 }
 
 /// <summary>
-/// 写进库里的系统提示与会话预览文案（作用域）。
+/// 写进库里的系统提示与会话预览文案（作用域）
 /// </summary>
 /// <remarks>
-/// 按发起调用的区域取消息目录里的文案（4.x 写死中文）；键都在 10 种区域里，取不到是缺陷，直接抛出。
+/// 按发起调用的区域取消息目录里的文案（4.x 写死中文）；键都在 10 种区域里，取不到是缺陷，直接抛出
 /// </remarks>
-/// <param name="localizer">消息本地化。</param>
+/// <param name="localizer">消息本地化</param>
 public sealed class ChatTexts(IMessageLocalizer localizer)
 {
     /// <summary>
-    /// 取一条文案。
+    /// 取一条文案
     /// </summary>
     public string Render(InvocationContext context, string key, params (string Name, object? Value)[] arguments)
     {
@@ -135,7 +135,7 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
     }
 
     /// <summary>
-    /// 系统提示里的一串名字（超过三个折叠为「等 N 人」）。
+    /// 系统提示里的一串名字（超过三个折叠为「等 N 人」）
     /// </summary>
     public string Names(InvocationContext context, IReadOnlyList<string?> names)
     {
@@ -152,7 +152,7 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
     }
 
     /// <summary>
-    /// 会话里最后一条消息的预览。
+    /// 会话里最后一条消息的预览
     /// </summary>
     public string Preview(InvocationContext context, ChatMessageType type, string? content, IReadOnlyList<ChatMessageAttachment> attachments)
     {
@@ -168,51 +168,51 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
 }
 
 /// <summary>
-/// 聊天策略参数 <c>chat.policy</c> 的值。
+/// 聊天策略参数 <c>chat.policy</c> 的值
 /// </summary>
 /// <remarks>
-/// 照 4.x：保留天数只读平台值，敏感词租户可以覆盖（读参数时当前租户的同键参数优先）。
+/// 照 4.x：保留天数只读平台值，敏感词租户可以覆盖（读参数时当前租户的同键参数优先）
 /// </remarks>
 public sealed record ChatPolicySettings
 {
     /// <summary>
-    /// 消息保留天数。
+    /// 消息保留天数
     /// </summary>
     public int RetentionDays { get; set; } = ChatPolicy.DefaultRetentionDays;
 
     /// <summary>
-    /// 敏感词（不区分大小写的包含匹配）。
+    /// 敏感词（不区分大小写的包含匹配）
     /// </summary>
     public IReadOnlyList<string> SensitiveWords { get; set; } = [];
 }
 
 /// <summary>
-/// 聊天策略（作用域）。
+/// 聊天策略（作用域）
 /// </summary>
 /// <remarks>
-/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[]}</c>），没建即用缺省值；建了而 JSON 不合法或保留天数不在 1 到 3650 之间即失败（不按错误的值删数据或放过敏感词）。
-/// 敏感词照 4.x 管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名。
+/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[]}</c>），没建即用缺省值；建了而 JSON 不合法或保留天数不在 1 到 3650 之间即失败（不按错误的值删数据或放过敏感词）
+/// 敏感词照 4.x 管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名
 /// </remarks>
-/// <param name="readers">参数读取（Settings 实现）。</param>
+/// <param name="readers">参数读取（Settings 实现）</param>
 public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
 {
     /// <summary>
-    /// 参数键。
+    /// 参数键
     /// </summary>
     public const string ConfigKey = "chat.policy";
 
     /// <summary>
-    /// 缺省保留天数。
+    /// 缺省保留天数
     /// </summary>
     public const int DefaultRetentionDays = 365;
 
     /// <summary>
-    /// 保留天数的上限（十年）。
+    /// 保留天数的上限（十年）
     /// </summary>
     public const int MaxRetentionDays = 3650;
 
     /// <summary>
-    /// 读当前上下文的策略。
+    /// 读当前上下文的策略
     /// </summary>
     public async ValueTask<Result<ChatPolicySettings>> ReadAsync(InvocationContext context)
     {
@@ -249,7 +249,7 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
     }
 
     /// <summary>
-    /// 核对正文不含敏感词。
+    /// 核对正文不含敏感词
     /// </summary>
     public async ValueTask<Result> EnsureAllowedAsync(InvocationContext context, string? content)
     {
@@ -271,33 +271,33 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
 }
 
 /// <summary>
-/// 消息附件的存取（JSON 数组）。
+/// 消息附件的存取（JSON 数组）
 /// </summary>
 public static class ChatAttachmentsJson
 {
     /// <summary>
-    /// 写成 JSON。
+    /// 写成 JSON
     /// </summary>
     /// <remarks>
-    /// 没有附件为空。
+    /// 没有附件为空
     /// </remarks>
     public static string? Serialize(IReadOnlyList<ChatMessageAttachment> attachments)
         => attachments.Count == 0 ? null : JsonSerializer.Serialize(attachments, ChatJsonContext.Default.IReadOnlyListChatMessageAttachment);
 
     /// <summary>
-    /// 从 JSON 读出。
+    /// 从 JSON 读出
     /// </summary>
     public static IReadOnlyList<ChatMessageAttachment> Deserialize(string? json)
         => string.IsNullOrWhiteSpace(json) ? [] : JsonSerializer.Deserialize(json, ChatJsonContext.Default.IReadOnlyListChatMessageAttachment) ?? [];
 
     /// <summary>
-    /// 提及的用户（逗号分隔）读出。
+    /// 提及的用户（逗号分隔）读出
     /// </summary>
     public static IReadOnlyList<Guid> MentionsOf(string? value)
         => string.IsNullOrWhiteSpace(value) ? [] : value.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(static v => Guid.Parse(v, CultureInfo.InvariantCulture)).ToList();
 
     /// <summary>
-    /// 提及的用户写成逗号分隔。
+    /// 提及的用户写成逗号分隔
     /// </summary>
     public static string? MentionsText(IReadOnlyList<Guid> userIds) => userIds.Count == 0 ? null : string.Join(',', userIds.Select(static id => id.ToString("N")));
 }

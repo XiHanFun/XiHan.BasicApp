@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 门禁：文案按 10 种区域（与后端一致）各一份，键集完全对称；源码里静态引用的 t('…') 键必须存在。
-// 文案根：packages/locales/langs/<区域>.ts（壳层）与 src/modules/<包>/locales/<区域>.ts（各能力包），都是 `export default { … }` 的字面量对象。
+// 门禁：文案按 10 种区域（与后端一致）各一份，键集完全对称；源码里静态引用的 t('…') 键必须存在
+// 文案根：packages/locales/langs/<区域>.ts（壳层）与 src/modules/<包>/locales/<区域>.ts（各能力包），都是 `export default { … }` 的字面量对象
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'

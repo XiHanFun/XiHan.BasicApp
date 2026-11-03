@@ -4,8 +4,8 @@ export type LogDetailFieldType = 'boolean' | 'bytes' | 'code' | 'date' | 'durati
 
 /**
  * 详情分组（抽屉按此顺序逐组排版，组内描边、标签在上）：
- * subject 业务主体、request 请求、client 客户端、runtime 运行环境、handling 处理、trace 追踪标识。
- * 代码块字段（type: 'code'）不分组，统一排在最后。
+ * subject 业务主体、request 请求、client 客户端、runtime 运行环境、handling 处理、trace 追踪标识
+ * 代码块字段（type: 'code'）不分组，统一排在最后
  */
 export type LogDetailGroup = 'subject' | 'request' | 'client' | 'runtime' | 'handling' | 'trace'
 
@@ -34,8 +34,8 @@ export interface LogDetailField {
 }
 
 /**
- * 详情抬头：打开即看懂「谁、什么时候、做了什么、成没成功」。
- * 抬头用到的字段不再在分组里重复出现。
+ * 详情抬头：打开即看懂「谁、什么时候、做了什么、成没成功」
+ * 抬头用到的字段不再在分组里重复出现
  */
 export interface LogDetailHeader {
   /** 标题段：按顺序取非空值，以「 · 」连接 */

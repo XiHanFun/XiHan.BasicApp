@@ -1,8 +1,8 @@
 /**
- * useNotificationSound 提示音单元测试。
+ * useNotificationSound 提示音单元测试
  * 职责：声音交给组件库的共享播放器（@xihan-ui/vue/sound），这里锁定应用自己那一层：
  * 「按语义名交给共享播放器」「偏好关闭时不响，排队期间关掉的那一声也不响」
- * 「密集到达按 200ms 依次排开、排到 1.4s 之后的直接丢」「首次手势解锁只挂一次，偏好关着时不解锁」。
+ * 「密集到达按 200ms 依次排开、排到 1.4s 之后的直接丢」「首次手势解锁只挂一次，偏好关着时不解锁」
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

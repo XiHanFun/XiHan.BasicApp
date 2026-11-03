@@ -18,22 +18,22 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 把当前会话切换到目标租户或平台。
+/// 把当前会话切换到目标租户或平台
 /// </summary>
 /// <remarks>
-/// 操作 <c>auth.switch-tenant</c>（自助操作，只要求已认证）。当前会话换到目标上下文——注册地租户、生效中的成员租户（含运维支持），或平台（平台账号）。
-/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。换上下文之前先过登录守卫（目标一侧的登录时机访问策略）。
+/// 操作 <c>auth.switch-tenant</c>（自助操作，只要求已认证）。当前会话换到目标上下文——注册地租户、生效中的成员租户（含运维支持），或平台（平台账号）
+/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。换上下文之前先过登录守卫（目标一侧的登录时机访问策略）
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="memberships">成员关系（Tenancy 实现；没有即只有注册地可进）。</param>
-/// <param name="issuer">令牌签发器。</param>
-/// <param name="guards">登录守卫。</param>
-/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
-/// <param name="options">身份配置。</param>
-/// <param name="clock">时间源。</param>
-/// <param name="tenants">框架租户目录。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="sessions">会话仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="memberships">成员关系（Tenancy 实现；没有即只有注册地可进）</param>
+/// <param name="issuer">令牌签发器</param>
+/// <param name="guards">登录守卫</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
+/// <param name="options">身份配置</param>
+/// <param name="clock">时间源</param>
+/// <param name="tenants">框架租户目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SwitchTenant(
     IRepository<SysUser, Guid> users,
@@ -48,7 +48,7 @@ public sealed class SwitchTenant(
     ITenantStore tenants) : IOperation<SwitchTenantRequest, TokenResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.switch-tenant";
 

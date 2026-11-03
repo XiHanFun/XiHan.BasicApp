@@ -1,9 +1,9 @@
 /**
- * packages/printing/data-source-registry.ts 的注册期校验与目录查询。
+ * packages/printing/data-source-registry.ts 的注册期校验与目录查询
  *
  * 职责边界：本文件专攻「注册时立即失败」的各条校验分支、规范化结果的冻结与归一，
  * 以及目录查询。重复编码报错与字段目录到设计器字段树的映射已在 printing.test.ts 覆盖，
- * 这里不重复。注册表是模块级单例，用例一律使用带序号的唯一编码，保证可任意顺序执行。
+ * 这里不重复。注册表是模块级单例，用例一律使用带序号的唯一编码，保证可任意顺序执行
  */
 import type { PrintDataSourceDefinition, PrintFieldDefinition } from './types'
 import { describe, expect, it } from 'vitest'

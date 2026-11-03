@@ -8,11 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证作业的管理面。
+/// 验证作业的管理面
 /// </summary>
 /// <remarks>
 /// 宿主用数据库调度：代码登记的作业都列得出，带按区域的显示名与计划；暂停与恢复按作业名批量、认不出的算失败；
-/// 立即执行排进一次性触发器、返回触发器名；计划校验接受 Cron 表达式或计划写法，写错即报错。
+/// 立即执行排进一次性触发器、返回触发器名；计划校验接受 Cron 表达式或计划写法，写错即报错
 /// </remarks>
 public sealed class MaintenanceJobsTests : IDisposable
 {

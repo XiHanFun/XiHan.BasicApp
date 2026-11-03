@@ -15,22 +15,22 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Operations.Auth;
 
 /// <summary>
-/// 取当前主体的权限。
+/// 取当前主体的权限
 /// </summary>
 /// <remarks>
-/// 操作 <c>auth.permissions</c>，自助操作，只要求已认证。
-/// 有效权限码、角色、按权限裁剪的菜单树与页面码。
+/// 操作 <c>auth.permissions</c>，自助操作，只要求已认证
+/// 有效权限码、角色、按权限裁剪的菜单树与页面码
 /// </remarks>
-/// <param name="effective">有效权限解析。</param>
-/// <param name="evaluator">授予全貌（此刻算数的角色）。</param>
-/// <param name="roles">角色仓储。</param>
-/// <param name="menus">菜单仓储。</param>
-/// <param name="options">安全选项（角色声明名）。</param>
+/// <param name="effective">有效权限解析</param>
+/// <param name="evaluator">授予全貌（此刻算数的角色）</param>
+/// <param name="roles">角色仓储</param>
+/// <param name="menus">菜单仓储</param>
+/// <param name="options">安全选项（角色声明名）</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
 public sealed class CurrentPermissions(EffectivePermissions effective, GrantEvaluator evaluator, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "auth.permissions";
 

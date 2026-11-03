@@ -40,8 +40,8 @@ function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停。
- * 搜索按后端白名单：关键字匹配角色码与名称，状态精确匹配；排序只放角色码、名称、排序与创建时间。
+ * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停
+ * 搜索按后端白名单：关键字匹配角色码与名称，状态精确匹配；排序只放角色码、名称、排序与创建时间
  */
 export function rolesResource(): SchemaResource<RoleRow> {
   return {
@@ -77,8 +77,8 @@ function emptyForm(): RoleForm {
 }
 
 /**
- * 角色的编辑弹窗：新建（数据范围按侧取缺省，另在「数据范围」里改）、编辑名称 / 说明 / 排序 / 状态。
- * 字段级错误挂回对应字段，其余错误给整条提示。
+ * 角色的编辑弹窗：新建（数据范围按侧取缺省，另在「数据范围」里改）、编辑名称 / 说明 / 排序 / 状态
+ * 字段级错误挂回对应字段，其余错误给整条提示
  */
 export function useRoleEditor() {
   const open = ref(false)
@@ -387,8 +387,8 @@ export function useRoleMemberEditor() {
 // ── 数据范围 ──
 
 /**
- * 数据范围抽屉（只在租户侧：平台角色固定为全部）：档位与自定义部门一次保存。
- * 保存走 roles.update，名称 / 说明 / 排序 / 状态按打开时取到的详情原样回传，自定义部门整体替换。
+ * 数据范围抽屉（只在租户侧：平台角色固定为全部）：档位与自定义部门一次保存
+ * 保存走 roles.update，名称 / 说明 / 排序 / 状态按打开时取到的详情原样回传，自定义部门整体替换
  */
 export function useRoleDataScopeEditor() {
   const open = ref(false)
@@ -470,7 +470,7 @@ export interface RolePermissionEntry {
 
 /**
  * 授予取 `permissions`（带有效期或原因的另有同码的 Grant 规则补上这两项），拒绝只在 `rules` 里；
- * 两者按权限码互斥（后端写拒绝即撤掉同码授予），先列授予再列拒绝。
+ * 两者按权限码互斥（后端写拒绝即撤掉同码授予），先列授予再列拒绝
  */
 export function rolePermissionEntries(permissions: readonly string[], rules: readonly PermissionRule[], nameOf: PermissionNameOf): RolePermissionEntry[] {
   const grantRules = new Map(rules.filter(rule => rule.action === 'Grant').map(rule => [rule.permission, rule] as const))

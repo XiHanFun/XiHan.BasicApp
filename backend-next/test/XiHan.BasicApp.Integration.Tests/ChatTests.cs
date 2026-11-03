@@ -23,12 +23,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证在线聊天。
+/// 验证在线聊天
 /// </summary>
 /// <remarks>
 /// 照 4.x：单聊按两人唯一，群聊的治理（加人、移出、退群、改信息与公告、转让群主、设管理员、禁言），部门群只有本部门的人能进、随部门归属事件同步成员；
 /// 消息的发送、撤回、编辑、回应、置顶、已读与搜索；附件以会话为访问范围、服务端转发、聊天审计的详情与成员（方案 H1、H2、H4）；
-/// 敏感词与保留清理读 <c>chat.policy</c>；推送经聊天 Hub 在提交之后发出；平台一侧同样能聊天；模块可以关掉。
+/// 敏感词与保留清理读 <c>chat.policy</c>；推送经聊天 Hub 在提交之后发出；平台一侧同样能聊天；模块可以关掉
 /// </remarks>
 public sealed class ChatTests : IDisposable
 {
@@ -434,10 +434,10 @@ public sealed class ChatTests : IDisposable
     private static string Token(string userId) => TestTokens.Issue(userId, "acme", Chatter);
 
     /// <summary>
-    /// 起宿主并建好用户。
+    /// 起宿主并建好用户
     /// </summary>
     /// <remarks>
-    /// 租户 acme 与 globex，角色 chatter 持聊天的全部权限，organizer 持组织的部门与归属；acme 建 alice、bob、carol、dave，globex 建 erin，真实用户按用户授予聊天权限。
+    /// 租户 acme 与 globex，角色 chatter 持聊天的全部权限，organizer 持组织的部门与归属；acme 建 alice、bob、carol、dave，globex 建 erin，真实用户按用户授予聊天权限
     /// </remarks>
     private async Task<(BasicAppTestServer Server, Dictionary<string, string> Users)> StartAsync()
     {

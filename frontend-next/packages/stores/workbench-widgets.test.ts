@@ -1,7 +1,7 @@
 /**
- * 工作台小组件登记点（workbench-widgets）单元测试。
- * 职责边界：登记顺序、读取结果与内部数组是同一响应式引用（看板在模块 setup 之后读取）。
- * 登记表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本。
+ * 工作台小组件登记点（workbench-widgets）单元测试
+ * 职责边界：登记顺序、读取结果与内部数组是同一响应式引用（看板在模块 setup 之后读取）
+ * 登记表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本
  */
 import type { WorkbenchListWidget } from './workbench-widgets'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

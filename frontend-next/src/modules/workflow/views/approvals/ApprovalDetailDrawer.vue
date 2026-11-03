@@ -16,9 +16,9 @@ import { handleOutcomes, instanceStatusLabel, outcomeLabel } from './approval-la
 import { buildApprovalSteps } from './approval-steps'
 
 /**
- * 审批详情抽屉：业务单据 + 办理区 + 审批轨迹（照 4.x）。
+ * 审批详情抽屉：业务单据 + 办理区 + 审批轨迹（照 4.x）
  * 单据由审批业务登记的视图组件渲染（组件路径与菜单的组件路径同口径，按页面登记表解析；props：businessId / data / mode / nodeId）；
- * 组件若暴露 getVariables()，办理时把返回值作为附加变量一并提交（审批人补填的业务字段）。
+ * 组件若暴露 getVariables()，办理时把返回值作为附加变量一并提交（审批人补填的业务字段）
  */
 defineOptions({ name: 'ApprovalDetailDrawer' })
 

@@ -27,14 +27,14 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Chat;
 
 /// <summary>
-/// 在线聊天模块（Tier 3，可选）。
+/// 在线聊天模块（Tier 3，可选）
 /// </summary>
 /// <remarks>
 /// 照 4.x 的 Chat 模块（28 个方法）：会话、成员、消息与表情回应四张租户库表（平台一侧租户为 <c>platform</c>），聊天 Hub <see cref="RealtimeHubs.Chat"/> 由本包登记、宿主一并映射，
 /// 推送经 Realtime 在提交之后发出。部门群随 Organization 的领域事件 <see cref="Topics.OrganizationMembershipChanged"/> 同步成员；
 /// 敏感词与保留天数读参数 <c>chat.policy</c>，保留清理是内建作业 <c>chat.messages.cleanup</c>；附件以会话为访问范围（方案 H2，经 Files 的附件契约）；
-/// 另补服务端转发（方案 H1）与审计的消息详情、会话成员（方案 H4）。助手会话类型就位，回复随 N4。
-/// 宿主按 <c>BasicApp:Modules:Chat:Enabled</c> 决定是否装配；关掉后权限目录、页面登记、Hub 与订阅都不在，菜单种子删掉它的页面。
+/// 另补服务端转发（方案 H1）与审计的消息详情、会话成员（方案 H4）。助手会话类型就位，回复随 N4
+/// 宿主按 <c>BasicApp:Modules:Chat:Enabled</c> 决定是否装配；关掉后权限目录、页面登记、Hub 与订阅都不在，菜单种子删掉它的页面
 /// </remarks>
 public sealed class ChatFeature : IFeature
 {

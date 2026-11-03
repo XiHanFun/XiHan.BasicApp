@@ -14,13 +14,13 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证签名开放接口。
+/// 验证签名开放接口
 /// </summary>
 /// <remarks>
-/// 沿用 4.x 的请求头与规范串。
+/// 沿用 4.x 的请求头与规范串
 /// 个人中心自助建凭证；签名对了自检通过，重放、不签名、签名 / 内容签名不对、时间窗外都拒；
 /// 加密的请求体解密后绑定、响应随之加密，明文请求可以要求加密响应；调用安全设置（算法与 IP 白名单）立即生效；停用、滚动、删除立即生效；
-/// 凭证上限 5 个；无论成败都记开放接口日志（签名是否有效、明文摘要），验签通过即记下最近使用时间。
+/// 凭证上限 5 个；无论成败都记开放接口日志（签名是否有效、明文摘要），验签通过即记下最近使用时间
 /// </remarks>
 public sealed class OpenApiSigningTests : IDisposable
 {
@@ -62,7 +62,7 @@ public sealed class OpenApiSigningTests : IDisposable
     }
 
     /// <summary>
-    /// 照接入文档独立算签名（不借用服务端的实现）。
+    /// 照接入文档独立算签名（不借用服务端的实现）
     /// </summary>
     private static HttpRequestMessage Signed(HttpMethod method, string path, Credential credential, byte[]? plainBody = null, string algorithm = "HmacSHA256", long? timestamp = null, string? nonce = null, bool encrypt = false, string? ip = null)
     {

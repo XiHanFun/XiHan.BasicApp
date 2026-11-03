@@ -9,11 +9,11 @@ using Scriban.Syntax;
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
 /// <summary>
-/// 消息模板的渲染（Scriban）。
+/// 消息模板的渲染（Scriban）
 /// </summary>
 /// <remarks>
-/// 方案 5.11。变量写成双花括号包住的变量名，4.x 的写法照样可用。
-/// 不给模板加载器（不能引入别的文件），循环与递归设上限；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签。
+/// 方案 5.11。变量写成双花括号包住的变量名，4.x 的写法照样可用
+/// 不给模板加载器（不能引入别的文件），循环与递归设上限；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签
 /// </remarks>
 internal static class TemplateRenderer
 {
@@ -21,10 +21,10 @@ internal static class TemplateRenderer
     private const int RecursiveLimit = 20;
 
     /// <summary>
-    /// 检查模板语法。
+    /// 检查模板语法
     /// </summary>
-    /// <param name="source">模板源文。</param>
-    /// <returns>有错返回第一条错误的文字，没错返回空。</returns>
+    /// <param name="source">模板源文</param>
+    /// <returns>有错返回第一条错误的文字，没错返回空</returns>
     public static string? SyntaxError(string? source)
     {
         var template = Template.Parse(source ?? string.Empty);
@@ -32,14 +32,14 @@ internal static class TemplateRenderer
     }
 
     /// <summary>
-    /// 渲染。
+    /// 渲染
     /// </summary>
-    /// <param name="source">模板源文。</param>
-    /// <param name="parameters">参数。</param>
-    /// <param name="html">是否 HTML 模板（参数值先编码）。</param>
-    /// <param name="output">渲染结果。</param>
-    /// <param name="error">失败原因。</param>
-    /// <returns>是否成功。</returns>
+    /// <param name="source">模板源文</param>
+    /// <param name="parameters">参数</param>
+    /// <param name="html">是否 HTML 模板（参数值先编码）</param>
+    /// <param name="output">渲染结果</param>
+    /// <param name="error">失败原因</param>
+    /// <returns>是否成功</returns>
     public static bool TryRender(string? source, IReadOnlyList<KeyValuePair<string, string?>> parameters, bool html, out string output, out string? error)
     {
         output = string.Empty;

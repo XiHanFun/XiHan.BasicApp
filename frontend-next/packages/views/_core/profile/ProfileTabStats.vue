@@ -108,10 +108,10 @@ const heatmapData = computed<HeatmapPoint[]>(() =>
 )
 
 /**
- * 五档的下界，严格升序。用分位而不是固定阈值，稀疏数据也能拉开层次。
- * 首档钉在 1：只要当天有操作就得着色，否则会和「这天没干活」画成同一格。
+ * 五档的下界，严格升序。用分位而不是固定阈值，稀疏数据也能拉开层次
+ * 首档钉在 1：只要当天有操作就得着色，否则会和「这天没干活」画成同一格
  * 分位常会重合（如几乎每天都是 1 次）：组件库遇到重复下界会剔掉一档并报 chart.invalid-range，
- * 故逐档至少比上一档大 1，档数始终是五档。
+ * 故逐档至少比上一档大 1，档数始终是五档
  */
 const heatThresholds = computed(() => {
   const positives = [...countByDate.value.values()].filter(v => v > 0).sort((a, b) => a - b)
@@ -127,7 +127,7 @@ const heatThresholds = computed(() => {
 })
 
 /**
- * 一格的读数。悬停详情条与该格的可及名字共用这一句，两处才不会各说各的。
+ * 一格的读数。悬停详情条与该格的可及名字共用这一句，两处才不会各说各的
  */
 function heatReadout(details: { date: string, count: number } | null): string {
   return details
@@ -137,7 +137,7 @@ function heatReadout(details: { date: string, count: number } | null): string {
 
 /**
  * 热力图的文案。库的缺省是英文网格名 + 硬编码中文图例两端，两个方向都会串味，
- * 六条里除矩阵形态那条外全部给出（这里是日历形态）。
+ * 六条里除矩阵形态那条外全部给出（这里是日历形态）
  */
 const heatTranslations = computed(() => ({
   gridLabel: t('component.profile.stats.heat_grid_label'),

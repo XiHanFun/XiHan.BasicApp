@@ -12,17 +12,17 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
 /// <summary>
-/// 用户批量操作的共同骨架。
+/// 用户批量操作的共同骨架
 /// </summary>
 /// <remarks>
-/// 一次主键 <c>IN</c> 取回目标行，逐项判租户归属与「不能对自己操作」，剩下的一次写入，逐项结果进 <see cref="BatchResult"/>。
+/// 一次主键 <c>IN</c> 取回目标行，逐项判租户归属与「不能对自己操作」，剩下的一次写入，逐项结果进 <see cref="BatchResult"/>
 /// </remarks>
 internal static class UserBatch
 {
     /// <summary>
-    /// 取回目标用户并逐项校验。
+    /// 取回目标用户并逐项校验
     /// </summary>
-    /// <returns>可操作的用户与已判失败的项。</returns>
+    /// <returns>可操作的用户与已判失败的项</returns>
     public static async Task<(List<SysUser> Targets, List<BatchFailure> Failed)> ResolveAsync(IRepository<SysUser, Guid> users, IReadOnlyList<Guid> ids, InvocationContext context, bool rejectSelf)
     {
         var security = context.GetSecurity();
@@ -53,10 +53,10 @@ internal static class UserBatch
     }
 
     /// <summary>
-    /// 把租户的所有者从目标里剔出、记为失败。
+    /// 把租户的所有者从目标里剔出、记为失败
     /// </summary>
     /// <remarks>
-    /// 所有者不能被删除或锁定，要先转移所有权（<see cref="IdentityErrors.TenantOwner"/>）；没有成员关系实现时没有所有者。
+    /// 所有者不能被删除或锁定，要先转移所有权（<see cref="IdentityErrors.TenantOwner"/>）；没有成员关系实现时没有所有者
     /// </remarks>
     public static async Task ExcludeOwnersAsync(List<SysUser> targets, List<BatchFailure> failed, IEnumerable<ITenantMembershipResolver> memberships, CancellationToken cancellationToken)
     {
@@ -74,7 +74,7 @@ internal static class UserBatch
     }
 
     /// <summary>
-    /// 把仓储的逐项结果并进批量结果。
+    /// 把仓储的逐项结果并进批量结果
     /// </summary>
     public static BatchResult Combine(IReadOnlyList<SysUser> targets, IReadOnlyList<Result> outcomes, List<BatchFailure> failed)
     {

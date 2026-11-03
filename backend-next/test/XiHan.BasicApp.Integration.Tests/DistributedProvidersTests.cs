@@ -30,12 +30,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证宿主按配置装配的分布式 Provider。
+/// 验证宿主按配置装配的分布式 Provider
 /// </summary>
 /// <remarks>
-/// 没配连接时是内存实现、不映射 CloudEvents 入站端点；数据库里的译文覆盖嵌入的语言文件；入站端点打开后只收持有入站权限码的调用方。
+/// 没配连接时是内存实现、不映射 CloudEvents 入站端点；数据库里的译文覆盖嵌入的语言文件；入站端点打开后只收持有入站权限码的调用方
 /// 配了 Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，如 <c>localhost:6379</c>）与 RabbitMQ（<c>XIHAN_TEST_RABBITMQ</c>，如 <c>amqp://guest:guest@localhost:5672</c>）时，
-/// 两个宿主实例共享缓存、互相失效本机的 L1，一个实例发布的消息由另一个实例消费；没设环境变量即跳过。
+/// 两个宿主实例共享缓存、互相失效本机的 L1，一个实例发布的消息由另一个实例消费；没设环境变量即跳过
 /// </remarks>
 public sealed class DistributedProvidersTests : IDisposable
 {
@@ -234,7 +234,7 @@ public sealed class DistributedProvidersTests : IDisposable
     }
 
     /// <summary>
-    /// 把收到的消息记进共享队列的测试处理器。
+    /// 把收到的消息记进共享队列的测试处理器
     /// </summary>
     private sealed class RecordingHandler(ConcurrentQueue<MessageDelivery> received) : IMessageHandler
     {

@@ -15,19 +15,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Operations.Profile;
 
 /// <summary>
-/// 关闭一种双因素方式。
+/// 关闭一种双因素方式
 /// </summary>
 /// <remarks>
 /// <c>POST /api/profile:disable-two-factor</c>。认证器要用当前认证器的码确认（防重放），通过即清掉密钥；
 /// 邮箱与短信用 <c>profile.send-two-factor-code</c> 发到本人已验证联系方式的码确认；
-/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做。
+/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做
 /// </remarks>
-/// <param name="users">用户仓储。</param>
-/// <param name="securities">账号安全仓储。</param>
-/// <param name="accounts">账号域服务。</param>
-/// <param name="codes">邮件与短信验证码。</param>
-/// <param name="protector">密钥解密。</param>
-/// <param name="clock">时间源。</param>
+/// <param name="users">用户仓储</param>
+/// <param name="securities">账号安全仓储</param>
+/// <param name="accounts">账号域服务</param>
+/// <param name="codes">邮件与短信验证码</param>
+/// <param name="protector">密钥解密</param>
+/// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DisableTwoFactor(
     IRepository<SysUser, Guid> users,
@@ -38,7 +38,7 @@ public sealed class DisableTwoFactor(
     TimeProvider clock) : IOperation<TwoFactorChangeRequest, ProfileResponse>
 {
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "profile.disable-two-factor";
 

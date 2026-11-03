@@ -10,17 +10,17 @@ using XiHan.BasicApp.Runtime.Queries;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包登记的字段安全实体。
+/// 组织包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同：岗位（部门 4.x 也没登记）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用。
+/// 4.x 同：岗位（部门 4.x 也没登记）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用
 /// </remarks>
 public static class OrganizationFieldSecurity
 {
     /// <summary>
-    /// 登记本包的实体与操作。
+    /// 登记本包的实体与操作
     /// </summary>
-    /// <param name="services">服务集合。</param>
+    /// <param name="services">服务集合</param>
     public static void Register(IServiceCollection services)
         => services.AddFieldSecurity("organization", OrganizationJsonContext.Default, fields => fields
             .Entity<PositionResponse>("organization.positions", "organization.positions.title", "organization.positions.fields.")

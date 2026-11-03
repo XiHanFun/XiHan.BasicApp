@@ -14,11 +14,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证代码生成模块的数据源与模块开关。
+/// 验证代码生成模块的数据源与模块开关
 /// </summary>
 /// <remarks>
 /// 数据源照 4.x：名称唯一、口令与连接串加密存储且不回显、留空即不改、缺省最多一个、启停与修改带并发戳；按 C2 修的缺陷：被表配置引用的拒绝删除、
-/// 测试连接要修改权限、解不开的密钥报错不当明文；只在平台一侧；关掉模块宿主照常启动、页面不下发。
+/// 测试连接要修改权限、解不开的密钥报错不当明文；只在平台一侧；关掉模块宿主照常启动、页面不下发
 /// </remarks>
 public sealed class CodeGenerationTests : IDisposable
 {

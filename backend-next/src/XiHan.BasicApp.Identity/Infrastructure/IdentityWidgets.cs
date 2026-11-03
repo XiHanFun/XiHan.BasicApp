@@ -9,26 +9,26 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 身份包给工作台的小组件。
+/// 身份包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 与在线用户页同一口径：当前一侧的有效会话，按数据范围收窄到看得到的用户。
+/// 与在线用户页同一口径：当前一侧的有效会话，按数据范围收窄到看得到的用户
 /// </remarks>
-/// <param name="sessions">会话查询。</param>
+/// <param name="sessions">会话查询</param>
 public sealed class IdentityWidgets(SessionQueries sessions) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 在线用户（此刻持有实时连接的去重用户数）。
+    /// 在线用户（此刻持有实时连接的去重用户数）
     /// </summary>
     public const string OnlineUsers = "identity.online-users";
 
     /// <summary>
-    /// 在线设备（有效会话按设备类型的构成）。
+    /// 在线设备（有效会话按设备类型的构成）
     /// </summary>
     public const string SessionDevices = "identity.session-devices";
 
     /// <summary>
-    /// 没记下设备类型的会话并成一项的键。
+    /// 没记下设备类型的会话并成一项的键
     /// </summary>
     private const string Unknown = "unknown";
 

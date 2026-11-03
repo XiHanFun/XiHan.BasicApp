@@ -87,23 +87,23 @@ function generatePrimaryScale(hex: string) {
 }
 
 /**
- * 实心底上的前景文字：亮过交叉点用深字，暗于它用浅字。
- * 判据与交叉点都取组件库的公共能力，别在这里另起一套。
- * 传进来的要是实际当底色的那一档（色阶的 600），不是用户挑的原色。
+ * 实心底上的前景文字：亮过交叉点用深字，暗于它用浅字
+ * 判据与交叉点都取组件库的公共能力，别在这里另起一套
+ * 传进来的要是实际当底色的那一档（色阶的 600），不是用户挑的原色
  */
 function onSolidFor(color: string): string {
   return relativeLuminance(color) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 100%'
 }
 
 /**
- * Material You 动态取色：从单个品牌色（seed）推导整套和谐色阶，明暗自适应。
+ * Material You 动态取色：从单个品牌色（seed）推导整套和谐色阶，明暗自适应
  *
  * 设计取舍：`--primary` 保持用户所选的精确颜色；围绕其「同色相」派生
  * 辅色(secondary)、容器(accent)、各自前景(on-*)、聚焦环(ring) 与「带品牌色相微调的中性色」
- * (muted/border)，使整套 UI 随品牌色协调，而非只改一个 primary。
+ * (muted/border)，使整套 UI 随品牌色协调，而非只改一个 primary
  *
  * 返回 CSS 变量名 → "H S% L%" 分量串；由 applyThemePalette 内联写到根元素
- * （内联样式优先级高于 :root / .dark，故须按当前明暗重新计算并覆盖）。
+ * （内联样式优先级高于 :root / .dark，故须按当前明暗重新计算并覆盖）
  */
 function deriveMaterialPalette(hex: string, dark: boolean): Record<string, string> {
   const [h, s, l] = hexToHsl(hex)
@@ -150,8 +150,8 @@ function syncRadiusCssVars(r: number) {
 }
 
 /**
- * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）。
- * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写。
+ * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）
+ * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写
  */
 function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
   if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
@@ -191,7 +191,7 @@ interface SharedTheme {
 const sharedThemes = new WeakMap<object, SharedTheme>()
 
 /**
- * 主题落到文档根上这件事全局只做一份。
+ * 主题落到文档根上这件事全局只做一份
  *
  * useTheme 有十几处调用方（顶栏、悬浮组、命令面板、偏好抽屉、各登录页…），从前每处都挂一套
  * immediate 监听：主题一变就按调用方数量把整套色阶与圆角重算、重写好几遍，偏好抽屉的外观页

@@ -7,11 +7,11 @@ using XiHan.Framework.Persistence.Abstractions;
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
 /// <summary>
-/// 系统参数（平台库实体，不实现 <c>IMultiTenant</c>）。
+/// 系统参数（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数。
-/// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在。
+/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数
+/// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
@@ -20,73 +20,73 @@ public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
-    /// 参数键。
+    /// 参数键
     /// </summary>
     /// <remarks>
-    /// 点分小写（如 <c>auditing.retention-days</c>），所属一侧内唯一，创建后不可改。
+    /// 点分小写（如 <c>auditing.retention-days</c>），所属一侧内唯一，创建后不可改
     /// </remarks>
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
-    /// 名称。
+    /// 名称
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 分组（自由文本，用于列表归类）。
+    /// 分组（自由文本，用于列表归类）
     /// </summary>
     public string? Group { get; set; }
 
     /// <summary>
-    /// 参数值。
+    /// 参数值
     /// </summary>
     /// <remarks>
-    /// <see cref="IsEncrypted"/> 时是数据保护的密文。
+    /// <see cref="IsEncrypted"/> 时是数据保护的密文
     /// </remarks>
     [LongText]
     public string? Value { get; set; }
 
     /// <summary>
-    /// 缺省值：值为空时的生效值，不加密。
+    /// 缺省值：值为空时的生效值，不加密
     /// </summary>
     [LongText]
     public string? DefaultValue { get; set; }
 
     /// <summary>
-    /// 数据类型。
+    /// 数据类型
     /// </summary>
     public ConfigDataType DataType { get; set; } = ConfigDataType.Text;
 
     /// <summary>
-    /// 值是否加密落库（读出不回显）。
+    /// 值是否加密落库（读出不回显）
     /// </summary>
     public bool IsEncrypted { get; set; }
 
     /// <summary>
-    /// 内建（种子写入）：不能删除、不能改数据类型。
+    /// 内建（种子写入）：不能删除、不能改数据类型
     /// </summary>
     public bool IsBuiltIn { get; set; }
 
     /// <summary>
-    /// 平台参数是否允许租户同键覆盖。
+    /// 平台参数是否允许租户同键覆盖
     /// </summary>
     /// <remarks>
-    /// 租户参数恒为 <c>false</c>。
+    /// 租户参数恒为 <c>false</c>
     /// </remarks>
     public bool AllowTenantOverride { get; set; }
 
     /// <summary>
-    /// 状态。
+    /// 状态
     /// </summary>
     public SettingStatus Status { get; set; } = SettingStatus.Active;
 
     /// <summary>
-    /// 排序号。
+    /// 排序号
     /// </summary>
     public int Order { get; set; }
 
     /// <summary>
-    /// 说明。
+    /// 说明
     /// </summary>
     public string? Description { get; set; }
 }

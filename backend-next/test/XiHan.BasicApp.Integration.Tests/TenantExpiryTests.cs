@@ -13,11 +13,11 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证租户到期。
+/// 验证租户到期
 /// </summary>
 /// <remarks>
 /// 到期时间一过登录与刷新即被拒（IDENTITY_DENIED_019，不等作业）；到期作业把生效的租户标为到期、目录停用，带租户声明的调用被拒；
-/// 恢复要先延长到期时间（TENANCY_CONFLICT_015），延长后恢复即可再登录，作业不再动它。
+/// 恢复要先延长到期时间（TENANCY_CONFLICT_015），延长后恢复即可再登录，作业不再动它
 /// </remarks>
 public sealed class TenantExpiryTests : IDisposable
 {

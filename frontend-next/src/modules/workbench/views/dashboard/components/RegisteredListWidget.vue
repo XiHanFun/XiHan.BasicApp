@@ -10,8 +10,8 @@ import { useWidgetData } from './widget-data'
 import WidgetCard from './WidgetCard.vue'
 
 /**
- * 模块登记的列表型小组件（registerWorkbenchWidget）：标题栏是总数与「查看全部」，正文是最近几条，点一条跳到它的链接。
- * 取数中、出错、没有条目各给一个占位。
+ * 模块登记的列表型小组件（registerWorkbenchWidget）：标题栏是总数与「查看全部」，正文是最近几条，点一条跳到它的链接
+ * 取数中、出错、没有条目各给一个占位
  */
 defineOptions({ name: 'RegisteredListWidget' })
 

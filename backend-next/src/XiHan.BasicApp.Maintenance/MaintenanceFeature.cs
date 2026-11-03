@@ -20,11 +20,11 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Maintenance;
 
 /// <summary>
-/// 运维能力包的特性。
+/// 运维能力包的特性
 /// </summary>
 /// <remarks>
 /// 作业的管理面架在框架调度之上（宿主选 <c>Scheduling.Database</c>，多实例共用作业表），本包没有自己的调度表；
-/// 版本台账与升级记录读 Runtime 升级执行器写的两张表。
+/// 版本台账与升级记录读 Runtime 升级执行器写的两张表
 /// </remarks>
 public sealed class MaintenanceFeature : IFeature
 {

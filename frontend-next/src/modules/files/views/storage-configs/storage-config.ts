@@ -160,8 +160,8 @@ export function batchFailureMessage(t: Translate, code: string): string {
 }
 
 /**
- * SchemaPage 的资源：分页（缺省配置在前）、删除、启停。
- * 删除逐项拒绝的原因（缺省配置、还有副本）拼成一条报错。
+ * SchemaPage 的资源：分页（缺省配置在前）、删除、启停
+ * 删除逐项拒绝的原因（缺省配置、还有副本）拼成一条报错
  */
 export function storageConfigResource(t: Translate): SchemaResource<StorageConfigRow> {
   return {

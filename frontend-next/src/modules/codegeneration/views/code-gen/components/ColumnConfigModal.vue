@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 列配置弹窗（照 4.x column-config-modal）。
-  整体保存一张表的列配置：基类的列（主键、租户、审计、软删与并发戳）不可编辑；选项来源切换时清掉别的来源的配置。
-  列注释取自库结构（同步结构以库为准），只显示不编辑：4.x 这里能改却不保存（按缺陷修）。
+  代码生成 / 列配置弹窗（照 4.x column-config-modal）
+  整体保存一张表的列配置：基类的列（主键、租户、审计、软删与并发戳）不可编辑；选项来源切换时清掉别的来源的配置
+  列注释取自库结构（同步结构以库为准），只显示不编辑：4.x 这里能改却不保存（按缺陷修）
 -->
 <script setup lang="ts">
 import type { ColumnRow, DictSelectorType, HtmlType, QueryType, TableRow } from './use-tables'

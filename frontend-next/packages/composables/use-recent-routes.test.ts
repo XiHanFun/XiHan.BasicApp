@@ -1,7 +1,7 @@
 /**
- * useRecentRoutes 最近访问路由单元测试。
+ * useRecentRoutes 最近访问路由单元测试
  * 职责：锁定「按访问倒序、按 path 去重、容量上限 12、仅本地持久化」这四条约定，
- * 以及非法条目（缺 path / 缺 title）被静默丢弃、清空同时写回存储。
+ * 以及非法条目（缺 path / 缺 title）被静默丢弃、清空同时写回存储
  */
 import type { RecentRoute } from './useRecentRoutes'
 import { describe, expect, it, vi } from 'vitest'

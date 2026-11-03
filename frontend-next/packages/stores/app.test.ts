@@ -1,8 +1,8 @@
 /**
- * 应用 Store 门面（app）单元测试。
+ * 应用 Store 门面（app）单元测试
  * 职责边界：只测「组合门面」这一层职责——三个 slice 的成员必须全部对外暴露、
- * resetPreferences 覆盖三个 slice、草稿 API 与 helpers 的模块级实现是同一套。
- * 各 slice 自身的默认值与 setter 见 app/theme|layout|preferences 的用例。
+ * resetPreferences 覆盖三个 slice、草稿 API 与 helpers 的模块级实现是同一套
+ * 各 slice 自身的默认值与 setter 见 app/theme|layout|preferences 的用例
  */
 import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'

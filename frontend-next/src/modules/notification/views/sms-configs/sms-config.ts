@@ -59,8 +59,8 @@ export function toSmsConfigForm(row: SmsConfigRow): SmsConfigForm {
 }
 
 /**
- * 模板映射：空，或 JSON 对象且每个值都是字符串（我方模板编码 → 服务商模板 ID）。
- * 后端按 `Dictionary<string, string>` 解析，不合规即 NOTIFICATION_VALIDATION_009；这里先拦一道免得白提交。
+ * 模板映射：空，或 JSON 对象且每个值都是字符串（我方模板编码 → 服务商模板 ID）
+ * 后端按 `Dictionary<string, string>` 解析，不合规即 NOTIFICATION_VALIDATION_009；这里先拦一道免得白提交
  */
 export function isValidTemplateMap(value: string): boolean {
   const text = value.trim()
@@ -146,7 +146,7 @@ export function toUpdateBody(form: SmsConfigForm & { id: string }): RequestOf<'s
 
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（访问密钥不带即保留）；
- * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）。
+ * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
 export function smsConfigResource(t: Translate): SchemaResource<SmsConfigRow> {
   return {

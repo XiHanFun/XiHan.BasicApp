@@ -13,21 +13,21 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 列出角色成员。
+/// 列出角色成员
 /// </summary>
 /// <remarks>
-/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要。
+/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要
 /// </remarks>
-/// <param name="service">角色域服务。</param>
-/// <param name="members">指派仓储。</param>
-/// <param name="users">用户仓储。</param>
+/// <param name="service">角色域服务</param>
+/// <param name="members">指派仓储</param>
+/// <param name="users">用户仓储</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users) : IOperation<RoleMembersQueryRequest, RoleMembersResponse>
 {
     private const int MaxItems = 500;
 
     /// <summary>
-    /// 操作 ID。
+    /// 操作 ID
     /// </summary>
     public const string Id = "roles.members";
 

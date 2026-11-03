@@ -2,7 +2,7 @@ import { ApiError, parseProblem } from './problem'
 
 /**
  * 运行时客户端只做四件事：按路由表拼请求、放头（Authorization、Accept-Language、traceparent、可选 xihan-deadline）、
- * 把 Problem Details 解包成 `ApiError`、按错误码触发刷新令牌与锁屏钩子（方案 D5 / 6.3）。生成的 operations.ts 把路由与类型交到这里。
+ * 把 Problem Details 解包成 `ApiError`、按错误码触发刷新令牌与锁屏钩子（方案 D5 / 6.3）。生成的 operations.ts 把路由与类型交到这里
  */
 export interface RouteDef {
   readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -60,12 +60,12 @@ export const ErrorCodes = {
 
 let config: RequestConfig = {}
 
-/** 应用启动时注入令牌、区域与钩子；测试里也用它换掉 fetch。 */
+/** 应用启动时注入令牌、区域与钩子；测试里也用它换掉 fetch */
 export function configureRequest(next: RequestConfig): void {
   config = { ...config, ...next }
 }
 
-/** 32 位 trace-id + 16 位 span-id 的 W3C traceparent；排障时以它为准，失败响应的 traceId 由 Problem Details 携带。 */
+/** 32 位 trace-id + 16 位 span-id 的 W3C traceparent；排障时以它为准，失败响应的 traceId 由 Problem Details 携带 */
 export function newTraceparent(): string {
   return `00-${hex(16)}-${hex(8)}-01`
 }
@@ -80,7 +80,7 @@ function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
 }
 
-/** 按路由表把请求拆成 URL（路由值、查询串）与请求体。 */
+/** 按路由表把请求拆成 URL（路由值、查询串）与请求体 */
 export function buildRequest(id: string, route: RouteDef, request: unknown): { url: string, body: string | undefined } {
   const data: Record<string, unknown> = request && typeof request === 'object' ? { ...(request as Record<string, unknown>) } : {}
   let path = route.template
@@ -115,7 +115,7 @@ export function buildRequest(id: string, route: RouteDef, request: unknown): { u
   return { url, body: readsBody ? JSON.stringify(data) : undefined }
 }
 
-/** 调用一个操作：成功返回响应 DTO（无正文时为 undefined），失败抛 `ApiError`。 */
+/** 调用一个操作：成功返回响应 DTO（无正文时为 undefined），失败抛 `ApiError` */
 export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, request: TRequest, options: CallOptions = {}): Promise<TResponse> {
   const { url, body } = buildRequest(id, route, request)
   const traceparent = newTraceparent()
@@ -168,7 +168,7 @@ async function readBody<T>(response: Response): Promise<T> {
 export { ApiError }
 export type { ProblemDetails } from './problem'
 
-/** 普通端点（上传、下载等不在路由表里的端点）的完整地址：接口前缀 + 路径；后端签发的相对地址（如签名下载地址）也经这里补前缀。 */
+/** 普通端点（上传、下载等不在路由表里的端点）的完整地址：接口前缀 + 路径；后端签发的相对地址（如签名下载地址）也经这里补前缀 */
 export function endpointUrl(path: string): string {
   return /^https?:\/\//i.test(path) ? path : `${config.baseUrl ?? ''}${path}`
 }
@@ -181,7 +181,7 @@ export interface UploadOptions {
 
 /**
  * 以 multipart 表单上传到普通端点：带令牌、区域与 traceparent，未认证时与 `invoke` 一样先换令牌重放一次；
- * 用 XMLHttpRequest 是为了拿上传进度（fetch 没有）。成功返回响应 JSON，失败抛 `ApiError`。
+ * 用 XMLHttpRequest 是为了拿上传进度（fetch 没有）。成功返回响应 JSON，失败抛 `ApiError`
  */
 export async function uploadForm<TResponse>(path: string, form: FormData, options: UploadOptions = {}): Promise<TResponse> {
   const traceparent = newTraceparent()
@@ -248,7 +248,7 @@ function fileNameOf(disposition: string | null): string | null {
 
 /**
  * 从普通端点（不在路由表里、返回文件内容的端点，如代码生成的产物包）下载：带令牌、区域与 traceparent，
- * 未认证时与 `invoke` 一样先换令牌重放一次；成功返回内容与文件名，失败抛 `ApiError`。
+ * 未认证时与 `invoke` 一样先换令牌重放一次；成功返回内容与文件名，失败抛 `ApiError`
  */
 export async function downloadEndpoint(path: string, options: { signal?: AbortSignal } = {}): Promise<DownloadedFile> {
   const traceparent = newTraceparent()
