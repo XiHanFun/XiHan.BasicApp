@@ -68,6 +68,11 @@ public static class CodeGenerationErrors
     public const string TemplateBuiltIn = "CODEGENERATION_CONFLICT_006";
 
     /// <summary>
+    /// 表配置已停用，零代码运行时不能访问。
+    /// </summary>
+    public const string TableDisabled = "CODEGENERATION_CONFLICT_007";
+
+    /// <summary>
     /// 列表不支持该筛选或排序。
     /// </summary>
     public const string QueryUnsupported = "CODEGENERATION_VALIDATION_001";
@@ -129,4 +134,12 @@ public static class CodeGenerationErrors
     /// 主库的数据库类型不在支持之列。
     /// </summary>
     public const string DatabaseUnsupported = "CODEGENERATION_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 零代码运行时读不出表的数据。
+    /// </summary>
+    /// <remarks>
+    /// 表在库里已删除、改了名，或连不上。
+    /// </remarks>
+    public const string RuntimeReadFailed = "CODEGENERATION_UNAVAILABLE_003";
 }

@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) no es una raíz de frontend: debe contener package.json.",
   "codegeneration.project.package_missing": "Añadir a un paquete existente requiere {project} en el proyecto ({path}): crea antes el paquete o elige un paquete nuevo.",
   "codegeneration.project.path_outside": "La ruta {path} queda fuera de su directorio raíz.",
-  "codegeneration.project.foreign_manual": "{path} ya existe en el proyecto pero no lo produjo el generador (no hay {generated} correspondiente): escribir lo definiría dos veces. Mueve primero el archivo escrito a mano y luego genera."
+  "codegeneration.project.foreign_manual": "{path} ya existe en el proyecto pero no lo produjo el generador (no hay {generated} correspondiente): escribir lo definiría dos veces. Mueve primero el archivo escrito a mano y luego genera.",
+  "codegen_runtime.get_schema.title": "Estructura del tiempo de ejecución sin código",
+  "codegen_runtime.get_schema.description": "Las columnas de una configuración de tabla activa: nombre, clave en las filas de datos, nombre visible y control.",
+  "codegen_runtime.list.title": "Datos del tiempo de ejecución sin código",
+  "codegen_runtime.list.description": "Lee por páginas los datos de una configuración de tabla activa desde su origen de datos, hasta 500 filas por página, sin generar código.",
+  "openapi.tags.codegen_runtime.name": "Tiempo de ejecución sin código",
+  "openapi.tags.codegen_runtime.description": "Muestra en solo lectura los datos de una tabla configurada, sin generar código.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Ver datos del tiempo de ejecución sin código",
+  "permissions.codegeneration.codegen_runtime.read.description": "Ver en solo lectura los datos de una configuración de tabla activa, sin generar código.",
+  "codegeneration.runtime.table_disabled": "La configuración de tabla '{name}' está desactivada y no se puede abrir en el tiempo de ejecución sin código.",
+  "codegeneration.runtime.read_failed": "No se pudieron leer los datos de la tabla '{table}': {reason}"
 }

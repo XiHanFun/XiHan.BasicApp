@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: 'Const JSON, e.g. {\'[{"value":1,"label":"Enabled"}]\'}',
         load_failed: 'Failed to load column configuration',
       },
+      runtime: {
+        title: 'Runtime Data',
+        empty: 'No runtime schema yet. Configure columns before viewing',
+        load_schema_failed: 'Failed to load runtime schema',
+        load_data_failed: 'Failed to load runtime data',
+      },
     },
   },
 }

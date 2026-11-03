@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: '상수 JSON, 예: {\'[{"value":1,"label":"활성화"}]\'}',
         load_failed: '컬럼 설정 불러오기 실패',
       },
+      runtime: {
+        title: '런타임 데이터',
+        empty: '런타임 구조가 없어요. 컬럼 설정을 먼저 구성한 뒤 확인하세요',
+        load_schema_failed: '런타임 구조 불러오기 실패',
+        load_data_failed: '런타임 데이터 불러오기 실패',
+      },
     },
   },
 }

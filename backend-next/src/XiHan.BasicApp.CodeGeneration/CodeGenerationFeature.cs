@@ -76,6 +76,7 @@ public sealed class CodeGenerationFeature : IFeature
         context.Services.AddScoped<CodeGenProjectWriter>();
         context.Services.AddScoped<CodeGenGenerationService>();
         context.Services.AddScoped<CodegenHistoryQueries>();
+        context.Services.AddScoped<CodeGenRuntimeService>();
         context.Services.AddSeeder<CodeGenTemplateSeeder>();
         context.Services.AddPermissionCatalog("codegeneration", CodeGenerationPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用（照 4.x 的登记范围）

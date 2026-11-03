@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{key} 指向的 {path} 不是前端根目录（下面要有 package.json）。",
   "codegeneration.project.package_missing": "加入已有包要求项目里已有 {project}（{path}）：先建好包，或改选「新建包」。",
   "codegeneration.project.path_outside": "产物路径 {path} 越出了所属的根目录。",
-  "codegeneration.project.foreign_manual": "项目里已有 {path}，但不是代码生成器产出的（没有对应的 {generated}）：写进项目会与它重复定义。请先移走这个手写文件，再生成。"
+  "codegeneration.project.foreign_manual": "项目里已有 {path}，但不是代码生成器产出的（没有对应的 {generated}）：写进项目会与它重复定义。请先移走这个手写文件，再生成。",
+  "codegen_runtime.get_schema.title": "零代码运行时的表结构",
+  "codegen_runtime.get_schema.description": "启用的表配置的列：列名、数据行里的键、显示名与控件。",
+  "codegen_runtime.list.title": "零代码运行时的数据",
+  "codegen_runtime.list.description": "按启用的表配置的数据源分页只读数据，每页最多 500 条，不生成任何代码。",
+  "openapi.tags.codegen_runtime.name": "零代码运行时",
+  "openapi.tags.codegen_runtime.description": "按表配置只读查看数据，不生成代码。",
+  "permissions.codegeneration.codegen_runtime.read.name": "查看零代码运行时数据",
+  "permissions.codegeneration.codegen_runtime.read.description": "按启用的表配置只读查看数据，不生成任何代码。",
+  "codegeneration.runtime.table_disabled": "表配置「{name}」已停用，零代码运行时不能访问。",
+  "codegeneration.runtime.read_failed": "读不出表「{table}」的数据：{reason}"
 }

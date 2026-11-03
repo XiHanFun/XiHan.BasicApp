@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) ist kein Frontend-Stammverzeichnis: Es muss package.json enthalten.",
   "codegeneration.project.package_missing": "Zum Hinzufügen zu einem vorhandenen Paket muss {project} im Projekt liegen ({path}): Paket zuerst anlegen oder „Neues Paket“ wählen.",
   "codegeneration.project.path_outside": "Der Pfad {path} liegt außerhalb seines Stammverzeichnisses.",
-  "codegeneration.project.foreign_manual": "{path} liegt bereits im Projekt, stammt aber nicht vom Generator (es gibt kein passendes {generated}): Schreiben würde es doppelt definieren. Erst die handgeschriebene Datei verschieben, dann generieren."
+  "codegeneration.project.foreign_manual": "{path} liegt bereits im Projekt, stammt aber nicht vom Generator (es gibt kein passendes {generated}): Schreiben würde es doppelt definieren. Erst die handgeschriebene Datei verschieben, dann generieren.",
+  "codegen_runtime.get_schema.title": "Struktur der No-Code-Laufzeit abrufen",
+  "codegen_runtime.get_schema.description": "Die Spalten einer aktiven Tabellenkonfiguration: Spaltenname, Schlüssel in den Datenzeilen, Anzeigename und Steuerelement.",
+  "codegen_runtime.list.title": "Daten der No-Code-Laufzeit auflisten",
+  "codegen_runtime.list.description": "Liest die Daten einer aktiven Tabellenkonfiguration seitenweise aus ihrer Datenquelle, höchstens 500 Zeilen je Seite, ohne Code zu erzeugen.",
+  "openapi.tags.codegen_runtime.name": "No-Code-Laufzeit",
+  "openapi.tags.codegen_runtime.description": "Zeigt die Daten einer konfigurierten Tabelle schreibgeschützt an, ohne Code zu erzeugen.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Daten der No-Code-Laufzeit lesen",
+  "permissions.codegeneration.codegen_runtime.read.description": "Zeigt die Daten einer aktiven Tabellenkonfiguration schreibgeschützt an, ohne Code zu erzeugen.",
+  "codegeneration.runtime.table_disabled": "Die Tabellenkonfiguration „{name}“ ist deaktiviert und in der No-Code-Laufzeit nicht zugänglich.",
+  "codegeneration.runtime.read_failed": "Die Daten der Tabelle „{table}“ konnten nicht gelesen werden: {reason}"
 }

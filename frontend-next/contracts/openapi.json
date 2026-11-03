@@ -56,6 +56,11 @@
       "description": "A record of every generation run: outcome, files, templates and the package download."
     },
     {
+      "name": "codegen-runtime",
+      "x-displayName": "Zero-code runtime",
+      "description": "Read the data of a configured table read-only, without generating code."
+    },
+    {
       "name": "codegen-table-columns",
       "x-displayName": "Code generation columns",
       "description": "Column configurations of a table: types, form controls, query modes and option sources."
@@ -9065,6 +9070,175 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/CodegenHistoryResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-runtime/{id}:get-schema": {
+      "get": {
+        "operationId": "codegen-runtime.get-schema",
+        "tags": [
+          "codegen-runtime"
+        ],
+        "summary": "Get zero-code runtime schema",
+        "description": "The columns of an enabled table configuration: column name, the key in the data rows, display name and control.\n\nRequires permission codegeneration.codegen-runtime.read (Read zero-code runtime data).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-runtime.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u96F6\u4EE3\u7801\u8FD0\u884C\u65F6\u7684\u8868\u7ED3\u6784\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenRuntimeSchemaResponse",
+                  "description": "\u96F6\u4EE3\u7801\u8FD0\u884C\u65F6\u7684\u8868\u7ED3\u6784\u3002",
+                  "type": "object",
+                  "properties": {
+                    "tableId": {
+                      "description": "\u8868\u914D\u7F6E ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tableName": {
+                      "description": "\u8868\u540D\u3002",
+                      "type": "string"
+                    },
+                    "className": {
+                      "description": "\u7C7B\u540D\u3002",
+                      "type": "string"
+                    },
+                    "tableComment": {
+                      "description": "\u8868\u6CE8\u91CA\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "columns": {
+                      "description": "\u5217\uFF0C\u6309\u5217\u914D\u7F6E\u7684\u987A\u5E8F\u3002",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenRuntimeColumnResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "tableId",
+                    "tableName",
+                    "className",
+                    "columns"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-runtime:list": {
+      "post": {
+        "operationId": "codegen-runtime.list",
+        "tags": [
+          "codegen-runtime"
+        ],
+        "summary": "List zero-code runtime data",
+        "description": "Read the data of an enabled table configuration page by page from its data source, up to 500 rows per page, without generating any code.\n\nRequires permission codegeneration.codegen-runtime.read (Read zero-code runtime data).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-runtime.read",
+        "parameters": [],
+        "requestBody": {
+          "description": "codegen-runtime.list \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ListCodegenRuntimeRequest",
+                "description": "codegen-runtime.list \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "page": {
+                    "description": "\u5206\u9875\uFF08\u6BCF\u9875\u6700\u591A 500 \u6761\uFF09\u3002",
+                    "$ref": "#/components/schemas/PageInfo"
+                  }
+                },
+                "required": [
+                  "id",
+                  "page"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfIReadOnlyDictionaryOfStringAndJsonElement",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
                       }
                     },
                     "total": {
@@ -57600,6 +57774,63 @@
           "message"
         ]
       },
+      "CodegenRuntimeColumnResponse": {
+        "description": "\u96F6\u4EE3\u7801\u8FD0\u884C\u65F6\u7684\u4E00\u5217\u3002",
+        "type": "object",
+        "properties": {
+          "columnName": {
+            "description": "\u5217\u540D\u3002",
+            "type": "string"
+          },
+          "propertyName": {
+            "description": "\u6570\u636E\u884C\u91CC\u7684\u952E\uFF08\u5C5E\u6027\u540D\u7684 camelCase\uFF09\u3002",
+            "type": "string"
+          },
+          "label": {
+            "description": "\u663E\u793A\u540D\uFF08\u5217\u6CE8\u91CA\uFF09\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tsType": {
+            "description": "TypeScript \u7C7B\u578B\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "htmlType": {
+            "description": "\u63A7\u4EF6\u3002",
+            "$ref": "#/components/schemas/CodeGenHtmlType"
+          },
+          "queryType": {
+            "description": "\u67E5\u8BE2\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenQueryType"
+          },
+          "isList": {
+            "description": "\u662F\u5426\u8FDB\u5217\u8868\u3002",
+            "type": "boolean"
+          },
+          "isQuery": {
+            "description": "\u662F\u5426\u53EF\u67E5\u8BE2\u3002",
+            "type": "boolean"
+          },
+          "isRequired": {
+            "description": "\u662F\u5426\u5FC5\u586B\u3002",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "columnName",
+          "propertyName",
+          "htmlType",
+          "queryType",
+          "isList",
+          "isQuery",
+          "isRequired"
+        ]
+      },
       "CodegenTableColumnInput": {
         "description": "\u4FDD\u5B58\u4E00\u5217\u7684\u4EBA\u5DE5\u914D\u7F6E\u3002",
         "type": "object",
@@ -68390,6 +68621,11 @@
         "displayName": "Read code generation history",
         "description": "View the code generation history and download the generated packages."
       },
+      "codegeneration.codegen-runtime.read": {
+        "code": "codegeneration.codegen-runtime.read",
+        "displayName": "Read zero-code runtime data",
+        "description": "View the data of an enabled table configuration read-only, without generating any code."
+      },
       "codegeneration.codegen-table-columns.read": {
         "code": "codegeneration.codegen-table-columns.read",
         "displayName": "Read code generation columns",
@@ -69248,6 +69484,7 @@
       "tags": [
         "codegen-datasources",
         "codegen-histories",
+        "codegen-runtime",
         "codegen-table-columns",
         "codegen-tables",
         "codegen-templates"

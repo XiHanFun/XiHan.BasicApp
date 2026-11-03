@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) n’est pas une racine frontend : il doit contenir package.json.",
   "codegeneration.project.package_missing": "Ajouter à un paquet existant exige {project} dans le projet ({path}) : créez d’abord le paquet ou choisissez un nouveau paquet.",
   "codegeneration.project.path_outside": "Le chemin {path} sort de son répertoire racine.",
-  "codegeneration.project.foreign_manual": "{path} existe déjà dans le projet mais n’a pas été produit par le générateur (aucun {generated} correspondant) : l’écriture le définirait deux fois. Déplacez d’abord le fichier écrit à la main, puis générez."
+  "codegeneration.project.foreign_manual": "{path} existe déjà dans le projet mais n’a pas été produit par le générateur (aucun {generated} correspondant) : l’écriture le définirait deux fois. Déplacez d’abord le fichier écrit à la main, puis générez.",
+  "codegen_runtime.get_schema.title": "Structure de l’exécution sans code",
+  "codegen_runtime.get_schema.description": "Les colonnes d’une configuration de table active : nom de colonne, clé dans les lignes, nom affiché et contrôle.",
+  "codegen_runtime.list.title": "Données de l’exécution sans code",
+  "codegen_runtime.list.description": "Lit page par page les données d’une configuration de table active depuis sa source, 500 lignes au plus par page, sans générer de code.",
+  "openapi.tags.codegen_runtime.name": "Exécution sans code",
+  "openapi.tags.codegen_runtime.description": "Affiche en lecture seule les données d’une table configurée, sans générer de code.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Consulter les données de l’exécution sans code",
+  "permissions.codegeneration.codegen_runtime.read.description": "Consulter en lecture seule les données d’une configuration de table active, sans générer de code.",
+  "codegeneration.runtime.table_disabled": "La configuration de table « {name} » est désactivée et inaccessible dans l’exécution sans code.",
+  "codegeneration.runtime.read_failed": "Impossible de lire les données de la table « {table} » : {reason}"
 }

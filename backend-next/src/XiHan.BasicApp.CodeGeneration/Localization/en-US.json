@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) is not a frontend root: it must contain package.json.",
   "codegeneration.project.package_missing": "Adding to an existing package needs {project} in the project ({path}): create the package first or choose a new package.",
   "codegeneration.project.path_outside": "Artifact path {path} falls outside its root directory.",
-  "codegeneration.project.foreign_manual": "{path} already exists in the project but was not produced by the generator (there is no matching {generated}): writing would define it twice. Move the hand-written file away first, then generate."
+  "codegeneration.project.foreign_manual": "{path} already exists in the project but was not produced by the generator (there is no matching {generated}): writing would define it twice. Move the hand-written file away first, then generate.",
+  "codegen_runtime.get_schema.title": "Get zero-code runtime schema",
+  "codegen_runtime.get_schema.description": "The columns of an enabled table configuration: column name, the key in the data rows, display name and control.",
+  "codegen_runtime.list.title": "List zero-code runtime data",
+  "codegen_runtime.list.description": "Read the data of an enabled table configuration page by page from its data source, up to 500 rows per page, without generating any code.",
+  "openapi.tags.codegen_runtime.name": "Zero-code runtime",
+  "openapi.tags.codegen_runtime.description": "Read the data of a configured table read-only, without generating code.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Read zero-code runtime data",
+  "permissions.codegeneration.codegen_runtime.read.description": "View the data of an enabled table configuration read-only, without generating any code.",
+  "codegeneration.runtime.table_disabled": "Table configuration '{name}' is disabled and cannot be opened in the zero-code runtime.",
+  "codegeneration.runtime.read_failed": "Could not read the data of table '{table}': {reason}"
 }

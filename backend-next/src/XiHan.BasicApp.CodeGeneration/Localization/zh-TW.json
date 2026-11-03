@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{key} 指向的 {path} 不是前端根目錄（底下要有 package.json）。",
   "codegeneration.project.package_missing": "加入既有套件要求專案裡已有 {project}（{path}）：先建好套件，或改選「新建套件」。",
   "codegeneration.project.path_outside": "產物路徑 {path} 越出了所屬的根目錄。",
-  "codegeneration.project.foreign_manual": "專案裡已有 {path}，但不是程式碼產生器產出的（沒有對應的 {generated}）：寫進專案會與它重複定義。請先移走這個手寫檔案，再產生。"
+  "codegeneration.project.foreign_manual": "專案裡已有 {path}，但不是程式碼產生器產出的（沒有對應的 {generated}）：寫進專案會與它重複定義。請先移走這個手寫檔案，再產生。",
+  "codegen_runtime.get_schema.title": "零程式碼執行時的表結構",
+  "codegen_runtime.get_schema.description": "啟用的表設定的欄位：欄名、資料列裡的鍵、顯示名與控制項。",
+  "codegen_runtime.list.title": "零程式碼執行時的資料",
+  "codegen_runtime.list.description": "依啟用的表設定的資料來源分頁唯讀資料，每頁最多 500 筆，不產生任何程式碼。",
+  "openapi.tags.codegen_runtime.name": "零程式碼執行時",
+  "openapi.tags.codegen_runtime.description": "依表設定唯讀檢視資料，不產生程式碼。",
+  "permissions.codegeneration.codegen_runtime.read.name": "檢視零程式碼執行時資料",
+  "permissions.codegeneration.codegen_runtime.read.description": "依啟用的表設定唯讀檢視資料，不產生任何程式碼。",
+  "codegeneration.runtime.table_disabled": "表設定「{name}」已停用，零程式碼執行時不能存取。",
+  "codegeneration.runtime.read_failed": "讀不出表「{table}」的資料：{reason}"
 }

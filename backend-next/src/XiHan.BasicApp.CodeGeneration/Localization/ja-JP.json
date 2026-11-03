@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{key} が指す {path} はフロントエンドのルートではありません（package.json が必要です）。",
   "codegeneration.project.package_missing": "既存パッケージへの追加には、プロジェクトに {project}（{path}）が必要です。先にパッケージを作るか「新しいパッケージ」を選んでください。",
   "codegeneration.project.path_outside": "生成物のパス {path} がルートディレクトリの外にあります。",
-  "codegeneration.project.foreign_manual": "プロジェクトに {path} が既にありますが、生成器が出力したものではありません（対応する {generated} がありません）。書き込むと二重定義になります。先に手書きのファイルを移してから生成してください。"
+  "codegeneration.project.foreign_manual": "プロジェクトに {path} が既にありますが、生成器が出力したものではありません（対応する {generated} がありません）。書き込むと二重定義になります。先に手書きのファイルを移してから生成してください。",
+  "codegen_runtime.get_schema.title": "ゼロコード実行時の構造",
+  "codegen_runtime.get_schema.description": "有効なテーブル設定の列：列名、データ行のキー、表示名とコントロール。",
+  "codegen_runtime.list.title": "ゼロコード実行時のデータ",
+  "codegen_runtime.list.description": "有効なテーブル設定のデータソースからデータをページ単位で読み取ります（1 ページ最大 500 件、コードは生成しません）。",
+  "openapi.tags.codegen_runtime.name": "ゼロコード実行時",
+  "openapi.tags.codegen_runtime.description": "テーブル設定に従ってデータを読み取り専用で表示します（コードは生成しません）。",
+  "permissions.codegeneration.codegen_runtime.read.name": "ゼロコード実行時のデータを閲覧",
+  "permissions.codegeneration.codegen_runtime.read.description": "有効なテーブル設定のデータを読み取り専用で表示します（コードは生成しません）。",
+  "codegeneration.runtime.table_disabled": "テーブル設定「{name}」は無効のため、ゼロコード実行時では開けません。",
+  "codegeneration.runtime.read_failed": "テーブル「{table}」のデータを読み取れません：{reason}"
 }

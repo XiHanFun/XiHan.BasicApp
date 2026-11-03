@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) — не корень фронтенда: внутри должен быть package.json.",
   "codegeneration.project.package_missing": "Для добавления в существующий пакет в проекте должен быть {project} ({path}): сначала создайте пакет или выберите новый пакет.",
   "codegeneration.project.path_outside": "Путь {path} выходит за пределы корневого каталога.",
-  "codegeneration.project.foreign_manual": "{path} уже есть в проекте, но создан не генератором (нет соответствующего {generated}): запись приведёт к двойному определению. Сначала уберите написанный вручную файл, затем генерируйте."
+  "codegeneration.project.foreign_manual": "{path} уже есть в проекте, но создан не генератором (нет соответствующего {generated}): запись приведёт к двойному определению. Сначала уберите написанный вручную файл, затем генерируйте.",
+  "codegen_runtime.get_schema.title": "Структура среды без кода",
+  "codegen_runtime.get_schema.description": "Столбцы включённой настройки таблицы: имя столбца, ключ в строках данных, отображаемое имя и элемент управления.",
+  "codegen_runtime.list.title": "Данные среды без кода",
+  "codegen_runtime.list.description": "Постраничное чтение данных включённой настройки таблицы из её источника, до 500 строк на страницу, без генерации кода.",
+  "openapi.tags.codegen_runtime.name": "Среда без кода",
+  "openapi.tags.codegen_runtime.description": "Просмотр данных настроенной таблицы только для чтения, без генерации кода.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Просмотр данных среды без кода",
+  "permissions.codegeneration.codegen_runtime.read.description": "Просмотр данных включённой настройки таблицы только для чтения, без генерации кода.",
+  "codegeneration.runtime.table_disabled": "Настройка таблицы «{name}» отключена и недоступна в среде без кода.",
+  "codegeneration.runtime.read_failed": "Не удалось прочитать данные таблицы «{table}»: {reason}"
 }

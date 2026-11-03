@@ -359,6 +359,26 @@ public static class CodeGenerationMessages
     public const string ProjectForeignManual = "codegeneration.project.foreign_manual";
 
     /// <summary>
+    /// 操作 <c>codegen-runtime.get-schema</c> 的说明。
+    /// </summary>
+    public const string GetCodegenRuntimeSchemaDescription = "codegen_runtime.get_schema.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-runtime.list</c> 的说明。
+    /// </summary>
+    public const string ListCodegenRuntimeDescription = "codegen_runtime.list.description";
+
+    /// <summary>
+    /// 表配置已停用，零代码运行时不能访问（参数 <c>name</c>）。
+    /// </summary>
+    public const string RuntimeTableDisabled = "codegeneration.runtime.table_disabled";
+
+    /// <summary>
+    /// 零代码运行时读不出表的数据（参数 <c>table</c>、<c>reason</c>）。
+    /// </summary>
+    public const string RuntimeReadFailed = "codegeneration.runtime.read_failed";
+
+    /// <summary>
     /// 关联列不是 Guid（参数 <c>column</c>、<c>type</c>）。
     /// </summary>
     public const string GenerateRelationNotGuid = "codegeneration.generate.relation_not_guid";

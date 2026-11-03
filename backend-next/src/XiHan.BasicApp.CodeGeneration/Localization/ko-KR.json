@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{key}이(가) 가리키는 {path}은(는) 프런트엔드 루트가 아닙니다(package.json이 있어야 합니다).",
   "codegeneration.project.package_missing": "기존 패키지에 추가하려면 프로젝트에 {project}({path})이(가) 있어야 합니다. 먼저 패키지를 만들거나 '새 패키지'를 선택하세요.",
   "codegeneration.project.path_outside": "생성물 경로 {path}이(가) 루트 디렉터리를 벗어납니다.",
-  "codegeneration.project.foreign_manual": "프로젝트에 {path}이(가) 이미 있지만 생성기가 만든 것이 아닙니다(대응하는 {generated}이(가) 없음). 기록하면 중복 정의됩니다. 먼저 직접 작성한 파일을 옮긴 뒤 생성하세요."
+  "codegeneration.project.foreign_manual": "프로젝트에 {path}이(가) 이미 있지만 생성기가 만든 것이 아닙니다(대응하는 {generated}이(가) 없음). 기록하면 중복 정의됩니다. 먼저 직접 작성한 파일을 옮긴 뒤 생성하세요.",
+  "codegen_runtime.get_schema.title": "제로 코드 런타임 구조",
+  "codegen_runtime.get_schema.description": "사용 중인 테이블 설정의 열: 열 이름, 데이터 행의 키, 표시 이름과 컨트롤.",
+  "codegen_runtime.list.title": "제로 코드 런타임 데이터",
+  "codegen_runtime.list.description": "사용 중인 테이블 설정의 데이터 소스에서 데이터를 페이지 단위로 읽습니다(페이지당 최대 500건, 코드는 생성하지 않음).",
+  "openapi.tags.codegen_runtime.name": "제로 코드 런타임",
+  "openapi.tags.codegen_runtime.description": "테이블 설정에 따라 데이터를 읽기 전용으로 봅니다(코드는 생성하지 않음).",
+  "permissions.codegeneration.codegen_runtime.read.name": "제로 코드 런타임 데이터 보기",
+  "permissions.codegeneration.codegen_runtime.read.description": "사용 중인 테이블 설정의 데이터를 읽기 전용으로 봅니다(코드는 생성하지 않음).",
+  "codegeneration.runtime.table_disabled": "테이블 설정 '{name}'은(는) 중지되어 제로 코드 런타임에서 열 수 없습니다.",
+  "codegeneration.runtime.read_failed": "테이블 '{table}'의 데이터를 읽을 수 없습니다: {reason}"
 }

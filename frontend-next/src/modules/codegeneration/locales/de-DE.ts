@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: 'Konstanten-JSON, z. B. {\'[{"value":1,"label":"Aktiviert"}]\'}',
         load_failed: 'Laden der Spaltenkonfiguration fehlgeschlagen',
       },
+      runtime: {
+        title: 'Laufzeitdaten',
+        empty: 'Noch kein Laufzeitschema. Konfigurieren Sie zuerst die Spalten, bevor Sie es anzeigen',
+        load_schema_failed: 'Laden des Laufzeitschemas fehlgeschlagen',
+        load_data_failed: 'Laden der Laufzeitdaten fehlgeschlagen',
+      },
     },
   },
 }

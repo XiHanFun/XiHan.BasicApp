@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: '常數 JSON，如 {\'[{"value":1,"label":"啟用"}]\'}',
         load_failed: '載入欄位設定失敗',
       },
+      runtime: {
+        title: '執行時期資料',
+        empty: '暫無執行時期結構，請先維護欄位設定後再檢視',
+        load_schema_failed: '載入執行時期結構失敗',
+        load_data_failed: '載入執行時期資料失敗',
+      },
     },
   },
 }

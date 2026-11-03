@@ -88,6 +88,8 @@ export const routes = {
   'codegen-datasources.update': { method: 'PUT', template: '/api/codegen-datasources/{id}', path: ['id'], query: [], success: 200 },
   'codegen-histories.get': { method: 'GET', template: '/api/codegen-histories/{id}', path: ['id'], query: [], success: 200 },
   'codegen-histories.list': { method: 'POST', template: '/api/codegen-histories:list', path: [], query: [], success: 200 },
+  'codegen-runtime.get-schema': { method: 'GET', template: '/api/codegen-runtime/{id}:get-schema', path: ['id'], query: [], success: 200 },
+  'codegen-runtime.list': { method: 'POST', template: '/api/codegen-runtime:list', path: [], query: [], success: 200 },
   'codegen-table-columns.list': { method: 'GET', template: '/api/codegen-table-columns', path: [], query: ['tableId'], success: 200 },
   'codegen-table-columns.save': { method: 'POST', template: '/api/codegen-table-columns:save', path: [], query: [], success: 200 },
   'codegen-tables.db-tables': { method: 'POST', template: '/api/codegen-tables:db-tables', path: [], query: [], success: 200 },
@@ -596,6 +598,12 @@ export const codegenDatasources = {
 export const codegenHistories = {
   get: (request: RequestOf<'codegen-histories.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.get'>, ResponseOf<'codegen-histories.get'>>('codegen-histories.get', routes['codegen-histories.get'], request, options),
   list: (request: RequestOf<'codegen-histories.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.list'>, ResponseOf<'codegen-histories.list'>>('codegen-histories.list', routes['codegen-histories.list'], request, options),
+}
+
+/** 资源 `codegen-runtime` 的操作。 */
+export const codegenRuntime = {
+  getSchema: (request: RequestOf<'codegen-runtime.get-schema'>, options?: CallOptions) => invoke<RequestOf<'codegen-runtime.get-schema'>, ResponseOf<'codegen-runtime.get-schema'>>('codegen-runtime.get-schema', routes['codegen-runtime.get-schema'], request, options),
+  list: (request: RequestOf<'codegen-runtime.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-runtime.list'>, ResponseOf<'codegen-runtime.list'>>('codegen-runtime.list', routes['codegen-runtime.list'], request, options),
 }
 
 /** 资源 `codegen-table-columns` 的操作。 */

@@ -101,6 +101,11 @@ public static class CodeGenerationPermissions
     public const string HistoriesRead = "codegeneration.codegen-histories.read";
 
     /// <summary>
+    /// 零代码运行时：按表配置只读查看数据。
+    /// </summary>
+    public const string RuntimeRead = "codegeneration.codegen-runtime.read";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -121,5 +126,6 @@ public static class CodeGenerationPermissions
         new(TemplatesUpdate, "Update code generation templates", PermissionScope.Platform, audited: true, description: "Edit custom templates and enable or disable any template; built-in templates cannot be edited."),
         new(TemplatesDelete, "Delete code generation templates", PermissionScope.Platform, audited: true, description: "Delete custom templates; built-in templates cannot be deleted."),
         new(HistoriesRead, "Read code generation history", PermissionScope.Platform, description: "View the code generation history and download the generated packages."),
+        new(RuntimeRead, "Read zero-code runtime data", PermissionScope.Platform, description: "View the data of an enabled table configuration read-only, without generating any code."),
     ];
 }

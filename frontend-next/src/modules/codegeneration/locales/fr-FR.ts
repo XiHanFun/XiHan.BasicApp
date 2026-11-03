@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: 'JSON de constantes, p. ex. {\'[{"value":1,"label":"Activé"}]\'}',
         load_failed: 'Impossible de charger la configuration des colonnes',
       },
+      runtime: {
+        title: 'Données d’exécution',
+        empty: 'Pas encore de structure d’exécution. Configurez les colonnes avant de l’afficher',
+        load_schema_failed: 'Impossible de charger la structure d’exécution',
+        load_data_failed: 'Impossible de charger les données d’exécution',
+      },
     },
   },
 }

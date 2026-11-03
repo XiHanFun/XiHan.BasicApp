@@ -3,7 +3,7 @@
 CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的。
 
 ::: warning 部分落地
-N3 第四批分笔落地，现在有数据源、表结构导入与表和列配置、模板维护与预览（后端与前端产物）、生成与生成历史；零代码运行时随后补上。5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
+N3 第四批分笔落地，数据源、表结构导入与表和列配置、模板维护与预览（后端与前端产物）、生成与生成历史、零代码运行时都已落地；生成产物的编译验证与浏览器实测随第四批收尾补上。5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
 :::
 
 ## 页面与权限
@@ -19,6 +19,7 @@ N3 第四批分笔落地，现在有数据源、表结构导入与表和列配�
 | 列配置 `codegen-table-columns` | `read`、`update`（整体保存） |
 | 模板 `codegen-templates` | `read`（查看、检查语法）、`create`、`update`（修改、启停）、`delete` |
 | 生成历史 `codegen-histories` | `read`（查看、下载产物包） |
+| 零代码运行时 `codegen-runtime` | `read`（查看表结构与数据） |
 
 ## 数据源
 
@@ -122,11 +123,20 @@ N3 第四批分笔落地，现在有数据源、表结构导入与表和列配�
 - **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用（方案 C1），其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend-next`）与 `FrontendRootPath`（`frontend-next`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
 - 失败的那条历史在独立的短事务里写（调用失败会回滚自己的写入），失败原因记错误码与调用方语言的文案。
 
+## 零代码运行时
+
+表配置的「运行时数据」按表配置只读查看表里的数据，不生成也不编译代码（照 5.x）。
+
+| 操作 | 说明 |
+| --- | --- |
+| `codegen-runtime.get-schema` | 表结构：按列配置给出列名、数据行里的键（属性名的 camelCase）、显示名（列注释）与控件 |
+| `codegen-runtime.list` | 分页只读数据，每页最多 500 条；只带配置过的列，键是属性名 |
+
+- 表名只取已配置且启用的表配置，不接受请求给的表名；停用的表配置 409 `CODEGENERATION_CONFLICT_007`。
+- 按表配置的数据源读：主库的表照 5.x 补上与实体读同口径的条件（有租户列的只看调用方这一侧的行，有软删列的不看已删的）；外部库的表不是 BasicApp 的表，照原样读。5.x 一律查主库。
+- 按列配置逐列取、列名照原样加引号，大小写混合的表名与列名照原样查到；列配置里有、库里已没有的列读不出（503 `CODEGENERATION_UNAVAILABLE_003`，带表名与库的报错），先同步结构。数字、布尔按原类型，时间与 Guid 按文本，二进制按 Base64。PostgreSQL、MySQL、SQL Server、Oracle 在真实库上实测（`CodeGenerationSchemaTests`）。
+- 5.x 的数据行按库里的列名给键，前端按属性名取，取不到；5.x 取 `*`（Oracle 的分页不接受 `*` 与行号并列），库里读不出时原样抛异常。
+
 ## 模块开关
 
 `BasicApp:Modules:CodeGeneration:Enabled=false` 时宿主不装配 CodeGeneration：权限码与页面不下发、操作 404，五张表照样建。
-
-## 后续
-
-- 表与列配置：经框架的 `ISchemaReader` 读库结构导入、同步结构（人工改过的字段保留）、列配置整体保存；「沿用已有实体」按 6.0 登记的实体（`IEntityCatalog`）识别。
-- 零代码只读运行时：`codegen-runtime.get-schema` / `list`，按表配置的数据源查。

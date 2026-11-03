@@ -14,6 +14,7 @@ import { codegenTables } from '~/contracts'
 import ColumnConfigModal from './ColumnConfigModal.vue'
 import ImportTableModal from './ImportTableModal.vue'
 import PreviewModal from './PreviewModal.vue'
+import RuntimeDataModal from './RuntimeDataModal.vue'
 import TableEditModal from './TableEditModal.vue'
 import { downloadPackage } from './use-histories'
 import { DELIVERY_TYPES, enumKey, GENERATION_STATUSES, tablesResource, TEMPLATE_TYPES } from './use-tables'
@@ -32,6 +33,7 @@ const importVisible = ref(false)
 const editVisible = ref(false)
 const columnVisible = ref(false)
 const previewVisible = ref(false)
+const runtimeVisible = ref(false)
 const currentTableName = ref<string | undefined>()
 const currentTableId = ref<null | string>(null)
 /** 生成中不再接受第二次点击（照 4.x） */
@@ -132,6 +134,8 @@ const schema = computed<PageSchema>(() => ({
     // 直接写开发机上的代码目录，已存在的只首次写的文件跳过，其余覆盖
     { key: 'generateToDisk', title: t('codegeneration.code_gen.table.action_generate_to_disk'), scope: 'row', tone: 'brand', icon: 'lucide:folder-input', confirm: true, confirmText: () => t('codegeneration.code_gen.table.generate_to_disk_confirm'), visible: row => asRow(row).deliveryType === 'Project', disabled: () => generating.value, permission: 'codegeneration.codegen-tables.execute' },
     { key: 'sync', title: t('codegeneration.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', confirm: true, confirmText: () => t('codegeneration.code_gen.table.sync_confirm'), permission: 'codegeneration.codegen-tables.import' },
+    // 只读查看表里的数据，不生成代码（照 4.x）；停用的表配置由后端拒绝
+    { key: 'runtime', title: t('codegeneration.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database', permission: 'codegeneration.codegen-runtime.read' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).tableName), permission: 'codegeneration.codegen-tables.delete' },
   ],
 }))
@@ -172,6 +176,13 @@ function onAction(payload: SchemaActionPayload) {
     case 'sync':
       if (row)
         void handleSync(row)
+      break
+    case 'runtime':
+      if (row) {
+        currentTableId.value = row.id
+        currentTableName.value = row.tableName
+        runtimeVisible.value = true
+      }
       break
     case 'delete':
       if (row)
@@ -250,5 +261,6 @@ async function handleDelete(row: TableRow) {
     <TableEditModal v-model:show="editVisible" :table-id="currentTableId" @saved="reload" />
     <ColumnConfigModal v-model:show="columnVisible" :table-id="currentTableId" @saved="reload" />
     <PreviewModal v-model:show="previewVisible" :table-id="currentTableId" :table-name="currentTableName" />
+    <RuntimeDataModal v-model:show="runtimeVisible" :table-id="currentTableId" :table-name="currentTableName" />
   </SchemaPage>
 </template>

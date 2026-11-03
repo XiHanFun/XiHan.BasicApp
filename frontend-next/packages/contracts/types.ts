@@ -1741,6 +1741,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/codegen-runtime/{id}:get-schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get zero-code runtime schema
+         * @description The columns of an enabled table configuration: column name, the key in the data rows, display name and control.
+         *
+         *     Requires permission codegeneration.codegen-runtime.read (Read zero-code runtime data).
+         */
+        get: operations["codegen-runtime.get-schema"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-runtime:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List zero-code runtime data
+         * @description Read the data of an enabled table configuration page by page from its data source, up to 500 rows per page, without generating any code.
+         *
+         *     Requires permission codegeneration.codegen-runtime.read (Read zero-code runtime data).
+         */
+        post: operations["codegen-runtime.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/codegen-table-columns": {
         parameters: {
             query?: never;
@@ -9910,6 +9954,27 @@ export interface components {
             code: string;
             /** @description 原因（按调用方的区域）。 */
             message: string;
+        };
+        /** @description 零代码运行时的一列。 */
+        CodegenRuntimeColumnResponse: {
+            /** @description 列名。 */
+            columnName: string;
+            /** @description 数据行里的键（属性名的 camelCase）。 */
+            propertyName: string;
+            /** @description 显示名（列注释）。 */
+            label?: string | null;
+            /** @description TypeScript 类型。 */
+            tsType?: string | null;
+            /** @description 控件。 */
+            htmlType: components["schemas"]["CodeGenHtmlType"];
+            /** @description 查询方式。 */
+            queryType: components["schemas"]["CodeGenQueryType"];
+            /** @description 是否进列表。 */
+            isList: boolean;
+            /** @description 是否可查询。 */
+            isQuery: boolean;
+            /** @description 是否必填。 */
+            isRequired: boolean;
         };
         /** @description 保存一列的人工配置。 */
         CodegenTableColumnInput: {
@@ -19131,6 +19196,101 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["CodegenHistoryResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-runtime.get-schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 零代码运行时的表结构。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 表配置 ID。
+                         */
+                        tableId: string;
+                        /** @description 表名。 */
+                        tableName: string;
+                        /** @description 类名。 */
+                        className: string;
+                        /** @description 表注释。 */
+                        tableComment?: string | null;
+                        /** @description 列，按列配置的顺序。 */
+                        columns: components["schemas"]["CodegenRuntimeColumnResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-runtime.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description codegen-runtime.list 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    id: string;
+                    /** @description 分页（每页最多 500 条）。 */
+                    page: components["schemas"]["PageInfo"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            [key: string]: unknown;
+                        }[];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

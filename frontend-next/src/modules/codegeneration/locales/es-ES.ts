@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: 'JSON de constantes, p. ej. {\'[{"value":1,"label":"Habilitado"}]\'}',
         load_failed: 'No se pudo cargar la configuración de columnas',
       },
+      runtime: {
+        title: 'Datos en tiempo de ejecución',
+        empty: 'Aún no hay estructura de ejecución. Configura las columnas antes de verla',
+        load_schema_failed: 'No se pudo cargar la estructura de ejecución',
+        load_data_failed: 'No se pudieron cargar los datos de ejecución',
+      },
     },
   },
 }

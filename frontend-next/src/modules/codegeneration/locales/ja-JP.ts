@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: '定数 JSON、例：{\'[{"value":1,"label":"有効"}]\'}',
         load_failed: 'カラム設定の読み込みに失敗しました',
       },
+      runtime: {
+        title: 'ランタイムデータ',
+        empty: 'ランタイム構造がありません。カラム設定を整えてから表示してください',
+        load_schema_failed: 'ランタイム構造の読み込みに失敗しました',
+        load_data_failed: 'ランタイムデータの読み込みに失敗しました',
+      },
     },
   },
 }

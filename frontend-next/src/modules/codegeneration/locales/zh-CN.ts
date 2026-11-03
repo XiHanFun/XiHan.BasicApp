@@ -355,6 +355,12 @@ export default {
         col_const_values_placeholder: '常量 JSON，如 {\'[{"value":1,"label":"启用"}]\'}',
         load_failed: '加载列配置失败',
       },
+      runtime: {
+        title: '运行时数据',
+        empty: '暂无运行时结构，先维护列配置后再查看',
+        load_schema_failed: '加载运行时结构失败',
+        load_data_failed: '加载运行时数据失败',
+      },
     },
   },
 }

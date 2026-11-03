@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenHistories;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenRuntime;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTemplates;
@@ -72,6 +74,10 @@ namespace XiHan.BasicApp.CodeGeneration;
 [JsonSerializable(typeof(CodegenHistoryDetailResponse))]
 [JsonSerializable(typeof(CodegenTableSnapshot))]
 [JsonSerializable(typeof(PageResult<CodegenHistoryResponse>))]
+[JsonSerializable(typeof(CodegenRuntimeIdRequest))]
+[JsonSerializable(typeof(CodegenRuntimeSchemaResponse))]
+[JsonSerializable(typeof(ListCodegenRuntimeRequest))]
+[JsonSerializable(typeof(PageResult<IReadOnlyDictionary<string, JsonElement>>))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class CodeGenerationJsonContext : JsonSerializerContext;

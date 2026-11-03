@@ -157,5 +157,15 @@
   "codegeneration.project.frontend_root_invalid": "{path} ({key}) não é uma raiz de frontend: deve conter package.json.",
   "codegeneration.project.package_missing": "Adicionar a um pacote existente exige {project} no projeto ({path}): crie o pacote antes ou escolha um pacote novo.",
   "codegeneration.project.path_outside": "O caminho {path} fica fora do diretório raiz.",
-  "codegeneration.project.foreign_manual": "{path} já existe no projeto, mas não foi gerado pelo gerador (não há {generated} correspondente): gravar o definiria duas vezes. Mova antes o arquivo escrito à mão e depois gere."
+  "codegeneration.project.foreign_manual": "{path} já existe no projeto, mas não foi gerado pelo gerador (não há {generated} correspondente): gravar o definiria duas vezes. Mova antes o arquivo escrito à mão e depois gere.",
+  "codegen_runtime.get_schema.title": "Estrutura do runtime sem código",
+  "codegen_runtime.get_schema.description": "As colunas de uma configuração de tabela ativa: nome, chave nas linhas de dados, nome exibido e controle.",
+  "codegen_runtime.list.title": "Dados do runtime sem código",
+  "codegen_runtime.list.description": "Lê por páginas os dados de uma configuração de tabela ativa a partir da sua fonte, até 500 linhas por página, sem gerar código.",
+  "openapi.tags.codegen_runtime.name": "Runtime sem código",
+  "openapi.tags.codegen_runtime.description": "Mostra somente leitura os dados de uma tabela configurada, sem gerar código.",
+  "permissions.codegeneration.codegen_runtime.read.name": "Ver dados do runtime sem código",
+  "permissions.codegeneration.codegen_runtime.read.description": "Ver somente leitura os dados de uma configuração de tabela ativa, sem gerar código.",
+  "codegeneration.runtime.table_disabled": "A configuração de tabela '{name}' está desativada e não pode ser aberta no runtime sem código.",
+  "codegeneration.runtime.read_failed": "Não foi possível ler os dados da tabela '{table}': {reason}"
 }

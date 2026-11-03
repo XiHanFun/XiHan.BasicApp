@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <remarks>
 /// PostgreSQL、MySQL、SQL Server、Oracle 各建一个临时库（环境变量见 <see cref="ExternalDatabase"/>，没设即跳过），经数据源测试连接、列出库表、导入，
 /// 核对框架读库结构的口径（修订（八十三））：长度只给字符与二进制类型，类型按各库的类型名映射（Oracle 的 <c>NUMBER</c> 按精度分整数与定点数、<c>DATE</c> 带时分秒，
-/// SQL Server 的 <c>rowversion</c> 是二进制），表与列的注释读得到，大小写混合的表名照原样、自增读得到。
+/// SQL Server 的 <c>rowversion</c> 是二进制），表与列的注释读得到，大小写混合的表名照原样、自增读得到，零代码运行时按数据源读得到它的行。
 /// </remarks>
 public sealed class CodeGenerationSchemaTests : IDisposable
 {
@@ -127,5 +127,20 @@ public sealed class CodeGenerationSchemaTests : IDisposable
         // 按表名同步结构回到同一个外部库
         var (synced, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/codegen-tables/{ids[mixedCase]}:sync-schema", token: admin));
         Assert.Equal(HttpStatusCode.OK, synced.StatusCode);
+
+        // 零代码运行时按表配置的数据源读：大小写混合的表名照原样查到，键是属性名
+        database.Execute(MixedCaseRow(databaseType));
+        var (read, rows) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/codegen-runtime:list", JsonSerializer.Serialize(new { id = ids[mixedCase], page = new { index = 1, size = 10 } }), admin));
+        Assert.True(read.StatusCode == HttpStatusCode.OK, rows.ToString());
+        Assert.Equal(1, rows.GetProperty("total").GetInt64());
+        Assert.Equal("甲", rows.GetProperty("items")[0].GetProperty("name").GetString());
+        Assert.Equal(1, rows.GetProperty("items")[0].GetProperty("id").GetInt32());
     }
+
+    private static string MixedCaseRow(string databaseType) => databaseType switch
+    {
+        "PostgreSql" or "Oracle" => "INSERT INTO \"MixedCase\" (\"Name\") VALUES ('甲')",
+        "SqlServer" => "INSERT INTO MixedCase (Name) VALUES (N'甲')",
+        _ => "INSERT INTO MixedCase (Name) VALUES ('甲')",
+    };
 }
