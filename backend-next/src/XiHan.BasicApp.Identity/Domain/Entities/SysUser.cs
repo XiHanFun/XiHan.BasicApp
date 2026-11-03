@@ -73,6 +73,14 @@ public sealed class SysUser : AppAuditedEntity
     public UserStatus Status { get; set; } = UserStatus.Active;
 
     /// <summary>
+    /// 是否系统内置账号
+    /// </summary>
+    /// <remarks>
+    /// 初始超级管理员与租户开通时的管理员（4.x 同）。不能停用、删除、锁定或由管理员重置密码，本人也不能改用户名或关闭账号
+    /// </remarks>
+    public bool IsSystemAccount { get; set; }
+
+    /// <summary>
     /// 最近一次登录成功的时间
     /// </summary>
     public DateTimeOffset? LastLoginAt { get; set; }

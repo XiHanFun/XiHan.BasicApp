@@ -12,7 +12,11 @@
 | --- | --- |
 | `Active` | 正常 |
 | `Locked` | 连续登录失败或管理员锁定，到期自动解除 |
-| `Disabled` | 管理员停用，所有登录方式返回 `IDENTITY_DENIED_018` |
+| `Disabled` | 管理员停用或本人停用，所有登录方式返回 `IDENTITY_DENIED_018` |
+
+**系统内置账号**（`isSystemAccount`）：初始超级管理员与租户开通时的管理员。不能被停用、删除、锁定或由管理员重置密码，本人也不能改用户名或关闭账号，一律返回 `IDENTITY_CONFLICT_014`。
+
+**本人关闭账号**：`profile.deactivate-account`（停用，管理员可以重新启用）与 `profile.delete-account`（注销，账号软删除）。都要当前密码，模仿会话不能做，租户所有者要先转移所有权（`IDENTITY_CONFLICT_011`），成功后吊销本人全部会话。
 
 ## 令牌与会话
 
@@ -23,7 +27,7 @@
 | 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型与登录地点（IP 归属地） |
 | 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段核对会话仍有效（缓存 `SessionCacheSeconds` 秒），吊销 / 过期 / 用户非正常即 `IDENTITY_DENIED_001` |
 
-吊销会话的场景：注销、改密、管理员重置密码、锁定或停用用户、删除用户、强制下线、锁屏密码连错 5 次。吊销提交后经 Realtime 推 `ForceLogout` 并断开该会话的连接。
+吊销会话的场景：注销、改密、管理员重置密码、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、锁屏密码连错 5 次。吊销提交后经 Realtime 推 `ForceLogout` 并断开该会话的连接。
 
 ## 登录方式
 
@@ -110,6 +114,18 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `impersonation.stop` | 结束模仿，回到发起人的会话 |
 
 范围不填即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户或平台。不能模仿自己，不能在模仿态里再模仿。权限码 `identity.impersonation.start`，开始与结束都进登录日志。
+
+## 登录策略
+
+每个账号可以单独限制同时登录：`users.login-policy` 查看（`identity.users.read`），`users.set-login-policy` 设置（`identity.users.login-policy`），下次登录生效。
+
+| 设置 | 登录时的效果 |
+| --- | --- |
+| 不允许多端登录（`allowMultiLogin: false`） | 只保留新会话，其余吊销 |
+| 允许多端、`maxLoginDevices` 为 1 到 99 | 保留新会话和最近的几个，超过的吊销最早的 |
+| 允许多端、`maxLoginDevices` 为 0（缺省） | 不限 |
+
+模仿会话不算设备。被吊销的会话收到 `ForceLogout`。
 
 ## 在线用户与会话管理
 

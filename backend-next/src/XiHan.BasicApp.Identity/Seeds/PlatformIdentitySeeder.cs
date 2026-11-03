@@ -48,10 +48,19 @@ public sealed class PlatformIdentitySeeder(
         if (existing.TryGetValue(out var found))
         {
             admin = found;
+            if (!admin.IsSystemAccount)
+            {
+                admin.IsSystemAccount = true;
+                var marked = await users.UpdateAsync(admin, context.CancellationToken).ConfigureAwait(false);
+                if (marked.IsFailure)
+                {
+                    return marked;
+                }
+            }
         }
         else
         {
-            admin = new SysUser { Id = ids.NewId(), UserName = SeedOptions.SuperAdminUserName, DisplayName = "Super Admin", HomeTenantId = TenantIds.Platform, Status = UserStatus.Active };
+            admin = new SysUser { Id = ids.NewId(), UserName = SeedOptions.SuperAdminUserName, DisplayName = "Super Admin", IsSystemAccount = true, HomeTenantId = TenantIds.Platform, Status = UserStatus.Active };
             var added = await users.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {

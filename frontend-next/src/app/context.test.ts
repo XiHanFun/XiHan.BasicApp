@@ -27,7 +27,7 @@ const DAY = 24 * 60 * 60 * 1000
 
 /** 会话与资料里的用户（后端 UserResponse） */
 function userOf(patch: object = {}) {
-  return { id: 'u-1', userName: 'alice', displayName: 'Alice', email: 'alice@example.com', phoneNumber: null, homeTenantId: 'platform', status: 'Active', lastLoginAt: null, createdAt: '2026-10-01T00:00:00Z', createdBy: null, avatarFileId: 'f-1', ...patch }
+  return { id: 'u-1', userName: 'alice', displayName: 'Alice', email: 'alice@example.com', phoneNumber: null, homeTenantId: 'platform', isSystemAccount: false, status: 'Active', lastLoginAt: null, createdAt: '2026-10-01T00:00:00Z', createdBy: null, avatarFileId: 'f-1', ...patch }
 }
 
 /** 本人资料（后端 ProfileResponse）：没改过用户名 */

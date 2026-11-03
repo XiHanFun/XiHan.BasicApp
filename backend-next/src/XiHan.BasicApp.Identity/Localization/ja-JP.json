@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "パスワード再設定の申請",
   "auth.request_password_reset.description": "アカウントのメールアドレスまたは確認済みの電話番号に再設定コードを送ります。該当アカウントがなくても「送信済み」と答えます（送りません）。",
   "auth.reset_password.title": "パスワードの再設定",
-  "auth.reset_password.description": "再設定コードで新しいパスワードを設定します。アカウントのすべてのセッションを失効させます。"
+  "auth.reset_password.description": "再設定コードで新しいパスワードを設定します。アカウントのすべてのセッションを失効させます。",
+  "identity.user.system_account": "システム組み込みアカウントではこの操作を実行できません。",
+  "users.login_policy.title": "ユーザーのログインポリシーを取得",
+  "users.login_policy.description": "ユーザーが複数端末でログインできるか、最大台数を確認します。",
+  "users.set_login_policy.title": "ユーザーのログインポリシーを設定",
+  "users.set_login_policy.description": "複数端末でのログイン可否と最大台数を設定します。次回ログインから有効で、超過分は古いセッションから無効化します。",
+  "permissions.identity.users.login_policy.name": "ログインポリシーの設定",
+  "permissions.identity.users.login_policy.description": "ユーザーの複数端末ログインの可否と最大台数を決めます。次回ログインから有効です。",
+  "profile.deactivate_account.title": "自分のアカウントを停止",
+  "profile.deactivate_account.description": "自分のアカウントを停止し全セッションをサインアウトします。管理者が再度有効化できます。現在のパスワードが必要です。なりすまし中や組み込みアカウントでは実行できず、テナント所有者は先に所有権を移譲する必要があります。",
+  "profile.delete_account.title": "自分のアカウントを削除",
+  "profile.delete_account.description": "自分のアカウントを削除し全セッションをサインアウトします。以後このアカウントではログインできません。現在のパスワードが必要です。なりすまし中や組み込みアカウントでは実行できず、テナント所有者は先に所有権を移譲する必要があります。"
 }

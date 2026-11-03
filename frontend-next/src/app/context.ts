@@ -97,7 +97,7 @@ type ProfileResponse = components['schemas']['ProfileResponse']
 /**
  * 本人资料 → 4.x 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
  * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）
- * 6.0 没有系统账号（isSystemAccount 恒为否），邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
+ * 邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
  * 锁定取账号状态与登录失败锁定期
  */
 function toShellProfile(profile: ProfileResponse): UserProfile {
@@ -116,7 +116,7 @@ function toShellProfile(profile: ProfileResponse): UserProfile {
     ...(profile.remark ? { remark: profile.remark } : {}),
     tenantId: profile.user.homeTenantId === 'platform' ? null : profile.user.homeTenantId,
     ...(profile.user.lastLoginAt ? { lastLoginTime: profile.user.lastLoginAt } : {}),
-    isSystemAccount: false,
+    isSystemAccount: profile.user.isSystemAccount,
     twoFactorEnabled: profile.twoFactorEnabled,
     twoFactorMethod: profile.twoFactorMethods.reduce((bits, method) => bits | TWO_FACTOR_FLAGS[method], 0),
     emailVerified: profile.emailVerified,
@@ -127,6 +127,7 @@ function toShellProfile(profile: ProfileResponse): UserProfile {
     isLocked: profile.user.status === 'Locked' || lockedUntil !== null,
     ...(lockedUntil ? { lockoutEndTime: lockedUntil } : {}),
     failedLoginAttempts: profile.failedAccessCount,
+    ...(profile.lastFailedLoginAt ? { lastFailedLoginTime: profile.lastFailedLoginAt } : {}),
   }
 }
 
@@ -390,8 +391,12 @@ export function registerApplicationContext(router: Router): void {
     disable2FAApi: (method, code) => profileOps.disableTwoFactor({ method: twoFactorMethodOf(method), code }),
     // 邮箱 / 短信双因素的开关凭发到本人已验证联系方式的码（profile.send-two-factor-code），认证器不发码
     send2FASetupCodeApi: method => profileOps.sendTwoFactorCode({ method: twoFactorMethodOf(method) }),
-    deactivateAccountApi: () => notAvailable('deactivateAccountApi'),
-    deleteAccountApi: () => notAvailable('deleteAccountApi'),
+    deactivateAccountApi: async (password) => {
+      await profileOps.deactivateAccount({ password })
+    },
+    deleteAccountApi: async (password) => {
+      await profileOps.deleteAccount({ password })
+    },
     // 第三方账号绑定（Identity 的 profile.external-logins / begin-external-bind / link-external / unlink-external，只要求已登录，模仿会话发起、确认与解绑被拒）：
     // 发起先领本人的绑定意图（4.x 先换绑定票据），整页跳去它给的地址（auth store 的 startOAuthBind），回调页凭票据确认——票据只认发起的本人
     getLinkedAccountsApi: async () => (await profileOps.externalLogins({})).items.map(toShellExternalLogin),

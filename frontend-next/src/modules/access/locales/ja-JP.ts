@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: 'なりすまし元',
         home_tenant_id: '所属テナント',
         avatar_file_id: 'アバターファイル',
+        is_system_account: 'システムアカウント',
         login_at: 'ログイン日時',
         last_active_at: '最終アクティブ日時',
         is_current: '現在',

@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "Solicitar redefinição de senha",
   "auth.request_password_reset.description": "Enviar um código de redefinição ao e-mail ou telefone verificado da conta. Responde \"enviado\" mesmo sem conta correspondente (nada é enviado).",
   "auth.reset_password.title": "Redefinir senha",
-  "auth.reset_password.description": "Definir uma nova senha com o código. Todas as sessões da conta são revogadas."
+  "auth.reset_password.description": "Definir uma nova senha com o código. Todas as sessões da conta são revogadas.",
+  "identity.user.system_account": "Esta é uma conta interna do sistema, portanto esta ação não é permitida.",
+  "users.login_policy.title": "Obter a política de login de um usuário",
+  "users.login_policy.description": "Mostra se um usuário pode entrar em vários dispositivos e em quantos.",
+  "users.set_login_policy.title": "Definir a política de login de um usuário",
+  "users.set_login_policy.description": "Define se um usuário pode entrar em vários dispositivos e em quantos; vale a partir do próximo login, e as sessões mais antigas acima do limite são revogadas.",
+  "permissions.identity.users.login_policy.name": "Definir políticas de login",
+  "permissions.identity.users.login_policy.description": "Decide se um usuário pode entrar em vários dispositivos e em quantos; vale a partir do próximo login.",
+  "profile.deactivate_account.title": "Desativar minha conta",
+  "profile.deactivate_account.description": "Desativa sua conta e encerra todas as sessões; um administrador pode reativá-la. Requer a senha atual; indisponível durante personificação ou para contas internas, e proprietários de locatário devem transferir a propriedade primeiro.",
+  "profile.delete_account.title": "Excluir minha conta",
+  "profile.delete_account.description": "Exclui sua conta e encerra todas as sessões; ela não poderá mais entrar. Requer a senha atual; indisponível durante personificação ou para contas internas, e proprietários de locatário devem transferir a propriedade primeiro."
 }

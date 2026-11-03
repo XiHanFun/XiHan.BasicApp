@@ -35,6 +35,7 @@ public sealed class DisableUsers(IRepository<SysUser, Guid> users, UserAccountSe
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var (targets, failed) = await UserBatch.ResolveAsync(users, request.Ids, context, rejectSelf: true).ConfigureAwait(false);
+        UserBatch.ExcludeSystemAccounts(targets, failed);
         await UserBatch.ExcludeOwnersAsync(targets, failed, memberships, context.CancellationToken).ConfigureAwait(false);
         if (targets.Count == 0)
         {

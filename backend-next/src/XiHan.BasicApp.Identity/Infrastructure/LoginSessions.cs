@@ -100,6 +100,12 @@ public sealed class LoginSessions(
             return added.Error!;
         }
 
+        var enforced = await accounts.EnforceLoginPolicyAsync(security, session.Id, context.CancellationToken).ConfigureAwait(false);
+        if (enforced.IsFailure)
+        {
+            return enforced.Error!;
+        }
+
         log.SessionId = session.Id;
         var active = await activators.StartAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active);

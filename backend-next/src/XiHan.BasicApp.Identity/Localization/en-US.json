@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "Request password reset",
   "auth.request_password_reset.description": "Send a password reset code to the account's email or verified phone. Answers 'sent' even when no account matches (nothing is sent).",
   "auth.reset_password.title": "Reset password",
-  "auth.reset_password.description": "Set a new password with the reset code. All sessions of the account are revoked."
+  "auth.reset_password.description": "Set a new password with the reset code. All sessions of the account are revoked.",
+  "identity.user.system_account": "This is a built-in system account, so this action is not allowed.",
+  "users.login_policy.title": "Get a user's login policy",
+  "users.login_policy.description": "See whether a user may sign in on several devices and how many.",
+  "users.set_login_policy.title": "Set a user's login policy",
+  "users.set_login_policy.description": "Decide whether a user may sign in on several devices and how many; applies from their next sign-in, and the oldest sessions over the limit are revoked.",
+  "permissions.identity.users.login_policy.name": "Set login policies",
+  "permissions.identity.users.login_policy.description": "Decide whether a user may sign in on several devices and how many; applies from their next sign-in.",
+  "profile.deactivate_account.title": "Deactivate my account",
+  "profile.deactivate_account.description": "Deactivate your own account and sign out all sessions; an administrator can enable it again. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first.",
+  "profile.delete_account.title": "Delete my account",
+  "profile.delete_account.description": "Delete your own account and sign out all sessions; it can no longer sign in. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first."
 }

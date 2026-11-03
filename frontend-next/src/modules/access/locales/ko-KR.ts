@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: '대리 로그인 사용자',
         home_tenant_id: '소속 테넌트',
         avatar_file_id: '아바타 파일',
+        is_system_account: '시스템 계정',
         login_at: '로그인 시간',
         last_active_at: '마지막 활동 시간',
         is_current: '현재',

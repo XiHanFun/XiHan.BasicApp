@@ -5,12 +5,12 @@ import type { RoleGrantItem } from './use-user-roles'
 import type { UserRow, UserStatus } from './use-users'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
 import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XPermissionTransfer, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -28,7 +28,7 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const userStore = useUserStore()
 const resource = usersResource()
-const editor = useUserEditor()
+const editor = useUserEditor(() => auth.can('identity.users.login-policy'))
 const passwordReset = usePasswordReset()
 const detail = useUserDetail()
 const roleAssign = useUserRoles()
@@ -89,7 +89,10 @@ const asRow = (row: object) => row as UserRow
 /** 用户信息列：显示名加粗在上，@用户名在下（与 4.x 用户页同一副两行单元格） */
 function renderUserInfo(row: UserRow) {
   return h('div', { class: 'min-w-0 leading-snug' }, [
-    h('div', { class: 'truncate text-body font-semibold text-fg' }, displayNameOf(row)),
+    h('div', { class: 'flex items-center gap-1' }, [
+      h('span', { class: 'truncate text-body font-semibold text-fg' }, displayNameOf(row)),
+      row.isSystemAccount ? renderTag(t('identity.users.system_account_tag'), 'warning') : null,
+    ]),
     h('div', { class: 'truncate text-caption text-fg-muted' }, `@${row.userName}`),
   ])
 }
@@ -138,17 +141,17 @@ const schema = computed<PageSchema>(() => ({
     { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)), permission: 'access.user-data-scopes.read' },
     // 部门与岗位是租户侧数据：平台态不出这个入口
     { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
-    { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)), permission: 'identity.users.lock' },
+    { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.lock' },
     { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Locked', permission: 'identity.users.lock' },
-    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Disabled' && !isSelf(asRow(row)), permission: 'identity.users.disable' },
+    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.disable' },
     { key: 'enable', title: t('identity.users.actions.enable'), scope: 'row', icon: 'lucide:circle-check', confirm: true, confirmText: row => t('identity.users.confirm_enable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Disabled', permission: 'identity.users.disable' },
     // 按人强制下线：列出此人在当前一侧的会话再走 sessions.revoke，要能看会话
     { key: 'forceSignOut', title: t('identity.users.actions.force_sign_out'), scope: 'row', tone: 'warning', icon: 'lucide:log-out', confirm: true, confirmText: row => t('identity.users.confirm_force_sign_out', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)) && auth.can('identity.sessions.read'), permission: 'identity.sessions.revoke' },
-    { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', permission: 'identity.users.reset-password' },
+    { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', visible: row => !asRow(row).isSystemAccount, permission: 'identity.users.reset-password' },
     { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
     // 模仿态里不能再模仿；目标须是正常状态的他人
     { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)), permission: 'identity.impersonation.start' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => !isSelf(asRow(row)), permission: 'identity.users.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.delete' },
   ],
 }))
 
@@ -517,6 +520,22 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
             {{ editor.fieldError('password') }}
           </XhFieldErrorText>
         </XhFieldRoot>
+        <template v-if="editor.isEdit.value && editor.loadedPolicy.value">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.users.allow_multi_login') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="editor.loginPolicy.allowMultiLogin" name="allowMultiLogin" />
+            </XhFieldControl>
+            <XhFieldDescription>{{ t('identity.users.allow_multi_login_hint') }}</XhFieldDescription>
+          </XhFieldRoot>
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.users.max_login_devices') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="editor.loginPolicy.maxLoginDevices" name="maxLoginDevices" :min="0" :max="99" :disabled="!editor.loginPolicy.allowMultiLogin" />
+            </XhFieldControl>
+            <XhFieldDescription>{{ t('identity.users.max_login_devices_hint') }}</XhFieldDescription>
+          </XhFieldRoot>
+        </template>
         <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ editor.submitError.value }}
         </p>

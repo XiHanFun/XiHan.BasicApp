@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 import { forceSignOut, generateTempPassword, setUserDisabled, setUserLocked, usePasswordReset, usersResource, useUserEditor } from './use-users'
@@ -167,6 +167,40 @@ describe('useUserEditor', () => {
     expect(await editor.submit()).toBe(true)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/users/u-1' })
     expect(calls[0]!.body).toEqual({ displayName: 'Alice W.', email: 'a@example.com', phoneNumber: null })
+  })
+
+  it('编辑：有设置权限才读登录策略，改了才提交', async () => {
+    const calls = record((call) => {
+      if (call.url.endsWith(':login-policy'))
+        return json(200, { userId: 'u-1', allowMultiLogin: true, maxLoginDevices: 0 })
+      if (call.url.endsWith(':set-login-policy'))
+        return json(200, { userId: 'u-1', allowMultiLogin: false, maxLoginDevices: 0 })
+      return json(200, user('u-1', 'alice'))
+    })
+    const editor = useUserEditor(() => true)
+    editor.startEdit(user('u-1', 'alice') as never)
+    await vi.waitFor(() => expect(editor.loadedPolicy.value).toEqual({ allowMultiLogin: true, maxLoginDevices: 0 }))
+    expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/users/u-1:login-policy' })
+
+    // 没改：只提交资料
+    await editor.submit()
+    expect(calls.map(c => c.url)).toEqual(['/api/users/u-1:login-policy', '/api/users/u-1'])
+
+    // 改了：另提交登录策略
+    editor.startEdit(user('u-1', 'alice') as never)
+    await vi.waitFor(() => expect(editor.loadedPolicy.value).not.toBeNull())
+    editor.loginPolicy.allowMultiLogin = false
+    await editor.submit()
+    expect(calls.at(-1)).toMatchObject({ method: 'POST', url: '/api/users/u-1:set-login-policy' })
+    expect(calls.at(-1)!.body).toEqual({ allowMultiLogin: false, maxLoginDevices: 0 })
+
+    // 没权限：不读也不写
+    calls.length = 0
+    const plain = useUserEditor()
+    plain.startEdit(user('u-1', 'alice') as never)
+    expect(plain.loadedPolicy.value).toBeNull()
+    await plain.submit()
+    expect(calls.map(c => c.url)).toEqual(['/api/users/u-1'])
   })
 
   it('字段级错误挂回字段，其余错误给整条提示，弹窗保持打开；重新打开清掉上次的错误', async () => {

@@ -54,6 +54,11 @@ public static class IdentityPermissions
     public const string UsersResetTwoFactor = "identity.users.reset-two-factor";
 
     /// <summary>
+    /// 设置用户的登录策略：<c>users.set-login-policy</c>
+    /// </summary>
+    public const string UsersLoginPolicy = "identity.users.login-policy";
+
+    /// <summary>
     /// 模仿登录
     /// </summary>
     /// <remarks>
@@ -84,6 +89,7 @@ public static class IdentityPermissions
         new(UsersDisable, "Disable users", PermissionScope.Both, audited: true, description: "Enable and disable users of the current tenant; disabling revokes their sessions and blocks sign-in."),
         new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
         new(UsersResetTwoFactor, "Reset two-factor", PermissionScope.Both, audited: true, description: "Clear a user's two-factor methods and authenticator key so they can sign in with the password and enroll again."),
+        new(UsersLoginPolicy, "Set login policies", PermissionScope.Both, audited: true, description: "Decide whether a user may sign in on several devices and how many; applies from their next sign-in."),
         new(ImpersonationStart, "Impersonate users", PermissionScope.Both, audited: true, description: "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."),
         new(SessionsRead, "Read online users", PermissionScope.Both, description: "View the active sessions of the current tenant with device, address and realtime presence."),
         new(SessionsRevoke, "Force sign-out", PermissionScope.Both, audited: true, description: "Revoke active sessions of the current tenant; the signed-out clients are notified in real time."),

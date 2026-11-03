@@ -50,6 +50,7 @@ public sealed class LoginAttempts
             }
 
             security.FailedAccessCount++;
+            security.LastFailedLoginAt = _clock.GetUtcNow();
             if (security.FailedAccessCount >= _options.MaxFailedAccessAttempts)
             {
                 security.LockoutEndAt = _clock.GetUtcNow() + _options.LockoutDuration;

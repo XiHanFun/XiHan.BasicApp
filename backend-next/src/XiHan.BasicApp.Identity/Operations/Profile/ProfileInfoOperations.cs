@@ -133,6 +133,11 @@ public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository
             return Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
 
+        if (user.IsSystemAccount)
+        {
+            return Error.Conflict(IdentityErrors.SystemAccount, IdentityMessages.SystemAccount);
+        }
+
         var userName = request.UserName.Trim();
         if (string.Equals(userName, user.UserName, StringComparison.Ordinal))
         {

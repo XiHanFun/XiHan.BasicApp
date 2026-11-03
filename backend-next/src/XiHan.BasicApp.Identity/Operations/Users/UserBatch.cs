@@ -74,6 +74,18 @@ internal static class UserBatch
     }
 
     /// <summary>
+    /// 把系统内置账号从目标里剔出、记为失败
+    /// </summary>
+    public static void ExcludeSystemAccounts(List<SysUser> targets, List<BatchFailure> failed)
+    {
+        foreach (var user in targets.Where(static u => u.IsSystemAccount).ToList())
+        {
+            targets.Remove(user);
+            failed.Add(new BatchFailure(user.Id, IdentityErrors.SystemAccount));
+        }
+    }
+
+    /// <summary>
     /// 把仓储的逐项结果并进批量结果
     /// </summary>
     public static BatchResult Combine(IReadOnlyList<SysUser> targets, IReadOnlyList<Result> outcomes, List<BatchFailure> failed)

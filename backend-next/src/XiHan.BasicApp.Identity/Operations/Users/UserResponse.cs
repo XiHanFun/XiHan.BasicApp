@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="CreatedAt">创建时间（UTC）</param>
 /// <param name="CreatedBy">创建人（主体 ID）</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空</param>
+/// <param name="IsSystemAccount">是否系统内置账号：不能停用、删除、锁定或由管理员重置密码</param>
 public sealed record UserResponse(
     Guid Id,
     string UserName,
@@ -33,7 +34,8 @@ public sealed record UserResponse(
     DateTimeOffset? LastLoginAt,
     DateTimeOffset CreatedAt,
     string? CreatedBy,
-    Guid? AvatarFileId)
+    Guid? AvatarFileId,
+    bool IsSystemAccount)
 {
     /// <summary>
     /// 由实体投影
@@ -41,6 +43,6 @@ public sealed record UserResponse(
     public static UserResponse From(SysUser user)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy, user.AvatarFileId);
+        return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy, user.AvatarFileId, user.IsSystemAccount);
     }
 }

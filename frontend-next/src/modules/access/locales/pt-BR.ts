@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: 'Personificado por',
         home_tenant_id: 'Locatário de origem',
         avatar_file_id: 'Arquivo de avatar',
+        is_system_account: 'Conta do sistema',
         login_at: 'Login em',
         last_active_at: 'Última atividade',
         is_current: 'Atual',

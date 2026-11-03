@@ -143,7 +143,7 @@ public sealed class DemoTenantSeeder(
             return Result.Success();
         }
 
-        var admin = new SysUser { Id = ids.NewId(), UserName = DemoAdminUserName, DisplayName = "Demo Admin", HomeTenantId = DemoTenantId, Status = UserStatus.Active };
+        var admin = new SysUser { Id = ids.NewId(), UserName = DemoAdminUserName, DisplayName = "Demo Admin", IsSystemAccount = true, HomeTenantId = DemoTenantId, Status = UserStatus.Active };
         var userAdded = await users.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
         if (userAdded.IsFailure)
         {

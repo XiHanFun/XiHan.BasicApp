@@ -311,9 +311,6 @@ function cancelDisable() {
 
 // ==================== 账号管理 ====================
 
-/** 停用 / 注销账号的后端还没有（个人中心批次补），这一节先不显示 */
-const ACCOUNT_MANAGEMENT_AVAILABLE = false
-
 /** 停用/注销成功后：清理本地凭证与用户态（会话已被服务端吊销），再整页跳登录 */
 function cleanupAuthAndRedirect() {
   try {
@@ -894,7 +891,7 @@ function handleDeleteAccount() {
     </section>
 
     <!-- 账号管理：停用与注销账号随个人中心批次（N2 第六批）接入 6.0，之前不显示 -->
-    <section v-if="ACCOUNT_MANAGEMENT_AVAILABLE" class="pf-section">
+    <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">
           <div class="pf-section__title">

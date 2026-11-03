@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: 'Identitätsübernahme durch',
         home_tenant_id: 'Heimatmandant',
         avatar_file_id: 'Avatar-Datei',
+        is_system_account: 'Systemkonto',
         login_at: 'Angemeldet am',
         last_active_at: 'Zuletzt aktiv',
         is_current: 'Aktuell',

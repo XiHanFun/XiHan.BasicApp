@@ -35,6 +35,7 @@ public sealed record ProfileRequest;
 /// <param name="UserNameChangeableAt">下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改</param>
 /// <param name="EmailVerified">邮箱是否已验证</param>
 /// <param name="PhoneVerified">手机号是否已验证</param>
+/// <param name="LastFailedLoginAt">最近一次登录失败的时间；没失败过为空</param>
 public sealed record ProfileResponse(
     UserResponse User,
     bool TwoFactorEnabled,
@@ -51,7 +52,8 @@ public sealed record ProfileResponse(
     DateTimeOffset? UserNameChangedAt,
     DateTimeOffset? UserNameChangeableAt,
     bool EmailVerified,
-    bool PhoneVerified)
+    bool PhoneVerified,
+    DateTimeOffset? LastFailedLoginAt)
 {
     /// <summary>
     /// 由账号与账号安全构造
@@ -76,7 +78,8 @@ public sealed record ProfileResponse(
             security.UserNameChangedAt,
             security.UserNameChangedAt?.Add(UserNameChange.Cooldown),
             user.EmailVerified,
-            user.PhoneVerified);
+            user.PhoneVerified,
+            security.LastFailedLoginAt);
     }
 }
 

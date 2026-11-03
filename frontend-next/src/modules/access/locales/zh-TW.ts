@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: '模擬者',
         home_tenant_id: '註冊租戶',
         avatar_file_id: '頭像檔案',
+        is_system_account: '系統內建帳號',
         login_at: '登入時間',
         last_active_at: '最後活動時間',
         is_current: '是否目前',

@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "找回密码",
   "auth.request_password_reset.description": "发找回密码的验证码到账号的邮箱或已验证的手机号：账号不存在也回答已发送（不发）。",
   "auth.reset_password.title": "重设密码",
-  "auth.reset_password.description": "用找回密码收到的验证码设新密码：设好后吊销这个账号的全部会话。"
+  "auth.reset_password.description": "用找回密码收到的验证码设新密码：设好后吊销这个账号的全部会话。",
+  "identity.user.system_account": "系统内置账号不能执行这个操作。",
+  "users.login_policy.title": "查看用户的登录策略",
+  "users.login_policy.description": "查看用户是否允许多端登录、最多几台设备。",
+  "users.set_login_policy.title": "设置用户的登录策略",
+  "users.set_login_policy.description": "设置用户是否允许多端登录、最多几台设备；下次登录生效，超过时吊销最早的会话。",
+  "permissions.identity.users.login_policy.name": "设置登录策略",
+  "permissions.identity.users.login_policy.description": "决定用户是否允许多端登录、最多几台设备；下次登录生效。",
+  "profile.deactivate_account.title": "停用本人账号",
+  "profile.deactivate_account.description": "停用本人账号并下线全部会话，之后不能登录，可由管理员重新启用。要当前密码；模仿会话不能做，系统内置账号不能自助停用，租户所有者要先转移所有权。",
+  "profile.delete_account.title": "注销本人账号",
+  "profile.delete_account.description": "注销本人账号并下线全部会话，之后不能再用这个账号登录。要当前密码；模仿会话不能做，系统内置账号不能自助注销，租户所有者要先转移所有权。"
 }

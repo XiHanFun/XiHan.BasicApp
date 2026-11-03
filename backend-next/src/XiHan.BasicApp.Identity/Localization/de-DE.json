@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "Passwortzurücksetzung anfordern",
   "auth.request_password_reset.description": "Einen Code zum Zurücksetzen an die E-Mail-Adresse oder die bestätigte Telefonnummer des Kontos senden. Antwortet auch ohne passendes Konto mit „gesendet“ (es wird nichts gesendet).",
   "auth.reset_password.title": "Passwort zurücksetzen",
-  "auth.reset_password.description": "Mit dem Code ein neues Passwort setzen. Alle Sitzungen des Kontos werden widerrufen."
+  "auth.reset_password.description": "Mit dem Code ein neues Passwort setzen. Alle Sitzungen des Kontos werden widerrufen.",
+  "identity.user.system_account": "Dies ist ein integriertes Systemkonto, daher ist diese Aktion nicht erlaubt.",
+  "users.login_policy.title": "Anmelderichtlinie eines Benutzers abrufen",
+  "users.login_policy.description": "Zeigt, ob sich ein Benutzer auf mehreren Geräten anmelden darf und auf wie vielen.",
+  "users.set_login_policy.title": "Anmelderichtlinie eines Benutzers festlegen",
+  "users.set_login_policy.description": "Legt fest, ob sich ein Benutzer auf mehreren Geräten anmelden darf und auf wie vielen; gilt ab der nächsten Anmeldung, die ältesten Sitzungen über dem Limit werden widerrufen.",
+  "permissions.identity.users.login_policy.name": "Anmelderichtlinien festlegen",
+  "permissions.identity.users.login_policy.description": "Legt fest, ob sich ein Benutzer auf mehreren Geräten anmelden darf und auf wie vielen; gilt ab der nächsten Anmeldung.",
+  "profile.deactivate_account.title": "Eigenes Konto deaktivieren",
+  "profile.deactivate_account.description": "Deaktiviert das eigene Konto und meldet alle Sitzungen ab; ein Administrator kann es wieder aktivieren. Erfordert das aktuelle Passwort; nicht beim Identitätswechsel oder für integrierte Konten, Mandantenbesitzer müssen zuerst den Besitz übertragen.",
+  "profile.delete_account.title": "Eigenes Konto löschen",
+  "profile.delete_account.description": "Löscht das eigene Konto und meldet alle Sitzungen ab; danach ist keine Anmeldung mehr möglich. Erfordert das aktuelle Passwort; nicht beim Identitätswechsel oder für integrierte Konten, Mandantenbesitzer müssen zuerst den Besitz übertragen."
 }

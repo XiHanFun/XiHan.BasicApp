@@ -7023,6 +7023,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile:deactivate-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deactivate my account
+         * @description Deactivate your own account and sign out all sessions; an administrator can enable it again. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["profile.deactivate-account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:delete-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete my account
+         * @description Delete your own account and sign out all sessions; it can no longer sign in. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["profile.delete-account"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:disable-two-factor": {
         parameters: {
             query?: never;
@@ -8873,6 +8917,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/{id}:login-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a user's login policy
+         * @description See whether a user may sign in on several devices and how many.
+         *
+         *     Requires permission identity.users.read (Read users).
+         */
+        get: operations["users.login-policy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/{id}:reset-password": {
         parameters: {
             query?: never;
@@ -8889,6 +8955,28 @@ export interface paths {
          *     Requires permission identity.users.reset-password (Reset passwords).
          */
         post: operations["users.reset-password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{id}:set-login-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set a user's login policy
+         * @description Decide whether a user may sign in on several devices and how many; applies from their next sign-in, and the oldest sessions over the limit are revoked.
+         *
+         *     Requires permission identity.users.login-policy (Set login policies).
+         */
+        post: operations["users.set-login-policy"];
         delete?: never;
         options?: never;
         head?: never;
@@ -14259,6 +14347,11 @@ export interface components {
             emailVerified: boolean;
             /** @description 手机号是否已验证 */
             phoneVerified: boolean;
+            /**
+             * Format: date-time
+             * @description 最近一次登录失败的时间；没失败过为空
+             */
+            lastFailedLoginAt?: string | null;
         };
         /** @description 一个成员 */
         RoleMemberResponse: {
@@ -15085,6 +15178,8 @@ export interface components {
              * @description 头像文件（前端按它换签名地址显示）；没设为空
              */
             avatarFileId?: string | null;
+            /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
+            isSystemAccount: boolean;
         };
         /**
          * @description 用户设置的场景：一条设置由（用户, 场景, 设置键）唯一定位
@@ -38344,6 +38439,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -38445,6 +38545,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -38702,6 +38807,97 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.deactivate-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description profile.deactivate-account 与 profile.delete-account 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 当前密码 */
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 关闭账号的结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 关闭的用户 ID
+                         */
+                        userId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.delete-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description profile.deactivate-account 与 profile.delete-account 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 当前密码 */
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 关闭账号的结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 关闭的用户 ID
+                         */
+                        userId: string;
                     };
                 };
             };
@@ -38792,6 +38988,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -38882,6 +39083,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -39097,6 +39303,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -39576,6 +39787,11 @@ export interface operations {
                         emailVerified: boolean;
                         /** @description 手机号是否已验证 */
                         phoneVerified: boolean;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次登录失败的时间；没失败过为空
+                         */
+                        lastFailedLoginAt?: string | null;
                     };
                 };
             };
@@ -43408,6 +43624,7 @@ export interface operations {
                         createdBy?: string | null;
                         /** Format: uuid */
                         avatarFileId?: string | null;
+                        isSystemAccount: boolean;
                     };
                 };
             };
@@ -44359,6 +44576,8 @@ export interface operations {
                          * @description 头像文件（前端按它换签名地址显示）；没设为空
                          */
                         avatarFileId?: string | null;
+                        /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
+                        isSystemAccount: boolean;
                     };
                 };
             };
@@ -44461,6 +44680,8 @@ export interface operations {
                          * @description 头像文件（前端按它换签名地址显示）；没设为空
                          */
                         avatarFileId?: string | null;
+                        /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
+                        isSystemAccount: boolean;
                     };
                 };
             };
@@ -44545,6 +44766,53 @@ export interface operations {
                          * @description 头像文件（前端按它换签名地址显示）；没设为空
                          */
                         avatarFileId?: string | null;
+                        /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
+                        isSystemAccount: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.login-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 用户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 用户的登录策略 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID
+                         */
+                        userId: string;
+                        /** @description 是否允许多端登录 */
+                        allowMultiLogin: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大设备数，0 即不限
+                         */
+                        maxLoginDevices: number;
                     };
                 };
             };
@@ -44603,6 +44871,69 @@ export interface operations {
                         changedAt: string;
                         /** @description 是否吊销了既有会话 */
                         sessionsRevoked: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.set-login-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 用户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description users.set-login-policy 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 用户 ID
+                     */
+                    id: string;
+                    /** @description 是否允许多端登录；不允许时登录只保留最新的一个会话 */
+                    allowMultiLogin: boolean;
+                    /**
+                     * Format: int32
+                     * @description 允许多端登录时的最大设备数，超过时吊销最早的会话；0 即不限
+                     */
+                    maxLoginDevices: number;
+                };
+            };
+        };
+        responses: {
+            /** @description 用户的登录策略 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户 ID
+                         */
+                        userId: string;
+                        /** @description 是否允许多端登录 */
+                        allowMultiLogin: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大设备数，0 即不限
+                         */
+                        maxLoginDevices: number;
                     };
                 };
             };

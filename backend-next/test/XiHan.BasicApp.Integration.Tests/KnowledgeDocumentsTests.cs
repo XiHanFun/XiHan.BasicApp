@@ -8,6 +8,7 @@ using SqlSugar;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Schema;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
@@ -357,6 +358,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         {
             [TenantShardKeys.ConnectionString] = shard.ConnectionString,
             [TenantShardKeys.DatabaseProvider] = "sqlite",
+            [TenantSchemas.ReadyProperty] = "true",
         });
         var token = Tenant("acme");
 

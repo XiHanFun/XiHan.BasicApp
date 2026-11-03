@@ -433,4 +433,12 @@ public static class IdentityErrors
     /// 邮箱已被同一侧的正常账号使用（自助注册）
     /// </summary>
     public const string EmailTaken = "IDENTITY_CONFLICT_013";
+
+    /// <summary>
+    /// 系统内置账号不能执行这个操作
+    /// </summary>
+    /// <remarks>
+    /// 停用、删除、锁定、管理员重置密码、本人改用户名与关闭账号
+    /// </remarks>
+    public const string SystemAccount = "IDENTITY_CONFLICT_014";
 }

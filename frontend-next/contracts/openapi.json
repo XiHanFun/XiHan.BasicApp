@@ -45181,6 +45181,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -45386,6 +45394,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -45837,6 +45853,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -45848,6 +45872,148 @@
                     "gender",
                     "emailVerified",
                     "phoneVerified"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:deactivate-account": {
+      "post": {
+        "operationId": "profile.deactivate-account",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Deactivate my account",
+        "description": "Deactivate your own account and sign out all sessions; an administrator can enable it again. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first.\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "description": "profile.deactivate-account \u4E0E profile.delete-account \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CloseAccountRequest",
+                "description": "profile.deactivate-account \u4E0E profile.delete-account \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "description": "\u5F53\u524D\u5BC6\u7801",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5173\u95ED\u8D26\u53F7\u7684\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccountClosedResponse",
+                  "description": "\u5173\u95ED\u8D26\u53F7\u7684\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u5173\u95ED\u7684\u7528\u6237 ID",
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "userId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:delete-account": {
+      "post": {
+        "operationId": "profile.delete-account",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Delete my account",
+        "description": "Delete your own account and sign out all sessions; it can no longer sign in. Requires the current password; not available while impersonating or for built-in accounts, and tenant owners must transfer ownership first.\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "description": "profile.deactivate-account \u4E0E profile.delete-account \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CloseAccountRequest",
+                "description": "profile.deactivate-account \u4E0E profile.delete-account \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "description": "\u5F53\u524D\u5BC6\u7801",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5173\u95ED\u8D26\u53F7\u7684\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccountClosedResponse",
+                  "description": "\u5173\u95ED\u8D26\u53F7\u7684\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u5173\u95ED\u7684\u7528\u6237 ID",
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "userId"
                   ]
                 }
               }
@@ -46012,6 +46178,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -46187,6 +46361,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -46572,6 +46754,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -47414,6 +47604,14 @@
                     "phoneVerified": {
                       "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
                       "type": "boolean"
+                    },
+                    "lastFailedLoginAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -54973,6 +55171,9 @@
                         "null"
                       ],
                       "format": "uuid"
+                    },
+                    "isSystemAccount": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -54981,7 +55182,8 @@
                     "displayName",
                     "homeTenantId",
                     "status",
-                    "createdAt"
+                    "createdAt",
+                    "isSystemAccount"
                   ]
                 }
               }
@@ -56916,6 +57118,10 @@
                         "null"
                       ],
                       "format": "uuid"
+                    },
+                    "isSystemAccount": {
+                      "description": "\u662F\u5426\u7CFB\u7EDF\u5185\u7F6E\u8D26\u53F7\uFF1A\u4E0D\u80FD\u505C\u7528\u3001\u5220\u9664\u3001\u9501\u5B9A\u6216\u7531\u7BA1\u7406\u5458\u91CD\u7F6E\u5BC6\u7801",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -56924,7 +57130,8 @@
                     "displayName",
                     "homeTenantId",
                     "status",
-                    "createdAt"
+                    "createdAt",
+                    "isSystemAccount"
                   ]
                 }
               }
@@ -57038,6 +57245,10 @@
                         "null"
                       ],
                       "format": "uuid"
+                    },
+                    "isSystemAccount": {
+                      "description": "\u662F\u5426\u7CFB\u7EDF\u5185\u7F6E\u8D26\u53F7\uFF1A\u4E0D\u80FD\u505C\u7528\u3001\u5220\u9664\u3001\u9501\u5B9A\u6216\u7531\u7BA1\u7406\u5458\u91CD\u7F6E\u5BC6\u7801",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -57046,7 +57257,8 @@
                     "displayName",
                     "homeTenantId",
                     "status",
-                    "createdAt"
+                    "createdAt",
+                    "isSystemAccount"
                   ]
                 }
               }
@@ -57204,6 +57416,10 @@
                         "null"
                       ],
                       "format": "uuid"
+                    },
+                    "isSystemAccount": {
+                      "description": "\u662F\u5426\u7CFB\u7EDF\u5185\u7F6E\u8D26\u53F7\uFF1A\u4E0D\u80FD\u505C\u7528\u3001\u5220\u9664\u3001\u9501\u5B9A\u6216\u7531\u7BA1\u7406\u5458\u91CD\u7F6E\u5BC6\u7801",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -57212,7 +57428,78 @@
                     "displayName",
                     "homeTenantId",
                     "status",
-                    "createdAt"
+                    "createdAt",
+                    "isSystemAccount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}:login-policy": {
+      "get": {
+        "operationId": "users.login-policy",
+        "tags": [
+          "users"
+        ],
+        "summary": "Get a user\u0027s login policy",
+        "description": "See whether a user may sign in on several devices and how many.\n\nRequires permission identity.users.read (Read users).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u7528\u6237 ID",
+            "required": true,
+            "schema": {
+              "description": "\u7528\u6237 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u7528\u6237\u7684\u767B\u5F55\u7B56\u7565",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserLoginPolicyResponse",
+                  "description": "\u7528\u6237\u7684\u767B\u5F55\u7B56\u7565",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u7528\u6237 ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "allowMultiLogin": {
+                      "description": "\u662F\u5426\u5141\u8BB8\u591A\u7AEF\u767B\u5F55",
+                      "type": "boolean"
+                    },
+                    "maxLoginDevices": {
+                      "description": "\u6700\u5927\u8BBE\u5907\u6570\uFF0C0 \u5373\u4E0D\u9650",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "allowMultiLogin",
+                    "maxLoginDevices"
                   ]
                 }
               }
@@ -57313,6 +57600,112 @@
                     "userId",
                     "changedAt",
                     "sessionsRevoked"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}:set-login-policy": {
+      "post": {
+        "operationId": "users.set-login-policy",
+        "tags": [
+          "users"
+        ],
+        "summary": "Set a user\u0027s login policy",
+        "description": "Decide whether a user may sign in on several devices and how many; applies from their next sign-in, and the oldest sessions over the limit are revoked.\n\nRequires permission identity.users.login-policy (Set login policies).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.login-policy",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u7528\u6237 ID",
+            "required": true,
+            "schema": {
+              "description": "\u7528\u6237 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "users.set-login-policy \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetUserLoginPolicyRequest",
+                "description": "users.set-login-policy \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u7528\u6237 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "allowMultiLogin": {
+                    "description": "\u662F\u5426\u5141\u8BB8\u591A\u7AEF\u767B\u5F55\uFF1B\u4E0D\u5141\u8BB8\u65F6\u767B\u5F55\u53EA\u4FDD\u7559\u6700\u65B0\u7684\u4E00\u4E2A\u4F1A\u8BDD",
+                    "type": "boolean"
+                  },
+                  "maxLoginDevices": {
+                    "description": "\u5141\u8BB8\u591A\u7AEF\u767B\u5F55\u65F6\u7684\u6700\u5927\u8BBE\u5907\u6570\uFF0C\u8D85\u8FC7\u65F6\u540A\u9500\u6700\u65E9\u7684\u4F1A\u8BDD\uFF1B0 \u5373\u4E0D\u9650",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 99
+                  }
+                },
+                "required": [
+                  "id",
+                  "allowMultiLogin",
+                  "maxLoginDevices"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u7528\u6237\u7684\u767B\u5F55\u7B56\u7565",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserLoginPolicyResponse",
+                  "description": "\u7528\u6237\u7684\u767B\u5F55\u7B56\u7565",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u7528\u6237 ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "allowMultiLogin": {
+                      "description": "\u662F\u5426\u5141\u8BB8\u591A\u7AEF\u767B\u5F55",
+                      "type": "boolean"
+                    },
+                    "maxLoginDevices": {
+                      "description": "\u6700\u5927\u8BBE\u5907\u6570\uFF0C0 \u5373\u4E0D\u9650",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "allowMultiLogin",
+                    "maxLoginDevices"
                   ]
                 }
               }
@@ -70799,6 +71192,14 @@
           "phoneVerified": {
             "description": "\u624B\u673A\u53F7\u662F\u5426\u5DF2\u9A8C\u8BC1",
             "type": "boolean"
+          },
+          "lastFailedLoginAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u5931\u8D25\u7684\u65F6\u95F4\uFF1B\u6CA1\u5931\u8D25\u8FC7\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         },
         "required": [
@@ -72530,6 +72931,10 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "isSystemAccount": {
+            "description": "\u662F\u5426\u7CFB\u7EDF\u5185\u7F6E\u8D26\u53F7\uFF1A\u4E0D\u80FD\u505C\u7528\u3001\u5220\u9664\u3001\u9501\u5B9A\u6216\u7531\u7BA1\u7406\u5458\u91CD\u7F6E\u5BC6\u7801",
+            "type": "boolean"
           }
         },
         "required": [
@@ -72538,7 +72943,8 @@
           "displayName",
           "homeTenantId",
           "status",
-          "createdAt"
+          "createdAt",
+          "isSystemAccount"
         ]
       },
       "UserSettingScene": {
@@ -74174,6 +74580,11 @@
         "code": "identity.users.lock",
         "displayName": "Lock users",
         "description": "Lock and unlock users of the current tenant."
+      },
+      "identity.users.login-policy": {
+        "code": "identity.users.login-policy",
+        "displayName": "Set login policies",
+        "description": "Decide whether a user may sign in on several devices and how many; applies from their next sign-in."
       },
       "identity.users.read": {
         "code": "identity.users.read",

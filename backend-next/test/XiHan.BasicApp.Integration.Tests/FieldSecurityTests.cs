@@ -61,7 +61,7 @@ public sealed class FieldSecurityTests : IDisposable
         var (_, entities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/field-security:entities", token: admin));
         var users = Assert.Single(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "identity.users");
         // 字段由响应类型生成（4.x 同：实体的全部字段，主键与框架列除外）；会话等其余包的实体也都在
-        Assert.Equal(["userName", "displayName", "email", "phoneNumber", "homeTenantId", "status", "lastLoginAt", "createdAt", "createdBy", "avatarFileId"], users.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
+        Assert.Equal(["userName", "displayName", "email", "phoneNumber", "homeTenantId", "status", "lastLoginAt", "createdAt", "createdBy", "avatarFileId", "isSystemAccount"], users.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
         Assert.Equal(("identity.users.fields.phone", true, true), (users.GetProperty("fields")[3].GetProperty("titleKey").GetString(), users.GetProperty("fields")[3].GetProperty("isText").GetBoolean(), users.GetProperty("fields")[3].GetProperty("isNullable").GetBoolean()));
         Assert.False(users.GetProperty("fields")[1].GetProperty("isNullable").GetBoolean());
         Assert.Contains(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "identity.sessions");

@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: 'Impersonator',
         home_tenant_id: 'Home tenant',
         avatar_file_id: 'Avatar file',
+        is_system_account: 'System account',
         login_at: 'Signed in at',
         last_active_at: 'Last active at',
         is_current: 'Current',

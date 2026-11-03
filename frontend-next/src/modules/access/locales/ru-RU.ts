@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: 'Имперсонатор',
         home_tenant_id: 'Домашний арендатор',
         avatar_file_id: 'Файл аватара',
+        is_system_account: 'Системная учётная запись',
         login_at: 'Время входа',
         last_active_at: 'Последняя активность',
         is_current: 'Текущий',

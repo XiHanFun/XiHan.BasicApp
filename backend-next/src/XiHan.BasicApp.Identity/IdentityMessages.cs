@@ -170,6 +170,11 @@ public static class IdentityMessages
     public const string TenantOwner = "identity.user.tenant_owner";
 
     /// <summary>
+    /// 系统内置账号不能执行这个操作
+    /// </summary>
+    public const string SystemAccount = "identity.user.system_account";
+
+    /// <summary>
     /// 显示名只有空白
     /// </summary>
     /// <remarks>
@@ -392,6 +397,16 @@ public static class IdentityMessages
     /// 操作 <c>users.reset-two-factor</c> 的说明
     /// </summary>
     public const string ResetTwoFactorDescription = "users.reset_two_factor.description";
+
+    /// <summary>
+    /// 操作 <c>users.login-policy</c> 的说明
+    /// </summary>
+    public const string GetUserLoginPolicyDescription = "users.login_policy.description";
+
+    /// <summary>
+    /// 操作 <c>users.set-login-policy</c> 的说明
+    /// </summary>
+    public const string SetUserLoginPolicyDescription = "users.set_login_policy.description";
 
     /// <summary>
     /// 图形验证码不对
@@ -665,6 +680,16 @@ public static class IdentityMessages
     /// 操作 <c>profile.change-username</c> 的说明
     /// </summary>
     public const string ChangeUserNameDescription = "profile.change_username.description";
+
+    /// <summary>
+    /// 操作 <c>profile.deactivate-account</c> 的说明
+    /// </summary>
+    public const string DeactivateAccountDescription = "profile.deactivate_account.description";
+
+    /// <summary>
+    /// 操作 <c>profile.delete-account</c> 的说明
+    /// </summary>
+    public const string DeleteAccountDescription = "profile.delete_account.description";
 
     /// <summary>
     /// 操作 <c>profile.remove-avatar</c> 的说明

@@ -30,6 +30,12 @@ function emptyForm(): UserForm {
   return { userName: '', displayName: '', email: '', phoneNumber: '', password: '' }
 }
 
+/** 登录策略：只在编辑时读写，要有设置权限 */
+export interface LoginPolicyForm {
+  allowMultiLogin: boolean
+  maxLoginDevices: number
+}
+
 /** 批量操作的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
 function failedCodes(result: { failed: { code: string }[] }): void {
   if (result.failed.length > 0)
@@ -144,7 +150,7 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
  * 用户页的编辑弹窗：新建（用户名、显示名、邮箱、手机号与可选的初始密码）与编辑资料（显示名、邮箱、手机号）
  * 建在调用方当前所在的一侧（平台主体建平台账号，租户主体建本租户用户）。字段级错误挂回对应字段
  */
-export function useUserEditor() {
+export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   const open = ref(false)
   const mode = ref<UserEditorMode>('create')
   const editing = ref<UserRow | null>(null)
@@ -154,6 +160,8 @@ export function useUserEditor() {
   const submitting = ref(false)
 
   const isEdit = computed(() => mode.value === 'edit')
+  const loginPolicy = reactive<LoginPolicyForm>({ allowMultiLogin: true, maxLoginDevices: 0 })
+  const loadedPolicy = ref<LoginPolicyForm | null>(null)
 
   function reset(next: Partial<UserForm> = {}) {
     Object.assign(form, emptyForm(), next)
@@ -168,9 +176,21 @@ export function useUserEditor() {
     open.value = true
   }
 
+  async function loadLoginPolicy(row: UserRow) {
+    loadedPolicy.value = null
+    if (!canSetLoginPolicy())
+      return
+    const policy = await usersApi.loginPolicy({ id: row.id })
+    if (editing.value?.id !== row.id)
+      return
+    Object.assign(loginPolicy, { allowMultiLogin: policy.allowMultiLogin, maxLoginDevices: policy.maxLoginDevices })
+    loadedPolicy.value = { allowMultiLogin: policy.allowMultiLogin, maxLoginDevices: policy.maxLoginDevices }
+  }
+
   function startEdit(row: UserRow) {
     mode.value = 'edit'
     editing.value = row
+    void loadLoginPolicy(row)
     reset({ userName: row.userName, displayName: row.displayName, email: row.email ?? '', phoneNumber: row.phoneNumber ?? '' })
     open.value = true
   }
@@ -192,6 +212,10 @@ export function useUserEditor() {
           email: blankToNull(form.email),
           phoneNumber: blankToNull(form.phoneNumber),
         })
+        const before = loadedPolicy.value
+        if (before && (before.allowMultiLogin !== loginPolicy.allowMultiLogin || before.maxLoginDevices !== loginPolicy.maxLoginDevices)) {
+          await usersApi.setLoginPolicy({ id: current.id, allowMultiLogin: loginPolicy.allowMultiLogin, maxLoginDevices: loginPolicy.maxLoginDevices })
+        }
       }
       else {
         await usersApi.create({
@@ -215,7 +239,7 @@ export function useUserEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return { open, mode, isEdit, editing, form, loginPolicy, loadedPolicy, fieldError, submitError, submitting, startCreate, startEdit, submit }
 }
 
 /**

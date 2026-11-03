@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "Solicitar restablecimiento de contraseña",
   "auth.request_password_reset.description": "Enviar un código de restablecimiento al correo o al teléfono verificado de la cuenta. Responde «enviado» aunque no exista la cuenta (no se envía nada).",
   "auth.reset_password.title": "Restablecer contraseña",
-  "auth.reset_password.description": "Establecer una contraseña nueva con el código. Se revocan todas las sesiones de la cuenta."
+  "auth.reset_password.description": "Establecer una contraseña nueva con el código. Se revocan todas las sesiones de la cuenta.",
+  "identity.user.system_account": "Esta es una cuenta integrada del sistema, por lo que esta acción no está permitida.",
+  "users.login_policy.title": "Obtener la política de inicio de sesión de un usuario",
+  "users.login_policy.description": "Indica si un usuario puede iniciar sesión en varios dispositivos y en cuántos.",
+  "users.set_login_policy.title": "Establecer la política de inicio de sesión de un usuario",
+  "users.set_login_policy.description": "Define si un usuario puede iniciar sesión en varios dispositivos y en cuántos; se aplica desde el siguiente inicio de sesión y se revocan las sesiones más antiguas que superen el límite.",
+  "permissions.identity.users.login_policy.name": "Establecer políticas de inicio de sesión",
+  "permissions.identity.users.login_policy.description": "Decide si un usuario puede iniciar sesión en varios dispositivos y en cuántos; se aplica desde el siguiente inicio de sesión.",
+  "profile.deactivate_account.title": "Desactivar mi cuenta",
+  "profile.deactivate_account.description": "Desactiva tu cuenta y cierra todas las sesiones; un administrador puede volver a activarla. Requiere la contraseña actual; no disponible al suplantar ni para cuentas integradas, y los propietarios de inquilino deben transferir antes la propiedad.",
+  "profile.delete_account.title": "Eliminar mi cuenta",
+  "profile.delete_account.description": "Elimina tu cuenta y cierra todas las sesiones; ya no podrá iniciar sesión. Requiere la contraseña actual; no disponible al suplantar ni para cuentas integradas, y los propietarios de inquilino deben transferir antes la propiedad."
 }

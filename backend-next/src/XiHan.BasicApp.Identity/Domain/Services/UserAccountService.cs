@@ -180,6 +180,31 @@ public sealed class UserAccountService
     }
 
     /// <summary>
+    /// 按登录策略吊销多出来的会话
+    /// </summary>
+    /// <remarks>
+    /// 登录时、新会话已写入之后调用：不允许多端只留新会话，限了设备数就留新会话和最近的几个。模仿会话不算设备
+    /// </remarks>
+    /// <param name="security">账号安全</param>
+    /// <param name="current">新会话</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result> EnforceLoginPolicyAsync(SysUserSecurity security, Guid current, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+        var limit = security.DenyMultiLogin ? 1 : security.MaxLoginDevices;
+        if (limit <= 0)
+        {
+            return Result.Success();
+        }
+
+        var now = _clock.GetUtcNow();
+        var userId = security.UserId;
+        var active = await _sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue && !s.ImpersonatorUserId.HasValue && s.RefreshExpiresAt > now)), cancellationToken).ConfigureAwait(false);
+        var surplus = active.Where(s => s.Id != current).OrderByDescending(static s => s.IssuedAt).Skip(limit - 1).ToList();
+        return surplus.Count == 0 ? Result.Success() : await RevokeAsync(surplus, "login-policy", null, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 吊销一批有效会话
     /// </summary>
     /// <remarks>

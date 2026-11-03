@@ -81,6 +81,7 @@ public sealed class InitializeAdmin(
             Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
             HomeTenantId = tenant.TenantId,
             Status = UserStatus.Active,
+            IsSystemAccount = true,
         };
         var added = await users.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)

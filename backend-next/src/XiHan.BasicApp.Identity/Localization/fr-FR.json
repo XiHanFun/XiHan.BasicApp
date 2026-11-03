@@ -245,5 +245,16 @@
   "auth.request_password_reset.title": "Demander la réinitialisation du mot de passe",
   "auth.request_password_reset.description": "Envoyer un code de réinitialisation à l’e-mail ou au téléphone vérifié du compte. Répond « envoyé » même sans compte correspondant (rien n’est envoyé).",
   "auth.reset_password.title": "Réinitialiser le mot de passe",
-  "auth.reset_password.description": "Définir un nouveau mot de passe avec le code. Toutes les sessions du compte sont révoquées."
+  "auth.reset_password.description": "Définir un nouveau mot de passe avec le code. Toutes les sessions du compte sont révoquées.",
+  "identity.user.system_account": "Il s'agit d'un compte système intégré : cette action n'est pas autorisée.",
+  "users.login_policy.title": "Obtenir la stratégie de connexion d'un utilisateur",
+  "users.login_policy.description": "Indique si un utilisateur peut se connecter sur plusieurs appareils et sur combien.",
+  "users.set_login_policy.title": "Définir la stratégie de connexion d'un utilisateur",
+  "users.set_login_policy.description": "Définit si un utilisateur peut se connecter sur plusieurs appareils et sur combien ; s'applique à la prochaine connexion, les sessions les plus anciennes au-delà de la limite sont révoquées.",
+  "permissions.identity.users.login_policy.name": "Définir les stratégies de connexion",
+  "permissions.identity.users.login_policy.description": "Détermine si un utilisateur peut se connecter sur plusieurs appareils et sur combien ; s'applique à la prochaine connexion.",
+  "profile.deactivate_account.title": "Désactiver mon compte",
+  "profile.deactivate_account.description": "Désactive votre compte et déconnecte toutes les sessions ; un administrateur peut le réactiver. Le mot de passe actuel est requis ; indisponible en emprunt d'identité ou pour les comptes intégrés, et les propriétaires de locataire doivent d'abord transférer la propriété.",
+  "profile.delete_account.title": "Supprimer mon compte",
+  "profile.delete_account.description": "Supprime votre compte et déconnecte toutes les sessions ; il ne peut plus se connecter. Le mot de passe actuel est requis ; indisponible en emprunt d'identité ou pour les comptes intégrés, et les propriétaires de locataire doivent d'abord transférer la propriété."
 }

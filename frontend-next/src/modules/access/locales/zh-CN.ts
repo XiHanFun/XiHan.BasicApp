@@ -269,6 +269,7 @@ export default {
         impersonator_user_id: '模仿者',
         home_tenant_id: '注册租户',
         avatar_file_id: '头像文件',
+        is_system_account: '系统内置账号',
         login_at: '登录时间',
         last_active_at: '最后活动时间',
         is_current: '是否当前',

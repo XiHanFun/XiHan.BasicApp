@@ -48,6 +48,14 @@ public sealed class SysUserSecurity : AppAuditedEntity
     public int FailedAccessCount { get; set; }
 
     /// <summary>
+    /// 最近一次登录失败的时间
+    /// </summary>
+    /// <remarks>
+    /// 个人中心的安全状态显示。登录成功不清掉
+    /// </remarks>
+    public DateTimeOffset? LastFailedLoginAt { get; set; }
+
+    /// <summary>
     /// 锁定截止时间
     /// </summary>
     /// <remarks>
@@ -109,4 +117,20 @@ public sealed class SysUserSecurity : AppAuditedEntity
     /// </remarks>
     [StringLength(2048)]
     public string? ApiIpAllowList { get; set; }
+
+    /// <summary>
+    /// 是否禁止多端登录
+    /// </summary>
+    /// <remarks>
+    /// 为真时登录只保留最新的一个会话；缺省允许
+    /// </remarks>
+    public bool DenyMultiLogin { get; set; }
+
+    /// <summary>
+    /// 最大登录设备数
+    /// </summary>
+    /// <remarks>
+    /// 允许多端登录时生效，超过时吊销最早的会话；0 即不限
+    /// </remarks>
+    public int MaxLoginDevices { get; set; }
 }

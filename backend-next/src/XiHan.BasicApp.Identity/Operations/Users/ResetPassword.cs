@@ -39,6 +39,11 @@ public sealed class ResetPassword(IRepository<SysUser, Guid> users, UserAccountS
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
+        if (user.IsSystemAccount)
+        {
+            return Error.Conflict(IdentityErrors.SystemAccount, IdentityMessages.SystemAccount);
+        }
+
         var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
         if (!securityResult.TryGetValue(out var security))
         {
