@@ -28,6 +28,16 @@ public static class CodeGenerationErrors
     public const string TemplateNotFound = "CODEGENERATION_NOTFOUND_003";
 
     /// <summary>
+    /// 生成历史不存在。
+    /// </summary>
+    public const string HistoryNotFound = "CODEGENERATION_NOTFOUND_004";
+
+    /// <summary>
+    /// 这次生成没有产物包，或已到期。
+    /// </summary>
+    public const string PackageNotFound = "CODEGENERATION_NOTFOUND_005";
+
+    /// <summary>
     /// 已有同名的数据源。
     /// </summary>
     public const string DataSourceNameTaken = "CODEGENERATION_CONFLICT_001";
@@ -101,6 +111,14 @@ public static class CodeGenerationErrors
     /// 没有可用的模板。
     /// </summary>
     public const string NoTemplates = "CODEGENERATION_VALIDATION_009";
+
+    /// <summary>
+    /// 写不进项目。
+    /// </summary>
+    /// <remarks>
+    /// 没在开发环境、开关没开、根目录不对、包不存在、路径越界，或项目里有同名的手写文件。
+    /// </remarks>
+    public const string ProjectWriteRejected = "CODEGENERATION_VALIDATION_010";
 
     /// <summary>
     /// 数据源的口令或连接串解不开。

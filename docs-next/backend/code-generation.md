@@ -3,7 +3,7 @@
 CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的。
 
 ::: warning 部分落地
-N3 第四批分笔落地，现在有数据源、表结构导入与表和列配置、模板维护与预览（后端与前端产物）；生成与历史、零代码运行时随后补上。5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
+N3 第四批分笔落地，现在有数据源、表结构导入与表和列配置、模板维护与预览（后端与前端产物）、生成与生成历史；零代码运行时随后补上。5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
 :::
 
 ## 页面与权限
@@ -15,9 +15,10 @@ N3 第四批分笔落地，现在有数据源、表结构导入与表和列配�
 | 资源 | 权限码 |
 | --- | --- |
 | 数据源 `codegen-datasources` | `read`、`create`、`update`（修改、启停、测试连接）、`delete` |
-| 表配置 `codegen-tables` | `read`（也是页面读权限，含列出库表与预览）、`update`（修改、启停）、`delete`、`import`（导入、同步结构） |
+| 表配置 `codegen-tables` | `read`（也是页面读权限，含列出库表与预览）、`update`（修改、启停）、`delete`、`import`（导入、同步结构）、`execute`（生成代码） |
 | 列配置 `codegen-table-columns` | `read`、`update`（整体保存） |
 | 模板 `codegen-templates` | `read`（查看、检查语法）、`create`、`update`（修改、启停）、`delete` |
+| 生成历史 `codegen-histories` | `read`（查看、下载产物包） |
 
 ## 数据源
 
@@ -109,6 +110,18 @@ N3 第四批分笔落地，现在有数据源、表结构导入与表和列配�
 - 文案一律写键，键在 `<包>.<资源>` 下：页面标题（也是菜单标题键）、字段名、按钮、弹窗标题、必填提示与枚举选项（6.0 没有枚举元数据接口，选项静态写出，`Active` / `Disabled` 用固定用语，其余成员名原样）。
 - 新建包另出 `setup.ts`（登记文案）与 `locales/<区域>.ts` 共 10 种区域；登记片段写明把模块名加进 `scripts/check-modules.mjs` 的 `KNOWN`，视图键 `<资源>/index` 要全局唯一。加入已有包时，登记片段按区域列出要合进 `locales` 的文案块。
 
+## 生成与生成历史
+
+| 操作 / 端点 | 说明 |
+| --- | --- |
+| `codegen-tables.generate` | 按表配置生成，交付方式缺省取表配置的（也可在请求里指定）；不论成败都记一条生成历史，成功才回写表的生成状态与时间 |
+| `codegen-histories.list` / `get` | 生成历史：关键字匹配表名与批次号，结果可多选、生成时间按区间；详情带产物文件、用到的模板、表配置快照与失败原因 |
+| `GET /api/codegen-histories/{id}/package` | 普通端点，以附件下载这次的产物包（Zip），要生成历史的读权限 |
+
+- **打包下载**（照 5.x 的包结构）：每次覆盖的文件进 `_generated/`、只首次写的进 `_manual/`（各自下面再分 `backend/` 与 `frontend/`），登记片段在 `_registration/`，包根有 `README.txt`。产物包经 Files 的临时文件契约 `ITemporaryFiles`（Contracts）存成 7 天的临时文件（同导出中心），从上面的端点下载；写进项目、生成失败或已到期的历史没有产物包（`CODEGENERATION_NOTFOUND_005`）。5.x 把产物包以 Base64 放进生成的响应。
+- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用（方案 C1），其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend-next`）与 `FrontendRootPath`（`frontend-next`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
+- 失败的那条历史在独立的短事务里写（调用失败会回滚自己的写入），失败原因记错误码与调用方语言的文案。
+
 ## 模块开关
 
 `BasicApp:Modules:CodeGeneration:Enabled=false` 时宿主不装配 CodeGeneration：权限码与页面不下发、操作 404，五张表照样建。
@@ -116,5 +129,4 @@ N3 第四批分笔落地，现在有数据源、表结构导入与表和列配�
 ## 后续
 
 - 表与列配置：经框架的 `ISchemaReader` 读库结构导入、同步结构（人工改过的字段保留）、列配置整体保存；「沿用已有实体」按 6.0 登记的实体（`IEntityCatalog`）识别。
-- 生成：产物包存成 Files 的临时文件（7 天）并记历史，写进项目只在 Development 且配置打开时。
 - 零代码只读运行时：`codegen-runtime.get-schema` / `list`，按表配置的数据源查。

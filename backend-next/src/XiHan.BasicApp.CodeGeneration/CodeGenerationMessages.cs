@@ -299,6 +299,66 @@ public static class CodeGenerationMessages
     public const string GenerateEnumUnresolved = "codegeneration.generate.enum_unresolved";
 
     /// <summary>
+    /// 操作 <c>codegen-tables.generate</c> 的说明。
+    /// </summary>
+    public const string GenerateCodegenTableDescription = "codegen_tables.generate.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-histories.list</c> 的说明。
+    /// </summary>
+    public const string ListCodegenHistoriesDescription = "codegen_histories.list.description";
+
+    /// <summary>
+    /// 操作 <c>codegen-histories.get</c> 的说明。
+    /// </summary>
+    public const string GetCodegenHistoryDescription = "codegen_histories.get.description";
+
+    /// <summary>
+    /// 生成历史不存在（参数 <c>id</c>）。
+    /// </summary>
+    public const string HistoryNotFound = "codegeneration.history.not_found";
+
+    /// <summary>
+    /// 生成历史没有产物包或已到期（参数 <c>id</c>）。
+    /// </summary>
+    public const string HistoryPackageNotFound = "codegeneration.history.package_not_found";
+
+    /// <summary>
+    /// 写进项目没在开发环境或开关没开。
+    /// </summary>
+    public const string ProjectDisabled = "codegeneration.project.disabled";
+
+    /// <summary>
+    /// 没有配置根目录（参数 <c>key</c>）。
+    /// </summary>
+    public const string ProjectRootMissing = "codegeneration.project.root_missing";
+
+    /// <summary>
+    /// 后端根目录不对（参数 <c>key</c>、<c>path</c>）。
+    /// </summary>
+    public const string ProjectBackendRootInvalid = "codegeneration.project.backend_root_invalid";
+
+    /// <summary>
+    /// 前端根目录不对（参数 <c>key</c>、<c>path</c>）。
+    /// </summary>
+    public const string ProjectFrontendRootInvalid = "codegeneration.project.frontend_root_invalid";
+
+    /// <summary>
+    /// 加入已有包却没有这个包（参数 <c>project</c>、<c>path</c>）。
+    /// </summary>
+    public const string ProjectPackageMissing = "codegeneration.project.package_missing";
+
+    /// <summary>
+    /// 产物路径越出根目录（参数 <c>path</c>）。
+    /// </summary>
+    public const string ProjectPathOutside = "codegeneration.project.path_outside";
+
+    /// <summary>
+    /// 项目里有同名的手写文件（参数 <c>path</c>、<c>generated</c>）。
+    /// </summary>
+    public const string ProjectForeignManual = "codegeneration.project.foreign_manual";
+
+    /// <summary>
     /// 关联列不是 Guid（参数 <c>column</c>、<c>type</c>）。
     /// </summary>
     public const string GenerateRelationNotGuid = "codegeneration.generate.relation_not_guid";

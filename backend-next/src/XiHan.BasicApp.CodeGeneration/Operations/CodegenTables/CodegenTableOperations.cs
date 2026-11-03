@@ -400,3 +400,28 @@ public sealed class PreviewCodegenTable(CodeGenEngine engine) : IOperation<Previ
         return rendered.TryGetValue(out var artifacts) ? new CodegenPreviewResponse([.. artifacts.Select(CodegenArtifactResponse.From)]) : rendered.Error!;
     }
 }
+
+/// <summary>
+/// 生成一张表的代码。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/codegen-tables/{id}:generate</c>。照 4.x 按交付方式分流：打包的存成 7 天的临时文件、从生成历史下载；写进项目只在开发环境且打开开关时（方案 C1），否则 <c>CODEGENERATION_VALIDATION_010</c>。
+/// 不论成败都记一条生成历史，成功才回写表的生成状态；配置检查与渲染的失败同预览。
+/// </remarks>
+/// <param name="service">生成代码。</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TablesExecute)]
+public sealed class GenerateCodegenTable(CodeGenGenerationService service) : IOperation<GenerateCodegenTableRequest, CodegenGenerateResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "codegen-tables.generate";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<CodegenGenerateResponse>> HandleAsync(GenerateCodegenTableRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return await service.GenerateAsync(request, context).ConfigureAwait(false);
+    }
+}

@@ -60,10 +60,12 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         IEnumerable<KeyValuePair<string, string?>>? settings = null,
         Action<WebApplicationBuilder>? configure = null,
         Action<WebApplication>? configureApp = null,
-        Action<WebApplication>? afterMap = null)
+        Action<WebApplication>? afterMap = null,
+        string[]? args = null)
     {
+        // 命令行参数给要换宿主环境的用例（如 --environment Development），环境在建宿主时就定下
         var app = BasicAppHost.Create(
-            [],
+            args ?? [],
             builder =>
             {
                 builder.WebHost.UseTestServer();

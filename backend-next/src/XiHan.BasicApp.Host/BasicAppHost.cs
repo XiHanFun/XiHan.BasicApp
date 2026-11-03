@@ -228,7 +228,7 @@ public static class BasicAppHost
     /// 映射不能用操作表达的普通端点。
     /// </summary>
     /// <remarks>
-    /// 包括根路径的应用信息、文件的上传与下载、实时 Hub、聊天附件的上传（聊天模块开着时）；OAuth 重定向、Webhook 随各包补入。
+    /// 包括根路径的应用信息、文件的上传与下载、实时 Hub、聊天附件的上传（聊天模块开着时）、代码生成产物包的下载（代码生成模块开着时）；OAuth 重定向、Webhook 随各包补入。
     /// </remarks>
     public static IEndpointRouteBuilder MapBasicAppEndpoints(this IEndpointRouteBuilder endpoints)
     {
@@ -243,6 +243,11 @@ public static class BasicAppHost
         if (HostModules.FromConfiguration(endpoints.ServiceProvider.GetRequiredService<IConfiguration>()).Chat)
         {
             endpoints.MapChatEndpoints();
+        }
+
+        if (HostModules.FromConfiguration(endpoints.ServiceProvider.GetRequiredService<IConfiguration>()).CodeGeneration)
+        {
+            endpoints.MapCodeGenerationEndpoints();
         }
 
         endpoints.MapTelegramWebhook();

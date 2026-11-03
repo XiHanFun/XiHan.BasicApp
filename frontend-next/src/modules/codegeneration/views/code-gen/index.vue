@@ -8,12 +8,13 @@ import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '~/stores'
 import DatasourcePanel from './components/DatasourcePanel.vue'
+import HistoryPanel from './components/HistoryPanel.vue'
 import TablePanel from './components/TablePanel.vue'
 import TemplatePanel from './components/TemplatePanel.vue'
 
 defineOptions({ name: 'CodegenerationCodeGenView' })
 
-type CodeGenTab = 'table' | 'datasource' | 'template'
+type CodeGenTab = 'table' | 'datasource' | 'template' | 'history'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -22,6 +23,7 @@ const tabs = computed(() => ({
   table: auth.can('codegeneration.codegen-tables.read'),
   datasource: auth.can('codegeneration.codegen-datasources.read'),
   template: auth.can('codegeneration.codegen-templates.read'),
+  history: auth.can('codegeneration.codegen-histories.read'),
 }))
 
 const activeTab = ref<CodeGenTab>('table')
@@ -50,6 +52,9 @@ watchEffect(() => {
         <XhTabsTrigger v-if="tabs.template" value="template">
           {{ t('codegeneration.code_gen.tabs.template') }}
         </XhTabsTrigger>
+        <XhTabsTrigger v-if="tabs.history" value="history">
+          {{ t('codegeneration.code_gen.tabs.history') }}
+        </XhTabsTrigger>
         <XhTabsIndicator />
       </XhTabsList>
       <XhTabsContent v-if="tabs.table" value="table">
@@ -60,6 +65,9 @@ watchEffect(() => {
       </XhTabsContent>
       <XhTabsContent v-if="tabs.template" value="template">
         <TemplatePanel />
+      </XhTabsContent>
+      <XhTabsContent v-if="tabs.history" value="history">
+        <HistoryPanel />
       </XhTabsContent>
     </XhTabsRoot>
   </div>

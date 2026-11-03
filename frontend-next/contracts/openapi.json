@@ -51,6 +51,11 @@
       "description": "External databases to import table schemas from and to query in the no-code runtime; credentials are stored encrypted."
     },
     {
+      "name": "codegen-histories",
+      "x-displayName": "Code generation history",
+      "description": "A record of every generation run: outcome, files, templates and the package download."
+    },
+    {
       "name": "codegen-table-columns",
       "x-displayName": "Code generation columns",
       "description": "Column configurations of a table: types, form controls, query modes and option sources."
@@ -8842,6 +8847,256 @@
         }
       }
     },
+    "/api/codegen-histories/{id}": {
+      "get": {
+        "operationId": "codegen-histories.get",
+        "tags": [
+          "codegen-histories"
+        ],
+        "summary": "Get code generation history",
+        "description": "Get one history entry with the generated files, the templates used, the table configuration snapshot and the failure reason.\n\nRequires permission codegeneration.codegen-histories.read (Read code generation history).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-histories.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u751F\u6210\u5386\u53F2 ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u751F\u6210\u5386\u53F2 ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u751F\u6210\u5386\u53F2\u7684\u8BE6\u60C5\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenHistoryDetailResponse",
+                  "description": "\u751F\u6210\u5386\u53F2\u7684\u8BE6\u60C5\u3002",
+                  "type": "object",
+                  "properties": {
+                    "history": {
+                      "description": "\u751F\u6210\u5386\u53F2\u3002",
+                      "$ref": "#/components/schemas/CodegenHistoryResponse"
+                    },
+                    "generatedFiles": {
+                      "description": "\u4EA7\u7269\u6587\u4EF6\uFF08\u5305\u5185\u8DEF\u5F84\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "usedTemplates": {
+                      "description": "\u7528\u5230\u7684\u6A21\u677F\u7F16\u7801\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "tableSnapshot": {
+                      "description": "\u8868\u914D\u7F6E\u5FEB\u7167\u3002",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/CodegenTableSnapshot"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "\u5931\u8D25\u539F\u56E0\uFF08\u9519\u8BEF\u7801\u4E0E\u751F\u6210\u65F6\u7684\u6587\u6848\uFF09\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operatorId": {
+                      "description": "\u64CD\u4F5C\u4EBA ID\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operatorIp": {
+                      "description": "\u64CD\u4F5C\u4EBA IP\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "history",
+                    "generatedFiles",
+                    "usedTemplates"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-histories/{id}/package": {
+      "get": {
+        "operationId": "codegen-histories.package",
+        "tags": [
+          "codegen-histories"
+        ],
+        "summary": "Download the generated package of a code generation history entry as a zip file.",
+        "description": "Requires permission codegeneration.codegen-histories.read (Read code generation history).",
+        "x-xihan-permission": "codegeneration.codegen-histories.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-histories:list": {
+      "post": {
+        "operationId": "codegen-histories.list",
+        "tags": [
+          "codegen-histories"
+        ],
+        "summary": "List code generation history",
+        "description": "List the code generation history with paging; the keyword matches the table name and batch number, and results can be filtered by table, outcome, delivery and generation time.\n\nRequires permission codegeneration.codegen-histories.read (Read code generation history).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-histories.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfCodegenHistoryResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CodegenHistoryResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/codegen-table-columns": {
       "get": {
         "operationId": "codegen-table-columns.list",
@@ -9534,6 +9789,156 @@
                     "status",
                     "concurrencyStamp",
                     "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/codegen-tables/{id}:generate": {
+      "post": {
+        "operationId": "codegen-tables.generate",
+        "tags": [
+          "codegen-tables"
+        ],
+        "summary": "Generate code",
+        "description": "Generate the code of a table configuration: as a package kept as a 7-day temporary file and downloaded from the history, or written into the project in development (write-once files that already exist are skipped); every run is recorded in the history.\n\nRequires permission codegeneration.codegen-tables.execute (Generate code).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "codegeneration.codegen-tables.execute",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "required": true,
+            "schema": {
+              "description": "\u8868\u914D\u7F6E ID\u3002",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "codegen-tables.generate \u7684\u8BF7\u6C42\u3002",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "GenerateCodegenTableRequest",
+                "description": "codegen-tables.generate \u7684\u8BF7\u6C42\u3002",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u8868\u914D\u7F6E ID\u3002",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deliveryType": {
+                    "description": "\u4EA4\u4ED8\u65B9\u5F0F\uFF1B\u4E0D\u7ED9\u6309\u8868\u914D\u7F6E\u7684\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/CodeGenDeliveryType"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "templateCodes": {
+                    "description": "\u53EA\u7528\u8FD9\u51E0\u4EFD\u6A21\u677F\uFF1B\u4E0D\u7ED9\u6309\u8868\u7684\u751F\u6210\u6A21\u5F0F\u53D6\u542F\u7528\u7684\u6A21\u677F\u3002",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "codegen-tables.generate \u7684\u54CD\u5E94\u3002",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CodegenGenerateResponse",
+                  "description": "codegen-tables.generate \u7684\u54CD\u5E94\u3002",
+                  "type": "object",
+                  "properties": {
+                    "historyId": {
+                      "description": "\u8FD9\u6B21\u751F\u6210\u7684\u5386\u53F2 ID\u3002",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "deliveryType": {
+                      "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+                      "$ref": "#/components/schemas/CodeGenDeliveryType"
+                    },
+                    "fileCount": {
+                      "description": "\u4EA7\u7269\u6587\u4EF6\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "duration": {
+                      "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09\u3002",
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "fileId": {
+                      "description": "\u4EA7\u7269\u5305\u7684\u6587\u4EF6 ID\uFF1B\u5199\u8FDB\u9879\u76EE\u65F6\u4E3A\u7A7A\u3002",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "writtenCount": {
+                      "description": "\u5199\u8FDB\u9879\u76EE\u7684\u6587\u4EF6\u6570\u3002",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "skippedPaths": {
+                      "description": "\u8DF3\u8FC7\u7684\u6587\u4EF6\uFF08\u5DF2\u5B58\u5728\u7684\u53EA\u9996\u6B21\u5199\u7684\u6587\u4EF6\uFF09\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "targetRoots": {
+                      "description": "\u5199\u5230\u7684\u6839\u76EE\u5F55\u3002",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "historyId",
+                    "deliveryType",
+                    "fileCount",
+                    "duration",
+                    "writtenCount",
+                    "skippedPaths",
+                    "targetRoots"
                   ]
                 }
               }
@@ -57084,6 +57489,94 @@
           "isSplit"
         ]
       },
+      "CodegenHistoryResponse": {
+        "description": "\u751F\u6210\u5386\u53F2\u7684\u4E00\u884C\u3002",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableId": {
+            "description": "\u8868\u914D\u7F6E ID\u3002",
+            "type": "string",
+            "format": "uuid"
+          },
+          "tableName": {
+            "description": "\u8868\u540D\u3002",
+            "type": "string"
+          },
+          "batchNumber": {
+            "description": "\u6279\u6B21\u53F7\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "generationStatus": {
+            "description": "\u7ED3\u679C\u3002",
+            "$ref": "#/components/schemas/CodeGenGenerationStatus"
+          },
+          "deliveryType": {
+            "description": "\u4EA4\u4ED8\u65B9\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenDeliveryType"
+          },
+          "generatedAt": {
+            "description": "\u751F\u6210\u65F6\u95F4\u3002",
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration": {
+            "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09\u3002",
+            "type": "integer",
+            "format": "int64"
+          },
+          "fileCount": {
+            "description": "\u4EA7\u7269\u6587\u4EF6\u6570\u3002",
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalSize": {
+            "description": "\u4EA7\u7269\u603B\u5927\u5C0F\uFF08\u5B57\u8282\uFF09\u3002",
+            "type": "integer",
+            "format": "int64"
+          },
+          "genPath": {
+            "description": "\u5199\u8FDB\u9879\u76EE\u65F6\u5199\u5230\u7684\u6839\u76EE\u5F55\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "packageExpiresAt": {
+            "description": "\u4EA7\u7269\u5305\u5230\u671F\u65F6\u95F4\uFF1B\u6CA1\u6709\u4EA7\u7269\u5305\u4E3A\u7A7A\u3002",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "operatorName": {
+            "description": "\u64CD\u4F5C\u4EBA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "tableId",
+          "tableName",
+          "generationStatus",
+          "deliveryType",
+          "generatedAt",
+          "duration",
+          "fileCount",
+          "totalSize"
+        ]
+      },
       "CodegenImportFailure": {
         "description": "\u5BFC\u5165\u4E00\u5F20\u8868\u5931\u8D25\u7684\u539F\u56E0\u3002",
         "type": "object",
@@ -57722,6 +58215,74 @@
           "status",
           "concurrencyStamp",
           "createdAt"
+        ]
+      },
+      "CodegenTableSnapshot": {
+        "description": "\u8868\u914D\u7F6E\u5728\u751F\u6210\u65F6\u7684\u5FEB\u7167\u3002",
+        "type": "object",
+        "properties": {
+          "tableName": {
+            "description": "\u8868\u540D\u3002",
+            "type": "string"
+          },
+          "tableComment": {
+            "description": "\u8868\u6CE8\u91CA\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "className": {
+            "description": "\u7C7B\u540D\u3002",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "\u547D\u540D\u7A7A\u95F4\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moduleName": {
+            "description": "\u5305\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessName": {
+            "description": "\u4E1A\u52A1\u540D\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateType": {
+            "description": "\u751F\u6210\u6A21\u5F0F\u3002",
+            "$ref": "#/components/schemas/CodeGenTemplateType"
+          },
+          "scope": {
+            "description": "\u751F\u6210\u8303\u56F4\u3002",
+            "$ref": "#/components/schemas/CodeGenScope"
+          },
+          "target": {
+            "description": "\u751F\u6210\u76EE\u6807\u3002",
+            "$ref": "#/components/schemas/CodeGenTarget"
+          },
+          "enabledActions": {
+            "description": "\u52FE\u9009\u7684\u64CD\u4F5C\u3002",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "tableName",
+          "className",
+          "templateType",
+          "scope",
+          "target"
         ]
       },
       "CodegenTemplateResponse": {
@@ -67824,6 +68385,11 @@
         "displayName": "Update code generation data sources",
         "description": "Edit, enable or disable data sources and test their connections."
       },
+      "codegeneration.codegen-histories.read": {
+        "code": "codegeneration.codegen-histories.read",
+        "displayName": "Read code generation history",
+        "description": "View the code generation history and download the generated packages."
+      },
       "codegeneration.codegen-table-columns.read": {
         "code": "codegeneration.codegen-table-columns.read",
         "displayName": "Read code generation columns",
@@ -67838,6 +68404,11 @@
         "code": "codegeneration.codegen-tables.delete",
         "displayName": "Delete code generation tables",
         "description": "Delete table configurations together with their column configurations."
+      },
+      "codegeneration.codegen-tables.execute": {
+        "code": "codegeneration.codegen-tables.execute",
+        "displayName": "Generate code",
+        "description": "Generate the code of a table configuration as a downloadable package, or write it into the project in development."
       },
       "codegeneration.codegen-tables.import": {
         "code": "codegeneration.codegen-tables.import",
@@ -68676,6 +69247,7 @@
       "name": "Code generation",
       "tags": [
         "codegen-datasources",
+        "codegen-histories",
         "codegen-table-columns",
         "codegen-tables",
         "codegen-templates"

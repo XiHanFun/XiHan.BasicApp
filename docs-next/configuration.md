@@ -241,6 +241,9 @@
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `TablePrefixes` | `sys_` | 导入表时推断类名去掉的表名前缀，逗号分隔、取最长的匹配（5.x 是 `CodeGeneration:TablePrefixes`，缺省 `Sys_,Saas_`） |
+| `EnableGenerateToProject` | `false` | 允许「生成到项目」；打开了也只在 Development 生效（宿主的 `appsettings.Development.json` 打开） |
+| `BackendRootPath` | 无 | 写进项目时后端的根目录（含 `src/` 的 `backend-next`），相对宿主的内容根目录；开发配置是 `../..` |
+| `FrontendRootPath` | 无 | 写进项目时前端的根目录（含 `package.json` 的 `frontend-next`），相对宿主的内容根目录；开发配置是 `../../../frontend-next` |
 
 ## `BasicApp:Auth`
 

@@ -1,6 +1,6 @@
 import type { RouteDef } from './client'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiError, buildRequest, configureRequest, invoke } from './client'
+import { ApiError, buildRequest, configureRequest, downloadEndpoint, invoke } from './client'
 
 const create: RouteDef = { method: 'POST', template: '/api/users', path: [], query: [], success: 201 }
 const get: RouteDef = { method: 'GET', template: '/api/users/{id}', path: ['id'], query: [], success: 200 }
@@ -143,5 +143,24 @@ describe('invoke', () => {
     code = 'KERNEL_UNEXPECTED_001'
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'KERNEL_UNEXPECTED_001' })
     expect(onMaintenance).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('downloadEndpoint', () => {
+  it('sends the token to the plain endpoint and returns the content with the file name', async () => {
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(url)).toBe('https://api.example/api/codegen-histories/h-1/package')
+      expect((init!.headers as Record<string, string>).Authorization).toBe('Bearer t-1')
+      return new Response(new Uint8Array([80, 75]), { status: 200, headers: { 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="x.zip"; filename*=UTF-8\'\'%E5%95%86%E5%93%81.zip' } })
+    })
+    configureRequest({ baseUrl: 'https://api.example', fetch: fetchMock as unknown as typeof fetch, getToken: () => 't-1' })
+    const file = await downloadEndpoint('/api/codegen-histories/h-1/package')
+    expect(file.fileName).toBe('商品.zip')
+    expect(file.blob.size).toBe(2)
+  })
+
+  it('throws the problem as an ApiError', async () => {
+    configureRequest({ baseUrl: '', fetch: (async () => problem(404, { code: 'CODEGENERATION_NOTFOUND_005', status: 404, detail: 'gone' })) as unknown as typeof fetch, getToken: () => 't' })
+    await expect(downloadEndpoint('/api/codegen-histories/h-2/package')).rejects.toMatchObject({ code: 'CODEGENERATION_NOTFOUND_005' })
   })
 })

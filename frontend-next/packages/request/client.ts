@@ -222,3 +222,61 @@ export async function uploadForm<TResponse>(path: string, form: FormData, option
   }
   return readBody<TResponse>(response)
 }
+
+/** 普通端点下载的结果：内容与响应头给的文件名（没有时为空） */
+export interface DownloadedFile {
+  blob: Blob
+  fileName: string | null
+}
+
+/** Content-Disposition 里的文件名：优先 RFC 5987 的 filename*（UTF-8），否则 filename */
+function fileNameOf(disposition: string | null): string | null {
+  if (!disposition)
+    return null
+  const encoded = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(disposition)
+  if (encoded?.[1]) {
+    try {
+      return decodeURIComponent(encoded[1].trim())
+    }
+    catch {
+      return null
+    }
+  }
+  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition)
+  return plain?.[1]?.trim() || null
+}
+
+/**
+ * 从普通端点（不在路由表里、返回文件内容的端点，如代码生成的产物包）下载：带令牌、区域与 traceparent，
+ * 未认证时与 `invoke` 一样先换令牌重放一次；成功返回内容与文件名，失败抛 `ApiError`。
+ */
+export async function downloadEndpoint(path: string, options: { signal?: AbortSignal } = {}): Promise<DownloadedFile> {
+  const traceparent = newTraceparent()
+  const send = (token: string | null): Promise<Response> => {
+    const headers: Record<string, string> = {
+      'Accept-Language': config.getLocale?.() ?? 'en-US',
+      traceparent,
+    }
+    if (token)
+      headers.Authorization = `Bearer ${token}`
+    return (config.fetch ?? fetch)(endpointUrl(path), { method: 'GET', headers, signal: options.signal })
+  }
+
+  let response = await send(config.getToken?.() ?? null)
+  if (!response.ok) {
+    let error = await parseProblem(response, traceparent.split('-')[1] ?? '')
+    if ((error.code === ErrorCodes.unauthenticated || error.code === ErrorCodes.tokenRejected) && config.hooks?.onUnauthenticated) {
+      const refreshed = await config.hooks.onUnauthenticated()
+      if (refreshed) {
+        response = await send(refreshed)
+        if (response.ok)
+          return { blob: await response.blob(), fileName: fileNameOf(response.headers.get('Content-Disposition')) }
+        error = await parseProblem(response, traceparent.split('-')[1] ?? '')
+      }
+    }
+    if (error.code === ErrorCodes.sessionInvalid)
+      config.hooks?.onSessionInvalid?.(error)
+    throw error
+  }
+  return { blob: await response.blob(), fileName: fileNameOf(response.headers.get('Content-Disposition')) }
+}

@@ -58,6 +58,14 @@ public static class CodeGenerationPermissions
     public const string TablesImport = "codegeneration.codegen-tables.import";
 
     /// <summary>
+    /// 生成代码。
+    /// </summary>
+    /// <remarks>
+    /// 打包下载，或在开发环境写进项目。
+    /// </remarks>
+    public const string TablesExecute = "codegeneration.codegen-tables.execute";
+
+    /// <summary>
     /// 查看列配置。
     /// </summary>
     public const string TableColumnsRead = "codegeneration.codegen-table-columns.read";
@@ -88,6 +96,11 @@ public static class CodeGenerationPermissions
     public const string TemplatesDelete = "codegeneration.codegen-templates.delete";
 
     /// <summary>
+    /// 查看生成历史与下载产物包。
+    /// </summary>
+    public const string HistoriesRead = "codegeneration.codegen-histories.read";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -100,11 +113,13 @@ public static class CodeGenerationPermissions
         new(TablesUpdate, "Update code generation tables", PermissionScope.Platform, audited: true, description: "Edit, enable or disable table configurations."),
         new(TablesDelete, "Delete code generation tables", PermissionScope.Platform, audited: true, description: "Delete table configurations together with their column configurations."),
         new(TablesImport, "Import code generation tables", PermissionScope.Platform, audited: true, description: "Import database tables as table configurations and synchronize them with the latest schema."),
+        new(TablesExecute, "Generate code", PermissionScope.Platform, audited: true, description: "Generate the code of a table configuration as a downloadable package, or write it into the project in development."),
         new(TableColumnsRead, "Read code generation columns", PermissionScope.Platform, description: "View the column configurations of a table."),
         new(TableColumnsUpdate, "Update code generation columns", PermissionScope.Platform, audited: true, description: "Save the column configurations of a table."),
         new(TemplatesRead, "Read code generation templates", PermissionScope.Platform, description: "View the code generation templates and check their syntax."),
         new(TemplatesCreate, "Create code generation templates", PermissionScope.Platform, audited: true, description: "Create custom code generation templates."),
         new(TemplatesUpdate, "Update code generation templates", PermissionScope.Platform, audited: true, description: "Edit custom templates and enable or disable any template; built-in templates cannot be edited."),
         new(TemplatesDelete, "Delete code generation templates", PermissionScope.Platform, audited: true, description: "Delete custom templates; built-in templates cannot be deleted."),
+        new(HistoriesRead, "Read code generation history", PermissionScope.Platform, description: "View the code generation history and download the generated packages."),
     ];
 }

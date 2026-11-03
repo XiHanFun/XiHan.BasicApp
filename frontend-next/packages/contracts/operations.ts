@@ -86,10 +86,13 @@ export const routes = {
   'codegen-datasources.set-status': { method: 'POST', template: '/api/codegen-datasources/{id}:set-status', path: ['id'], query: [], success: 200 },
   'codegen-datasources.test-connection': { method: 'POST', template: '/api/codegen-datasources/{id}:test-connection', path: ['id'], query: [], success: 200 },
   'codegen-datasources.update': { method: 'PUT', template: '/api/codegen-datasources/{id}', path: ['id'], query: [], success: 200 },
+  'codegen-histories.get': { method: 'GET', template: '/api/codegen-histories/{id}', path: ['id'], query: [], success: 200 },
+  'codegen-histories.list': { method: 'POST', template: '/api/codegen-histories:list', path: [], query: [], success: 200 },
   'codegen-table-columns.list': { method: 'GET', template: '/api/codegen-table-columns', path: [], query: ['tableId'], success: 200 },
   'codegen-table-columns.save': { method: 'POST', template: '/api/codegen-table-columns:save', path: [], query: [], success: 200 },
   'codegen-tables.db-tables': { method: 'POST', template: '/api/codegen-tables:db-tables', path: [], query: [], success: 200 },
   'codegen-tables.delete': { method: 'DELETE', template: '/api/codegen-tables', path: [], query: ['ids'], success: 200 },
+  'codegen-tables.generate': { method: 'POST', template: '/api/codegen-tables/{id}:generate', path: ['id'], query: [], success: 200 },
   'codegen-tables.get': { method: 'GET', template: '/api/codegen-tables/{id}', path: ['id'], query: [], success: 200 },
   'codegen-tables.import': { method: 'POST', template: '/api/codegen-tables:import', path: [], query: [], success: 200 },
   'codegen-tables.list': { method: 'POST', template: '/api/codegen-tables:list', path: [], query: [], success: 200 },
@@ -589,6 +592,12 @@ export const codegenDatasources = {
   update: (request: RequestOf<'codegen-datasources.update'>, options?: CallOptions) => invoke<RequestOf<'codegen-datasources.update'>, ResponseOf<'codegen-datasources.update'>>('codegen-datasources.update', routes['codegen-datasources.update'], request, options),
 }
 
+/** 资源 `codegen-histories` 的操作。 */
+export const codegenHistories = {
+  get: (request: RequestOf<'codegen-histories.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.get'>, ResponseOf<'codegen-histories.get'>>('codegen-histories.get', routes['codegen-histories.get'], request, options),
+  list: (request: RequestOf<'codegen-histories.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-histories.list'>, ResponseOf<'codegen-histories.list'>>('codegen-histories.list', routes['codegen-histories.list'], request, options),
+}
+
 /** 资源 `codegen-table-columns` 的操作。 */
 export const codegenTableColumns = {
   list: (request: RequestOf<'codegen-table-columns.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-table-columns.list'>, ResponseOf<'codegen-table-columns.list'>>('codegen-table-columns.list', routes['codegen-table-columns.list'], request, options),
@@ -599,6 +608,7 @@ export const codegenTableColumns = {
 export const codegenTables = {
   dbTables: (request: RequestOf<'codegen-tables.db-tables'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.db-tables'>, ResponseOf<'codegen-tables.db-tables'>>('codegen-tables.db-tables', routes['codegen-tables.db-tables'], request, options),
   delete: (request: RequestOf<'codegen-tables.delete'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.delete'>, ResponseOf<'codegen-tables.delete'>>('codegen-tables.delete', routes['codegen-tables.delete'], request, options),
+  generate: (request: RequestOf<'codegen-tables.generate'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.generate'>, ResponseOf<'codegen-tables.generate'>>('codegen-tables.generate', routes['codegen-tables.generate'], request, options),
   get: (request: RequestOf<'codegen-tables.get'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.get'>, ResponseOf<'codegen-tables.get'>>('codegen-tables.get', routes['codegen-tables.get'], request, options),
   import: (request: RequestOf<'codegen-tables.import'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.import'>, ResponseOf<'codegen-tables.import'>>('codegen-tables.import', routes['codegen-tables.import'], request, options),
   list: (request: RequestOf<'codegen-tables.list'>, options?: CallOptions) => invoke<RequestOf<'codegen-tables.list'>, ResponseOf<'codegen-tables.list'>>('codegen-tables.list', routes['codegen-tables.list'], request, options),

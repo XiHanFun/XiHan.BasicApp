@@ -15,6 +15,7 @@ import ColumnConfigModal from './ColumnConfigModal.vue'
 import ImportTableModal from './ImportTableModal.vue'
 import PreviewModal from './PreviewModal.vue'
 import TableEditModal from './TableEditModal.vue'
+import { downloadPackage } from './use-histories'
 import { DELIVERY_TYPES, enumKey, GENERATION_STATUSES, tablesResource, TEMPLATE_TYPES } from './use-tables'
 
 defineOptions({ name: 'CodegenTablePanel' })
@@ -33,6 +34,8 @@ const columnVisible = ref(false)
 const previewVisible = ref(false)
 const currentTableName = ref<string | undefined>()
 const currentTableId = ref<null | string>(null)
+/** 生成中不再接受第二次点击（照 4.x） */
+const generating = ref(false)
 
 const asRow = (row: object) => row as TableRow
 
@@ -124,6 +127,10 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'codegeneration.codegen-tables.update' },
     { key: 'columns', title: t('codegeneration.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'codegeneration.codegen-table-columns.update' },
     { key: 'preview', title: t('codegeneration.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye', permission: 'codegeneration.codegen-tables.read' },
+    // 两个生成动作按表配置的交付方式二选一呈现（照 4.x），免得同时给两个入口让人猜
+    { key: 'generate', title: t('codegeneration.code_gen.table.action_generate'), scope: 'row', tone: 'brand', icon: 'lucide:download', visible: row => asRow(row).deliveryType === 'Zip', disabled: () => generating.value, permission: 'codegeneration.codegen-tables.execute' },
+    // 直接写开发机上的代码目录，已存在的只首次写的文件跳过，其余覆盖
+    { key: 'generateToDisk', title: t('codegeneration.code_gen.table.action_generate_to_disk'), scope: 'row', tone: 'brand', icon: 'lucide:folder-input', confirm: true, confirmText: () => t('codegeneration.code_gen.table.generate_to_disk_confirm'), visible: row => asRow(row).deliveryType === 'Project', disabled: () => generating.value, permission: 'codegeneration.codegen-tables.execute' },
     { key: 'sync', title: t('codegeneration.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', confirm: true, confirmText: () => t('codegeneration.code_gen.table.sync_confirm'), permission: 'codegeneration.codegen-tables.import' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).tableName), permission: 'codegeneration.codegen-tables.delete' },
   ],
@@ -154,6 +161,14 @@ function onAction(payload: SchemaActionPayload) {
         previewVisible.value = true
       }
       break
+    case 'generate':
+      if (row)
+        void handleGenerate(row)
+      break
+    case 'generateToDisk':
+      if (row)
+        void handleGenerateToDisk(row)
+      break
     case 'sync':
       if (row)
         void handleSync(row)
@@ -162,6 +177,45 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         void handleDelete(row)
       break
+  }
+}
+
+/** 生成并下载：生成之后从生成历史的下载端点取产物包（4.x 在响应里带 Base64） */
+async function handleGenerate(row: TableRow) {
+  if (generating.value)
+    return
+  generating.value = true
+  try {
+    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Zip' })
+    await downloadPackage({ id: result.historyId, tableName: row.tableName, batchNumber: null })
+    toast.success(t('codegeneration.code_gen.generate.generate_success', { count: result.fileCount }))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('codegeneration.code_gen.generate.generate_failed'))
+    reload()
+  }
+  finally {
+    generating.value = false
+  }
+}
+
+/** 生成到项目：后端写进 backend-next、前端写进 frontend-next（只在开发环境打开） */
+async function handleGenerateToDisk(row: TableRow) {
+  if (generating.value)
+    return
+  generating.value = true
+  try {
+    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Project' })
+    toast.success(t('codegeneration.code_gen.generate.write_success', { written: result.writtenCount, skipped: result.skippedPaths.length, location: result.targetRoots.join('、') }))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('codegeneration.code_gen.generate.write_failed'))
+    reload()
+  }
+  finally {
+    generating.value = false
   }
 }
 

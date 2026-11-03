@@ -1677,6 +1677,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/codegen-histories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get code generation history
+         * @description Get one history entry with the generated files, the templates used, the table configuration snapshot and the failure reason.
+         *
+         *     Requires permission codegeneration.codegen-histories.read (Read code generation history).
+         */
+        get: operations["codegen-histories.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-histories/{id}/package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download the generated package of a code generation history entry as a zip file.
+         * @description Requires permission codegeneration.codegen-histories.read (Read code generation history).
+         */
+        get: operations["codegen-histories.package"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-histories:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List code generation history
+         * @description List the code generation history with paging; the keyword matches the table name and batch number, and results can be filtered by table, outcome, delivery and generation time.
+         *
+         *     Requires permission codegeneration.codegen-histories.read (Read code generation history).
+         */
+        post: operations["codegen-histories.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/codegen-table-columns": {
         parameters: {
             query?: never;
@@ -1765,6 +1829,28 @@ export interface paths {
          */
         put: operations["codegen-tables.update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/codegen-tables/{id}:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate code
+         * @description Generate the code of a table configuration: as a package kept as a 7-day temporary file and downloaded from the history, or written into the project in development (write-once files that already exist are skipped); every run is recorded in the history.
+         *
+         *     Requires permission codegeneration.codegen-tables.execute (Generate code).
+         */
+        post: operations["codegen-tables.generate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9766,6 +9852,56 @@ export interface components {
             /** @description 是否分表。 */
             isSplit: boolean;
         };
+        /** @description 生成历史的一行。 */
+        CodegenHistoryResponse: {
+            /**
+             * Format: uuid
+             * @description ID。
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 表配置 ID。
+             */
+            tableId: string;
+            /** @description 表名。 */
+            tableName: string;
+            /** @description 批次号。 */
+            batchNumber?: string | null;
+            /** @description 结果。 */
+            generationStatus: components["schemas"]["CodeGenGenerationStatus"];
+            /** @description 交付方式。 */
+            deliveryType: components["schemas"]["CodeGenDeliveryType"];
+            /**
+             * Format: date-time
+             * @description 生成时间。
+             */
+            generatedAt: string;
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）。
+             */
+            duration: number;
+            /**
+             * Format: int32
+             * @description 产物文件数。
+             */
+            fileCount: number;
+            /**
+             * Format: int64
+             * @description 产物总大小（字节）。
+             */
+            totalSize: number;
+            /** @description 写进项目时写到的根目录。 */
+            genPath?: string | null;
+            /**
+             * Format: date-time
+             * @description 产物包到期时间；没有产物包为空。
+             */
+            packageExpiresAt?: string | null;
+            /** @description 操作人。 */
+            operatorName?: string | null;
+        };
         /** @description 导入一张表失败的原因。 */
         CodegenImportFailure: {
             /** @description 表名。 */
@@ -10022,6 +10158,29 @@ export interface components {
              * @description 修改时间（UTC）。
              */
             modifiedAt?: string | null;
+        };
+        /** @description 表配置在生成时的快照。 */
+        CodegenTableSnapshot: {
+            /** @description 表名。 */
+            tableName: string;
+            /** @description 表注释。 */
+            tableComment?: string | null;
+            /** @description 类名。 */
+            className: string;
+            /** @description 命名空间。 */
+            namespace?: string | null;
+            /** @description 包名。 */
+            moduleName?: string | null;
+            /** @description 业务名。 */
+            businessName?: string | null;
+            /** @description 生成模式。 */
+            templateType: components["schemas"]["CodeGenTemplateType"];
+            /** @description 生成范围。 */
+            scope: components["schemas"]["CodeGenScope"];
+            /** @description 生成目标。 */
+            target: components["schemas"]["CodeGenTarget"];
+            /** @description 勾选的操作。 */
+            enabledActions?: string | null;
         };
         /** @description 模板的列表项。 */
         CodegenTemplateResponse: {
@@ -18866,6 +19025,129 @@ export interface operations {
             };
         };
     };
+    "codegen-histories.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 生成历史 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 生成历史的详情。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 生成历史。 */
+                        history: components["schemas"]["CodegenHistoryResponse"];
+                        /** @description 产物文件（包内路径）。 */
+                        generatedFiles: string[];
+                        /** @description 用到的模板编码。 */
+                        usedTemplates: string[];
+                        /** @description 表配置快照。 */
+                        tableSnapshot?: components["schemas"]["CodegenTableSnapshot"] | null;
+                        /** @description 失败原因（错误码与生成时的文案）。 */
+                        errorMessage?: string | null;
+                        /** @description 操作人 ID。 */
+                        operatorId?: string | null;
+                        /** @description 操作人 IP。 */
+                        operatorIp?: string | null;
+                        /** @description 备注。 */
+                        remark?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-histories.package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-histories.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CodegenHistoryResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "codegen-table-columns.list": {
         parameters: {
             query: {
@@ -19178,6 +19460,85 @@ export interface operations {
                          * @description 修改时间（UTC）。
                          */
                         modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "codegen-tables.generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 表配置 ID。 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description codegen-tables.generate 的请求。 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 表配置 ID。
+                     */
+                    id: string;
+                    /** @description 交付方式；不给按表配置的交付方式。 */
+                    deliveryType?: components["schemas"]["CodeGenDeliveryType"] | null;
+                    /** @description 只用这几份模板；不给按表的生成模式取启用的模板。 */
+                    templateCodes?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description codegen-tables.generate 的响应。 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 这次生成的历史 ID。
+                         */
+                        historyId: string;
+                        /** @description 交付方式。 */
+                        deliveryType: components["schemas"]["CodeGenDeliveryType"];
+                        /**
+                         * Format: int32
+                         * @description 产物文件数。
+                         */
+                        fileCount: number;
+                        /**
+                         * Format: int64
+                         * @description 耗时（毫秒）。
+                         */
+                        duration: number;
+                        /**
+                         * Format: uuid
+                         * @description 产物包的文件 ID；写进项目时为空。
+                         */
+                        fileId?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 写进项目的文件数。
+                         */
+                        writtenCount: number;
+                        /** @description 跳过的文件（已存在的只首次写的文件）。 */
+                        skippedPaths: string[];
+                        /** @description 写到的根目录。 */
+                        targetRoots: string[];
                     };
                 };
             };

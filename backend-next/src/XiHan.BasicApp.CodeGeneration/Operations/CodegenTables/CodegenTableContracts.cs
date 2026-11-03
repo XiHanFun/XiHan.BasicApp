@@ -289,6 +289,30 @@ public sealed record CodegenTableIdsRequest([Required, MinLength(1), MaxLength(1
 public sealed record PreviewCodegenTableRequest(Guid Id, IReadOnlyList<string>? TemplateCodes = null);
 
 /// <summary>
+/// <c>codegen-tables.generate</c> 的请求。
+/// </summary>
+/// <param name="Id">表配置 ID。</param>
+/// <param name="DeliveryType">交付方式；不给按表配置的交付方式。</param>
+/// <param name="TemplateCodes">只用这几份模板；不给按表的生成模式取启用的模板。</param>
+public sealed record GenerateCodegenTableRequest(Guid Id, CodeGenDeliveryType? DeliveryType = null, IReadOnlyList<string>? TemplateCodes = null);
+
+/// <summary>
+/// <c>codegen-tables.generate</c> 的响应。
+/// </summary>
+/// <remarks>
+/// 打包的从生成历史的下载端点取产物包（<c>GET /api/codegen-histories/{id}/package</c>）；写进项目的给出写了几个、跳过了哪些（已存在的只首次写的文件）与写到的根目录。
+/// </remarks>
+/// <param name="HistoryId">这次生成的历史 ID。</param>
+/// <param name="DeliveryType">交付方式。</param>
+/// <param name="FileCount">产物文件数。</param>
+/// <param name="Duration">耗时（毫秒）。</param>
+/// <param name="FileId">产物包的文件 ID；写进项目时为空。</param>
+/// <param name="WrittenCount">写进项目的文件数。</param>
+/// <param name="SkippedPaths">跳过的文件（已存在的只首次写的文件）。</param>
+/// <param name="TargetRoots">写到的根目录。</param>
+public sealed record CodegenGenerateResponse(Guid HistoryId, CodeGenDeliveryType DeliveryType, int FileCount, long Duration, Guid? FileId, int WrittenCount, IReadOnlyList<string> SkippedPaths, IReadOnlyList<string> TargetRoots);
+
+/// <summary>
 /// 一个生成的文件。
 /// </summary>
 /// <param name="Path">产物包里的路径：<c>backend/…</c>（相对 <c>backend-next</c>）、<c>frontend/…</c>（相对 <c>frontend-next</c>）或 <c>_registration/…</c>。</param>

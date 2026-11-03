@@ -78,7 +78,7 @@
 
 | 能力 | 6.0 去处 | 状态 |
 | --- | --- | --- |
-| 代码生成 | CodeGeneration：数据源、表结构导入与表和列配置、模板维护与预览（后端与前端模板按 6.0 写法重写）已落地；生成与零代码运行时随后 | 部分落地（N3） |
+| 代码生成 | CodeGeneration：数据源、表结构导入与表和列配置、模板维护与预览（后端与前端模板按 6.0 写法重写）、生成与生成历史已落地；零代码运行时随后 | 部分落地（N3） |
 | 流程定义 / 流程实例 | Workflow：框架 `workflow.execution@1` 的数据库 Provider，定义 JSON 为 5.0 `WorkflowJson`，设计器照 4.x | 已落地 |
 | 打印模板 | Printing `print-templates.*`、`print-data-sources.list`：平台全局模板与租户模板、按编码解析、数据源经 `AddPrintDataSource` 登记；拖拽设计、样例数据、预览与直打 | 已落地 |
 | AI 提供商 / 提示词 / 知识库 / 助手 | AI：架在框架 `AI.Abstractions`、`AI.OpenAI`、`AI.VectorData` 之上 | 规划中（N4） |

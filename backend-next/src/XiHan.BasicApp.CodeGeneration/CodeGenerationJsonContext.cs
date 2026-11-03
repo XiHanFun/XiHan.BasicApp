@@ -3,6 +3,7 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
+using XiHan.BasicApp.CodeGeneration.Operations.CodegenHistories;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTableColumns;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTables;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenTemplates;
@@ -63,6 +64,14 @@ namespace XiHan.BasicApp.CodeGeneration;
 [JsonSerializable(typeof(ValidateCodegenTemplateRequest))]
 [JsonSerializable(typeof(CodegenTemplateValidationResponse))]
 [JsonSerializable(typeof(string[]))]
+[JsonSerializable(typeof(List<string>))]
+[JsonSerializable(typeof(GenerateCodegenTableRequest))]
+[JsonSerializable(typeof(CodegenGenerateResponse))]
+[JsonSerializable(typeof(CodegenHistoryIdRequest))]
+[JsonSerializable(typeof(CodegenHistoryResponse))]
+[JsonSerializable(typeof(CodegenHistoryDetailResponse))]
+[JsonSerializable(typeof(CodegenTableSnapshot))]
+[JsonSerializable(typeof(PageResult<CodegenHistoryResponse>))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class CodeGenerationJsonContext : JsonSerializerContext;
