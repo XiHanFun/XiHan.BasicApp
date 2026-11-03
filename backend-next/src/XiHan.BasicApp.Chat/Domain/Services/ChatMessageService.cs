@@ -485,6 +485,41 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
+    /// 追加一条助手回复（刷新会话预览，不加未读）
+    /// </summary>
+    /// <remarks>
+    /// 助手不是成员：不核对成员、不算未读（照 4.x）；超长截断而不是拒绝：模型已经生成完，丢掉整条代价更大
+    /// </remarks>
+    public async Task<Result<ChatAppended>> AppendAssistantAsync(InvocationContext context, string side, Guid conversationId, Guid assistantId, string assistantName, string content)
+    {
+        var allocated = await store.NextSeqAsync(side, conversationId, context.CancellationToken).ConfigureAwait(false);
+        if (!allocated.TryGetValue(out var next))
+        {
+            return allocated.Error!;
+        }
+
+        var text = ChatRules.Truncate(content, ChatRules.MaxAssistantContentLength);
+        var message = new SysChatMessage
+        {
+            Id = ids.NewId(),
+            TenantId = side,
+            ConversationId = conversationId,
+            Seq = next.Seq,
+            SenderUserId = assistantId,
+            SenderName = ChatRules.Optional(assistantName, 50),
+            Type = ChatMessageType.Assistant,
+            Content = text,
+        };
+        await store.Rows.AppendAsync(message, context.CancellationToken).ConfigureAwait(false);
+        var conversation = next.Conversation;
+        conversation.LastMessageId = message.Id;
+        conversation.LastMessageAt = message.CreatedAt;
+        conversation.LastMessagePreview = texts.Preview(context, ChatMessageType.Assistant, text, []);
+        await store.Rows.UpdateAsync(conversation, context.CancellationToken).ConfigureAwait(false);
+        return new ChatAppended(message, conversation);
+    }
+
+    /// <summary>
     /// 秒传一个聊天附件
     /// </summary>
     public async Task<Result<ChatAttachmentUploadResponse>> FastUploadAsync(InvocationContext context, FastUploadChatAttachmentRequest request)

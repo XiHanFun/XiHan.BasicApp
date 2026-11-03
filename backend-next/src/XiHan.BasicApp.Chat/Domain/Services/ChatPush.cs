@@ -76,6 +76,24 @@ public sealed record ChatReactionChangedPayload(Guid ConversationId, Guid Messag
 public sealed record ChatReadPositionChangedPayload(Guid ConversationId, Guid UserId, Guid? LastReadMessageId, long LastReadSeq);
 
 /// <summary>
+/// <c>ChatAssistantDelta</c> 的载荷
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="ReplyId">前端生成的回复标识：增量按它归位到同一条占位气泡</param>
+/// <param name="Delta">增量文本</param>
+public sealed record ChatAssistantDeltaPayload(Guid ConversationId, string ReplyId, string Delta);
+
+/// <summary>
+/// <c>ChatAssistantCompleted</c> 的载荷
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="ReplyId">前端生成的回复标识</param>
+/// <param name="MessageId">落库的消息；失败为空</param>
+/// <param name="ErrorCode">失败的错误码</param>
+/// <param name="Error">失败的原因（调用方的区域）</param>
+public sealed record ChatAssistantCompletedPayload(Guid ConversationId, string ReplyId, Guid? MessageId, string? ErrorCode, string? Error);
+
+/// <summary>
 /// 聊天的推送（作用域）
 /// </summary>
 /// <remarks>
@@ -93,6 +111,27 @@ public sealed class ChatPush(IRealtimePush push)
         var payload = new ChatMessagePushPayload(message, new ChatConversationSnapshot(conversation.Id, conversation.Type, conversation.Name, conversation.LastMessageAt, conversation.LastMessagePreview));
         return push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ReceiveChatMessage, payload, ChatJsonContext.Default.ChatMessagePushPayload, cancellationToken);
     }
+
+    /// <summary>
+    /// 立即推一段助手增量，只给本人
+    /// </summary>
+    /// <remarks>
+    /// 增量不落库、不等提交：回复操作在写库之前没有开事务（方案 D10）
+    /// </remarks>
+    public ValueTask AssistantDeltaAsync(string side, Guid conversationId, string replyId, string delta, Guid userId, CancellationToken cancellationToken)
+        => push.SendNowAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, [userId]), ChatRealtimeMethods.ChatAssistantDelta, new ChatAssistantDeltaPayload(conversationId, replyId, delta), ChatJsonContext.Default.ChatAssistantDeltaPayload, cancellationToken);
+
+    /// <summary>
+    /// 立即推助手回复失败：调用随后回滚，等不到提交
+    /// </summary>
+    public ValueTask AssistantFailedAsync(string side, Guid conversationId, string replyId, string errorCode, string error, Guid userId, CancellationToken cancellationToken)
+        => push.SendNowAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, [userId]), ChatRealtimeMethods.ChatAssistantCompleted, new ChatAssistantCompletedPayload(conversationId, replyId, null, errorCode, error), ChatJsonContext.Default.ChatAssistantCompletedPayload, cancellationToken);
+
+    /// <summary>
+    /// 推助手回复完成：提交之后发出，排在落库消息的推送之后
+    /// </summary>
+    public ValueTask AssistantCompletedAsync(string side, Guid conversationId, string replyId, Guid messageId, Guid userId, CancellationToken cancellationToken)
+        => push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, [userId]), ChatRealtimeMethods.ChatAssistantCompleted, new ChatAssistantCompletedPayload(conversationId, replyId, messageId, null, null), ChatJsonContext.Default.ChatAssistantCompletedPayload, cancellationToken);
 
     /// <summary>
     /// 推撤回

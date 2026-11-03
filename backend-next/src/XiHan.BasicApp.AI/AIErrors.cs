@@ -28,6 +28,11 @@ public static class AIErrors
     public const string KnowledgeDocumentNotFound = "AI_NOTFOUND_103";
 
     /// <summary>
+    /// 助手不存在
+    /// </summary>
+    public const string AssistantNotFound = "AI_NOTFOUND_104";
+
+    /// <summary>
     /// 已有同编码的提供商
     /// </summary>
     public const string ProviderCodeTaken = "AI_CONFLICT_101";
@@ -43,9 +48,24 @@ public static class AIErrors
     public const string PromptCodeTaken = "AI_CONFLICT_103";
 
     /// <summary>
-    /// 提供商还被引用，不能删除
+    /// 提供商还被助手或知识文档引用，不能删除
     /// </summary>
     public const string ProviderInUse = "AI_CONFLICT_104";
+
+    /// <summary>
+    /// 已有同编码的助手
+    /// </summary>
+    public const string AssistantCodeTaken = "AI_CONFLICT_105";
+
+    /// <summary>
+    /// 停用的助手不能设为缺省
+    /// </summary>
+    public const string AssistantDisabled = "AI_CONFLICT_106";
+
+    /// <summary>
+    /// 提示词还被助手引用，不能删除
+    /// </summary>
+    public const string PromptInUse = "AI_CONFLICT_107";
 
     /// <summary>
     /// 列表不支持该筛选或排序
@@ -63,6 +83,21 @@ public static class AIErrors
     public const string KnowledgeNoChunks = "AI_VALIDATION_103";
 
     /// <summary>
+    /// 助手引用的提供商不存在或已停用
+    /// </summary>
+    public const string AssistantProviderUnavailable = "AI_VALIDATION_104";
+
+    /// <summary>
+    /// 助手引用的提示词不存在或已停用
+    /// </summary>
+    public const string AssistantPromptUnavailable = "AI_VALIDATION_105";
+
+    /// <summary>
+    /// 助手勾选的工具不在工具目录里
+    /// </summary>
+    public const string AssistantToolUnavailable = "AI_VALIDATION_106";
+
+    /// <summary>
     /// 提供商的 API 密钥解不开
     /// </summary>
     public const string ProviderSecretUnreadable = "AI_UNAVAILABLE_101";
@@ -71,4 +106,9 @@ public static class AIErrors
     /// 没有 OpenAI 兼容协议的模型 Provider
     /// </summary>
     public const string ProviderKindUnavailable = "AI_UNAVAILABLE_102";
+
+    /// <summary>
+    /// 助手引用的提示词不存在或已停用，回复不了
+    /// </summary>
+    public const string AssistantPromptDisabled = "AI_UNAVAILABLE_103";
 }

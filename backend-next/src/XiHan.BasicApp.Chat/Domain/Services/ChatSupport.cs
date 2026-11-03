@@ -58,6 +58,14 @@ public static class ChatRules
     public const int MaxContentLength = 4000;
 
     /// <summary>
+    /// 助手回复的长度上限
+    /// </summary>
+    /// <remarks>
+    /// 超长截断（照 4.x）
+    /// </remarks>
+    public const int MaxAssistantContentLength = 20000;
+
+    /// <summary>
     /// 会话预览的长度上限
     /// </summary>
     public const int MaxPreviewLength = 200;
@@ -91,6 +99,14 @@ public static class ChatRules
     /// 聊天附件在文件里的来源
     /// </summary>
     public const string AttachmentSource = "chat";
+
+    /// <summary>
+    /// 助手会话的唯一键：一个用户对一个助手只有一个会话
+    /// </summary>
+    /// <remarks>
+    /// 照 4.x
+    /// </remarks>
+    public static string AssistantPairKeyOf(Guid assistantId, Guid userId) => $"ai:{assistantId:N}:{userId:N}";
 
     /// <summary>
     /// 单聊的唯一键（两个用户 ID 小者在前）

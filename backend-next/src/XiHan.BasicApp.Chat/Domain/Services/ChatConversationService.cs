@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
+using XiHan.BasicApp.Contracts.Assistants;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Runtime.Queries;
@@ -63,6 +64,28 @@ public sealed class ChatConversationService(
         await store.Rows.InsertAsync(conversation, context.CancellationToken).ConfigureAwait(false);
         await AddMemberRowsAsync(caller.Side, conversation.Id, [caller.UserId, peerUserId], ownerUserId: null, context.CancellationToken).ConfigureAwait(false);
         return OpenedOf(conversation, created: true);
+    }
+
+    /// <summary>
+    /// 打开与助手的会话，没有即建
+    /// </summary>
+    /// <remarks>
+    /// 只有本人一个成员（照 4.x）
+    /// </remarks>
+    /// <returns>会话与是否新建</returns>
+    public async Task<Result<(SysChatConversation Conversation, bool Created)>> OpenAssistantAsync(InvocationContext context, ChatCaller caller, ChatAssistantInfo assistant)
+    {
+        var pairKey = ChatRules.AssistantPairKeyOf(assistant.Id, caller.UserId);
+        var existing = await store.Conversations(caller.Side).Where(c => c.PairKey == pairKey).Take(1).ToListAsync(context.CancellationToken).ConfigureAwait(false);
+        if (existing.Count > 0)
+        {
+            return (existing[0], false);
+        }
+
+        var conversation = new SysChatConversation { Id = ids.NewId(), TenantId = caller.Side, Type = ChatConversationType.Assistant, Name = assistant.Name, Avatar = assistant.Avatar, AssistantId = assistant.Id, PairKey = pairKey, MemberCount = 1 };
+        await store.Rows.InsertAsync(conversation, context.CancellationToken).ConfigureAwait(false);
+        await AddMemberRowsAsync(caller.Side, conversation.Id, [caller.UserId], ownerUserId: null, context.CancellationToken).ConfigureAwait(false);
+        return (conversation, true);
     }
 
     /// <summary>

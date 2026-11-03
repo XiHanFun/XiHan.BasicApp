@@ -186,3 +186,16 @@ public sealed record PresignChatAttachmentRequest(Guid ConversationId, Guid File
 /// <param name="Url">地址（原样使用，不能再拼参数）</param>
 /// <param name="ExpiresAt">到期时间（UTC）</param>
 public sealed record ChatAttachmentUrlResponse(string Url, DateTimeOffset ExpiresAt);
+
+/// <summary>
+/// <c>chat-messages.reply-assistant</c> 的请求
+/// </summary>
+/// <param name="ConversationId">助手会话</param>
+/// <param name="ReplyId">前端生成的回复标识：增量按它归位到同一条占位气泡</param>
+public sealed record ReplyAssistantRequest(Guid ConversationId, [Required, StringLength(64, MinimumLength = 1)] string ReplyId);
+
+/// <summary>
+/// <c>chat-messages.reply-assistant</c> 的响应
+/// </summary>
+/// <param name="MessageId">落库的助手消息</param>
+public sealed record ReplyAssistantResponse(Guid MessageId);

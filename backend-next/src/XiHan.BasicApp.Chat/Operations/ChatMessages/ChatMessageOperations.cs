@@ -335,3 +335,30 @@ public sealed class PresignChatAttachment(ChatMessageService service) : IOperati
         return caller.TryGetValue(out var me) ? await service.PresignAsync(context, me, request).ConfigureAwait(false) : caller.Error!;
     }
 }
+
+/// <summary>
+/// 请求助手回复
+/// </summary>
+/// <remarks>
+/// <c>POST /api/chat-messages:reply-assistant</c>（4.x <c>ChatAssistant/Reply</c>）。回复会话里最近一条用户提问：生成期间增量推给本人（<c>ChatAssistantDelta</c>），结束落库为一条助手消息、照常推送，再推 <c>ChatAssistantCompleted</c>
+/// 失败以 Problem Details 结束，同时立即推 <c>ChatAssistantCompleted</c> 带错误（方案 D13）；不是助手会话 <c>CHAT_VALIDATION_026</c>，没有提问 <c>CHAT_VALIDATION_027</c>，AI 关掉 <c>CHAT_UNAVAILABLE_001</c>，生成失败 <c>CHAT_UNAVAILABLE_002</c>，空输出 <c>CHAT_UNAVAILABLE_003</c>，命中敏感词 <c>CHAT_VALIDATION_023</c>
+/// 这次调用在写库之前不开事务，增量才能立即推（方案 D10）；工具以调用方身份执行，没有权限时模型收到拒绝、回复本身不失败
+/// </remarks>
+/// <param name="service">助手服务</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
+public sealed class ReplyAssistantChatMessage(ChatAssistantService service) : IOperation<ReplyAssistantRequest, ReplyAssistantResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-messages.reply-assistant";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ReplyAssistantResponse>> HandleAsync(ReplyAssistantRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await service.ReplyAsync(context, me, request.ConversationId, request.ReplyId).ConfigureAwait(false) : caller.Error!;
+    }
+}

@@ -15,6 +15,11 @@ namespace XiHan.BasicApp.AI;
 public static class AIPages
 {
     /// <summary>
+    /// 助手页
+    /// </summary>
+    public static PageDescriptor Assistants { get; } = new("ai.assistants", "/ai/assistants", "ai.assistants.title", "lucide:bot", 910, AIPermissions.AiAssistantsRead);
+
+    /// <summary>
     /// 提示词页
     /// </summary>
     public static PageDescriptor Prompts { get; } = new("ai.prompts", "/ai/prompts", "ai.prompts.title", "lucide:file-text", 920, AIPermissions.AiPromptsRead);
@@ -32,5 +37,5 @@ public static class AIPages
     /// <summary>
     /// 全部顶层页面
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Prompts, KnowledgeDocuments, Providers];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Assistants, Prompts, KnowledgeDocuments, Providers];
 }

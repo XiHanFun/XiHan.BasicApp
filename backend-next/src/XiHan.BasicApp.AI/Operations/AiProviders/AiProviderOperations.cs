@@ -292,7 +292,7 @@ public sealed class SetDefaultAiProvider(IRepository<SysAiProvider, Guid> provid
 /// 批量删除提供商
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/ai-providers?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_101</c>，还被知识文档引用 <c>AI_CONFLICT_104</c>（方案 D5）。软删除，同编码可以重建；删除后不再进 Provider 目录
+/// <c>DELETE /api/ai-providers?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_101</c>，还被助手或知识文档引用 <c>AI_CONFLICT_104</c>（方案 D5）。软删除，同编码可以重建；删除后不再进 Provider 目录
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
 /// <param name="service">提供商规则</param>

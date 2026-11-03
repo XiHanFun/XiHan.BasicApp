@@ -9,8 +9,7 @@ import XInput from '~/components/common/XInput.vue'
 import XTooltip from '~/components/common/XTooltip.vue'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
-import { hasChatAssistantProvider } from '../assistant-provider'
+import { getChatAssistantProvider, useUserStore } from '~/stores'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
@@ -45,8 +44,8 @@ const startOptions = computed<AppDropdownOption[]>(() => {
     { key: 'single', label: t('chat.start.single') },
     { key: 'department', label: t('chat.start.department') },
   ]
-  // AI 助手入口仅在助手提供方已注册（AI 模块在位）时出现
-  if (hasChatAssistantProvider()) {
+  // AI 助手入口仅在助手提供方已登记（AI 模块在位）、后端也没有关掉 AI 时出现
+  if (getChatAssistantProvider() && !chatStore.assistantsUnavailable) {
     options.push({ key: 'assistant', label: t('chat.start.assistant') })
   }
   // 建群需要会话管理权限（后端 chat.chat-conversations.manage 门控）
@@ -55,6 +54,13 @@ const startOptions = computed<AppDropdownOption[]>(() => {
   }
   return options
 })
+
+/** 首次展开「新建」菜单时问一次可用助手：只有「助手不可用」才隐藏入口，别的错误照常报 */
+function handleStartMenuOpen(details: { open: boolean }) {
+  if (details.open) {
+    chatStore.probeAssistants().catch(notifyFailure)
+  }
+}
 
 function handleStartSelect(key: string | number) {
   emit('start', String(key) as 'assistant' | 'department' | 'group' | 'single')
@@ -134,7 +140,7 @@ function handleItemAction(key: string) {
         </button>
       </XTooltip>
       <!-- 下拉与气泡叠在同一颗按钮上：菜单触发器借用它，说明文字走原生 title -->
-      <XDropdown :options="startOptions" @select="handleStartSelect">
+      <XDropdown :options="startOptions" @select="handleStartSelect" @open-change="handleStartMenuOpen">
         <button type="button" class="chat-icon-btn" :title="t('chat.start.button')" :aria-label="t('chat.start.button')">
           <Icon icon="lucide:message-square-plus" width="15" height="15" />
         </button>

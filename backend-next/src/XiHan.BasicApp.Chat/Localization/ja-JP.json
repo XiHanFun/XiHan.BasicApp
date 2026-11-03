@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "チャットメッセージの送信",
   "permissions.chat.chat_messages.send.description": "呼び出し元が参加している会話で、メッセージの送信、取り消し、編集、リアクション、ピン留め、転送と添付ファイルのアップロードを行います。",
   "permissions.chat.chat_audit.read.name": "チャット監査",
-  "permissions.chat.chat_audit.read.description": "現在の側のすべてのメッセージを検索し、会話のメンバーでなくてもメッセージの詳細と会話のメンバーを参照します。"
+  "permissions.chat.chat_audit.read.description": "現在の側のすべてのメッセージを検索し、会話のメンバーでなくてもメッセージの詳細と会話のメンバーを参照します。",
+  "chat_conversations.assistants.title": "利用可能なアシスタント",
+  "chat_conversations.assistants.description": "チャットで利用できるアシスタントを一覧表示します。AI モジュールがない場合はアシスタント利用不可を返します。",
+  "chat_conversations.open_assistant.title": "アシスタントとの会話を開く",
+  "chat_conversations.open_assistant.description": "アシスタントとの会話を開きます。ユーザーごとに 1 つのアシスタントにつき 1 つの会話で、なければ作成して挨拶を送ります。",
+  "chat_messages.reply_assistant.title": "アシスタントに返信を依頼",
+  "chat_messages.reply_assistant.description": "会話の最新の質問に返信します。増分はリアルタイムで本人に送られ、完了後にアシスタントのメッセージとして保存されます。ツールは呼び出し元の権限で実行します。",
+  "chat.assistant.not_assistant": "この会話はアシスタントとの会話ではありません。",
+  "chat.assistant.no_question": "この会話には回答できる質問がありません。",
+  "chat.assistant.unavailable": "アシスタントは利用できません。",
+  "chat.assistant.reply_failed": "アシスタントの返信の生成に失敗しました：{reason}",
+  "chat.assistant.reply_empty": "アシスタントは何も生成しませんでした。"
 }

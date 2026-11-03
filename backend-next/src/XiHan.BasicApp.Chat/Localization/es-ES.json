@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "Enviar mensajes de chat",
   "permissions.chat.chat_messages.send.description": "Enviar, retirar, editar, reaccionar, fijar y reenviar mensajes y subir adjuntos en las conversaciones del llamante.",
   "permissions.chat.chat_audit.read.name": "Auditar mensajes de chat",
-  "permissions.chat.chat_audit.read.description": "Buscar todos los mensajes del lado del llamante y ver los detalles de los mensajes y los miembros de las conversaciones sin ser miembro."
+  "permissions.chat.chat_audit.read.description": "Buscar todos los mensajes del lado del llamante y ver los detalles de los mensajes y los miembros de las conversaciones sin ser miembro.",
+  "chat_conversations.assistants.title": "Listar asistentes disponibles",
+  "chat_conversations.assistants.description": "Lista los asistentes disponibles en el chat. Indica que no están disponibles si el módulo de IA no está instalado.",
+  "chat_conversations.open_assistant.title": "Abrir una conversación con un asistente",
+  "chat_conversations.open_assistant.description": "Abre la conversación con un asistente. Cada usuario tiene una por asistente; si falta, se crea con el saludo.",
+  "chat_messages.reply_assistant.title": "Solicitar la respuesta del asistente",
+  "chat_messages.reply_assistant.description": "Responde a la última pregunta de la conversación. Los fragmentos se envían al usuario en tiempo real y el resultado se guarda como mensaje del asistente; las herramientas se ejecutan como el llamante.",
+  "chat.assistant.not_assistant": "Esta conversación no es con un asistente.",
+  "chat.assistant.no_question": "No hay ninguna pregunta que responder en esta conversación.",
+  "chat.assistant.unavailable": "Los asistentes no están disponibles.",
+  "chat.assistant.reply_failed": "No se pudo generar la respuesta del asistente: {reason}",
+  "chat.assistant.reply_empty": "El asistente no generó contenido."
 }

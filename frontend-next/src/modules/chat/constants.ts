@@ -3,6 +3,9 @@ import type { Permission } from '~/contracts'
 // ==================== 在线聊天 ====================
 // Hub 路径、推送方法名与客户端可调的 Hub 方法名一律取 ~/contracts 的 RealtimeHubs / RealtimeMethods / RealtimeInvocations（后端导出、生成入库）
 
+/** 「助手不可用」的错误码（后端没有装配 AI）：聊天列表只认这个码隐藏助手入口，别的错误照常报 */
+export const CHAT_ASSISTANT_UNAVAILABLE_CODE = 'CHAT_UNAVAILABLE_001'
+
 /** 聊天全屏页路径（后端 ChatPages 登记的 chat.conversations 页面） */
 export const CHAT_PAGE_PATH = '/chat/conversations'
 

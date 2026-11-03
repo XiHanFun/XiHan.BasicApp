@@ -43,7 +43,7 @@
 | 推送 | `ChatReadPositionChanged` | 已读位只前移，群消息的已读人数按序号比 |
 | 推送 | `ChatConversationChanged` | 按变更类型刷新会话列表、成员与群信息 |
 | 推送 | `ChatTyping` | 显示「正在输入」4 秒 |
-| 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复，随 N4 |
+| 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复：增量立即推给本人，结束或失败时收到完成，失败带 `errorCode` 与 `error` |
 | 调用 | `JoinConversation` / `LeaveConversation` | 打开与离开会话时进出会话组 |
 | 调用 | `Typing` | 输入时节流 3 秒调用一次 |
 

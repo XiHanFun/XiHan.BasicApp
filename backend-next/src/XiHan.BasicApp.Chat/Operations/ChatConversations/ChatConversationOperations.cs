@@ -156,6 +156,55 @@ public sealed class OpenSingleChatConversation(ChatConversationService service) 
 }
 
 /// <summary>
+/// 可用的助手
+/// </summary>
+/// <remarks>
+/// <c>GET /api/chat-conversations:assistants</c>（4.x <c>ChatAssistant/Available</c>）。AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>，前端据此隐藏助手入口
+/// </remarks>
+/// <param name="service">助手服务</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
+public sealed class ChatConversationAssistants(ChatAssistantService service) : IOperation<ChatAssistantsRequest, ChatAssistantsResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-conversations.assistants";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatAssistantsResponse>> HandleAsync(ChatAssistantsRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return await service.ListAsync(context).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 打开与助手的会话
+/// </summary>
+/// <remarks>
+/// <c>POST /api/chat-conversations:open-assistant</c>（4.x <c>ChatAssistant/OpenConversation</c>）。一个用户对一个助手只有一个会话，没有即建、发开场白；助手不存在或已停用照 AI 的错误码；AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>
+/// </remarks>
+/// <param name="service">助手服务</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
+public sealed class OpenAssistantChatConversation(ChatAssistantService service) : IOperation<OpenAssistantConversationRequest, ChatAssistantOpenResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-conversations.open-assistant";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatAssistantOpenResponse>> HandleAsync(OpenAssistantConversationRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await service.OpenAsync(context, me, request.AssistantId).ConfigureAwait(false) : caller.Error!;
+    }
+}
+
+/// <summary>
 /// 建群
 /// </summary>
 /// <remarks>

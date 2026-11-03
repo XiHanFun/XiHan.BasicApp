@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "Send chat messages",
   "permissions.chat.chat_messages.send.description": "Send, recall, edit, react to, pin, forward messages and upload attachments in conversations the caller belongs to.",
   "permissions.chat.chat_audit.read.name": "Audit chat messages",
-  "permissions.chat.chat_audit.read.description": "Search every message on the caller's side, view message details and conversation members without being a member."
+  "permissions.chat.chat_audit.read.description": "Search every message on the caller's side, view message details and conversation members without being a member.",
+  "chat_conversations.assistants.title": "List available assistants",
+  "chat_conversations.assistants.description": "List the assistants available in chat. Reports assistants as unavailable when the AI module is not installed.",
+  "chat_conversations.open_assistant.title": "Open an assistant conversation",
+  "chat_conversations.open_assistant.description": "Open the conversation with an assistant. A user has one conversation per assistant; it is created with the greeting if missing.",
+  "chat_messages.reply_assistant.title": "Request an assistant reply",
+  "chat_messages.reply_assistant.description": "Reply to the latest question in the conversation. Deltas are pushed to you in real time and the result is saved as an assistant message; tools run as the caller.",
+  "chat.assistant.not_assistant": "This conversation is not an assistant conversation.",
+  "chat.assistant.no_question": "There is no question to answer in this conversation.",
+  "chat.assistant.unavailable": "Assistants are not available.",
+  "chat.assistant.reply_failed": "Generating the assistant reply failed: {reason}",
+  "chat.assistant.reply_empty": "The assistant produced no content."
 }

@@ -210,4 +210,29 @@ public static class ChatErrors
     /// 置顶消息到了上限
     /// </summary>
     public const string PinLimit = "CHAT_CONFLICT_001";
+
+    /// <summary>
+    /// 这个会话不是助手会话
+    /// </summary>
+    public const string NotAssistantConversation = "CHAT_VALIDATION_026";
+
+    /// <summary>
+    /// 会话里没有可回答的提问
+    /// </summary>
+    public const string NoQuestion = "CHAT_VALIDATION_027";
+
+    /// <summary>
+    /// 助手不可用（AI 模块没有装配）
+    /// </summary>
+    public const string AssistantUnavailable = "CHAT_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 助手回复生成失败
+    /// </summary>
+    public const string AssistantReplyFailed = "CHAT_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 助手没有产生任何内容
+    /// </summary>
+    public const string AssistantReplyEmpty = "CHAT_UNAVAILABLE_003";
 }

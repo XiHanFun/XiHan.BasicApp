@@ -51,7 +51,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 提交后才发：在调用管道里（操作、按租户执行的后台调用）先暂存，`RealtimeDispatchMiddleware` 在调用成功且事务提交之后才发出，失败或回滚即丢弃；管道外的后台循环立即发出。推送不保证送达：接收者此刻没有连接即略过，持久的状态（收件箱、任务进度）由各包自己的表承担。
 
-立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、N4 的助手流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
+立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
 吊销会话时先推 `ForceLogout`，再把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
 

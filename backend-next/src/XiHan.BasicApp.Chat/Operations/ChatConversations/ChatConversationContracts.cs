@@ -241,3 +241,41 @@ public sealed record ChatDepartmentTreeResponse(IReadOnlyList<ChatDepartmentNode
 /// </summary>
 /// <param name="Items">用户</param>
 public sealed record ChatUserOptionsResponse(IReadOnlyList<ChatUserOption> Items);
+
+/// <summary>
+/// <c>chat-conversations.assistants</c> 的请求（没有参数）
+/// </summary>
+public sealed record ChatAssistantsRequest;
+
+/// <summary>
+/// 可用的助手
+/// </summary>
+/// <param name="Id">助手 ID</param>
+/// <param name="Code">编码</param>
+/// <param name="Name">名称</param>
+/// <param name="Avatar">头像地址</param>
+/// <param name="Description">简介</param>
+/// <param name="IsDefault">是否缺省助手</param>
+public sealed record ChatAssistantItem(Guid Id, string Code, string Name, string? Avatar, string? Description, bool IsDefault);
+
+/// <summary>
+/// <c>chat-conversations.assistants</c> 的响应
+/// </summary>
+/// <param name="Items">可用的助手</param>
+public sealed record ChatAssistantsResponse(IReadOnlyList<ChatAssistantItem> Items);
+
+/// <summary>
+/// <c>chat-conversations.open-assistant</c> 的请求
+/// </summary>
+/// <param name="AssistantId">助手 ID</param>
+public sealed record OpenAssistantConversationRequest(Guid AssistantId);
+
+/// <summary>
+/// 打开助手会话的结果
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="AssistantId">助手 ID</param>
+/// <param name="AssistantName">助手名称</param>
+/// <param name="Avatar">头像地址</param>
+/// <param name="Created">是否新建</param>
+public sealed record ChatAssistantOpenResponse(Guid ConversationId, Guid AssistantId, string AssistantName, string? Avatar, bool Created);

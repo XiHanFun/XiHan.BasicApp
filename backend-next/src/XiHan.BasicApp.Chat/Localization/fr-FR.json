@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "Envoyer des messages de chat",
   "permissions.chat.chat_messages.send.description": "Envoyer, rappeler, modifier, épingler et transférer des messages, y réagir et téléverser des pièces jointes dans les conversations de l’appelant.",
   "permissions.chat.chat_audit.read.name": "Auditer les messages de chat",
-  "permissions.chat.chat_audit.read.description": "Rechercher tous les messages de son côté et consulter le détail des messages et les membres des conversations sans en être membre."
+  "permissions.chat.chat_audit.read.description": "Rechercher tous les messages de son côté et consulter le détail des messages et les membres des conversations sans en être membre.",
+  "chat_conversations.assistants.title": "Lister les assistants disponibles",
+  "chat_conversations.assistants.description": "Liste les assistants disponibles dans le chat. Les signale indisponibles si le module IA n'est pas installé.",
+  "chat_conversations.open_assistant.title": "Ouvrir une conversation avec un assistant",
+  "chat_conversations.open_assistant.description": "Ouvre la conversation avec un assistant. Chaque utilisateur en a une par assistant ; absente, elle est créée avec le message d'accueil.",
+  "chat_messages.reply_assistant.title": "Demander la réponse de l'assistant",
+  "chat_messages.reply_assistant.description": "Répond à la dernière question de la conversation. Les fragments sont envoyés en temps réel et le résultat est enregistré comme message de l'assistant ; les outils s'exécutent au nom de l'appelant.",
+  "chat.assistant.not_assistant": "Cette conversation n'est pas avec un assistant.",
+  "chat.assistant.no_question": "Il n'y a aucune question à laquelle répondre dans cette conversation.",
+  "chat.assistant.unavailable": "Les assistants ne sont pas disponibles.",
+  "chat.assistant.reply_failed": "Échec de la génération de la réponse de l'assistant : {reason}",
+  "chat.assistant.reply_empty": "L'assistant n'a produit aucun contenu."
 }

@@ -465,6 +465,46 @@ public static class ChatMessages
     public const string PreviewRecalled = "chat.preview.recalled";
 
     /// <summary>
+    /// 操作 <c>chat-conversations.assistants</c> 的说明
+    /// </summary>
+    public const string AssistantsChatConversationDescription = "chat_conversations.assistants.description";
+
+    /// <summary>
+    /// 操作 <c>chat-conversations.open-assistant</c> 的说明
+    /// </summary>
+    public const string OpenAssistantChatConversationDescription = "chat_conversations.open_assistant.description";
+
+    /// <summary>
+    /// 操作 <c>chat-messages.reply-assistant</c> 的说明
+    /// </summary>
+    public const string ReplyAssistantChatMessageDescription = "chat_messages.reply_assistant.description";
+
+    /// <summary>
+    /// 这个会话不是助手会话
+    /// </summary>
+    public const string NotAssistantConversation = "chat.assistant.not_assistant";
+
+    /// <summary>
+    /// 会话里没有可回答的提问
+    /// </summary>
+    public const string NoQuestion = "chat.assistant.no_question";
+
+    /// <summary>
+    /// 助手不可用（AI 模块没有装配）
+    /// </summary>
+    public const string AssistantUnavailable = "chat.assistant.unavailable";
+
+    /// <summary>
+    /// 助手回复生成失败（参数 <c>reason</c>）
+    /// </summary>
+    public const string AssistantReplyFailed = "chat.assistant.reply_failed";
+
+    /// <summary>
+    /// 助手没有产生任何内容
+    /// </summary>
+    public const string AssistantReplyEmpty = "chat.assistant.reply_empty";
+
+    /// <summary>
     /// 保留清理作业的标题
     /// </summary>
     public const string RetentionJobTitle = "jobs.chat.messages.cleanup.title";

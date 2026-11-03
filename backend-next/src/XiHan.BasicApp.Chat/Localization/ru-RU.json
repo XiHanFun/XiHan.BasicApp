@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "Отправка сообщений чата",
   "permissions.chat.chat_messages.send.description": "Отправлять, отзывать, редактировать, закреплять и пересылать сообщения, реагировать на них и загружать вложения в своих беседах.",
   "permissions.chat.chat_audit.read.name": "Аудит сообщений чата",
-  "permissions.chat.chat_audit.read.description": "Искать все сообщения своей стороны и просматривать подробности сообщений и участников бесед, не будучи участником."
+  "permissions.chat.chat_audit.read.description": "Искать все сообщения своей стороны и просматривать подробности сообщений и участников бесед, не будучи участником.",
+  "chat_conversations.assistants.title": "Доступные ассистенты",
+  "chat_conversations.assistants.description": "Показывает ассистентов, доступных в чате. Сообщает об их недоступности, если модуль ИИ не установлен.",
+  "chat_conversations.open_assistant.title": "Открыть беседу с ассистентом",
+  "chat_conversations.open_assistant.description": "Открывает беседу с ассистентом. У пользователя одна беседа на ассистента; если её нет, она создаётся с приветствием.",
+  "chat_messages.reply_assistant.title": "Запросить ответ ассистента",
+  "chat_messages.reply_assistant.description": "Отвечает на последний вопрос беседы. Фрагменты передаются в реальном времени, результат сохраняется как сообщение ассистента; инструменты выполняются от имени вызывающего.",
+  "chat.assistant.not_assistant": "Эта беседа не с ассистентом.",
+  "chat.assistant.no_question": "В этой беседе нет вопроса для ответа.",
+  "chat.assistant.unavailable": "Ассистенты недоступны.",
+  "chat.assistant.reply_failed": "Не удалось сформировать ответ ассистента: {reason}",
+  "chat.assistant.reply_empty": "Ассистент не сформировал содержимое."
 }

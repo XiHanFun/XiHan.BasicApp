@@ -1,12 +1,10 @@
-# AI 能力（部分落地 · N4）
+# AI 能力
 
-本页说明 AI 模块的提供商、Provider 目录、提示词、知识库与模块开关，以及还在做的助手，适用于接入或配置模型的后端与前端开发者。
+本页说明 AI 模块的提供商、Provider 目录、提示词、知识库、助手与模块开关，适用于接入或配置模型的后端与前端开发者。
 
 AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
 
-::: warning 部分落地
-目前落地的是模型提供商、提示词与知识库（N4 第一、二批）。助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
-
+::: tip
 本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
 
@@ -72,6 +70,8 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 提示词与提供商的必填文本都不接受纯空白（校验错误，消息键 `ai.fields.blank`）。
 
+提示词还被助手引用时不能删除，逐项报 `AI_CONFLICT_107`；提供商也一样（`AI_CONFLICT_104`）。5.x 不查，用到时才报找不到。
+
 ## 知识库
 
 知识文档 `SysKnowledgeDocument` 是租户库实体，平台与各租户各自维护、互不可见（5.x 是平台一张表按租户过滤）。向量也按侧分集合：平台 `knowledge.platform`，租户 `knowledge.<租户 ID>`；检索只在调用方一侧的集合里做，不靠元数据过滤。
@@ -103,14 +103,40 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 向量库配置见[配置参考](../configuration#basicapp-ai-qdrant)。不配即知识库不可用：摄入的文档以失败保存，问答与检索返回 503 `AI_UNAVAILABLE_002`，不悄悄退到内存。向量维度要与嵌入模型一致（`XiHan:AI:Knowledge:Dimensions`，缺省 1536），不一致报 `AI_VALIDATION_002`；检索条数与切块参数也在这一节，缺省 5 条、块 1000 个字符、重叠 100。
 
-提供商还被知识文档引用时不能删除，逐项报 `AI_CONFLICT_104`（5.x 不查，用到时才报找不到）。文档可能在任何一侧，所以删除时要逐个租户查一遍，独立库的租户查它自己的库；哪一侧查不了，这次删除就失败。
+提供商还被知识文档或助手引用时不能删除，逐项报 `AI_CONFLICT_104`（5.x 不查，用到时才报找不到）。文档可能在任何一侧，所以删除时要逐个租户查一遍，独立库的租户查它自己的库；哪一侧查不了，这次删除就失败。
 
-## 助手（规划中）
+## 助手
 
-| 部分 | 方案 |
+助手 `SysAiAssistant` 是平台库实体：只在平台一侧配置，平台与租户的聊天都用同一批助手（与 5.x 相同）。会话复用聊天，聊天里的操作见[在线聊天](./chat#助手会话)。
+
+| 字段 | 规则 |
 | --- | --- |
-| 助手 | 配置身份、模型与提示词，勾选可用的工具（`Expose.Ai` 的只读操作，以调用方身份执行）；会话复用聊天，经 Contracts 的助手接口流式回复，AI 关掉后聊天照常 |
-| 资源 | `ai-assistants` |
+| 编码 | 必填，至多 100 个字符、不含空白；唯一（部分唯一索引，删了可以重建），重复报 409 `AI_CONFLICT_105`；建后不可改 |
+| 名称、简介、开场白、头像 | 名称必填；头像是图片地址，为空用首字母；开场白在新建会话时作为第一条助手消息，为空不发 |
+| 提示词的编码 | 为空用内置的系统提示词（按调用方区域取）；写了须存在且启用，否则报 400 `AI_VALIDATION_105` |
+| 聊天提供商、嵌入提供商的编码 | 为空用缺省提供商；写了须存在且启用，否则报 400 `AI_VALIDATION_104` |
+| 是否检索知识库 | 缺省开，检索的片段数 1～20，缺省 5；没配向量库时表单给出提示，开着的助手回复会失败 |
+| 带入上下文的历史消息条数 | 0～50，缺省 10；至少带上本轮提问 |
+| 可用的工具 | 缺省不带；只能勾框架工具目录里的（`Expose.Ai` 的只读操作），否则报 400 `AI_VALIDATION_106`；5.x 没有工具 |
+| 缺省 | 最多一个；新建会话时缺省选中它。停用的不能设为缺省（`AI_CONFLICT_106`） |
+| 启停 | 一个状态（5.x 有「是否启用」与状态两个开关）；停用的不再出现在聊天里，已有会话不能继续提问 |
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `ai-assistants.list` / `get` | `ai.ai-assistants.read` | 列表可按状态与是否缺省筛选，按编码、名称与简介搜索 |
+| `ai-assistants.tools` | `ai.ai-assistants.read` | 可勾选的工具（说明按调用方区域）与有没有向量库 |
+| `ai-assistants.create` / `update` | `ai.ai-assistants.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-assistants.set-status` / `set-default` | `ai.ai-assistants.update` | 单条 |
+| `ai-assistants.delete` | `ai.ai-assistants.delete` | 批量，逐项结果；已有会话不删，但不能继续提问 |
+
+权限码都只在平台一侧，写操作进操作日志。页面 `ai.assistants`（`/ai/assistants`）。
+
+生成一次回复的流程（`IChatAssistants`，Contracts 定义，AI 实现，Chat 只认这个接口）：
+
+1. 系统提示词：配了提示词用它的正文，引用的提示词后来停用或没了即回复失败（`AI_UNAVAILABLE_103`），不回落到内置的；没配用内置的。
+2. 历史：Chat 从库里取最近的提问与回复，不信前端传的。
+3. 检索增强：开了知识库时，在调用方一侧检索本轮提问，有命中才把提问换成增强后的（框架内置的模板，片段带编号）。检索失败回复失败，不退化成纯模型回答（5.x 吞掉错误继续答）。
+4. 生成：带上助手勾选的工具，最大输出与温度取提供商的配置，流式产出。工具以调用方身份执行，权限与租户隔离照常判定；没有权限时模型收到拒绝，回复本身不失败。
 
 5.x 的 Agent 工厂不迁移，也不做用量统计（5.x 也没有）。
 
@@ -118,7 +144,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 6.0 的操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）：
 
-- 目前发布的是只读目录类操作（用户、部门、岗位、部门成员、权限目录、字典与字典项）与知识检索 `knowledge-documents.search`；
+- 目前发布的是只读目录类操作（用户、部门、岗位、部门成员、权限目录、字典与字典项）与知识检索 `knowledge-documents.search`，助手从这些工具里勾选；
 - 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
 - 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
 
@@ -126,7 +152,9 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 模块开关
 
-`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider，`sys_ai_provider`、`sys_ai_prompt` 与 `sys_knowledge_document` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
+`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider，`sys_ai_provider`、`sys_ai_prompt`、`sys_ai_assistant` 与 `sys_knowledge_document` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
+
+聊天不依赖 AI：关掉之后聊天照常，聊天的三个助手操作返回 503 `CHAT_UNAVAILABLE_001`，前端首次展开「新建」菜单时据此隐藏助手入口。
 
 ## 下一步
 

@@ -133,31 +133,6 @@ export interface ChatReadPositionChangedPushPayload {
   lastReadSeq: number
 }
 
-/** 可选助手（聊天页发起助手会话用；随 AI 模块的助手提供方注册） */
-export interface ChatAssistantOption {
-  assistantId: string
-  assistantCode: string
-  assistantName: string
-  avatar?: null | string
-  description?: null | string
-  isDefault: boolean
-}
-
-/** 助手会话打开结果 */
-export interface ChatAssistantConversationResult {
-  conversationId: string
-  assistantId: string
-  assistantName: string
-  avatar?: null | string
-  created: boolean
-}
-
-/** 助手回复结果（messageId 为空表示失败，error 给出原因） */
-export interface ChatAssistantReplyResult {
-  messageId?: null | string
-  error?: null | string
-}
-
 /** SignalR ChatAssistantDelta 载荷 */
 export interface ChatAssistantDeltaPushPayload {
   conversationId: string
@@ -170,6 +145,9 @@ export interface ChatAssistantCompletedPushPayload {
   conversationId: string
   replyId: string
   messageId?: null | string
+  /** 失败时的错误码（CHAT_UNAVAILABLE_002 等） */
+  errorCode?: null | string
+  /** 失败时的本地化正文 */
   error?: null | string
 }
 

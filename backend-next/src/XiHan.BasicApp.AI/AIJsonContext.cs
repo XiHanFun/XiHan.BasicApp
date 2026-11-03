@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.AI.Operations.AiAssistants;
 using XiHan.BasicApp.AI.Operations.AiPrompts;
 using XiHan.BasicApp.AI.Operations.AiProviders;
 using XiHan.BasicApp.AI.Operations.KnowledgeDocuments;
@@ -38,6 +39,16 @@ namespace XiHan.BasicApp.AI;
 [JsonSerializable(typeof(AiPromptResponse))]
 [JsonSerializable(typeof(AiPromptDetailResponse))]
 [JsonSerializable(typeof(PageResult<AiPromptResponse>))]
+[JsonSerializable(typeof(AiAssistantIdRequest))]
+[JsonSerializable(typeof(CreateAiAssistantRequest))]
+[JsonSerializable(typeof(UpdateAiAssistantRequest))]
+[JsonSerializable(typeof(SetAiAssistantStatusRequest))]
+[JsonSerializable(typeof(AiAssistantIdsRequest))]
+[JsonSerializable(typeof(AiAssistantToolsRequest))]
+[JsonSerializable(typeof(AiAssistantResponse))]
+[JsonSerializable(typeof(AiAssistantToolsResponse))]
+[JsonSerializable(typeof(PageResult<AiAssistantResponse>))]
+[JsonSerializable(typeof(IReadOnlyList<string>))]
 [JsonSerializable(typeof(KnowledgeDocumentIdRequest))]
 [JsonSerializable(typeof(IngestKnowledgeDocumentRequest))]
 [JsonSerializable(typeof(KnowledgeDocumentIdsRequest))]

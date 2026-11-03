@@ -47,6 +47,11 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
     public int Dimensions { get; set; } = DefaultDimensions;
 
     /// <summary>
+    /// 要模型调用的工具：流式请求里还没有工具结果时先回工具调用，收到结果之后才回 <see cref="Reply"/>
+    /// </summary>
+    public (string Name, string Arguments)? ToolCall { get; set; }
+
+    /// <summary>
     /// 为真时一律以 500 应答
     /// </summary>
     public bool Failing { get; set; }
@@ -100,7 +105,13 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
             return new HttpResponseMessage(HttpStatusCode.NotFound);
         }
 
-        return body["stream"]?.GetValue<bool>() == true ? Sse(Reply) : Json(Completion(Reply));
+        if (body["stream"]?.GetValue<bool>() != true)
+        {
+            return Json(Completion(Reply));
+        }
+
+        var answered = body["messages"]?.AsArray().Any(static m => m?["role"]?.GetValue<string>() == "tool") ?? false;
+        return ToolCall is { } call && !answered ? SseToolCall(call.Name, call.Arguments) : Sse(Reply);
     }
 
     /// <summary>
@@ -135,6 +146,43 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
             builder.Append("data: ").Append(chunk.ToJsonString()).Append("\n\n");
         }
 
+        builder.Append("data: [DONE]\n\n");
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(builder.ToString(), Encoding.UTF8, "text/event-stream") };
+    }
+
+    /// <summary>
+    /// 流式应答：一次工具调用
+    /// </summary>
+    private static HttpResponseMessage SseToolCall(string name, string arguments)
+    {
+        var builder = new StringBuilder();
+        var call = new JsonObject
+        {
+            ["id"] = "chatcmpl-1",
+            ["object"] = "chat.completion.chunk",
+            ["created"] = 0,
+            ["model"] = "fake",
+            ["choices"] = new JsonArray(new JsonObject
+            {
+                ["index"] = 0,
+                ["delta"] = new JsonObject
+                {
+                    ["role"] = "assistant",
+                    ["tool_calls"] = new JsonArray(new JsonObject { ["index"] = 0, ["id"] = "call_1", ["type"] = "function", ["function"] = new JsonObject { ["name"] = name, ["arguments"] = arguments } }),
+                },
+                ["finish_reason"] = null,
+            }),
+        };
+        builder.Append("data: ").Append(call.ToJsonString()).Append("\n\n");
+        var finish = new JsonObject
+        {
+            ["id"] = "chatcmpl-1",
+            ["object"] = "chat.completion.chunk",
+            ["created"] = 0,
+            ["model"] = "fake",
+            ["choices"] = new JsonArray(new JsonObject { ["index"] = 0, ["delta"] = new JsonObject(), ["finish_reason"] = "tool_calls" }),
+        };
+        builder.Append("data: ").Append(finish.ToJsonString()).Append("\n\n");
         builder.Append("data: [DONE]\n\n");
         return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(builder.ToString(), Encoding.UTF8, "text/event-stream") };
     }

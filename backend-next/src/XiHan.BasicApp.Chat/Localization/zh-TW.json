@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "傳送聊天訊息",
   "permissions.chat.chat_messages.send.description": "在呼叫者所在的對話中傳送、收回、編輯、回應、置頂、轉寄訊息與上傳附件。",
   "permissions.chat.chat_audit.read.name": "聊天稽核",
-  "permissions.chat.chat_audit.read.description": "查看目前一側的全部訊息，不必是對話成員也能查看訊息詳情與對話成員。"
+  "permissions.chat.chat_audit.read.description": "查看目前一側的全部訊息，不必是對話成員也能查看訊息詳情與對話成員。",
+  "chat_conversations.assistants.title": "可用的助手",
+  "chat_conversations.assistants.description": "列出聊天裡可用的助手；AI 模組沒有裝配時回報助手不可用。",
+  "chat_conversations.open_assistant.title": "開啟助手會話",
+  "chat_conversations.open_assistant.description": "開啟與助手的會話；一個使用者對一個助手只有一個會話，沒有即建立並發送開場白。",
+  "chat_messages.reply_assistant.title": "請求助手回覆",
+  "chat_messages.reply_assistant.description": "回覆會話裡最近一條提問：增量即時推送給本人，結束後存為一條助手訊息；工具以呼叫方身分執行。",
+  "chat.assistant.not_assistant": "這個會話不是助手會話。",
+  "chat.assistant.no_question": "會話裡沒有可回答的提問。",
+  "chat.assistant.unavailable": "助手不可用。",
+  "chat.assistant.reply_failed": "助手回覆產生失敗：{reason}",
+  "chat.assistant.reply_empty": "助手沒有產生任何內容。"
 }

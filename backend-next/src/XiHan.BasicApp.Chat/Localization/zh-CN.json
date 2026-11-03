@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "发送聊天消息",
   "permissions.chat.chat_messages.send.description": "在调用方所在的会话里发送、撤回、编辑、回应、置顶、转发消息与上传附件。",
   "permissions.chat.chat_audit.read.name": "聊天审计",
-  "permissions.chat.chat_audit.read.description": "查看当前一侧的全部消息，不必是会话成员也能看消息详情与会话成员。"
+  "permissions.chat.chat_audit.read.description": "查看当前一侧的全部消息，不必是会话成员也能看消息详情与会话成员。",
+  "chat_conversations.assistants.title": "可用的助手",
+  "chat_conversations.assistants.description": "列出聊天里可用的助手；AI 模块没有装配时报助手不可用。",
+  "chat_conversations.open_assistant.title": "打开助手会话",
+  "chat_conversations.open_assistant.description": "打开与助手的会话；一个用户对一个助手只有一个会话，没有即建并发开场白。",
+  "chat_messages.reply_assistant.title": "请求助手回复",
+  "chat_messages.reply_assistant.description": "回复会话里最近一条提问：增量实时推给本人，结束落库为一条助手消息；工具以调用方身份执行。",
+  "chat.assistant.not_assistant": "这个会话不是助手会话。",
+  "chat.assistant.no_question": "会话里没有可回答的提问。",
+  "chat.assistant.unavailable": "助手不可用。",
+  "chat.assistant.reply_failed": "助手回复生成失败：{reason}",
+  "chat.assistant.reply_empty": "助手没有产生任何内容。"
 }

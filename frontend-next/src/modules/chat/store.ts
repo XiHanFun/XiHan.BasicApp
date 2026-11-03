@@ -18,11 +18,12 @@ import { computed, ref, shallowRef } from 'vue'
 import { playNotificationSound } from '~/composables/useNotificationSound'
 import { useSignalR } from '~/composables/useSignalR'
 import { RealtimeHubs, RealtimeInvocations } from '~/contracts'
-import { useUserStore } from '~/stores'
+import { ApiError } from '~/request'
+import { getChatAssistantProvider, useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from './api-contract'
-import { getChatAssistantProvider } from './assistant-provider'
 import {
+  CHAT_ASSISTANT_UNAVAILABLE_CODE,
   CHAT_DRAFTS_STORAGE_KEY,
   CHAT_VOICE_PLAYED_CAP,
   CHAT_VOICE_PLAYED_STORAGE_KEY,
@@ -131,6 +132,9 @@ export const useChatStore = defineStore('chat', () => {
   let highlightTimer: ReturnType<typeof setTimeout> | null = null
   /** 助手回复流：conversationId → 本轮增量（落库推送到达后清空，换成正式消息） */
   const assistantStreams = ref<Record<string, ChatAssistantStream>>({})
+  /** 后端关掉了 AI（前端 AI 模块还在）：助手入口据此隐藏 */
+  const assistantsUnavailable = ref(false)
+  let assistantsProbed = false
 
   /** 聊天浮动面板打开请求（版本计数器：顶栏按钮递增、面板组件 watch 响应） */
   const chatPanelVersion = ref(0)
@@ -832,6 +836,26 @@ export const useChatStore = defineStore('chat', () => {
     return result
   }
 
+  /** 问一次可用助手：只有「助手不可用」才记下，别的错误抛给调用方（下次展开菜单再问） */
+  async function probeAssistants() {
+    const provider = getChatAssistantProvider()
+    if (assistantsProbed || !provider) {
+      return
+    }
+    assistantsProbed = true
+    try {
+      await provider.availableAssistants()
+    }
+    catch (error) {
+      if (error instanceof ApiError && error.code === CHAT_ASSISTANT_UNAVAILABLE_CODE) {
+        assistantsUnavailable.value = true
+        return
+      }
+      assistantsProbed = false
+      throw error
+    }
+  }
+
   // ===== AI 助手回复 =====
 
   function conversationTypeOf(conversationId: string) {
@@ -846,13 +870,10 @@ export const useChatStore = defineStore('chat', () => {
     const replyId = generateClientMessageId()
     assistantStreams.value[conversationId] = { replyId, text: '', streaming: true }
     try {
-      const result = await provider.reply(conversationId, replyId)
-      if (result.error) {
-        markAssistantFailed(conversationId, replyId, result.error)
-      }
+      await provider.reply(conversationId, replyId)
     }
     catch (error) {
-      markAssistantFailed(conversationId, replyId, error instanceof Error ? error.message : String(error))
+      markAssistantFailed(conversationId, replyId, error instanceof ApiError ? error.detail : error instanceof Error ? error.message : String(error))
     }
   }
 
@@ -892,6 +913,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function $reset() {
+    assistantsUnavailable.value = false
+    assistantsProbed = false
     conversations.value = []
     conversationsLoading.value = false
     conversationsLoaded.value = false
@@ -990,6 +1013,8 @@ export const useChatStore = defineStore('chat', () => {
     startAssistantConversation,
     assistantStreams,
     activeAssistantStream,
+    assistantsUnavailable,
+    probeAssistants,
     requestAssistantReply,
     applyAssistantDelta,
     applyAssistantCompleted,

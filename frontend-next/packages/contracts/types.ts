@@ -45,6 +45,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai-assistants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an AI assistant
+         * @description Add an assistant. The code is unique and cannot change; referenced prompts and providers must exist and be enabled, and tools must be in the tool catalog.
+         *
+         *     Requires permission ai.ai-assistants.create (Create AI assistants).
+         */
+        post: operations["ai-assistants.create"];
+        /**
+         * Delete AI assistants
+         * @description Delete assistants. Existing conversations are kept but cannot ask further questions.
+         *
+         *     Requires permission ai.ai-assistants.delete (Delete AI assistants).
+         */
+        delete: operations["ai-assistants.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assistants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an AI assistant
+         * @description Read an assistant's configuration.
+         *
+         *     Requires permission ai.ai-assistants.read (Read AI assistants).
+         */
+        get: operations["ai-assistants.get"];
+        /**
+         * Update an AI assistant
+         * @description Edit an assistant's configuration. The code cannot change, enabling and disabling is a separate operation, and the concurrency stamp you read must be returned.
+         *
+         *     Requires permission ai.ai-assistants.update (Update AI assistants).
+         */
+        put: operations["ai-assistants.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assistants/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set the default AI assistant
+         * @description Make an assistant the default and clear the others. A disabled assistant cannot be the default.
+         *
+         *     Requires permission ai.ai-assistants.update (Update AI assistants).
+         */
+        post: operations["ai-assistants.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assistants/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable an AI assistant
+         * @description Enable or disable an assistant. Once disabled it no longer appears among the assistants in chat, and existing conversations cannot ask further questions.
+         *
+         *     Requires permission ai.ai-assistants.update (Update AI assistants).
+         */
+        post: operations["ai-assistants.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assistants:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List AI assistants
+         * @description Page through the assistants; filter by status and search code and name.
+         *
+         *     Requires permission ai.ai-assistants.read (Read AI assistants).
+         */
+        post: operations["ai-assistants.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-assistants:tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List assistant tools
+         * @description List the tools an assistant can use (read-only operations that run as the caller), and tell the form whether a vector store is configured.
+         *
+         *     Requires permission ai.ai-assistants.read (Read AI assistants).
+         */
+        get: operations["ai-assistants.tools"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ai-prompts": {
         parameters: {
             query?: never;
@@ -1119,6 +1263,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-conversations:assistants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available assistants
+         * @description List the assistants available in chat. Reports assistants as unavailable when the AI module is not installed.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.assistants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-conversations:create-group": {
         parameters: {
             query?: never;
@@ -1267,6 +1433,28 @@ export interface paths {
          *     Requires permission chat.chat-conversations.read (Use chat conversations).
          */
         post: operations["chat-conversations.mute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-conversations:open-assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open an assistant conversation
+         * @description Open the conversation with an assistant. A user has one conversation per assistant; it is created with the greeting if missing.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.open-assistant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1705,6 +1893,28 @@ export interface paths {
          *     Requires permission chat.chat-messages.send (Send chat messages).
          */
         post: operations["chat-messages.recall"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:reply-assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request an assistant reply
+         * @description Reply to the latest question in the conversation. Deltas are pushed to you in real time and the result is saved as an assistant message; tools run as the caller.
+         *
+         *     Requires permission chat.chat-messages.send (Send chat messages).
+         */
+        post: operations["chat-messages.reply-assistant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9655,6 +9865,74 @@ export interface components {
              */
             onlineMinutes: number;
         };
+        /** @description 助手 */
+        AiAssistantResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 编码 */
+            code: string;
+            /** @description 名称 */
+            name: string;
+            /** @description 头像地址 */
+            avatar?: string | null;
+            /** @description 简介 */
+            description?: string | null;
+            /** @description 开场白 */
+            greeting?: string | null;
+            /** @description 提示词的编码，为空即内置的系统提示词 */
+            promptCode?: string | null;
+            /** @description 聊天提供商的编码，为空即缺省提供商 */
+            providerCode?: string | null;
+            /** @description 是否检索知识库 */
+            enableKnowledge: boolean;
+            /** @description 嵌入提供商的编码，为空即缺省提供商 */
+            knowledgeProviderCode?: string | null;
+            /**
+             * Format: int32
+             * @description 检索的片段数
+             */
+            knowledgeTopK: number;
+            /**
+             * Format: int32
+             * @description 带入上下文的历史消息条数
+             */
+            historyRounds: number;
+            /** @description 可用的工具名 */
+            tools: string[];
+            /** @description 是否缺省助手 */
+            isDefault: boolean;
+            /** @description 状态 */
+            status: components["schemas"]["AiStatus"];
+            /**
+             * Format: int32
+             * @description 排序号
+             */
+            order: number;
+            /** @description 备注 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）
+             */
+            modifiedAt?: string | null;
+        };
+        /** @description 可勾选的工具 */
+        AiAssistantToolItem: {
+            /** @description 工具名 */
+            name: string;
+            /** @description 说明（调用方的区域） */
+            description?: string | null;
+        };
         /** @description 提示词的列表项 */
         AiPromptResponse: {
             /**
@@ -9930,6 +10208,24 @@ export interface components {
             prefix: string;
             /** @description 能否改写值（鉴权相关的只许删） */
             editable: boolean;
+        };
+        /** @description 可用的助手 */
+        ChatAssistantItem: {
+            /**
+             * Format: uuid
+             * @description 助手 ID
+             */
+            id: string;
+            /** @description 编码 */
+            code: string;
+            /** @description 名称 */
+            name: string;
+            /** @description 头像地址 */
+            avatar?: string | null;
+            /** @description 简介 */
+            description?: string | null;
+            /** @description 是否缺省助手 */
+            isDefault: boolean;
         };
         /** @description 上传好的附件 */
         ChatAttachmentResponse: {
@@ -15386,6 +15682,695 @@ export interface operations {
             };
         };
     };
+    "ai-assistants.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ai-assistants.create 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 编码（唯一） */
+                    code: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 头像地址 */
+                    avatar?: string | null;
+                    /** @description 简介 */
+                    description?: string | null;
+                    /** @description 开场白 */
+                    greeting?: string | null;
+                    /** @description 提示词的编码 */
+                    promptCode?: string | null;
+                    /** @description 聊天提供商的编码 */
+                    providerCode?: string | null;
+                    /** @description 是否检索知识库 */
+                    enableKnowledge?: boolean;
+                    /** @description 嵌入提供商的编码 */
+                    knowledgeProviderCode?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 检索的片段数
+                     */
+                    knowledgeTopK?: number;
+                    /**
+                     * Format: int32
+                     * @description 带入上下文的历史消息条数
+                     */
+                    historyRounds?: number;
+                    /** @description 可用的工具名 */
+                    tools?: string[] | null;
+                    /** @description 是否缺省助手 */
+                    isDefault?: boolean;
+                    /** @description 初始状态 */
+                    status?: components["schemas"]["AiStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 助手 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 简介 */
+                        description?: string | null;
+                        /** @description 开场白 */
+                        greeting?: string | null;
+                        /** @description 提示词的编码，为空即内置的系统提示词 */
+                        promptCode?: string | null;
+                        /** @description 聊天提供商的编码，为空即缺省提供商 */
+                        providerCode?: string | null;
+                        /** @description 是否检索知识库 */
+                        enableKnowledge: boolean;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        knowledgeProviderCode?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 检索的片段数
+                         */
+                        knowledgeTopK: number;
+                        /**
+                         * Format: int32
+                         * @description 带入上下文的历史消息条数
+                         */
+                        historyRounds: number;
+                        /** @description 可用的工具名 */
+                        tools: string[];
+                        /** @description 是否缺省助手 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.delete": {
+        parameters: {
+            query: {
+                /** @description 助手 ID，1 到 100 个 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 助手 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 助手 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 简介 */
+                        description?: string | null;
+                        /** @description 开场白 */
+                        greeting?: string | null;
+                        /** @description 提示词的编码，为空即内置的系统提示词 */
+                        promptCode?: string | null;
+                        /** @description 聊天提供商的编码，为空即缺省提供商 */
+                        providerCode?: string | null;
+                        /** @description 是否检索知识库 */
+                        enableKnowledge: boolean;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        knowledgeProviderCode?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 检索的片段数
+                         */
+                        knowledgeTopK: number;
+                        /**
+                         * Format: int32
+                         * @description 带入上下文的历史消息条数
+                         */
+                        historyRounds: number;
+                        /** @description 可用的工具名 */
+                        tools: string[];
+                        /** @description 是否缺省助手 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 助手 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-assistants.update 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 助手 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 头像地址 */
+                    avatar?: string | null;
+                    /** @description 简介 */
+                    description?: string | null;
+                    /** @description 开场白 */
+                    greeting?: string | null;
+                    /** @description 提示词的编码 */
+                    promptCode?: string | null;
+                    /** @description 聊天提供商的编码 */
+                    providerCode?: string | null;
+                    /** @description 是否检索知识库 */
+                    enableKnowledge?: boolean;
+                    /** @description 嵌入提供商的编码 */
+                    knowledgeProviderCode?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 检索的片段数
+                     */
+                    knowledgeTopK?: number;
+                    /**
+                     * Format: int32
+                     * @description 带入上下文的历史消息条数
+                     */
+                    historyRounds?: number;
+                    /** @description 可用的工具名 */
+                    tools?: string[] | null;
+                    /** @description 是否缺省助手 */
+                    isDefault?: boolean;
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 助手 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 简介 */
+                        description?: string | null;
+                        /** @description 开场白 */
+                        greeting?: string | null;
+                        /** @description 提示词的编码，为空即内置的系统提示词 */
+                        promptCode?: string | null;
+                        /** @description 聊天提供商的编码，为空即缺省提供商 */
+                        providerCode?: string | null;
+                        /** @description 是否检索知识库 */
+                        enableKnowledge: boolean;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        knowledgeProviderCode?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 检索的片段数
+                         */
+                        knowledgeTopK: number;
+                        /**
+                         * Format: int32
+                         * @description 带入上下文的历史消息条数
+                         */
+                        historyRounds: number;
+                        /** @description 可用的工具名 */
+                        tools: string[];
+                        /** @description 是否缺省助手 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 助手 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 按 ID 的请求（详情、设为缺省） */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 助手 ID
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 助手 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 简介 */
+                        description?: string | null;
+                        /** @description 开场白 */
+                        greeting?: string | null;
+                        /** @description 提示词的编码，为空即内置的系统提示词 */
+                        promptCode?: string | null;
+                        /** @description 聊天提供商的编码，为空即缺省提供商 */
+                        providerCode?: string | null;
+                        /** @description 是否检索知识库 */
+                        enableKnowledge: boolean;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        knowledgeProviderCode?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 检索的片段数
+                         */
+                        knowledgeTopK: number;
+                        /**
+                         * Format: int32
+                         * @description 带入上下文的历史消息条数
+                         */
+                        historyRounds: number;
+                        /** @description 可用的工具名 */
+                        tools: string[];
+                        /** @description 是否缺省助手 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 助手 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-assistants.set-status 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 助手 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态 */
+                    status: components["schemas"]["AiStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 助手 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 简介 */
+                        description?: string | null;
+                        /** @description 开场白 */
+                        greeting?: string | null;
+                        /** @description 提示词的编码，为空即内置的系统提示词 */
+                        promptCode?: string | null;
+                        /** @description 聊天提供商的编码，为空即缺省提供商 */
+                        providerCode?: string | null;
+                        /** @description 是否检索知识库 */
+                        enableKnowledge: boolean;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        knowledgeProviderCode?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 检索的片段数
+                         */
+                        knowledgeTopK: number;
+                        /**
+                         * Format: int32
+                         * @description 带入上下文的历史消息条数
+                         */
+                        historyRounds: number;
+                        /** @description 可用的工具名 */
+                        tools: string[];
+                        /** @description 是否缺省助手 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AiAssistantResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-assistants.tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ai-assistants.tools 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 可勾选的工具 */
+                        items: components["schemas"]["AiAssistantToolItem"][];
+                        /** @description 有没有向量库：没有时开着「检索知识库」的助手回复会失败，表单据此提示 */
+                        knowledgeAvailable: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "ai-prompts.create": {
         parameters: {
             query?: never;
@@ -18661,6 +19646,38 @@ export interface operations {
             };
         };
     };
+    "chat-conversations.assistants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description chat-conversations.assistants 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 可用的助手 */
+                        items: components["schemas"]["ChatAssistantItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "chat-conversations.create-group": {
         parameters: {
             query?: never;
@@ -18949,6 +19966,63 @@ export interface operations {
                     "application/json": {
                         /** @description 开为真 */
                         isOn: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.open-assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.open-assistant 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 助手 ID
+                     */
+                    assistantId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 打开助手会话的结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: uuid
+                         * @description 助手 ID
+                         */
+                        assistantId: string;
+                        /** @description 助手名称 */
+                        assistantName: string;
+                        /** @description 头像地址 */
+                        avatar?: string | null;
+                        /** @description 是否新建 */
+                        created: boolean;
                     };
                 };
             };
@@ -19915,6 +20989,54 @@ export interface operations {
                         /**
                          * Format: uuid
                          * @description 消息
+                         */
+                        messageId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.reply-assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-messages.reply-assistant 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 助手会话
+                     */
+                    conversationId: string;
+                    /** @description 前端生成的回复标识：增量按它归位到同一条占位气泡 */
+                    replyId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description chat-messages.reply-assistant 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 落库的助手消息
                          */
                         messageId: string;
                     };

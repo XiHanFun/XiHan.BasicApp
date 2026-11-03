@@ -6,8 +6,10 @@ using XiHan.BasicApp.AI.Domain.Services;
 using XiHan.BasicApp.AI.Queries;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
@@ -186,11 +188,12 @@ public sealed class SetAiPromptStatus(IRepository<SysAiPrompt, Guid> prompts, Ai
 /// 批量删除提示词
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/ai-prompts?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_102</c>。软删除，同编码可以重建
+/// <c>DELETE /api/ai-prompts?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_102</c>，还被助手引用 <c>AI_CONFLICT_107</c>（方案 D5）。软删除，同编码可以重建
 /// </remarks>
 /// <param name="prompts">提示词仓储</param>
+/// <param name="assistants">助手仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AIPermissions.AiPromptsDelete)]
-public sealed class DeleteAiPrompts(IRepository<SysAiPrompt, Guid> prompts) : IOperation<AiPromptIdsRequest, BatchResult>
+public sealed class DeleteAiPrompts(IRepository<SysAiPrompt, Guid> prompts, IRepository<SysAiAssistant, Guid> assistants) : IOperation<AiPromptIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -203,6 +206,9 @@ public sealed class DeleteAiPrompts(IRepository<SysAiPrompt, Guid> prompts) : IO
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var found = (await prompts.FindManyAsync(request.Ids, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static p => p.Id);
+        var codes = found.Values.Select(static p => p.Code).ToList();
+        var referencing = await assistants.ListAsync(EntityQuery.All<SysAiAssistant>().Where(new Specification<SysAiAssistant>(a => codes.Contains(a.PromptCode!))), context.CancellationToken).ConfigureAwait(false);
+        var inUse = referencing.Select(static a => a.PromptCode).OfType<string>().ToHashSet(StringComparer.Ordinal);
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         foreach (var id in request.Ids.Distinct())
@@ -210,6 +216,12 @@ public sealed class DeleteAiPrompts(IRepository<SysAiPrompt, Guid> prompts) : IO
             if (!found.TryGetValue(id, out var prompt))
             {
                 failed.Add(new BatchFailure(id, AIErrors.PromptNotFound));
+                continue;
+            }
+
+            if (inUse.Contains(prompt.Code))
+            {
+                failed.Add(new BatchFailure(id, AIErrors.PromptInUse));
                 continue;
             }
 

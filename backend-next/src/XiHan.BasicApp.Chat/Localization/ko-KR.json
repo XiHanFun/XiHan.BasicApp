@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "채팅 메시지 보내기",
   "permissions.chat.chat_messages.send.description": "호출자가 속한 대화에서 메시지를 보내기, 회수, 편집, 반응, 고정, 전달하고 첨부 파일을 업로드합니다.",
   "permissions.chat.chat_audit.read.name": "채팅 감사",
-  "permissions.chat.chat_audit.read.description": "호출자 측의 모든 메시지를 검색하고, 대화 구성원이 아니어도 메시지 상세와 대화 구성원을 조회합니다."
+  "permissions.chat.chat_audit.read.description": "호출자 측의 모든 메시지를 검색하고, 대화 구성원이 아니어도 메시지 상세와 대화 구성원을 조회합니다.",
+  "chat_conversations.assistants.title": "사용 가능한 어시스턴트",
+  "chat_conversations.assistants.description": "채팅에서 사용할 수 있는 어시스턴트를 나열합니다. AI 모듈이 없으면 어시스턴트를 사용할 수 없다고 알립니다.",
+  "chat_conversations.open_assistant.title": "어시스턴트 대화 열기",
+  "chat_conversations.open_assistant.description": "어시스턴트와의 대화를 엽니다. 사용자별로 어시스턴트당 대화는 하나이며, 없으면 만들고 인사말을 보냅니다.",
+  "chat_messages.reply_assistant.title": "어시스턴트 답변 요청",
+  "chat_messages.reply_assistant.description": "대화의 최근 질문에 답변합니다. 증분은 실시간으로 본인에게 전달되고 끝나면 어시스턴트 메시지로 저장되며, 도구는 호출자 권한으로 실행됩니다.",
+  "chat.assistant.not_assistant": "이 대화는 어시스턴트 대화가 아닙니다.",
+  "chat.assistant.no_question": "이 대화에는 답변할 질문이 없습니다.",
+  "chat.assistant.unavailable": "어시스턴트를 사용할 수 없습니다.",
+  "chat.assistant.reply_failed": "어시스턴트 답변 생성에 실패했습니다: {reason}",
+  "chat.assistant.reply_empty": "어시스턴트가 아무 내용도 만들지 않았습니다."
 }

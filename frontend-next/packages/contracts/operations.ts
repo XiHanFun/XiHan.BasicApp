@@ -8,6 +8,14 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'ai-assistants.create': { method: 'POST', template: '/api/ai-assistants', path: [], query: [], success: 201 },
+  'ai-assistants.delete': { method: 'DELETE', template: '/api/ai-assistants', path: [], query: ['ids'], success: 200 },
+  'ai-assistants.get': { method: 'GET', template: '/api/ai-assistants/{id}', path: ['id'], query: [], success: 200 },
+  'ai-assistants.list': { method: 'POST', template: '/api/ai-assistants:list', path: [], query: [], success: 200 },
+  'ai-assistants.set-default': { method: 'POST', template: '/api/ai-assistants/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'ai-assistants.set-status': { method: 'POST', template: '/api/ai-assistants/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'ai-assistants.tools': { method: 'GET', template: '/api/ai-assistants:tools', path: [], query: [], success: 200 },
+  'ai-assistants.update': { method: 'PUT', template: '/api/ai-assistants/{id}', path: ['id'], query: [], success: 200 },
   'ai-prompts.create': { method: 'POST', template: '/api/ai-prompts', path: [], query: [], success: 201 },
   'ai-prompts.delete': { method: 'DELETE', template: '/api/ai-prompts', path: [], query: ['ids'], success: 200 },
   'ai-prompts.get': { method: 'GET', template: '/api/ai-prompts/{id}', path: ['id'], query: [], success: 200 },
@@ -63,6 +71,7 @@ export const routes = {
   'chat-audit.list': { method: 'POST', template: '/api/chat-audit:list', path: [], query: [], success: 200 },
   'chat-audit.members': { method: 'GET', template: '/api/chat-audit:members', path: [], query: ['conversationId'], success: 200 },
   'chat-conversations.add-members': { method: 'POST', template: '/api/chat-conversations:add-members', path: [], query: [], success: 200 },
+  'chat-conversations.assistants': { method: 'GET', template: '/api/chat-conversations:assistants', path: [], query: [], success: 200 },
   'chat-conversations.create-group': { method: 'POST', template: '/api/chat-conversations:create-group', path: [], query: [], success: 200 },
   'chat-conversations.department-tree': { method: 'GET', template: '/api/chat-conversations:department-tree', path: [], query: [], success: 200 },
   'chat-conversations.leave': { method: 'POST', template: '/api/chat-conversations:leave', path: [], query: [], success: 200 },
@@ -70,6 +79,7 @@ export const routes = {
   'chat-conversations.members': { method: 'GET', template: '/api/chat-conversations:members', path: [], query: ['conversationId'], success: 200 },
   'chat-conversations.mine': { method: 'GET', template: '/api/chat-conversations:mine', path: [], query: [], success: 200 },
   'chat-conversations.mute': { method: 'POST', template: '/api/chat-conversations:mute', path: [], query: [], success: 200 },
+  'chat-conversations.open-assistant': { method: 'POST', template: '/api/chat-conversations:open-assistant', path: [], query: [], success: 200 },
   'chat-conversations.open-department': { method: 'POST', template: '/api/chat-conversations:open-department', path: [], query: [], success: 200 },
   'chat-conversations.open-single': { method: 'POST', template: '/api/chat-conversations:open-single', path: [], query: [], success: 200 },
   'chat-conversations.pin': { method: 'POST', template: '/api/chat-conversations:pin', path: [], query: [], success: 200 },
@@ -89,6 +99,7 @@ export const routes = {
   'chat-messages.presign': { method: 'GET', template: '/api/chat-messages:presign', path: [], query: ['conversationId', 'fileId', 'download'], success: 200 },
   'chat-messages.react': { method: 'POST', template: '/api/chat-messages:react', path: [], query: [], success: 200 },
   'chat-messages.recall': { method: 'POST', template: '/api/chat-messages:recall', path: [], query: [], success: 200 },
+  'chat-messages.reply-assistant': { method: 'POST', template: '/api/chat-messages:reply-assistant', path: [], query: [], success: 200 },
   'chat-messages.search': { method: 'GET', template: '/api/chat-messages:search', path: [], query: ['conversationId', 'keyword', 'beforeMessageId', 'take'], success: 200 },
   'chat-messages.send': { method: 'POST', template: '/api/chat-messages:send', path: [], query: [], success: 200 },
   'chat-messages.unpin': { method: 'POST', template: '/api/chat-messages:unpin', path: [], query: [], success: 200 },
@@ -505,6 +516,18 @@ export const accessLogs = {
   list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
 }
 
+/** 资源 `ai-assistants` 的操作 */
+export const aiAssistants = {
+  create: (request: RequestOf<'ai-assistants.create'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.create'>, ResponseOf<'ai-assistants.create'>>('ai-assistants.create', routes['ai-assistants.create'], request, options),
+  delete: (request: RequestOf<'ai-assistants.delete'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.delete'>, ResponseOf<'ai-assistants.delete'>>('ai-assistants.delete', routes['ai-assistants.delete'], request, options),
+  get: (request: RequestOf<'ai-assistants.get'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.get'>, ResponseOf<'ai-assistants.get'>>('ai-assistants.get', routes['ai-assistants.get'], request, options),
+  list: (request: RequestOf<'ai-assistants.list'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.list'>, ResponseOf<'ai-assistants.list'>>('ai-assistants.list', routes['ai-assistants.list'], request, options),
+  setDefault: (request: RequestOf<'ai-assistants.set-default'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.set-default'>, ResponseOf<'ai-assistants.set-default'>>('ai-assistants.set-default', routes['ai-assistants.set-default'], request, options),
+  setStatus: (request: RequestOf<'ai-assistants.set-status'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.set-status'>, ResponseOf<'ai-assistants.set-status'>>('ai-assistants.set-status', routes['ai-assistants.set-status'], request, options),
+  tools: (request: RequestOf<'ai-assistants.tools'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.tools'>, ResponseOf<'ai-assistants.tools'>>('ai-assistants.tools', routes['ai-assistants.tools'], request, options),
+  update: (request: RequestOf<'ai-assistants.update'>, options?: CallOptions) => invoke<RequestOf<'ai-assistants.update'>, ResponseOf<'ai-assistants.update'>>('ai-assistants.update', routes['ai-assistants.update'], request, options),
+}
+
 /** 资源 `ai-prompts` 的操作 */
 export const aiPrompts = {
   create: (request: RequestOf<'ai-prompts.create'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.create'>, ResponseOf<'ai-prompts.create'>>('ai-prompts.create', routes['ai-prompts.create'], request, options),
@@ -590,6 +613,7 @@ export const chatAudit = {
 /** 资源 `chat-conversations` 的操作 */
 export const chatConversations = {
   addMembers: (request: RequestOf<'chat-conversations.add-members'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.add-members'>, ResponseOf<'chat-conversations.add-members'>>('chat-conversations.add-members', routes['chat-conversations.add-members'], request, options),
+  assistants: (request: RequestOf<'chat-conversations.assistants'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.assistants'>, ResponseOf<'chat-conversations.assistants'>>('chat-conversations.assistants', routes['chat-conversations.assistants'], request, options),
   createGroup: (request: RequestOf<'chat-conversations.create-group'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.create-group'>, ResponseOf<'chat-conversations.create-group'>>('chat-conversations.create-group', routes['chat-conversations.create-group'], request, options),
   departmentTree: (request: RequestOf<'chat-conversations.department-tree'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.department-tree'>, ResponseOf<'chat-conversations.department-tree'>>('chat-conversations.department-tree', routes['chat-conversations.department-tree'], request, options),
   leave: (request: RequestOf<'chat-conversations.leave'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.leave'>, ResponseOf<'chat-conversations.leave'>>('chat-conversations.leave', routes['chat-conversations.leave'], request, options),
@@ -597,6 +621,7 @@ export const chatConversations = {
   members: (request: RequestOf<'chat-conversations.members'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.members'>, ResponseOf<'chat-conversations.members'>>('chat-conversations.members', routes['chat-conversations.members'], request, options),
   mine: (request: RequestOf<'chat-conversations.mine'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.mine'>, ResponseOf<'chat-conversations.mine'>>('chat-conversations.mine', routes['chat-conversations.mine'], request, options),
   mute: (request: RequestOf<'chat-conversations.mute'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.mute'>, ResponseOf<'chat-conversations.mute'>>('chat-conversations.mute', routes['chat-conversations.mute'], request, options),
+  openAssistant: (request: RequestOf<'chat-conversations.open-assistant'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.open-assistant'>, ResponseOf<'chat-conversations.open-assistant'>>('chat-conversations.open-assistant', routes['chat-conversations.open-assistant'], request, options),
   openDepartment: (request: RequestOf<'chat-conversations.open-department'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.open-department'>, ResponseOf<'chat-conversations.open-department'>>('chat-conversations.open-department', routes['chat-conversations.open-department'], request, options),
   openSingle: (request: RequestOf<'chat-conversations.open-single'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.open-single'>, ResponseOf<'chat-conversations.open-single'>>('chat-conversations.open-single', routes['chat-conversations.open-single'], request, options),
   pin: (request: RequestOf<'chat-conversations.pin'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.pin'>, ResponseOf<'chat-conversations.pin'>>('chat-conversations.pin', routes['chat-conversations.pin'], request, options),
@@ -620,6 +645,7 @@ export const chatMessages = {
   presign: (request: RequestOf<'chat-messages.presign'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.presign'>, ResponseOf<'chat-messages.presign'>>('chat-messages.presign', routes['chat-messages.presign'], request, options),
   react: (request: RequestOf<'chat-messages.react'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.react'>, ResponseOf<'chat-messages.react'>>('chat-messages.react', routes['chat-messages.react'], request, options),
   recall: (request: RequestOf<'chat-messages.recall'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.recall'>, ResponseOf<'chat-messages.recall'>>('chat-messages.recall', routes['chat-messages.recall'], request, options),
+  replyAssistant: (request: RequestOf<'chat-messages.reply-assistant'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.reply-assistant'>, ResponseOf<'chat-messages.reply-assistant'>>('chat-messages.reply-assistant', routes['chat-messages.reply-assistant'], request, options),
   search: (request: RequestOf<'chat-messages.search'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.search'>, ResponseOf<'chat-messages.search'>>('chat-messages.search', routes['chat-messages.search'], request, options),
   send: (request: RequestOf<'chat-messages.send'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.send'>, ResponseOf<'chat-messages.send'>>('chat-messages.send', routes['chat-messages.send'], request, options),
   unpin: (request: RequestOf<'chat-messages.unpin'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.unpin'>, ResponseOf<'chat-messages.unpin'>>('chat-messages.unpin', routes['chat-messages.unpin'], request, options),

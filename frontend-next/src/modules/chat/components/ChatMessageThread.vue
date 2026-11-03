@@ -92,6 +92,8 @@ const conversationTypeLabel = computed(() => {
       return t('chat.type.group')
     case 'Department':
       return t('chat.type.department')
+    case 'Assistant':
+      return t('chat.type.assistant')
     default:
       return ''
   }

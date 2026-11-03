@@ -234,6 +234,36 @@ CREATE TABLE IF NOT EXISTS "sys_access_policy_condition" (
 );
 CREATE INDEX IF NOT EXISTS ix_sys_access_policy_condition_owner_tenant_id_policy_id ON public.sys_access_policy_condition USING btree (owner_tenant_id, policy_id);
 
+CREATE TABLE IF NOT EXISTS "sys_ai_assistant" (
+    "id" uuid NOT NULL,
+    "code" character varying(100) NOT NULL,
+    "name" character varying(100) NOT NULL,
+    "avatar" character varying(500) DEFAULT NULL::character varying NULL,
+    "description" character varying(500) DEFAULT NULL::character varying NULL,
+    "greeting" character varying(1000) DEFAULT NULL::character varying NULL,
+    "prompt_code" character varying(100) DEFAULT NULL::character varying NULL,
+    "provider_code" character varying(64) DEFAULT NULL::character varying NULL,
+    "enable_knowledge" boolean DEFAULT false NOT NULL,
+    "knowledge_provider_code" character varying(64) DEFAULT NULL::character varying NULL,
+    "knowledge_top_k" integer DEFAULT 0 NOT NULL,
+    "history_rounds" integer DEFAULT 0 NOT NULL,
+    "tools" text NULL,
+    "is_default" boolean DEFAULT false NOT NULL,
+    "status" integer DEFAULT 0 NOT NULL,
+    "order" integer DEFAULT 0 NOT NULL,
+    "remark" character varying(500) DEFAULT NULL::character varying NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_ai_assistant_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_ai_assistant_code ON public.sys_ai_assistant USING btree (code) WHERE (is_deleted = false);
+
 CREATE TABLE IF NOT EXISTS "sys_ai_prompt" (
     "id" uuid NOT NULL,
     "code" character varying(100) NOT NULL,

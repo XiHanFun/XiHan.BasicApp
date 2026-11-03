@@ -90,6 +90,46 @@ public static class AIMessages
     public const string DeleteAiPromptsDescription = "ai_prompts.delete.description";
 
     /// <summary>
+    /// 操作 <c>ai-assistants.list</c> 的说明
+    /// </summary>
+    public const string ListAiAssistantsDescription = "ai_assistants.list.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.get</c> 的说明
+    /// </summary>
+    public const string GetAiAssistantDescription = "ai_assistants.get.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.create</c> 的说明
+    /// </summary>
+    public const string CreateAiAssistantDescription = "ai_assistants.create.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.update</c> 的说明
+    /// </summary>
+    public const string UpdateAiAssistantDescription = "ai_assistants.update.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.set-status</c> 的说明
+    /// </summary>
+    public const string SetAiAssistantStatusDescription = "ai_assistants.set_status.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.set-default</c> 的说明
+    /// </summary>
+    public const string SetDefaultAiAssistantDescription = "ai_assistants.set_default.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.delete</c> 的说明
+    /// </summary>
+    public const string DeleteAiAssistantsDescription = "ai_assistants.delete.description";
+
+    /// <summary>
+    /// 操作 <c>ai-assistants.tools</c> 的说明
+    /// </summary>
+    public const string ListAiAssistantToolsDescription = "ai_assistants.tools.description";
+
+    /// <summary>
     /// 操作 <c>knowledge-documents.list</c> 的说明
     /// </summary>
     public const string ListKnowledgeDocumentsDescription = "knowledge_documents.list.description";
@@ -165,7 +205,7 @@ public static class AIMessages
     public const string PromptCodeTaken = "ai.prompts.code_taken";
 
     /// <summary>
-    /// 提供商还被引用，不能删除（参数 <c>code</c>）
+    /// 提供商还被助手或知识文档引用，不能删除（参数 <c>code</c>）
     /// </summary>
     public const string ProviderInUse = "ai.providers.in_use";
 
@@ -183,6 +223,56 @@ public static class AIMessages
     /// 知识文档切不出块
     /// </summary>
     public const string KnowledgeNoChunks = "ai.knowledge_documents.no_chunks";
+
+    /// <summary>
+    /// 提示词还被助手引用，不能删除（参数 <c>code</c>）
+    /// </summary>
+    public const string PromptInUse = "ai.prompts.in_use";
+
+    /// <summary>
+    /// 助手不存在（参数 <c>id</c>）
+    /// </summary>
+    public const string AssistantNotFound = "ai.assistants.not_found";
+
+    /// <summary>
+    /// 已有同编码的助手（参数 <c>code</c>）
+    /// </summary>
+    public const string AssistantCodeTaken = "ai.assistants.code_taken";
+
+    /// <summary>
+    /// 停用的助手不能设为缺省（参数 <c>code</c>）
+    /// </summary>
+    public const string AssistantDisabled = "ai.assistants.disabled";
+
+    /// <summary>
+    /// 编码不能有空白
+    /// </summary>
+    public const string AssistantCodeInvalid = "ai.assistants.code_invalid";
+
+    /// <summary>
+    /// 引用的提供商不存在或已停用（参数 <c>code</c>）
+    /// </summary>
+    public const string AssistantProviderUnavailable = "ai.assistants.provider_unavailable";
+
+    /// <summary>
+    /// 引用的提示词不存在或已停用（参数 <c>code</c>）
+    /// </summary>
+    public const string AssistantPromptUnavailable = "ai.assistants.prompt_unavailable";
+
+    /// <summary>
+    /// 勾选的工具不在工具目录里（参数 <c>name</c>）
+    /// </summary>
+    public const string AssistantToolUnavailable = "ai.assistants.tool_unavailable";
+
+    /// <summary>
+    /// 回复时引用的提示词不存在或已停用（参数 <c>code</c>）
+    /// </summary>
+    public const string AssistantPromptDisabled = "ai.assistants.prompt_disabled";
+
+    /// <summary>
+    /// 没配提示词时的系统提示词
+    /// </summary>
+    public const string AssistantDefaultSystemPrompt = "ai.assistants.default_system_prompt";
 
     /// <summary>
     /// 字段不能全是空白

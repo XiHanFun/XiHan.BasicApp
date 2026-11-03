@@ -11,6 +11,11 @@
       "description": "Query access logs: the result, duration and client of every operation call."
     },
     {
+      "name": "ai-assistants",
+      "x-displayName": "AI assistants",
+      "description": "Assistant configuration: prompt, provider, knowledge scope and tools. Chat on both sides can use them."
+    },
+    {
       "name": "ai-prompts",
       "x-displayName": "AI prompts",
       "description": "System prompts for assistants: create, read, update, delete, enable and disable. The content is used as-is without variable rendering; the version is only a label."
@@ -701,6 +706,1429 @@
                     "items",
                     "total",
                     "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants": {
+      "delete": {
+        "operationId": "ai-assistants.delete",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Delete AI assistants",
+        "description": "Delete assistants. Existing conversations are kept but cannot ask further questions.\n\nRequires permission ai.ai-assistants.delete (Delete AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u52A9\u624B ID\uFF0C1 \u5230 100 \u4E2A",
+            "required": true,
+            "schema": {
+              "description": "\u52A9\u624B ID\uFF0C1 \u5230 100 \u4E2A",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ai-assistants.create",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Create an AI assistant",
+        "description": "Add an assistant. The code is unique and cannot change; referenced prompts and providers must exist and be enabled, and tools must be in the tool catalog.\n\nRequires permission ai.ai-assistants.create (Create AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "ai-assistants.create \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateAiAssistantRequest",
+                "description": "ai-assistants.create \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "description": "\u7F16\u7801\uFF08\u552F\u4E00\uFF09",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "avatar": {
+                    "description": "\u5934\u50CF\u5730\u5740",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "description": {
+                    "description": "\u7B80\u4ECB",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "greeting": {
+                    "description": "\u5F00\u573A\u767D",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "promptCode": {
+                    "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "providerCode": {
+                    "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "enableKnowledge": {
+                    "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                    "type": "boolean"
+                  },
+                  "knowledgeProviderCode": {
+                    "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "knowledgeTopK": {
+                    "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 20
+                  },
+                  "historyRounds": {
+                    "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 50
+                  },
+                  "tools": {
+                    "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 100
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u521D\u59CB\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u52A9\u624B",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantResponse",
+                  "description": "\u52A9\u624B",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u7B80\u4ECB",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "greeting": {
+                      "description": "\u5F00\u573A\u767D",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptCode": {
+                      "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "providerCode": {
+                      "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableKnowledge": {
+                      "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                      "type": "boolean"
+                    },
+                    "knowledgeProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "knowledgeTopK": {
+                      "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "historyRounds": {
+                      "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "tools": {
+                      "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "enableKnowledge",
+                    "knowledgeTopK",
+                    "historyRounds",
+                    "tools",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants/{id}": {
+      "get": {
+        "operationId": "ai-assistants.get",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Get an AI assistant",
+        "description": "Read an assistant\u0027s configuration.\n\nRequires permission ai.ai-assistants.read (Read AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u52A9\u624B ID",
+            "required": true,
+            "schema": {
+              "description": "\u52A9\u624B ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u52A9\u624B",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantResponse",
+                  "description": "\u52A9\u624B",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u7B80\u4ECB",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "greeting": {
+                      "description": "\u5F00\u573A\u767D",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptCode": {
+                      "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "providerCode": {
+                      "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableKnowledge": {
+                      "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                      "type": "boolean"
+                    },
+                    "knowledgeProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "knowledgeTopK": {
+                      "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "historyRounds": {
+                      "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "tools": {
+                      "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "enableKnowledge",
+                    "knowledgeTopK",
+                    "historyRounds",
+                    "tools",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "ai-assistants.update",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Update an AI assistant",
+        "description": "Edit an assistant\u0027s configuration. The code cannot change, enabling and disabling is a separate operation, and the concurrency stamp you read must be returned.\n\nRequires permission ai.ai-assistants.update (Update AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u52A9\u624B ID",
+            "required": true,
+            "schema": {
+              "description": "\u52A9\u624B ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-assistants.update \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateAiAssistantRequest",
+                "description": "ai-assistants.update \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u52A9\u624B ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "avatar": {
+                    "description": "\u5934\u50CF\u5730\u5740",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "description": {
+                    "description": "\u7B80\u4ECB",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "greeting": {
+                    "description": "\u5F00\u573A\u767D",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "promptCode": {
+                    "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "providerCode": {
+                    "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "enableKnowledge": {
+                    "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                    "type": "boolean"
+                  },
+                  "knowledgeProviderCode": {
+                    "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "knowledgeTopK": {
+                    "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 20
+                  },
+                  "historyRounds": {
+                    "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 50
+                  },
+                  "tools": {
+                    "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 100
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u52A9\u624B",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantResponse",
+                  "description": "\u52A9\u624B",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u7B80\u4ECB",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "greeting": {
+                      "description": "\u5F00\u573A\u767D",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptCode": {
+                      "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "providerCode": {
+                      "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableKnowledge": {
+                      "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                      "type": "boolean"
+                    },
+                    "knowledgeProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "knowledgeTopK": {
+                      "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "historyRounds": {
+                      "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "tools": {
+                      "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "enableKnowledge",
+                    "knowledgeTopK",
+                    "historyRounds",
+                    "tools",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants/{id}:set-default": {
+      "post": {
+        "operationId": "ai-assistants.set-default",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Set the default AI assistant",
+        "description": "Make an assistant the default and clear the others. A disabled assistant cannot be the default.\n\nRequires permission ai.ai-assistants.update (Update AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u52A9\u624B ID",
+            "required": true,
+            "schema": {
+              "description": "\u52A9\u624B ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u6309 ID \u7684\u8BF7\u6C42\uFF08\u8BE6\u60C5\u3001\u8BBE\u4E3A\u7F3A\u7701\uFF09",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "AiAssistantIdRequest",
+                "description": "\u6309 ID \u7684\u8BF7\u6C42\uFF08\u8BE6\u60C5\u3001\u8BBE\u4E3A\u7F3A\u7701\uFF09",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u52A9\u624B ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u52A9\u624B",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantResponse",
+                  "description": "\u52A9\u624B",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u7B80\u4ECB",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "greeting": {
+                      "description": "\u5F00\u573A\u767D",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptCode": {
+                      "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "providerCode": {
+                      "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableKnowledge": {
+                      "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                      "type": "boolean"
+                    },
+                    "knowledgeProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "knowledgeTopK": {
+                      "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "historyRounds": {
+                      "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "tools": {
+                      "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "enableKnowledge",
+                    "knowledgeTopK",
+                    "historyRounds",
+                    "tools",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants/{id}:set-status": {
+      "post": {
+        "operationId": "ai-assistants.set-status",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "Enable or disable an AI assistant",
+        "description": "Enable or disable an assistant. Once disabled it no longer appears among the assistants in chat, and existing conversations cannot ask further questions.\n\nRequires permission ai.ai-assistants.update (Update AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u52A9\u624B ID",
+            "required": true,
+            "schema": {
+              "description": "\u52A9\u624B ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-assistants.set-status \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetAiAssistantStatusRequest",
+                "description": "ai-assistants.set-status \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u52A9\u624B ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u52A9\u624B",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantResponse",
+                  "description": "\u52A9\u624B",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "description": "\u7B80\u4ECB",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "greeting": {
+                      "description": "\u5F00\u573A\u767D",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptCode": {
+                      "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "providerCode": {
+                      "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "enableKnowledge": {
+                      "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+                      "type": "boolean"
+                    },
+                    "knowledgeProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "knowledgeTopK": {
+                      "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "historyRounds": {
+                      "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "tools": {
+                      "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "enableKnowledge",
+                    "knowledgeTopK",
+                    "historyRounds",
+                    "tools",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants:list": {
+      "post": {
+        "operationId": "ai-assistants.list",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "List AI assistants",
+        "description": "Page through the assistants; filter by status and search code and name.\n\nRequires permission ai.ai-assistants.read (Read AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfAiAssistantResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiAssistantResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-assistants:tools": {
+      "get": {
+        "operationId": "ai-assistants.tools",
+        "tags": [
+          "ai-assistants"
+        ],
+        "summary": "List assistant tools",
+        "description": "List the tools an assistant can use (read-only operations that run as the caller), and tell the form whether a vector store is configured.\n\nRequires permission ai.ai-assistants.read (Read AI assistants).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-assistants.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "ai-assistants.tools \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiAssistantToolsResponse",
+                  "description": "ai-assistants.tools \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u53EF\u52FE\u9009\u7684\u5DE5\u5177",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiAssistantToolItem"
+                      }
+                    },
+                    "knowledgeAvailable": {
+                      "description": "\u6709\u6CA1\u6709\u5411\u91CF\u5E93\uFF1A\u6CA1\u6709\u65F6\u5F00\u7740\u300C\u68C0\u7D22\u77E5\u8BC6\u5E93\u300D\u7684\u52A9\u624B\u56DE\u590D\u4F1A\u5931\u8D25\uFF0C\u8868\u5355\u636E\u6B64\u63D0\u793A",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "knowledgeAvailable"
                   ]
                 }
               }
@@ -7090,6 +8518,55 @@
         }
       }
     },
+    "/api/chat-conversations:assistants": {
+      "get": {
+        "operationId": "chat-conversations.assistants",
+        "tags": [
+          "chat-conversations"
+        ],
+        "summary": "List available assistants",
+        "description": "List the assistants available in chat. Reports assistants as unavailable when the AI module is not installed.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-conversations.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "chat-conversations.assistants \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatAssistantsResponse",
+                  "description": "chat-conversations.assistants \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u53EF\u7528\u7684\u52A9\u624B",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatAssistantItem"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chat-conversations:create-group": {
       "post": {
         "operationId": "chat-conversations.create-group",
@@ -7565,6 +9042,99 @@
                   },
                   "required": [
                     "isOn"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-conversations:open-assistant": {
+      "post": {
+        "operationId": "chat-conversations.open-assistant",
+        "tags": [
+          "chat-conversations"
+        ],
+        "summary": "Open an assistant conversation",
+        "description": "Open the conversation with an assistant. A user has one conversation per assistant; it is created with the greeting if missing.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-conversations.read",
+        "parameters": [],
+        "requestBody": {
+          "description": "chat-conversations.open-assistant \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OpenAssistantConversationRequest",
+                "description": "chat-conversations.open-assistant \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "assistantId": {
+                    "description": "\u52A9\u624B ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "assistantId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6253\u5F00\u52A9\u624B\u4F1A\u8BDD\u7684\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatAssistantOpenResponse",
+                  "description": "\u6253\u5F00\u52A9\u624B\u4F1A\u8BDD\u7684\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "description": "\u4F1A\u8BDD",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "assistantId": {
+                      "description": "\u52A9\u624B ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "assistantName": {
+                      "description": "\u52A9\u624B\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "description": "\u5934\u50CF\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "created": {
+                      "description": "\u662F\u5426\u65B0\u5EFA",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "conversationId",
+                    "assistantId",
+                    "assistantName",
+                    "created"
                   ]
                 }
               }
@@ -9300,6 +10870,83 @@
                   "properties": {
                     "messageId": {
                       "description": "\u6D88\u606F",
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "messageId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-messages:reply-assistant": {
+      "post": {
+        "operationId": "chat-messages.reply-assistant",
+        "tags": [
+          "chat-messages"
+        ],
+        "summary": "Request an assistant reply",
+        "description": "Reply to the latest question in the conversation. Deltas are pushed to you in real time and the result is saved as an assistant message; tools run as the caller.\n\nRequires permission chat.chat-messages.send (Send chat messages).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-messages.send",
+        "parameters": [],
+        "requestBody": {
+          "description": "chat-messages.reply-assistant \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ReplyAssistantRequest",
+                "description": "chat-messages.reply-assistant \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "conversationId": {
+                    "description": "\u52A9\u624B\u4F1A\u8BDD",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "replyId": {
+                    "description": "\u524D\u7AEF\u751F\u6210\u7684\u56DE\u590D\u6807\u8BC6\uFF1A\u589E\u91CF\u6309\u5B83\u5F52\u4F4D\u5230\u540C\u4E00\u6761\u5360\u4F4D\u6C14\u6CE1",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "conversationId",
+                  "replyId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "chat-messages.reply-assistant \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ReplyAssistantResponse",
+                  "description": "chat-messages.reply-assistant \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "messageId": {
+                      "description": "\u843D\u5E93\u7684\u52A9\u624B\u6D88\u606F",
                       "type": "string",
                       "format": "uuid"
                     }
@@ -59395,6 +61042,159 @@
           "onlineMinutes"
         ]
       },
+      "AiAssistantResponse": {
+        "description": "\u52A9\u624B",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0",
+            "type": "string"
+          },
+          "avatar": {
+            "description": "\u5934\u50CF\u5730\u5740",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "description": "\u7B80\u4ECB",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "greeting": {
+            "description": "\u5F00\u573A\u767D",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "promptCode": {
+            "description": "\u63D0\u793A\u8BCD\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u5185\u7F6E\u7684\u7CFB\u7EDF\u63D0\u793A\u8BCD",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "providerCode": {
+            "description": "\u804A\u5929\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enableKnowledge": {
+            "description": "\u662F\u5426\u68C0\u7D22\u77E5\u8BC6\u5E93",
+            "type": "boolean"
+          },
+          "knowledgeProviderCode": {
+            "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "knowledgeTopK": {
+            "description": "\u68C0\u7D22\u7684\u7247\u6BB5\u6570",
+            "type": "integer",
+            "format": "int32"
+          },
+          "historyRounds": {
+            "description": "\u5E26\u5165\u4E0A\u4E0B\u6587\u7684\u5386\u53F2\u6D88\u606F\u6761\u6570",
+            "type": "integer",
+            "format": "int32"
+          },
+          "tools": {
+            "description": "\u53EF\u7528\u7684\u5DE5\u5177\u540D",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/AiStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "enableKnowledge",
+          "knowledgeTopK",
+          "historyRounds",
+          "tools",
+          "isDefault",
+          "status",
+          "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "AiAssistantToolItem": {
+        "description": "\u53EF\u52FE\u9009\u7684\u5DE5\u5177",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u5DE5\u5177\u540D",
+            "type": "string"
+          },
+          "description": {
+            "description": "\u8BF4\u660E\uFF08\u8C03\u7528\u65B9\u7684\u533A\u57DF\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "AiPromptResponse": {
         "description": "\u63D0\u793A\u8BCD\u7684\u5217\u8868\u9879",
         "type": "object",
@@ -60018,6 +61818,49 @@
           "package",
           "prefix",
           "editable"
+        ]
+      },
+      "ChatAssistantItem": {
+        "description": "\u53EF\u7528\u7684\u52A9\u624B",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u52A9\u624B ID",
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0",
+            "type": "string"
+          },
+          "avatar": {
+            "description": "\u5934\u50CF\u5730\u5740",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "description": "\u7B80\u4ECB",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "description": "\u662F\u5426\u7F3A\u7701\u52A9\u624B",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isDefault"
         ]
       },
       "ChatAttachmentResponse": {
@@ -72012,6 +73855,26 @@
         "displayName": "Read user grants",
         "description": "View the permissions granted or denied directly to users."
       },
+      "ai.ai-assistants.create": {
+        "code": "ai.ai-assistants.create",
+        "displayName": "Create AI assistants",
+        "description": "Add assistants."
+      },
+      "ai.ai-assistants.delete": {
+        "code": "ai.ai-assistants.delete",
+        "displayName": "Delete AI assistants",
+        "description": "Delete assistants."
+      },
+      "ai.ai-assistants.read": {
+        "code": "ai.ai-assistants.read",
+        "displayName": "Read AI assistants",
+        "description": "View the assistants and the tools they can use."
+      },
+      "ai.ai-assistants.update": {
+        "code": "ai.ai-assistants.update",
+        "displayName": "Update AI assistants",
+        "description": "Edit, enable, disable and set the default assistant."
+      },
       "ai.ai-prompts.create": {
         "code": "ai.ai-prompts.create",
         "displayName": "Create AI prompts",
@@ -73049,6 +74912,7 @@
     {
       "name": "AI",
       "tags": [
+        "ai-assistants",
         "ai-prompts",
         "ai-providers",
         "knowledge-documents"

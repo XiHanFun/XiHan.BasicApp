@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.AI;
 /// </summary>
 /// <remarks>
 /// 4.x 的 <c>ai:*</c> 按资源拆开（6.0 权限码的资源段要与操作一致），动作照 4.x 各方法要的那个码：启停与设缺省归 <c>update</c>，测试连接归 <c>execute</c>
-/// 提供商与提示词只在平台一侧（照 4.x：平台配置、租户经助手用到）；知识文档两侧都有（方案 A2：租户维护自己的知识）
+/// 提供商、提示词与助手的配置只在平台一侧（照 4.x：平台配置、租户经助手用到）；知识文档两侧都有（方案 A2：租户维护自己的知识）
 /// </remarks>
 public static class AIPermissions
 {
@@ -60,6 +60,26 @@ public static class AIPermissions
     public const string AiPromptsDelete = "ai.ai-prompts.delete";
 
     /// <summary>
+    /// 查看助手
+    /// </summary>
+    public const string AiAssistantsRead = "ai.ai-assistants.read";
+
+    /// <summary>
+    /// 新建助手
+    /// </summary>
+    public const string AiAssistantsCreate = "ai.ai-assistants.create";
+
+    /// <summary>
+    /// 修改、启停助手与设为缺省
+    /// </summary>
+    public const string AiAssistantsUpdate = "ai.ai-assistants.update";
+
+    /// <summary>
+    /// 删除助手
+    /// </summary>
+    public const string AiAssistantsDelete = "ai.ai-assistants.delete";
+
+    /// <summary>
     /// 查看知识文档
     /// </summary>
     public const string KnowledgeDocumentsRead = "ai.knowledge-documents.read";
@@ -98,6 +118,10 @@ public static class AIPermissions
         new(AiPromptsCreate, "Create AI prompts", PermissionScope.Platform, audited: true, description: "Add prompts."),
         new(AiPromptsUpdate, "Update AI prompts", PermissionScope.Platform, audited: true, description: "Edit, enable and disable prompts."),
         new(AiPromptsDelete, "Delete AI prompts", PermissionScope.Platform, audited: true, description: "Delete prompts."),
+        new(AiAssistantsRead, "Read AI assistants", PermissionScope.Platform, description: "View the assistants and the tools they can use."),
+        new(AiAssistantsCreate, "Create AI assistants", PermissionScope.Platform, audited: true, description: "Add assistants."),
+        new(AiAssistantsUpdate, "Update AI assistants", PermissionScope.Platform, audited: true, description: "Edit, enable, disable and set the default assistant."),
+        new(AiAssistantsDelete, "Delete AI assistants", PermissionScope.Platform, audited: true, description: "Delete assistants."),
         new(KnowledgeDocumentsRead, "Read knowledge documents", PermissionScope.Both, description: "View this side's knowledge documents and their content."),
         new(KnowledgeDocumentsCreate, "Ingest knowledge documents", PermissionScope.Both, audited: true, description: "Add text documents to this side's knowledge base."),
         new(KnowledgeDocumentsUpdate, "Reindex knowledge documents", PermissionScope.Both, audited: true, description: "Rebuild the index of a knowledge document from its content."),

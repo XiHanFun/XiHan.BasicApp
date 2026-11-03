@@ -140,5 +140,16 @@
   "permissions.chat.chat_messages.send.name": "Chat-Nachrichten senden",
   "permissions.chat.chat_messages.send.description": "In den eigenen Unterhaltungen Nachrichten senden, zurückrufen, bearbeiten, darauf reagieren, anheften, weiterleiten und Anhänge hochladen.",
   "permissions.chat.chat_audit.read.name": "Chat-Nachrichten prüfen",
-  "permissions.chat.chat_audit.read.description": "Alle Nachrichten der eigenen Seite durchsuchen und Nachrichtendetails sowie Gesprächsmitglieder ansehen, ohne Mitglied zu sein."
+  "permissions.chat.chat_audit.read.description": "Alle Nachrichten der eigenen Seite durchsuchen und Nachrichtendetails sowie Gesprächsmitglieder ansehen, ohne Mitglied zu sein.",
+  "chat_conversations.assistants.title": "Verfügbare Assistenten auflisten",
+  "chat_conversations.assistants.description": "Listet die im Chat verfügbaren Assistenten auf. Meldet sie als nicht verfügbar, wenn das KI-Modul nicht installiert ist.",
+  "chat_conversations.open_assistant.title": "Assistenten-Unterhaltung öffnen",
+  "chat_conversations.open_assistant.description": "Öffnet die Unterhaltung mit einem Assistenten. Pro Benutzer und Assistent gibt es eine Unterhaltung; fehlt sie, wird sie mit der Begrüßung angelegt.",
+  "chat_messages.reply_assistant.title": "Antwort des Assistenten anfordern",
+  "chat_messages.reply_assistant.description": "Beantwortet die letzte Frage der Unterhaltung. Teilantworten werden in Echtzeit an Sie gesendet, das Ergebnis wird als Assistentennachricht gespeichert; Tools laufen im Namen des Aufrufers.",
+  "chat.assistant.not_assistant": "Dies ist keine Unterhaltung mit einem Assistenten.",
+  "chat.assistant.no_question": "In dieser Unterhaltung gibt es keine Frage zu beantworten.",
+  "chat.assistant.unavailable": "Assistenten sind nicht verfügbar.",
+  "chat.assistant.reply_failed": "Die Antwort des Assistenten konnte nicht erzeugt werden: {reason}",
+  "chat.assistant.reply_empty": "Der Assistent hat keinen Inhalt erzeugt."
 }

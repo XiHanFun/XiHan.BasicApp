@@ -8,6 +8,7 @@ using XiHan.BasicApp.AI.Infrastructure;
 using XiHan.BasicApp.AI.Middleware;
 using XiHan.BasicApp.AI.Queries;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Assistants;
 using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -31,7 +32,8 @@ namespace XiHan.BasicApp.AI;
 /// <remarks>
 /// 宿主按 <c>BasicApp:Modules:AI:Enabled</c> 装配（缺省开），同时装框架的 OpenAI 兼容 Provider；架在框架的 AI 子系统之上：
 /// 模型提供商落库（方案 A1，照 4.x），以 <see cref="AiProviderCatalog"/> 取代框架按配置建的 Provider 目录，宿主启动时装载、提供商写入的调用提交之后重载
-/// 提供商与提示词只在平台一侧（照 4.x）；知识文档平台与租户各自维护（方案 A2），向量库由宿主按配置装，没配即知识库不可用
+/// 提供商、提示词与助手的配置只在平台一侧（照 4.x）；知识文档平台与租户各自维护（方案 A2），向量库由宿主按配置装，没配即知识库不可用
+/// 助手经 Contracts 的 <see cref="IChatAssistants"/> 给聊天应答，聊天不引用本包
 /// </remarks>
 public sealed class AIFeature : IHostedFeature
 {
@@ -78,6 +80,10 @@ public sealed class AIFeature : IHostedFeature
         context.Services.AddScoped<AiProviderQueries>();
         context.Services.AddScoped<AiPromptService>();
         context.Services.AddScoped<AiPromptQueries>();
+        context.Services.AddScoped<AiAssistantService>();
+        context.Services.AddScoped<AiAssistantQueries>();
+        // 聊天的助手应答：聊天不引用 AI，经 Contracts 的接口拿到它，AI 关掉时没有实现
+        context.Services.AddScoped<IChatAssistants, AiChatAssistants>();
         context.Services.AddScoped<KnowledgeDocumentService>();
         context.Services.AddScoped<KnowledgeDocumentQueries>();
         context.Services.AddScoped<AiProviderReferences>();

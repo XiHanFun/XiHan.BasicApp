@@ -5,8 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
+using XiHan.Framework.Persistence.Abstractions.Queries;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 
@@ -16,12 +19,13 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 提供商被谁引用
 /// </summary>
 /// <remarks>
-/// 被引用的提供商不能删除（方案 D5）。知识文档是租户库实体（方案 A2），要逐个侧查：平台与目录里的每个租户，独立库的租户绑定分片后查它自己的库；
+/// 被引用的提供商不能删除（方案 D5）：助手在平台库，知识文档是租户库实体（方案 A2），要逐个侧查：平台与目录里的每个租户，独立库的租户绑定分片后查它自己的库；
 /// 删提供商是少见的平台操作，这个开销可以接受。任何一侧查不了即失败，不当作没有引用
 /// </remarks>
+/// <param name="assistants">助手仓储</param>
 /// <param name="tenants">租户目录</param>
 /// <param name="scopes">作用域工厂</param>
-public sealed class AiProviderReferences(ITenantStore tenants, IServiceScopeFactory scopes)
+public sealed class AiProviderReferences(IRepository<SysAiAssistant, Guid> assistants, ITenantStore tenants, IServiceScopeFactory scopes)
 {
     /// <summary>
     /// 这些编码里被引用的那些
@@ -36,6 +40,12 @@ public sealed class AiProviderReferences(ITenantStore tenants, IServiceScopeFact
         if (codes.Count == 0)
         {
             return referenced;
+        }
+
+        var configured = await assistants.ListAsync(EntityQuery.All<SysAiAssistant>().Where(new Specification<SysAiAssistant>(a => codes.Contains(a.ProviderCode!) || codes.Contains(a.KnowledgeProviderCode!))), cancellationToken).ConfigureAwait(false);
+        foreach (var assistant in configured)
+        {
+            referenced.UnionWith(new[] { assistant.ProviderCode, assistant.KnowledgeProviderCode }.OfType<string>().Where(codes.Contains));
         }
 
         var sides = new List<string> { TenantIds.Platform };

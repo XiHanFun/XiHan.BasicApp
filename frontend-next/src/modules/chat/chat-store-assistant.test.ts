@@ -5,11 +5,11 @@
  * replyId 配对、失败展示与落库后丢弃是本文件的重点。另外覆盖发起各类会话的「刷新列表再进入」
  * 顺序，以及 $reset 是否真的把定时器一起清掉（不清就会在登出后继续打接口）
  */
-import type { ChatAssistantProvider } from './assistant-provider'
 import type { ChatApiContract, ChatConversationListItem, ChatConversationOpenResult, ChatMessageItem } from './types'
-import type { Session } from '~/stores'
+import type { ChatAssistantProvider, Session } from '~/stores'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '~/request'
 import { useAuthStore } from '~/stores'
 import { setChatApi } from './api-contract'
 import { useChatStore } from './store'
@@ -18,10 +18,10 @@ const hub = vi.hoisted(() => ({ calls: [] as string[] }))
 
 // 助手提供方注册表本身是模块级单例，真实模块没有反注册入口
 // 这里整体替身掉并在每个用例前清空，保证「未注册」的降级用例不受其它用例注册残留影响，
-// 用例因此可任意顺序 / 并行执行。注册表自身的语义在 chat-registries.test.ts 里测
+// 用例因此可任意顺序 / 并行执行。注册表自身的语义在 packages/stores/chat-assistant.test.ts 里测
 const assistant = vi.hoisted(() => ({ provider: null as unknown }))
 
-vi.mock('./assistant-provider', () => ({
+vi.mock('~/stores/chat-assistant', () => ({
   getChatAssistantProvider: () => assistant.provider,
   hasChatAssistantProvider: () => assistant.provider !== null,
   registerChatAssistantProvider: (impl: unknown) => {
@@ -115,6 +115,7 @@ function fakeProvider(overrides: Partial<ChatAssistantProvider> = {}): ChatAssis
       conversationId: `conv-${assistantId}`,
       assistantId,
       assistantName: '小助手',
+      avatar: null,
       created: true,
     }),
     reply: () => Promise.resolve({ messageId: 'reply-1' }),
@@ -134,6 +135,52 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+})
+
+describe('助手入口的探测（后端关掉 AI、前端 AI 模块还在）', () => {
+  it('收到「助手不可用」即隐藏入口，只问一次', async () => {
+    let calls = 0
+    registerChatAssistantProvider(fakeProvider({
+      availableAssistants: () => {
+        calls += 1
+        return Promise.reject(new ApiError(503, { code: 'CHAT_UNAVAILABLE_001', status: 503, detail: '助手不可用' }))
+      },
+    }))
+    const store = setup()
+
+    await store.probeAssistants()
+    await store.probeAssistants()
+
+    expect(store.assistantsUnavailable).toBe(true)
+    expect(calls).toBe(1)
+  })
+
+  it('别的错误抛给调用方、不隐藏入口，下次展开再问', async () => {
+    let calls = 0
+    registerChatAssistantProvider(fakeProvider({
+      availableAssistants: () => {
+        calls += 1
+        return calls === 1 ? Promise.reject(new ApiError(500, { code: 'KERNEL_UNEXPECTED_000', status: 500, detail: '出错了' })) : Promise.resolve([])
+      },
+    }))
+    const store = setup()
+
+    await expect(store.probeAssistants()).rejects.toBeInstanceOf(ApiError)
+    expect(store.assistantsUnavailable).toBe(false)
+
+    await store.probeAssistants()
+    await store.probeAssistants()
+
+    expect(store.assistantsUnavailable).toBe(false)
+    expect(calls).toBe(2)
+  })
+
+  it('没有登记提供方时不发请求', async () => {
+    const store = setup()
+
+    await expect(store.probeAssistants()).resolves.toBeUndefined()
+    expect(store.assistantsUnavailable).toBe(false)
+  })
 })
 
 describe('未注册助手提供方时的降级', () => {
@@ -229,14 +276,15 @@ describe('助手增量气泡', () => {
     expect(store.assistantStreams.a?.streaming).toBe(true)
   })
 
-  it('提供方返回业务错误时就地转为错误态', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.resolve({ error: '助手已禁用' }) }))
+  it('后端的失败取本地化正文，不带错误码前缀', async () => {
+    const problem = new ApiError(503, { code: 'CHAT_UNAVAILABLE_002', status: 503, detail: '助手回复生成失败' })
+    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.reject(problem) }))
     const store = setup()
 
     await store.requestAssistantReply('a')
 
     expect(store.assistantStreams.a?.streaming).toBe(false)
-    expect(store.assistantStreams.a?.error).toBe('助手已禁用')
+    expect(store.assistantStreams.a?.error).toBe('助手回复生成失败')
   })
 
   it('提供方抛异常时取 message 作为错误文案', async () => {
@@ -262,7 +310,7 @@ describe('助手增量气泡', () => {
   })
 
   it('手动关闭错误气泡后该会话不再有临时气泡', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.resolve({ error: '失败' }) }))
+    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.reject(new Error('失败')) }))
     const store = setup()
     await store.requestAssistantReply('a')
 

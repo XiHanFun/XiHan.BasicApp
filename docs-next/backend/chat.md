@@ -2,7 +2,7 @@
 
 本页说明在线聊天的会话与消息规则、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 
-Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话（助手的回复随 N4），消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。规则沿用 5.x，写法换成 6.0 的。
+Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。规则沿用 5.x，写法换成 6.0 的。
 
 ## 数据
 
@@ -35,12 +35,31 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 系统提示（建群、邀请、退群、移出、转让）与会话预览按发起调用的区域写进库里，公告以操作人的身份进消息流。
 
+## 助手会话
+
+一个用户对一个助手只有一个会话，打开时没有即建并发开场白。助手不是成员，不算未读；回复是前端发出用户消息之后单独发起的调用（与 5.x 相同）：
+
+1. 前端发出提问，再调 `chat-messages.reply-assistant`，带自己生成的 `replyId`。
+2. 服务端从库里取最近的提问与回复，经 Contracts 的 `IChatAssistants` 流式生成。Chat 不引用 AI，AI 关掉时没有实现，三个助手操作返回 503 `CHAT_UNAVAILABLE_001`，聊天其余功能照常。
+3. 生成期间这次调用还没开事务，增量经立即推送发给本人（`ChatAssistantDelta`）。
+4. 结束后过敏感词（与用户输入同一套），落库为一条助手消息（超过 20000 个字符截断），提交之后按普通消息推送，再推 `ChatAssistantCompleted`。
+
+失败（模型不可达、空输出、敏感词、提示词停用、检索失败）时不留消息，操作以 Problem Details 结束，同时立即推 `ChatAssistantCompleted` 带 `errorCode` 与 `error`。5.x 返回 200 带错误。
+
+| 错误码 | 说明 |
+| --- | --- |
+| `CHAT_VALIDATION_026` | 不是助手会话 |
+| `CHAT_VALIDATION_027` | 会话里没有可回答的提问 |
+| `CHAT_UNAVAILABLE_001` | 助手不可用（AI 没有装配） |
+| `CHAT_UNAVAILABLE_002` | 生成失败，正文带提供商给的原因 |
+| `CHAT_UNAVAILABLE_003` | 模型没有产生任何内容 |
+
 ## 操作与权限
 
 | 资源 | 操作 |
 | --- | --- |
-| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`（只读）；`open-single`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
-| `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload` |
+| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
+| `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
 
 普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`）。

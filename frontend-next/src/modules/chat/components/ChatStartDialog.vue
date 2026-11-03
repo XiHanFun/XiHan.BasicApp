@@ -24,11 +24,10 @@ import XInput from '~/components/common/XInput.vue'
 import XSelect from '~/components/common/XSelect.vue'
 import XTreeSelect from '~/components/common/XTreeSelect.vue'
 import { toast } from '~/composables'
-import { useUserStore } from '~/stores'
+import { getChatAssistantProvider, useUserStore } from '~/stores'
 import {
   getChatApi,
 } from '../api-contract'
-import { getChatAssistantProvider } from '../assistant-provider'
 import { useChatStore } from '../store'
 import {
   CHAT_MAX_GROUP_NAME_LENGTH,
@@ -115,10 +114,10 @@ async function loadAssistants() {
   try {
     const items = await getChatAssistantProvider()!.availableAssistants()
     assistantOptions.value = items.map(item => ({
-      value: item.assistantId,
-      label: item.assistantName,
+      value: item.id,
+      label: item.name,
     }))
-    assistantId.value = items.find(item => item.isDefault)?.assistantId ?? items[0]?.assistantId ?? null
+    assistantId.value = items.find(item => item.isDefault)?.id ?? items[0]?.id ?? null
   }
   catch (error) {
     assistantOptions.value = []
