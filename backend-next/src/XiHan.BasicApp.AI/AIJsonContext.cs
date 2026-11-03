@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.AI.Operations.AiPrompts;
 using XiHan.BasicApp.AI.Operations.AiProviders;
+using XiHan.BasicApp.AI.Operations.KnowledgeDocuments;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 
@@ -37,5 +38,15 @@ namespace XiHan.BasicApp.AI;
 [JsonSerializable(typeof(AiPromptResponse))]
 [JsonSerializable(typeof(AiPromptDetailResponse))]
 [JsonSerializable(typeof(PageResult<AiPromptResponse>))]
+[JsonSerializable(typeof(KnowledgeDocumentIdRequest))]
+[JsonSerializable(typeof(IngestKnowledgeDocumentRequest))]
+[JsonSerializable(typeof(KnowledgeDocumentIdsRequest))]
+[JsonSerializable(typeof(QueryKnowledgeDocumentsRequest))]
+[JsonSerializable(typeof(SearchKnowledgeDocumentsRequest))]
+[JsonSerializable(typeof(KnowledgeDocumentResponse))]
+[JsonSerializable(typeof(KnowledgeDocumentDetailResponse))]
+[JsonSerializable(typeof(KnowledgeAnswerResponse))]
+[JsonSerializable(typeof(KnowledgeSearchResponse))]
+[JsonSerializable(typeof(PageResult<KnowledgeDocumentResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class AIJsonContext : JsonSerializerContext;

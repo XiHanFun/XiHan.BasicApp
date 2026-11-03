@@ -185,6 +185,12 @@ export type JobSource = (typeof JobSource)[number]
 export const JobTrigger = ['Schedule', 'Manual', 'Recovery', 'Retry'] as const
 export type JobTrigger = (typeof JobTrigger)[number]
 
+export const KnowledgeIndexStatus = ['Pending', 'Indexed', 'Failed'] as const
+export type KnowledgeIndexStatus = (typeof KnowledgeIndexStatus)[number]
+
+export const KnowledgeSourceType = ['PasteText', 'UploadFile'] as const
+export type KnowledgeSourceType = (typeof KnowledgeSourceType)[number]
+
 export const LifecycleState = ['Declared', 'Resolved', 'Configured', 'Started', 'Ready', 'Degraded', 'Draining', 'Stopped', 'Failed'] as const
 export type LifecycleState = (typeof LifecycleState)[number]
 
@@ -398,6 +404,8 @@ export const enums = {
   JobScheduleKind,
   JobSource,
   JobTrigger,
+  KnowledgeIndexStatus,
+  KnowledgeSourceType,
   LifecycleState,
   LoginEvent,
   MenuKind,

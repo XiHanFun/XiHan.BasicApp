@@ -235,7 +235,20 @@
 | `Chat` | 在线聊天与聊天审计 | 聊天 Hub 与附件上传端点不映射，Organization 的部门归属事件没有订阅方，见[在线聊天](./backend/chat#开关) |
 | `Workflow` | 流程定义、流程实例与审批中心 | 引擎与九张表照旧（宿主恒装数据库工作流）；其他包登记的审批业务没有消费方，见[工作流](./backend/workflow#模块开关) |
 | `CodeGeneration` | 代码生成（只在平台一侧） | 五张表照样建；已登记的外部数据源连接不再建立，见[代码生成](./backend/code-generation#模块开关) |
-| `AI` | AI 提供商与提示词（知识库与助手随后） | 表照样建；框架的工具目录与 MCP 工具照常，见[AI 能力](./backend/ai#模块开关) |
+| `AI` | AI 提供商、提示词与知识库（助手随后） | 表照样建；框架的工具目录与 MCP 工具照常，见[AI 能力](./backend/ai#模块开关) |
+
+## `BasicApp:AI:Qdrant`
+
+知识库的向量库。写了 `Host` 宿主才登记 Qdrant 连接器（`CommunityToolkit.VectorData.Qdrant`）并装框架的知识库 Provider，健康检查随之多一项 `ai.vectordata.store`；没写即知识库不可用，见[AI 能力](./backend/ai#知识库)。端点地址、密钥写错启动不报错，连不上时健康项是 Degraded，摄入的文档以失败保存。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Host` | 无 | 主机名；空白即没配 |
+| `Port` | `6334` | gRPC 端口，1～65535，写错启动报错（`6333` 是 REST 端口，连接器不用） |
+| `Https` | `false` | 写了必须是 `true` / `false`，否则启动报错 |
+| `ApiKey` | 无 | API 密钥，不要提交到仓库 |
+
+向量维度、检索条数与切块参数在框架节 `XiHan:AI:Knowledge`（`Dimensions` 缺省 1536，要与嵌入模型一致）。
 
 ## `BasicApp:CodeGeneration`
 

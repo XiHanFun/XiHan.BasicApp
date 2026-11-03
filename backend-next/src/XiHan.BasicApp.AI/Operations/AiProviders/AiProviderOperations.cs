@@ -292,12 +292,13 @@ public sealed class SetDefaultAiProvider(IRepository<SysAiProvider, Guid> provid
 /// 批量删除提供商
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/ai-providers?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_101</c>。软删除，同编码可以重建；删除后不再进 Provider 目录
+/// <c>DELETE /api/ai-providers?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_101</c>，还被知识文档引用 <c>AI_CONFLICT_104</c>（方案 D5）。软删除，同编码可以重建；删除后不再进 Provider 目录
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
 /// <param name="service">提供商规则</param>
+/// <param name="references">提供商的引用</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AIPermissions.AiProvidersDelete)]
-public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers, AiProviderService service) : IOperation<AiProviderIdsRequest, BatchResult>
+public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers, AiProviderService service, AiProviderReferences references) : IOperation<AiProviderIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -310,6 +311,12 @@ public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var found = (await providers.FindManyAsync(request.Ids, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static p => p.Id);
+        var referenced = await references.FindAsync(found.Values.Select(static p => p.Code).ToList(), context.CancellationToken).ConfigureAwait(false);
+        if (!referenced.TryGetValue(out var inUse))
+        {
+            return referenced.Error!;
+        }
+
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         foreach (var id in request.Ids.Distinct())
@@ -317,6 +324,12 @@ public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers
             if (!found.TryGetValue(id, out var provider))
             {
                 failed.Add(new BatchFailure(id, AIErrors.ProviderNotFound));
+                continue;
+            }
+
+            if (inUse.Contains(provider.Code))
+            {
+                failed.Add(new BatchFailure(id, AIErrors.ProviderInUse));
                 continue;
             }
 

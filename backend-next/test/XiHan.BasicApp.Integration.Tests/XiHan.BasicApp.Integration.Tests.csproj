@@ -30,5 +30,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Grpc.Net.Client" />
+    <!-- 知识库用例的向量库：缺省内存连接器，设了 XIHAN_TEST_QDRANT 另跑真实 Qdrant -->
+    <PackageReference Include="CommunityToolkit.VectorData.InMemory" />
   </ItemGroup>
 </Project>

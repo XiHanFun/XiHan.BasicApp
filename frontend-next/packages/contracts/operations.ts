@@ -232,6 +232,13 @@ export const routes = {
   'jobs.trigger': { method: 'POST', template: '/api/jobs/{id}:trigger', path: ['id'], query: [], success: 200 },
   'jobs.types': { method: 'GET', template: '/api/jobs:types', path: [], query: [], success: 200 },
   'jobs.validate-schedule': { method: 'GET', template: '/api/jobs:validate-schedule', path: [], query: ['expression', 'timeZone', 'count'], success: 200 },
+  'knowledge-documents.delete': { method: 'DELETE', template: '/api/knowledge-documents', path: [], query: ['ids'], success: 200 },
+  'knowledge-documents.get': { method: 'GET', template: '/api/knowledge-documents/{id}', path: ['id'], query: [], success: 200 },
+  'knowledge-documents.ingest': { method: 'POST', template: '/api/knowledge-documents:ingest', path: [], query: [], success: 200 },
+  'knowledge-documents.list': { method: 'POST', template: '/api/knowledge-documents:list', path: [], query: [], success: 200 },
+  'knowledge-documents.query': { method: 'GET', template: '/api/knowledge-documents:query', path: [], query: ['question', 'top', 'provider', 'answer'], success: 200 },
+  'knowledge-documents.reindex': { method: 'POST', template: '/api/knowledge-documents/{id}:reindex', path: ['id'], query: [], success: 200 },
+  'knowledge-documents.search': { method: 'GET', template: '/api/knowledge-documents:search', path: [], query: ['question', 'top', 'provider'], success: 200 },
   'login-bans.lift': { method: 'POST', template: '/api/login-bans:lift', path: [], query: [], success: 200 },
   'login-bans.list': { method: 'GET', template: '/api/login-bans', path: [], query: [], success: 200 },
   'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
@@ -860,6 +867,17 @@ export const jobs = {
   trigger: (request: RequestOf<'jobs.trigger'>, options?: CallOptions) => invoke<RequestOf<'jobs.trigger'>, ResponseOf<'jobs.trigger'>>('jobs.trigger', routes['jobs.trigger'], request, options),
   types: (request: RequestOf<'jobs.types'>, options?: CallOptions) => invoke<RequestOf<'jobs.types'>, ResponseOf<'jobs.types'>>('jobs.types', routes['jobs.types'], request, options),
   validateSchedule: (request: RequestOf<'jobs.validate-schedule'>, options?: CallOptions) => invoke<RequestOf<'jobs.validate-schedule'>, ResponseOf<'jobs.validate-schedule'>>('jobs.validate-schedule', routes['jobs.validate-schedule'], request, options),
+}
+
+/** 资源 `knowledge-documents` 的操作 */
+export const knowledgeDocuments = {
+  delete: (request: RequestOf<'knowledge-documents.delete'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.delete'>, ResponseOf<'knowledge-documents.delete'>>('knowledge-documents.delete', routes['knowledge-documents.delete'], request, options),
+  get: (request: RequestOf<'knowledge-documents.get'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.get'>, ResponseOf<'knowledge-documents.get'>>('knowledge-documents.get', routes['knowledge-documents.get'], request, options),
+  ingest: (request: RequestOf<'knowledge-documents.ingest'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.ingest'>, ResponseOf<'knowledge-documents.ingest'>>('knowledge-documents.ingest', routes['knowledge-documents.ingest'], request, options),
+  list: (request: RequestOf<'knowledge-documents.list'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.list'>, ResponseOf<'knowledge-documents.list'>>('knowledge-documents.list', routes['knowledge-documents.list'], request, options),
+  query: (request: RequestOf<'knowledge-documents.query'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.query'>, ResponseOf<'knowledge-documents.query'>>('knowledge-documents.query', routes['knowledge-documents.query'], request, options),
+  reindex: (request: RequestOf<'knowledge-documents.reindex'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.reindex'>, ResponseOf<'knowledge-documents.reindex'>>('knowledge-documents.reindex', routes['knowledge-documents.reindex'], request, options),
+  search: (request: RequestOf<'knowledge-documents.search'>, options?: CallOptions) => invoke<RequestOf<'knowledge-documents.search'>, ResponseOf<'knowledge-documents.search'>>('knowledge-documents.search', routes['knowledge-documents.search'], request, options),
 }
 
 /** 资源 `login-bans` 的操作 */

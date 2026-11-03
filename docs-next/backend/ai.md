@@ -1,11 +1,11 @@
 # AI 能力（部分落地 · N4）
 
-本页说明 AI 模块的提供商、Provider 目录、提示词与模块开关，以及还在做的知识库与助手，适用于接入或配置模型的后端与前端开发者。
+本页说明 AI 模块的提供商、Provider 目录、提示词、知识库与模块开关，以及还在做的助手，适用于接入或配置模型的后端与前端开发者。
 
 AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
 
 ::: warning 部分落地
-目前落地的是模型提供商与提示词（N4 第一批）。知识库与助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
+目前落地的是模型提供商、提示词与知识库（N4 第一、二批）。助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
 
 本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
@@ -72,13 +72,45 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 提示词与提供商的必填文本都不接受纯空白（校验错误，消息键 `ai.fields.blank`）。
 
-## 知识库与助手（规划中）
+## 知识库
+
+知识文档 `SysKnowledgeDocument` 是租户库实体，平台与各租户各自维护、互不可见（5.x 是平台一张表按租户过滤）。向量也按侧分集合：平台 `knowledge.platform`，租户 `knowledge.<租户 ID>`；检索只在调用方一侧的集合里做，不靠元数据过滤。
+
+| 字段 | 规则 |
+| --- | --- |
+| 标题 | 必填，至多 200 个字符 |
+| 来源类型、来源标识 | 粘贴文本或上传文件；上传的文件由前端读成文本提交，来源标识记文件名 |
+| 原文 | 必填，只收文本（与 5.x 相同），留在库里供重建 |
+| 嵌入提供商 | 提供商的编码，为空即缺省提供商；写了但不存在或已停用报 400 `AI_VALIDATION_102` |
+| 块数、状态、失败原因 | 状态是待索引、已索引或失败；失败时记错误码与发起人区域的文案 |
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `knowledge-documents.list` / `get` | `ai.knowledge-documents.read` | 列表可按来源类型与状态筛选，按标题与来源搜索，不带原文 |
+| `knowledge-documents.ingest` | `ai.knowledge-documents.create` | 请求内同步切块、嵌入并写入向量库 |
+| `knowledge-documents.reindex` | `ai.knowledge-documents.update` | 用原文重建 |
+| `knowledge-documents.delete` | `ai.knowledge-documents.delete` | 批量，逐项结果；连同向量一起删 |
+| `knowledge-documents.query` | `ai.knowledge-documents.execute` | 知识问答，`GET`，问题至多 2000 个字符、条数 1～20 |
+| `knowledge-documents.search` | `ai.knowledge-documents.execute` | 只检索，也发布为 MCP 与 AI 工具（取代 5.x 的 `knowledge_retrieve`） |
+
+权限码两侧都有，写操作进操作日志。
+
+- **事务**：摄入与重建有网络 I/O，不放在调用的事务里。摄入先写一行待索引，索引之后再回写结果，两次写入各自提交；进程在途中中断即停在待索引，可以重建。回写失败时删掉刚写入的向量（与 5.x 相同）。
+- **索引失败不是失败的调用**（与 5.x 相同）：没配向量库、模型不可达、维度不符时文档以失败状态保存并成功返回，原因记在文档上，修好之后重建。
+- **重建先写后删**：新块写入成功之后才裁掉旧版本多出来的块；失败时旧块照常可检索，块数不变（5.x 先删后写，失败时旧块已经没了）。
+- **删除**：先删向量再软删行。向量库不可达时这一项失败、行不删；索引失败且块数为 0 的文档没写入过向量，不碰向量库，没配向量库也删得掉。
+- **问答**：要答案且有命中时才调模型，用框架内置的增强模板，最大输出与温度取提供商的配置。片段在列表里的顺序就是答案里的引用编号：`[n]` 对应第 n 个片段。检索失败照框架的错误码返回，不退化成纯模型回答。
+
+向量库配置见[配置参考](../configuration#basicapp-ai-qdrant)。不配即知识库不可用：摄入的文档以失败保存，问答与检索返回 503 `AI_UNAVAILABLE_002`，不悄悄退到内存。向量维度要与嵌入模型一致（`XiHan:AI:Knowledge:Dimensions`，缺省 1536），不一致报 `AI_VALIDATION_002`；检索条数与切块参数也在这一节，缺省 5 条、块 1000 个字符、重叠 100。
+
+提供商还被知识文档引用时不能删除，逐项报 `AI_CONFLICT_104`（5.x 不查，用到时才报找不到）。文档可能在任何一侧，所以删除时要逐个租户查一遍，独立库的租户查它自己的库；哪一侧查不了，这次删除就失败。
+
+## 助手（规划中）
 
 | 部分 | 方案 |
 | --- | --- |
-| 知识库 | 知识文档是租户库实体，平台与各租户各自维护；集合按侧分（`knowledge.platform`、`knowledge.<租户 ID>`），检索只在调用方一侧；只收文本、请求内同步摄取；向量库经 Qdrant 连接器（`BasicApp:AI:Qdrant`），不配即知识库不可用 |
 | 助手 | 配置身份、模型与提示词，勾选可用的工具（`Expose.Ai` 的只读操作，以调用方身份执行）；会话复用聊天，经 Contracts 的助手接口流式回复，AI 关掉后聊天照常 |
-| 资源 | `ai-assistants`、`knowledge-documents` |
+| 资源 | `ai-assistants` |
 
 5.x 的 Agent 工厂不迁移，也不做用量统计（5.x 也没有）。
 
@@ -86,7 +118,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 6.0 的操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）：
 
-- 目前发布的是只读目录类操作：用户、部门、岗位、部门成员、权限目录、字典与字典项；
+- 目前发布的是只读目录类操作（用户、部门、岗位、部门成员、权限目录、字典与字典项）与知识检索 `knowledge-documents.search`；
 - 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
 - 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
 
@@ -94,7 +126,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 模块开关
 
-`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，`sys_ai_provider` 与 `sys_ai_prompt` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
+`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider，`sys_ai_provider`、`sys_ai_prompt` 与 `sys_knowledge_document` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
 
 ## 下一步
 

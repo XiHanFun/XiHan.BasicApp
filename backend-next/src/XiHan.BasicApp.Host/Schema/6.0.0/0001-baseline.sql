@@ -1042,6 +1042,34 @@ CREATE TABLE IF NOT EXISTS "sys_import_history" (
 );
 CREATE INDEX IF NOT EXISTS ix_sys_import_history_tenant_id_user_id_page_code_created_at ON public.sys_import_history USING btree (tenant_id, user_id, page_code, created_at);
 
+CREATE TABLE IF NOT EXISTS "sys_knowledge_document" (
+    "id" uuid NOT NULL,
+    "title" character varying(200) NOT NULL,
+    "source_type" integer DEFAULT 0 NOT NULL,
+    "source" character varying(500) DEFAULT NULL::character varying NULL,
+    "raw_content" text NOT NULL,
+    "chunk_count" integer DEFAULT 0 NOT NULL,
+    "embedding_provider_code" character varying(64) DEFAULT NULL::character varying NULL,
+    "status" integer DEFAULT 0 NOT NULL,
+    "error_code" character varying(64) DEFAULT NULL::character varying NULL,
+    "error_message" character varying(1000) DEFAULT NULL::character varying NULL,
+    "order" integer DEFAULT 0 NOT NULL,
+    "remark" character varying(500) DEFAULT NULL::character varying NULL,
+    "tenant_id" character varying(512) NOT NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_knowledge_document_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_sys_knowledge_document_embedding_provider_code ON public.sys_knowledge_document USING btree (embedding_provider_code);
+CREATE INDEX IF NOT EXISTS ix_sys_knowledge_document_tenant_id_created_at ON public.sys_knowledge_document USING btree (tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_sys_knowledge_document_tenant_id_status ON public.sys_knowledge_document USING btree (tenant_id, status);
+
 CREATE TABLE IF NOT EXISTS "sys_menu" (
     "id" uuid NOT NULL,
     "code" character varying(512) NOT NULL,

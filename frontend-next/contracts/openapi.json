@@ -186,6 +186,11 @@
       "description": "Scheduled jobs: state, pause and resume, run now and schedule validation."
     },
     {
+      "name": "knowledge-documents",
+      "x-displayName": "Knowledge base",
+      "description": "Ingest, reindex and delete knowledge documents, ask and search the knowledge base. The platform and each tenant keep their own and cannot see each other\u0027s."
+    },
+    {
       "name": "login-bans",
       "x-displayName": "Login bans",
       "description": "The login auto-ban settings in effect and lifting banned addresses."
@@ -27592,6 +27597,868 @@
                     "schedule",
                     "kind",
                     "nextRuns"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents": {
+      "delete": {
+        "operationId": "knowledge-documents.delete",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Delete knowledge documents",
+        "description": "Delete knowledge documents on the caller\u0027s side together with their chunks in the vector store. If the vector store is unreachable that item fails and the document stays.\n\nRequires permission ai.knowledge-documents.delete (Delete knowledge documents).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u77E5\u8BC6\u6587\u6863 ID\uFF0C1 \u5230 100 \u4E2A",
+            "required": true,
+            "schema": {
+              "description": "\u77E5\u8BC6\u6587\u6863 ID\uFF0C1 \u5230 100 \u4E2A",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents/{id}": {
+      "get": {
+        "operationId": "knowledge-documents.get",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Get a knowledge document",
+        "description": "Read a knowledge document on the caller\u0027s side with its content.\n\nRequires permission ai.knowledge-documents.read (Read knowledge documents).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u77E5\u8BC6\u6587\u6863 ID",
+            "required": true,
+            "schema": {
+              "description": "\u77E5\u8BC6\u6587\u6863 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "KnowledgeDocumentDetailResponse",
+                  "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "description": "\u6807\u9898",
+                      "type": "string"
+                    },
+                    "sourceType": {
+                      "description": "\u6765\u6E90\u7C7B\u578B",
+                      "$ref": "#/components/schemas/KnowledgeSourceType"
+                    },
+                    "source": {
+                      "description": "\u6765\u6E90\u6807\u8BC6",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "rawContent": {
+                      "description": "\u539F\u6587",
+                      "type": "string"
+                    },
+                    "chunkCount": {
+                      "description": "\u5411\u91CF\u5E93\u91CC\u7684\u5757\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "embeddingProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u7D22\u5F15\u72B6\u6001",
+                      "$ref": "#/components/schemas/KnowledgeIndexStatus"
+                    },
+                    "errorCode": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u9519\u8BEF\u7801",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "sourceType",
+                    "rawContent",
+                    "chunkCount",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents/{id}:reindex": {
+      "post": {
+        "operationId": "knowledge-documents.reindex",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Reindex a knowledge document",
+        "description": "Rechunk and re-embed from the content. Extra chunks of the old version are removed only after the new chunks are written; on failure the old chunks stay searchable and the reason is recorded on the document.\n\nRequires permission ai.knowledge-documents.update (Reindex knowledge documents).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u77E5\u8BC6\u6587\u6863 ID",
+            "required": true,
+            "schema": {
+              "description": "\u77E5\u8BC6\u6587\u6863 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "knowledge-documents.get \u4E0E knowledge-documents.reindex \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "KnowledgeDocumentIdRequest",
+                "description": "knowledge-documents.get \u4E0E knowledge-documents.reindex \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u77E5\u8BC6\u6587\u6863 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "KnowledgeDocumentDetailResponse",
+                  "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "description": "\u6807\u9898",
+                      "type": "string"
+                    },
+                    "sourceType": {
+                      "description": "\u6765\u6E90\u7C7B\u578B",
+                      "$ref": "#/components/schemas/KnowledgeSourceType"
+                    },
+                    "source": {
+                      "description": "\u6765\u6E90\u6807\u8BC6",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "rawContent": {
+                      "description": "\u539F\u6587",
+                      "type": "string"
+                    },
+                    "chunkCount": {
+                      "description": "\u5411\u91CF\u5E93\u91CC\u7684\u5757\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "embeddingProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u7D22\u5F15\u72B6\u6001",
+                      "$ref": "#/components/schemas/KnowledgeIndexStatus"
+                    },
+                    "errorCode": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u9519\u8BEF\u7801",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "sourceType",
+                    "rawContent",
+                    "chunkCount",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents:ingest": {
+      "post": {
+        "operationId": "knowledge-documents.ingest",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Ingest a knowledge document",
+        "description": "Chunk, embed and store a text in the knowledge base on the caller\u0027s side, synchronously within the request. If indexing fails the document is saved as failed and returned successfully with the reason, and it can be reindexed.\n\nRequires permission ai.knowledge-documents.create (Ingest knowledge documents).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "knowledge-documents.ingest \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "IngestKnowledgeDocumentRequest",
+                "description": "knowledge-documents.ingest \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "description": "\u6807\u9898",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "text": {
+                    "description": "\u6587\u672C",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sourceType": {
+                    "description": "\u6765\u6E90\u7C7B\u578B",
+                    "$ref": "#/components/schemas/KnowledgeSourceType"
+                  },
+                  "source": {
+                    "description": "\u6765\u6E90\u6807\u8BC6",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "embeddingProviderCode": {
+                    "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "title",
+                  "text"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "KnowledgeDocumentDetailResponse",
+                  "description": "\u77E5\u8BC6\u6587\u6863\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "title": {
+                      "description": "\u6807\u9898",
+                      "type": "string"
+                    },
+                    "sourceType": {
+                      "description": "\u6765\u6E90\u7C7B\u578B",
+                      "$ref": "#/components/schemas/KnowledgeSourceType"
+                    },
+                    "source": {
+                      "description": "\u6765\u6E90\u6807\u8BC6",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "rawContent": {
+                      "description": "\u539F\u6587",
+                      "type": "string"
+                    },
+                    "chunkCount": {
+                      "description": "\u5411\u91CF\u5E93\u91CC\u7684\u5757\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "embeddingProviderCode": {
+                      "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u7D22\u5F15\u72B6\u6001",
+                      "$ref": "#/components/schemas/KnowledgeIndexStatus"
+                    },
+                    "errorCode": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u9519\u8BEF\u7801",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "sourceType",
+                    "rawContent",
+                    "chunkCount",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents:list": {
+      "post": {
+        "operationId": "knowledge-documents.list",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "List knowledge documents",
+        "description": "Page through the knowledge documents on the caller\u0027s side; filter by source type and status and search title and source. The list does not include the content.\n\nRequires permission ai.knowledge-documents.read (Read knowledge documents).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfKnowledgeDocumentResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/KnowledgeDocumentResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents:query": {
+      "get": {
+        "operationId": "knowledge-documents.query",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Ask the knowledge base",
+        "description": "Search the knowledge base on the caller\u0027s side and optionally generate an answer; [n] in the answer refers to the n-th chunk.\n\nRequires permission ai.knowledge-documents.execute (Search the knowledge base).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.execute",
+        "parameters": [
+          {
+            "name": "question",
+            "in": "query",
+            "description": "\u95EE\u9898",
+            "required": true,
+            "schema": {
+              "description": "\u95EE\u9898",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "description": "\u68C0\u7D22\u6761\u6570\uFF1B\u4E0D\u7ED9\u5373\u914D\u7F6E\u7684\u7F3A\u7701",
+            "required": false,
+            "schema": {
+              "description": "\u68C0\u7D22\u6761\u6570\uFF1B\u4E0D\u7ED9\u5373\u914D\u7F6E\u7684\u7F3A\u7701",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "description": "\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF08\u540C\u65F6\u7528\u4E8E\u5D4C\u5165\u4E0E\u804A\u5929\uFF09\uFF0C\u4E0D\u7ED9\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "required": false,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF08\u540C\u65F6\u7528\u4E8E\u5D4C\u5165\u4E0E\u804A\u5929\uFF09\uFF0C\u4E0D\u7ED9\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "answer",
+            "in": "query",
+            "description": "\u662F\u5426\u751F\u6210\u7B54\u6848\uFF1B\u4E3A\u5426\u53EA\u8FD4\u56DE\u547D\u4E2D\u7684\u7247\u6BB5",
+            "required": false,
+            "schema": {
+              "description": "\u662F\u5426\u751F\u6210\u7B54\u6848\uFF1B\u4E3A\u5426\u53EA\u8FD4\u56DE\u547D\u4E2D\u7684\u7247\u6BB5",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "knowledge-documents.query \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "KnowledgeAnswerResponse",
+                  "description": "knowledge-documents.query \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "answer": {
+                      "description": "\u751F\u6210\u7684\u7B54\u6848\uFF1B\u6CA1\u8981\u7B54\u6848\u6216\u6CA1\u6709\u547D\u4E2D\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "citations": {
+                      "description": "\u547D\u4E2D\u7684\u7247\u6BB5",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/KnowledgeCitationResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "citations"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge-documents:search": {
+      "get": {
+        "operationId": "knowledge-documents.search",
+        "tags": [
+          "knowledge-documents"
+        ],
+        "summary": "Search the knowledge base",
+        "description": "Semantic search over the knowledge base on the caller\u0027s side for a question or keywords. Returns the most relevant chunks with document, title, source, score and text.\n\nRequires permission ai.knowledge-documents.execute (Search the knowledge base).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.knowledge-documents.execute",
+        "parameters": [
+          {
+            "name": "question",
+            "in": "query",
+            "description": "\u8981\u68C0\u7D22\u7684\u95EE\u9898\u6216\u5173\u952E\u8BCD",
+            "required": true,
+            "schema": {
+              "description": "\u8981\u68C0\u7D22\u7684\u95EE\u9898\u6216\u5173\u952E\u8BCD",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "description": "\u68C0\u7D22\u6761\u6570\uFF1B\u4E0D\u7ED9\u5373\u914D\u7F6E\u7684\u7F3A\u7701",
+            "required": false,
+            "schema": {
+              "description": "\u68C0\u7D22\u6761\u6570\uFF1B\u4E0D\u7ED9\u5373\u914D\u7F6E\u7684\u7F3A\u7701",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E0D\u7ED9\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "required": false,
+            "schema": {
+              "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E0D\u7ED9\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "knowledge-documents.search \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "KnowledgeSearchResponse",
+                  "description": "knowledge-documents.search \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "citations": {
+                      "description": "\u547D\u4E2D\u7684\u7247\u6BB5",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/KnowledgeCitationResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "citations"
                   ]
                 }
               }
@@ -64636,6 +65503,157 @@
           "fireCount"
         ]
       },
+      "KnowledgeCitationResponse": {
+        "description": "\u547D\u4E2D\u7684\u7247\u6BB5",
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "description": "\u77E5\u8BC6\u6587\u6863 ID",
+            "type": "string"
+          },
+          "index": {
+            "description": "\u5757\u5E8F\u53F7",
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "description": "\u6587\u6863\u6807\u9898",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "description": "\u6765\u6E90\u6807\u8BC6",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "score": {
+            "description": "\u76F8\u4F3C\u5EA6\u5F97\u5206\uFF08\u8D8A\u5927\u8D8A\u76F8\u4F3C\uFF09",
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "description": "\u7247\u6BB5\u6B63\u6587",
+            "type": "string"
+          }
+        },
+        "required": [
+          "documentId",
+          "index",
+          "score",
+          "text"
+        ]
+      },
+      "KnowledgeDocumentResponse": {
+        "description": "\u77E5\u8BC6\u6587\u6863\u7684\u5217\u8868\u9879",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "description": "\u6807\u9898",
+            "type": "string"
+          },
+          "sourceType": {
+            "description": "\u6765\u6E90\u7C7B\u578B",
+            "$ref": "#/components/schemas/KnowledgeSourceType"
+          },
+          "source": {
+            "description": "\u6765\u6E90\u6807\u8BC6",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "chunkCount": {
+            "description": "\u5411\u91CF\u5E93\u91CC\u7684\u5757\u6570",
+            "type": "integer",
+            "format": "int32"
+          },
+          "embeddingProviderCode": {
+            "description": "\u5D4C\u5165\u63D0\u4F9B\u5546\u7684\u7F16\u7801\uFF0C\u4E3A\u7A7A\u5373\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u7D22\u5F15\u72B6\u6001",
+            "$ref": "#/components/schemas/KnowledgeIndexStatus"
+          },
+          "errorCode": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u9519\u8BEF\u7801",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u7D22\u5F15\u5931\u8D25\u7684\u539F\u56E0",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sourceType",
+          "chunkCount",
+          "status",
+          "order",
+          "createdAt"
+        ]
+      },
+      "KnowledgeIndexStatus": {
+        "description": "\u77E5\u8BC6\u6587\u6863\u7684\u7D22\u5F15\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Pending",
+          "Indexed",
+          "Failed"
+        ]
+      },
+      "KnowledgeSourceType": {
+        "description": "\u77E5\u8BC6\u6587\u6863\u7684\u6765\u6E90\u7C7B\u578B",
+        "type": "string",
+        "enum": [
+          "PasteText",
+          "UploadFile"
+        ]
+      },
       "LifecycleState": {
         "type": "string",
         "enum": [
@@ -71039,6 +72057,31 @@
         "displayName": "Update AI providers",
         "description": "Edit, enable, disable and set the default model provider."
       },
+      "ai.knowledge-documents.create": {
+        "code": "ai.knowledge-documents.create",
+        "displayName": "Ingest knowledge documents",
+        "description": "Add text documents to this side\u0027s knowledge base."
+      },
+      "ai.knowledge-documents.delete": {
+        "code": "ai.knowledge-documents.delete",
+        "displayName": "Delete knowledge documents",
+        "description": "Delete knowledge documents and their vectors."
+      },
+      "ai.knowledge-documents.execute": {
+        "code": "ai.knowledge-documents.execute",
+        "displayName": "Search the knowledge base",
+        "description": "Search this side\u0027s knowledge base and ask questions against it."
+      },
+      "ai.knowledge-documents.read": {
+        "code": "ai.knowledge-documents.read",
+        "displayName": "Read knowledge documents",
+        "description": "View this side\u0027s knowledge documents and their content."
+      },
+      "ai.knowledge-documents.update": {
+        "code": "ai.knowledge-documents.update",
+        "displayName": "Reindex knowledge documents",
+        "description": "Rebuild the index of a knowledge document from its content."
+      },
       "auditing.access-logs.read": {
         "code": "auditing.access-logs.read",
         "displayName": "Read access logs",
@@ -72007,7 +73050,8 @@
       "name": "AI",
       "tags": [
         "ai-prompts",
-        "ai-providers"
+        "ai-providers",
+        "knowledge-documents"
       ]
     },
     {

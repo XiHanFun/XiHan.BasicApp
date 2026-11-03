@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.AI;
 /// </summary>
 /// <remarks>
 /// 4.x 的 <c>ai:*</c> 按资源拆开（6.0 权限码的资源段要与操作一致），动作照 4.x 各方法要的那个码：启停与设缺省归 <c>update</c>，测试连接归 <c>execute</c>
-/// 提供商与提示词只在平台一侧（照 4.x：平台配置、租户经助手用到）
+/// 提供商与提示词只在平台一侧（照 4.x：平台配置、租户经助手用到）；知识文档两侧都有（方案 A2：租户维护自己的知识）
 /// </remarks>
 public static class AIPermissions
 {
@@ -60,6 +60,31 @@ public static class AIPermissions
     public const string AiPromptsDelete = "ai.ai-prompts.delete";
 
     /// <summary>
+    /// 查看知识文档
+    /// </summary>
+    public const string KnowledgeDocumentsRead = "ai.knowledge-documents.read";
+
+    /// <summary>
+    /// 摄入知识文档
+    /// </summary>
+    public const string KnowledgeDocumentsCreate = "ai.knowledge-documents.create";
+
+    /// <summary>
+    /// 重建知识文档的索引
+    /// </summary>
+    public const string KnowledgeDocumentsUpdate = "ai.knowledge-documents.update";
+
+    /// <summary>
+    /// 删除知识文档
+    /// </summary>
+    public const string KnowledgeDocumentsDelete = "ai.knowledge-documents.delete";
+
+    /// <summary>
+    /// 检索知识库与知识问答
+    /// </summary>
+    public const string KnowledgeDocumentsExecute = "ai.knowledge-documents.execute";
+
+    /// <summary>
     /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -73,5 +98,10 @@ public static class AIPermissions
         new(AiPromptsCreate, "Create AI prompts", PermissionScope.Platform, audited: true, description: "Add prompts."),
         new(AiPromptsUpdate, "Update AI prompts", PermissionScope.Platform, audited: true, description: "Edit, enable and disable prompts."),
         new(AiPromptsDelete, "Delete AI prompts", PermissionScope.Platform, audited: true, description: "Delete prompts."),
+        new(KnowledgeDocumentsRead, "Read knowledge documents", PermissionScope.Both, description: "View this side's knowledge documents and their content."),
+        new(KnowledgeDocumentsCreate, "Ingest knowledge documents", PermissionScope.Both, audited: true, description: "Add text documents to this side's knowledge base."),
+        new(KnowledgeDocumentsUpdate, "Reindex knowledge documents", PermissionScope.Both, audited: true, description: "Rebuild the index of a knowledge document from its content."),
+        new(KnowledgeDocumentsDelete, "Delete knowledge documents", PermissionScope.Both, audited: true, description: "Delete knowledge documents and their vectors."),
+        new(KnowledgeDocumentsExecute, "Search the knowledge base", PermissionScope.Both, description: "Search this side's knowledge base and ask questions against it."),
     ];
 }

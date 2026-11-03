@@ -90,6 +90,41 @@ public static class AIMessages
     public const string DeleteAiPromptsDescription = "ai_prompts.delete.description";
 
     /// <summary>
+    /// 操作 <c>knowledge-documents.list</c> 的说明
+    /// </summary>
+    public const string ListKnowledgeDocumentsDescription = "knowledge_documents.list.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.get</c> 的说明
+    /// </summary>
+    public const string GetKnowledgeDocumentDescription = "knowledge_documents.get.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.ingest</c> 的说明
+    /// </summary>
+    public const string IngestKnowledgeDocumentDescription = "knowledge_documents.ingest.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.reindex</c> 的说明
+    /// </summary>
+    public const string ReindexKnowledgeDocumentDescription = "knowledge_documents.reindex.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.delete</c> 的说明
+    /// </summary>
+    public const string DeleteKnowledgeDocumentsDescription = "knowledge_documents.delete.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.query</c> 的说明
+    /// </summary>
+    public const string QueryKnowledgeDocumentsDescription = "knowledge_documents.query.description";
+
+    /// <summary>
+    /// 操作 <c>knowledge-documents.search</c> 的说明
+    /// </summary>
+    public const string SearchKnowledgeDocumentsDescription = "knowledge_documents.search.description";
+
+    /// <summary>
     /// 提供商不存在（参数 <c>id</c>）
     /// </summary>
     public const string ProviderNotFound = "ai.providers.not_found";
@@ -128,6 +163,26 @@ public static class AIMessages
     /// 已有同编码的提示词（参数 <c>code</c>）
     /// </summary>
     public const string PromptCodeTaken = "ai.prompts.code_taken";
+
+    /// <summary>
+    /// 提供商还被引用，不能删除（参数 <c>code</c>）
+    /// </summary>
+    public const string ProviderInUse = "ai.providers.in_use";
+
+    /// <summary>
+    /// 知识文档不存在（参数 <c>id</c>）
+    /// </summary>
+    public const string KnowledgeDocumentNotFound = "ai.knowledge_documents.not_found";
+
+    /// <summary>
+    /// 知识文档指定的嵌入提供商不存在或已停用（参数 <c>code</c>）
+    /// </summary>
+    public const string KnowledgeProviderUnavailable = "ai.knowledge_documents.provider_unavailable";
+
+    /// <summary>
+    /// 知识文档切不出块
+    /// </summary>
+    public const string KnowledgeNoChunks = "ai.knowledge_documents.no_chunks";
 
     /// <summary>
     /// 字段不能全是空白

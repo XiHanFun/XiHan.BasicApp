@@ -20,6 +20,11 @@ public static class AIPages
     public static PageDescriptor Prompts { get; } = new("ai.prompts", "/ai/prompts", "ai.prompts.title", "lucide:file-text", 920, AIPermissions.AiPromptsRead);
 
     /// <summary>
+    /// 知识库页：平台与租户各自维护（方案 A2）
+    /// </summary>
+    public static PageDescriptor KnowledgeDocuments { get; } = new("ai.knowledge-documents", "/ai/knowledge-documents", "ai.knowledge_documents.title", "lucide:book-open", 930, AIPermissions.KnowledgeDocumentsRead);
+
+    /// <summary>
     /// 提供商页
     /// </summary>
     public static PageDescriptor Providers { get; } = new("ai.providers", "/ai/providers", "ai.providers.title", "lucide:sparkles", 940, AIPermissions.AiProvidersRead);
@@ -27,5 +32,5 @@ public static class AIPages
     /// <summary>
     /// 全部顶层页面
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Prompts, Providers];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Prompts, KnowledgeDocuments, Providers];
 }

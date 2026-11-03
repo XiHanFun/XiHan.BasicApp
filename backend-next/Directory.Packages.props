@@ -31,8 +31,14 @@
     <PackageVersion Include="Scriban" Version="7.5.1" />
   </ItemGroup>
 
+  <!-- AI：配了 BasicApp:AI:Qdrant 才登记的向量库连接器（框架包不依赖具体连接器） -->
+  <ItemGroup Label="AI">
+    <PackageVersion Include="CommunityToolkit.VectorData.Qdrant" Version="1.0.1" />
+  </ItemGroup>
+
   <!-- 测试 -->
   <ItemGroup Label="Test">
+    <PackageVersion Include="CommunityToolkit.VectorData.InMemory" Version="1.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />

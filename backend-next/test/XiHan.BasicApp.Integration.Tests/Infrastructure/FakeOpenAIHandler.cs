@@ -28,6 +28,11 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
     /// </summary>
     public const string Endpoint = "http://fake-openai.test/v1";
 
+    /// <summary>
+    /// 缺省的嵌入维度
+    /// </summary>
+    public const int DefaultDimensions = 8;
+
     private readonly Lock _gate = new();
     private readonly List<(string Path, JsonNode Body)> _requests = [];
 
@@ -39,7 +44,7 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
     /// <summary>
     /// 嵌入维度
     /// </summary>
-    public int Dimensions { get; set; } = 8;
+    public int Dimensions { get; set; } = DefaultDimensions;
 
     /// <summary>
     /// 为真时一律以 500 应答

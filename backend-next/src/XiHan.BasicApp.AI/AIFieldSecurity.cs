@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.AI.Operations.AiPrompts;
 using XiHan.BasicApp.AI.Operations.AiProviders;
+using XiHan.BasicApp.AI.Operations.KnowledgeDocuments;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Runtime.Queries;
 
@@ -14,7 +15,7 @@ namespace XiHan.BasicApp.AI;
 /// AI 模块的字段安全登记
 /// </summary>
 /// <remarks>
-/// 照 4.x（<c>AddAIFieldSecurityEntities</c>）：提供商与提示词（新建、修改、启停）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
+/// 照 4.x（<c>AddAIFieldSecurityEntities</c>）：提供商、提示词（新建、修改、启停）与知识文档（摄入，没有修改）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
 /// </remarks>
 public static class AIFieldSecurity
 {
@@ -35,5 +36,9 @@ public static class AIFieldSecurity
                 .Creates(CreateAiPrompt.Id)
                 .Updates<UpdateAiPromptRequest>(UpdateAiPrompt.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysAiPrompt>(context, request.Id, AiPromptDetailResponse.From))
                 .Updates<SetAiPromptStatusRequest>(SetAiPromptStatus.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysAiPrompt>(context, request.Id, AiPromptDetailResponse.From))
-                .Keyword("code", "name"));
+                .Keyword("code", "name")
+            .Entity<KnowledgeDocumentDetailResponse>("ai.knowledge-documents", "ai.knowledge_documents.title", "ai.knowledge_documents.fields.")
+                .Reads(ListKnowledgeDocuments.Id, GetKnowledgeDocument.Id)
+                .Creates(IngestKnowledgeDocument.Id)
+                .Keyword("title", "source"));
 }

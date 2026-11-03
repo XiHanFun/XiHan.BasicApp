@@ -4501,6 +4501,160 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/knowledge-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete knowledge documents
+         * @description Delete knowledge documents on the caller's side together with their chunks in the vector store. If the vector store is unreachable that item fails and the document stays.
+         *
+         *     Requires permission ai.knowledge-documents.delete (Delete knowledge documents).
+         */
+        delete: operations["knowledge-documents.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a knowledge document
+         * @description Read a knowledge document on the caller's side with its content.
+         *
+         *     Requires permission ai.knowledge-documents.read (Read knowledge documents).
+         */
+        get: operations["knowledge-documents.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents/{id}:reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reindex a knowledge document
+         * @description Rechunk and re-embed from the content. Extra chunks of the old version are removed only after the new chunks are written; on failure the old chunks stay searchable and the reason is recorded on the document.
+         *
+         *     Requires permission ai.knowledge-documents.update (Reindex knowledge documents).
+         */
+        post: operations["knowledge-documents.reindex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents:ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest a knowledge document
+         * @description Chunk, embed and store a text in the knowledge base on the caller's side, synchronously within the request. If indexing fails the document is saved as failed and returned successfully with the reason, and it can be reindexed.
+         *
+         *     Requires permission ai.knowledge-documents.create (Ingest knowledge documents).
+         */
+        post: operations["knowledge-documents.ingest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List knowledge documents
+         * @description Page through the knowledge documents on the caller's side; filter by source type and status and search title and source. The list does not include the content.
+         *
+         *     Requires permission ai.knowledge-documents.read (Read knowledge documents).
+         */
+        post: operations["knowledge-documents.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents:query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ask the knowledge base
+         * @description Search the knowledge base on the caller's side and optionally generate an answer; [n] in the answer refers to the n-th chunk.
+         *
+         *     Requires permission ai.knowledge-documents.execute (Search the knowledge base).
+         */
+        get: operations["knowledge-documents.query"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge-documents:search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search the knowledge base
+         * @description Semantic search over the knowledge base on the caller's side for a question or keywords. Returns the most relevant chunks with document, title, source, score and text.
+         *
+         *     Requires permission ai.knowledge-documents.execute (Search the knowledge base).
+         */
+        get: operations["knowledge-documents.search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/login-bans": {
         parameters: {
             query?: never;
@@ -12287,6 +12441,81 @@ export interface components {
             /** @description 触发器出错的原因；没出错为 null */
             error?: string | null;
         };
+        /** @description 命中的片段 */
+        KnowledgeCitationResponse: {
+            /** @description 知识文档 ID */
+            documentId: string;
+            /**
+             * Format: int32
+             * @description 块序号
+             */
+            index: number;
+            /** @description 文档标题 */
+            title?: string | null;
+            /** @description 来源标识 */
+            source?: string | null;
+            /**
+             * Format: double
+             * @description 相似度得分（越大越相似）
+             */
+            score: number;
+            /** @description 片段正文 */
+            text: string;
+        };
+        /** @description 知识文档的列表项 */
+        KnowledgeDocumentResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 标题 */
+            title: string;
+            /** @description 来源类型 */
+            sourceType: components["schemas"]["KnowledgeSourceType"];
+            /** @description 来源标识 */
+            source?: string | null;
+            /**
+             * Format: int32
+             * @description 向量库里的块数
+             */
+            chunkCount: number;
+            /** @description 嵌入提供商的编码，为空即缺省提供商 */
+            embeddingProviderCode?: string | null;
+            /** @description 索引状态 */
+            status: components["schemas"]["KnowledgeIndexStatus"];
+            /** @description 最近一次索引失败的错误码 */
+            errorCode?: string | null;
+            /** @description 最近一次索引失败的原因 */
+            errorMessage?: string | null;
+            /**
+             * Format: int32
+             * @description 排序号
+             */
+            order: number;
+            /** @description 备注 */
+            remark?: string | null;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）
+             */
+            modifiedAt?: string | null;
+        };
+        /**
+         * @description 知识文档的索引状态
+         * @enum {string}
+         */
+        KnowledgeIndexStatus: "Pending" | "Indexed" | "Failed";
+        /**
+         * @description 知识文档的来源类型
+         * @enum {string}
+         */
+        KnowledgeSourceType: "PasteText" | "UploadFile";
         /** @enum {string} */
         LifecycleState: "Declared" | "Resolved" | "Configured" | "Started" | "Ready" | "Degraded" | "Draining" | "Stopped" | "Failed";
         /** @description 登录失败自动封禁此刻生效的参数 */
@@ -29062,6 +29291,425 @@ export interface operations {
                         kind: components["schemas"]["JobScheduleKind"];
                         /** @description 接下来的运行时间（UTC，按请求的个数，计划已结束则更少） */
                         nextRuns: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.delete": {
+        parameters: {
+            query: {
+                /** @description 知识文档 ID，1 到 100 个 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 知识文档 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 知识文档的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 标题 */
+                        title: string;
+                        /** @description 来源类型 */
+                        sourceType: components["schemas"]["KnowledgeSourceType"];
+                        /** @description 来源标识 */
+                        source?: string | null;
+                        /** @description 原文 */
+                        rawContent: string;
+                        /**
+                         * Format: int32
+                         * @description 向量库里的块数
+                         */
+                        chunkCount: number;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        embeddingProviderCode?: string | null;
+                        /** @description 索引状态 */
+                        status: components["schemas"]["KnowledgeIndexStatus"];
+                        /** @description 最近一次索引失败的错误码 */
+                        errorCode?: string | null;
+                        /** @description 最近一次索引失败的原因 */
+                        errorMessage?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 知识文档 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description knowledge-documents.get 与 knowledge-documents.reindex 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 知识文档 ID
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 知识文档的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 标题 */
+                        title: string;
+                        /** @description 来源类型 */
+                        sourceType: components["schemas"]["KnowledgeSourceType"];
+                        /** @description 来源标识 */
+                        source?: string | null;
+                        /** @description 原文 */
+                        rawContent: string;
+                        /**
+                         * Format: int32
+                         * @description 向量库里的块数
+                         */
+                        chunkCount: number;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        embeddingProviderCode?: string | null;
+                        /** @description 索引状态 */
+                        status: components["schemas"]["KnowledgeIndexStatus"];
+                        /** @description 最近一次索引失败的错误码 */
+                        errorCode?: string | null;
+                        /** @description 最近一次索引失败的原因 */
+                        errorMessage?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description knowledge-documents.ingest 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 标题 */
+                    title: string;
+                    /** @description 文本 */
+                    text: string;
+                    /** @description 来源类型 */
+                    sourceType?: components["schemas"]["KnowledgeSourceType"];
+                    /** @description 来源标识 */
+                    source?: string | null;
+                    /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                    embeddingProviderCode?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 知识文档的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 标题 */
+                        title: string;
+                        /** @description 来源类型 */
+                        sourceType: components["schemas"]["KnowledgeSourceType"];
+                        /** @description 来源标识 */
+                        source?: string | null;
+                        /** @description 原文 */
+                        rawContent: string;
+                        /**
+                         * Format: int32
+                         * @description 向量库里的块数
+                         */
+                        chunkCount: number;
+                        /** @description 嵌入提供商的编码，为空即缺省提供商 */
+                        embeddingProviderCode?: string | null;
+                        /** @description 索引状态 */
+                        status: components["schemas"]["KnowledgeIndexStatus"];
+                        /** @description 最近一次索引失败的错误码 */
+                        errorCode?: string | null;
+                        /** @description 最近一次索引失败的原因 */
+                        errorMessage?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["KnowledgeDocumentResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.query": {
+        parameters: {
+            query: {
+                /** @description 问题 */
+                question: string;
+                /** @description 检索条数；不给即配置的缺省 */
+                top?: number | null;
+                /** @description 提供商的编码（同时用于嵌入与聊天），不给即缺省提供商 */
+                provider?: string | null;
+                /** @description 是否生成答案；为否只返回命中的片段 */
+                answer?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description knowledge-documents.query 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 生成的答案；没要答案或没有命中为空 */
+                        answer?: string | null;
+                        /** @description 命中的片段 */
+                        citations: components["schemas"]["KnowledgeCitationResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "knowledge-documents.search": {
+        parameters: {
+            query: {
+                /** @description 要检索的问题或关键词 */
+                question: string;
+                /** @description 检索条数；不给即配置的缺省 */
+                top?: number | null;
+                /** @description 嵌入提供商的编码，不给即缺省提供商 */
+                provider?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description knowledge-documents.search 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 命中的片段 */
+                        citations: components["schemas"]["KnowledgeCitationResponse"][];
                     };
                 };
             };

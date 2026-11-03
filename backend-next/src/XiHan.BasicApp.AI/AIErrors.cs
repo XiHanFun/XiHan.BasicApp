@@ -23,6 +23,11 @@ public static class AIErrors
     public const string PromptNotFound = "AI_NOTFOUND_102";
 
     /// <summary>
+    /// 知识文档不存在
+    /// </summary>
+    public const string KnowledgeDocumentNotFound = "AI_NOTFOUND_103";
+
+    /// <summary>
     /// 已有同编码的提供商
     /// </summary>
     public const string ProviderCodeTaken = "AI_CONFLICT_101";
@@ -38,9 +43,24 @@ public static class AIErrors
     public const string PromptCodeTaken = "AI_CONFLICT_103";
 
     /// <summary>
+    /// 提供商还被引用，不能删除
+    /// </summary>
+    public const string ProviderInUse = "AI_CONFLICT_104";
+
+    /// <summary>
     /// 列表不支持该筛选或排序
     /// </summary>
     public const string QueryUnsupported = "AI_VALIDATION_101";
+
+    /// <summary>
+    /// 知识文档指定的嵌入提供商不存在或已停用
+    /// </summary>
+    public const string KnowledgeProviderUnavailable = "AI_VALIDATION_102";
+
+    /// <summary>
+    /// 知识文档切不出块
+    /// </summary>
+    public const string KnowledgeNoChunks = "AI_VALIDATION_103";
 
     /// <summary>
     /// 提供商的 API 密钥解不开

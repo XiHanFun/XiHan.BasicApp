@@ -48,6 +48,8 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Caching.Redis" />
     <XiHanFrameworkReference Include="XiHan.Framework.Caching.Hybrid" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.RabbitMQ" />
+    <!-- 知识库：配了向量库才装配（QdrantSettings），没配即知识库不可用 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.AI.VectorData" />
     <!-- 命令模式：help / graph / pipeline / operations / invoke 由框架提供，seed 由本宿主登记 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.CommandLine" />
   </ItemGroup>
@@ -60,6 +62,8 @@
   <ItemGroup>
     <!-- 接口文档页面：读框架生成的 /openapi.json -->
     <PackageReference Include="Scalar.AspNetCore" />
+    <!-- 向量库连接器：知识库经它落 Qdrant -->
+    <PackageReference Include="CommunityToolkit.VectorData.Qdrant" />
   </ItemGroup>
 
   <ItemGroup>

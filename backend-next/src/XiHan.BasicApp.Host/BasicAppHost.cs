@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.VectorData;
 using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
 using XiHan.BasicApp.AI;
@@ -29,6 +30,7 @@ using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
 using XiHan.BasicApp.Workflow;
 using XiHan.Framework.AI.OpenAI;
+using XiHan.Framework.AI.VectorData;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Caching.Hybrid;
 using XiHan.Framework.Caching.Redis;
@@ -166,6 +168,16 @@ public static class BasicAppHost
             {
                 // 模型提供商落库，经 OpenAI 兼容协议调用（照 4.x 只有这一种）；工具目录随 Full Profile 已在
                 xihan.UseFeature<AIFeature>().UseFeature<OpenAIFeature>();
+                if (QdrantSettings.FromConfiguration(builder.Configuration) is { } qdrant)
+                {
+                    builder.Services.AddQdrantVectorStore(qdrant.Host, qdrant.Port, qdrant.Https, qdrant.ApiKey);
+                }
+
+                // 有向量库才有知识库：调用方在 configure 里登记的连接器同样算；都没有即知识库不可用，不悄悄退到内存
+                if (builder.Services.Any(static service => service.ServiceType == typeof(VectorStore)))
+                {
+                    xihan.UseFeature<VectorDataKnowledgeFeature>();
+                }
             }
         });
 

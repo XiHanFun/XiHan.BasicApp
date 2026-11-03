@@ -93,6 +93,23 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     /// </remarks>
     public string? DefaultEmbeddingProvider => DefaultProvider;
 
+    /// <summary>
+    /// 提供商的聊天参数（最大输出与温度）
+    /// </summary>
+    /// <remarks>
+    /// 框架的 Provider 配置没有缺省聊天参数，由 BasicApp 随每次聊天调用带上（方案 D2）
+    /// </remarks>
+    /// <param name="name">提供商的编码；为空即缺省提供商</param>
+    /// <returns>聊天选项；提供商没配这两项或不在目录里为 <see langword="null"/></returns>
+    public ChatOptions? ChatOptionsOf(string? name)
+    {
+        var snapshot = Volatile.Read(ref _snapshot);
+        var resolved = name ?? snapshot.Default;
+        return resolved is not null && snapshot.Tuning.TryGetValue(resolved, out var tuning)
+            ? new ChatOptions { MaxOutputTokens = tuning.MaxOutputTokens, Temperature = tuning.Temperature }
+            : null;
+    }
+
     /// <inheritdoc />
     public Maybe<AIProviderOptions> Find(string name)
     {
@@ -226,6 +243,7 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
                 static (services, ct) => services.GetRequiredService<IRepository<SysAiProvider, Guid>>().ListAsync(EntityQuery.All<SysAiProvider>().Where(new Specification<SysAiProvider>(p => p.Status == AiStatus.Active)), ct),
                 cancellationToken).ConfigureAwait(false);
             var options = new Dictionary<string, AIProviderOptions>(StringComparer.Ordinal);
+            var tunings = new Dictionary<string, ChatTuning>(StringComparer.Ordinal);
             string? fallback = null;
             foreach (var row in rows)
             {
@@ -237,13 +255,18 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
                 }
 
                 options[row.Code] = item;
+                if (row.MaxOutputTokens is not null || row.Temperature is not null)
+                {
+                    tunings[row.Code] = new ChatTuning(row.MaxOutputTokens, row.Temperature);
+                }
+
                 if (row.IsDefault)
                 {
                     fallback = row.Code;
                 }
             }
 
-            var previous = Interlocked.Exchange(ref _snapshot, new Snapshot(options, fallback));
+            var previous = Interlocked.Exchange(ref _snapshot, new Snapshot(options, tunings, fallback));
             foreach (var (name, before) in previous.Options)
             {
                 if (!options.TryGetValue(name, out var now) || !Same(before, now))
@@ -322,10 +345,15 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     private static partial void LogReloadFailed(ILogger logger, Exception exception);
 
     /// <summary>
-    /// 一份快照：编码 → 配置，与缺省提供商
+    /// 一份快照：编码 → 配置与聊天参数，与缺省提供商
     /// </summary>
-    private sealed record Snapshot(IReadOnlyDictionary<string, AIProviderOptions> Options, string? Default)
+    private sealed record Snapshot(IReadOnlyDictionary<string, AIProviderOptions> Options, IReadOnlyDictionary<string, ChatTuning> Tuning, string? Default)
     {
-        public static Snapshot Empty { get; } = new(new Dictionary<string, AIProviderOptions>(StringComparer.Ordinal), null);
+        public static Snapshot Empty { get; } = new(new Dictionary<string, AIProviderOptions>(StringComparer.Ordinal), new Dictionary<string, ChatTuning>(StringComparer.Ordinal), null);
     }
+
+    /// <summary>
+    /// 提供商配的聊天参数
+    /// </summary>
+    private sealed record ChatTuning(int? MaxOutputTokens, float? Temperature);
 }

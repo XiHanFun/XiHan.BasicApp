@@ -4,6 +4,13 @@
 
 ## 6.0.0-preview.1（未发布）
 
+### AI：知识库（2026-11-04）
+
+- AI 知识库页（`/ai/knowledge-documents`）：摄取文本或读取文件、重建索引、删除，另有检索试玩页签（问答带引用编号）。见[AI 能力](./backend/ai#知识库)。
+- 与 5.x 不同：平台与各租户各自维护知识、互不可见（5.x 只有平台配置）；重建先写后删，失败时旧内容照常可检索；提供商还被知识文档引用时不能删除（`AI_CONFLICT_104`）；检索发布为操作 `knowledge-documents.search`（MCP 与 AI 工具），取代 `knowledge_retrieve` 技能。
+- 新配置节 `BasicApp:AI:Qdrant`：写了 `Host` 才有知识库，否则摄入的文档以失败保存、问答与检索返回 503 `AI_UNAVAILABLE_002`。见[配置参考](./configuration#basicapp-ai-qdrant)。
+- 权限码 `ai.knowledge-documents.{read,create,update,delete,execute}`，两侧都有。6.0.0 基线多一张 `sys_knowledge_document`，开发库启动时建表。
+
 ### 框架升锁 4b7f5ceb（2026-11-04）
 
 - 框架第二十二到二十四批：工作单元报告是否已开事务（`HasTransaction`）、Provider 目录给出缺省名、知识库 Provider 自带健康项、向量键改成由记录 ID 推出的 `Guid`。BasicApp 的缺省提供商由目录给出，没有缺省时报框架的「未配置缺省提供商」。
