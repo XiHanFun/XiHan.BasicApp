@@ -21,6 +21,7 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Caching.Abstractions;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
@@ -109,7 +110,7 @@ public sealed class IdentityFeature : IFeature
             // GitHub 不带 User-Agent 即 403（4.x 用 ASP.NET 认证处理器的缺省 UA）
             client.DefaultRequestHeaders.UserAgent.ParseAdd("XiHan.BasicApp");
             client.Timeout = TimeSpan.FromSeconds(15);
-        });
+        }).UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));
         foreach (var provider in (IExternalLoginProvider[])[new GoogleProvider(), new GitHubProvider(), new GiteeProvider(), new QqProvider(), new WeChatProvider(), new WeComProvider(), new LarkProvider(), new DingTalkProvider()])
         {
             context.Services.AddSingleton(provider);

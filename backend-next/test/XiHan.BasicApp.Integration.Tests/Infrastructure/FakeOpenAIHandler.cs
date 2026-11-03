@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 
 namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 
@@ -77,7 +78,8 @@ public sealed class FakeOpenAIHandler : HttpMessageHandler
     public void Attach(WebApplicationBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.Services.AddHttpClient(HttpClientName).ConfigurePrimaryHttpMessageHandler(() => this);
+        // 排在产品代码的登记之后才生效：AI 包也给这个客户端配了连接处理器
+        builder.Services.PostConfigure<HttpClientFactoryOptions>(HttpClientName, options => options.HttpMessageHandlerBuilderActions.Add(handlers => handlers.PrimaryHandler = this));
     }
 
     /// <inheritdoc />

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using XiHan.BasicApp.Identity.Infrastructure.External;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 
@@ -34,7 +35,8 @@ public sealed class ExternalLoginTests : IDisposable
             builder.Configuration["BasicApp:Auth:OAuth:Providers:0:ClientSecret"] = "gh-secret";
             builder.Configuration["BasicApp:Auth:OAuth:Providers:1:Name"] = "placeholder";
             builder.Configuration["BasicApp:Auth:OAuth:Providers:1:Provider"] = "gitee";
-            builder.Services.AddHttpClient(ExternalLoginFlow.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => _github);
+            // 排在产品代码的登记之后才生效：Identity 也给这个客户端配了连接处理器
+            builder.Services.PostConfigure<HttpClientFactoryOptions>(ExternalLoginFlow.HttpClientName, options => options.HttpMessageHandlerBuilderActions.Add(handlers => handlers.PrimaryHandler = _github));
         });
 
     /// <summary>

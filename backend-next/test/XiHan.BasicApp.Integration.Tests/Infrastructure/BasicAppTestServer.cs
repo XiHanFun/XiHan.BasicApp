@@ -104,6 +104,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Caching:Redis:KeyPrefix", $"xihan-basicapp-test-{Guid.NewGuid():N}:"),
         new("XiHan:Messaging:RabbitMQ:QueuePrefix", $"xihan-basicapp-test-{Guid.NewGuid():N}."),
         new("BasicApp:ApiDocs:Enabled", "true"),
+        // 本机的 S3、仿真端点都在回环地址上
+        new("XiHan:Security:Outbound:AllowLoopback", "true"),
         // 图形验证码缺省关：需要它的用例自己打开并换上固定码源
         new("BasicApp:Auth:CaptchaEnabled", "false"),
     ];

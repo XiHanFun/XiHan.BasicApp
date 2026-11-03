@@ -22,7 +22,7 @@ public static class PasswordHasher
     /// <summary>
     /// 当前迭代次数
     /// </summary>
-    public const int Iterations = 100_000;
+    public const int Iterations = 600_000;
 
     private const int SaltSize = 16;
     private const int KeySize = 32;

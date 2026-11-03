@@ -44,16 +44,6 @@ public sealed partial class KnowledgeDocumentService(
     ILogger<KnowledgeDocumentService> logger)
 {
     /// <summary>
-    /// 块元数据：标题
-    /// </summary>
-    public const string MetadataTitle = "title";
-
-    /// <summary>
-    /// 块元数据：来源
-    /// </summary>
-    public const string MetadataSource = "source";
-
-    /// <summary>
     /// 一侧的向量集合
     /// </summary>
     /// <param name="side">侧</param>
@@ -165,10 +155,10 @@ public sealed partial class KnowledgeDocumentService(
     private async Task<Result<SysKnowledgeDocument>> IndexAsync(SysKnowledgeDocument document, InvocationContext context)
     {
         var collection = CollectionOf(document.TenantId);
-        var metadata = new Dictionary<string, string>(StringComparer.Ordinal) { [MetadataTitle] = document.Title };
+        var metadata = new Dictionary<string, string>(StringComparer.Ordinal) { [KnowledgeMetadataKeys.Title] = document.Title };
         if (document.Source is { } source)
         {
-            metadata[MetadataSource] = source;
+            metadata[KnowledgeMetadataKeys.Source] = source;
         }
 
         var outcome = await ingestor.IngestAsync(

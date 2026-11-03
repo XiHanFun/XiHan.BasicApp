@@ -20,6 +20,7 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Caching.Abstractions;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
@@ -83,6 +84,12 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<InboxQueries>();
         context.Services.AddSingleton(static services => NotificationOptions.FromConfiguration(services.GetRequiredService<IConfiguration>()));
         context.Services.AddHttpClient();
+        // 群机器人的 Webhook 是用户填的地址（两侧都能配），客户端名取传输类的类型名
+        foreach (var bot in new[] { nameof(DingTalkBotTransport), nameof(LarkBotTransport), nameof(WeComBotTransport) })
+        {
+            context.Services.AddHttpClient(bot).UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));
+        }
+
         context.Services.AddScoped<MessageTemplateService>();
         context.Services.AddScoped<ChannelConfigService>();
         context.Services.AddScoped<MessageRecordService>();

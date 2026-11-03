@@ -105,6 +105,21 @@
 | `Jwt:Issuer` / `Jwt:Audience` | `xihan.basicapp` | 签发者与受众 |
 | `Jwt:ClockSkewSeconds` | `60` | 时钟容差 |
 
+## `XiHan:Security:Outbound`
+
+出站地址策略：向用户填的地址发请求时能连哪些 IP。缺省只能连公网地址，回环、私网、链路本地和云元数据地址都拒绝。检查放在建立连接时，按解析出的实际 IP 判，重定向也一样，所以 DNS 重绑定绕不过去。
+
+受这道策略约束的：工作流 `Http` 活动、群机器人 Webhook、AI 提供商地址、第三方登录、S3 兼容存储、CloudEvents 投递、Telegram（配了代理时不受约束，代理地址只有平台管理员能配）。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AllowLoopback` | `false` | 放行回环地址。`appsettings.Development.json` 打开 |
+| `AllowPrivateNetwork` | `false` | 放行私网地址 |
+| `AllowedNetworks` | 空 | 放行的网段（CIDR） |
+| `AllowedHosts` | 空 | 放行的主机名 |
+
+自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在这里放行，否则连接被拒。
+
 ## `XiHan:ObjectStorage:SignedUrls:Secret`
 
 本地存储签名地址（宿主 `/blobs` 端点）的签名密钥。S3 兼容存储由存储自己签名，不用它。
@@ -170,6 +185,20 @@
 | `StartTimeoutSeconds` / `StopTimeoutSeconds` | `60` / `30` | 应用启停时限 |
 | `FailurePolicy` | `TerminateStartup` | Feature 启动失败即中断 |
 | `Resilience` | — | 按操作 ID 的熔断、固定窗口限流与并发上限，可按操作覆盖（框架 ADR-0029） |
+
+## `BasicApp:Database`
+
+平台库的从库（读写分离）与 SQL 诊断日志，配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Replicas` | 空 | 平台库的从库，每项 `ConnectionString` 与可选的 `HitRate`（读权重，正整数，缺省 10）。没配即单库 |
+| `LogSql` | `false` | 记录每条 SQL（日志量大，只在排查时打开） |
+| `LogSqlErrors` | `true` | 记录 SQL 错误 |
+| `LogSlowSql` | `true` | 记录慢 SQL |
+| `SlowSqlThresholdMilliseconds` | `1000` | 慢 SQL 的阈值，只影响记录，不影响语句执行 |
+
+配了从库之后，事务外的读走从库，写和事务走主库。从库有延迟时刚写完的数据可能读不到。从库只给平台库：独立库租户的连接串来自租户目录，不用这里的从库。日志只记语句，不记参数值。
 
 ## `BasicApp:ApiDocs`
 

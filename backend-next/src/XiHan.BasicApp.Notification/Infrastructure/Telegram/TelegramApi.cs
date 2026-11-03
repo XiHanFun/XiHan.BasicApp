@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using XiHan.Framework.Kernel.Security;
 
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 
@@ -30,8 +31,10 @@ public interface ITelegramHttp
 /// </summary>
 /// <remarks>
 /// 每套「代理 + 超时」一个长命客户端（不随请求释放，4.x 每个机器人实例一个）
+/// 没配代理时连接过出站地址策略（接口地址可以改）。配了代理就连代理，策略管不到代理之后的地址，也不查代理本身：Telegram 机器人只有平台管理员能配
 /// </remarks>
-public sealed class TelegramHttp : ITelegramHttp, IDisposable
+/// <param name="outbound">出站地址策略</param>
+public sealed class TelegramHttp(OutboundAddressPolicy outbound) : ITelegramHttp, IDisposable
 {
     private readonly ConcurrentDictionary<(string? Proxy, TimeSpan Timeout), HttpClient> _clients = new();
 
@@ -40,7 +43,7 @@ public sealed class TelegramHttp : ITelegramHttp, IDisposable
     {
         ArgumentNullException.ThrowIfNull(network);
         var proxy = string.IsNullOrWhiteSpace(network.ProxyUrl) ? null : network.ProxyUrl.Trim();
-        return _clients.GetOrAdd((proxy, network.EffectiveTimeout), static key =>
+        return _clients.GetOrAdd((proxy, network.EffectiveTimeout), key =>
         {
             var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) };
             if (key.Proxy is not null && Uri.TryCreate(key.Proxy, UriKind.Absolute, out var proxyUri))
@@ -54,6 +57,10 @@ public sealed class TelegramHttp : ITelegramHttp, IDisposable
 
                 handler.Proxy = web;
                 handler.UseProxy = true;
+            }
+            else
+            {
+                outbound.Apply(handler);
             }
 
             return new HttpClient(handler) { Timeout = key.Timeout };

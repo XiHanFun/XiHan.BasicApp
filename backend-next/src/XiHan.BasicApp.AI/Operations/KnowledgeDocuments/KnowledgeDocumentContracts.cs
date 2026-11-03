@@ -3,7 +3,6 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.AI.Domain.Entities;
-using XiHan.BasicApp.AI.Domain.Services;
 using XiHan.Framework.AI.Abstractions.Knowledge;
 using XiHan.Framework.Primitives;
 
@@ -213,8 +212,8 @@ public sealed record KnowledgeCitationResponse(string DocumentId, int Index, str
         return new KnowledgeCitationResponse(
             chunk.DocumentId,
             chunk.ChunkIndex,
-            chunk.Metadata.GetValueOrDefault(KnowledgeDocumentService.MetadataTitle),
-            chunk.Metadata.GetValueOrDefault(KnowledgeDocumentService.MetadataSource),
+            chunk.Metadata.GetValueOrDefault(KnowledgeMetadataKeys.Title),
+            chunk.Metadata.GetValueOrDefault(KnowledgeMetadataKeys.Source),
             chunk.Score,
             chunk.Text);
     }

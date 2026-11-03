@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Contracts.MultiTenancy;
@@ -109,6 +110,7 @@ public sealed class RuntimeFeature : IHostedFeature
     public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(services);
+        SqlDiagnostics.SharedLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("XiHan.BasicApp.Sql");
         if (!_initTables)
         {
             return;

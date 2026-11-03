@@ -23,6 +23,8 @@ using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
 using ModelCapabilities = XiHan.Framework.AI.Abstractions.AICapabilities;
+using XiHan.Framework.AI.OpenAI;
+using XiHan.Framework.Kernel.Security;
 
 namespace XiHan.BasicApp.AI;
 
@@ -75,6 +77,8 @@ public sealed class AIFeature : IHostedFeature
         context.Services.AddSingleton<AiProviderCatalog>();
         context.Services.RemoveAll<IAIProviderCatalog>();
         context.Services.AddSingleton<IAIProviderCatalog>(static services => services.GetRequiredService<AiProviderCatalog>());
+        // 提供商地址是平台管理员填的，模型调用过出站地址策略（框架自己的端点来自配置，不过这一道）
+        context.Services.AddHttpClient(OpenAIFeature.HttpClientName).UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));
         context.Services.AddScoped<AiProviderChanges>();
         context.Services.AddScoped<AiProviderService>();
         context.Services.AddScoped<AiProviderQueries>();

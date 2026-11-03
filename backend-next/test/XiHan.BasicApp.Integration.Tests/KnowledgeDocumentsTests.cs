@@ -155,7 +155,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         var prompt = request["messages"]!.AsArray().Last()!["content"]!.ToJsonString();
         for (var index = 0; index < citations.Count; index++)
         {
-            Assert.Contains($"[{index + 1}] (document: {citations[index].GetProperty("documentId").GetString()}, chunk: {citations[index].GetProperty("index").GetInt32()})", prompt, StringComparison.Ordinal);
+            Assert.Contains($"[{index + 1}] Source: {citations[index].GetProperty("title").GetString()}", prompt, StringComparison.Ordinal);
         }
 
         Assert.Equal(256, request["max_completion_tokens"]?.GetValue<int>() ?? request["max_tokens"]!.GetValue<int>());

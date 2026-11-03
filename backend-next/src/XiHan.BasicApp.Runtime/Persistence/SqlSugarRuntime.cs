@@ -2,10 +2,12 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Configuration;
 using SqlSugar;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions;
+using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Runtime.Persistence;
@@ -26,6 +28,32 @@ public static class SqlSugarRuntime
     /// 主值是连接串，属性 <c>provider</c> 是库类型（缺省 PostgreSQL）
     /// </remarks>
     public const string BindingName = "db";
+
+    /// <summary>
+    /// 带应用配置的回调
+    /// </summary>
+    /// <remarks>
+    /// 在 <see cref="Configure"/> 之上挂 SQL 诊断日志，并给平台库配从库（<see cref="DatabaseOptions"/>）
+    /// 从库只给默认连接：带分片的调用另建一份 <c>shard</c> 配置，绑定的属性还会并入平台绑定的属性，所以按连接 ID 判，不按绑定判
+    /// </remarks>
+    /// <param name="configuration">应用配置</param>
+    /// <returns>交给 <c>SqlSugarPersistenceFeature</c> 的回调</returns>
+    /// <exception cref="ArgumentException">配置写错，启动即失败</exception>
+    public static Action<Maybe<BindingValue>, ConnectionConfig> ConfigureWith(IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var options = DatabaseOptions.FromConfiguration(configuration);
+        var diagnostics = new SqlDiagnostics(options);
+        return (binding, config) =>
+        {
+            Configure(binding, config);
+            diagnostics.Attach(config.AopEvents);
+            if (options.Replicas.Count > 0 && string.Equals(config.ConfigId?.ToString(), SqlSugarConnections.Default, StringComparison.Ordinal))
+            {
+                config.SlaveConnectionConfigs = [.. options.Replicas.Select(static r => new SlaveConnectionConfig { ConnectionString = r.ConnectionString, HitRate = r.HitRate })];
+            }
+        };
+    }
 
     /// <summary>
     /// 配置一个连接
