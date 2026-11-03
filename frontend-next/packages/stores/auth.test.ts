@@ -2,13 +2,21 @@ import type { Router } from 'vue-router'
 import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SESSION_LOCK_CHANGED_EVENT } from '~/composables/session-lock'
+import { destroyAllSignalRConnections } from '~/composables/useSignalR'
+import { HOME_PATH, LOCK_STATE_KEY, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
 import { configureRequest } from '~/request'
 import { registerAppContext } from './app-context'
 import { oauthChallengeUrl, takeIdentitySwitchedMarker, takeOAuthPending, useAuthStore } from './auth'
+import { resetPreferenceBackendSync } from './helpers'
 import { relaunchApp } from './relaunch'
+import { useSplitViewStore } from './split-view'
+import { useTabbarStore } from './tabbar'
 
 // 切换上下文 / 身份后整页重建：测试里只核对它被调用
 vi.mock('./relaunch', () => ({ relaunchApp: vi.fn() }))
+vi.mock('~/composables/useSignalR', () => ({ destroyAllSignalRConnections: vi.fn(async () => {}) }))
+vi.mock('./helpers', async importOriginal => ({ ...await importOriginal<typeof import('./helpers')>(), resetPreferenceBackendSync: vi.fn() }))
 
 const user = { id: 'u-1', userName: 'alice', displayName: 'Alice', email: null, phoneNumber: null, homeTenantId: 'acme', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null }
 
@@ -25,6 +33,7 @@ describe('auth store', () => {
     setActivePinia(createPinia())
     localStorage.clear()
     vi.mocked(relaunchApp).mockClear()
+    vi.mocked(resetPreferenceBackendSync).mockClear()
   })
 
   it('logs in anonymously, persists the session, follows the redirect and signs out', async () => {
@@ -186,8 +195,9 @@ describe('auth store', () => {
     expect(store.session?.sessionId).toBe('s-1')
     expect(JSON.parse(localStorage.getItem('xihan.next.session')!)).toMatchObject({ accessToken: 'a-2', refreshToken: 'r-2', tenantId: 'globex' })
     expect(relaunchApp).toHaveBeenCalledOnce()
-    // 切换上下文是同一个人：不留身份切换标记，重建后照常可用本地偏好播种
+    // 切换上下文是同一个人：不留身份切换标记，重建后照常可用本地偏好播种，回写通道也不用关
     expect(takeIdentitySwitchedMarker()).toBe(false)
+    expect(resetPreferenceBackendSync).not.toHaveBeenCalled()
 
     await store.switchTenant(null)
     expect(switchTenant).toHaveBeenLastCalledWith({ tenantId: null })
@@ -207,6 +217,8 @@ describe('auth store', () => {
     // 换了身份：重建后的偏好水合不拿本地那份给被模仿者播种；标记取一次即清
     expect(takeIdentitySwitchedMarker()).toBe(true)
     expect(takeIdentitySwitchedMarker()).toBe(false)
+    // 偏好属于人：上一身份还没发出去的回写不带着新令牌写进新身份
+    expect(resetPreferenceBackendSync).toHaveBeenCalledOnce()
     // 重建前的重复点击不再发请求
     await store.startImpersonation({ targetUserId: 'u-3' })
     expect(start).toHaveBeenCalledOnce()
@@ -225,6 +237,122 @@ describe('auth store', () => {
     expect(store.accessToken).toBe('a-1')
     expect(relaunchApp).not.toHaveBeenCalled()
     expect(takeIdentitySwitchedMarker()).toBe(false)
+  })
+})
+
+describe('退出登录的本地清理', () => {
+  let replace: ReturnType<typeof vi.fn>
+  let order: string[]
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    sessionStorage.clear()
+    order = []
+    vi.mocked(resetPreferenceBackendSync).mockClear()
+    vi.mocked(destroyAllSignalRConnections).mockClear()
+    vi.mocked(destroyAllSignalRConnections).mockImplementation(async () => {
+      order.push('hub')
+    })
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'a-1',
+      fetch: (async () => {
+        order.push('api')
+        return json(200, { sessionId: 's-1', revokedAt: '2026-10-28T01:00:00Z' })
+      }) as unknown as typeof fetch,
+    })
+    replace = vi.fn(async () => {
+      order.push('route')
+    })
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: '/ai/providers' } } } as unknown as Router) })
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+  })
+
+  it('先断开实时连接再吊销会话，最后回登录页；标签栏只剩首页（置顶的也不留）', async () => {
+    const tabbar = useTabbarStore()
+    tabbar.ensureTab({ key: '/ai/providers', title: 'x', path: '/ai/providers', closable: true })
+    tabbar.togglePin('/ai/providers')
+    const store = useAuthStore()
+
+    await store.logout()
+
+    expect(order).toEqual(['hub', 'api', 'route'])
+    expect(replace).toHaveBeenCalledWith(LOGIN_PATH)
+    expect(store.isAuthenticated).toBe(false)
+    expect(store.permissions).toBeNull()
+    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(sessionStorage.getItem(TABS_LIST_KEY)).toBeNull()
+  })
+
+  it('分屏、会话级存储、锁屏标记与偏好回写通道一起清掉，遮罩当场收到变更', async () => {
+    const split = useSplitViewStore()
+    split.open('/ai/providers', '/ai/prompts')
+    sessionStorage.setItem('xihan.next.oauth-pending', '{}')
+    sessionStorage.setItem('any-other-key', '1')
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    const lockChanged = vi.fn()
+    window.addEventListener(SESSION_LOCK_CHANGED_EVENT, lockChanged)
+
+    await useAuthStore().logout()
+    window.removeEventListener(SESSION_LOCK_CHANGED_EVENT, lockChanged)
+
+    expect(split.active).toBe(false)
+    expect(sessionStorage.length).toBe(0)
+    expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
+    expect(lockChanged).toHaveBeenCalledOnce()
+    expect(resetPreferenceBackendSync).toHaveBeenCalledOnce()
+  })
+
+  it('模仿之后权限没装载成就退出：身份切换标记留给下一次水合，不拿上一身份的偏好播种', async () => {
+    sessionStorage.setItem('xihan.next.identity-switched', '1')
+
+    await useAuthStore().logout()
+
+    expect(takeIdentitySwitchedMarker()).toBe(true)
+  })
+
+  it('会话已经没了（刷新失败之后从锁屏退出）：不调接口，本地照样清', async () => {
+    localStorage.removeItem('xihan.next.session')
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    const tabbar = useTabbarStore()
+    tabbar.ensureTab({ key: '/ai/providers', title: 'x', path: '/ai/providers', closable: true })
+
+    await useAuthStore().logout()
+
+    expect(order).toEqual(['hub', 'route'])
+    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
+  })
+
+  it('断开实时连接或吊销失败都不挡退出', async () => {
+    vi.mocked(destroyAllSignalRConnections).mockRejectedValueOnce(new Error('hub down'))
+    configureRequest({ baseUrl: '', getToken: () => 'a-1', fetch: (async () => json(500, { code: 'X' })) as unknown as typeof fetch })
+    const store = useAuthStore()
+
+    await store.logout()
+
+    expect(store.isAuthenticated).toBe(false)
+    expect(replace).toHaveBeenCalledWith(LOGIN_PATH)
+  })
+
+  it('已经在登录页不再跳；路由走不通时整页跳到登录页', async () => {
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: LOGIN_PATH } } } as unknown as Router) })
+    await useAuthStore().logout()
+    expect(replace).not.toHaveBeenCalled()
+
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'location')
+    const assign = vi.fn()
+    Object.defineProperty(window, 'location', { configurable: true, writable: true, value: { assign } })
+    const failing = vi.fn(async () => {
+      throw new Error('navigation failed')
+    })
+    registerAppContext({ getRouter: () => Promise.resolve({ replace: failing, currentRoute: { value: { path: '/' } } } as unknown as Router) })
+    await useAuthStore().logout()
+    if (descriptor)
+      Object.defineProperty(window, 'location', descriptor)
+    expect(assign).toHaveBeenCalledOnce()
+    expect(String(assign.mock.calls[0]![0])).toContain(LOGIN_PATH)
   })
 })
 

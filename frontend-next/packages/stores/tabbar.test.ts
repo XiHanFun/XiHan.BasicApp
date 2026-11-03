@@ -23,6 +23,37 @@ beforeEach(() => {
   setActivePinia(createPinia())
 })
 
+describe('$reset（退出登录）', () => {
+  it('只剩首页，置顶的标签与持久化的那份都不留', () => {
+    sessionStorage.removeItem(TABS_LIST_KEY)
+    const store = useTabbarStore()
+    useAppStore().tabbarPersist = true
+    store.ensureTab(tab('/ai/providers'))
+    store.ensureTab(tab('/files/library'))
+    store.togglePin('/ai/providers')
+    expect(readPersisted()).toHaveLength(3)
+
+    store.$reset()
+
+    expect(store.tabs.map(item => item.key)).toEqual([HOME_PATH])
+    expect(store.activeTab).toBe(HOME_PATH)
+    expect(store.cachedTabNames).toEqual([])
+    expect(readPersisted()).toBeNull()
+  })
+
+  it('首页标签不被上一次的导航改写', () => {
+    sessionStorage.removeItem(TABS_LIST_KEY)
+    const store = useTabbarStore()
+    store.ensureTab(tab(HOME_PATH, { name: 'Dashboard', keepAlive: true, title: 'x', meta: { icon: 'lucide:home' } }))
+
+    store.$reset()
+
+    expect(store.tabs[0]).toMatchObject({ key: HOME_PATH, pinned: true, closable: false })
+    expect(store.tabs[0]?.name).toBeUndefined()
+    expect(store.tabs[0]?.keepAlive).toBeUndefined()
+  })
+})
+
 describe('初始标签与会话恢复', () => {
   it('无会话缓存时只有一个不可关闭的首页固定标签', () => {
     const store = useTabbarStore()

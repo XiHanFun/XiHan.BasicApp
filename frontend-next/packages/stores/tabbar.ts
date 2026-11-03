@@ -7,15 +7,16 @@ import { SessionStorage } from '~/utils'
 
 export const useTabbarStore = defineStore('tabbar', () => {
   const appStore = useAppStore()
-  const defaultTab: TabItem = {
+  // 每次新建：ensureTab 会就地改写已有标签（name、keepAlive 等）
+  const createDefaultTab = (): TabItem => ({
     key: HOME_PATH,
     // 首页标签的标题键：6.0 的首页跳到第一个菜单页，标签本身叫「首页」
     title: 'common.actions.home',
     path: HOME_PATH,
     pinned: true,
     closable: false,
-  }
-  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [defaultTab])
+  })
+  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [createDefaultTab()])
 
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
@@ -145,6 +146,17 @@ export const useTabbarStore = defineStore('tabbar', () => {
     }
   }
 
+  /**
+   * 回到初始状态（退出登录）：只剩首页，也不留持久化的那份
+   * 不用 closeAll：它留着置顶的标签，那些页面下一个登录的人未必有
+   */
+  function $reset() {
+    tabs.value = [createDefaultTab()]
+    activeTab.value = HOME_PATH
+    refreshSeeds.value = {}
+    SessionStorage.remove(TABS_LIST_KEY)
+  }
+
   function moveTab(sourcePath: string, targetPath: string) {
     if (!sourcePath || !targetPath || sourcePath === targetPath) {
       return
@@ -180,5 +192,6 @@ export const useTabbarStore = defineStore('tabbar', () => {
     togglePin,
     refreshTab,
     getRefreshSeed,
+    $reset,
   }
 })

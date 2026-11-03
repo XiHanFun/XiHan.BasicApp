@@ -2,12 +2,17 @@ import type { ResponseOf, TwoFactorMethod } from '~/contracts'
 import type { EmailLoginParams, ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, PhoneLoginParams, SessionRoleOption, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { clearLockState } from '~/composables/session-lock'
+import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
 import { endpointUrl } from '~/request'
+import { useAccessStore } from './access'
 import { useAppContext } from './app-context'
 import { resetPreferenceBackendSync } from './helpers'
 import { relaunchApp } from './relaunch'
+import { useSplitViewStore } from './split-view'
+import { useTabbarStore } from './tabbar'
 
 const SESSION_KEY = 'xihan.next.session'
 /** 模仿 / 退出模仿后整页重建前留的标记：重建后的偏好水合不拿本地那份（属于上一身份）给新身份播种 */
@@ -23,6 +28,20 @@ export function takeIdentitySwitchedMarker(): boolean {
   catch {
     return false
   }
+}
+
+/**
+ * 退出时清掉会话级存储（标签、分屏、灵动岛、第三方登录的发起记录等），只留身份切换标记：
+ * 它等重建后的守卫取走，模仿之后权限没装载成就回了登录页时还在，下一个登录的人照样不拿上一身份的偏好播种
+ */
+function clearSessionStorage(): void {
+  try {
+    const marker = sessionStorage.getItem(IDENTITY_SWITCHED_KEY)
+    sessionStorage.clear()
+    if (marker !== null)
+      sessionStorage.setItem(IDENTITY_SWITCHED_KEY, marker)
+  }
+  catch {}
 }
 
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`） */
@@ -322,20 +341,49 @@ export const useAuthStore = defineStore('auth', () => {
     return result
   }
 
-  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳） */
+  /**
+   * 退出时清掉属于这个人的本地状态，下一个登录的人不该看到：
+   * 会话与权限、标签栏、分屏、会话级存储、锁屏标记与偏好回写通道
+   * 菜单路由不在这里卸：守卫下次装载前先卸掉上一份（4.x 是在这里按静态路由反选）
+   */
+  function clearLocalState(): void {
+    useAccessStore().$reset()
+    useTabbarStore().$reset()
+    useSplitViewStore().close()
+    clearSessionStorage()
+    // 锁屏标记在 localStorage（跨标签页共享），不清会让重新登录后仍卡在锁屏；
+    // 走 clearLockState 而非直接删键：它广播变更，本标签页的遮罩当场收起（storage 事件只通知其他标签页）
+    clearLockState()
+    // 偏好回写通道属于这个人，退出即关；下一个登录的人重新水合
+    resetPreferenceBackendSync()
+  }
+
+  /**
+   * 注销：先断开实时连接，再请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳）
+   * 没有会话也要清：刷新失败已清掉会话之后，从锁屏退出还是走这里
+   */
   async function logout(): Promise<void> {
+    // 全部 Hub 一起销毁，不逐个枚举；各集成在令牌清空后的收尾照旧（销毁可重入）
+    await destroyAllSignalRConnections().catch(() => {})
     if (session.value) {
       try {
         await authApi.logout({})
       }
       catch {}
-      store(null)
     }
-    // 偏好回写通道属于这个人，退出即关；下一个登录的人重新水合
-    resetPreferenceBackendSync()
+    clearLocalState()
     const router = await useAppContext().getRouter().catch(() => null)
-    if (router && router.currentRoute.value.path !== LOGIN_PATH)
+    if (!router || router.currentRoute.value.path === LOGIN_PATH)
+      return
+    try {
       await router.replace(LOGIN_PATH)
+    }
+    catch {
+      // 路由走不通也要回到登录页：整页跳过去
+      const base = import.meta.env.VITE_BASE || '/'
+      const normalizedBase = base.endsWith('/') ? base : `${base}/`
+      window.location.assign(import.meta.env.VITE_ROUTER_HISTORY === 'history' ? LOGIN_PATH : `${normalizedBase}#${LOGIN_PATH}`)
+    }
   }
 
   /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时） */
@@ -401,6 +449,8 @@ export const useAuthStore = defineStore('auth', () => {
     impersonationLoading.value = true
     try {
       store(await run())
+      // 偏好属于人：上一身份还没发出去的回写不能带着新令牌写进新身份
+      resetPreferenceBackendSync()
       try {
         sessionStorage.setItem(IDENTITY_SWITCHED_KEY, '1')
       }
