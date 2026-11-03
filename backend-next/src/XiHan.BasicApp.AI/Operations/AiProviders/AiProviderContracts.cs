@@ -144,6 +144,14 @@ public sealed record CreateAiProviderRequest(
     /// <inheritdoc />
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        foreach (var (value, member) in new[] { (Name, nameof(Name)), (Vendor, nameof(Vendor)), (ChatModel, nameof(ChatModel)) })
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                yield return new ValidationResult(AIMessages.FieldBlank.L(), [member]);
+            }
+        }
+
         if (!AiProviderService.IsEndpoint(Endpoint))
         {
             yield return new ValidationResult(AIMessages.ProviderEndpointInvalid.L(), [nameof(Endpoint)]);
@@ -190,6 +198,14 @@ public sealed record UpdateAiProviderRequest(
     /// <inheritdoc />
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        foreach (var (value, member) in new[] { (Name, nameof(Name)), (Vendor, nameof(Vendor)), (ChatModel, nameof(ChatModel)) })
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                yield return new ValidationResult(AIMessages.FieldBlank.L(), [member]);
+            }
+        }
+
         if (!AiProviderService.IsEndpoint(Endpoint))
         {
             yield return new ValidationResult(AIMessages.ProviderEndpointInvalid.L(), [nameof(Endpoint)]);

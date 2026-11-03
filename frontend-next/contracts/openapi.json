@@ -11,6 +11,11 @@
       "description": "Query access logs: the result, duration and client of every operation call."
     },
     {
+      "name": "ai-prompts",
+      "x-displayName": "AI prompts",
+      "description": "System prompts for assistants: create, read, update, delete, enable and disable. The content is used as-is without variable rendering; the version is only a label."
+    },
+    {
       "name": "ai-providers",
       "x-displayName": "AI providers",
       "description": "OpenAI-compatible model providers: create, read, update and delete, enable or disable, set the default and test the connection. API keys are stored encrypted and never returned."
@@ -677,6 +682,844 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/AccessLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-prompts": {
+      "delete": {
+        "operationId": "ai-prompts.delete",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "Delete AI prompts",
+        "description": "Delete prompts in bulk.\n\nRequires permission ai.ai-prompts.delete (Delete AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u63D0\u793A\u8BCD ID\uFF0C1 \u5230 100 \u4E2A",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u793A\u8BCD ID\uFF0C1 \u5230 100 \u4E2A",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ai-prompts.create",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "Create an AI prompt",
+        "description": "Add a prompt. The code is unique and cannot change; the content is used as-is as an assistant\u0027s system prompt without variable rendering, and the version is only a label.\n\nRequires permission ai.ai-prompts.create (Create AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "ai-prompts.create \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateAiPromptRequest",
+                "description": "ai-prompts.create \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "description": "\u7F16\u7801\uFF08\u552F\u4E00\uFF09",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "description": "\u6B63\u6587",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "category": {
+                    "description": "\u5206\u7C7B",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "version": {
+                    "description": "\u7248\u672C\u6807\u7B7E",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "status": {
+                    "description": "\u521D\u59CB\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiPromptDetailResponse",
+                  "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u6807\u7B7E",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "description": "\u6B63\u6587",
+                      "type": "string"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "content",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-prompts/{id}": {
+      "get": {
+        "operationId": "ai-prompts.get",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "Get an AI prompt",
+        "description": "Read a prompt with its content.\n\nRequires permission ai.ai-prompts.read (Read AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u793A\u8BCD ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u793A\u8BCD ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiPromptDetailResponse",
+                  "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u6807\u7B7E",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "description": "\u6B63\u6587",
+                      "type": "string"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "content",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "ai-prompts.update",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "Update an AI prompt",
+        "description": "Edit a prompt; the code cannot change. Send back the concurrency stamp you read.\n\nRequires permission ai.ai-prompts.update (Update AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u793A\u8BCD ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u793A\u8BCD ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-prompts.update \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateAiPromptRequest",
+                "description": "ai-prompts.update \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u793A\u8BCD ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "content": {
+                    "description": "\u6B63\u6587",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "category": {
+                    "description": "\u5206\u7C7B",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "version": {
+                    "description": "\u7248\u672C\u6807\u7B7E",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiPromptDetailResponse",
+                  "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u6807\u7B7E",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "description": "\u6B63\u6587",
+                      "type": "string"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "content",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-prompts/{id}:set-status": {
+      "post": {
+        "operationId": "ai-prompts.set-status",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "Enable or disable an AI prompt",
+        "description": "Enable or disable a prompt. Send back the concurrency stamp you read; a remark replaces the current one.\n\nRequires permission ai.ai-prompts.update (Update AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u793A\u8BCD ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u793A\u8BCD ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-prompts.set-status \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetAiPromptStatusRequest",
+                "description": "ai-prompts.set-status \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u793A\u8BCD ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiPromptDetailResponse",
+                  "description": "\u63D0\u793A\u8BCD\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "category": {
+                      "description": "\u5206\u7C7B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u6807\u7B7E",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "description": "\u6B63\u6587",
+                      "type": "string"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "content",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-prompts:list": {
+      "post": {
+        "operationId": "ai-prompts.list",
+        "tags": [
+          "ai-prompts"
+        ],
+        "summary": "List AI prompts",
+        "description": "Page through the prompts; filter by status and category and search code and name. The list does not include the content.\n\nRequires permission ai.ai-prompts.read (Read AI prompts).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-prompts.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfAiPromptResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiPromptResponse"
                       }
                     },
                     "total": {
@@ -57685,6 +58528,81 @@
           "onlineMinutes"
         ]
       },
+      "AiPromptResponse": {
+        "description": "\u63D0\u793A\u8BCD\u7684\u5217\u8868\u9879",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0",
+            "type": "string"
+          },
+          "category": {
+            "description": "\u5206\u7C7B",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "description": "\u7248\u672C\u6807\u7B7E",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/AiStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "status",
+          "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
       "AiProviderProbe": {
         "description": "\u4E00\u6B21\u63A2\u6D4B\u7684\u7ED3\u679C",
         "type": "object",
@@ -70076,6 +70994,26 @@
         "displayName": "Read user grants",
         "description": "View the permissions granted or denied directly to users."
       },
+      "ai.ai-prompts.create": {
+        "code": "ai.ai-prompts.create",
+        "displayName": "Create AI prompts",
+        "description": "Add prompts."
+      },
+      "ai.ai-prompts.delete": {
+        "code": "ai.ai-prompts.delete",
+        "displayName": "Delete AI prompts",
+        "description": "Delete prompts."
+      },
+      "ai.ai-prompts.read": {
+        "code": "ai.ai-prompts.read",
+        "displayName": "Read AI prompts",
+        "description": "View the prompts and their content."
+      },
+      "ai.ai-prompts.update": {
+        "code": "ai.ai-prompts.update",
+        "displayName": "Update AI prompts",
+        "description": "Edit, enable and disable prompts."
+      },
       "ai.ai-providers.create": {
         "code": "ai.ai-providers.create",
         "displayName": "Create AI providers",
@@ -71068,6 +72006,7 @@
     {
       "name": "AI",
       "tags": [
+        "ai-prompts",
         "ai-providers"
       ]
     },

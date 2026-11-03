@@ -8,6 +8,12 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'ai-prompts.create': { method: 'POST', template: '/api/ai-prompts', path: [], query: [], success: 201 },
+  'ai-prompts.delete': { method: 'DELETE', template: '/api/ai-prompts', path: [], query: ['ids'], success: 200 },
+  'ai-prompts.get': { method: 'GET', template: '/api/ai-prompts/{id}', path: ['id'], query: [], success: 200 },
+  'ai-prompts.list': { method: 'POST', template: '/api/ai-prompts:list', path: [], query: [], success: 200 },
+  'ai-prompts.set-status': { method: 'POST', template: '/api/ai-prompts/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'ai-prompts.update': { method: 'PUT', template: '/api/ai-prompts/{id}', path: ['id'], query: [], success: 200 },
   'ai-providers.create': { method: 'POST', template: '/api/ai-providers', path: [], query: [], success: 201 },
   'ai-providers.delete': { method: 'DELETE', template: '/api/ai-providers', path: [], query: ['ids'], success: 200 },
   'ai-providers.get': { method: 'GET', template: '/api/ai-providers/{id}', path: ['id'], query: [], success: 200 },
@@ -490,6 +496,16 @@ export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] ext
 export const accessLogs = {
   get: (request: RequestOf<'access-logs.get'>, options?: CallOptions) => invoke<RequestOf<'access-logs.get'>, ResponseOf<'access-logs.get'>>('access-logs.get', routes['access-logs.get'], request, options),
   list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
+}
+
+/** 资源 `ai-prompts` 的操作 */
+export const aiPrompts = {
+  create: (request: RequestOf<'ai-prompts.create'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.create'>, ResponseOf<'ai-prompts.create'>>('ai-prompts.create', routes['ai-prompts.create'], request, options),
+  delete: (request: RequestOf<'ai-prompts.delete'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.delete'>, ResponseOf<'ai-prompts.delete'>>('ai-prompts.delete', routes['ai-prompts.delete'], request, options),
+  get: (request: RequestOf<'ai-prompts.get'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.get'>, ResponseOf<'ai-prompts.get'>>('ai-prompts.get', routes['ai-prompts.get'], request, options),
+  list: (request: RequestOf<'ai-prompts.list'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.list'>, ResponseOf<'ai-prompts.list'>>('ai-prompts.list', routes['ai-prompts.list'], request, options),
+  setStatus: (request: RequestOf<'ai-prompts.set-status'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.set-status'>, ResponseOf<'ai-prompts.set-status'>>('ai-prompts.set-status', routes['ai-prompts.set-status'], request, options),
+  update: (request: RequestOf<'ai-prompts.update'>, options?: CallOptions) => invoke<RequestOf<'ai-prompts.update'>, ResponseOf<'ai-prompts.update'>>('ai-prompts.update', routes['ai-prompts.update'], request, options),
 }
 
 /** 资源 `ai-providers` 的操作 */

@@ -1,11 +1,11 @@
 # AI 能力（部分落地 · N4）
 
-本页说明 AI 模块的提供商、Provider 目录与模块开关，以及还在做的提示词、知识库与助手，适用于接入或配置模型的后端与前端开发者。
+本页说明 AI 模块的提供商、Provider 目录、提示词与模块开关，以及还在做的知识库与助手，适用于接入或配置模型的后端与前端开发者。
 
 AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
 
 ::: warning 部分落地
-目前落地的是模型提供商（N4 第一批之一）。提示词、知识库与助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
+目前落地的是模型提供商与提示词（N4 第一批）。知识库与助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
 
 本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
@@ -51,14 +51,34 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 BasicApp 调用框架的聊天、嵌入与知识库时一律显式传提供商的编码（为空即用目录的缺省提供商）：框架在没传名字时按配置 `XiHan:AI:DefaultProvider` 找缺省名，不问目录。
 
-## 提示词、知识库与助手（规划中）
+## 提示词
+
+提示词 `SysAiPrompt` 是平台库实体、只在平台一侧（与 5.x 相同）：正文原样当助手的系统提示词，没有变量渲染，版本只是标签、同一编码只有一行。
+
+| 字段 | 规则 |
+| --- | --- |
+| 编码 | 必填，至多 100 个字符；唯一（部分唯一索引，删了可以重建），重复报 409 `AI_CONFLICT_103`；建后不可改 |
+| 名称 | 必填，至多 200 个字符 |
+| 分类、版本 | 可选的标签，各至多 100 个字符 |
+| 正文 | 必填，不限长度；列表不带正文，`ai-prompts.get` 才返回 |
+| 启停 | 新建时选，之后走 `ai-prompts.set-status` |
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `ai-prompts.list` / `get` | `ai.ai-prompts.read` | 列表可按状态与分类筛选，按编码与名称搜索 |
+| `ai-prompts.create` / `update` | `ai.ai-prompts.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-prompts.set-status` | `ai.ai-prompts.update` | 单条 |
+| `ai-prompts.delete` | `ai.ai-prompts.delete` | 批量，逐项结果 |
+
+提示词与提供商的必填文本都不接受纯空白（校验错误，消息键 `ai.fields.blank`）。
+
+## 知识库与助手（规划中）
 
 | 部分 | 方案 |
 | --- | --- |
-| 提示词 | 正文原样当系统提示词，版本只是标签、同编码一行，没有变量渲染（与 5.x 相同） |
 | 知识库 | 知识文档是租户库实体，平台与各租户各自维护；集合按侧分（`knowledge.platform`、`knowledge.<租户 ID>`），检索只在调用方一侧；只收文本、请求内同步摄取；向量库经 Qdrant 连接器（`BasicApp:AI:Qdrant`），不配即知识库不可用 |
 | 助手 | 配置身份、模型与提示词，勾选可用的工具（`Expose.Ai` 的只读操作，以调用方身份执行）；会话复用聊天，经 Contracts 的助手接口流式回复，AI 关掉后聊天照常 |
-| 资源 | `ai-prompts`、`ai-assistants`、`knowledge-documents` |
+| 资源 | `ai-assistants`、`knowledge-documents` |
 
 5.x 的 Agent 工厂不迁移，也不做用量统计（5.x 也没有）。
 
@@ -74,7 +94,7 @@ BasicApp 调用框架的聊天、嵌入与知识库时一律显式传提供商�
 
 ## 模块开关
 
-`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，`sys_ai_provider` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
+`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，`sys_ai_provider` 与 `sys_ai_prompt` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
 
 ## 下一步
 

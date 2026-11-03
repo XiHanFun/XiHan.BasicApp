@@ -18,6 +18,11 @@ public static class AIErrors
     public const string ProviderNotFound = "AI_NOTFOUND_101";
 
     /// <summary>
+    /// 提示词不存在
+    /// </summary>
+    public const string PromptNotFound = "AI_NOTFOUND_102";
+
+    /// <summary>
     /// 已有同编码的提供商
     /// </summary>
     public const string ProviderCodeTaken = "AI_CONFLICT_101";
@@ -26,6 +31,11 @@ public static class AIErrors
     /// 停用的提供商不能设为缺省
     /// </summary>
     public const string ProviderDisabled = "AI_CONFLICT_102";
+
+    /// <summary>
+    /// 已有同编码的提示词
+    /// </summary>
+    public const string PromptCodeTaken = "AI_CONFLICT_103";
 
     /// <summary>
     /// 列表不支持该筛选或排序

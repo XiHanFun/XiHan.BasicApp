@@ -60,6 +60,36 @@ public static class AIMessages
     public const string TestAiProviderDescription = "ai_providers.test.description";
 
     /// <summary>
+    /// 操作 <c>ai-prompts.list</c> 的说明
+    /// </summary>
+    public const string ListAiPromptsDescription = "ai_prompts.list.description";
+
+    /// <summary>
+    /// 操作 <c>ai-prompts.get</c> 的说明
+    /// </summary>
+    public const string GetAiPromptDescription = "ai_prompts.get.description";
+
+    /// <summary>
+    /// 操作 <c>ai-prompts.create</c> 的说明
+    /// </summary>
+    public const string CreateAiPromptDescription = "ai_prompts.create.description";
+
+    /// <summary>
+    /// 操作 <c>ai-prompts.update</c> 的说明
+    /// </summary>
+    public const string UpdateAiPromptDescription = "ai_prompts.update.description";
+
+    /// <summary>
+    /// 操作 <c>ai-prompts.set-status</c> 的说明
+    /// </summary>
+    public const string SetAiPromptStatusDescription = "ai_prompts.set_status.description";
+
+    /// <summary>
+    /// 操作 <c>ai-prompts.delete</c> 的说明
+    /// </summary>
+    public const string DeleteAiPromptsDescription = "ai_prompts.delete.description";
+
+    /// <summary>
     /// 提供商不存在（参数 <c>id</c>）
     /// </summary>
     public const string ProviderNotFound = "ai.providers.not_found";
@@ -88,6 +118,21 @@ public static class AIMessages
     /// 没有 OpenAI 兼容协议的模型 Provider
     /// </summary>
     public const string ProviderKindUnavailable = "ai.providers.kind_unavailable";
+
+    /// <summary>
+    /// 提示词不存在（参数 <c>id</c>）
+    /// </summary>
+    public const string PromptNotFound = "ai.prompts.not_found";
+
+    /// <summary>
+    /// 已有同编码的提示词（参数 <c>code</c>）
+    /// </summary>
+    public const string PromptCodeTaken = "ai.prompts.code_taken";
+
+    /// <summary>
+    /// 字段不能全是空白
+    /// </summary>
+    public const string FieldBlank = "ai.fields.blank";
 
     /// <summary>
     /// 列表不支持的筛选（参数 <c>field</c>、<c>operator</c>）

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.AI.Operations.AiPrompts;
 using XiHan.BasicApp.AI.Operations.AiProviders;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
@@ -28,5 +29,13 @@ namespace XiHan.BasicApp.AI;
 [JsonSerializable(typeof(AiProviderTestResponse))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(PageResult<AiProviderResponse>))]
+[JsonSerializable(typeof(AiPromptIdRequest))]
+[JsonSerializable(typeof(CreateAiPromptRequest))]
+[JsonSerializable(typeof(UpdateAiPromptRequest))]
+[JsonSerializable(typeof(SetAiPromptStatusRequest))]
+[JsonSerializable(typeof(AiPromptIdsRequest))]
+[JsonSerializable(typeof(AiPromptResponse))]
+[JsonSerializable(typeof(AiPromptDetailResponse))]
+[JsonSerializable(typeof(PageResult<AiPromptResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class AIJsonContext : JsonSerializerContext;

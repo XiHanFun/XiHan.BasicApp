@@ -45,6 +45,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai-prompts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an AI prompt
+         * @description Add a prompt. The code is unique and cannot change; the content is used as-is as an assistant's system prompt without variable rendering, and the version is only a label.
+         *
+         *     Requires permission ai.ai-prompts.create (Create AI prompts).
+         */
+        post: operations["ai-prompts.create"];
+        /**
+         * Delete AI prompts
+         * @description Delete prompts in bulk.
+         *
+         *     Requires permission ai.ai-prompts.delete (Delete AI prompts).
+         */
+        delete: operations["ai-prompts.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-prompts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an AI prompt
+         * @description Read a prompt with its content.
+         *
+         *     Requires permission ai.ai-prompts.read (Read AI prompts).
+         */
+        get: operations["ai-prompts.get"];
+        /**
+         * Update an AI prompt
+         * @description Edit a prompt; the code cannot change. Send back the concurrency stamp you read.
+         *
+         *     Requires permission ai.ai-prompts.update (Update AI prompts).
+         */
+        put: operations["ai-prompts.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-prompts/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable an AI prompt
+         * @description Enable or disable a prompt. Send back the concurrency stamp you read; a remark replaces the current one.
+         *
+         *     Requires permission ai.ai-prompts.update (Update AI prompts).
+         */
+        post: operations["ai-prompts.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-prompts:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List AI prompts
+         * @description Page through the prompts; filter by status and category and search code and name. The list does not include the content.
+         *
+         *     Requires permission ai.ai-prompts.read (Read AI prompts).
+         */
+        post: operations["ai-prompts.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ai-providers": {
         parameters: {
             query?: never;
@@ -9401,6 +9501,43 @@ export interface components {
              */
             onlineMinutes: number;
         };
+        /** @description 提示词的列表项 */
+        AiPromptResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 编码 */
+            code: string;
+            /** @description 名称 */
+            name: string;
+            /** @description 分类 */
+            category?: string | null;
+            /** @description 版本标签 */
+            version?: string | null;
+            /** @description 状态 */
+            status: components["schemas"]["AiStatus"];
+            /**
+             * Format: int32
+             * @description 排序号
+             */
+            order: number;
+            /** @description 备注 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）
+             */
+            modifiedAt?: string | null;
+        };
         /** @description 一次探测的结果 */
         AiProviderProbe: {
             /** @description 是否通 */
@@ -15003,6 +15140,427 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AccessLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ai-prompts.create 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 编码（唯一） */
+                    code: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 正文 */
+                    content: string;
+                    /** @description 分类 */
+                    category?: string | null;
+                    /** @description 版本标签 */
+                    version?: string | null;
+                    /** @description 初始状态 */
+                    status?: components["schemas"]["AiStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提示词的详情 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 分类 */
+                        category?: string | null;
+                        /** @description 版本标签 */
+                        version?: string | null;
+                        /** @description 正文 */
+                        content: string;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.delete": {
+        parameters: {
+            query: {
+                /** @description 提示词 ID，1 到 100 个 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提示词 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 提示词的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 分类 */
+                        category?: string | null;
+                        /** @description 版本标签 */
+                        version?: string | null;
+                        /** @description 正文 */
+                        content: string;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提示词 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-prompts.update 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提示词 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 正文 */
+                    content: string;
+                    /** @description 分类 */
+                    category?: string | null;
+                    /** @description 版本标签 */
+                    version?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提示词的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 分类 */
+                        category?: string | null;
+                        /** @description 版本标签 */
+                        version?: string | null;
+                        /** @description 正文 */
+                        content: string;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提示词 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-prompts.set-status 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提示词 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态 */
+                    status: components["schemas"]["AiStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提示词的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 分类 */
+                        category?: string | null;
+                        /** @description 版本标签 */
+                        version?: string | null;
+                        /** @description 正文 */
+                        content: string;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-prompts.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AiPromptResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

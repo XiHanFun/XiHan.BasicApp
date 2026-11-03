@@ -85,6 +85,9 @@ public sealed class AIProvidersTests : IDisposable
         var (badEndpoint, badEndpointBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = "relative", name = "Relative", chatModel = "m", vendor = "OpenAI", endpoint = "/v1" }), admin);
         Assert.Equal(HttpStatusCode.BadRequest, badEndpoint.StatusCode);
         Assert.True(badEndpointBody.GetProperty("errors").TryGetProperty("endpoint", out _));
+        var (blankName, blankNameBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = "blank", name = "   ", chatModel = "m", vendor = "OpenAI" }), admin);
+        Assert.Equal(HttpStatusCode.BadRequest, blankName.StatusCode);
+        Assert.True(blankNameBody.GetProperty("errors").TryGetProperty("name", out _));
 
         // 缺省最多一个：新的缺省让旧的取消
         var (_, deepseek) = await CreateAsync(server, admin, "deepseek", isDefault: true);

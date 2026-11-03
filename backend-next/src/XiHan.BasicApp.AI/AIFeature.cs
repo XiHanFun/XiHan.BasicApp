@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.AI;
 /// <remarks>
 /// 宿主按 <c>BasicApp:Modules:AI:Enabled</c> 装配（缺省开），同时装框架的 OpenAI 兼容 Provider；架在框架的 AI 子系统之上：
 /// 模型提供商落库（方案 A1，照 4.x），以 <see cref="AiProviderCatalog"/> 取代框架按配置建的 Provider 目录，宿主启动时装载、提供商写入的调用提交之后重载
-/// 提供商只在平台一侧（照 4.x）
+/// 提供商与提示词只在平台一侧（照 4.x）
 /// </remarks>
 public sealed class AIFeature : IHostedFeature
 {
@@ -76,6 +76,8 @@ public sealed class AIFeature : IHostedFeature
         context.Services.AddScoped<AiProviderChanges>();
         context.Services.AddScoped<AiProviderService>();
         context.Services.AddScoped<AiProviderQueries>();
+        context.Services.AddScoped<AiPromptService>();
+        context.Services.AddScoped<AiPromptQueries>();
         context.Services.AddCacheNamespace("ai", editable: false);
 
         context.Services.AddPermissionCatalog("ai", AIPermissions.All);

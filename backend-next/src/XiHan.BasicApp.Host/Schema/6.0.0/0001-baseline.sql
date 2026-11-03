@@ -234,6 +234,28 @@ CREATE TABLE IF NOT EXISTS "sys_access_policy_condition" (
 );
 CREATE INDEX IF NOT EXISTS ix_sys_access_policy_condition_owner_tenant_id_policy_id ON public.sys_access_policy_condition USING btree (owner_tenant_id, policy_id);
 
+CREATE TABLE IF NOT EXISTS "sys_ai_prompt" (
+    "id" uuid NOT NULL,
+    "code" character varying(100) NOT NULL,
+    "name" character varying(200) NOT NULL,
+    "category" character varying(100) DEFAULT NULL::character varying NULL,
+    "version" character varying(100) DEFAULT NULL::character varying NULL,
+    "content" text NOT NULL,
+    "status" integer DEFAULT 0 NOT NULL,
+    "order" integer DEFAULT 0 NOT NULL,
+    "remark" character varying(500) DEFAULT NULL::character varying NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_ai_prompt_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_ai_prompt_code ON public.sys_ai_prompt USING btree (code) WHERE (is_deleted = false);
+
 CREATE TABLE IF NOT EXISTS "sys_ai_provider" (
     "id" uuid NOT NULL,
     "code" character varying(64) NOT NULL,
