@@ -40,6 +40,7 @@ public static class BasicAppOpenApi
             Group("chat", 110, ["chat-messages"]),
             Group("workflow", 120),
             Group("codegeneration", 130),
+            Group("ai", 140),
         ],
     };
 

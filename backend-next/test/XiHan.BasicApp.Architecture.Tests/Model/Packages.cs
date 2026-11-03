@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Xml.Linq;
 using XiHan.BasicApp.Access;
+using XiHan.BasicApp.AI;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.CodeGeneration;
@@ -106,6 +107,7 @@ public static class Packages
         typeof(ChatFeature).Assembly,
         typeof(WorkflowFeature).Assembly,
         typeof(CodeGenerationFeature).Assembly,
+        typeof(AIFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

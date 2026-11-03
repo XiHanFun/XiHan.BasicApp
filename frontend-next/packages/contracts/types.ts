@@ -45,6 +45,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an AI provider
+         * @description Add an OpenAI-compatible model provider. The code is unique and cannot change; the API key is stored encrypted; making it the default clears the previous default.
+         *
+         *     Requires permission ai.ai-providers.create (Create AI providers).
+         */
+        post: operations["ai-providers.create"];
+        /**
+         * Delete AI providers
+         * @description Delete model providers in bulk.
+         *
+         *     Requires permission ai.ai-providers.delete (Delete AI providers).
+         */
+        delete: operations["ai-providers.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an AI provider
+         * @description Read a model provider's settings; the API key is never returned, only whether one is set.
+         *
+         *     Requires permission ai.ai-providers.read (Read AI providers).
+         */
+        get: operations["ai-providers.get"];
+        /**
+         * Update an AI provider
+         * @description Edit a model provider. Leave the API key empty to keep the current one and send back the concurrency stamp you read. New calls use the new settings once the change is committed.
+         *
+         *     Requires permission ai.ai-providers.update (Update AI providers).
+         */
+        put: operations["ai-providers.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-providers/{id}:set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set the default AI provider
+         * @description Make an enabled model provider the default and clear the others; assistants and the knowledge base use it when they name no provider.
+         *
+         *     Requires permission ai.ai-providers.update (Update AI providers).
+         */
+        post: operations["ai-providers.set-default"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-providers/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable an AI provider
+         * @description Enable or disable a model provider; disabled providers cannot be used for chat or embeddings. Send back the concurrency stamp you read; a remark replaces the current one.
+         *
+         *     Requires permission ai.ai-providers.update (Update AI providers).
+         */
+        post: operations["ai-providers.set-status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-providers/{id}:test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test an AI provider
+         * @description Send "ping" to the chat model with the current settings and, when an embedding model is set, embed it once and report the dimensions (disabled providers can be tested too). Failures are reported in the result, not as a failed call.
+         *
+         *     Requires permission ai.ai-providers.execute (Test AI providers).
+         */
+        post: operations["ai-providers.test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai-providers:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List AI providers
+         * @description Page through the model providers; filter by status, vendor and default, and search code, name and chat model. API keys are never returned.
+         *
+         *     Requires permission ai.ai-providers.read (Read AI providers).
+         */
+        post: operations["ai-providers.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/approvals/{id}": {
         parameters: {
             query?: never;
@@ -9257,6 +9401,90 @@ export interface components {
              */
             onlineMinutes: number;
         };
+        /** @description 一次探测的结果 */
+        AiProviderProbe: {
+            /** @description 是否通 */
+            success: boolean;
+            /** @description 成功时是聊天的结束原因，失败时是提供商给的原因（照 4.x） */
+            message?: string | null;
+            /**
+             * Format: int64
+             * @description 耗时（毫秒）
+             */
+            elapsedMilliseconds: number;
+            /** @description 探测的模型 */
+            model: string;
+            /**
+             * Format: int32
+             * @description 嵌入向量的维度；聊天探测为空
+             */
+            dimensions?: number | null;
+        };
+        /** @description 提供商 */
+        AiProviderResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 编码 */
+            code: string;
+            /** @description 名称 */
+            name: string;
+            /** @description 厂商 */
+            vendor: string;
+            /** @description 聊天模型 */
+            chatModel: string;
+            /** @description 嵌入模型 */
+            embeddingModel?: string | null;
+            /** @description 端点 */
+            endpoint?: string | null;
+            /** @description 是否设了 API 密钥 */
+            hasApiKey: boolean;
+            /**
+             * Format: int32
+             * @description 最大输出令牌数
+             */
+            maxOutputTokens?: number | null;
+            /**
+             * Format: float
+             * @description 采样温度
+             */
+            temperature?: number | null;
+            /**
+             * Format: int32
+             * @description 单次调用超时（秒）
+             */
+            timeoutSeconds?: number | null;
+            /** @description 是否缺省提供商 */
+            isDefault: boolean;
+            /** @description 状态 */
+            status: components["schemas"]["AiStatus"];
+            /**
+             * Format: int32
+             * @description 排序号
+             */
+            order: number;
+            /** @description 备注 */
+            remark?: string | null;
+            /** @description 并发戳：修改与启停时原样交回 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）
+             */
+            modifiedAt?: string | null;
+        };
+        /**
+         * @description 提供商、提示词与助手的启停状态
+         * @enum {string}
+         */
+        AiStatus: "Active" | "Disabled";
         /** @enum {string} */
         Architecture: "X86" | "X64" | "Arm" | "Arm64" | "Wasm" | "S390x" | "LoongArch64" | "Armv6" | "Ppc64le" | "RiscV64";
         /** @description 一个可选的部门 */
@@ -14775,6 +15003,704 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["AccessLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ai-providers.create 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 编码（唯一） */
+                    code: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 聊天模型 */
+                    chatModel: string;
+                    /** @description 厂商（只用于分组展示，如 OpenAI、DeepSeek） */
+                    vendor: string;
+                    /** @description 嵌入模型 */
+                    embeddingModel?: string | null;
+                    /** @description 端点：绝对的 http 或 https 地址，为空即厂商的官方端点 */
+                    endpoint?: string | null;
+                    /** @description API 密钥 */
+                    apiKey?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 最大输出令牌数
+                     */
+                    maxOutputTokens?: number | null;
+                    /**
+                     * Format: float
+                     * @description 采样温度
+                     */
+                    temperature?: number | null;
+                    /**
+                     * Format: int32
+                     * @description 单次调用超时（秒）
+                     */
+                    timeoutSeconds?: number | null;
+                    /** @description 是否缺省提供商 */
+                    isDefault?: boolean;
+                    /** @description 初始状态 */
+                    status?: components["schemas"]["AiStatus"];
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提供商 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 厂商 */
+                        vendor: string;
+                        /** @description 聊天模型 */
+                        chatModel: string;
+                        /** @description 嵌入模型 */
+                        embeddingModel?: string | null;
+                        /** @description 端点 */
+                        endpoint?: string | null;
+                        /** @description 是否设了 API 密钥 */
+                        hasApiKey: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大输出令牌数
+                         */
+                        maxOutputTokens?: number | null;
+                        /**
+                         * Format: float
+                         * @description 采样温度
+                         */
+                        temperature?: number | null;
+                        /**
+                         * Format: int32
+                         * @description 单次调用超时（秒）
+                         */
+                        timeoutSeconds?: number | null;
+                        /** @description 是否缺省提供商 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.delete": {
+        parameters: {
+            query: {
+                /** @description 提供商 ID，1 到 100 个 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提供商 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 提供商 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 厂商 */
+                        vendor: string;
+                        /** @description 聊天模型 */
+                        chatModel: string;
+                        /** @description 嵌入模型 */
+                        embeddingModel?: string | null;
+                        /** @description 端点 */
+                        endpoint?: string | null;
+                        /** @description 是否设了 API 密钥 */
+                        hasApiKey: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大输出令牌数
+                         */
+                        maxOutputTokens?: number | null;
+                        /**
+                         * Format: float
+                         * @description 采样温度
+                         */
+                        temperature?: number | null;
+                        /**
+                         * Format: int32
+                         * @description 单次调用超时（秒）
+                         */
+                        timeoutSeconds?: number | null;
+                        /** @description 是否缺省提供商 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提供商 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-providers.update 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提供商 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 名称 */
+                    name: string;
+                    /** @description 聊天模型 */
+                    chatModel: string;
+                    /** @description 厂商（只用于分组展示，如 OpenAI、DeepSeek） */
+                    vendor: string;
+                    /** @description 嵌入模型 */
+                    embeddingModel?: string | null;
+                    /** @description 端点：绝对的 http 或 https 地址，为空即厂商的官方端点 */
+                    endpoint?: string | null;
+                    /** @description API 密钥，留空即不改 */
+                    apiKey?: string | null;
+                    /**
+                     * Format: int32
+                     * @description 最大输出令牌数
+                     */
+                    maxOutputTokens?: number | null;
+                    /**
+                     * Format: float
+                     * @description 采样温度
+                     */
+                    temperature?: number | null;
+                    /**
+                     * Format: int32
+                     * @description 单次调用超时（秒）
+                     */
+                    timeoutSeconds?: number | null;
+                    /** @description 是否缺省提供商 */
+                    isDefault?: boolean;
+                    /**
+                     * Format: int32
+                     * @description 排序号
+                     */
+                    order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提供商 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 厂商 */
+                        vendor: string;
+                        /** @description 聊天模型 */
+                        chatModel: string;
+                        /** @description 嵌入模型 */
+                        embeddingModel?: string | null;
+                        /** @description 端点 */
+                        endpoint?: string | null;
+                        /** @description 是否设了 API 密钥 */
+                        hasApiKey: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大输出令牌数
+                         */
+                        maxOutputTokens?: number | null;
+                        /**
+                         * Format: float
+                         * @description 采样温度
+                         */
+                        temperature?: number | null;
+                        /**
+                         * Format: int32
+                         * @description 单次调用超时（秒）
+                         */
+                        timeoutSeconds?: number | null;
+                        /** @description 是否缺省提供商 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提供商 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-providers.get、set-default 与 test 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提供商 ID
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 提供商 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 厂商 */
+                        vendor: string;
+                        /** @description 聊天模型 */
+                        chatModel: string;
+                        /** @description 嵌入模型 */
+                        embeddingModel?: string | null;
+                        /** @description 端点 */
+                        endpoint?: string | null;
+                        /** @description 是否设了 API 密钥 */
+                        hasApiKey: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大输出令牌数
+                         */
+                        maxOutputTokens?: number | null;
+                        /**
+                         * Format: float
+                         * @description 采样温度
+                         */
+                        temperature?: number | null;
+                        /**
+                         * Format: int32
+                         * @description 单次调用超时（秒）
+                         */
+                        timeoutSeconds?: number | null;
+                        /** @description 是否缺省提供商 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提供商 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-providers.set-status 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提供商 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 目标状态 */
+                    status: components["schemas"]["AiStatus"];
+                    /** @description 操作备注：给了即替换备注，不给保留原备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 提供商 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码 */
+                        code: string;
+                        /** @description 名称 */
+                        name: string;
+                        /** @description 厂商 */
+                        vendor: string;
+                        /** @description 聊天模型 */
+                        chatModel: string;
+                        /** @description 嵌入模型 */
+                        embeddingModel?: string | null;
+                        /** @description 端点 */
+                        endpoint?: string | null;
+                        /** @description 是否设了 API 密钥 */
+                        hasApiKey: boolean;
+                        /**
+                         * Format: int32
+                         * @description 最大输出令牌数
+                         */
+                        maxOutputTokens?: number | null;
+                        /**
+                         * Format: float
+                         * @description 采样温度
+                         */
+                        temperature?: number | null;
+                        /**
+                         * Format: int32
+                         * @description 单次调用超时（秒）
+                         */
+                        timeoutSeconds?: number | null;
+                        /** @description 是否缺省提供商 */
+                        isDefault: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["AiStatus"];
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 备注 */
+                        remark?: string | null;
+                        /** @description 并发戳：修改与启停时原样交回 */
+                        concurrencyStamp: string;
+                        /**
+                         * Format: date-time
+                         * @description 创建时间（UTC）
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 修改时间（UTC）
+                         */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 提供商 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description ai-providers.get、set-default 与 test 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 提供商 ID
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 测试连接的结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 聊天与嵌入（配了嵌入模型时）是否都通 */
+                        success: boolean;
+                        /** @description 聊天模型的探测 */
+                        chat: components["schemas"]["AiProviderProbe"];
+                        /** @description 嵌入模型的探测；没配嵌入模型为空 */
+                        embedding?: components["schemas"]["AiProviderProbe"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "ai-providers.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AiProviderResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

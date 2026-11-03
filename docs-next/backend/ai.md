@@ -1,40 +1,81 @@
-# AI 能力（规划中 · N4）
+# AI 能力（部分落地 · N4）
 
-本页记录 AI 模块在总体方案中的设计，并说明当前已可用的操作即工具能力，供规划与评估参考。
+本页说明 AI 模块的提供商、Provider 目录与模块开关，以及还在做的提示词、知识库与助手，适用于接入或配置模型的后端与前端开发者。
 
-::: warning 尚未实现
-6.0 还没有 AI 包：没有 AI 提供商、提示词、知识库与助手的页面和操作，也没有接入任何模型。本页记录总体方案里的设计，落地时以代码为准。5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
+AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
+
+::: warning 部分落地
+目前落地的是模型提供商（N4 第一批之一）。提示词、知识库与助手接入聊天还在做，本页对应的小节按总体方案写，落地时以代码为准。
 
 本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
 
-## 当前可用：操作作为工具
+## 提供商
 
-虽然 AI 包还没有，6.0 的操作契约已经为 AI 准备好了：
+模型提供商 `SysAiProvider` 是平台库实体、只在平台一侧：平台配置，租户经助手用到（与 5.x 相同）。协议只有 OpenAI 兼容一种，改端点即可接 DeepSeek、Azure OpenAI、Moonshot、自建的 vLLM 等。
 
-- 每个操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）；
-- 目前发布的是 12 个只读目录类操作：用户、部门、岗位、部门成员、权限目录、字典与字典项；
-- 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
-- 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
+| 字段 | 规则 |
+| --- | --- |
+| 编码 | 框架 Provider 名的文法：小写字母或数字开头，只有小写字母、数字与 `._-`，至多 64 个字符；唯一（部分唯一索引，删了可以重建），建后不可改。5.x 至多 100 个字符、可大写 |
+| 厂商 | 只用于分组展示（OpenAI、DeepSeek、Azure、Moonshot、自建、自定义，可自填） |
+| 聊天模型 | 必填 |
+| 嵌入模型 | 为空即不能用于知识库 |
+| 端点 | 绝对的 http 或 https 地址；为空即厂商的官方端点 |
+| API 密钥 | 经 `ISecretProtector` 加密存储，明文至多 1000 个字符；响应只给 `hasApiKey`，修改时留空即保留原密钥 |
+| 最大输出、温度 | 每次聊天调用带上（温度 0～2）；5.x 存了从没用到 |
+| 超时 | 1～3600 秒，为空即框架缺省的 100 秒；流式回复按每个增量计时 |
+| 缺省 | 最多一个；助手与知识库没写提供商时用它。停用的不能设为缺省（`AI_CONFLICT_102`） |
+| 启停 | 一个状态（5.x 有「是否启用」与状态两个开关）；停用的不进 Provider 目录 |
 
-## AI 包的设计（N4）
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `ai-providers.list` / `get` | `ai.ai-providers.read` | 列表可按状态、厂商与是否缺省筛选，按编码、名称与聊天模型搜索 |
+| `ai-providers.create` / `update` | `ai.ai-providers.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-providers.set-status` / `set-default` | `ai.ai-providers.update` | 单条 |
+| `ai-providers.delete` | `ai.ai-providers.delete` | 批量，逐项结果 |
+| `ai-providers.test` | `ai.ai-providers.execute` | 测试连接，见下 |
+
+权限码都只在平台一侧，写操作进操作日志。字段安全登记了提供商的读、建、改。
+
+测试连接按当前配置临时建一次客户端（停用的也能测，用完即释放）：聊天模型发一句 `ping`（最大输出 16 个令牌），配了嵌入模型再嵌入一次并回报维度。连不通不是失败的调用，结果里写提供商给的原因；密钥解不开是 503 `AI_UNAVAILABLE_101`。
+
+## Provider 目录
+
+框架的聊天、嵌入与知识库都经 `IAIProviderCatalog` 按名字解析客户端。框架缺省的目录读配置 `XiHan:AI:Providers`；BasicApp 以落库的 `AiProviderCatalog` 取代它，提供商在页面上维护：
+
+- 启用中的提供商按编码映射成框架的 Provider 配置，种类 `openai`；缺省提供商是标为缺省的那一个（不在只有一个时自动取它）。
+- 框架的目录接口是同步的，所以目录持一份内存快照：宿主启动时装载，提供商写入的调用提交之后当场重载，新的调用即用新配置。
+- 配了 Redis 时，写入的实例改写共享缓存的戳键 `ai:providers:stamp`，别的实例经共享缓存的变更通知重载；没配 Redis 即单实例。
+- 重载只丢掉配置变了或没了的提供商缓存的客户端。解不开密钥的提供商记 Warning 后不进目录，按未配置处理，不当明文用。
+- 目录以框架的 `AIProviderConformance` 一致性套件自证。
+
+BasicApp 调用框架的聊天、嵌入与知识库时一律显式传提供商的编码（为空即用目录的缺省提供商）：框架在没传名字时按配置 `XiHan:AI:DefaultProvider` 找缺省名，不问目录。
+
+## 提示词、知识库与助手（规划中）
 
 | 部分 | 方案 |
 | --- | --- |
-| 底座 | 框架 5 的 `AI.Abstractions`（`IAIProviderCatalog`、`IAIChat`、`IKnowledgeStore`）、`AI.OpenAI`、`AI.VectorData` |
-| 提供商 | 配置落库（平台库实体，密钥加密），以 `IChatClientFactory` 自定义工厂接入框架的提供商目录 |
-| 知识库 | `IKnowledgeIngestor` / `IKnowledgeRetriever`；向量库经 `Microsoft.Extensions.VectorData` 的 Qdrant 连接器 |
-| 助手 | 配置身份、模型与提示词；会话复用 Chat 包，回复流式推送 |
-| 工具 | `Expose.Ai` 的只读操作自动成为助手可调用的工具，按调用人的权限与租户执行 |
-| 资源 | `ai-providers`、`ai-prompts`、`ai-assistants`、`knowledge-documents` |
+| 提示词 | 正文原样当系统提示词，版本只是标签、同编码一行，没有变量渲染（与 5.x 相同） |
+| 知识库 | 知识文档是租户库实体，平台与各租户各自维护；集合按侧分（`knowledge.platform`、`knowledge.<租户 ID>`），检索只在调用方一侧；只收文本、请求内同步摄取；向量库经 Qdrant 连接器（`BasicApp:AI:Qdrant`），不配即知识库不可用 |
+| 助手 | 配置身份、模型与提示词，勾选可用的工具（`Expose.Ai` 的只读操作，以调用方身份执行）；会话复用聊天，经 Contracts 的助手接口流式回复，AI 关掉后聊天照常 |
+| 资源 | `ai-prompts`、`ai-assistants`、`knowledge-documents` |
 
-5.x 的 Agent 工厂不迁移。N4 的退出条件：配置提供商、知识库问答、助手调用 `Expose.Ai` 工具。
+5.x 的 Agent 工厂不迁移，也不做用量统计（5.x 也没有）。
 
-## 约束
+## 操作作为工具
 
-- 长操作 ID 作为工具名时会被框架截断加哈希，资源名控制在 30 字符以内；
-- 新增 `Expose.Mcp` / `Expose.Ai` 的操作必须只读，并登记在 `OperationExposureTests`。
+6.0 的操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）：
+
+- 目前发布的是只读目录类操作：用户、部门、岗位、部门成员、权限目录、字典与字典项；
+- 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
+- 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
+
+长操作 ID 作为工具名时会被框架截断加哈希，资源名控制在 30 字符以内；新增 `Expose.Mcp` / `Expose.Ai` 的操作必须只读，并登记在 `OperationExposureTests`。
+
+## 模块开关
+
+`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，`sys_ai_provider` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
 
 ## 下一步
 
-- [MCP Server](../ai/mcp) · [实时推送](./realtime) · [架构总览](./introduction)
+- [MCP Server](../ai/mcp) · [在线聊天](./chat) · [实时推送](./realtime) · [配置参考](../configuration#basicapp-modules)

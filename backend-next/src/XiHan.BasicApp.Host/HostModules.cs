@@ -49,12 +49,20 @@ public sealed record HostModules
     public bool CodeGeneration { get; init; } = true;
 
     /// <summary>
+    /// AI 模块
+    /// </summary>
+    /// <remarks>
+    /// 模型提供商、提示词、知识库与助手；助手经 Contracts 给聊天应答，关掉后聊天照常
+    /// </remarks>
+    public bool AI { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow"), CodeGeneration = Enabled(configuration, "CodeGeneration") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow"), CodeGeneration = Enabled(configuration, "CodeGeneration"), AI = Enabled(configuration, "AI") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)

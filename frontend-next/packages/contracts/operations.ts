@@ -8,6 +8,14 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'ai-providers.create': { method: 'POST', template: '/api/ai-providers', path: [], query: [], success: 201 },
+  'ai-providers.delete': { method: 'DELETE', template: '/api/ai-providers', path: [], query: ['ids'], success: 200 },
+  'ai-providers.get': { method: 'GET', template: '/api/ai-providers/{id}', path: ['id'], query: [], success: 200 },
+  'ai-providers.list': { method: 'POST', template: '/api/ai-providers:list', path: [], query: [], success: 200 },
+  'ai-providers.set-default': { method: 'POST', template: '/api/ai-providers/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'ai-providers.set-status': { method: 'POST', template: '/api/ai-providers/{id}:set-status', path: ['id'], query: [], success: 200 },
+  'ai-providers.test': { method: 'POST', template: '/api/ai-providers/{id}:test', path: ['id'], query: [], success: 200 },
+  'ai-providers.update': { method: 'PUT', template: '/api/ai-providers/{id}', path: ['id'], query: [], success: 200 },
   'approvals.get': { method: 'GET', template: '/api/approvals/{id}', path: ['id'], query: ['taskId'], success: 200 },
   'approvals.list-cc': { method: 'POST', template: '/api/approvals:list-cc', path: [], query: [], success: 200 },
   'approvals.list-done': { method: 'POST', template: '/api/approvals:list-done', path: [], query: [], success: 200 },
@@ -482,6 +490,18 @@ export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] ext
 export const accessLogs = {
   get: (request: RequestOf<'access-logs.get'>, options?: CallOptions) => invoke<RequestOf<'access-logs.get'>, ResponseOf<'access-logs.get'>>('access-logs.get', routes['access-logs.get'], request, options),
   list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
+}
+
+/** 资源 `ai-providers` 的操作 */
+export const aiProviders = {
+  create: (request: RequestOf<'ai-providers.create'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.create'>, ResponseOf<'ai-providers.create'>>('ai-providers.create', routes['ai-providers.create'], request, options),
+  delete: (request: RequestOf<'ai-providers.delete'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.delete'>, ResponseOf<'ai-providers.delete'>>('ai-providers.delete', routes['ai-providers.delete'], request, options),
+  get: (request: RequestOf<'ai-providers.get'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.get'>, ResponseOf<'ai-providers.get'>>('ai-providers.get', routes['ai-providers.get'], request, options),
+  list: (request: RequestOf<'ai-providers.list'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.list'>, ResponseOf<'ai-providers.list'>>('ai-providers.list', routes['ai-providers.list'], request, options),
+  setDefault: (request: RequestOf<'ai-providers.set-default'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.set-default'>, ResponseOf<'ai-providers.set-default'>>('ai-providers.set-default', routes['ai-providers.set-default'], request, options),
+  setStatus: (request: RequestOf<'ai-providers.set-status'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.set-status'>, ResponseOf<'ai-providers.set-status'>>('ai-providers.set-status', routes['ai-providers.set-status'], request, options),
+  test: (request: RequestOf<'ai-providers.test'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.test'>, ResponseOf<'ai-providers.test'>>('ai-providers.test', routes['ai-providers.test'], request, options),
+  update: (request: RequestOf<'ai-providers.update'>, options?: CallOptions) => invoke<RequestOf<'ai-providers.update'>, ResponseOf<'ai-providers.update'>>('ai-providers.update', routes['ai-providers.update'], request, options),
 }
 
 /** 资源 `approvals` 的操作 */

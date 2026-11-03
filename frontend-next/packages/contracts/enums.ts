@@ -11,6 +11,9 @@ export type AccessPolicyStatus = (typeof AccessPolicyStatus)[number]
 export const AccessResult = ['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'] as const
 export type AccessResult = (typeof AccessResult)[number]
 
+export const AiStatus = ['Active', 'Disabled'] as const
+export type AiStatus = (typeof AiStatus)[number]
+
 export const Architecture = ['X86', 'X64', 'Arm', 'Arm64', 'Wasm', 'S390x', 'LoongArch64', 'Armv6', 'Ppc64le', 'RiscV64'] as const
 export type Architecture = (typeof Architecture)[number]
 
@@ -337,6 +340,7 @@ export const enums = {
   AccessPolicyAction,
   AccessPolicyStatus,
   AccessResult,
+  AiStatus,
   Architecture,
   BotProvider,
   CacheLayer,

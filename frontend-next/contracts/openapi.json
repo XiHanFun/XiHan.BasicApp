@@ -11,6 +11,11 @@
       "description": "Query access logs: the result, duration and client of every operation call."
     },
     {
+      "name": "ai-providers",
+      "x-displayName": "AI providers",
+      "description": "OpenAI-compatible model providers: create, read, update and delete, enable or disable, set the default and test the connection. API keys are stored encrypted and never returned."
+    },
+    {
       "name": "approvals",
       "x-displayName": "Approval center",
       "description": "Approvals the caller handled, was copied on or started, approval details with the business form and the trail, and withdrawing."
@@ -672,6 +677,1385 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/AccessLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers": {
+      "delete": {
+        "operationId": "ai-providers.delete",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Delete AI providers",
+        "description": "Delete model providers in bulk.\n\nRequires permission ai.ai-providers.delete (Delete AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u63D0\u4F9B\u5546 ID\uFF0C1 \u5230 100 \u4E2A",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID\uFF0C1 \u5230 100 \u4E2A",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ai-providers.create",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Create an AI provider",
+        "description": "Add an OpenAI-compatible model provider. The code is unique and cannot change; the API key is stored encrypted; making it the default clears the previous default.\n\nRequires permission ai.ai-providers.create (Create AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.create",
+        "parameters": [],
+        "requestBody": {
+          "description": "ai-providers.create \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateAiProviderRequest",
+                "description": "ai-providers.create \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "description": "\u7F16\u7801\uFF08\u552F\u4E00\uFF09",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "chatModel": {
+                    "description": "\u804A\u5929\u6A21\u578B",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "vendor": {
+                    "description": "\u5382\u5546\uFF08\u53EA\u7528\u4E8E\u5206\u7EC4\u5C55\u793A\uFF0C\u5982 OpenAI\u3001DeepSeek\uFF09",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
+                  },
+                  "embeddingModel": {
+                    "description": "\u5D4C\u5165\u6A21\u578B",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "endpoint": {
+                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u4E3A\u7A7A\u5373\u5382\u5546\u7684\u5B98\u65B9\u7AEF\u70B9",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "apiKey": {
+                    "description": "API \u5BC6\u94A5",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "maxOutputTokens": {
+                    "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "temperature": {
+                    "description": "\u91C7\u6837\u6E29\u5EA6",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "format": "float",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "timeoutSeconds": {
+                    "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 3600
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u521D\u59CB\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "chatModel",
+                  "vendor"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "\u63D0\u4F9B\u5546",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderResponse",
+                  "description": "\u63D0\u4F9B\u5546",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "description": "\u5382\u5546",
+                      "type": "string"
+                    },
+                    "chatModel": {
+                      "description": "\u804A\u5929\u6A21\u578B",
+                      "type": "string"
+                    },
+                    "embeddingModel": {
+                      "description": "\u5D4C\u5165\u6A21\u578B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "endpoint": {
+                      "description": "\u7AEF\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasApiKey": {
+                      "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+                      "type": "boolean"
+                    },
+                    "maxOutputTokens": {
+                      "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "temperature": {
+                      "description": "\u91C7\u6837\u6E29\u5EA6",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "float"
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "vendor",
+                    "chatModel",
+                    "hasApiKey",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers/{id}": {
+      "get": {
+        "operationId": "ai-providers.get",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Get an AI provider",
+        "description": "Read a model provider\u0027s settings; the API key is never returned, only whether one is set.\n\nRequires permission ai.ai-providers.read (Read AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u4F9B\u5546 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u63D0\u4F9B\u5546",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderResponse",
+                  "description": "\u63D0\u4F9B\u5546",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "description": "\u5382\u5546",
+                      "type": "string"
+                    },
+                    "chatModel": {
+                      "description": "\u804A\u5929\u6A21\u578B",
+                      "type": "string"
+                    },
+                    "embeddingModel": {
+                      "description": "\u5D4C\u5165\u6A21\u578B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "endpoint": {
+                      "description": "\u7AEF\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasApiKey": {
+                      "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+                      "type": "boolean"
+                    },
+                    "maxOutputTokens": {
+                      "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "temperature": {
+                      "description": "\u91C7\u6837\u6E29\u5EA6",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "float"
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "vendor",
+                    "chatModel",
+                    "hasApiKey",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "ai-providers.update",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Update an AI provider",
+        "description": "Edit a model provider. Leave the API key empty to keep the current one and send back the concurrency stamp you read. New calls use the new settings once the change is committed.\n\nRequires permission ai.ai-providers.update (Update AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u4F9B\u5546 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-providers.update \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateAiProviderRequest",
+                "description": "ai-providers.update \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u4F9B\u5546 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "name": {
+                    "description": "\u540D\u79F0",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "chatModel": {
+                    "description": "\u804A\u5929\u6A21\u578B",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "vendor": {
+                    "description": "\u5382\u5546\uFF08\u53EA\u7528\u4E8E\u5206\u7EC4\u5C55\u793A\uFF0C\u5982 OpenAI\u3001DeepSeek\uFF09",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
+                  },
+                  "embeddingModel": {
+                    "description": "\u5D4C\u5165\u6A21\u578B",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "endpoint": {
+                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u4E3A\u7A7A\u5373\u5382\u5546\u7684\u5B98\u65B9\u7AEF\u70B9",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "apiKey": {
+                    "description": "API \u5BC6\u94A5\uFF0C\u7559\u7A7A\u5373\u4E0D\u6539",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1000
+                  },
+                  "maxOutputTokens": {
+                    "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "temperature": {
+                    "description": "\u91C7\u6837\u6E29\u5EA6",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "format": "float",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "timeoutSeconds": {
+                    "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 3600
+                  },
+                  "isDefault": {
+                    "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "description": "\u6392\u5E8F\u53F7",
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 2147483647
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "name",
+                  "chatModel",
+                  "vendor"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D0\u4F9B\u5546",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderResponse",
+                  "description": "\u63D0\u4F9B\u5546",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "description": "\u5382\u5546",
+                      "type": "string"
+                    },
+                    "chatModel": {
+                      "description": "\u804A\u5929\u6A21\u578B",
+                      "type": "string"
+                    },
+                    "embeddingModel": {
+                      "description": "\u5D4C\u5165\u6A21\u578B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "endpoint": {
+                      "description": "\u7AEF\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasApiKey": {
+                      "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+                      "type": "boolean"
+                    },
+                    "maxOutputTokens": {
+                      "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "temperature": {
+                      "description": "\u91C7\u6837\u6E29\u5EA6",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "float"
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "vendor",
+                    "chatModel",
+                    "hasApiKey",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers/{id}:set-default": {
+      "post": {
+        "operationId": "ai-providers.set-default",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Set the default AI provider",
+        "description": "Make an enabled model provider the default and clear the others; assistants and the knowledge base use it when they name no provider.\n\nRequires permission ai.ai-providers.update (Update AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u4F9B\u5546 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-providers.get\u3001set-default \u4E0E test \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "AiProviderIdRequest",
+                "description": "ai-providers.get\u3001set-default \u4E0E test \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u4F9B\u5546 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D0\u4F9B\u5546",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderResponse",
+                  "description": "\u63D0\u4F9B\u5546",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "description": "\u5382\u5546",
+                      "type": "string"
+                    },
+                    "chatModel": {
+                      "description": "\u804A\u5929\u6A21\u578B",
+                      "type": "string"
+                    },
+                    "embeddingModel": {
+                      "description": "\u5D4C\u5165\u6A21\u578B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "endpoint": {
+                      "description": "\u7AEF\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasApiKey": {
+                      "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+                      "type": "boolean"
+                    },
+                    "maxOutputTokens": {
+                      "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "temperature": {
+                      "description": "\u91C7\u6837\u6E29\u5EA6",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "float"
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "vendor",
+                    "chatModel",
+                    "hasApiKey",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers/{id}:set-status": {
+      "post": {
+        "operationId": "ai-providers.set-status",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Enable or disable an AI provider",
+        "description": "Enable or disable a model provider; disabled providers cannot be used for chat or embeddings. Send back the concurrency stamp you read; a remark replaces the current one.\n\nRequires permission ai.ai-providers.update (Update AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u4F9B\u5546 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-providers.set-status \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetAiProviderStatusRequest",
+                "description": "ai-providers.set-status \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u4F9B\u5546 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "status": {
+                    "description": "\u76EE\u6807\u72B6\u6001",
+                    "$ref": "#/components/schemas/AiStatus"
+                  },
+                  "remark": {
+                    "description": "\u64CD\u4F5C\u5907\u6CE8\uFF1A\u7ED9\u4E86\u5373\u66FF\u6362\u5907\u6CE8\uFF0C\u4E0D\u7ED9\u4FDD\u7559\u539F\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D0\u4F9B\u5546",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderResponse",
+                  "description": "\u63D0\u4F9B\u5546",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u540D\u79F0",
+                      "type": "string"
+                    },
+                    "vendor": {
+                      "description": "\u5382\u5546",
+                      "type": "string"
+                    },
+                    "chatModel": {
+                      "description": "\u804A\u5929\u6A21\u578B",
+                      "type": "string"
+                    },
+                    "embeddingModel": {
+                      "description": "\u5D4C\u5165\u6A21\u578B",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "endpoint": {
+                      "description": "\u7AEF\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasApiKey": {
+                      "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+                      "type": "boolean"
+                    },
+                    "maxOutputTokens": {
+                      "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "temperature": {
+                      "description": "\u91C7\u6837\u6E29\u5EA6",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "format": "float"
+                    },
+                    "timeoutSeconds": {
+                      "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "isDefault": {
+                      "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/AiStatus"
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "concurrencyStamp": {
+                      "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "vendor",
+                    "chatModel",
+                    "hasApiKey",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "concurrencyStamp",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers/{id}:test": {
+      "post": {
+        "operationId": "ai-providers.test",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "Test an AI provider",
+        "description": "Send \u0022ping\u0022 to the chat model with the current settings and, when an embedding model is set, embed it once and report the dimensions (disabled providers can be tested too). Failures are reported in the result, not as a failed call.\n\nRequires permission ai.ai-providers.execute (Test AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.execute",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D0\u4F9B\u5546 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D0\u4F9B\u5546 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "ai-providers.get\u3001set-default \u4E0E test \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "AiProviderIdRequest",
+                "description": "ai-providers.get\u3001set-default \u4E0E test \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D0\u4F9B\u5546 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AiProviderTestResponse",
+                  "description": "\u6D4B\u8BD5\u8FDE\u63A5\u7684\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "description": "\u804A\u5929\u4E0E\u5D4C\u5165\uFF08\u914D\u4E86\u5D4C\u5165\u6A21\u578B\u65F6\uFF09\u662F\u5426\u90FD\u901A",
+                      "type": "boolean"
+                    },
+                    "chat": {
+                      "description": "\u804A\u5929\u6A21\u578B\u7684\u63A2\u6D4B",
+                      "$ref": "#/components/schemas/AiProviderProbe"
+                    },
+                    "embedding": {
+                      "description": "\u5D4C\u5165\u6A21\u578B\u7684\u63A2\u6D4B\uFF1B\u6CA1\u914D\u5D4C\u5165\u6A21\u578B\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/AiProviderProbe"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "chat"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai-providers:list": {
+      "post": {
+        "operationId": "ai-providers.list",
+        "tags": [
+          "ai-providers"
+        ],
+        "summary": "List AI providers",
+        "description": "Page through the model providers; filter by status, vendor and default, and search code, name and chat model. API keys are never returned.\n\nRequires permission ai.ai-providers.read (Read AI providers).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "ai.ai-providers.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfAiProviderResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AiProviderResponse"
                       }
                     },
                     "total": {
@@ -56301,6 +57685,172 @@
           "onlineMinutes"
         ]
       },
+      "AiProviderProbe": {
+        "description": "\u4E00\u6B21\u63A2\u6D4B\u7684\u7ED3\u679C",
+        "type": "object",
+        "properties": {
+          "success": {
+            "description": "\u662F\u5426\u901A",
+            "type": "boolean"
+          },
+          "message": {
+            "description": "\u6210\u529F\u65F6\u662F\u804A\u5929\u7684\u7ED3\u675F\u539F\u56E0\uFF0C\u5931\u8D25\u65F6\u662F\u63D0\u4F9B\u5546\u7ED9\u7684\u539F\u56E0\uFF08\u7167 4.x\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "elapsedMilliseconds": {
+            "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09",
+            "type": "integer",
+            "format": "int64"
+          },
+          "model": {
+            "description": "\u63A2\u6D4B\u7684\u6A21\u578B",
+            "type": "string"
+          },
+          "dimensions": {
+            "description": "\u5D4C\u5165\u5411\u91CF\u7684\u7EF4\u5EA6\uFF1B\u804A\u5929\u63A2\u6D4B\u4E3A\u7A7A",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        },
+        "required": [
+          "success",
+          "elapsedMilliseconds",
+          "model"
+        ]
+      },
+      "AiProviderResponse": {
+        "description": "\u63D0\u4F9B\u5546",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "description": "\u7F16\u7801",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u540D\u79F0",
+            "type": "string"
+          },
+          "vendor": {
+            "description": "\u5382\u5546",
+            "type": "string"
+          },
+          "chatModel": {
+            "description": "\u804A\u5929\u6A21\u578B",
+            "type": "string"
+          },
+          "embeddingModel": {
+            "description": "\u5D4C\u5165\u6A21\u578B",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endpoint": {
+            "description": "\u7AEF\u70B9",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasApiKey": {
+            "description": "\u662F\u5426\u8BBE\u4E86 API \u5BC6\u94A5",
+            "type": "boolean"
+          },
+          "maxOutputTokens": {
+            "description": "\u6700\u5927\u8F93\u51FA\u4EE4\u724C\u6570",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "temperature": {
+            "description": "\u91C7\u6837\u6E29\u5EA6",
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "float"
+          },
+          "timeoutSeconds": {
+            "description": "\u5355\u6B21\u8C03\u7528\u8D85\u65F6\uFF08\u79D2\uFF09",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "isDefault": {
+            "description": "\u662F\u5426\u7F3A\u7701\u63D0\u4F9B\u5546",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/AiStatus"
+          },
+          "order": {
+            "description": "\u6392\u5E8F\u53F7",
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u4FEE\u6539\u4E0E\u542F\u505C\u65F6\u539F\u6837\u4EA4\u56DE",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "vendor",
+          "chatModel",
+          "hasApiKey",
+          "isDefault",
+          "status",
+          "order",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "AiStatus": {
+        "description": "\u63D0\u4F9B\u5546\u3001\u63D0\u793A\u8BCD\u4E0E\u52A9\u624B\u7684\u542F\u505C\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
       "Architecture": {
         "type": "string",
         "enum": [
@@ -68526,6 +70076,31 @@
         "displayName": "Read user grants",
         "description": "View the permissions granted or denied directly to users."
       },
+      "ai.ai-providers.create": {
+        "code": "ai.ai-providers.create",
+        "displayName": "Create AI providers",
+        "description": "Add OpenAI-compatible model providers."
+      },
+      "ai.ai-providers.delete": {
+        "code": "ai.ai-providers.delete",
+        "displayName": "Delete AI providers",
+        "description": "Delete model providers."
+      },
+      "ai.ai-providers.execute": {
+        "code": "ai.ai-providers.execute",
+        "displayName": "Test AI providers",
+        "description": "Send a test request to a model provider\u0027s chat and embedding models."
+      },
+      "ai.ai-providers.read": {
+        "code": "ai.ai-providers.read",
+        "displayName": "Read AI providers",
+        "description": "View the model providers; API keys are never shown."
+      },
+      "ai.ai-providers.update": {
+        "code": "ai.ai-providers.update",
+        "displayName": "Update AI providers",
+        "description": "Edit, enable, disable and set the default model provider."
+      },
       "auditing.access-logs.read": {
         "code": "auditing.access-logs.read",
         "displayName": "Read access logs",
@@ -69488,6 +71063,12 @@
         "codegen-table-columns",
         "codegen-tables",
         "codegen-templates"
+      ]
+    },
+    {
+      "name": "AI",
+      "tags": [
+        "ai-providers"
       ]
     },
     {

@@ -3,6 +3,7 @@
 
 using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
+using XiHan.BasicApp.AI;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.CodeGeneration;
@@ -27,6 +28,7 @@ using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
 using XiHan.BasicApp.Workflow;
+using XiHan.Framework.AI.OpenAI;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Caching.Hybrid;
 using XiHan.Framework.Caching.Redis;
@@ -158,6 +160,12 @@ public static class BasicAppHost
             if (modules.CodeGeneration)
             {
                 xihan.UseFeature<CodeGenerationFeature>();
+            }
+
+            if (modules.AI)
+            {
+                // 模型提供商落库，经 OpenAI 兼容协议调用（照 4.x 只有这一种）；工具目录随 Full Profile 已在
+                xihan.UseFeature<AIFeature>().UseFeature<OpenAIFeature>();
             }
         });
 
