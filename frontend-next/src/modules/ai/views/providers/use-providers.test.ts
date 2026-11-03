@@ -39,6 +39,14 @@ describe('providersResource', () => {
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/ai-providers:list' })
     expect(calls[0]!.body).toMatchObject({ keyword: 'main', filters: [{ field: 'status', operator: 'in', value: 'Active,Disabled' }] })
   })
+
+  it('批量删除逐项调用，逐项失败抛出码', async () => {
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'x-1', code: 'AI_NOTFOUND' }] }))
+    await expect(providersResource().remove!('x-1')).rejects.toThrow('AI_NOTFOUND')
+    expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/ai-providers?ids=x-1' })
+    record(() => json(200, { succeeded: ['x-2'], failed: [] }))
+    await expect(providersResource().remove!('x-2')).resolves.toBeUndefined()
+  })
 })
 
 describe('vendorOptions', () => {

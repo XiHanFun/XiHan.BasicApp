@@ -61,6 +61,8 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'ai.prompts',
+  batchRemovable: true,
+  removePermission: 'ai.ai-prompts.delete',
   pageName: t('ai.prompts.title'),
   rowKey: 'id',
   fields: fields.value,

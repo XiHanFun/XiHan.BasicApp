@@ -28,8 +28,14 @@ function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
 }
 
+/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
+}
+
 /**
- * SchemaPage 的资源：分页
+ * SchemaPage 的资源：分页与删除
  * 搜索字段按后端白名单下发：状态多选，关键字匹配编码与名称
  */
 export function promptsResource(): SchemaResource<PromptRow> {
@@ -38,6 +44,7 @@ export function promptsResource(): SchemaResource<PromptRow> {
       await aiPrompts.list(toPageRequest(params, { multiples: ['status'] })),
       params,
     ),
+    remove: async id => failedCodes(await aiPrompts.delete({ ids: [String(id)] })),
   }
 }
 
