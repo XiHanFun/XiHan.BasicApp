@@ -136,7 +136,7 @@ function handlePageSizeChange(value: number) {
 
 <template>
   <XhDialogRoot :open="show" @update:open="(open: boolean) => emit('update:show', open)">
-    <XhDialogContent class="runtime-dialog">
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 75rem)">
       <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
       <XhDialogCloseTrigger />
       <div class="xh-loading-stage" :class="{ 'is-loading': schemaLoading }">
@@ -176,10 +176,6 @@ function handlePageSizeChange(value: number) {
 </template>
 
 <style scoped>
-.runtime-dialog {
-  --xh-dialog-max-w: min(96vw, 75rem);
-}
-
 /* 定高容器：flex-height 的表格要求父级高度确定，否则表体无法撑满、滚动条仍会跟着内容走 */
 .runtime {
   display: flex;

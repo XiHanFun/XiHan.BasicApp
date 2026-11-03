@@ -74,7 +74,8 @@ public static class CodeGenRenderer
         var model = Object(new Dictionary<string, object?>
         {
             ["TableName"] = table.TableName,
-            ["TableComment"] = table.TableComment,
+            // 表注释拼进句子：去掉句末标点
+            ["TableComment"] = CodeGenItems.PhraseOf(table.TableComment),
             ["DisplayName"] = context.DisplayName,
             ["ClassName"] = table.ClassName,
             ["ClassNameCamel"] = CodeGenNaming.Camelize(table.ClassName),

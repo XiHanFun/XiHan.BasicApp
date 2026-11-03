@@ -21,6 +21,7 @@ src/XiHan.BasicApp.<包>/
 - 审批接入（方案修订（九十七））：业务包实现 Contracts `Workflow/IWorkflowBusinessHandler`（描述、办理前校验、改动前校验、结论回写、中止回写、单据数据；改动前校验在转办、加签、撤回与管理员实例控制之前，批量里不过的那一项不交给引擎，方案修订（一百零三）），`Configure` 里 `services.AddWorkflowBusiness<THandler>()`，业务码即流程定义名、重复即启动失败；发起、撤回与进度经 `IEnumerable<IWorkflowBusinessService>` 注入（Workflow 关掉时没有实现）。流程定义与实例在框架的引擎表里，列表交给框架查询（过滤、排序、分页都在存储里）：排序照 4.x 多列，请求的排序项按顺序把响应字段名映射到框架的排序白名单（第一项为主），别的列 400 `WORKFLOW_VALIDATION_104`，同一列两次或超过可排序列数由框架报 `WORKFLOW_VALIDATION_002`，不在 BasicApp 内存排序；我发起的与待办顺序固定。结论在结束节点经结果处理器同事务回写；只要「至少一次、按消息幂等」做不到状态核对的处理器（如通知），照 Workflow 的 `WorkflowNotifier` 在同一事务里先写回执表（租户 + 消息 ID 唯一，方案修订（九十九））。
 - 操作命名空间按资源名逐段转 Pascal：`oauth-apps` → `Operations/OauthApps`；共用 DTO 可放 `Operations/<主题>/XxxContracts.cs`。
 - 跨包协作只经 `Contracts` 的接口（`IConfigValueReader`、`ITenantQuota`、`IRealtimePush`、`IMessageSender`、`IWorkbenchWidgetProvider`、`IEditionGate` 等），实现方在自己的 Feature 里登记，消费方 `IEnumerable<>` 注入时要处理没有实现的情形。
+- 产出给人下载的文件（导出结果、代码生成的产物包）经 Contracts `Files/ITemporaryFiles` 存成临时文件（存在调用方这一侧、带到期时间、读取不核对通用的文件权限）：业务先按自己的权限核对，再由宿主的普通端点（`Host/Endpoints`，可选模块按 `HostModules` 开关才映射，挂 `RequireXiHanPermission`、带元数据进 `openapi.json`）以附件下载，不把文件以 Base64 放进操作的响应。
 - 异步解耦用领域事件（方案修订（八十九），Organization → Chat 的部门群同步）：发出方的实体是聚合根、在方法里记事件，`Configure` 里 `AddDomainEvent(Topics.X, type, jsonTypeInfo, subject)`；主题常量在 `Contracts/Topics.cs`，事件记录放 `Contracts/<发出方>/`；订阅方 `AddMessageHandler<THandler>(topic)`。投递至少一次、可能乱序，处理器按处理时的当前状态核对，重复处理无副作用。
 
 ## 操作
@@ -32,6 +33,7 @@ src/XiHan.BasicApp.<包>/
 - 文案：`<操作 ID>.title` / `.description`（资源段的 `-` 换 `_`），`openapi.tags.<资源>.name`，`permissions.<码>.name` / `.description`（`permissions.list` 按调用方区域取，界面不显示描述表里的英文）；10 个区域键集一致且与常量一一对应。
 - 在同一个调用上下文里不能再调另一个操作（派生上下文共享 Items）；要改操作响应用框架的 `IOperationResponseFilter`。
 - `Result` / `Result<T>` 是 struct：找第一个失败要写循环；`Result<T>` 不许空成功值，可空用 `Result<Maybe<T>>`。
+- 形状不定的 JSON（如零代码运行时的数据行）用 `JsonElement` / `IReadOnlyDictionary<string, JsonElement>`，框架的 Schema 生成器按「任意 JSON」写进契约；`JsonObject` 的值类型 `JsonNode?` 现在会被当成普通类型展开（已交框架会话）。
 
 ## 数据
 
@@ -45,6 +47,7 @@ src/XiHan.BasicApp.<包>/
 - 库决定协议：平台库实体（租户、用户与账号、角色与授权、菜单、参数、字典、模板、存储配置……）不实现 `IMultiTenant`，用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧；租户库实体（部门、文件、日志、通知投递……）用 `TenantScoped*` 基类，没有租户上下文时什么都查不到。
 - 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`。
 - 规约里可空值类型判空写 `!x.HasValue`；查询 `Take` 只收 1–1000，读全量按主键分页读完。
+- 没有实体的原始表（代码生成导入的表、外部数据源）用 `client.Queryable<object>().AS(表名)` 读：表名只取配置里的、不接受请求给的；列名逐个经 `QueryBuilder.Builder.GetTranslationColumnName` 加引号（大小写混合的照原样），不写 `*`（Oracle 的分页不接受 `*` 与行号并列）；主库的表不经实体过滤，租户与软删的条件显式补；库报错（`SqlSugarException` / `DbException`）转成本包的 `Unavailable` 错误、带原因，不原样抛出。
 - 只读操作（动词 `get` / `list` 或声明 `ReadOnly`）跑在只读工作单元里，写入即 500 `PERSISTENCE_UNEXPECTED_001`（按缺陷处理，计入熔断）：要补建的行放到写操作里建，读路径缺行按缺省值读（参照 `UserAccountService.SecurityOfAsync`）。
 - 授予存储、权限检查器与收窄过滤器返回 `Result`：判定本身失败要原样向上返回（框架给 503），不能当作没有权限或悄悄隐藏东西。
 - 字符串列没写长度缺省 512，更长的显式 `[SugarColumn]` / `[LongText]`；给已有行的表加列，非可空的字符串与日期列声明成可空。
@@ -95,9 +98,19 @@ artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integr
 - 新 worktree 里同级没有框架检出，`restore` 也要带 `-p:XiHanFrameworkSrc=…`。
 - 测试 exe 是 xUnit v3 进程内运行器：`-class <全名>`、`-method <全名>`；`dotnet test` 走 MTP，单类过滤是 `--filter-class`（一次一个类）。
 - `FrameworkPinTests` 读同级检出的 HEAD，快照构建下失败属预期；其余必须全过。
-- 外部服务用例读环境变量，没设即跳过：`XIHAN_TEST_POSTGRES`（如 `Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres`）、`XIHAN_TEST_REDIS`、`XIHAN_TEST_RABBITMQ`。
-- 集成测试经 `BasicAppTestServer.StartAsync(connectionString, settings: [...], configure: ..., configureApp: ...)` 起宿主（SQLite 临时库）；演示数据要 `BasicApp:Seed:EnableDemoData=true`；可选模块用 `BasicApp:Modules:<名>:Enabled=false` 关；拨钟用 `ManualClock`，只对进程内调用有效（JWT 用真实时间）。
+- 外部服务用例读环境变量，没设即跳过：`XIHAN_TEST_POSTGRES`（如 `Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres`）、`XIHAN_TEST_REDIS`、`XIHAN_TEST_RABBITMQ`、`XIHAN_TEST_S3`，代码生成读外部库另有 `XIHAN_TEST_MYSQL`、`XIHAN_TEST_SQLSERVER`、`XIHAN_TEST_ORACLE`。
+- 集成测试经 `BasicAppTestServer.StartAsync(connectionString, settings: [...], configure: ..., configureApp: ..., args: ...)` 起宿主（SQLite 临时库）；要开发环境的行为传 `args: ["--environment", Environments.Development]`（建好宿主再改环境名不生效），开发配置把框架日志开到 Debug，用例里配 `Logging:LogLevel:XiHan=Warning` 压回去；演示数据要 `BasicApp:Seed:EnableDemoData=true`；可选模块用 `BasicApp:Modules:<名>:Enabled=false` 关；拨钟用 `ManualClock`，只对进程内调用有效（JWT 用真实时间）。
 - 后端全量测试别与前端门禁并行跑，负载高时宿主启动会超时。
+
+## 代码生成的模板
+
+CodeGeneration 的内置模板（`Seeds/Templates/**/*.sbn`，每次启动对齐到模板表）按当前包的写法生成后端包与前端模块：Feature、Permissions、Pages、Errors、Messages、JsonContext、操作、Queries、SchemaPage 页面与 10 种区域文案。改了这些写法（新的架构规则、基类、登记方式、页面组件）要同时改模板，再跑退出验证：
+
+```bash
+XIHAN_TEST_CODEGEN_COMPILE=<框架 src 目录> artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests
+```
+
+它把当前提交导出到临时目录，四个演示新包按「生成到项目」写进去、照生成的登记片段登记，宿主 Release 构建不许有警告，导出契约之后前端 `pnpm check` 八项通过；前端要先在本检出装好依赖。不设变量即跳过，不进缺省 CI。
 
 ## 命令
 

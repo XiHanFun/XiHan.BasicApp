@@ -118,7 +118,7 @@ async function load() {
 
 <template>
   <XhDialogRoot :open="show" @update:open="(open: boolean) => emit('update:show', open)">
-    <XhDialogContent class="preview-dialog">
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 115rem)">
       <XhDialogHeader>
         <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
@@ -173,10 +173,6 @@ async function load() {
 </template>
 
 <style scoped>
-.preview-dialog {
-  --xh-dialog-max-w: min(96vw, 115rem);
-}
-
 /* 两栏的唯一高度真源：短屏改用视口高扣掉弹窗标题、页脚与内外边距的余量（照 4.x） */
 .preview {
   display: flex;

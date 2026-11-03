@@ -123,13 +123,13 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, imported.StatusCode);
 
         var category = await DetailOfAsync(server, admin, "biz_category");
-        await UpdateTableAsync(server, admin, category, ("className", "Category"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("templateType", "Tree"), ("treeParentColumn", "parent_id"), ("treeNameColumn", "name"), ("enabledActions", "create,update,delete,status"));
+        await UpdateTableAsync(server, admin, category, ("className", "Category"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("templateType", "Tree"), ("treeParentColumn", "parent_id"), ("treeNameColumn", "name"), ("businessName", ""), ("tableComment", "商品分类。"), ("enabledActions", "create,update,delete,status"));
         category = await DetailOfAsync(server, admin, "biz_category");
         await SaveColumnsAsync(server, admin, category, InputOf(Column(category, "parent_id"), ("cSharpType", "Guid?")));
         category = await DetailOfAsync(server, admin, "biz_category");
 
         var product = await DetailOfAsync(server, admin, "biz_product");
-        await UpdateTableAsync(server, admin, product, ("className", "Product"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("businessName", "商品"), ("enabledActions", "create,update,delete,export,import,print"));
+        await UpdateTableAsync(server, admin, product, ("className", "Product"), ("namespace", "XiHan.BasicApp.Shop"), ("moduleName", "Shop"), ("target", target), ("businessName", "商品。"), ("enabledActions", "create,update,delete,export,import,print"));
         product = await DetailOfAsync(server, admin, "biz_product");
         await SaveColumnsAsync(
             server,
@@ -286,6 +286,11 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("XiHan.BasicApp.Shop.Domain.Entities.CategoryStatus Status)", tree[Package + "Operations/Categories/CategoryContracts.Generated.cs"], StringComparison.Ordinal);
         Assert.True(tree.ContainsKey(Package + "Operations/Categories/SetCategoryStatus.cs"));
         Assert.DoesNotContain("public enum", files[Package + "Domain/Entities/Product.Generated.cs"], StringComparison.Ordinal);
+
+        // 表注释与业务名句末带「。」（6.0 实体的注释来自文档注释，导入时业务名取表注释）：当名字用、拼进句子时去掉，不出「。。」
+        Assert.Contains("title: '商品分类',", tree["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
+        Assert.DoesNotContain(tree, static f => f.Value.Contains("。。", StringComparison.Ordinal));
+        Assert.DoesNotContain(files, static f => f.Value.Contains("。。", StringComparison.Ordinal));
     }
 
     [Fact]

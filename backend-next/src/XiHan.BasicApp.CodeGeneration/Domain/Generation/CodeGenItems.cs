@@ -221,14 +221,25 @@ public sealed record CodeGenItems(IReadOnlyList<CodeGenOperationItem> Operations
     /// 列在界面上的名字。
     /// </summary>
     /// <remarks>
-    /// 列注释，没有即属性名（照 4.x）。
+    /// 列注释，没有即属性名（照 4.x）；注释按 <see cref="PhraseOf"/> 去掉句末标点。
     /// </remarks>
     /// <param name="column">列。</param>
     public static string LabelOf(CodeGenColumnModel column)
     {
         ArgumentNullException.ThrowIfNull(column);
-        return CodeGenDataSourceService.Trimmed(column.ColumnComment) ?? column.CSharpProperty;
+        return PhraseOf(column.ColumnComment) ?? column.CSharpProperty;
     }
+
+    /// <summary>
+    /// 注释当名字用的写法。
+    /// </summary>
+    /// <remarks>
+    /// 去掉首尾空白与句末的标点：模板把它拼进句子（「所在字典。」「…的网络契约。」）或当字段名，
+    /// 6.0 实体的表与列注释来自文档注释、句末带「。」，原样拼会成「所在字典。。」。空白即 <see langword="null"/>。
+    /// </remarks>
+    /// <param name="text">表或列的注释。</param>
+    public static string? PhraseOf(string? text)
+        => CodeGenDataSourceService.Trimmed(CodeGenDataSourceService.Trimmed(text)?.TrimEnd('。', '．', '.', '；', ';', '！', '!', '，', ',', '、'));
 
     private static CodeGenPermissionItem Permission(CodeGenContext context, string action)
         => new(action, context.ResourcePascal + char.ToUpperInvariant(action[0]) + action[1..], $"{context.ModuleCode}.{context.Resource}.{action}");

@@ -134,13 +134,13 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
     /// 界面上的业务对象名。
     /// </summary>
     /// <remarks>
-    /// 业务名，没有即表注释，再没有即类名（照 4.x）。
+    /// 业务名，没有即表注释，再没有即类名（照 4.x）；都去掉句末标点（<see cref="CodeGenItems.PhraseOf"/>，导入时业务名取的就是表注释）。
     /// </remarks>
     /// <param name="table">表配置。</param>
     public static string DisplayNameOf(SysCodeGenTable table)
     {
         ArgumentNullException.ThrowIfNull(table);
-        return CodeGenDataSourceService.Trimmed(table.BusinessName) ?? CodeGenDataSourceService.Trimmed(table.TableComment) ?? table.ClassName;
+        return CodeGenItems.PhraseOf(table.BusinessName) ?? CodeGenItems.PhraseOf(table.TableComment) ?? table.ClassName;
     }
 
     /// <summary>
@@ -320,7 +320,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
             {
                 TableId = target.Id,
                 TableName = target.TableName,
-                Label = CodeGenDataSourceService.Trimmed(target.TableComment) ?? target.ClassName,
+                Label = CodeGenItems.PhraseOf(target.TableComment) ?? target.ClassName,
                 ClassName = target.ClassName,
                 EntityTypeQualified = targetEntity?.FullName ?? $"{targetNames.ValueOrThrow().Namespace}.Domain.Entities.{target.ClassName}",
                 EntityAssembly = targetEntity?.Assembly.GetName().Name ?? targetNames.ValueOrThrow().Namespace,

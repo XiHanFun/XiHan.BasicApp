@@ -24,13 +24,16 @@ frontend-next/
 - 路由由框架 HTTP 约定决定：`list` 走 `GET /<资源>`（带 `PageRequest` 的是 `POST /<资源>:list`），`get` / `delete` 走资源路径或查询串，`create` → `POST`、`update` → `PUT` 资源根，其余写动词 `POST /<资源>:<动词>`，声明了 `ReadOnly` 的查询在没有嵌套对象时走 `GET`。没有请求体的操作照样调 `xxx({})`。
 - 写页面前先 `pnpm gen:contracts` 看 `operations.ts` 里的模板，再写调用与测试。
 - 请求层（`~/request`）统一处理认证、刷新、区域与 Problem Details：`SECURITY_DENIED_001` / `003` 先单飞刷新再重放，`IDENTITY_DENIED_001` 回登录页，`IDENTITY_DENIED_002` 进锁屏，`RUNTIME_UNAVAILABLE_003` 与 `KERNEL_UNAVAILABLE_001` 走维护提示；页面不重复实现。登录与刷新以 `anonymous: true` 调用。
-- 后端 `long` 在契约里是数字字符串，前端标注后用 `Number()` 换算；时间按偏好设置的应用时区显示。
+- 后端 `long` 在 6.0 的报文里是数字（契约类型 `number`，4.x 是数字字符串）；时间按偏好设置的应用时区显示。
+- 宿主普通端点的下载（产物包、导出结果）用 `~/request` 的 `downloadEndpoint(path)`：带令牌，未认证时与操作一样换令牌重放一次，返回 `{ blob, fileName }` 再交给 `downloadBlob`；不自己拼 `fetch`。
 
 ## 页面
 
 - 列表页：`SchemaPage` + `PageSchema`（不带泛型，回调里 `asRow(row)` 转成本页行类型）；资源适配器 `use-<页面>.ts` 用 `toPageRequest(params, { filters: { 字段: 'eq' | 'contains' }, ranges, multiples })` 与 `toSchemaPageResult`，只登记后端 `Queries/` 白名单里的字段。区间与多选要在映射里登记 `ranges`（拆成 ge / le）与 `multiples`（合成 in），后端也要接；不用 `dictionaryCode`，状态列用 `render` + `renderTag(label, tone)`。样板见 `src/modules/settings/views/configs`。
 - 编辑弹窗：`XEditModal` + `XhFormRoot`（表单写 `novalidate`），每个字段有可见标签；字段错误用 `XhFieldRoot :invalid` + `XhFieldErrorText`；数字字段用 `XhNumberFieldRoot`（`v-model:value` 是字符串）。
-- 弹窗里的表格与列表页同样式（`XDataTable` 缺省尺寸 + 列分隔线，分页出同款底栏）。
+- 弹窗里的表格与列表页同样式（`XDataTable` 缺省尺寸 + 列分隔线，分页出同款底栏）。`XDataTable` 的 `rowKey` 缺省是 4.x 的 `basicId`，6.0 的行要显式传 `row-key`；大量只读行放 `shallowRef`。
+- 公共组件里有从 4.x 搬来的代码编辑器 `XCodeEditor`（monaco，只读预览与模板编辑）与文件引用上传 `XFileRefUpload`（存文件库的文件 ID），用到时直接取 `~/components`。
+- 代码生成的前端模板（后端 `CodeGeneration/Seeds/Templates/Frontend/*.sbn`）照这里的页面写法出页面与 schema：改了 SchemaPage、编辑弹窗或契约层的写法要同时改模板，并跑后端技能里的代码生成退出验证。
 - 列 `render` / 树 `render-label` 用 `h()` 生成的节点不带页面 scope，样式写 `:deep()`。
 - 权限：按钮 `permission` 与 `can('…')` 写三段权限码字面量，`permissions:check` 核对它们都在生成的权限表里；`auth.can` 精确匹配。
 - 换会话（切换租户、模仿、退出模仿）一律 `relaunchApp()` 整页重建。

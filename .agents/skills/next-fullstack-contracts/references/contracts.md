@@ -26,14 +26,14 @@
 | 声明 `ReadOnly = true` 的查询 | 请求没有嵌套对象时 `GET`，字段走查询串 |
 
 - 请求里不是本资源 ID 的字段别叫 `Id`（会被放进路径），如 `uploadId`。
-- 只有 JSON 能进操作；上传、下载、预览是宿主的普通端点（`/api/files/upload`、`/api/files/{id}/content`），挂 `RequireXiHanPermission`。
+- 只有 JSON 能进操作；上传、下载、预览是宿主的普通端点（`/api/files/upload`、`/api/files/{id}/content`、`/api/codegen-histories/{id}/package`），挂 `RequireXiHanPermission`，带元数据进 `openapi.json`；前端经 `~/request` 的 `downloadEndpoint` 下载。
 - 每个操作显式 `Expose`；`Expose.Mcp | Expose.Ai`（只读目录类）与 `Expose.Grpc`（内部调用）逐个登记在 `OperationExposureTests`，改 `Expose` 不影响 OpenAPI。
 
 ## 请求与响应
 
 - 分页：`PageRequest { page: { index, size }, filters: [{ field, operator, value }], keyword, sorts: [{ field, descending }] }`，`size` 上限 500；`PageResult<T> { items, total, page }`。可筛选、可排序的字段是后端 `Queries/` 的白名单，越界即 VALIDATION。
 - 批量：删除走查询串 `ids`，其余批量动词 `POST`、请求体 `{ "ids": [...] }`（不接受顶层数组）；响应 `BatchResult { succeeded[], failed[{ id, code }] }`。
-- 字段：主键 `Guid`（字符串）；租户 ID 字符串（平台 `platform`）；时间 `DateTimeOffset` UTC；`long` 在契约里是数字字符串；枚举按名称字符串，值集进 `components.schemas`。
+- 字段：主键 `Guid`（字符串）；租户 ID 字符串（平台 `platform`）；时间 `DateTimeOffset` UTC；`long` 在契约里是数字（`integer`，前端 `number`；4.x 是数字字符串）；形状不定的 JSON 用 `JsonElement`（契约里不加约束）；枚举按名称字符串，值集进 `components.schemas`。
 - 没有请求体的操作用空 record，前端调 `xxx({})`。
 - 请求 DTO 有缺省值的属性用 `set`；DataAnnotations 进入 Schema，`IValidatableObject` 给跨字段规则。
 

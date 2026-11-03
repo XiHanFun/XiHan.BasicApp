@@ -1,10 +1,8 @@
 # 代码生成
 
-CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的。
+本页说明代码生成的数据源、表与列配置、模板与生成的代码、交付、零代码运行时和退出验证，适用于用它生成业务包的开发者与维护模板的人。
 
-::: warning 部分落地
-N3 第四批分笔落地，数据源、表结构导入与表和列配置、模板维护与预览（后端与前端产物）、生成与生成历史、零代码运行时都已落地；生成产物的编译验证与浏览器实测随第四批收尾补上。5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
-:::
+CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
 
 ## 页面与权限
 
@@ -93,7 +91,7 @@ N3 第四批分笔落地，数据源、表结构导入与表和列配置、模�
 
 两种目标都出 `_registration/<资源>.md`：新建包写明加进解决方案、宿主（`UseFeature`、OpenAPI 分组）与架构测试 Tier 表的行；加入已有包按文件列出要合入的权限码、页面、错误码（序号待填）、消息键、JSON 序列化类型、Feature 登记与 10 种区域的文案。操作 ID 已被别的包占用时在开头提示。
 
-生成的文案：固定用语（「新建」「删除」「查看」……）按 10 种区域内置，表注释与列注释在 10 种区域里原样使用（不机器翻译），生成之后按需改写。
+生成的文案：固定用语（「新建」「删除」「查看」……）按 10 种区域内置，表注释与列注释在 10 种区域里原样使用（不机器翻译），生成之后按需改写。业务名、表注释与列注释当名字用或拼进句子时去掉句末的标点（6.0 实体的注释来自文档注释、句末带「。」，导入时业务名也取表注释），表配置里存的照原样。
 
 ### 生成的前端代码
 
@@ -136,6 +134,21 @@ N3 第四批分笔落地，数据源、表结构导入与表和列配置、模�
 - 按表配置的数据源读：主库的表照 5.x 补上与实体读同口径的条件（有租户列的只看调用方这一侧的行，有软删列的不看已删的）；外部库的表不是 BasicApp 的表，照原样读。5.x 一律查主库。
 - 按列配置逐列取、列名照原样加引号，大小写混合的表名与列名照原样查到；列配置里有、库里已没有的列读不出（503 `CODEGENERATION_UNAVAILABLE_003`，带表名与库的报错），先同步结构。数字、布尔按原类型，时间与 Guid 按文本，二进制按 Base64。PostgreSQL、MySQL、SQL Server、Oracle 在真实库上实测（`CodeGenerationSchemaTests`）。
 - 5.x 的数据行按库里的列名给键，前端按属性名取，取不到；5.x 取 `*`（Oracle 的分页不接受 `*` 与行号并列），库里读不出时原样抛异常。
+
+## 退出验证
+
+生成的代码要跟得上各包的写法：改了 Feature、权限、页面登记、错误与消息目录、操作或 SchemaPage 的写法，要同时改内置模板（`Seeds/Templates/**/*.sbn`），再跑一次退出验证。它是手动触发的集成测试，不进缺省 CI：
+
+```bash
+cd backend-next
+XIHAN_TEST_CODEGEN_COMPILE=<框架检出>/next/src/ \
+  artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe \
+  -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests
+```
+
+- 变量是框架源码的 `src/` 目录（同 `-p:XiHanFrameworkSrc`），没设即跳过；前端要先在本检出的 `frontend-next` 装好依赖。
+- 把当前提交的 `backend-next` 与 `frontend-next` 导出到临时目录，四张演示表各配成新建包：树表 Catalog（带生成的启停枚举）、单表 Shop（关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数）、主从 Sales / SalesItems，按「生成到项目」写进去。
+- 照生成的登记片段登记进宿主（工程引用、`UseFeature`、OpenAPI 分组）与前端模块门禁，宿主连同四个新包 Release 构建、警告即失败；导出契约、`pnpm gen:contracts` 之后前端 `pnpm check` 八项通过。
 
 ## 模块开关
 
