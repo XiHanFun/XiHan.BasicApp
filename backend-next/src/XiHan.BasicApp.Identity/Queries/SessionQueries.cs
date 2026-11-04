@@ -11,6 +11,7 @@ using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Sessions;
+using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.SqlSugar;
@@ -130,6 +131,29 @@ public sealed class SessionQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IR
         var side = context.GetSecurity().Tenant?.Id ?? TenantIds.Platform;
         var realtime = _presence is null ? 0 : await _presence.ConnectedUsersAsync(side, context.CancellationToken).ConfigureAwait(false);
         return new SessionSummaryResponse(owners.Count, owners.Distinct().Count(), realtime);
+    }
+
+    /// <summary>
+    /// 一个用户在当前一侧最近活动的会话
+    /// </summary>
+    /// <remarks>
+    /// 模仿会话不算本人的
+    /// </remarks>
+    /// <param name="userId">用户 ID</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>会话；没有有效会话为空</returns>
+    public async ValueTask<UserSessionDetailResponse?> LatestOfAsync(Guid userId, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var query = await ActiveAsync(context).ConfigureAwait(false);
+        var rows = await query
+            .Where(s => s.UserId == userId && !s.ImpersonatorUserId.HasValue)
+            .OrderBy(s => SqlFunc.IsNull(s.LastSeenAt, s.IssuedAt), OrderByType.Desc)
+            .Take(1)
+            .ToListAsync(context.CancellationToken).ConfigureAwait(false);
+        return rows.Count == 0
+            ? null
+            : new UserSessionDetailResponse(rows[0].Device, rows[0].Browser, rows[0].Os, Mask(rows[0].IpAddress), rows[0].Location, rows[0].IssuedAt, rows[0].LastSeenAt ?? rows[0].IssuedAt);
     }
 
     /// <summary>

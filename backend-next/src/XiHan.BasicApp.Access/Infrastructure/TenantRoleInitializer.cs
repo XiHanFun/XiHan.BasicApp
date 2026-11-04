@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// 为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去
 /// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用
 /// 转移所有权时新所有者同样指派进 <c>admin</c>（新加的记一条指派日志），原所有者的角色不动；两人的指派缓存随即失效（判定与下次续签立即看到）
+/// 成员被移出租户时解除他在这个租户的全部角色，每条记一条解除日志（4.x 同）
 /// </remarks>
 /// <param name="roles">角色仓储</param>
 /// <param name="members">指派仓储</param>
@@ -70,6 +71,35 @@ public sealed class TenantRoleInitializer(
 
         await assignments.InvalidateAsync(tenantId, ownerId, context.CancellationToken).ConfigureAwait(false);
         await assignments.InvalidateAsync(tenantId, previousOwnerId, context.CancellationToken).ConfigureAwait(false);
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> RemoveMemberAsync(string tenantId, Guid userId, InvocationContext context)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentNullException.ThrowIfNull(context);
+        var rows = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.UserId == userId && m.OwnerTenantId == tenantId)), context.CancellationToken).ConfigureAwait(false);
+        if (rows.Count == 0)
+        {
+            return Result.Success();
+        }
+
+        foreach (var outcome in await members.RemoveRangeAsync(rows, context.CancellationToken).ConfigureAwait(false))
+        {
+            if (outcome.IsFailure)
+            {
+                return outcome;
+            }
+        }
+
+        var held = (await service.FindManyAsync(rows.Select(static m => m.RoleId).Distinct().ToList(), tenantId, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static r => r.Id);
+        foreach (var row in rows)
+        {
+            context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleUnassign) { RoleId = row.RoleId, RoleName = held.GetValueOrDefault(row.RoleId)?.Name, TargetUserId = userId, TargetTenantId = tenantId });
+        }
+
+        await assignments.InvalidateAsync(tenantId, userId, context.CancellationToken).ConfigureAwait(false);
         return Result.Success();
     }
 

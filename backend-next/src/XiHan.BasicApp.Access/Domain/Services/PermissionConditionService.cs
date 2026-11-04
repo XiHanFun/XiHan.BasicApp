@@ -3,7 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -47,7 +47,7 @@ public sealed record ConditionBinding(GrantSubjectKind Kind, Guid SubjectId, str
 /// 停用的子句不校验结构以外的规则，启用时重新校验
 /// </remarks>
 /// <param name="conditions">条件仓储</param>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户（含外部成员）</param>
 /// <param name="roles">角色查找</param>
 /// <param name="roleGrants">角色授予</param>
 /// <param name="userGrants">用户直接授予</param>
@@ -58,7 +58,7 @@ public sealed record ConditionBinding(GrantSubjectKind Kind, Guid SubjectId, str
 /// <param name="ids">标识生成器</param>
 public sealed class PermissionConditionService(
     IRepository<SysPermissionCondition, Guid> conditions,
-    IRepository<SysUser, Guid> users,
+    SideUsers users,
     RoleService roles,
     RoleGrants roleGrants,
     UserGrants userGrants,
@@ -292,7 +292,7 @@ public sealed class PermissionConditionService(
                 : Result.Success(Maybe.Some(role));
         }
 
-        return (await users.FindAsync(subjectId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) && string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal)
+        return (await users.FindAsync(subjectId, owner, cancellationToken).ConfigureAwait(false)).HasValue
             ? Result.Success(Maybe.None<SysRole>())
             : Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", subjectId)));
     }

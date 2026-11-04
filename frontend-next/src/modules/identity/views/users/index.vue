@@ -2,25 +2,27 @@
 import type { Tone } from '@xihan-ui/core'
 import type { MembershipRow } from './use-user-detail'
 import type { RoleGrantItem } from './use-user-roles'
-import type { UserRow, UserStatus } from './use-users'
+import type { UserGender, UserRow, UserStatus } from './use-users'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
+import type { TwoFactorMethod } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
 import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
+import { deviceLabel, formatDuration } from '../online-users/use-online-users'
 import { useUserDataScope } from './use-user-data-scope'
 import { useUserDepartments } from './use-user-departments'
 import { useUserDetail } from './use-user-detail'
 import { useUserGrants } from './use-user-grants'
 import { useUserRoles } from './use-user-roles'
-import { displayNameOf, forceSignOut, loadDepartmentOptions, loadRoleOptions, resetUserTwoFactor, setUserDisabled, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
+import { displayNameOf, forceSignOut, loadDepartmentOptions, loadRoleOptions, resetUserTwoFactor, setUserDisabled, setUserLocked, usePasswordReset, USER_GENDERS, USER_STATUSES, usersResource, useUserEditor } from './use-users'
 
 defineOptions({ name: 'IdentityUsersView' })
 
@@ -51,8 +53,10 @@ function reload() {
 }
 
 const isPlatformCaller = () => auth.tenantId === null
-/** 用户的注册地是不是调用方所在的这一侧：角色只能指派给同一侧的用户 */
-const isOwnSide = (row: UserRow) => row.homeTenantId === (auth.tenantId ?? PLATFORM_TENANT_ID)
+/** 用户是不是调用方这一侧的：注册在这一侧，或本租户的外部成员；角色只能指派给同一侧的用户 */
+const isOwnSide = (row: UserRow) => row.isExternalMember || row.homeTenantId === (auth.tenantId ?? PLATFORM_TENANT_ID)
+/** 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号，外部成员由其注册地维护（4.x 同） */
+const isHomeAccount = (row: UserRow) => !row.isExternalMember
 /** 后端拒绝对自己锁定、删除与模仿，入口随之收起 */
 const isSelf = (row: UserRow) => row.id === auth.user?.id
 
@@ -77,11 +81,24 @@ function homeTenantLabel(homeTenantId: string): string {
   return homeTenantId === PLATFORM_TENANT_ID ? t('identity.users.home.platform') : homeTenantId
 }
 
+function genderLabel(gender: UserGender): string {
+  switch (gender) {
+    case 'Male': return t('common.gender.male')
+    case 'Female': return t('common.gender.female')
+    default: return t('identity.users.gender_unknown')
+  }
+}
+
+function genderTone(gender: UserGender): Tone {
+  switch (gender) {
+    case 'Male': return 'info'
+    case 'Female': return 'warning'
+    default: return 'neutral'
+  }
+}
+
 const statusOptions = computed<SelectOption[]>(() => USER_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
-const genderOptions = computed<SelectOption[]>(() => [
-  { label: t('common.gender.male'), value: 'Male' },
-  { label: t('common.gender.female'), value: 'Female' },
-])
+const genderOptions = computed<SelectOption[]>(() => USER_GENDERS.map(gender => ({ label: genderLabel(gender), value: gender })))
 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as UserRow
@@ -92,30 +109,63 @@ function renderUserInfo(row: UserRow) {
     h('div', { class: 'flex items-center gap-1' }, [
       h('span', { class: 'truncate text-body font-semibold text-fg' }, displayNameOf(row)),
       row.isSystemAccount ? renderTag(t('identity.users.system_account_tag'), 'warning') : null,
+      row.isExternalMember ? renderTag(t('identity.users.external_member_tag'), 'info') : null,
     ]),
     h('div', { class: 'truncate text-caption text-fg-muted' }, `@${row.userName}`),
   ])
 }
 
+/** 没有值的单元格：淡色的横线（4.x 同） */
+function renderEmptyCell() {
+  return h('span', { class: 'text-fg-muted' }, '-')
+}
+
+/** 角色列：逐个标签（后端只给启用的角色、生效中的指派） */
+function renderRoles(row: UserRow) {
+  return row.roleNames.length === 0
+    ? renderEmptyCell()
+    : h('div', { class: 'flex flex-wrap gap-1' }, row.roleNames.map(name => renderTag(name, 'info')))
+}
+
+/** 安全列：锁定与双因素，都没有即正常（4.x 同） */
+function renderSecurity(row: UserRow) {
+  const tags = [
+    row.isLocked ? renderTag(t('identity.users.security_locked'), 'danger') : null,
+    row.twoFactorEnabled ? renderTag(t('identity.users.security_two_factor'), 'success') : null,
+  ].filter(tag => tag !== null)
+  return tags.length === 0
+    ? h('span', { class: 'text-fg-muted' }, t('identity.users.security_normal'))
+    : h('div', { class: 'flex flex-wrap gap-1' }, tags)
+}
+
 // ── 字段单一事实源（列 + 搜索；仅搜索 / 仅导出字段 visible:false；order 控顺序；可排序与可筛选的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('identity.users.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.users.keyword_placeholder'), order: 0 },
+  { key: 'avatarFileId', title: t('identity.users.fields.avatar'), dataType: 'string', render: row => h(XUserAvatar, { avatar: asRow(row).avatarFileId ?? null, name: displayNameOf(asRow(row)), size: 40 }), width: 80, order: 0.5 },
   { key: 'userName', title: t('identity.users.fields.user_info'), dataType: 'string', sortable: true, exportable: true, render: row => renderUserInfo(asRow(row)), minWidth: 180, order: 1 },
   { key: 'displayName', title: t('identity.users.fields.display_name'), dataType: 'string', visible: false, exportable: true, order: 1.5 },
   { key: 'email', title: t('identity.users.fields.email'), dataType: 'email', advancedSearch: true, exportable: true, minWidth: 180, order: 2 },
   { key: 'phoneNumber', title: t('identity.users.fields.phone'), dataType: 'phone', advancedSearch: true, searchPlaceholder: t('identity.users.phone_placeholder'), exportable: true, width: 140, order: 3 },
-  // 仅搜索：性别、角色（启用的角色、生效中的指派）、部门（含下级，部门是租户侧数据）
-  { key: 'gender', title: t('identity.users.fields.gender'), dataType: 'enum', visible: false, advancedSearch: true, options: genderOptions.value, searchPlaceholder: t('identity.users.gender_placeholder'), order: 3.1 },
+  { key: 'gender', title: t('identity.users.fields.gender'), dataType: 'enum', advancedSearch: true, options: genderOptions.value, searchPlaceholder: t('identity.users.gender_placeholder'), exportable: true, render: row => renderTag(genderLabel(asRow(row).gender), genderTone(asRow(row).gender)), width: 80, order: 3.1 },
+  // 仅搜索：角色（启用的角色、生效中的指派）、部门（含下级，部门是租户侧数据）
   { key: 'roleId', title: t('identity.users.fields.roles'), dataType: 'enum', visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadRoleOptions, permission: 'access.roles.read', searchPlaceholder: t('identity.users.role_placeholder'), order: 3.2 },
   ...(isPlatformCaller()
     ? []
     : [{ key: 'departmentId', title: t('identity.users.fields.departments'), dataType: 'enum' as const, visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadDepartmentOptions, permission: 'organization.departments.read', searchPlaceholder: t('identity.users.department_placeholder'), order: 3.3 }]),
-  // 平台看得见全部用户，注册地一列才有区分意义；租户只看得到本租户注册的用户
+  { key: 'country', title: t('identity.users.fields.country'), dataType: 'string', exportable: true, ellipsis: true, width: 120, order: 3.5 },
+  // 平台看得见全部用户，注册地一列才有区分意义；租户里的外部成员在用户信息列带标记
   ...(isPlatformCaller()
     ? [{ key: 'homeTenantId', title: t('identity.users.fields.home_tenant'), dataType: 'string' as const, exportable: true, render: (row: object) => homeTenantLabel(asRow(row).homeTenantId), ellipsis: true, width: 120, order: 4 }]
     : []),
   { key: 'status', title: t('identity.users.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, searchPlaceholder: t('identity.users.status_placeholder'), options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 5 },
+  { key: 'roleNames', title: t('identity.users.fields.roles'), dataType: 'string', exportable: true, render: row => renderRoles(asRow(row)), minWidth: 160, order: 5.1 },
+  // 部门是租户侧数据：平台一侧没有这一列
+  ...(isPlatformCaller()
+    ? []
+    : [{ key: 'departmentName', title: t('identity.users.fields.department'), dataType: 'string' as const, exportable: true, render: (row: object) => asRow(row).departmentName ? renderTag(asRow(row).departmentName!, 'neutral') : renderEmptyCell(), minWidth: 120, order: 5.2 }]),
+  { key: 'security', title: t('identity.users.fields.security'), dataType: 'string', render: row => renderSecurity(asRow(row)), width: 120, order: 5.3 },
   { key: 'lastLoginAt', title: t('identity.users.fields.last_login_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
+  { key: 'lastLoginIp', title: t('identity.users.fields.last_login_ip'), dataType: 'string', exportable: true, minWidth: 130, order: 6.1 },
   { key: 'createdAt', title: t('identity.users.fields.created_at'), dataType: 'datetime', sortable: true, advancedSearch: true, searchRange: true, exportable: true, minWidth: 170, order: 7 },
 ])
 
@@ -141,17 +191,18 @@ const schema = computed<PageSchema>(() => ({
     { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)), permission: 'access.user-data-scopes.read' },
     // 部门与岗位是租户侧数据：平台态不出这个入口
     { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
-    { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.lock' },
-    { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Locked', permission: 'identity.users.lock' },
-    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.disable' },
-    { key: 'enable', title: t('identity.users.actions.enable'), scope: 'row', icon: 'lucide:circle-check', confirm: true, confirmText: row => t('identity.users.confirm_enable', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Disabled', permission: 'identity.users.disable' },
+    { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.lock' },
+    { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Locked', permission: 'identity.users.lock' },
+    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.disable' },
+    { key: 'enable', title: t('identity.users.actions.enable'), scope: 'row', icon: 'lucide:circle-check', confirm: true, confirmText: row => t('identity.users.confirm_enable', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Disabled', permission: 'identity.users.disable' },
     // 按人强制下线：列出此人在当前一侧的会话再走 sessions.revoke，要能看会话
-    { key: 'forceSignOut', title: t('identity.users.actions.force_sign_out'), scope: 'row', tone: 'warning', icon: 'lucide:log-out', confirm: true, confirmText: row => t('identity.users.confirm_force_sign_out', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)) && auth.can('identity.sessions.read'), permission: 'identity.sessions.revoke' },
-    { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', visible: row => !asRow(row).isSystemAccount, permission: 'identity.users.reset-password' },
-    { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
+    { key: 'forceSignOut', title: t('identity.users.actions.force_sign_out'), scope: 'row', tone: 'warning', icon: 'lucide:log-out', confirm: true, confirmText: row => t('identity.users.confirm_force_sign_out', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && auth.can('identity.sessions.read'), permission: 'identity.sessions.revoke' },
+    { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', visible: row => isHomeAccount(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.reset-password' },
+    // 列表带了双因素标记：没开的人不出这个入口（4.x 同）
+    { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).twoFactorEnabled && !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
     // 模仿态里不能再模仿；目标须是正常状态的他人
     { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)), permission: 'identity.impersonation.start' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.delete' },
   ],
 }))
 
@@ -372,6 +423,46 @@ function formatNullable(value: null | string | undefined): string {
   return value === null || value === undefined || value === '' ? '-' : value
 }
 
+/** 双因素方式的文案（4.x 同：认证器写 TOTP） */
+function twoFactorMethodLabel(method: TwoFactorMethod): string {
+  switch (method) {
+    case 'Email': return t('identity.users.two_factor_email')
+    case 'Phone': return t('identity.users.two_factor_phone')
+    default: return 'TOTP'
+  }
+}
+
+/** 详情的徽标（4.x 同）：验证状态、双因素、锁定、失败次数与外部成员；外部成员没有账号安全一节，只有身份那一枚 */
+const detailBadges = computed<{ label: string, tone: Tone, icon: string }[]>(() => {
+  const current = detail.detail.value
+  if (!current)
+    return []
+  const badges: { label: string, tone: Tone, icon: string }[] = []
+  const security = current.security
+  if (security) {
+    badges.push(security.emailVerified
+      ? { label: t('identity.users.badge.email_verified'), tone: 'success', icon: 'lucide:mail' }
+      : { label: t('identity.users.badge.email_unverified'), tone: 'neutral', icon: 'lucide:mail' })
+    badges.push(security.phoneVerified
+      ? { label: t('identity.users.badge.phone_verified'), tone: 'success', icon: 'lucide:phone' }
+      : { label: t('identity.users.badge.phone_unverified'), tone: 'neutral', icon: 'lucide:phone' })
+    if (security.twoFactorEnabled)
+      badges.push({ label: `2FA: ${security.twoFactorMethods.map(twoFactorMethodLabel).join('+')}`, tone: 'info', icon: 'lucide:shield-check' })
+    if (security.isLocked)
+      badges.push({ label: t('identity.users.badge.account_locked'), tone: 'danger', icon: 'lucide:lock' })
+    if (security.failedAccessCount > 0)
+      badges.push({ label: t('identity.users.badge.failed_login', { count: security.failedAccessCount }), tone: 'warning', icon: 'lucide:triangle-alert' })
+  }
+  if (current.user.isExternalMember)
+    badges.push({ label: t('identity.users.badge.external_member'), tone: 'info', icon: 'lucide:building-2' })
+  return badges
+})
+
+/** 当前会话那一行的标题：设备 · 浏览器 */
+function sessionTitle(device: null | string | undefined, browser: null | string | undefined): string {
+  return browser ? `${deviceLabel(device, t)} · ${browser}` : deviceLabel(device, t)
+}
+
 /** 部门归属的标签文案：部门 · 岗位，主部门另加标注 */
 function membershipLabel(membership: MembershipRow): string {
   const text = membership.positionName ? `${membership.departmentName} · ${membership.positionName}` : membership.departmentName
@@ -472,8 +563,17 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
       v-model:show="editor.open.value"
       :title="modalTitle"
       :loading="editor.submitting.value"
+      :save-disabled="editor.readonly.value"
       :form-id="editFormId"
     >
+      <XhAlertRoot v-if="editor.readonly.value" tone="info" class="mb-3" data-testid="external-hint">
+        <XhAlertIndicator>
+          <Icon icon="lucide:building-2" width="16" height="16" />
+        </XhAlertIndicator>
+        <XhAlertContent>
+          <XhAlertDescription>{{ t('identity.users.form_external_hint') }}</XhAlertDescription>
+        </XhAlertContent>
+      </XhAlertRoot>
       <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="user-form" @submit="onSubmit">
         <XhFieldRoot :invalid="!!editor.fieldError('userName')" :required="!editor.isEdit.value">
           <XhFieldLabel>{{ t('identity.users.fields.user_name') }}</XhFieldLabel>
@@ -487,16 +587,25 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         <XhFieldRoot :invalid="!!editor.fieldError('displayName')" required>
           <XhFieldLabel>{{ t('identity.users.fields.display_name') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="editor.form.displayName" name="displayName" clearable />
+            <XInput v-model:value="editor.form.displayName" name="displayName" clearable :disabled="editor.readonly.value" />
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('displayName')">
             {{ editor.fieldError('displayName') }}
           </XhFieldErrorText>
         </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('realName')">
+          <XhFieldLabel>{{ t('identity.users.fields.real_name') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.realName" name="realName" clearable :max-length="50" :disabled="editor.readonly.value" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('realName')">
+            {{ editor.fieldError('realName') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('email')">
           <XhFieldLabel>{{ t('identity.users.fields.email') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="editor.form.email" name="email" type="email" clearable autocomplete="off" />
+            <XInput v-model:value="editor.form.email" name="email" type="email" clearable autocomplete="off" :disabled="editor.readonly.value" />
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('email')">
             {{ editor.fieldError('email') }}
@@ -505,10 +614,37 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         <XhFieldRoot :invalid="!!editor.fieldError('phoneNumber')">
           <XhFieldLabel>{{ t('identity.users.fields.phone') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="editor.form.phoneNumber" name="phoneNumber" type="tel" clearable autocomplete="off" />
+            <XInput v-model:value="editor.form.phoneNumber" name="phoneNumber" type="tel" clearable autocomplete="off" :disabled="editor.readonly.value" />
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('phoneNumber')">
             {{ editor.fieldError('phoneNumber') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('gender')">
+          <XhFieldLabel>{{ t('identity.users.fields.gender') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.gender" name="gender" :options="genderOptions" :disabled="editor.readonly.value" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('gender')">
+            {{ editor.fieldError('gender') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('birthday')">
+          <XhFieldLabel>{{ t('identity.users.fields.birthday') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XDatePicker v-model:value="editor.form.birthday" name="birthday" clearable :max="Date.now()" :disabled="editor.readonly.value" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('birthday')">
+            {{ editor.fieldError('birthday') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('country')">
+          <XhFieldLabel>{{ t('identity.users.fields.country') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.country" name="country" clearable :max-length="50" :placeholder="t('identity.users.country_placeholder')" :disabled="editor.readonly.value" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('country')">
+            {{ editor.fieldError('country') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot v-if="!editor.isEdit.value" :invalid="!!editor.fieldError('password')">
@@ -536,6 +672,15 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
             <XhFieldDescription>{{ t('identity.users.max_login_devices_hint') }}</XhFieldDescription>
           </XhFieldRoot>
         </template>
+        <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('remark')">
+          <XhFieldLabel>{{ t('identity.users.fields.remark') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.remark" name="remark" type="textarea" :rows="2" :max-length="500" :disabled="editor.readonly.value" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('remark')">
+            {{ editor.fieldError('remark') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
         <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ editor.submitError.value }}
         </p>
@@ -583,9 +728,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         <XhDialogHeader>
           <XhDialogTitle>
             <div v-if="detail.user.value" class="det-hd-entity">
-              <div class="det-hd-ico">
-                <Icon icon="lucide:user-round" width="22" height="22" />
-              </div>
+              <XUserAvatar :avatar="detail.user.value.avatarFileId ?? null" :name="displayNameOf(detail.user.value)" :size="40" />
               <div class="min-w-0">
                 <div class="det-hd-name">
                   {{ displayNameOf(detail.user.value) }}
@@ -602,7 +745,21 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
           <p v-if="detail.error.value" class="text-caption text-fg-danger" role="alert">
             {{ detail.error.value }}
           </p>
+          <div v-if="detailBadges.length" class="det-badges" data-testid="user-detail-badges">
+            <XhTagRoot v-for="badge in detailBadges" :key="badge.label" variant="subtle" size="sm" :tone="badge.tone">
+              <Icon :icon="badge.icon" width="12" height="12" />
+              <XhTagLabel>{{ badge.label }}</XhTagLabel>
+            </XhTagRoot>
+          </div>
           <XhDescriptionsRoot v-if="detail.user.value" :columns="2" variant="outline" size="sm" data-testid="user-detail">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.users.fields.real_name') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatNullable(detail.user.value.realName) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.users.fields.gender') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ genderLabel(detail.user.value.gender) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('identity.users.fields.email') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ formatNullable(detail.user.value.email) }}</XhDescriptionsValue>
@@ -610,6 +767,14 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('identity.users.fields.phone') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ formatNullable(detail.user.value.phoneNumber) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.users.fields.birthday') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ detail.user.value.birthday ? formatDate(detail.user.value.birthday, 'YYYY-MM-DD') : '-' }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.users.fields.country') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatNullable(detail.user.value.country) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('identity.users.fields.home_tenant') }}</XhDescriptionsLabel>
@@ -628,35 +793,96 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
               <XhDescriptionsValue>{{ formatDate(detail.user.value.lastLoginAt) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.users.fields.last_login_ip') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatNullable(detail.user.value.lastLoginIp) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('identity.users.fields.created_at') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ formatDate(detail.user.value.createdAt) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
             <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
-            <XhDescriptionsItem v-if="detail.sections.value.roles" style="grid-column: span 2">
+            <XhDescriptionsItem style="grid-column: span 2">
               <XhDescriptionsLabel>{{ t('identity.users.fields.roles') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <span v-if="detail.loading.value" class="text-caption text-fg-muted">{{ t('common.statuses.loading') }}</span>
-                <span v-else-if="!detail.roles.value?.length">-</span>
-                <div v-else class="flex flex-wrap gap-1">
+                <span v-if="detail.sections.value.roles && detail.loading.value" class="text-caption text-fg-muted">{{ t('common.statuses.loading') }}</span>
+                <div v-else-if="detail.sections.value.roles && detail.roles.value?.length" class="flex flex-wrap gap-1">
                   <XhTagRoot v-for="role in detail.roles.value" :key="role.id" variant="subtle" size="sm" tone="info">
                     <XhTagLabel>{{ role.name }}</XhTagLabel>
                   </XhTagRoot>
                 </div>
+                <!-- 读不了角色时退回列表带的角色名（只要读用户的权限，4.x 同） -->
+                <div v-else-if="!detail.sections.value.roles && detail.user.value.roleNames.length" class="flex flex-wrap gap-1">
+                  <XhTagRoot v-for="name in detail.user.value.roleNames" :key="name" variant="subtle" size="sm" tone="info">
+                    <XhTagLabel>{{ name }}</XhTagLabel>
+                  </XhTagRoot>
+                </div>
+                <span v-else>-</span>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
-            <XhDescriptionsItem v-if="detail.sections.value.departments" style="grid-column: span 2">
+            <XhDescriptionsItem v-if="!isPlatformCaller()" style="grid-column: span 2">
               <XhDescriptionsLabel>{{ t('identity.users.fields.departments') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <span v-if="detail.loading.value" class="text-caption text-fg-muted">{{ t('common.statuses.loading') }}</span>
-                <span v-else-if="!detail.memberships.value?.length">-</span>
-                <div v-else class="flex flex-wrap gap-1">
+                <span v-if="detail.sections.value.departments && detail.loading.value" class="text-caption text-fg-muted">{{ t('common.statuses.loading') }}</span>
+                <div v-else-if="detail.sections.value.departments && detail.memberships.value?.length" class="flex flex-wrap gap-1">
                   <XhTagRoot v-for="membership in detail.memberships.value" :key="membership.id" variant="subtle" size="sm" :tone="membership.isPrimary ? 'brand' : 'neutral'">
                     <XhTagLabel>{{ membershipLabel(membership) }}</XhTagLabel>
                   </XhTagRoot>
                 </div>
+                <!-- 读不了归属时退回列表带的主部门 -->
+                <span v-else-if="!detail.sections.value.departments && detail.user.value.departmentName">{{ detail.user.value.departmentName }}</span>
+                <span v-else>-</span>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
+            <XhDescriptionsItem v-if="detail.user.value.remark" style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('identity.users.fields.remark') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ detail.user.value.remark }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
           </XhDescriptionsRoot>
+          <!-- 平台看租户的用户没有这两节：这个人的日志与会话都在租户那一侧 -->
+          <template v-if="detail.detail.value?.today">
+            <div class="det-sec-hd">
+              <Icon icon="lucide:chart-column" width="14" height="14" />
+              <span>{{ t('identity.users.detail.stats_today') }}</span>
+            </div>
+            <div class="det-stat-grid" data-testid="user-detail-today">
+              <div class="det-stat-card">
+                <span class="det-stat-lbl">{{ t('identity.users.detail.login_count') }}</span>
+                <span class="det-stat-val">{{ detail.detail.value.today.logins }}</span>
+              </div>
+              <div class="det-stat-card">
+                <span class="det-stat-lbl">{{ t('identity.users.detail.access_count') }}</span>
+                <span class="det-stat-val">{{ detail.detail.value.today.accesses }}</span>
+              </div>
+              <div class="det-stat-card">
+                <span class="det-stat-lbl">{{ t('identity.users.detail.online_time') }}</span>
+                <span class="det-stat-val">{{ formatDuration(detail.detail.value.today.onlineSeconds, t) }}</span>
+              </div>
+              <div class="det-stat-card">
+                <span class="det-stat-lbl">{{ t('identity.users.detail.current_status') }}</span>
+                <span class="det-stat-val">{{ detail.detail.value.currentSession ? t('identity.users.detail.online') : t('identity.users.detail.offline') }}</span>
+              </div>
+            </div>
+            <div class="det-sec-hd">
+              <Icon icon="lucide:monitor" width="14" height="14" />
+              <span>{{ t('identity.users.detail.login_session') }}</span>
+            </div>
+            <div v-if="detail.detail.value.currentSession" class="det-session" data-testid="user-detail-session">
+              <div class="min-w-0 flex-1">
+                <div class="det-session-title">
+                  {{ sessionTitle(detail.detail.value.currentSession.device, detail.detail.value.currentSession.browser) }}
+                </div>
+                <div class="det-session-sub">
+                  {{ formatNullable(detail.detail.value.currentSession.ipAddressMasked) }} · {{ formatDate(detail.detail.value.currentSession.lastActiveAt) }}
+                </div>
+              </div>
+              <XhTagRoot variant="subtle" size="sm" tone="success">
+                <XhTagLabel>{{ t('identity.users.detail.online') }}</XhTagLabel>
+              </XhTagRoot>
+            </div>
+            <p v-else class="det-session-empty">
+              {{ t('identity.users.detail.no_active_session') }}
+            </p>
+          </template>
         </XhDialogBody>
         <XhDialogFooter>
           <XhButton variant="subtle" size="sm" @click="detail.open.value = false">
@@ -879,6 +1105,71 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 </template>
 
 <style scoped>
+/* 详情（4.x 同一副）：徽标一行、四格今日统计、一行当前会话 */
+.det-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-1);
+  margin-block-end: var(--xh-space-3);
+}
+
+.det-sec-hd {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-1_5);
+  margin-block: var(--xh-space-3) var(--xh-space-2);
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+  font-weight: var(--xh-font-weight-medium);
+}
+
+.det-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--xh-space-8) * 3), 1fr));
+  gap: var(--xh-space-2);
+}
+
+.det-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-space-1);
+  padding: var(--xh-space-2) var(--xh-space-2_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+}
+
+.det-stat-lbl {
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+}
+
+.det-stat-val {
+  font-size: var(--xh-font-size-lg);
+  font-weight: var(--xh-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.det-session {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-2);
+  padding: var(--xh-space-2) var(--xh-space-2_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+}
+
+.det-session-title {
+  font-size: var(--xh-text-secondary-size);
+  font-weight: var(--xh-font-weight-medium);
+}
+
+.det-session-sub,
+.det-session-empty {
+  margin: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+}
+
 /* 成员数据范围抽屉：编辑区撑满剩余高度，保存/取消落在底部；部门多时在这里滚动（4.x 原样） */
 .scope-stage {
   flex: 1;

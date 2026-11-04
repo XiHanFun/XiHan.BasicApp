@@ -8,7 +8,7 @@ function json(status: number, body: object, contentType = 'application/json'): R
 }
 
 function user(id: string, userName: string, extra: Record<string, unknown> = {}) {
-  return { id, userName, displayName: userName.toUpperCase(), email: null, phoneNumber: null, homeTenantId: 'acme', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null, ...extra }
+  return { id, userName, displayName: userName.toUpperCase(), email: null, phoneNumber: null, homeTenantId: 'acme', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null, realName: null, gender: 'Unknown', birthday: null, country: null, remark: null, lastLoginIp: null, isExternalMember: false, roleNames: [], departmentName: null, isLocked: false, twoFactorEnabled: false, ...extra }
 }
 
 interface Call { method: string, url: string, body: unknown }
@@ -138,7 +138,7 @@ describe('generateTempPassword', () => {
 })
 
 describe('useUserEditor', () => {
-  it('新建：字段去空白，空邮箱 / 手机号发 null，初始密码留空发 null；保存成功关掉弹窗', async () => {
+  it('新建：字段去空白，空值发 null，未设置的性别不传；保存成功关掉弹窗', async () => {
     const calls = record(() => json(201, user('u-9', 'carol')))
     const editor = useUserEditor()
     editor.startCreate()
@@ -148,25 +148,41 @@ describe('useUserEditor', () => {
     expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users' })
-    expect(calls[0]!.body).toEqual({ userName: 'carol', displayName: 'Carol', email: null, phoneNumber: null, password: null })
+    expect(calls[0]!.body).toEqual({ userName: 'carol', displayName: 'Carol', email: null, phoneNumber: null, password: null, realName: null, gender: null, birthday: null, country: null, remark: null })
 
     editor.startCreate()
-    Object.assign(editor.form, { userName: 'dave', displayName: 'Dave', password: 'Secret123' })
+    Object.assign(editor.form, { userName: 'dave', displayName: 'Dave', password: 'Secret123', realName: ' 戴夫 ', gender: 'Male', birthday: Date.UTC(1990, 4, 1), country: ' CN ', remark: ' 财务 ' })
     await editor.submit()
-    expect(calls[1]!.body).toMatchObject({ userName: 'dave', password: 'Secret123' })
+    expect(calls[1]!.body).toMatchObject({ userName: 'dave', password: 'Secret123', realName: '戴夫', gender: 'Male', birthday: '1990-05-01T00:00:00.000Z', country: 'CN', remark: '财务' })
   })
 
-  it('编辑：按行预填，只提交显示名、邮箱与手机号（用户名不可改）', async () => {
+  it('编辑：按行预填，提交资料（用户名不可改）；性别照发，生日换回 ISO 串', async () => {
     const calls = record(() => json(200, user('u-1', 'alice')))
     const editor = useUserEditor()
-    editor.startEdit(user('u-1', 'alice', { email: 'a@example.com', phoneNumber: '123' }) as never)
+    editor.startEdit(user('u-1', 'alice', { email: 'a@example.com', phoneNumber: '123', realName: '爱丽丝', gender: 'Female', birthday: '1990-05-01T00:00:00+00:00', country: 'CN', remark: '备注' }) as never)
     expect(editor.isEdit.value).toBe(true)
-    expect(editor.form).toMatchObject({ userName: 'alice', displayName: 'ALICE', email: 'a@example.com', phoneNumber: '123', password: '' })
+    expect(editor.readonly.value).toBe(false)
+    expect(editor.form).toMatchObject({ userName: 'alice', displayName: 'ALICE', email: 'a@example.com', phoneNumber: '123', password: '', realName: '爱丽丝', gender: 'Female', birthday: Date.UTC(1990, 4, 1), country: 'CN', remark: '备注' })
     editor.form.displayName = 'Alice W.'
     editor.form.phoneNumber = ''
+    editor.form.remark = ''
     expect(await editor.submit()).toBe(true)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/users/u-1' })
-    expect(calls[0]!.body).toEqual({ displayName: 'Alice W.', email: 'a@example.com', phoneNumber: null })
+    expect(calls[0]!.body).toEqual({ displayName: 'Alice W.', email: 'a@example.com', phoneNumber: null, realName: '爱丽丝', gender: 'Female', birthday: '1990-05-01T00:00:00.000Z', country: 'CN', remark: null })
+  })
+
+  it('外部成员：打开即只读，提交不发请求，也不读登录策略', async () => {
+    const calls = record(() => json(200, user('u-1', 'alice')))
+    const editor = useUserEditor(() => true)
+    editor.startEdit(user('u-1', 'alice', { homeTenantId: 'fabrikam', isExternalMember: true }) as never)
+    expect(editor.readonly.value).toBe(true)
+    expect(editor.loadedPolicy.value).toBeNull()
+    expect(await editor.submit()).toBe(false)
+    expect(calls).toHaveLength(0)
+
+    // 新建与本租户的用户不受影响
+    editor.startCreate()
+    expect(editor.readonly.value).toBe(false)
   })
 
   it('编辑：有设置权限才读登录策略，改了才提交', async () => {

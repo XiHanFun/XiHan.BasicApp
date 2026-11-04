@@ -7,7 +7,7 @@ using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Auditing;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -37,12 +37,12 @@ public sealed record RoleMemberWindowRequest(Guid Id, [Required] Guid UserId, Da
 /// </remarks>
 /// <param name="service">角色域服务</param>
 /// <param name="members">指派仓储</param>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="assignments">指派缓存</param>
 /// <param name="enforcer">约束规则求值</param>
 /// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
-public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments, ConstraintEnforcer enforcer, TimeProvider clock) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
+public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, SideUsers users, RoleAssignments assignments, ConstraintEnforcer enforcer, TimeProvider clock) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -69,7 +69,7 @@ public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRol
         var roleId = role.Id;
         var userId = request.UserId;
         var rows = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId && m.UserId == userId)), context.CancellationToken).ConfigureAwait(false);
-        if (rows.Count == 0 || !(await users.FindAsync(userId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
+        if (rows.Count == 0 || !(await users.FindAsync(userId, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {
             return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", userId)));
         }
@@ -105,6 +105,6 @@ public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRol
             TargetUserName = user.UserName,
             Detail = string.Create(CultureInfo.InvariantCulture, $"{request.EffectiveAt:O} -> {request.ExpiresAt:O}"),
         });
-        return new RoleMemberResponse(user.Id, user.UserName, user.DisplayName, user.Status, row.CreatedAt, row.EffectiveAt, row.ExpiresAt);
+        return new RoleMemberResponse(user.Id, user.UserName, user.DisplayName, user.Status, row.CreatedAt, row.EffectiveAt, row.ExpiresAt, !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal));
     }
 }

@@ -86,6 +86,14 @@ public sealed class SysUser : AppAuditedEntity
     public DateTimeOffset? LastLoginAt { get; set; }
 
     /// <summary>
+    /// 最近一次登录成功的 IP
+    /// </summary>
+    /// <remarks>
+    /// 4.x 同，用户列表的一列。不遮掩（在线用户页的会话 IP 是遮掩的）
+    /// </remarks>
+    public string? LastLoginIp { get; set; }
+
+    /// <summary>
     /// 真实姓名
     /// </summary>
     /// <remarks>
@@ -111,8 +119,11 @@ public sealed class SysUser : AppAuditedEntity
     public string? Country { get; set; }
 
     /// <summary>
-    /// 个人简介
+    /// 备注
     /// </summary>
+    /// <remarks>
+    /// 4.x 同一列：管理员在用户表单里叫备注，本人在个人中心叫个人简介
+    /// </remarks>
     [StringLength(500)]
     public string? Remark { get; set; }
 

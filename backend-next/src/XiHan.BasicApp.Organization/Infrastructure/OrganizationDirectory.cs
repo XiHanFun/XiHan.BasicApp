@@ -113,6 +113,44 @@ public sealed class OrganizationDirectory : IOrganizationDirectory
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<Guid, string>> PrimaryDepartmentNamesAsync(InvocationContext context, IReadOnlyCollection<Guid> userIds)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(userIds);
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var memberships = await TenantScopedQuery.For<SysUserDepartment>(context)
+            .Where(m => ids.Contains(m.UserId))
+            .ToListAsync(context.CancellationToken)
+            .ConfigureAwait(false);
+        if (memberships.Count == 0)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var departmentIds = memberships.Select(static m => m.DepartmentId).Distinct().ToList();
+        var names = (await TenantScopedQuery.For<SysDepartment>(context)
+                .Where(d => departmentIds.Contains(d.Id))
+                .ToListAsync(context.CancellationToken)
+                .ConfigureAwait(false))
+            .ToDictionary(static d => d.Id, static d => d.Name);
+        var primary = new Dictionary<Guid, string>();
+        foreach (var group in memberships.GroupBy(static m => m.UserId))
+        {
+            if (names.TryGetValue(group.OrderByDescending(static m => m.IsPrimary).ThenBy(static m => m.CreatedAt).First().DepartmentId, out var name))
+            {
+                primary[group.Key] = name;
+            }
+        }
+
+        return primary;
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<DepartmentOption>> DepartmentsAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

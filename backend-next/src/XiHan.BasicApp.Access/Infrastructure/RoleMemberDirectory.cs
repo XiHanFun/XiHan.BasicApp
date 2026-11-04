@@ -66,4 +66,42 @@ public sealed class RoleMemberDirectory(SqlSugarUnitOfWork unitOfWork, TimeProvi
             .ConfigureAwait(false);
         return roles.Select(static r => new RoleOption(r.Id, r.Code, r.Name)).ToList();
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> RoleNamesAsync(InvocationContext context, IReadOnlyCollection<Guid> userIds)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(userIds);
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, IReadOnlyList<string>>();
+        }
+
+        var owner = RoleService.OwnerOf(context);
+        var now = clock.GetUtcNow();
+        var assignments = (await unitOfWork.ConnectionFor(typeof(SysUserRole)).Queryable<SysUserRole>()
+                .Where(a => a.OwnerTenantId == owner && ids.Contains(a.UserId))
+                .ToListAsync(context.CancellationToken)
+                .ConfigureAwait(false))
+            .Where(a => a.IsEffectiveAt(now))
+            .ToList();
+        if (assignments.Count == 0)
+        {
+            return new Dictionary<Guid, IReadOnlyList<string>>();
+        }
+
+        var roleIds = assignments.Select(static a => a.RoleId).Distinct().ToList();
+        var roles = (await unitOfWork.ConnectionFor(typeof(SysRole)).Queryable<SysRole>()
+                .Where(r => r.OwnerTenantId == owner && roleIds.Contains(r.Id) && r.Status == RoleStatus.Active && !r.IsDeleted)
+                .ToListAsync(context.CancellationToken)
+                .ConfigureAwait(false))
+            .ToDictionary(static r => r.Id);
+        return assignments
+            .Where(a => roles.ContainsKey(a.RoleId))
+            .GroupBy(static a => a.UserId)
+            .ToDictionary(
+                static group => group.Key,
+                group => (IReadOnlyList<string>)group.Select(a => roles[a.RoleId]).OrderBy(static r => r.Order).ThenBy(static r => r.Code, StringComparer.Ordinal).Select(static r => r.Name).Distinct(StringComparer.Ordinal).ToList());
+    }
 }

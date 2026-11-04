@@ -98,6 +98,7 @@ export default {
       members_source: 'Usuários disponíveis',
       members_target: 'Membros do papel',
       members_search: 'Pesquisar nome / nome de usuário',
+      member_external: 'Externo',
       members_save: 'Salvar membros',
       members_no_change: 'Nenhuma alteração nos membros',
       members_saved: 'Salvo ({grant} adicionados, {revoke} removidos)',

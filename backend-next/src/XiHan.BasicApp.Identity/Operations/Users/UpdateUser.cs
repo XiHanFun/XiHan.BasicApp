@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 修改用户资料
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/users/{id}</c>。租户主体只能改本租户的用户
+/// <c>PUT /api/users/{id}</c>。租户主体只能改注册在本租户的用户：外部成员的账号由其注册地维护，这里按不存在回答
 /// 字段安全（方案 5.9）：交回原值、脱敏值或空值的受保护字段视为没改、保留库里的原值；改了只读字段即拒绝。邮箱格式因此在决定之后才校验（脱敏后的邮箱不像邮箱）
 /// </remarks>
 /// <param name="users">用户仓储</param>
@@ -55,6 +55,11 @@ public sealed class UpdateUser(IRepository<SysUser, Guid> users) : IOperation<Up
         user.PhoneVerified &= string.Equals(user.PhoneNumber, phone, StringComparison.Ordinal);
         user.Email = email;
         user.PhoneNumber = phone;
+        user.RealName = Blank(request.RealName);
+        user.Gender = request.Gender;
+        user.Birthday = request.Birthday;
+        user.Country = Blank(request.Country);
+        user.Remark = Blank(request.Remark);
         var updated = await users.UpdateAsync(user, context.CancellationToken).ConfigureAwait(false);
         return updated.IsFailure ? updated.Error! : UserResponse.From(user);
     }

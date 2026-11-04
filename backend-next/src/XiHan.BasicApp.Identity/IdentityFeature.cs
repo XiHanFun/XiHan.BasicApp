@@ -89,6 +89,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddSingleton<TotpEnrollments>();
         context.Services.AddScoped<LoginSessions>();
         context.Services.AddScoped<UserAccountService>();
+        context.Services.AddScoped<SideUsers>();
         context.Services.AddScoped<UserQueries>();
         context.Services.AddScoped<SessionQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, IdentityWidgets>();

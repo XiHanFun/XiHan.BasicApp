@@ -75,6 +75,7 @@ public sealed class LoginSessions(
         }
 
         user.LastLoginAt = now;
+        user.LastLoginIp = SessionClient.AddressOf(context);
         var userUpdated = await users.UpdateAsync(user, context.CancellationToken).ConfigureAwait(false);
         if (userUpdated.IsFailure)
         {

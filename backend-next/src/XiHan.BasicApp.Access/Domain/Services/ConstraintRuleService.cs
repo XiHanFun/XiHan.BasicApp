@@ -6,6 +6,7 @@ using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -68,6 +69,7 @@ public sealed record ConstraintRuleDefinition(
 /// <param name="items">规则项仓储</param>
 /// <param name="roles">角色查找</param>
 /// <param name="users">用户仓储</param>
+/// <param name="sideUsers">这一侧的用户（含外部成员）</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="policies">访问策略服务（条件的校验与编译共用）</param>
 /// <param name="cache">规则缓存</param>
@@ -77,6 +79,7 @@ public sealed class ConstraintRuleService(
     IRepository<SysConstraintRuleItem, Guid> items,
     RoleService roles,
     IRepository<SysUser, Guid> users,
+    SideUsers sideUsers,
     PermissionCatalog catalog,
     AccessPolicyService policies,
     ConstraintRules cache,
@@ -367,7 +370,7 @@ public sealed class ConstraintRuleService(
             : Error.Validation(AccessErrors.ConstraintTargetInvalid, AccessMessages.ConstraintTargetInvalid, MessageArguments.Of(("target", missing)));
     }
 
-    // 这一侧可用的目标：启用中的角色、目录里作用侧相符的权限码、注册地是这一侧的用户
+    // 这一侧可用的目标：启用中的角色、目录里作用侧相符的权限码、这一侧的用户（注册在这里或外部成员）
     private async Task<string?> FirstUnavailableAsync(string owner, ConstraintTargetType targetType, IReadOnlyList<string> targets, CancellationToken cancellationToken)
     {
         switch (targetType)
@@ -383,8 +386,7 @@ public sealed class ConstraintRuleService(
 
             case ConstraintTargetType.User:
                 {
-                    var found = (await users.FindManyAsync([.. targets.Select(Guid.Parse)], cancellationToken).ConfigureAwait(false))
-                        .Where(u => string.Equals(u.HomeTenantId, owner, StringComparison.Ordinal))
+                    var found = (await sideUsers.FindManyAsync([.. targets.Select(Guid.Parse)], owner, cancellationToken).ConfigureAwait(false))
                         .Select(static u => u.Id.ToString("D"))
                         .ToHashSet(StringComparer.Ordinal);
                     return targets.FirstOrDefault(t => !found.Contains(t));

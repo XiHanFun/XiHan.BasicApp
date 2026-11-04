@@ -60,6 +60,15 @@ tenants.initialize-admin              建租户管理员（首次登录必须改
 
 `tenant-members.list / create / delete`（`tenancy.tenant-members.*`，平台侧）。登录后用 `auth.switch-tenant` 在注册地、生效中的成员租户与平台之间切换：会话续用、令牌重签、前端整页重建。
 
+### 外部成员
+
+生效中的普通成员在这个租户里叫外部成员，算租户内的用户（运维支持成员不算）：
+
+- `users.list`、`users.get`、`users.detail` 带出他们，响应标 `isExternalMember`；不是本租户成员的账号查不到，也搜不到。
+- 能配本租户的角色（`roles.assign`）、部门（`memberships.create`、部门负责人）、数据范围（`user-data-scopes.set`）与直授（`user-grants.*`、权限条件），也能作为委托人、字段安全目标与约束规则目标。切进租户后这些权限才算数，回到注册地不带过去。
+- 账号本身只有注册地（或平台）能动：`users.update`、`users.reset-password`、`users.lock`、`users.disable`、`users.delete`、`users.reset-two-factor`、`users.set-login-policy` 在成员租户里一律按不存在回答。`users.detail` 不给账号安全一节，今日统计与当前会话只算这个租户里的。
+- 被移出租户时（`tenant-members.delete`）解除他在这个租户的角色，再加回来不带旧角色；部门归属与直授留着，人不在这一侧就用不上。成员关系到期不解除，只是看不到、用不上。
+
 ## 套餐与配额
 
 `SysEdition` / `SysEditionGrant`：

@@ -7508,7 +7508,7 @@ export interface paths {
         put?: never;
         /**
          * Assign role members
-         * @description Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh.
+         * @description Assign users to a role; users must belong to the role's side (registered there, or an external member of the tenant). Takes effect at the user's next token refresh.
          *
          *     Requires permission access.roles.assign (Assign members).
          */
@@ -8942,18 +8942,40 @@ export interface paths {
         };
         /**
          * Get user
-         * @description Get a user by ID; tenant principals only see their own tenant.
+         * @description Get a user by ID; tenant principals only see users and external members of their own tenant.
          *
          *     Requires permission identity.users.read (Read users).
          */
         get: operations["users.get"];
         /**
          * Update user
-         * @description Update a user's display name, email and phone number.
+         * @description Update a user's display name, email, phone number, real name, gender, birthday, country and remark; external members are maintained by their home tenant.
          *
          *     Requires permission identity.users.update (Update users).
          */
         put: operations["users.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{id}:detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user details
+         * @description Get a user's profile, account security, today's activity and current session; activity and sessions count the current side only, and an external member's account security stays with the home tenant.
+         *
+         *     Requires permission identity.users.read (Read users).
+         */
+        get: operations["users.detail"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -9082,7 +9104,7 @@ export interface paths {
         put?: never;
         /**
          * List users
-         * @description List users with paging, filters, keyword and sorting; tenant principals only see their own tenant.
+         * @description List users with paging, filters, keyword and sorting, with roles, department and security flags; tenant principals see users and external members of their own tenant.
          *
          *     Requires permission identity.users.read (Read users).
          */
@@ -14444,6 +14466,8 @@ export interface components {
              * @description 到期时间（不含）；为空即长期有效
              */
             expiresAt?: string | null;
+            /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
+            isExternalMember: boolean;
         };
         /** @description 继承链上的一个角色 */
         RoleRelativeResponse: {
@@ -15207,6 +15231,70 @@ export interface components {
             /** @description 原因 */
             reason?: string | null;
         };
+        /** @description 用户列表的一行 */
+        UserListItemResponse: {
+            /**
+             * Format: uuid
+             * @description 用户 ID
+             */
+            id: string;
+            /** @description 登录名 */
+            userName: string;
+            /** @description 显示名 */
+            displayName: string;
+            /** @description 邮箱 */
+            email?: string | null;
+            /** @description 手机号 */
+            phoneNumber?: string | null;
+            /** @description 注册地租户 ID；平台账号为 platform */
+            homeTenantId: string;
+            /** @description 状态 */
+            status: components["schemas"]["UserStatus"];
+            /**
+             * Format: date-time
+             * @description 最近登录时间（UTC）
+             */
+            lastLoginAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 创建时间（UTC）
+             */
+            createdAt: string;
+            /** @description 创建人（主体 ID） */
+            createdBy?: string | null;
+            /**
+             * Format: uuid
+             * @description 头像文件（前端按它换签名地址显示）；没设为空
+             */
+            avatarFileId?: string | null;
+            /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
+            isSystemAccount: boolean;
+            /** @description 真实姓名 */
+            realName?: string | null;
+            /** @description 性别 */
+            gender: components["schemas"]["UserGender"];
+            /**
+             * Format: date-time
+             * @description 生日
+             */
+            birthday?: string | null;
+            /** @description 国家或地区 */
+            country?: string | null;
+            /** @description 备注 */
+            remark?: string | null;
+            /** @description 最近一次登录的 IP */
+            lastLoginIp?: string | null;
+            /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护 */
+            isExternalMember: boolean;
+            /** @description 当前一侧的角色名称（启用的角色、此刻在有效期内的指派） */
+            roleNames: string[];
+            /** @description 主部门名称（没标主部门时取最早加入的）；平台一侧为空 */
+            departmentName?: string | null;
+            /** @description 是否锁定：管理员锁定或登录失败锁定期内 */
+            isLocked: boolean;
+            /** @description 是否开启了双因素 */
+            twoFactorEnabled: boolean;
+        };
         /**
          * @description 收件箱一条的阅读状态
          * @enum {string}
@@ -15250,6 +15338,69 @@ export interface components {
             avatarFileId?: string | null;
             /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
             isSystemAccount: boolean;
+            /** @description 真实姓名 */
+            realName?: string | null;
+            /** @description 性别 */
+            gender: components["schemas"]["UserGender"];
+            /**
+             * Format: date-time
+             * @description 生日
+             */
+            birthday?: string | null;
+            /** @description 国家或地区 */
+            country?: string | null;
+            /** @description 备注（本人在个人中心看到的个人简介是同一列） */
+            remark?: string | null;
+            /** @description 最近一次登录的 IP */
+            lastLoginIp?: string | null;
+            /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
+            isExternalMember: boolean;
+        };
+        /** @description 管理员看到的账号安全状态 */
+        UserSecurityDetailResponse: {
+            /** @description 邮箱是否已验证 */
+            emailVerified: boolean;
+            /** @description 手机号是否已验证 */
+            phoneVerified: boolean;
+            /** @description 是否开启了双因素 */
+            twoFactorEnabled: boolean;
+            /** @description 开启的双因素方式 */
+            twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+            /** @description 是否锁定：管理员锁定或登录失败锁定期内 */
+            isLocked: boolean;
+            /**
+             * Format: date-time
+             * @description 登录失败锁定的截止时间；没在锁定期为空
+             */
+            lockoutEndAt?: string | null;
+            /**
+             * Format: int32
+             * @description 自上次成功登录以来的连续失败次数
+             */
+            failedAccessCount: number;
+        };
+        /** @description 当前会话 */
+        UserSessionDetailResponse: {
+            /** @description 设备类型：Desktop、Mobile、Tablet、Bot；认不出为空 */
+            device?: string | null;
+            /** @description 浏览器 */
+            browser?: string | null;
+            /** @description 操作系统 */
+            os?: string | null;
+            /** @description 登录 IP（IPv4 遮住末段、IPv6 只留前四组） */
+            ipAddressMasked?: string | null;
+            /** @description 登录地点 */
+            location?: string | null;
+            /**
+             * Format: date-time
+             * @description 登录时间（会话签发）
+             */
+            loginAt: string;
+            /**
+             * Format: date-time
+             * @description 最后活动时间（最近一次续签，没续签过即登录时间）
+             */
+            lastActiveAt: string;
         };
         /**
          * @description 用户设置的场景：一条设置由（用户, 场景, 设置键）唯一定位
@@ -15261,6 +15412,24 @@ export interface components {
          * @enum {string}
          */
         UserStatus: "Active" | "Disabled" | "Locked";
+        /** @description 今日统计 */
+        UserTodayResponse: {
+            /**
+             * Format: int32
+             * @description 登录次数（成功的）
+             */
+            logins: number;
+            /**
+             * Format: int32
+             * @description 访问次数
+             */
+            accesses: number;
+            /**
+             * Format: int64
+             * @description 在线时长（秒）
+             */
+            onlineSeconds: number;
+        };
         WorkbenchItem: {
             id: string;
             title: string;
@@ -40513,11 +40682,11 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @description 成员（最多前 500 个，按用户名排序） */
+                        /** @description 成员（最多前 500 个，按用户名排序）；已不在这一侧的人（外部成员到期或被移出）不列 */
                         items: components["schemas"]["RoleMemberResponse"][];
                         /**
                          * Format: int64
-                         * @description 成员总数
+                         * @description 成员总数，同样不算已不在这一侧的人
                          */
                         total: number;
                     };
@@ -40782,6 +40951,8 @@ export interface operations {
                          * @description 到期时间（不含）；为空即长期有效
                          */
                         expiresAt?: string | null;
+                        /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
+                        isExternalMember: boolean;
                     };
                 };
             };
@@ -43872,6 +44043,14 @@ export interface operations {
                         /** Format: uuid */
                         avatarFileId?: string | null;
                         isSystemAccount: boolean;
+                        realName?: string | null;
+                        gender: components["schemas"]["UserGender"];
+                        /** Format: date-time */
+                        birthday?: string | null;
+                        country?: string | null;
+                        remark?: string | null;
+                        lastLoginIp?: string | null;
+                        isExternalMember: boolean;
                     };
                 };
             };
@@ -44394,7 +44573,7 @@ export interface operations {
                 "application/json": {
                     /**
                      * Format: uuid
-                     * @description 用户 ID；注册地须是当前租户
+                     * @description 用户 ID；注册在当前租户，或当前租户的外部成员
                      */
                     userId: string;
                     /** @description 覆盖后的数据范围；为空即清除覆盖、按角色 */
@@ -44778,6 +44957,19 @@ export interface operations {
                     password?: string | null;
                     /** @description 注册地租户：租户主体只能是当前租户（可不填）；平台主体不填即建平台账号 */
                     homeTenantId?: string | null;
+                    /** @description 真实姓名，可空 */
+                    realName?: string | null;
+                    /** @description 性别；不填即未设置 */
+                    gender?: components["schemas"]["UserGender"] | null;
+                    /**
+                     * Format: date-time
+                     * @description 生日，可空
+                     */
+                    birthday?: string | null;
+                    /** @description 国家或地区，可空 */
+                    country?: string | null;
+                    /** @description 备注，可空 */
+                    remark?: string | null;
                 };
             };
         };
@@ -44825,6 +45017,23 @@ export interface operations {
                         avatarFileId?: string | null;
                         /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
                         isSystemAccount: boolean;
+                        /** @description 真实姓名 */
+                        realName?: string | null;
+                        /** @description 性别 */
+                        gender: components["schemas"]["UserGender"];
+                        /**
+                         * Format: date-time
+                         * @description 生日
+                         */
+                        birthday?: string | null;
+                        /** @description 国家或地区 */
+                        country?: string | null;
+                        /** @description 备注（本人在个人中心看到的个人简介是同一列） */
+                        remark?: string | null;
+                        /** @description 最近一次登录的 IP */
+                        lastLoginIp?: string | null;
+                        /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
+                        isExternalMember: boolean;
                     };
                 };
             };
@@ -44929,6 +45138,23 @@ export interface operations {
                         avatarFileId?: string | null;
                         /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
                         isSystemAccount: boolean;
+                        /** @description 真实姓名 */
+                        realName?: string | null;
+                        /** @description 性别 */
+                        gender: components["schemas"]["UserGender"];
+                        /**
+                         * Format: date-time
+                         * @description 生日
+                         */
+                        birthday?: string | null;
+                        /** @description 国家或地区 */
+                        country?: string | null;
+                        /** @description 备注（本人在个人中心看到的个人简介是同一列） */
+                        remark?: string | null;
+                        /** @description 最近一次登录的 IP */
+                        lastLoginIp?: string | null;
+                        /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
+                        isExternalMember: boolean;
                     };
                 };
             };
@@ -44968,6 +45194,19 @@ export interface operations {
                     email?: string | null;
                     /** @description 手机号，可空 */
                     phoneNumber?: string | null;
+                    /** @description 真实姓名，可空 */
+                    realName?: string | null;
+                    /** @description 性别 */
+                    gender?: components["schemas"]["UserGender"];
+                    /**
+                     * Format: date-time
+                     * @description 生日，可空
+                     */
+                    birthday?: string | null;
+                    /** @description 国家或地区，可空 */
+                    country?: string | null;
+                    /** @description 备注，可空 */
+                    remark?: string | null;
                 };
             };
         };
@@ -45015,6 +45254,67 @@ export interface operations {
                         avatarFileId?: string | null;
                         /** @description 是否系统内置账号：不能停用、删除、锁定或由管理员重置密码 */
                         isSystemAccount: boolean;
+                        /** @description 真实姓名 */
+                        realName?: string | null;
+                        /** @description 性别 */
+                        gender: components["schemas"]["UserGender"];
+                        /**
+                         * Format: date-time
+                         * @description 生日
+                         */
+                        birthday?: string | null;
+                        /** @description 国家或地区 */
+                        country?: string | null;
+                        /** @description 备注（本人在个人中心看到的个人简介是同一列） */
+                        remark?: string | null;
+                        /** @description 最近一次登录的 IP */
+                        lastLoginIp?: string | null;
+                        /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
+                        isExternalMember: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.detail": {
+        parameters: {
+            query?: {
+                /** @description 今日统计按哪个时区分天（IANA 名称，如 Asia/Shanghai；缺省 UTC） */
+                timeZone?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description 用户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 用户管理的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 用户资料 */
+                        user: components["schemas"]["UserResponse"];
+                        /** @description 账号安全；外部成员为空（账号域数据由其注册地维护，4.x 同） */
+                        security?: components["schemas"]["UserSecurityDetailResponse"] | null;
+                        /** @description 今日统计（只算当前一侧）；用户不在当前一侧（平台看租户的用户）或没装日志包为空 */
+                        today?: components["schemas"]["UserTodayResponse"] | null;
+                        /** @description 这一侧最近活动的会话（模仿会话不算）；没有有效会话为空 */
+                        currentSession?: components["schemas"]["UserSessionDetailResponse"] | null;
                     };
                 };
             };
@@ -45300,7 +45600,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["UserResponse"][];
+                        items: components["schemas"]["UserListItemResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

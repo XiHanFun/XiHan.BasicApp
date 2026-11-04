@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Identity.Operations.Users;
@@ -19,13 +20,23 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="PhoneNumber">手机号，可空</param>
 /// <param name="Password">初始密码；不填则账号在管理员重置前不能登录</param>
 /// <param name="HomeTenantId">注册地租户：租户主体只能是当前租户（可不填）；平台主体不填即建平台账号</param>
+/// <param name="RealName">真实姓名，可空</param>
+/// <param name="Gender">性别；不填即未设置</param>
+/// <param name="Birthday">生日，可空</param>
+/// <param name="Country">国家或地区，可空</param>
+/// <param name="Remark">备注，可空</param>
 public sealed record CreateUserRequest(
     [Required, StringLength(64, MinimumLength = 3), RegularExpression("^[a-z][a-z0-9._-]*$")] string UserName,
     [Required, StringLength(64, MinimumLength = 1)] string DisplayName,
     [StringLength(256)] string? Email = null,
     [StringLength(32)] string? PhoneNumber = null,
     [StringLength(128, MinimumLength = 8)] string? Password = null,
-    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? HomeTenantId = null) : IValidatableObject
+    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? HomeTenantId = null,
+    [StringLength(50)] string? RealName = null,
+    UserGender? Gender = null,
+    DateTimeOffset? Birthday = null,
+    [StringLength(50)] string? Country = null,
+    [StringLength(500)] string? Remark = null) : IValidatableObject
 {
     /// <inheritdoc />
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

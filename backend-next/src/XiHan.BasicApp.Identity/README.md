@@ -5,12 +5,12 @@ Tier 1 身份能力包：账号、认证、会话与个人中心。提供能力 
 | 目录 | 内容 |
 | --- | --- |
 | `Operations/Auth` | 登录（密码、邮箱 / 手机验证码、第三方）、两段式双因素、图形验证码、登录配置、刷新、注销、锁屏、切换租户、激活角色、`auth.me`；自助注册与找回密码（`auth.register`、`auth.request-password-reset`、`auth.reset-password`） |
-| `Operations/Users` | 用户管理：增删改查、启停、锁定与解锁、重置密码、重置双因素；列表、详情与批量操作按数据范围收窄 |
+| `Operations/Users` | 用户管理：增删改查（含真实姓名、性别、生日、国家与备注）、用户详情（账号安全、今日统计、当前会话）、启停、锁定与解锁、重置密码、重置双因素；列表带角色、部门与安全标记，租户侧带出外部成员（只读账号，只能配本租户的角色与部门）；列表、详情与批量操作按数据范围收窄 |
 | `Operations/Profile` | 个人中心：资料与头像、改密、改用户名、联系方式验证与换绑、双因素设置、第三方账号绑定、登录设备、通知偏好、活跃度 |
 | `Operations/Sessions` | 在线用户：会话列表、汇总、批量吊销 |
 | `Operations/Impersonation` | 模仿登录：候选人、开始、结束 |
 | `Operations/UserSettings` · `MyApiCredentials` | 用户设置的跨端同步；本人的开放接口凭据 |
-| `Domain` | `SysUser`、`SysUserSecurity`、`SysUserSession`、`SysPasswordHistory` 等实体；`UserAccountService`（按名 / 联系方式找账号、设密码、吊销会话）、`PasswordPolicy`、`ContactCodes`、`TenantDirectoryGate`（租户存在、启用、没到期） |
+| `Domain` | `SysUser`、`SysUserSecurity`、`SysUserSession`、`SysPasswordHistory` 等实体；`UserAccountService`（按名 / 联系方式找账号、设密码、吊销会话）、`SideUsers`（一侧的用户，含外部成员；Access 与 Organization 配角色、部门时按它认人）、`PasswordPolicy`、`ContactCodes`、`TenantDirectoryGate`（租户存在、启用、没到期） |
 | `Infrastructure` | 令牌签发、会话门禁、登录节流与守卫、验证码与票据、第三方登录、在线用户小组件，以及给其他包的 Contracts 实现（用户目录、通知偏好、会话历史） |
 | `Middleware/SessionGateMiddleware` | Authenticate 阶段核对会话：吊销、锁屏、模仿会话的发起人 |
 

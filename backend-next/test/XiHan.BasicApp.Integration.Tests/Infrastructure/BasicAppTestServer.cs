@@ -84,6 +84,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     [
         .. WorkflowLeases(connectionString, provider),
         new("Logging:LogLevel:Default", "Warning"),
+        // Windows 事件日志不要：SqlDiagnostics.SharedLogger 进程级共用，前一个宿主释放之后还记 SQL 错误，事件日志写入即抛 ObjectDisposedException，把后台服务连同宿主带停
+        new("Logging:EventLog:LogLevel:Default", "None"),
         new("XiHan:Bindings:db:type", "connection:relational"),
         new("XiHan:Bindings:db:value", connectionString),
         new("XiHan:Bindings:db:provider", provider),

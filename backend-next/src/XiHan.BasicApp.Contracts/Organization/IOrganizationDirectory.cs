@@ -72,6 +72,17 @@ public interface IOrganizationDirectory
     /// <param name="context">调用上下文</param>
     /// <returns>按排序的岗位清单</returns>
     Task<IReadOnlyList<PositionOption>> PositionsAsync(InvocationContext context);
+
+    /// <summary>
+    /// 一批用户的主部门名称
+    /// </summary>
+    /// <remarks>
+    /// 优先标了主部门的归属，没有标时取最早加入的；平台一侧为空
+    /// </remarks>
+    /// <param name="context">调用上下文</param>
+    /// <param name="userIds">用户 ID</param>
+    /// <returns>按用户 ID 索引；没有归属的人不在结果里</returns>
+    Task<IReadOnlyDictionary<Guid, string>> PrimaryDepartmentNamesAsync(InvocationContext context, IReadOnlyCollection<Guid> userIds);
 }
 
 /// <summary>

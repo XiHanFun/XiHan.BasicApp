@@ -98,6 +98,7 @@ export default {
       members_source: 'Available users',
       members_target: 'Role members',
       members_search: 'Search name / username',
+      member_external: 'External',
       members_save: 'Save members',
       members_no_change: 'No member changes',
       members_saved: 'Saved ({grant} added, {revoke} removed)',

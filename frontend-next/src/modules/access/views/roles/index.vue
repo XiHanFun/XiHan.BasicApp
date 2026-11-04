@@ -249,8 +249,9 @@ async function savePermissions() {
 const canListUsers = computed(() => auth.can('identity.users.read'))
 const memberGroups = computed(() => [{ key: 'members', name: '', items: memberEditor.items.value }])
 
+/** 外部成员在 @用户名 后面带标记（4.x 同） */
 function memberDescription(item: MemberCandidate): string {
-  return `@${item.userName}`
+  return item.isExternalMember ? `@${item.userName} · ${t('access.roles.member_external')}` : `@${item.userName}`
 }
 
 async function saveMembers() {
@@ -467,7 +468,7 @@ async function saveScope() {
                   </thead>
                   <tbody>
                     <tr v-for="item in detailView.members.value" :key="item.userId">
-                      <td>{{ item.displayName }}</td>
+                      <td>{{ item.isExternalMember ? `${item.displayName} · ${t('access.roles.member_external')}` : item.displayName }}</td>
                       <td>{{ item.userName }}</td>
                       <td>{{ memberStatusLabel(item.status) }}</td>
                       <td>{{ formatDate(item.assignedAt) }}</td>

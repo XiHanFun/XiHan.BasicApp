@@ -98,6 +98,7 @@ export default {
       members_source: 'Доступные пользователи',
       members_target: 'Участники роли',
       members_search: 'Поиск по имени / имени пользователя',
+      member_external: 'Внешний',
       members_save: 'Сохранить участников',
       members_no_change: 'Состав участников не изменился',
       members_saved: 'Сохранено (добавлено {grant}, исключено {revoke})',

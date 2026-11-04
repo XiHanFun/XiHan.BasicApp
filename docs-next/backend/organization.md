@@ -33,7 +33,7 @@
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
 | `memberships.list` | `organization.memberships.read` | 按部门（可含下级）列成员，按数据范围收窄 |
-| `memberships.create` | `organization.memberships.create` | 用户注册地必须是当前租户；用户的第一个归属自动是主部门 |
+| `memberships.create` | `organization.memberships.create` | 用户须在当前租户（注册在这里或[外部成员](./multi-tenancy#外部成员)）；用户的第一个归属自动是主部门 |
 | `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间 |
 | `memberships.delete` | `organization.memberships.delete` | 批量移出 |
 

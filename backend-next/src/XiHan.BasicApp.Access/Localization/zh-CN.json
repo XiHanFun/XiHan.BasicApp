@@ -14,7 +14,7 @@
   "roles.revoke.title": "撤销角色权限",
   "roles.revoke.description": "撤销角色的权限。",
   "roles.assign.title": "指派角色成员",
-  "roles.assign.description": "给角色指派成员；用户须与角色同一侧。最迟在用户下次刷新令牌时生效。",
+  "roles.assign.description": "给角色指派成员；用户须在角色这一侧（注册在这里或本租户的外部成员）。最迟在用户下次刷新令牌时生效。",
   "roles.unassign.title": "解除角色成员",
   "roles.unassign.description": "解除角色成员。最迟在用户下次刷新令牌时生效。",
   "roles.members.title": "查询角色成员",

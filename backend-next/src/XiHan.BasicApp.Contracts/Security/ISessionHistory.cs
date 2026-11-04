@@ -30,4 +30,16 @@ public interface ISessionHistory
     /// <param name="since">起点</param>
     /// <param name="cancellationToken">取消令牌</param>
     ValueTask<IReadOnlyList<SessionSpan>> ListAsync(Guid userId, DateTimeOffset since, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 列出某人在一侧、某个时刻之后还可能活动过的会话
+    /// </summary>
+    /// <remarks>
+    /// 口径同 <see cref="ListAsync"/>，只留当前在这一侧的：管理员看别人的在线时长时不算这个人在别的租户的会话
+    /// </remarks>
+    /// <param name="userId">用户 ID</param>
+    /// <param name="side">一侧：平台为 <c>platform</c>，否则是租户 ID</param>
+    /// <param name="since">起点</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    ValueTask<IReadOnlyList<SessionSpan>> ListInSideAsync(Guid userId, string side, DateTimeOffset since, CancellationToken cancellationToken);
 }

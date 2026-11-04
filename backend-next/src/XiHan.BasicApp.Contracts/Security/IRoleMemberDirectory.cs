@@ -30,6 +30,17 @@ public interface IRoleMemberDirectory
     /// <param name="context">调用上下文</param>
     /// <returns>当前一侧按排序的角色清单</returns>
     Task<IReadOnlyList<RoleOption>> RolesAsync(InvocationContext context);
+
+    /// <summary>
+    /// 一批用户的角色名称
+    /// </summary>
+    /// <remarks>
+    /// 只取当前一侧启用的角色、此刻在有效期内的指派，每人按角色的排序号与编码排
+    /// </remarks>
+    /// <param name="context">调用上下文</param>
+    /// <param name="userIds">用户 ID</param>
+    /// <returns>按用户 ID 索引；没有角色的人不在结果里</returns>
+    Task<IReadOnlyDictionary<Guid, IReadOnlyList<string>>> RoleNamesAsync(InvocationContext context, IReadOnlyCollection<Guid> userIds);
 }
 
 /// <summary>

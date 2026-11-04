@@ -6,8 +6,7 @@ using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Operations.UserGrants;
 using XiHan.BasicApp.Contracts.Auditing;
-using XiHan.BasicApp.Identity.Domain.Entities;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Domain.Services;
@@ -19,13 +18,13 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 直授的规则（权限目录与作用侧、约束规则的互斥筛查、有效期与理由、去掉同码的禁止、权限变更日志）集中在这里：
 /// <c>user-grants.grant</c> 与审批通过后的授予（授权申请）都经它，规则只有一份
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="grants">用户授予</param>
 /// <param name="rules">授予规则（有效期与理由）</param>
 /// <param name="conditions">权限条件</param>
 /// <param name="enforcer">约束规则求值</param>
-public sealed class UserGrantService(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer)
+public sealed class UserGrantService(SideUsers users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer)
 {
     /// <summary>
     /// 给用户直接授予

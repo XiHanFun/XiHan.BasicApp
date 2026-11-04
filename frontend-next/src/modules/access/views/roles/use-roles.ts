@@ -287,18 +287,20 @@ export interface MemberCandidate {
   basicId: string
   displayName: string
   userName: string
+  /** 外部成员：注册在别处、以成员身份加入本租户 */
+  isExternalMember: boolean
 }
 
 /**
- * 候选人（本侧用户）并上现有成员：候选有上限，也可能读不到用户目录，已在角色里的人不在候选里就会在穿梭框里「消失」，
+ * 候选人（本侧用户，含本租户的外部成员）并上现有成员：候选有上限，也可能读不到用户目录，已在角色里的人不在候选里就会在穿梭框里「消失」，
  * 保存时被当成移出
  */
 export function mergeMemberCandidates(users: readonly UserOption[], members: readonly RoleMember[]): MemberCandidate[] {
-  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName }))
+  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName, isExternalMember: user.isExternalMember }))
   const known = new Set(items.map(item => item.basicId))
   for (const member of members) {
     if (!known.has(member.userId))
-      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName })
+      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName, isExternalMember: member.isExternalMember })
   }
   return items
 }

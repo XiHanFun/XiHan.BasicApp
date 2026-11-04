@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -34,6 +35,7 @@ public sealed record DelegationDefinition(Guid DelegatorId, Guid DelegateeId, st
 /// </remarks>
 /// <param name="delegations">委托仓储</param>
 /// <param name="users">用户仓储</param>
+/// <param name="sideUsers">这一侧的用户（含外部成员）</param>
 /// <param name="roles">角色查找</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="evaluator">授予全貌（委托人是否持有）</param>
@@ -43,6 +45,7 @@ public sealed record DelegationDefinition(Guid DelegatorId, Guid DelegateeId, st
 public sealed class DelegationService(
     IRepository<SysPermissionDelegation, Guid> delegations,
     IRepository<SysUser, Guid> users,
+    SideUsers sideUsers,
     RoleService roles,
     PermissionCatalog catalog,
     GrantEvaluator evaluator,
@@ -100,7 +103,7 @@ public sealed class DelegationService(
 
         foreach (var userId in new[] { definition.DelegatorId, definition.DelegateeId })
         {
-            if (!(await users.FindAsync(userId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
+            if (!(await sideUsers.FindAsync(userId, owner, cancellationToken).ConfigureAwait(false)).HasValue)
             {
                 return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", userId)));
             }

@@ -6,7 +6,7 @@ using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -21,14 +21,15 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// <remarks>
 /// 「给角色指派成员」的规则（同侧、约束规则、权限变更日志、指派缓存失效）集中在这里：
 /// <c>roles.assign</c> 与审批通过后的授予（授权申请）都经它，规则只有一份
+/// 同侧指注册在这一侧的用户，或这个租户的外部成员（4.x 同）
 /// </remarks>
 /// <param name="service">角色域服务</param>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="members">指派仓储</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="assignments">指派缓存（新成员的判定立即看到）</param>
 /// <param name="enforcer">约束规则求值</param>
-public sealed class RoleAssignmentService(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments, ConstraintEnforcer enforcer)
+public sealed class RoleAssignmentService(RoleService service, SideUsers users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments, ConstraintEnforcer enforcer)
 {
     /// <summary>
     /// 给角色指派成员
@@ -53,7 +54,7 @@ public sealed class RoleAssignmentService(RoleService service, IRepository<SysUs
         }
 
         var roleId = role.Id;
-        var found = (await users.FindManyAsync(request.UserIds, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
+        var found = (await users.FindManyAsync(request.UserIds, owner, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
         var existing = (await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), context.CancellationToken).ConfigureAwait(false)).Select(static m => m.UserId).ToHashSet();
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
@@ -61,7 +62,7 @@ public sealed class RoleAssignmentService(RoleService service, IRepository<SysUs
         var memberCount = await enforcer.MemberCountAsync(owner, roleId, context.CancellationToken).ConfigureAwait(false);
         foreach (var userId in request.UserIds.Distinct())
         {
-            if (!found.TryGetValue(userId, out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
+            if (!found.TryGetValue(userId, out var user))
             {
                 failed.Add(new BatchFailure(userId, AccessErrors.MemberNotFound));
                 continue;

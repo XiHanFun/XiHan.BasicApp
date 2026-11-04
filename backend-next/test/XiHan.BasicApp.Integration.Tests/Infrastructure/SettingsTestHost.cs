@@ -22,9 +22,9 @@ public static class SettingsTestHost
     /// <summary>
     /// 起宿主并准备两侧的令牌
     /// </summary>
-    public static async Task<(BasicAppTestServer Server, string Platform, string Tenant)> StartAsync(string connectionString, string provider = "sqlite", Action<WebApplicationBuilder>? configure = null)
+    public static async Task<(BasicAppTestServer Server, string Platform, string Tenant)> StartAsync(string connectionString, string provider = "sqlite", Action<WebApplicationBuilder>? configure = null, Action<WebApplication>? configureApp = null)
     {
-        var server = await BasicAppTestServer.StartAsync(connectionString, provider, configure: configure);
+        var server = await BasicAppTestServer.StartAsync(connectionString, provider, configure: configure, configureApp: configureApp);
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;

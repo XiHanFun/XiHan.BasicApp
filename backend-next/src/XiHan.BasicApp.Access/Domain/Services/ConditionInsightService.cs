@@ -6,6 +6,7 @@ using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.PermissionConditions;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -27,6 +28,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// <param name="conditions">条件写入规则（绑定）</param>
 /// <param name="hierarchy">继承图</param>
 /// <param name="users">用户仓储</param>
+/// <param name="sideUsers">这一侧的用户（含外部成员）</param>
 /// <param name="members">角色指派仓储</param>
 /// <param name="conditionRows">条件仓储</param>
 /// <param name="roles">角色查找</param>
@@ -42,6 +44,7 @@ public sealed class ConditionInsightService(
     PermissionConditionService conditions,
     RoleHierarchyService hierarchy,
     IRepository<SysUser, Guid> users,
+    SideUsers sideUsers,
     IRepository<SysUserRole, Guid> members,
     IRepository<SysPermissionCondition, Guid> conditionRows,
     RoleService roles,
@@ -73,7 +76,7 @@ public sealed class ConditionInsightService(
             return checkedRequest.Error!;
         }
 
-        if (!(await users.FindAsync(request.UserId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
+        if (!(await sideUsers.FindAsync(request.UserId, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {
             return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", request.UserId)));
         }
@@ -127,8 +130,7 @@ public sealed class ConditionInsightService(
 
         var time = request.Time ?? clock.GetUtcNow();
         var holders = await HoldersAsync(owner, request.SubjectKind, request.SubjectId, time, cancellationToken).ConfigureAwait(false);
-        var people = (await users.FindManyAsync(holders, cancellationToken).ConfigureAwait(false))
-            .Where(u => string.Equals(u.HomeTenantId, owner, StringComparison.Ordinal))
+        var people = (await sideUsers.FindManyAsync(holders, owner, cancellationToken).ConfigureAwait(false))
             .OrderBy(static u => u.UserName, StringComparer.OrdinalIgnoreCase)
             .ToList();
         var items = new List<ConditionBatchTrialItemResponse>();

@@ -56,6 +56,7 @@ public static class IdentityFieldSecurity
             .Entity<UserResponse>(Users, "identity.users.title", "identity.users.fields.")
                 .Title("phoneNumber", "identity.users.fields.phone")
                 .Reads(ListUsers.Id, GetUser.Id)
+                .ReadsAt(GetUserDetail.Id, "user")
                 .Creates(CreateUser.Id)
                 .Updates<UpdateUserRequest>(UpdateUser.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysUser>(context, request.Id, UserResponse.From))
             .Entity<OnlineSessionResponse>(Sessions, "identity.online_users.title", "identity.online_users.col_")

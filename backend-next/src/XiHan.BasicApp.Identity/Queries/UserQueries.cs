@@ -3,9 +3,12 @@
 
 using System.Globalization;
 using SqlSugar;
+using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Security;
@@ -18,11 +21,16 @@ namespace XiHan.BasicApp.Identity.Queries;
 /// 用户的分页查询
 /// </summary>
 /// <remarks>
-/// 直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体只看注册地是当前租户的用户
+/// 直接用 SqlSugar 客户端（按实体落点从工作单元取连接），以 <see cref="TenantScopedQuery"/> 起手补软删除条件；租户主体看注册地是当前租户的用户与本租户的外部成员
+/// 角色与部门在别的包：按这一页的用户经 Contracts 批量取，账号安全在本包，同样按这一页批量取
 /// </remarks>
 /// <param name="unitOfWork">当前调用的工作单元；查询与同一调用里的写入共用连接与事务</param>
 /// <param name="recipients">按角色、部门找人的来源（Access 与 Organization 实现，用于筛选）</param>
-public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IRecipientSource> recipients)
+/// <param name="sideUsers">这一侧的用户（外部成员）</param>
+/// <param name="roles">角色名称（Access 实现）</param>
+/// <param name="organization">主部门名称（Organization 实现）</param>
+/// <param name="clock">时钟</param>
+public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IRecipientSource> recipients, SideUsers sideUsers, IEnumerable<IRoleMemberDirectory> roles, IEnumerable<IOrganizationDirectory> organization, TimeProvider clock)
 {
     private const string FieldUserName = "userName";
     private const string FieldDisplayName = "displayName";
@@ -39,16 +47,21 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
     /// 分页列出用户
     /// </summary>
     /// <remarks>
-    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 、<c>status</c> 的 <c>eq</c> 与 <c>homeTenantId</c> 的 <c>eq / ne</c>（平台侧挑某租户的用户或平台账号；租户侧本就只看本租户）；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序
+    /// 筛选只接受 <c>userName / displayName / email</c> 的 <c>eq / contains</c> 、<c>status</c> 的 <c>eq</c> 与 <c>homeTenantId</c> 的 <c>eq / ne</c>（平台侧挑某租户的用户或平台账号；租户侧只在本租户的用户与成员里挑）；排序只接受 <c>userName / displayName / createdAt</c>，缺省按创建时间倒序
     /// </remarks>
-    public async ValueTask<Result<PageResult<UserResponse>>> ListAsync(PageRequest request, InvocationContext context)
+    public async ValueTask<Result<PageResult<UserListItemResponse>>> ListAsync(PageRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var query = TenantScopedQuery.For<SysUser>(unitOfWork.ConnectionFor(typeof(SysUser)), context);
-        if (context.GetSecurity().Tenant?.Id is { } tenantId)
+        var tenantId = context.GetSecurity().Tenant?.Id;
+        if (tenantId is not null)
         {
-            query = query.Where(u => u.HomeTenantId == tenantId);
+            // 外部成员（4.x 同）：别处注册、生效中的普通成员也算这一侧的用户
+            var members = (await sideUsers.MembersOfAsync(tenantId, context.CancellationToken).ConfigureAwait(false)).ToList();
+            query = members.Count == 0
+                ? query.Where(u => u.HomeTenantId == tenantId)
+                : query.Where(u => u.HomeTenantId == tenantId || members.Contains(u.Id));
         }
 
         // 数据范围（方案 5.6）：受限主体只看得到自己与可见部门里的用户
@@ -73,7 +86,7 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
                     break;
                 default:
                     // 关键字能搜的字段都受保护：没有可匹配的行
-                    return new PageResult<UserResponse>([], 0, request.Page);
+                    return new PageResult<UserListItemResponse>([], 0, request.Page);
             }
         }
 
@@ -124,7 +137,42 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
 
         var total = new RefAsync<int>();
         var rows = await query.ToPageListAsync(request.Page.Index, request.Page.Size, total, context.CancellationToken).ConfigureAwait(false);
-        return new PageResult<UserResponse>(rows.Select(UserResponse.From).ToList(), total.Value, request.Page);
+        return new PageResult<UserListItemResponse>(await ComposeAsync(rows, tenantId, context).ConfigureAwait(false), total.Value, request.Page);
+    }
+
+    /// <summary>
+    /// 把这一页的用户配上角色、部门与安全标记
+    /// </summary>
+    /// <remarks>
+    /// 每种各一次批量查询，不随行数增加；角色与部门没装对应的包即没有
+    /// </remarks>
+    private async Task<List<UserListItemResponse>> ComposeAsync(List<SysUser> rows, string? tenantId, InvocationContext context)
+    {
+        if (rows.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = rows.Select(static u => u.Id).ToList();
+        var roleNames = roles.FirstOrDefault() is { } directory ? await directory.RoleNamesAsync(context, ids).ConfigureAwait(false) : new Dictionary<Guid, IReadOnlyList<string>>();
+        var departments = tenantId is not null && organization.FirstOrDefault() is { } tree ? await tree.PrimaryDepartmentNamesAsync(context, ids).ConfigureAwait(false) : new Dictionary<Guid, string>();
+        // 只取要的列（投影到实体，走实体映射的时间转换）；没有安全行的按缺省值（没开双因素、没在锁定期）
+        var securities = (await TenantScopedQuery.For<SysUserSecurity>(unitOfWork.ConnectionFor(typeof(SysUserSecurity)), context)
+                .Where(s => ids.Contains(s.UserId))
+                .Select(s => new SysUserSecurity { UserId = s.UserId, TwoFactorEnabled = s.TwoFactorEnabled, LockoutEndAt = s.LockoutEndAt })
+                .ToListAsync(context.CancellationToken).ConfigureAwait(false))
+            .ToDictionary(static s => s.UserId);
+        var now = clock.GetUtcNow();
+        return rows.Select(user =>
+        {
+            var security = securities.GetValueOrDefault(user.Id);
+            return UserListItemResponse.From(
+                UserResponse.From(user, tenantId),
+                roleNames.GetValueOrDefault(user.Id) ?? [],
+                departments.GetValueOrDefault(user.Id),
+                user.Status == UserStatus.Locked || security?.LockoutEndAt > now,
+                security?.TwoFactorEnabled == true);
+        }).ToList();
     }
 
     private static Result<ISugarQueryable<SysUser>> Apply(ISugarQueryable<SysUser> query, PageFilter filter)

@@ -5,7 +5,7 @@ using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Database.Grants;
 
@@ -15,15 +15,15 @@ namespace XiHan.BasicApp.Access.Operations.UserGrants;
 /// 用户直接授权的共同骨架
 /// </summary>
 /// <remarks>
-/// 用户须在这一侧（注册地相同），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志
+/// 用户须在这一侧（注册在这一侧，或这个租户的外部成员），权限码须在目录里且作用侧相符，通过的交给写入委托，逐项结果合并；真正生效的权限码登记一条权限变更日志
 /// </remarks>
 internal static class UserGrantBatch
 {
     /// <summary>
     /// 找到这一侧的用户
     /// </summary>
-    public static async Task<Result<SysUser>> FindUserAsync(IRepository<SysUser, Guid> users, Guid userId, string owner, CancellationToken cancellationToken)
-        => (await users.FindAsync(userId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) && string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal)
+    public static async Task<Result<SysUser>> FindUserAsync(SideUsers users, Guid userId, string owner, CancellationToken cancellationToken)
+        => (await users.FindAsync(userId, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user)
             ? user
             : Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", userId)));
 
@@ -33,7 +33,7 @@ internal static class UserGrantBatch
     public static async ValueTask<Result<PermissionBatchResult>> RunAsync(
         UserPermissionsRequest request,
         InvocationContext context,
-        IRepository<SysUser, Guid> users,
+        SideUsers users,
         PermissionCatalog catalog,
         PermissionChangeType change,
         Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,

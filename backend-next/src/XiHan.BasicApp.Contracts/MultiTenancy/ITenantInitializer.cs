@@ -29,4 +29,12 @@ public interface ITenantInitializer
     /// 新所有者拿到管理员身份（同 <see cref="InitializeAsync"/>，幂等），原所有者保留已有的角色（降为管理员）；两人的授权缓存随即失效
     /// </remarks>
     Task<Result> TransferOwnerAsync(string tenantId, Guid previousOwnerId, Guid ownerId, InvocationContext context);
+
+    /// <summary>
+    /// 成员被移出 <paramref name="tenantId"/> 之后的处理
+    /// </summary>
+    /// <remarks>
+    /// 解除他在这个租户的角色（4.x 同），授权缓存随即失效：再被加回来也不带旧角色
+    /// </remarks>
+    Task<Result> RemoveMemberAsync(string tenantId, Guid userId, InvocationContext context);
 }

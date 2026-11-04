@@ -98,6 +98,7 @@ export default {
       members_source: '可加入的用户',
       members_target: '已加入的成员',
       members_search: '搜索姓名 / 用户名',
+      member_external: '外部成员',
       members_save: '保存成员',
       members_no_change: '成员无变化',
       members_saved: '已保存（加入 {grant} 人，移出 {revoke} 人）',

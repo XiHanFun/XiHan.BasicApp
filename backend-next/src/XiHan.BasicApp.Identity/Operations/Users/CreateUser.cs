@@ -63,6 +63,11 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
             PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim(),
             HomeTenantId = homeTenant,
             Status = UserStatus.Active,
+            RealName = string.IsNullOrWhiteSpace(request.RealName) ? null : request.RealName.Trim(),
+            Gender = request.Gender ?? UserGender.Unknown,
+            Birthday = request.Birthday,
+            Country = string.IsNullOrWhiteSpace(request.Country) ? null : request.Country.Trim(),
+            Remark = string.IsNullOrWhiteSpace(request.Remark) ? null : request.Remark.Trim(),
         };
 
         // 席位配额（4.x 同）：只约束租户主体的调用，平台代租户建用户不受限

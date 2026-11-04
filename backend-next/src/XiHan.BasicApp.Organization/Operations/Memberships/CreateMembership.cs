@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// 把用户加进部门
 /// </summary>
 /// <remarks>
-/// <c>POST /api/memberships</c>。用户注册地必须是当前租户；同一用户同一部门只能有一条；用户的第一条归属自动成为主部门，显式设主时其他归属取消主标记
+/// <c>POST /api/memberships</c>。用户须在当前租户（注册在这里或外部成员）；同一用户同一部门只能有一条；用户的第一条归属自动成为主部门，显式设主时其他归属取消主标记
 /// 加入即发出领域事件 <c>basicapp.organization.membership-changed</c>（Chat 据此把用户加进已有的部门群）
 /// </remarks>
 /// <param name="memberships">归属仓储</param>

@@ -98,6 +98,7 @@ export default {
       members_source: 'Verfügbare Benutzer',
       members_target: 'Rollenmitglieder',
       members_search: 'Name / Benutzername suchen',
+      member_external: 'Extern',
       members_save: 'Mitglieder speichern',
       members_no_change: 'Keine Mitgliederänderungen',
       members_saved: 'Gespeichert ({grant} hinzugefügt, {revoke} entfernt)',

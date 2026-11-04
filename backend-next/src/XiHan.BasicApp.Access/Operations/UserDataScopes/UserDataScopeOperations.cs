@@ -7,9 +7,8 @@ using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Operations.UserGrants;
 using XiHan.BasicApp.Contracts.Auditing;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Kernel.Operations;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Operations.UserDataScopes;
@@ -29,7 +28,7 @@ public sealed record UserDataScopeRequest([Required] Guid UserId);
 /// <remarks>
 /// 覆盖为一种数据范围，或清除覆盖回到按角色
 /// </remarks>
-/// <param name="UserId">用户 ID；注册地须是当前租户</param>
+/// <param name="UserId">用户 ID；注册在当前租户，或当前租户的外部成员</param>
 /// <param name="DataScope">覆盖后的数据范围；为空即清除覆盖、按角色</param>
 /// <param name="Departments">自定义范围的部门（只有 <c>Custom</c> 时给，至少一个）</param>
 public sealed record SetUserDataScopeRequest([Required] Guid UserId, DataScope? DataScope = null, IReadOnlyList<DataScopeDepartmentRequest>? Departments = null);
@@ -48,10 +47,10 @@ public sealed record UserDataScopeResponse(Guid UserId, DataScope? DataScope, IR
 /// <remarks>
 /// <c>GET /api/user-data-scopes?userId=</c>。只在租户侧
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="scopes">用户级数据范围覆盖服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesRead)]
-public sealed class GetUserDataScope(IRepository<SysUser, Guid> users, UserDataScopeService scopes) : IOperation<UserDataScopeRequest, UserDataScopeResponse>
+public sealed class GetUserDataScope(SideUsers users, UserDataScopeService scopes) : IOperation<UserDataScopeRequest, UserDataScopeResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -87,10 +86,10 @@ public sealed class GetUserDataScope(IRepository<SysUser, Guid> users, UserDataS
 /// <remarks>
 /// <c>POST /api/user-data-scopes:set</c>。覆盖完全取代该用户所有角色的数据范围（不取并集）；不带数据范围即清除覆盖。只在租户侧
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="scopes">用户级数据范围覆盖服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesUpdate)]
-public sealed class SetUserDataScope(IRepository<SysUser, Guid> users, UserDataScopeService scopes) : IOperation<SetUserDataScopeRequest, UserDataScopeResponse>
+public sealed class SetUserDataScope(SideUsers users, UserDataScopeService scopes) : IOperation<SetUserDataScopeRequest, UserDataScopeResponse>
 {
     /// <summary>
     /// 操作 ID

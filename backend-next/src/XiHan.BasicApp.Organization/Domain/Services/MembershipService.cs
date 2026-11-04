@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Operations.Memberships;
 using XiHan.Framework.Domain.Specifications;
@@ -15,29 +16,28 @@ namespace XiHan.BasicApp.Organization.Domain.Services;
 /// 归属域服务（作用域）
 /// </summary>
 /// <remarks>
-/// 核对用户注册地、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）
+/// 核对用户在这个租户（注册在这里或外部成员）、主部门唯一、把归属行配上用户 / 部门 / 岗位名称（用户在平台库、部门与岗位在租户库，分库时不能联表，按主键批量取）
 /// </remarks>
 /// <param name="users">用户仓储（平台库）</param>
+/// <param name="sideUsers">这一侧的用户（含外部成员）</param>
 /// <param name="departments">部门仓储</param>
 /// <param name="positions">岗位仓储</param>
 /// <param name="memberships">归属仓储</param>
 public sealed class MembershipService(
     IRepository<SysUser, Guid> users,
+    SideUsers sideUsers,
     IRepository<SysDepartment, Guid> departments,
     IRepository<SysPosition, Guid> positions,
     IRepository<SysUserDepartment, Guid> memberships)
 {
     /// <summary>
-    /// 查找注册地是 <paramref name="tenantId"/> 的用户
+    /// 查找 <paramref name="tenantId"/> 这个租户的用户
     /// </summary>
     /// <remarks>
-    /// 别的租户或平台的用户视为不存在
+    /// 注册在这个租户，或这个租户的外部成员（4.x 同）；别的租户或平台的用户视为不存在
     /// </remarks>
-    public async Task<Maybe<SysUser>> FindUserInTenantAsync(Guid userId, string tenantId, CancellationToken cancellationToken)
-    {
-        var found = await users.FindAsync(userId, cancellationToken).ConfigureAwait(false);
-        return found.TryGetValue(out var user) && string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal) ? Maybe.Some(user) : Maybe.None<SysUser>();
-    }
+    public Task<Maybe<SysUser>> FindUserInTenantAsync(Guid userId, string tenantId, CancellationToken cancellationToken)
+        => sideUsers.FindAsync(userId, tenantId, cancellationToken);
 
     /// <summary>
     /// 用户在某部门的归属行

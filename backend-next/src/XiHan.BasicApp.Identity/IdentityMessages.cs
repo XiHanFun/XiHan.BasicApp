@@ -409,6 +409,19 @@ public static class IdentityMessages
     public const string SetUserLoginPolicyDescription = "users.set_login_policy.description";
 
     /// <summary>
+    /// 操作 <c>users.detail</c> 的说明
+    /// </summary>
+    public const string GetUserDetailDescription = "users.detail.description";
+
+    /// <summary>
+    /// 时区不认得
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>timeZone</c>
+    /// </remarks>
+    public const string TimeZoneInvalid = "identity.time_zone.invalid";
+
+    /// <summary>
     /// 图形验证码不对
     /// </summary>
     public const string CaptchaInvalid = "identity.auth.captcha_invalid";

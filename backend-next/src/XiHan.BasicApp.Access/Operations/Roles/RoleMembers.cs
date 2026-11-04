@@ -3,7 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -16,13 +16,14 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// 列出角色成员
 /// </summary>
 /// <remarks>
-/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要
+/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要，标出外部成员
+/// 只列还在这一侧的人：外部成员的成员关系到期之后不再显示（指派留着，续上即恢复；被移出的指派已解除）
 /// </remarks>
 /// <param name="service">角色域服务</param>
 /// <param name="members">指派仓储</param>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
-public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users) : IOperation<RoleMembersQueryRequest, RoleMembersResponse>
+public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Guid> members, SideUsers users) : IOperation<RoleMembersQueryRequest, RoleMembersResponse>
 {
     private const int MaxItems = 500;
 
@@ -36,7 +37,8 @@ public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Gu
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        if (!(await service.FindAsync(request.Id, RoleService.OwnerOf(context), context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var role))
+        var owner = RoleService.OwnerOf(context);
+        if (!(await service.FindAsync(request.Id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var role))
         {
             return Error.NotFound(AccessErrors.RoleNotFound, AccessMessages.RoleNotFound, MessageArguments.Of(("id", request.Id)));
         }
@@ -51,11 +53,11 @@ public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Gu
         }
 
         var assignments = rows.ToDictionary(static m => m.UserId);
-        var found = await users.FindManyAsync(rows.Select(static m => m.UserId).ToList(), context.CancellationToken).ConfigureAwait(false);
+        var found = await users.FindManyAsync(rows.Select(static m => m.UserId).ToList(), owner, context.CancellationToken).ConfigureAwait(false);
         var items = found
-            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignments[u.Id].CreatedAt, assignments[u.Id].EffectiveAt, assignments[u.Id].ExpiresAt))
+            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignments[u.Id].CreatedAt, assignments[u.Id].EffectiveAt, assignments[u.Id].ExpiresAt, !string.Equals(u.HomeTenantId, owner, StringComparison.Ordinal)))
             .OrderBy(static m => m.UserName, StringComparer.Ordinal)
             .ToList();
-        return new RoleMembersResponse(items, total);
+        return new RoleMembersResponse(items, total - (rows.Count - items.Count));
     }
 }

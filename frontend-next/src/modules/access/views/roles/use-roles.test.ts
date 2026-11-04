@@ -228,6 +228,14 @@ describe('useRoleMemberEditor', () => {
     expect(editor.items.value).toEqual([{ basicId: 'u-2', displayName: 'CAROL', userName: 'carol' }])
     expect(mergeMemberCandidates([], [])).toEqual([])
   })
+
+  it('外部成员在候选与现有成员里都带标记', () => {
+    const items = mergeMemberCandidates(
+      [{ id: 'u-1', displayName: 'Alice', userName: 'alice', isExternalMember: true }, { id: 'u-2', displayName: 'Bob', userName: 'bob', isExternalMember: false }] as never,
+      [{ ...member('u-3', 'carol'), isExternalMember: true }] as never,
+    )
+    expect(items.map(item => [item.basicId, item.isExternalMember])).toEqual([['u-1', true], ['u-2', false], ['u-3', true]])
+  })
 })
 
 describe('useRoleDataScopeEditor', () => {

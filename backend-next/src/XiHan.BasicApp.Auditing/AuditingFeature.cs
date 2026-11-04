@@ -8,6 +8,7 @@ using XiHan.BasicApp.Auditing.Jobs;
 using XiHan.BasicApp.Auditing.Middleware;
 using XiHan.BasicApp.Auditing.Queries;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Workbench;
@@ -86,6 +87,8 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<ConditionHitQueries>();
         context.Services.AddScoped<OpenApiLogQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, AuditingWidgets>();
+        // 用户详情的今日统计（Identity 经 Contracts 取）
+        context.Services.AddScoped<IUserActivityReader, UserActivityReader>();
         context.Services.AddScoped<OperationLogQueries>();
         context.Services.AddScoped<TraceQueries>();
         context.Services.AddPermissionCatalog("auditing", AuditingPermissions.All);

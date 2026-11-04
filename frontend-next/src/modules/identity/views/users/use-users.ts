@@ -8,8 +8,10 @@ import { flattenDepartments } from './use-user-departments'
 
 export type UserRow = ResponseOf<'users.list'>['items'][number]
 export type UserStatus = UserRow['status']
+export type UserGender = UserRow['gender']
 
 export const USER_STATUSES: readonly UserStatus[] = ['Active', 'Locked', 'Disabled']
+export const USER_GENDERS: readonly UserGender[] = ['Unknown', 'Male', 'Female']
 
 /** 弹窗表单：新建与编辑共用一份（用户名只在新建时可填，初始密码只在新建时出现） */
 export interface UserForm {
@@ -18,6 +20,12 @@ export interface UserForm {
   email: string
   phoneNumber: string
   password: string
+  realName: string
+  gender: UserGender
+  /** 日期选择器的值（毫秒时间戳），没填为空 */
+  birthday: null | number
+  country: string
+  remark: string
 }
 
 export type UserEditorMode = 'create' | 'edit'
@@ -27,7 +35,7 @@ function blankToNull(value: string): null | string {
 }
 
 function emptyForm(): UserForm {
-  return { userName: '', displayName: '', email: '', phoneNumber: '', password: '' }
+  return { userName: '', displayName: '', email: '', phoneNumber: '', password: '', realName: '', gender: 'Unknown', birthday: null, country: '', remark: '' }
 }
 
 /** 登录策略：只在编辑时读写，要有设置权限 */
@@ -147,8 +155,9 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 }
 
 /**
- * 用户页的编辑弹窗：新建（用户名、显示名、邮箱、手机号与可选的初始密码）与编辑资料（显示名、邮箱、手机号）
+ * 用户页的编辑弹窗：新建（用户名、显示名、邮箱、手机号、个人资料与可选的初始密码）与编辑资料
  * 建在调用方当前所在的一侧（平台主体建平台账号，租户主体建本租户用户）。字段级错误挂回对应字段
+ * 外部成员的账号由其注册地维护（4.x 同）：打开即全部只读，提交不发请求，也不读登录策略
  */
 export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   const open = ref(false)
@@ -160,6 +169,7 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   const submitting = ref(false)
 
   const isEdit = computed(() => mode.value === 'edit')
+  const readonly = computed(() => isEdit.value && editing.value?.isExternalMember === true)
   const loginPolicy = reactive<LoginPolicyForm>({ allowMultiLogin: true, maxLoginDevices: 0 })
   const loadedPolicy = ref<LoginPolicyForm | null>(null)
 
@@ -178,7 +188,7 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
 
   async function loadLoginPolicy(row: UserRow) {
     loadedPolicy.value = null
-    if (!canSetLoginPolicy())
+    if (!canSetLoginPolicy() || row.isExternalMember)
       return
     const policy = await usersApi.loginPolicy({ id: row.id })
     if (editing.value?.id !== row.id)
@@ -191,7 +201,17 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
     mode.value = 'edit'
     editing.value = row
     void loadLoginPolicy(row)
-    reset({ userName: row.userName, displayName: row.displayName, email: row.email ?? '', phoneNumber: row.phoneNumber ?? '' })
+    reset({
+      userName: row.userName,
+      displayName: row.displayName,
+      email: row.email ?? '',
+      phoneNumber: row.phoneNumber ?? '',
+      realName: row.realName ?? '',
+      gender: row.gender,
+      birthday: row.birthday ? new Date(row.birthday).getTime() : null,
+      country: row.country ?? '',
+      remark: row.remark ?? '',
+    })
     open.value = true
   }
 
@@ -200,17 +220,25 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   }
 
   async function submit(): Promise<boolean> {
+    if (readonly.value)
+      return false
     submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
     try {
       const current = editing.value
+      const birthday = form.birthday ? new Date(form.birthday).toISOString() : null
       if (mode.value === 'edit' && current) {
         await usersApi.update({
           id: current.id,
           displayName: form.displayName.trim(),
           email: blankToNull(form.email),
           phoneNumber: blankToNull(form.phoneNumber),
+          realName: blankToNull(form.realName),
+          gender: form.gender,
+          birthday,
+          country: blankToNull(form.country),
+          remark: blankToNull(form.remark),
         })
         const before = loadedPolicy.value
         if (before && (before.allowMultiLogin !== loginPolicy.allowMultiLogin || before.maxLoginDevices !== loginPolicy.maxLoginDevices)) {
@@ -225,6 +253,12 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
           phoneNumber: blankToNull(form.phoneNumber),
           // 不填即账号在管理员重置密码前不能登录（后端语义）
           password: form.password === '' ? null : form.password,
+          realName: blankToNull(form.realName),
+          // 未设置不传：字段安全把性别设成只读时，不填才能建
+          gender: form.gender === 'Unknown' ? null : form.gender,
+          birthday,
+          country: blankToNull(form.country),
+          remark: blankToNull(form.remark),
         })
       }
       open.value = false
@@ -239,7 +273,7 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, loginPolicy, loadedPolicy, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return { open, mode, isEdit, readonly, editing, form, loginPolicy, loadedPolicy, fieldError, submitError, submitting, startCreate, startEdit, submit }
 }
 
 /**

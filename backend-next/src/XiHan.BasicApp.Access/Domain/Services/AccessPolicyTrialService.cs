@@ -8,9 +8,8 @@ using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.PermissionConditions;
 using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Contracts;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Kernel.Pipeline;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Conditions;
 using XiHan.Framework.Security.Abstractions.Network;
@@ -27,7 +26,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// </remarks>
 /// <param name="service">策略服务</param>
 /// <param name="grants">授予全貌（用户此刻的角色）</param>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户（含外部成员）</param>
 /// <param name="policyEvaluator">策略求值（编译与时机）</param>
 /// <param name="conditionEvaluator">条件求值器（说明模式）</param>
 /// <param name="options">授权包配置</param>
@@ -36,7 +35,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed class AccessPolicyTrialService(
     AccessPolicyService service,
     GrantEvaluator grants,
-    IRepository<SysUser, Guid> users,
+    SideUsers users,
     AccessPolicyEvaluator policyEvaluator,
     IConditionEvaluator conditionEvaluator,
     AccessOptions options,
@@ -86,7 +85,7 @@ public sealed class AccessPolicyTrialService(
         IReadOnlyList<Guid> roleIds = [];
         if (request.UserId is { } id)
         {
-            if (!(await users.FindAsync(id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
+            if (!(await users.FindAsync(id, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
             {
                 return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", id)));
             }

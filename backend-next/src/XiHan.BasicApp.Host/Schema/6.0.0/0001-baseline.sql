@@ -1807,6 +1807,7 @@ CREATE TABLE IF NOT EXISTS "sys_user" (
     "status" integer DEFAULT 0 NOT NULL,
     "is_system_account" boolean DEFAULT false NOT NULL,
     "last_login_at" timestamp with time zone NULL,
+    "last_login_ip" character varying(512) DEFAULT NULL::character varying NULL,
     "real_name" character varying(50) DEFAULT NULL::character varying NULL,
     "gender" integer DEFAULT 0 NOT NULL,
     "birthday" timestamp with time zone NULL,

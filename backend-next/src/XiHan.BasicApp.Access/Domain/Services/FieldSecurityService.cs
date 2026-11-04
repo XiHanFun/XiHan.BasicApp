@@ -5,6 +5,7 @@ using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -41,6 +42,7 @@ public sealed record FieldRuleDefinition(FieldSecurityTargetKind TargetKind, Gui
 /// <param name="rules">规则仓储</param>
 /// <param name="roles">角色仓储</param>
 /// <param name="users">用户仓储</param>
+/// <param name="sideUsers">这一侧的用户（含外部成员）</param>
 /// <param name="departments">部门仓储（租户库）</param>
 /// <param name="catalog">字段安全实体目录</param>
 /// <param name="cache">规则缓存</param>
@@ -49,6 +51,7 @@ public sealed class FieldSecurityService(
     IRepository<SysFieldSecurityRule, Guid> rules,
     IRepository<SysRole, Guid> roles,
     IRepository<SysUser, Guid> users,
+    SideUsers sideUsers,
     IRepository<SysDepartment, Guid> departments,
     FieldSecurityCatalog catalog,
     FieldSecurityRules cache,
@@ -284,7 +287,7 @@ public sealed class FieldSecurityService(
 
                 return role.Status == RoleStatus.Active ? Result.Success() : Disabled(kind, targetId);
             case FieldSecurityTargetKind.User:
-                if (!(await users.FindAsync(targetId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal))
+                if (!(await sideUsers.FindAsync(targetId, owner, cancellationToken).ConfigureAwait(false)).HasValue)
                 {
                     return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", targetId)));
                 }

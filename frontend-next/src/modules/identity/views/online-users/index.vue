@@ -5,7 +5,7 @@ import { computed, h, onActivated, onBeforeUnmount, onDeactivated, onMounted, re
 import { useI18n } from 'vue-i18n'
 import { Icon, renderTag, SchemaPage } from '~/components'
 import { dialog, toast } from '~/composables'
-import { DEVICE_TYPES, formatDuration, loadSessionSummary, onlineSeconds, onlineSessionsResource, revokeSession, sessionUserName } from './use-online-users'
+import { DEVICE_TYPES, deviceLabel, formatDuration, loadSessionSummary, onlineSeconds, onlineSessionsResource, revokeSession, sessionUserName } from './use-online-users'
 
 defineOptions({ name: 'IdentityOnlineUsersView' })
 
@@ -51,17 +51,7 @@ onDeactivated(stopSummaryPolling)
 onBeforeUnmount(stopSummaryPolling)
 
 // ── 列表 ─────────────────────────────────────────────────────────
-function deviceLabel(device: string | null | undefined): string {
-  switch (device) {
-    case 'Desktop': return t('identity.online_users.device_desktop')
-    case 'Mobile': return t('identity.online_users.device_mobile')
-    case 'Tablet': return t('identity.online_users.device_tablet')
-    case 'Bot': return t('identity.online_users.device_bot')
-    default: return t('identity.online_users.device_unknown')
-  }
-}
-
-const deviceOptions = computed(() => DEVICE_TYPES.map(value => ({ label: deviceLabel(value), value })))
+const deviceOptions = computed(() => DEVICE_TYPES.map(value => ({ label: deviceLabel(value, t), value })))
 
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('identity.online_users.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.online_users.keyword_placeholder'), order: 0 },
@@ -100,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.online_users.device_type_placeholder'),
     width: 100,
     order: 12,
-    render: row => renderTag(deviceLabel(asRow(row).device), 'info'),
+    render: row => renderTag(deviceLabel(asRow(row).device, t), 'info'),
   },
   { key: 'os', title: t('identity.online_users.col_os'), dataType: 'string', advancedSearch: true, minWidth: 110, order: 14 },
   { key: 'browser', title: t('identity.online_users.col_browser'), dataType: 'string', advancedSearch: true, minWidth: 110, order: 15 },

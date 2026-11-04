@@ -14,7 +14,7 @@
   "roles.revoke.title": "Revoke role permissions",
   "roles.revoke.description": "Revoke permissions from a role.",
   "roles.assign.title": "Assign role members",
-  "roles.assign.description": "Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh.",
+  "roles.assign.description": "Assign users to a role; users must belong to the role's side (registered there, or an external member of the tenant). Takes effect at the user's next token refresh.",
   "roles.unassign.title": "Remove role members",
   "roles.unassign.description": "Remove users from a role. Takes effect at the user's next token refresh.",
   "roles.members.title": "List role members",

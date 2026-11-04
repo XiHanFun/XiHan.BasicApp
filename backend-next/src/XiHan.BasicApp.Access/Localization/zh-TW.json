@@ -14,7 +14,7 @@
   "roles.revoke.title": "撤銷角色權限",
   "roles.revoke.description": "撤銷角色的權限。",
   "roles.assign.title": "指派角色成員",
-  "roles.assign.description": "為角色指派成員；使用者須與角色同一側。最遲在使用者下次更新權杖時生效。",
+  "roles.assign.description": "給角色指派成員；使用者須在角色這一側（註冊在這裡或本租戶的外部成員）。最遲在使用者下次重新整理權杖時生效。",
   "roles.unassign.title": "解除角色成員",
   "roles.unassign.description": "解除角色成員。最遲在使用者下次更新權杖時生效。",
   "roles.members.title": "查詢角色成員",

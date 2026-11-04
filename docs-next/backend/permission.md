@@ -40,7 +40,7 @@ Authorize 阶段之后
 | `roles.grant` | `access.roles.grant` | 授予权限码（1–200 个），可带生效 / 到期与原因 |
 | `roles.deny` | `access.roles.grant` | 拒绝：撤掉同码授予并写 Deny |
 | `roles.revoke` | `access.roles.grant` | 解除授予或拒绝 |
-| `roles.assign` / `unassign` / `update-member` | `access.roles.assign` | 指派成员（用户注册地须与角色同一侧），指派可带有效期 |
+| `roles.assign` / `unassign` / `update-member` | `access.roles.assign` | 指派成员（用户须与角色同一侧：注册在这一侧或本租户的[外部成员](./multi-tenancy#外部成员)），指派可带有效期 |
 | `roles.members` / `roles.by-user` / `roles.hierarchy` | `access.roles.read` | 成员、某用户的角色、继承关系 |
 | `roles.set-parents` | `access.roles.set-parents` | 设置直接上级（最多 50 个），只存直接边，图上推导，拒绝成环 |
 

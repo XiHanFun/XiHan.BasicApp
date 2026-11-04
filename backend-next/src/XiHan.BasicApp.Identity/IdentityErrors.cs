@@ -388,6 +388,14 @@ public static class IdentityErrors
     public const string ContactUnverified = "IDENTITY_VALIDATION_023";
 
     /// <summary>
+    /// 时区不认得
+    /// </summary>
+    /// <remarks>
+    /// <c>users.detail</c> 的今日统计按它分天
+    /// </remarks>
+    public const string TimeZoneInvalid = "IDENTITY_VALIDATION_024";
+
+    /// <summary>
     /// 第二步只剩这次登录收码的那种方式
     /// </summary>
     /// <remarks>

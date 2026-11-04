@@ -6,9 +6,8 @@ using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Contracts.Auditing;
-using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Kernel.Operations;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Database.Grants;
 
@@ -20,11 +19,11 @@ namespace XiHan.BasicApp.Access.Operations.UserGrants;
 /// <remarks>
 /// <c>GET /api/user-grants?userId=</c>。授予来自框架授予存储（含别的包直接写入的，如超管的 <c>*</c>），拒绝与有效期来自授予规则
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsRead)]
-public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserGrantsRequest, UserGrantsResponse>
+public sealed class ListUserGrants(SideUsers users, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserGrantsRequest, UserGrantsResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -82,13 +81,13 @@ public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissi
 /// <remarks>
 /// <c>POST /api/user-grants:deny</c>。用户上的 Deny 压过一切授予（角色、直接授予）；同码的直接授予撤掉，换成 Deny 规则（可带有效期与原因）
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class DenyUser(SideUsers users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -122,13 +121,13 @@ public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog
 /// <remarks>
 /// <c>POST /api/user-grants:revoke</c>。连同这些权限码上的规则一起删；只有 Deny 的撤销即解除拒绝，算成功；两者都没有的是 NotFound
 /// </remarks>
-/// <param name="users">用户仓储</param>
+/// <param name="users">这一侧的用户</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class RevokeUser(IRepository<SysUser, Guid> users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class RevokeUser(SideUsers users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID

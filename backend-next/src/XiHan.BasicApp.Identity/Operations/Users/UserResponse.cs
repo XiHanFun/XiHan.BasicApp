@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 用户的响应形态
 /// </summary>
 /// <remarks>
-/// <c>users.create / get / update</c> 的响应、<c>users.list</c> 的列表项与登录响应里的资料共用
+/// <c>users.create / get / update</c> 的响应与登录响应里的资料共用；<c>users.list</c> 的列表项是 <see cref="UserListItemResponse"/>
 /// </remarks>
 /// <param name="Id">用户 ID</param>
 /// <param name="UserName">登录名</param>
@@ -23,6 +23,13 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="CreatedBy">创建人（主体 ID）</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空</param>
 /// <param name="IsSystemAccount">是否系统内置账号：不能停用、删除、锁定或由管理员重置密码</param>
+/// <param name="RealName">真实姓名</param>
+/// <param name="Gender">性别</param>
+/// <param name="Birthday">生日</param>
+/// <param name="Country">国家或地区</param>
+/// <param name="Remark">备注（本人在个人中心看到的个人简介是同一列）</param>
+/// <param name="LastLoginIp">最近一次登录的 IP</param>
+/// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（<c>users.list / get / detail</c>）判定，其余响应为假</param>
 public sealed record UserResponse(
     Guid Id,
     string UserName,
@@ -35,14 +42,47 @@ public sealed record UserResponse(
     DateTimeOffset CreatedAt,
     string? CreatedBy,
     Guid? AvatarFileId,
-    bool IsSystemAccount)
+    bool IsSystemAccount,
+    string? RealName,
+    UserGender Gender,
+    DateTimeOffset? Birthday,
+    string? Country,
+    string? Remark,
+    string? LastLoginIp,
+    bool IsExternalMember)
 {
     /// <summary>
     /// 由实体投影
     /// </summary>
-    public static UserResponse From(SysUser user)
+    public static UserResponse From(SysUser user) => From(user, null);
+
+    /// <summary>
+    /// 由实体投影，并按调用方所在的租户判定是不是外部成员
+    /// </summary>
+    /// <param name="user">用户</param>
+    /// <param name="tenantId">调用方所在的租户；平台一侧为空</param>
+    public static UserResponse From(SysUser user, string? tenantId)
     {
         ArgumentNullException.ThrowIfNull(user);
-        return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy, user.AvatarFileId, user.IsSystemAccount);
+        return new UserResponse(
+            user.Id,
+            user.UserName,
+            user.DisplayName,
+            user.Email,
+            user.PhoneNumber,
+            user.HomeTenantId,
+            user.Status,
+            user.LastLoginAt,
+            user.CreatedAt,
+            user.CreatedBy,
+            user.AvatarFileId,
+            user.IsSystemAccount,
+            user.RealName,
+            user.Gender,
+            user.Birthday,
+            user.Country,
+            user.Remark,
+            user.LastLoginIp,
+            tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal));
     }
 }

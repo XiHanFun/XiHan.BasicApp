@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Identity;
 public static class IdentityPermissions
 {
     /// <summary>
-    /// 读用户：<c>users.get</c>、<c>users.list</c>
+    /// 读用户：<c>users.get</c>、<c>users.list</c>、<c>users.detail</c>
     /// </summary>
     public const string UsersRead = "identity.users.read";
 
@@ -81,7 +81,7 @@ public static class IdentityPermissions
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
     [
-        new(UsersRead, "Read users", PermissionScope.Both, description: "View users of the current tenant."),
+        new(UsersRead, "Read users", PermissionScope.Both, description: "View users and external members of the current tenant, with their security state, today's activity and current session."),
         new(UsersCreate, "Create users", PermissionScope.Both, audited: true, description: "Create users in the current tenant."),
         new(UsersUpdate, "Update users", PermissionScope.Both, audited: true, description: "Edit user profiles of the current tenant."),
         new(UsersDelete, "Delete users", PermissionScope.Both, audited: true, description: "Delete users of the current tenant."),

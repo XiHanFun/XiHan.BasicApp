@@ -18,6 +18,17 @@ export function onlineSessionsResource(): SchemaResource<OnlineSessionRow> {
   return { page: async params => toSchemaPageResult(await sessions.list(toPageRequest(params, ONLINE_SESSION_QUERY)), params) }
 }
 
+/** 设备类型的文案：认不出的算未知（在线用户页与用户详情共用） */
+export function deviceLabel(device: null | string | undefined, t: (key: string) => string): string {
+  switch (device) {
+    case 'Desktop': return t('identity.online_users.device_desktop')
+    case 'Mobile': return t('identity.online_users.device_mobile')
+    case 'Tablet': return t('identity.online_users.device_tablet')
+    case 'Bot': return t('identity.online_users.device_bot')
+    default: return t('identity.online_users.device_unknown')
+  }
+}
+
 /** 本次会话在线时长（秒）：登录时间至今；时钟偏差导致的负数按 0 计 */
 export function onlineSeconds(row: Pick<OnlineSessionRow, 'loginAt'>, now: number = Date.now()): number {
   return Math.max(0, Math.floor((now - new Date(row.loginAt).getTime()) / 1000))
