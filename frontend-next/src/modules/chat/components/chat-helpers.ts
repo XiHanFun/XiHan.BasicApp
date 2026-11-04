@@ -24,6 +24,31 @@ export function hasReadReceipt(conversationType: ChatConversationType | undefine
   return conversationType !== 'Assistant'
 }
 
+/**
+ * 助手回复交给 Markdown 渲染前去掉图片语法：回复内容受知识库片段与工具结果影响，
+ * 自动加载的图片地址能把对话内容带到外部，所以只留成要点一下的链接
+ */
+export function assistantMarkdownSource(text: string): string {
+  return text.replace(/!\[/g, '[')
+}
+
+/** 会话列表与消息提醒的一行预览：助手回复去掉 Markdown 标记，别的会话照原文 */
+export function previewText(conversationType: ChatConversationType | undefined, text: string): string {
+  if (conversationType !== 'Assistant') {
+    return text
+  }
+
+  return text
+    .replace(/```[^\n]*\n?/g, '')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)?/g, '$1')
+    .replace(/^[ \t:|-]+$/gm, '')
+    .replace(/^[ \t]*(?:#{1,6}[ \t]+|[-*+][ \t]+|>[ \t]?)/gm, '')
+    .replace(/[*~`]|__/g, '')
+    .replace(/\|/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /** 消息正文/附件的简短标签（回复引用、搜索命中、置顶预览用）：多图/多文件带数量 */
 export function messageBodyLabel(message: {
   content?: null | string

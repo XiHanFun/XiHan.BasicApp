@@ -14,7 +14,7 @@ import {
   CHAT_PERMISSIONS,
 } from '../constants'
 import { useChatStore } from '../store'
-import { chatErrorText, formatConversationTime } from './chat-helpers'
+import { chatErrorText, formatConversationTime, previewText } from './chat-helpers'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatConversationAvatar from './ChatConversationAvatar.vue'
 
@@ -202,7 +202,7 @@ function handleItemAction(key: string) {
                 </span>
                 {{ chatStore.typingIndicators[conv.conversationId]
                   ? t('chat.thread.typing', { name: chatStore.typingIndicators[conv.conversationId]?.userName ?? '' })
-                  : conv.lastMessagePreview ?? '' }}
+                  : previewText(conv.conversationType, conv.lastMessagePreview ?? '') }}
               </span>
               <span class="flex shrink-0 items-center gap-1">
                 <Icon

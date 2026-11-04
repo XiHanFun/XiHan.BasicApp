@@ -15,6 +15,7 @@ import { useRoute } from 'vue-router'
 import { islandStart, playNotificationSound, useSignalR } from '~/composables'
 import { RealtimeHubs, RealtimeMethods } from '~/contracts'
 import { useAccessStore, useUserStore } from '~/stores'
+import { previewText } from '../components/chat-helpers'
 import { CHAT_PAGE_PATH, CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
 
@@ -60,7 +61,7 @@ export function useChatIntegration() {
 
     // 卡片形态：标题给发送人、副文本给消息正文，与手机通知一致
     const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
-    const preview = conversation.lastMessagePreview?.trim() || message.content?.trim() || ''
+    const preview = previewText(conversation.conversationType, conversation.lastMessagePreview?.trim() || message.content?.trim() || '')
     // islandStart 只建条目，要靠句柄置终态才会安排移除；此处随即 info() 收尾，
     // 否则这条通知会一直挂在岛上不消失
     // id 带上 messageId：按会话取 id 会让同一会话的后续消息复用同一条目（更新而非新增），

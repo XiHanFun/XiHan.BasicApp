@@ -13,6 +13,7 @@ import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
 import { chatErrorText, formatFileSize, formatMessageTime } from './chat-helpers'
 import { useChatImageGallery } from './chat-image-gallery'
+import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatMessageImage from './ChatMessageImage.vue'
 
 defineOptions({ name: 'ChatMessageItemView' })
@@ -52,6 +53,8 @@ const isFile = computed(() => props.message.messageType === 'File')
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 /** 被 @ 到我：气泡高亮 */
+const isAssistantReply = computed(() => props.conversationType === 'Assistant' && !props.isSelf)
+
 const mentionsMe = computed(() =>
   !props.isSelf && props.message.mentionedUserIds?.includes(currentUserId.value))
 
@@ -336,9 +339,10 @@ async function handleDownload(fileId: string) {
           <span class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
         </template>
 
-        <!-- 文本 -->
+        <!-- 文本：助手的回复按 Markdown 显示，别的照原文 -->
         <template v-else>
-          <span class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
+          <ChatAssistantMarkdown v-if="isAssistantReply" :text="message.content ?? ''" />
+          <span v-else class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
         </template>
       </div>
 

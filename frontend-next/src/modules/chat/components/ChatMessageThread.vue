@@ -25,6 +25,7 @@ import {
 } from '../types'
 import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
+import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
@@ -782,7 +783,7 @@ onBeforeUnmount(() => {
                 </XhButton>
               </template>
               <template v-else>
-                <span>{{ assistantStream.text }}</span>
+                <ChatAssistantMarkdown :text="assistantStream.text" :streaming="assistantStream.streaming" />
                 <span v-if="assistantStream.streaming" class="ml-1 text-muted-foreground">{{ t('chat.thread.assistant_thinking') }}</span>
               </template>
             </div>
