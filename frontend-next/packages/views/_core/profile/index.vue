@@ -9,6 +9,7 @@ import { XUserAvatar } from '~/components'
 import { toast } from '~/composables'
 import { PROFILE_ACTIVE_TAB_KEY } from '~/constants'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext, useUserStore } from '~/stores'
 import { SessionStorage } from '~/utils'
 import ProfileTabBinding from './ProfileTabBinding.vue'
@@ -124,13 +125,18 @@ function selectTab(key: string) {
   SessionStorage.set(PROFILE_ACTIVE_TAB_KEY, key)
 }
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+}
+
 async function loadProfile() {
   profileLoading.value = true
   try {
     profile.value = await apis.getProfileApi()
   }
   catch (error: unknown) {
-    toast.danger(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
+    toast.danger(messageOf(error) || t('component.profile.msg_load_profile_failed'))
   }
   finally {
     profileLoading.value = false

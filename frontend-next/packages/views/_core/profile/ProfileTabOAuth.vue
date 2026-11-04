@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
@@ -36,13 +37,18 @@ const clientTypeOptions = [
   { label: t('component.profile.oauth.type_public'), value: 'Public' },
 ]
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+}
+
 async function loadApps() {
   loading.value = true
   try {
     apps.value = await apis.getMyOAuthAppsApi()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.oauth.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.oauth.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -110,7 +116,7 @@ async function handleSubmit() {
     return true
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.danger(messageOf(e) || t('component.profile.oauth.err_save_failed'))
     return false
   }
   finally {
@@ -132,7 +138,7 @@ function handleRegenerate(app: MyOAuthAppItem) {
         await loadApps()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
+        toast.danger(messageOf(e) || t('component.profile.oauth.err_save_failed'))
       }
     },
   })
@@ -145,7 +151,7 @@ async function handleToggleStatus(app: MyOAuthAppItem, enabled: boolean) {
     await loadApps()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.danger(messageOf(e) || t('component.profile.oauth.err_save_failed'))
     await loadApps()
   }
 }
@@ -168,7 +174,7 @@ function handleDelete(app: MyOAuthAppItem) {
         await loadApps()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.oauth.err_delete_failed'))
+        toast.danger(messageOf(e) || t('component.profile.oauth.err_delete_failed'))
       }
     },
   })
@@ -189,7 +195,7 @@ async function loadConsents() {
     consents.value = await apis.getOAuthConsentsApi()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.oauth.err_consents_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.oauth.err_consents_load_failed'))
   }
   finally {
     consentsLoading.value = false
@@ -211,7 +217,7 @@ function handleRevoke(consent: OAuthConsentItem) {
         await loadConsents()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.oauth.err_revoke_failed'))
+        toast.danger(messageOf(e) || t('component.profile.oauth.err_revoke_failed'))
       }
     },
   })

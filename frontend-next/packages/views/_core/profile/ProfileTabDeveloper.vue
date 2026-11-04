@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
@@ -22,13 +23,18 @@ const createModalVisible = ref(false)
 const createSubmitting = ref(false)
 const createName = ref('')
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+}
+
 async function loadCredentials() {
   credentialsLoading.value = true
   try {
     credentials.value = await apis.getApiCredentialsApi()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_load_failed'))
   }
   finally {
     credentialsLoading.value = false
@@ -49,7 +55,7 @@ async function handleCreateCredential() {
     await loadCredentials()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_create_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_create_failed'))
   }
   finally {
     createSubmitting.value = false
@@ -70,7 +76,7 @@ function handleRotateSecret(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.developer.err_rotate_failed'))
+        toast.danger(messageOf(e) || t('component.profile.developer.err_rotate_failed'))
       }
     },
   })
@@ -83,7 +89,7 @@ async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
     await loadCredentials()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_update_status_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_update_status_failed'))
     await loadCredentials()
   }
 }
@@ -106,7 +112,7 @@ function handleDeleteCredential(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.developer.err_delete_failed'))
+        toast.danger(messageOf(e) || t('component.profile.developer.err_delete_failed'))
       }
     },
   })
@@ -151,7 +157,7 @@ async function handleSaveOpenApiSettings() {
     toast.success(t('component.profile.developer.msg_settings_saved'))
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_save_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_save_failed'))
   }
   finally {
     settingsSaving.value = false
