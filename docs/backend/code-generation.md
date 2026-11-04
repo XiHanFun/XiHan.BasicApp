@@ -118,7 +118,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 | `GET /api/codegen-histories/{id}/package` | 普通端点，以附件下载这次的产物包（Zip），要生成历史的读权限 |
 
 - **打包下载**（照 5.x 的包结构）：每次覆盖的文件进 `_generated/`、只首次写的进 `_manual/`（各自下面再分 `backend/` 与 `frontend/`），登记片段在 `_registration/`，包根有 `README.txt`。产物包经 Files 的临时文件契约 `ITemporaryFiles`（Contracts）存成 7 天的临时文件（同导出中心），从上面的端点下载；写进项目、生成失败或已到期的历史没有产物包（`CODEGENERATION_NOTFOUND_005`）。5.x 把产物包以 Base64 放进生成的响应。
-- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用（方案 C1），其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend-next`）与 `FrontendRootPath`（`frontend-next`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
+- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用，其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend-next`）与 `FrontendRootPath`（`frontend-next`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
 - 失败的那条历史在独立的短事务里写（调用失败会回滚自己的写入），失败原因记错误码与调用方语言的文案。
 
 ## 零代码运行时
