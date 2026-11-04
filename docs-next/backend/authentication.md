@@ -124,7 +124,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `impersonation.start` | 以目标身份另开会话并签发令牌（`sub` 是目标、`act` 是发起人），不写目标的登录痕迹；发起人会话保留 |
 | `impersonation.stop` | 结束模仿，回到发起人的会话 |
 
-范围不填即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户或平台。不能模仿自己，不能在模仿态里再模仿。权限码 `identity.impersonation.start`，开始与结束都进登录日志。
+范围不填即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户或平台。不能模仿自己，不能在模仿态里再模仿；一条原会话同时只挂一条模仿会话，还没结束时再发起是 `IDENTITY_CONFLICT_015`（要先 `impersonation.stop`，或等它到期）。权限码 `identity.impersonation.start`，开始与结束都进登录日志。
 
 系统参数 `identity.impersonation`（JSON，没建即缺省，按发起人所在的一侧取，写错即 `IDENTITY_VALIDATION_024`、不发起）：
 

@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "내 계정 비활성화",
   "profile.deactivate_account.description": "내 계정을 비활성화하고 모든 세션을 로그아웃합니다. 관리자가 다시 활성화할 수 있습니다. 현재 비밀번호가 필요하며 대리 로그인 중이나 기본 계정에서는 할 수 없고, 테넌트 소유자는 먼저 소유권을 이전해야 합니다.",
   "profile.delete_account.title": "내 계정 삭제",
-  "profile.delete_account.description": "내 계정을 삭제하고 모든 세션을 로그아웃합니다. 이후 이 계정으로 로그인할 수 없습니다. 현재 비밀번호가 필요하며 대리 로그인 중이나 기본 계정에서는 할 수 없고, 테넌트 소유자는 먼저 소유권을 이전해야 합니다."
+  "profile.delete_account.description": "내 계정을 삭제하고 모든 세션을 로그아웃합니다. 이후 이 계정으로 로그인할 수 없습니다. 현재 비밀번호가 필요하며 대리 로그인 중이나 기본 계정에서는 할 수 없고, 테넌트 소유자는 먼저 소유권을 이전해야 합니다.",
+  "identity.impersonation.running": "진행 중인 대리 로그인 세션이 있습니다. 먼저 종료하세요."
 }

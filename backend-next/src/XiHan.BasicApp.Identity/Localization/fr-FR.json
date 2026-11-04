@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "Désactiver mon compte",
   "profile.deactivate_account.description": "Désactive votre compte et déconnecte toutes les sessions ; un administrateur peut le réactiver. Le mot de passe actuel est requis ; indisponible en emprunt d'identité ou pour les comptes intégrés, et les propriétaires de locataire doivent d'abord transférer la propriété.",
   "profile.delete_account.title": "Supprimer mon compte",
-  "profile.delete_account.description": "Supprime votre compte et déconnecte toutes les sessions ; il ne peut plus se connecter. Le mot de passe actuel est requis ; indisponible en emprunt d'identité ou pour les comptes intégrés, et les propriétaires de locataire doivent d'abord transférer la propriété."
+  "profile.delete_account.description": "Supprime votre compte et déconnecte toutes les sessions ; il ne peut plus se connecter. Le mot de passe actuel est requis ; indisponible en emprunt d'identité ou pour les comptes intégrés, et les propriétaires de locataire doivent d'abord transférer la propriété.",
+  "identity.impersonation.running": "Une session d'emprunt d'identité est déjà en cours. Terminez-la d'abord."
 }

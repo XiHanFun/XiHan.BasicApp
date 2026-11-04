@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "停用本人帳號",
   "profile.deactivate_account.description": "停用本人帳號並登出全部工作階段，之後不能登入，可由管理員重新啟用。需要目前密碼；模仿工作階段不能執行，系統內建帳號不能自助停用，租戶擁有者要先轉移所有權。",
   "profile.delete_account.title": "註銷本人帳號",
-  "profile.delete_account.description": "註銷本人帳號並登出全部工作階段，之後不能再用這個帳號登入。需要目前密碼；模仿工作階段不能執行，系統內建帳號不能自助註銷，租戶擁有者要先轉移所有權。"
+  "profile.delete_account.description": "註銷本人帳號並登出全部工作階段，之後不能再用這個帳號登入。需要目前密碼；模仿工作階段不能執行，系統內建帳號不能自助註銷，租戶擁有者要先轉移所有權。",
+  "identity.impersonation.running": "目前已有進行中的模擬工作階段，請先結束。"
 }

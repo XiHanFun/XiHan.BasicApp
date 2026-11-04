@@ -451,6 +451,14 @@ public static class IdentityErrors
     public const string SystemAccount = "IDENTITY_CONFLICT_014";
 
     /// <summary>
+    /// 这条会话已经有进行中的模仿会话
+    /// </summary>
+    /// <remarks>
+    /// 要先结束（<c>impersonation.stop</c>），或等它到期
+    /// </remarks>
+    public const string ImpersonationRunning = "IDENTITY_CONFLICT_015";
+
+    /// <summary>
     /// 系统参数里的模仿登录设置写得不对
     /// </summary>
     /// <remarks>

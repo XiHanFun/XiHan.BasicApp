@@ -10,10 +10,12 @@ using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Users;
+using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
@@ -81,6 +83,13 @@ public sealed class StartImpersonation(
         if (origin.ImpersonatorUserId is not null)
         {
             return Error.Conflict(IdentityErrors.ImpersonationActive, IdentityMessages.ImpersonationActive);
+        }
+
+        // 一条原会话同时只挂一条模仿会话（4.x 同），要先结束
+        var running = await sessions.CountAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.ImpersonatorSessionId == originSessionId && !s.RevokedAt.HasValue && s.RefreshExpiresAt > now)), context.CancellationToken).ConfigureAwait(false);
+        if (running > 0)
+        {
+            return Error.Conflict(IdentityErrors.ImpersonationRunning, IdentityMessages.ImpersonationRunning);
         }
 
         if (!(await users.FindAsync(origin.UserId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var actor) || actor.Status != UserStatus.Active)

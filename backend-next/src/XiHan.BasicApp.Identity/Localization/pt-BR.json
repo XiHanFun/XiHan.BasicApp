@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "Desativar minha conta",
   "profile.deactivate_account.description": "Desativa sua conta e encerra todas as sessões; um administrador pode reativá-la. Requer a senha atual; indisponível durante personificação ou para contas internas, e proprietários de locatário devem transferir a propriedade primeiro.",
   "profile.delete_account.title": "Excluir minha conta",
-  "profile.delete_account.description": "Exclui sua conta e encerra todas as sessões; ela não poderá mais entrar. Requer a senha atual; indisponível durante personificação ou para contas internas, e proprietários de locatário devem transferir a propriedade primeiro."
+  "profile.delete_account.description": "Exclui sua conta e encerra todas as sessões; ela não poderá mais entrar. Requer a senha atual; indisponível durante personificação ou para contas internas, e proprietários de locatário devem transferir a propriedade primeiro.",
+  "identity.impersonation.running": "Já existe uma sessão de personificação em andamento. Encerre-a primeiro."
 }

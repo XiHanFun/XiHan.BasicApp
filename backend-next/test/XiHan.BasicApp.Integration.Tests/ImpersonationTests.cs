@@ -45,6 +45,12 @@ public sealed class ImpersonationTests : IDisposable
         return startedBody;
     }
 
+    private static async Task StopImpersonationAsync(BasicAppTestServer server, JsonElement started)
+    {
+        var (stopped, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:stop", "{}", started.GetProperty("accessToken").GetString()!));
+        Assert.Equal(HttpStatusCode.OK, stopped.StatusCode);
+    }
+
     private static async Task<string> ConfigureAsync(BasicAppTestServer server, string platform, string dataType, string value)
     {
         var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = ImpersonationSettings.ConfigKey, name = "Impersonation", dataType, value }), platform));
@@ -126,6 +132,10 @@ public sealed class ImpersonationTests : IDisposable
         var (nested, nestedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{helperId}}","tenantId":"demo"}""", impersonating));
         Assert.Equal(HttpStatusCode.Conflict, nested.StatusCode);
         Assert.Equal("IDENTITY_CONFLICT_003", nestedBody.GetProperty("code").GetString());
+
+        // 原会话还挂着一条模仿会话：再发起被拒，要先结束
+        var (second, secondBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{demoAdminId}}","tenantId":"demo","reason":"again"}""", superadmin));
+        Assert.Equal((HttpStatusCode.Conflict, "IDENTITY_CONFLICT_015"), (second.StatusCode, secondBody.GetProperty("code").GetString()));
         var (noSwitch, noSwitchBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:switch-tenant", "{}", impersonating));
         Assert.Equal(HttpStatusCode.Conflict, noSwitch.StatusCode);
         Assert.Equal("IDENTITY_CONFLICT_003", noSwitchBody.GetProperty("code").GetString());
@@ -238,6 +248,7 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal(clock.GetUtcNow().AddMinutes(5), started.GetProperty("refreshExpiresAt").GetDateTimeOffset());
         Assert.Equal(clock.GetUtcNow().AddMinutes(5), started.GetProperty("accessExpiresAt").GetDateTimeOffset());
         Assert.Empty(await SecurityNoticesAsync(server, demoAdmin));
+        await StopImpersonationAsync(server, started);
 
         // 只写一项，另一项取缺省：8 小时是上限，比访问令牌（120 分钟）长时访问令牌仍是自己的时长，要靠刷新续
         await UpdateAsync("""{"sessionMinutes":480}""");
@@ -245,6 +256,7 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal(clock.GetUtcNow().AddMinutes(480), longest.GetProperty("refreshExpiresAt").GetDateTimeOffset());
         Assert.Equal(clock.GetUtcNow().AddMinutes(120), longest.GetProperty("accessExpiresAt").GetDateTimeOffset());
         Assert.Single(await SecurityNoticesAsync(server, demoAdmin));
+        await StopImpersonationAsync(server, longest);
 
         // 写错：超出范围、类型不对、不是 JSON，都不发起（看不懂的参数不当缺省用）
         foreach (var (dataType, value) in new[] { ("Json", """{"sessionMinutes":481}"""), ("Json", """{"sessionMinutes":0}"""), ("Json", """{"notifyTarget":"yes"}"""), ("Text", "thirty") })
@@ -275,13 +287,14 @@ public sealed class ImpersonationTests : IDisposable
         var demoAdmin = (await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;
         var (preference, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:update-notification-preference", """{"channelInApp":false,"channelEmail":false,"channelSms":false,"typeAnnouncement":false,"typeTask":false,"typeSecurity":false}""", demoAdmin));
         Assert.Equal(HttpStatusCode.OK, preference.StatusCode);
-        await StartImpersonationAsync(server, superadmin, demoAdminId, "demo", acceptLanguage: "en-US");
+        var intoTenant = await StartImpersonationAsync(server, superadmin, demoAdminId, "demo", acceptLanguage: "en-US");
         var notice = Assert.Single(await SecurityNoticesAsync(server, demoAdmin));
         Assert.Equal("An administrator signed in as you", notice.GetProperty("title").GetString());
         Assert.Contains("superadmin", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
         Assert.Contains("30 minutes", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
         // 平台一侧的收件箱里没有这一条
         Assert.Empty(await SecurityNoticesAsync(server, superadmin));
+        await StopImpersonationAsync(server, intoTenant);
 
         // 租户主体模仿本租户的人：存了界面语言的按他的语言
         var manager = (await AuthFlowTests.LoginAsync(server, "manager", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;

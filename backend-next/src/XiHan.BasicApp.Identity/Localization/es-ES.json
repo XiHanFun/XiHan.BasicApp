@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "Desactivar mi cuenta",
   "profile.deactivate_account.description": "Desactiva tu cuenta y cierra todas las sesiones; un administrador puede volver a activarla. Requiere la contraseña actual; no disponible al suplantar ni para cuentas integradas, y los propietarios de inquilino deben transferir antes la propiedad.",
   "profile.delete_account.title": "Eliminar mi cuenta",
-  "profile.delete_account.description": "Elimina tu cuenta y cierra todas las sesiones; ya no podrá iniciar sesión. Requiere la contraseña actual; no disponible al suplantar ni para cuentas integradas, y los propietarios de inquilino deben transferir antes la propiedad."
+  "profile.delete_account.description": "Elimina tu cuenta y cierra todas las sesiones; ya no podrá iniciar sesión. Requiere la contraseña actual; no disponible al suplantar ni para cuentas integradas, y los propietarios de inquilino deben transferir antes la propiedad.",
+  "identity.impersonation.running": "Ya hay una sesión de suplantación en curso. Termínala primero."
 }

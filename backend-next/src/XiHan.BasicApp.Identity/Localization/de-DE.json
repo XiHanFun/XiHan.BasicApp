@@ -266,5 +266,6 @@
   "profile.deactivate_account.title": "Eigenes Konto deaktivieren",
   "profile.deactivate_account.description": "Deaktiviert das eigene Konto und meldet alle Sitzungen ab; ein Administrator kann es wieder aktivieren. Erfordert das aktuelle Passwort; nicht beim Identitätswechsel oder für integrierte Konten, Mandantenbesitzer müssen zuerst den Besitz übertragen.",
   "profile.delete_account.title": "Eigenes Konto löschen",
-  "profile.delete_account.description": "Löscht das eigene Konto und meldet alle Sitzungen ab; danach ist keine Anmeldung mehr möglich. Erfordert das aktuelle Passwort; nicht beim Identitätswechsel oder für integrierte Konten, Mandantenbesitzer müssen zuerst den Besitz übertragen."
+  "profile.delete_account.description": "Löscht das eigene Konto und meldet alle Sitzungen ab; danach ist keine Anmeldung mehr möglich. Erfordert das aktuelle Passwort; nicht beim Identitätswechsel oder für integrierte Konten, Mandantenbesitzer müssen zuerst den Besitz übertragen.",
+  "identity.impersonation.running": "Es läuft bereits eine Identitätswechsel-Sitzung. Beenden Sie sie zuerst."
 }

@@ -175,6 +175,11 @@ public static class IdentityMessages
     public const string SystemAccount = "identity.user.system_account";
 
     /// <summary>
+    /// 这条会话已经有进行中的模仿会话
+    /// </summary>
+    public const string ImpersonationRunning = "identity.impersonation.running";
+
+    /// <summary>
     /// 显示名只有空白
     /// </summary>
     /// <remarks>
