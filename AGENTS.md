@@ -154,6 +154,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 - 任务对应 Issue 或 PR 编号时归入 `issue/`、`pr/` 并以编号命名；其余按改动性质取 `feat/` 或 `fix/`，后缀沿用 worktree 目录名。
 - 进入 worktree 后先看 `git branch --show-current`。分支是工具生成的 `claude/<名>` 等形式时，在首次提交前就地改名：`git branch -m <分组>/<名>`；worktree 目录名不变。改名后上游若指向 `main` 等别的分支，执行 `git branch --unset-upstream`。分支已推送到远端时不改名，先向用户说明。
 - 自行创建时直接带分组：`git worktree add -b feat/<名> .claude/worktrees/<名> dev`（6.0 重写的任务把基线 `dev` 换成 `next`）。审阅他人 PR 时先 `git fetch origin pull/<编号>/head:pr/<编号>-review`，再 `git worktree add .claude/worktrees/pr-<编号> pr/<编号>-review`。
+- 发布分支：预览版（`6.0.0-preview.N` 这类带预发布后缀的版本）从 `preview` 分支发，由 `next` 快进（`git fetch . next:preview`，不是快进就停下查）；正式版从 `main` 发，由 `dev` 快进。这两个分支只接收发版，日常改动不提交到这里，worktree 也不以它们为基线；修复先进开发分支，再快进过来。`ci.yml`、`next-ci.yml` 还不跑 `preview`，改好之前 `preview` 上没有 CI。
 - 基线默认是本地 `dev`；6.0 重写的 worktree 以 `next` 为基线并合回 `next`；热修复以对应 `hotfix/v<主版本>` 为基线，用户指定 `release/*` 时以其为准。工具从 `main` 或 `origin/main` 切出且还没有提交时，用 `git merge --ff-only dev` 对齐；不能快进就停下说明，不 reset。
 - 一个 worktree 只承载一项任务、一条分支。并行任务会改到同一 DTO、Dynamic API、权限码、菜单种子或同一版本的 `UpdateScripts` 时，先说明冲突风险再动手。
 - 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `appsettings.Production.json`、`frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`，前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
