@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "委任には権限コード 1 つかロール 1 つのどちらか一方だけを指定してください。",
   "access.delegation.window_invalid": "委任の終了時刻は現在より後、かつ開始時刻より後にしてください。",
   "access.delegation.delegator_not_holding": "委任者は現在 {target} を保持していないため、委任できません。",
+  "access.delegation.not_entitled": "他のユーザーに代わって委任するには、委任する権限またはロールをご自身も保持している必要があります。",
   "access.delegation.role_invalid": "ロール {name} は無効化されているか組み込みロールのため、委任できません。",
   "access.delegation.taken": "同じ内容で期限内の委任が既にあります。先にそちらを取り消してください。",
   "access.delegation.closed": "委任 {id} は既に取り消されたか期限切れです。",

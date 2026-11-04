@@ -1,0 +1,235 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Net;
+using System.Text.Json;
+using XiHan.BasicApp.Integration.Tests.Infrastructure;
+
+namespace XiHan.BasicApp.Integration.Tests;
+
+/// <summary>
+/// 验证作用侧、租户上下文、模仿与委托的边界
+/// </summary>
+/// <remarks>
+/// 主体都是真实账号的令牌：持 <c>*</c> 的管理员才能说明拦下来的不是「没有授予」
+/// </remarks>
+public sealed class SecurityBoundaryTests : IDisposable
+{
+    private readonly SqliteDatabase _database = new();
+
+    public void Dispose() => _database.Dispose();
+
+    private async Task<(BasicAppTestServer Server, string SuperAdmin)> StartAsync()
+    {
+        var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        return (server, (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!);
+    }
+
+    /// <summary>
+    /// 开一个不绑套餐的租户（不受套餐白名单收窄）并取它管理员的令牌
+    /// </summary>
+    private static async Task<string> UnrestrictedTenantAdminAsync(BasicAppTestServer server, string superadmin, string tenantId)
+    {
+        var (created, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", $$"""{"tenantId":"{{tenantId}}","name":"{{tenantId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = body.GetProperty("id").GetString()!;
+        var (initialized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{id}:initialize-admin", """{"userName":"admin","password":"Admin@123456"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
+        var (unbound, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{id}:change-edition", "{}", superadmin));
+        Assert.Equal(HttpStatusCode.OK, unbound.StatusCode);
+        return (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", tenantId)).GetProperty("accessToken").GetString()!;
+    }
+
+    private static async Task<string> CreateUserAsync(BasicAppTestServer server, string token, string userName)
+    {
+        var (created, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", $$"""{"userName":"{{userName}}","displayName":"{{userName}}","password":"Pass@123456"}""", token));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        return body.GetProperty("id").GetString()!;
+    }
+
+    private static async Task<string> GrantRoleAsync(BasicAppTestServer server, string token, string userId, params string[] permissions)
+    {
+        var code = $"r{Guid.NewGuid():N}"[..12];
+        var (created, role) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles", $$"""{"code":"{{code}}","name":"{{code}}"}""", token));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var roleId = role.GetProperty("id").GetString()!;
+        var (granted, grantedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:grant", JsonSerializer.Serialize(new { permissions }), token));
+        Assert.True(granted.StatusCode == HttpStatusCode.OK, grantedBody.ToString());
+        var (assigned, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:assign", $$"""{"userIds":["{{userId}}"]}""", token));
+        Assert.Equal(HttpStatusCode.OK, assigned.StatusCode);
+        return roleId;
+    }
+
+    private static async Task<string> TokenAsync(BasicAppTestServer server, string userName, string? tenant = null)
+        => (await AuthFlowTests.LoginAsync(server, userName, "Pass@123456", tenant)).GetProperty("accessToken").GetString()!;
+
+    [Theory]
+    [InlineData("POST", "/api/ai-providers:list")]
+    [InlineData("POST", "/api/ai-prompts:list")]
+    [InlineData("POST", "/api/codegen-tables:list")]
+    [InlineData("POST", "/api/oauth-apps:list")]
+    [InlineData("POST", "/api/telegram-bots:list")]
+    [InlineData("GET", "/api/login-bans")]
+    public async Task UnrestrictedTenantAdmin_CannotCallPlatformOperations(string method, string path)
+    {
+        var (server, superadmin) = await StartAsync();
+        await using var running = server;
+        var tenantAdmin = await UnrestrictedTenantAdminAsync(server, superadmin, "contoso");
+
+        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(new HttpMethod(method), path, method == "POST" ? "{}" : null, tenantAdmin));
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal("SECURITY_DENIED_004", body.GetProperty("code").GetString());
+
+        // 平台一侧持 * 的超级管理员照常能调
+        var (own, ownBody) = await server.SendAsync(BasicAppTestServer.Request(new HttpMethod(method), path, method == "POST" ? "{}" : null, superadmin));
+        Assert.True(own.StatusCode == HttpStatusCode.OK, ownBody.ToString());
+    }
+
+    [Fact]
+    public async Task PlatformToken_CannotEnterATenantWithABaggageHeader()
+    {
+        var (server, superadmin) = await StartAsync();
+        await using var running = server;
+        var tenantAdmin = await UnrestrictedTenantAdminAsync(server, superadmin, "contoso");
+        await CreateUserAsync(server, tenantAdmin, "alice");
+        await CreateUserAsync(server, superadmin, "operator");
+        var platformAccount = await TokenAsync(server, "operator");
+
+        HttpRequestMessage Assignees(string token, string? baggage)
+        {
+            var request = BasicAppTestServer.Request(HttpMethod.Get, "/api/workflow-assignees:users?limit=200", token: token);
+            if (baggage is not null)
+            {
+                request.Headers.Add("baggage", baggage);
+            }
+
+            return request;
+        }
+
+        // 没有任何权限的平台账号，也试不进去
+        var (denied, deniedBody) = await server.SendAsync(Assignees(platformAccount, "xihan.tenant=contoso"));
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        Assert.Equal("IDENTITY_DENIED_006", deniedBody.GetProperty("code").GetString());
+
+        // 超级管理员也一样：进租户走 auth.switch-tenant
+        var (superDenied, _) = await server.SendAsync(Assignees(superadmin, "xihan.tenant=contoso"));
+        Assert.Equal(HttpStatusCode.Forbidden, superDenied.StatusCode);
+
+        // 不带头照常，别的 Baggage 键不受影响；租户令牌的声明优先，带别的租户也还在自己这一侧
+        var (plain, plainBody) = await server.SendAsync(Assignees(platformAccount, null));
+        Assert.True(plain.StatusCode == HttpStatusCode.OK, plainBody.ToString());
+        Assert.DoesNotContain(plainBody.GetProperty("items").EnumerateArray(), static u => u.GetProperty("userName").GetString() == "alice");
+        var (locale, _) = await server.SendAsync(Assignees(platformAccount, "xihan.locale=en-US"));
+        Assert.Equal(HttpStatusCode.OK, locale.StatusCode);
+        var (own, ownBody) = await server.SendAsync(Assignees(tenantAdmin, "xihan.tenant=other"));
+        Assert.True(own.StatusCode == HttpStatusCode.OK, ownBody.ToString());
+        Assert.Contains(ownBody.GetProperty("items").EnumerateArray(), static u => u.GetProperty("userName").GetString() == "alice");
+    }
+
+    [Fact]
+    public async Task Impersonation_StopsAtTheActorsOwnPrivileges()
+    {
+        var (server, superadmin) = await StartAsync();
+        await using var running = server;
+        var superadminId = (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: superadmin))).Body.GetProperty("user").GetProperty("id").GetString()!;
+        var operatorId = await CreateUserAsync(server, superadmin, "operator");
+        var peerId = await CreateUserAsync(server, superadmin, "peer");
+        var plainId = await CreateUserAsync(server, superadmin, "plain");
+        await GrantRoleAsync(server, superadmin, operatorId, "identity.impersonation.start", "identity.users.read");
+        await GrantRoleAsync(server, superadmin, peerId, "identity.users.read", "identity.users.reset-password");
+        await GrantRoleAsync(server, superadmin, plainId, "identity.users.read");
+        var operatorToken = await TokenAsync(server, "operator");
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> ImpersonateAsync(string target, string token)
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{target}}"}""", token));
+            return (response.StatusCode, body);
+        }
+
+        // 候选里没有超级管理员；模仿超级管理员、权限超出自己的账号都拒绝，回答相同
+        var (candidates, candidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates", token: operatorToken));
+        Assert.Equal(HttpStatusCode.OK, candidates.StatusCode);
+        Assert.DoesNotContain(candidatesBody.GetProperty("items").EnumerateArray(), static c => c.GetProperty("userName").GetString() == "superadmin");
+        foreach (var target in new[] { superadminId, peerId })
+        {
+            var (status, body) = await ImpersonateAsync(target, operatorToken);
+            Assert.Equal(HttpStatusCode.Forbidden, status);
+            Assert.Equal("IDENTITY_DENIED_007", body.GetProperty("code").GetString());
+        }
+
+        // 权限在自己手里的账号可以；超级管理员不比较
+        Assert.Equal(HttpStatusCode.OK, (await ImpersonateAsync(plainId, operatorToken)).Status);
+        var (asPeer, asPeerBody) = await ImpersonateAsync(peerId, superadmin);
+        Assert.Equal(HttpStatusCode.OK, asPeer);
+
+        // 模仿态：目标自己持有的接管类权限也用不了，权限列表里也不再有；能读的照常
+        var impersonating = asPeerBody.GetProperty("accessToken").GetString()!;
+        var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/users/{plainId}:reset-password", """{"newPassword":"Pass@654321"}""", impersonating));
+        Assert.Equal(HttpStatusCode.Forbidden, reset.StatusCode);
+        Assert.Equal("SECURITY_DENIED_004", resetBody.GetProperty("code").GetString());
+        var (read, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", impersonating));
+        Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+        var (effective, effectiveBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: impersonating));
+        Assert.Equal(HttpStatusCode.OK, effective.StatusCode);
+        var codes = effectiveBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList();
+        Assert.Contains("identity.users.read", codes);
+        Assert.DoesNotContain("identity.users.reset-password", codes);
+
+        // 同一个权限码，不在模仿态时能用
+        var peer = await TokenAsync(server, "peer");
+        var (direct, directBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/users/{plainId}:reset-password", """{"newPassword":"Pass@654321"}""", peer));
+        Assert.True(direct.StatusCode == HttpStatusCode.OK, directBody.ToString());
+    }
+
+    [Fact]
+    public async Task TenantAdmin_CannotImpersonateAnotherAllPowerfulAccount()
+    {
+        var (server, superadmin) = await StartAsync();
+        await using var running = server;
+        var tenantAdmin = await UnrestrictedTenantAdminAsync(server, superadmin, "contoso");
+        var deputyId = await CreateUserAsync(server, tenantAdmin, "deputy");
+        var memberId = await CreateUserAsync(server, tenantAdmin, "member");
+        var deputyRole = await GrantRoleAsync(server, tenantAdmin, deputyId, "identity.impersonation.start");
+        Assert.NotEmpty(deputyRole);
+
+        var (asMember, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{memberId}}"}""", tenantAdmin));
+        Assert.Equal(HttpStatusCode.OK, asMember.StatusCode);
+
+        // 持模仿权限的成员模仿不了持 * 的管理员
+        var deputy = await TokenAsync(server, "deputy", "contoso");
+        var adminId = (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: tenantAdmin))).Body.GetProperty("user").GetProperty("id").GetString()!;
+        var (denied, deniedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{adminId}}"}""", deputy));
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        Assert.Equal("IDENTITY_DENIED_007", deniedBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task DelegatingForSomeoneElse_RequiresHoldingItYourself()
+    {
+        var (server, superadmin) = await StartAsync();
+        await using var running = server;
+        var holderId = await CreateUserAsync(server, superadmin, "holder");
+        var ownerId = await CreateUserAsync(server, superadmin, "owner");
+        var bystanderId = await CreateUserAsync(server, superadmin, "bystander");
+        await GrantRoleAsync(server, superadmin, holderId, "access.delegations.create");
+        await GrantRoleAsync(server, superadmin, ownerId, "access.roles.grant");
+        var holder = await TokenAsync(server, "holder");
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+
+        // 只有委托权限的人，不能把所有者的权限委托给自己，也不能转给别人
+        foreach (var delegatee in new[] { holderId, bystanderId })
+        {
+            var (denied, deniedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/delegations", JsonSerializer.Serialize(new { delegatorId = ownerId, delegateeId = delegatee, permission = "access.roles.grant", expiresAt }), holder));
+            Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+            Assert.Equal("ACCESS_DENIED_012", deniedBody.GetProperty("code").GetString());
+        }
+
+        // 委托自己持有的可以；持 * 的管理员可以代他人委托
+        var (own, ownBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/delegations", JsonSerializer.Serialize(new { delegatorId = holderId, delegateeId = bystanderId, permission = "access.delegations.create", expiresAt }), holder));
+        Assert.True(own.StatusCode == HttpStatusCode.Created, ownBody.ToString());
+        var (byAdmin, byAdminBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/delegations", JsonSerializer.Serialize(new { delegatorId = ownerId, delegateeId = bystanderId, permission = "access.roles.grant", expiresAt }), superadmin));
+        Assert.True(byAdmin.StatusCode == HttpStatusCode.Created, byAdminBody.ToString());
+    }
+}

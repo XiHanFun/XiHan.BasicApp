@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
@@ -12,6 +13,7 @@ using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access.Operations.Delegations;
 
@@ -45,12 +47,14 @@ public sealed class ListDelegations(DelegationQueries queries) : IOperation<Page
 /// <remarks>
 /// <c>POST /api/delegations:create</c>。委托人此刻须持有所委托的权限码或角色；被委托人在有效期内按无条件授予拿到权限码，或按角色的继承链拿到授予（不拿数据范围与字段安全）
 /// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件（4.x 的权限申请通过时同样判定）
+/// 代他人委托时操作者自己也要持有（或持 <c>*</c>）：不然持有委托权限的人能把所有者的权限委托给自己
 /// </remarks>
 /// <param name="service">委托服务</param>
 /// <param name="enforcer">约束规则求值</param>
 /// <param name="users">用户仓储（被委托人的登录名）</param>
+/// <param name="evaluator">授予全貌（核对代他人委托的操作者）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsCreate)]
-public sealed class CreateDelegation(DelegationService service, ConstraintEnforcer enforcer, IRepository<SysUser, Guid> users) : IOperation<CreateDelegationRequest, DelegationResponse>
+public sealed class CreateDelegation(DelegationService service, ConstraintEnforcer enforcer, IRepository<SysUser, Guid> users, GrantEvaluator evaluator) : IOperation<CreateDelegationRequest, DelegationResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -62,7 +66,19 @@ public sealed class CreateDelegation(DelegationService service, ConstraintEnforc
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var created = await service.CreateAsync(RoleService.OwnerOf(context), request.ToDefinition(), context.CancellationToken).ConfigureAwait(false);
+        var owner = RoleService.OwnerOf(context);
+        var entitled = await EntitledAsync(owner, request, context).ConfigureAwait(false);
+        if (!entitled.TryGetValue(out var mayDelegate))
+        {
+            return entitled.Error!;
+        }
+
+        if (!mayDelegate)
+        {
+            return Error.Denied(AccessErrors.DelegationNotEntitled, AccessMessages.DelegationNotEntitled);
+        }
+
+        var created = await service.CreateAsync(owner, request.ToDefinition(), context.CancellationToken).ConfigureAwait(false);
         if (!created.TryGetValue(out var delegation))
         {
             return created.Error!;
@@ -82,6 +98,27 @@ public sealed class CreateDelegation(DelegationService service, ConstraintEnforc
 
         DelegationLog.Record(context, delegation, "create");
         return await DelegationLog.RespondAsync(service, delegation, context).ConfigureAwait(false);
+    }
+
+    private async Task<Result<bool>> EntitledAsync(string owner, CreateDelegationRequest request, InvocationContext context)
+    {
+        if (!Guid.TryParse(context.GetSecurity().Principal.Id, out var caller))
+        {
+            return false;
+        }
+
+        if (caller == request.DelegatorId)
+        {
+            return true;
+        }
+
+        var holdsAll = await evaluator.HoldsAsync(owner, caller, PermissionGrant.All, null, context.CancellationToken).ConfigureAwait(false);
+        if (!holdsAll.TryGetValue(out var all) || all)
+        {
+            return holdsAll;
+        }
+
+        return await evaluator.HoldsAsync(owner, caller, request.Permission, request.RoleId, context.CancellationToken).ConfigureAwait(false);
     }
 }
 

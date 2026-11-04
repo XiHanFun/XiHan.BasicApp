@@ -1103,6 +1103,11 @@ public static class AccessMessages
     public const string PermissionRequestRequesterInactive = "access.permission_request.requester_inactive";
 
     /// <summary>
+    /// 代他人委托时操作者自己没有所委托的权限或角色
+    /// </summary>
+    public const string DelegationNotEntitled = "access.delegation.not_entitled";
+
+    /// <summary>
     /// 审批未启用
     /// </summary>
     public const string ApprovalUnavailable = "access.permission_request.approval_unavailable";

@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "위임에는 권한 코드 하나 또는 역할 하나만 지정해야 합니다.",
   "access.delegation.window_invalid": "위임 종료 시각은 현재보다, 그리고 시작 시각보다 늦어야 합니다.",
   "access.delegation.delegator_not_holding": "위임자가 지금 {target}을(를) 보유하지 않아 위임할 수 없습니다.",
+  "access.delegation.not_entitled": "다른 사람을 대신해 위임하려면 위임할 권한이나 역할을 본인도 보유해야 합니다.",
   "access.delegation.role_invalid": "역할 {name}은(는) 사용 중지되었거나 기본 제공 역할이어서 위임할 수 없습니다.",
   "access.delegation.taken": "같은 내용의 만료되지 않은 위임이 이미 있습니다. 그 위임을 먼저 철회하세요.",
   "access.delegation.closed": "위임 {id}은(는) 이미 철회되었거나 만료되었습니다.",

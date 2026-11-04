@@ -67,14 +67,14 @@ public sealed class ListImpersonationCandidates(IRepository<SysUser, Guid> users
     /// 候选的条件
     /// </summary>
     /// <remarks>
-    /// 启用、不是自己，注册地在目标上下文或是其成员；有关键字时再匹配登录名或显示名
+    /// 启用、不是自己、不是平台的系统账号（超级管理员），注册地在目标上下文或是其成员；有关键字时再匹配登录名或显示名
     /// </remarks>
     private static System.Linq.Expressions.Expression<Func<SysUser, bool>> Scope(string home, List<Guid> memberIds, Guid selfId, string? keyword) =>
         (memberIds.Count == 0, string.IsNullOrEmpty(keyword)) switch
         {
-            (true, true) => u => u.Status == UserStatus.Active && u.Id != selfId && u.HomeTenantId == home,
-            (true, false) => u => u.Status == UserStatus.Active && u.Id != selfId && u.HomeTenantId == home && (u.UserName.Contains(keyword!) || u.DisplayName.Contains(keyword!)),
-            (false, true) => u => u.Status == UserStatus.Active && u.Id != selfId && (u.HomeTenantId == home || memberIds.Contains(u.Id)),
-            (false, false) => u => u.Status == UserStatus.Active && u.Id != selfId && (u.HomeTenantId == home || memberIds.Contains(u.Id)) && (u.UserName.Contains(keyword!) || u.DisplayName.Contains(keyword!)),
+            (true, true) => u => u.Status == UserStatus.Active && u.Id != selfId && u.HomeTenantId == home && !(u.IsSystemAccount && u.HomeTenantId == TenantIds.Platform),
+            (true, false) => u => u.Status == UserStatus.Active && u.Id != selfId && u.HomeTenantId == home && !(u.IsSystemAccount && u.HomeTenantId == TenantIds.Platform) && (u.UserName.Contains(keyword!) || u.DisplayName.Contains(keyword!)),
+            (false, true) => u => u.Status == UserStatus.Active && u.Id != selfId && (u.HomeTenantId == home || memberIds.Contains(u.Id)) && !(u.IsSystemAccount && u.HomeTenantId == TenantIds.Platform),
+            (false, false) => u => u.Status == UserStatus.Active && u.Id != selfId && (u.HomeTenantId == home || memberIds.Contains(u.Id)) && !(u.IsSystemAccount && u.HomeTenantId == TenantIds.Platform) && (u.UserName.Contains(keyword!) || u.DisplayName.Contains(keyword!)),
         };
 }

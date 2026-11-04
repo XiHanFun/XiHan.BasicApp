@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "Uma delegação deve indicar exatamente uma permissão ou uma função.",
   "access.delegation.window_invalid": "A delegação deve expirar depois de agora e depois do seu início.",
   "access.delegation.delegator_not_holding": "O delegante não tem {target} agora e não pode delegá-lo.",
+  "access.delegation.not_entitled": "Para delegar em nome de outra pessoa, você precisa ter a permissão ou a função.",
   "access.delegation.role_invalid": "A função {name} está desativada ou é interna e não pode ser delegada.",
   "access.delegation.taken": "Já existe uma delegação idêntica não expirada; revogue-a primeiro.",
   "access.delegation.closed": "A delegação {id} já foi revogada ou expirou.",

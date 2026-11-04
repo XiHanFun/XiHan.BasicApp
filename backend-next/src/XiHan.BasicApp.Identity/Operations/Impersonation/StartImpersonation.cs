@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// 操作 <c>impersonation.start</c>。以目标用户的身份另开一个会话并签发令牌（<c>sub</c> 是目标、<c>act</c> 是发起人），客户端换令牌后整页重载
 /// 不是目标用户的一次登录：不写登录痕迹。发起人的会话保留，<c>impersonation.stop</c> 时回到它
 /// 范围：不填租户即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户（目标须是该租户的注册地用户或成员）或平台（目标须是平台账号）
-/// 不能模仿自己，不能在模仿态里再模仿
+/// 不能模仿自己，不能在模仿态里再模仿，不能模仿超级管理员，也不能模仿同级或更高权限的账号（4.x 同，<see cref="IImpersonationGuard"/>）
 /// 模仿会话的时长与要不要通知被模仿者看系统参数 <see cref="ImpersonationSettings.ConfigKey"/>（缺省 30 分钟、通知，4.x 同）。时长是从发起算起的硬期限，<c>auth.refresh</c> 只换令牌不顺延，到期即结束，要接着用就重新发起
 /// </remarks>
 /// <param name="users">用户仓储</param>
@@ -41,6 +41,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="tenants">框架租户目录</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
 /// <param name="notices">通知被模仿者</param>
+/// <param name="guards">模仿的权限上限（Access 实现）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class StartImpersonation(
     IRepository<SysUser, Guid> users,
@@ -52,7 +53,8 @@ public sealed class StartImpersonation(
     TimeProvider clock,
     ITenantStore tenants,
     IEnumerable<ISessionRoleActivator> activators,
-    SecurityNotices notices) : IOperation<StartImpersonationRequest, TokenResponse>
+    SecurityNotices notices,
+    IEnumerable<IImpersonationGuard> guards) : IOperation<StartImpersonationRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -129,6 +131,26 @@ public sealed class StartImpersonation(
             return Error.Denied(IdentityErrors.ImpersonationTargetUnavailable, IdentityMessages.ImpersonationTargetUnavailable, MessageArguments.Of(("id", request.TargetUserId)));
         }
 
+        // 目标不够格与目标权限超出发起人是同一个回答：不透露对方持有什么
+        if (IsSuperAdministrator(target))
+        {
+            return Error.Denied(IdentityErrors.ImpersonationTargetUnavailable, IdentityMessages.ImpersonationTargetUnavailable, MessageArguments.Of(("id", request.TargetUserId)));
+        }
+
+        foreach (var guard in guards)
+        {
+            var allowed = await guard.AllowsAsync(security, target.Id, requested, context.CancellationToken).ConfigureAwait(false);
+            if (!allowed.TryGetValue(out var permitted))
+            {
+                return allowed.Error!;
+            }
+
+            if (!permitted)
+            {
+                return Error.Denied(IdentityErrors.ImpersonationTargetUnavailable, IdentityMessages.ImpersonationTargetUnavailable, MessageArguments.Of(("id", request.TargetUserId)));
+            }
+        }
+
         log.TenantId = requested ?? TenantIds.Platform;
         log.UserId = target.Id;
         log.UserName = target.UserName;
@@ -168,6 +190,11 @@ public sealed class StartImpersonation(
         var access = issuer.Issue(target, session.Id, requested, active, actor.Id, notAfter: session.RefreshExpiresAt);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, requested, session.IsPasswordChangeRequired(), UserResponse.From(target), tenantName, actor.UserName);
     }
+
+    /// <summary>
+    /// 平台的系统账号就是超级管理员
+    /// </summary>
+    private static bool IsSuperAdministrator(SysUser user) => user.IsSystemAccount && string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal);
 
     private async Task<bool> IsMemberAsync(string tenantId, Guid userId, CancellationToken cancellationToken)
     {

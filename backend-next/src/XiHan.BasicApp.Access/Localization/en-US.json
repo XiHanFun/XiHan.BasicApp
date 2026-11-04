@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "A delegation must name exactly one permission or one role.",
   "access.delegation.window_invalid": "The delegation must expire later than now and later than its start.",
   "access.delegation.delegator_not_holding": "The delegator does not hold {target} now and cannot delegate it.",
+  "access.delegation.not_entitled": "To delegate on behalf of someone else, you must hold the permission or role yourself.",
   "access.delegation.role_invalid": "Role {name} is disabled or built in and cannot be delegated.",
   "access.delegation.taken": "An identical delegation is already pending or active; revoke that one first.",
   "access.delegation.closed": "Delegation {id} has already been revoked or has expired.",

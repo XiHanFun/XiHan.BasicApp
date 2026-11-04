@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "委托须且只能指定一个权限码或一个角色。",
   "access.delegation.window_invalid": "委托的到期时间须晚于当前时间，也须晚于生效时间。",
   "access.delegation.delegator_not_holding": "委托人此刻没有 {target}，不能委托。",
+  "access.delegation.not_entitled": "代他人委托时，你自己也要持有所委托的权限或角色。",
   "access.delegation.role_invalid": "角色 {name} 已停用或是内置角色，不能委托。",
   "access.delegation.taken": "已有一条相同且未到期的委托，请先撤销那一条。",
   "access.delegation.closed": "委托 {id} 已撤销或已到期。",

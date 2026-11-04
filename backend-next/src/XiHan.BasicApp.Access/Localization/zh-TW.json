@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "委託須且只能指定一個權限碼或一個角色。",
   "access.delegation.window_invalid": "委託的到期時間須晚於目前時間，也須晚於生效時間。",
   "access.delegation.delegator_not_holding": "委託人此刻沒有 {target}，不能委託。",
+  "access.delegation.not_entitled": "代他人委託時，你自己也要持有所委託的權限或角色。",
   "access.delegation.role_invalid": "角色 {name} 已停用或是內建角色，不能委託。",
   "access.delegation.taken": "已有一條相同且未到期的委託，請先撤銷那一條。",
   "access.delegation.closed": "委託 {id} 已撤銷或已到期。",

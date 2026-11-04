@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "Eine Delegierung muss genau eine Berechtigung oder genau eine Rolle angeben.",
   "access.delegation.window_invalid": "Die Delegierung muss später als jetzt und später als ihr Beginn enden.",
   "access.delegation.delegator_not_holding": "Der Delegierende besitzt {target} derzeit nicht und kann es nicht delegieren.",
+  "access.delegation.not_entitled": "Um im Namen einer anderen Person zu delegieren, müssen Sie die Berechtigung oder Rolle selbst besitzen.",
   "access.delegation.role_invalid": "Die Rolle {name} ist deaktiviert oder integriert und kann nicht delegiert werden.",
   "access.delegation.taken": "Eine gleiche, noch nicht abgelaufene Delegierung existiert bereits; widerrufen Sie zuerst diese.",
   "access.delegation.closed": "Die Delegierung {id} wurde bereits widerrufen oder ist abgelaufen.",

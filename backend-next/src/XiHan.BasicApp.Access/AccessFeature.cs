@@ -105,6 +105,8 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<ISessionRoleActivator, SessionRoleActivator>();
         // 登录时机的访问策略与登录失败自动封禁：Identity 在登录链路上调用
         context.Services.AddScoped<ILoginGuard, LoginDefense>();
+        // 模仿的权限上限：Identity 在发起模仿时调用
+        context.Services.AddSingleton<IImpersonationGuard, ImpersonationPrivilegeGuard>();
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();

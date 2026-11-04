@@ -655,6 +655,11 @@ public static class AccessErrors
     public const string PermissionRequestRequesterInactive = "ACCESS_DENIED_011";
 
     /// <summary>
+    /// 代他人委托时操作者自己没有所委托的权限或角色
+    /// </summary>
+    public const string DelegationNotEntitled = "ACCESS_DENIED_012";
+
+    /// <summary>
     /// 审批未启用
     /// </summary>
     /// <remarks>

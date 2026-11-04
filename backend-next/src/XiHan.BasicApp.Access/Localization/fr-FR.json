@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "Une délégation doit indiquer exactement une permission ou un rôle.",
   "access.delegation.window_invalid": "La délégation doit expirer après maintenant et après son début.",
   "access.delegation.delegator_not_holding": "Le délégant ne détient pas {target} actuellement et ne peut pas le déléguer.",
+  "access.delegation.not_entitled": "Pour déléguer au nom d’une autre personne, vous devez détenir vous-même la permission ou le rôle.",
   "access.delegation.role_invalid": "Le rôle {name} est désactivé ou intégré et ne peut pas être délégué.",
   "access.delegation.taken": "Une délégation identique non expirée existe déjà ; révoquez-la d’abord.",
   "access.delegation.closed": "La délégation {id} a déjà été révoquée ou a expiré.",

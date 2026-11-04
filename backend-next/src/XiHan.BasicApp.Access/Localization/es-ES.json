@@ -124,6 +124,7 @@
   "access.delegation.target_invalid": "Una delegación debe indicar exactamente un permiso o un rol.",
   "access.delegation.window_invalid": "La delegación debe vencer después de ahora y después de su inicio.",
   "access.delegation.delegator_not_holding": "El delegante no tiene {target} ahora y no puede delegarlo.",
+  "access.delegation.not_entitled": "Para delegar en nombre de otra persona, debe tener usted mismo el permiso o el rol.",
   "access.delegation.role_invalid": "El rol {name} está desactivado o es integrado y no se puede delegar.",
   "access.delegation.taken": "Ya existe una delegación idéntica sin vencer; revóquela primero.",
   "access.delegation.closed": "La delegación {id} ya se revocó o venció.",

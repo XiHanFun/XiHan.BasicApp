@@ -47,6 +47,14 @@ public sealed class PermissionCatalog
     public IReadOnlyList<PermissionDescriptor> ForSide(bool platformSide) => All.Where(p => AllowsSide(p, platformSide)).ToList();
 
     /// <summary>
+    /// 权限码是否属于该侧
+    /// </summary>
+    /// <remarks>
+    /// 目录里没有的权限码（没有登记作用侧）不拦
+    /// </remarks>
+    public bool AllowsSide(string code, bool platformSide) => Find(code) is not { } permission || AllowsSide(permission, platformSide);
+
+    /// <summary>
     /// 权限是否属于该侧
     /// </summary>
     public static bool AllowsSide(PermissionDescriptor permission, bool platformSide)

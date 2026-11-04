@@ -31,7 +31,7 @@ public sealed class EffectivePermissions(IPermissionGrantStore store, Permission
     {
         ArgumentNullException.ThrowIfNull(security);
         var tenant = security.Tenant?.Id;
-        var side = catalog.ForSide(platformSide: tenant is null);
+        var side = catalog.ForSide(platformSide: tenant is null).Where(p => !ImpersonationLimits.Denies(security, p.Code)).ToList();
         var viewed = await evaluator.ViewAsync(security, cancellationToken).ConfigureAwait(false);
         if (!viewed.TryGetValue(out var found))
         {
