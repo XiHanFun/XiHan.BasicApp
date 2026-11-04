@@ -41,6 +41,35 @@ public sealed class DiffLogRowsTests
     }
 
     [Fact]
+    public void Secrets_NeverReachTheLog()
+    {
+        static DiffLogTableInfo Config(bool encrypted, string value) => new()
+        {
+            TableName = "sys_config",
+            Columns =
+            [
+                new DiffLogColumnInfo { ColumnName = "id", Value = "c", IsPrimaryKey = true },
+                new DiffLogColumnInfo { ColumnName = "is_encrypted", Value = encrypted },
+                new DiffLogColumnInfo { ColumnName = "value", Value = value },
+            ],
+        };
+
+        // 加密参数的值，改之前或改之后是加密的都不留
+        var change = Assert.Single(Convert(Config(true, "dp:cipher"), Config(true, "dp:other")));
+        Assert.DoesNotContain("dp:", change.Before!, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp:", change.After!, StringComparison.Ordinal);
+        Assert.Contains("plain", Assert.Single(Convert(Config(false, "plain"), Config(false, "plain2"))).Before!, StringComparison.Ordinal);
+
+        // 带凭据的列按名字遮
+        foreach (var column in new[] { "webhook_url", "api_key", "connection_string", "password", "client_secret_hash" })
+        {
+            var row = new DiffLogTableInfo { TableName = "t", Columns = [new DiffLogColumnInfo { ColumnName = "id", Value = "a", IsPrimaryKey = true }, new DiffLogColumnInfo { ColumnName = column, Value = "credential" }] };
+            var other = new DiffLogTableInfo { TableName = "t", Columns = [new DiffLogColumnInfo { ColumnName = "id", Value = "a", IsPrimaryKey = true }, new DiffLogColumnInfo { ColumnName = column, Value = "credential2" }] };
+            Assert.DoesNotContain("credential", Assert.Single(Convert(row, other)).After!, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void SoftDeletingAndOtherEdits_StayUpdates()
     {
         Assert.Equal(DiffKind.Update, Assert.Single(Convert(Row("a", false, "Limit"), Row("a", true, "Limit"))).Kind);

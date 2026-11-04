@@ -83,7 +83,7 @@ pnpm dev
 | 密码 | `SuperAdmin@123` |
 
 ::: warning 首次登录后修改密码
-`SuperAdmin@123` 是方案公开的缺省值，来自 `BasicApp:Seed:SuperAdminPassword`（留空即用缺省）。部署前在配置里换掉，或登录后在个人中心修改。
+`SuperAdmin@123` 只写在 `appsettings.Development.json` 的 `BasicApp:Seed:SuperAdminPassword` 里。别的环境必须配这一项，否则首次 `seed` 失败。
 :::
 
 登录成功后落到工作台（`VITE_HOME_PATH=/workbench/dashboard`）。要体验租户侧，有三种办法：

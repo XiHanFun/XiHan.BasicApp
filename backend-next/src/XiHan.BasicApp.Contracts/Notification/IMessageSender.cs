@@ -44,6 +44,20 @@ public sealed record OutgoingMessage(
     string? BusinessId = null);
 
 /// <summary>
+/// 发送记录的业务类型
+/// </summary>
+public static class MessageBusinessTypes
+{
+    /// <summary>
+    /// 验证码（登录、找回密码、双因素）
+    /// </summary>
+    /// <remarks>
+    /// 码等于账号的钥匙：记录的正文与参数不返回，发送结束即清空，也不能重发
+    /// </remarks>
+    public const string Verification = "identity.verification";
+}
+
+/// <summary>
 /// 邮件与短信的发送（Notification 实现）
 /// </summary>
 /// <remarks>

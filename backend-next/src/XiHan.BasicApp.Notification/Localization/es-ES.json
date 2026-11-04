@@ -141,6 +141,7 @@
   "notification.template.invalid": "La plantilla no es válida: {detail}",
   "notification.email.address_invalid": "La dirección de correo {address} no es válida.",
   "notification.sms_config.template_map_invalid": "El mapa de plantillas debe ser un objeto JSON (código de plantilla → ID del proveedor).",
+  "notification.channel.secret_required": "Vuelva a introducir el secreto después de cambiar la dirección de conexión: el secreto anterior no se envía a una dirección nueva.",
   "notification.channels.invalid": "Los canales de entrega deben incluir los mensajes internos.",
   "notification.template.missing": "No hay ninguna plantilla {code} activa disponible.",
   "notification.channel.unavailable": "No hay ninguna configuración {kind} predeterminada activa.",

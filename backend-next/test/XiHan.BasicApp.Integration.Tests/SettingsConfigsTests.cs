@@ -70,14 +70,16 @@ public sealed class SettingsConfigsTests : IDisposable
         Assert.DoesNotContain("s3cr3t", stored, StringComparison.Ordinal);
         Assert.Equal("s3cr3t", await EffectiveAsync(server, "contoso", "demo.secret"));
 
-        // 加密参数不给新值即保留；关掉加密且不给值即解密成明文
+        // 加密参数不给新值即保留；关掉加密且不给值即清空，不解密（只有改权限的人不能借此读到明文）
         var (kept, keptBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{secretId}", """{"name":"Secret v2","isEncrypted":true}""", platform));
         Assert.Equal(HttpStatusCode.OK, kept.StatusCode);
         Assert.Equal("Secret v2", keptBody.GetProperty("name").GetString());
         Assert.Equal("s3cr3t", await EffectiveAsync(server, "contoso", "demo.secret"));
         var (plain, plainBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{secretId}", """{"name":"Secret v2","isEncrypted":false}""", platform));
         Assert.Equal(HttpStatusCode.OK, plain.StatusCode);
-        Assert.Equal("s3cr3t", plainBody.GetProperty("value").GetString());
+        Assert.Equal(JsonValueKind.Null, plainBody.GetProperty("value").ValueKind);
+        Assert.False(plainBody.GetProperty("hasValue").GetBoolean());
+        Assert.DoesNotContain("s3cr3t", plainBody.ToString(), StringComparison.Ordinal);
 
         // 租户：读共享（看得见平台参数），写不共享（平台参数改不了、删不了），同键新建即覆盖
         var (tenantList, tenantListBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs:list", """{"page":{"index":1,"size":50}}""", tenant));

@@ -228,6 +228,17 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
         return new BotEndpoint((BotChannel)(int)config.Provider, config.WebhookUrl, secret, config.Keyword);
     }
 
+    /// <summary>
+    /// 遮掉 Webhook 地址里的凭据
+    /// </summary>
+    /// <remarks>
+    /// 地址的路径与查询串带令牌（钉钉 <c>access_token</c>、飞书路径里的令牌、企业微信 <c>key</c>），拿到就能往群里发消息。响应只给主机；修改时交回这个值即保留原地址
+    /// </remarks>
+    /// <param name="webhook">完整地址</param>
+    /// <returns>遮掉之后的地址</returns>
+    public static string MaskWebhook(string webhook)
+        => Uri.TryCreate(webhook, UriKind.Absolute, out var uri) ? $"{uri.Scheme}://{uri.Host}/***" : "***";
+
     private static Result Validate(BotConfigDraft draft)
         => Uri.TryCreate(draft.WebhookUrl.Trim(), UriKind.Absolute, out var uri)
             && string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal)
@@ -243,7 +254,12 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     {
         config.Name = draft.Name.Trim();
         config.Provider = draft.Provider;
-        config.WebhookUrl = draft.WebhookUrl.Trim();
+        var webhook = draft.WebhookUrl.Trim();
+        if (!string.Equals(webhook, MaskWebhook(config.WebhookUrl), StringComparison.Ordinal))
+        {
+            config.WebhookUrl = webhook;
+        }
+
         if (!string.IsNullOrEmpty(draft.Secret))
         {
             config.Secret = secrets.Protect(SecretPurpose, draft.Secret);

@@ -74,6 +74,11 @@ public sealed class PlatformIdentitySeeder(
             }
 
             // 种子写的密码：记下来，系统参数 identity.password 打开时登录要先改（4.x 同）
+            if (string.IsNullOrWhiteSpace(options.SuperAdminPassword))
+            {
+                return Error.Validation(IdentityErrors.SuperAdminPasswordMissing, IdentityMessages.SuperAdminPasswordMissing);
+            }
+
             var set = await accounts.SetPasswordAsync(security, options.SuperAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
             if (set.IsFailure)
             {

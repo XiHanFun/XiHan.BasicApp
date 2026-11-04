@@ -175,6 +175,16 @@ public static class IdentityMessages
     public const string SystemAccount = "identity.user.system_account";
 
     /// <summary>
+    /// 改别人的联系方式要有重置密码的权限
+    /// </summary>
+    public const string ContactChangeNotPermitted = "identity.user.contact_change_not_permitted";
+
+    /// <summary>
+    /// 首次写入超级管理员时没配初始密码
+    /// </summary>
+    public const string SuperAdminPasswordMissing = "identity.user.super_admin_password_missing";
+
+    /// <summary>
     /// 这条会话已经有进行中的模仿会话
     /// </summary>
     public const string ImpersonationRunning = "identity.impersonation.running";

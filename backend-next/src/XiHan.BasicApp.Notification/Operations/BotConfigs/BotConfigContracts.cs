@@ -34,7 +34,7 @@ public sealed record BotConfigResponse(Guid Id, string Code, string Name, BotPro
     public static BotConfigResponse From(SysBotConfig c)
     {
         ArgumentNullException.ThrowIfNull(c);
-        return new(c.Id, c.Code, c.Name, c.Provider, c.WebhookUrl, c.Secret is not null, c.Keyword, c.IsDefault, c.IsEnabled, c.Order, c.Remark, c.CreatedAt, c.ModifiedAt);
+        return new(c.Id, c.Code, c.Name, c.Provider, BotConfigService.MaskWebhook(c.WebhookUrl), c.Secret is not null, c.Keyword, c.IsDefault, c.IsEnabled, c.Order, c.Remark, c.CreatedAt, c.ModifiedAt);
     }
 }
 

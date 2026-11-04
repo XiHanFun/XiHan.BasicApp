@@ -430,6 +430,11 @@ public static class IdentityErrors
     public const string RegistrationClosed = "IDENTITY_DENIED_020";
 
     /// <summary>
+    /// 改别人的联系方式要有重置密码的权限
+    /// </summary>
+    public const string ContactChangeNotPermitted = "IDENTITY_DENIED_021";
+
+    /// <summary>
     /// 用户处于锁定状态，启用不适用
     /// </summary>
     /// <remarks>
@@ -449,6 +454,11 @@ public static class IdentityErrors
     /// 停用、删除、锁定、管理员重置密码、本人改用户名与关闭账号
     /// </remarks>
     public const string SystemAccount = "IDENTITY_CONFLICT_014";
+
+    /// <summary>
+    /// 首次写入超级管理员时没配初始密码
+    /// </summary>
+    public const string SuperAdminPasswordMissing = "IDENTITY_VALIDATION_026";
 
     /// <summary>
     /// 这条会话已经有进行中的模仿会话

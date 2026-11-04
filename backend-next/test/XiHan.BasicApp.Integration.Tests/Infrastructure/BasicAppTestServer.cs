@@ -71,6 +71,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
                 builder.WebHost.UseTestServer();
                 // 用例的设置单独一层，叠在缺省值之上（同键覆盖，不在一个字典里撞键）
                 builder.Configuration.AddInMemoryCollection(Settings(connectionString, provider));
+                builder.Configuration.AddInMemoryCollection([new("BasicApp:Seed:SuperAdminPassword", "SuperAdmin@123"), new("BasicApp:CodeGeneration:AllowSqliteDataSource", "true")]);
                 builder.Configuration.AddInMemoryCollection(settings ?? []);
                 configure?.Invoke(builder);
             },

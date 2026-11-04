@@ -141,6 +141,7 @@
   "notification.template.invalid": "Шаблон некорректен: {detail}",
   "notification.email.address_invalid": "Адрес почты {address} некорректен.",
   "notification.sms_config.template_map_invalid": "Сопоставление шаблонов должно быть JSON-объектом (код шаблона → ID шаблона у провайдера).",
+  "notification.channel.secret_required": "После изменения адреса подключения введите секрет заново: старый секрет не отправляется на новый адрес.",
   "notification.channels.invalid": "Каналы доставки должны включать внутренние сообщения.",
   "notification.template.missing": "Нет включённого шаблона {code}.",
   "notification.channel.unavailable": "Нет включённой настройки {kind} по умолчанию.",

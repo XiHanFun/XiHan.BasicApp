@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "제로 코드 런타임 데이터 보기",
   "permissions.codegeneration.codegen_runtime.read.description": "사용 중인 테이블 설정의 데이터를 읽기 전용으로 봅니다(코드는 생성하지 않음).",
   "codegeneration.runtime.table_disabled": "테이블 설정 '{name}'은(는) 중지되어 제로 코드 런타임에서 열 수 없습니다.",
-  "codegeneration.runtime.read_failed": "테이블 '{table}'의 데이터를 읽을 수 없습니다: {reason}"
+  "codegeneration.runtime.read_failed": "테이블 '{table}'의 데이터를 읽을 수 없습니다: {reason}",
+  "codegeneration.runtime.table_reserved": "\"{table}\"은(는) 애플리케이션 자체 테이블이므로 노코드 런타임에서 읽지 않습니다.",
+  "codegeneration.datasource.secret_required": "연결 주소를 변경하면 비밀 값을 다시 입력해야 합니다. 이전 비밀 값은 새 주소로 전송되지 않습니다.",
+  "codegeneration.datasource.sqlite_disabled": "SQLite 데이터 원본이 활성화되어 있지 않습니다(BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "아웃바운드 주소 정책으로 {host}에 연결할 수 없습니다. 내부 데이터베이스는 XiHan:Security:Outbound에서 허용하세요.",
+  "codegeneration.table.rename_rejected": "테이블 구성의 테이블 이름은 변경할 수 없습니다. 다른 테이블을 쓰려면 다시 가져오세요."
 }

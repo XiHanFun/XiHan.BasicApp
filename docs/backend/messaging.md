@@ -61,7 +61,10 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 
 - 租户没有可用通道时回落平台的配置；机器人不回落。
 - 密钥经 `ISecretProtector` 加密存放，不回显。
-- 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.*` / `sms.*` 查询、取消、重发、删除（权限 `notification.emails.*` / `notification.sms.*`）。
+- 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.*` / `sms.*` 查询、取消、重发、删除（权限 `notification.emails.*` / `notification.sms.*`）。验证码（业务类型 `identity.verification`）的记录不返回正文与参数，发送结束即清空，也不能重发：读记录的权限不能拿它接管账号。
+- 改通道的地址（SMTP 的主机、端口，关掉加密或不再验证书）时，留空的口令不再保留，要重新填（`NOTIFICATION_VALIDATION_016`）。AI 提供商的地址（`AI_VALIDATION_107`）、代码生成数据源的地址（`CODEGENERATION_VALIDATION_014`）同样。
+- 群机器人的 Webhook 地址带凭据：响应只给主机（`https://oapi.dingtalk.com/***`），修改时交回这个值即保留原地址；差异日志打码，请求日志不记。
+- 消息模板语法树限深（`TemplateLimits`），保存与渲染前都判；一次渲染最多 5 秒。
 - 发送循环按 `BasicApp:Notification` 的 `DispatchInterval`、`RetryDelay`、`MaxAttempts`、`StuckAfter` 工作。
 
 身份相关的发码（验证码登录、换绑、双因素）经 `Contracts` 的 `IMessageSender` 按模板入队。

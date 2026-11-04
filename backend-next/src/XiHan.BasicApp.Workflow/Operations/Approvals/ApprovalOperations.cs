@@ -133,7 +133,7 @@ public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskSe
             pending[instance.Id] = list;
         }
 
-        var names = await lookup.NamesAsync(pending.Values.SelectMany(static t => t).Select(static t => t.AssigneeId), context.CancellationToken).ConfigureAwait(false);
+        var names = await lookup.NamesAsync(pending.Values.SelectMany(static t => t).Select(static t => t.AssigneeId), context).ConfigureAwait(false);
         var items = new List<WorkflowApprovalInstanceResponse>(instances.Count);
         foreach (var instance in instances)
         {
@@ -243,7 +243,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
 
         var names = await lookup.NamesAsync(
             [instance.StarterId, .. history.Select(static r => WorkflowIds.ToEngineUser(r.UserId)), .. history.SelectMany(static r => WorkflowTaskRecords.TargetsOf(r)).Select(WorkflowIds.ToEngineUser), .. pending.Select(static t => t.AssigneeId)],
-            context.CancellationToken).ConfigureAwait(false);
+            context).ConfigureAwait(false);
         var task = await TaskAsync(request.TaskId, me, pending, definition, instance, context).ConfigureAwait(false);
         var timeline = await TimelineAsync(instance, history, nodeInstances, pending, definition, names, context).ConfigureAwait(false);
         var starter = WorkflowIds.UserOf(instance.StarterId);
@@ -497,7 +497,7 @@ public sealed class WorkflowApprovals(IWorkflowEngine engine, WorkflowLookup loo
             }
         }
 
-        var starters = await lookup.NamesAsync(instances.Values.Select(static i => i.StarterId), context.CancellationToken).ConfigureAwait(false);
+        var starters = await lookup.NamesAsync(instances.Values.Select(static i => i.StarterId), context).ConfigureAwait(false);
         var items = page.Items.Select(r =>
         {
             var instance = instances.GetValueOrDefault(r.InstanceId);

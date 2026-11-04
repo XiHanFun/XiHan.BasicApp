@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Restablecer contraseña",
   "auth.reset_password.description": "Establecer una contraseña nueva con el código. Se revocan todas las sesiones de la cuenta.",
   "identity.user.system_account": "Esta es una cuenta integrada del sistema, por lo que esta acción no está permitida.",
+  "identity.user.super_admin_password_missing": "No se ha configurado la contraseña inicial del superadministrador (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Los datos de contacto permiten recuperar la contraseña, por lo que cambiar el correo o el teléfono de otra persona requiere el permiso de restablecer contraseñas.",
   "users.login_policy.title": "Obtener la política de inicio de sesión de un usuario",
   "users.login_policy.description": "Indica si un usuario puede iniciar sesión en varios dispositivos y en cuántos.",
   "users.set_login_policy.title": "Establecer la política de inicio de sesión de un usuario",

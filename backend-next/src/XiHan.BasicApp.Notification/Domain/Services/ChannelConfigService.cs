@@ -189,6 +189,12 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
             return DefaultLocked(config.Code);
         }
 
+        // 留空的口令保留旧值，但不能跟着改过的服务器走，也不能改成不加密或不验证书之后接着发
+        if (config.Password is not null && string.IsNullOrEmpty(draft.Password) && EmailTargetChanged(config, draft))
+        {
+            return Error.Validation(NotificationErrors.ChannelSecretRequired, NotificationMessages.ChannelSecretRequired);
+        }
+
         ApplyEmail(config, draft);
         return await emails.UpdateAsync(config, cancellationToken).ConfigureAwait(false);
     }
@@ -470,6 +476,12 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     private static Error CodeTaken(string code) => Error.Conflict(NotificationErrors.ConfigCodeTaken, NotificationMessages.ConfigCodeTaken, MessageArguments.Of(("code", code)));
 
     private static Error DefaultLocked(string code) => Error.Conflict(NotificationErrors.DefaultConfigLocked, NotificationMessages.DefaultConfigLocked, MessageArguments.Of(("code", code)));
+
+    private static bool EmailTargetChanged(SysEmailConfig config, EmailConfigDraft draft)
+        => !string.Equals(config.SmtpHost, draft.SmtpHost.Trim(), StringComparison.OrdinalIgnoreCase)
+            || config.SmtpPort != draft.SmtpPort
+            || (config.UseSsl && !draft.UseSsl)
+            || (!config.AcceptInvalidCertificate && draft.AcceptInvalidCertificate);
 
     private void ApplyEmail(SysEmailConfig config, EmailConfigDraft draft)
     {

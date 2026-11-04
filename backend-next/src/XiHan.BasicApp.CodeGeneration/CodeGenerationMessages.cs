@@ -179,6 +179,31 @@ public static class CodeGenerationMessages
     public const string DataSourceNotFound = "codegeneration.datasource.not_found";
 
     /// <summary>
+    /// 表配置的表名不能改
+    /// </summary>
+    public const string TableRenameRejected = "codegeneration.table.rename_rejected";
+
+    /// <summary>
+    /// 数据源的目标地址被出站地址策略拒绝（参数 <c>host</c>）
+    /// </summary>
+    public const string DataSourceTargetDenied = "codegeneration.datasource.target_denied";
+
+    /// <summary>
+    /// 没有开放 SQLite 数据源
+    /// </summary>
+    public const string SqliteSourceDisabled = "codegeneration.datasource.sqlite_disabled";
+
+    /// <summary>
+    /// 改了数据源的地址要重新填写口令
+    /// </summary>
+    public const string DataSourceSecretRequired = "codegeneration.datasource.secret_required";
+
+    /// <summary>
+    /// 零代码运行时不读应用自己的表（参数 <c>table</c>）
+    /// </summary>
+    public const string RuntimeTableReserved = "codegeneration.runtime.table_reserved";
+
+    /// <summary>
     /// 已有同名的数据源
     /// </summary>
     public const string DataSourceNameTaken = "codegeneration.datasource.name_taken";

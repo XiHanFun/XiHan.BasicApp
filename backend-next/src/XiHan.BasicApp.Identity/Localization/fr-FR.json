@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Réinitialiser le mot de passe",
   "auth.reset_password.description": "Définir un nouveau mot de passe avec le code. Toutes les sessions du compte sont révoquées.",
   "identity.user.system_account": "Il s'agit d'un compte système intégré : cette action n'est pas autorisée.",
+  "identity.user.super_admin_password_missing": "Le mot de passe initial du super-administrateur n’est pas configuré (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Les coordonnées permettent de récupérer un mot de passe : modifier l’e-mail ou le téléphone d’une autre personne nécessite la permission de réinitialiser le mot de passe.",
   "users.login_policy.title": "Obtenir la stratégie de connexion d'un utilisateur",
   "users.login_policy.description": "Indique si un utilisateur peut se connecter sur plusieurs appareils et sur combien.",
   "users.set_login_policy.title": "Définir la stratégie de connexion d'un utilisateur",

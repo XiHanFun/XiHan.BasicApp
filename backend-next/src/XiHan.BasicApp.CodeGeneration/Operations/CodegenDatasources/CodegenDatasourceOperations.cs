@@ -183,6 +183,12 @@ public sealed class UpdateCodegenDatasource(IRepository<SysCodeGenDataSource, Gu
             return Error.Conflict(CodeGenerationErrors.DataSourceNameTaken, CodeGenerationMessages.DataSourceNameTaken, MessageArguments.Of(("name", name)));
         }
 
+        // 留空的口令保留旧值，但不能跟着改过的地址走：只有改配置权限的人也能把它发给假数据库
+        if (source.Password is not null && string.IsNullOrEmpty(request.Password) && (source.DatabaseType != request.DatabaseType || source.Port != request.Port || !string.Equals(source.Host, request.Host.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return Error.Validation(CodeGenerationErrors.DataSourceSecretRequired, CodeGenerationMessages.DataSourceSecretRequired);
+        }
+
         // 带上读到的并发戳：与当前行不同即由仓储报冲突
         source.ConcurrencyStamp = request.ConcurrencyStamp;
         source.SourceName = name;
@@ -343,7 +349,7 @@ public sealed class TestCodegenDatasource(IRepository<SysCodeGenDataSource, Guid
             return found.Error!;
         }
 
-        var definition = service.DefinitionOf(source);
+        var definition = await service.DefinitionOfAsync(source, context.CancellationToken).ConfigureAwait(false);
         if (!definition.TryGetValue(out var defined))
         {
             return definition.Error!;

@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Сброс пароля",
   "auth.reset_password.description": "Задать новый пароль по коду. Все сеансы учётной записи отзываются.",
   "identity.user.system_account": "Это встроенная системная учётная запись, поэтому это действие запрещено.",
+  "identity.user.super_admin_password_missing": "Начальный пароль суперадминистратора не настроен (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Контактные данные позволяют восстановить пароль, поэтому для изменения чужой почты или телефона нужно разрешение на сброс пароля.",
   "users.login_policy.title": "Получить политику входа пользователя",
   "users.login_policy.description": "Показывает, может ли пользователь входить с нескольких устройств и с какого их числа.",
   "users.set_login_policy.title": "Задать политику входа пользователя",

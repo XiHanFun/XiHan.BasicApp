@@ -6,6 +6,8 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity;
 using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Kernel.Operations;
@@ -90,7 +92,8 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var principal = context.GetSecurity().Principal;
+        var security = context.GetSecurity();
+        var principal = security.Principal;
         if (!Guid.TryParse(principal.Id, out var userId))
         {
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", principal.Id)));
@@ -108,15 +111,22 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
         var until = clock.GetUtcNow().UtcDateTime.AddDays(1);
         var ct = context.CancellationToken;
 
+        // 模仿态只看这一侧：被模仿的账号可能还是别的租户的成员，那边的记录发起人看不得
+        var side = security.Tenant?.Id ?? TenantIds.Platform;
+        var tenant = security.Tenant?.Id;
+        var impersonating = principal.ClaimValues(IdentityClaims.Actor).Any();
+
         // 只取时间列（投影到实体，走实体映射的时间转换），条件在分表之前施加
         var logins = (await unitOfWork.ConnectionFor(typeof(SysLoginLog)).Queryable<SysLoginLog>()
                 .Where(e => e.UserId == userId && e.Event == LoginEvent.Login && e.Succeeded && e.OccurredAt >= sinceUtc)
+                .WhereIF(impersonating, e => e.TenantId == side)
                 .SplitTable(sinceUtc, until)
                 .Select(e => new SysLoginLog { OccurredAt = e.OccurredAt })
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(static e => Instant(e.OccurredAt)).ToList();
         var accessRows = await unitOfWork.ConnectionFor(typeof(SysAccessLog)).Queryable<SysAccessLog>()
                 .Where(e => e.UserId == userId && e.OccurredAt >= sinceUtc)
+                .WhereIF(impersonating, e => e.TenantId == side)
                 .SplitTable(sinceUtc, until)
                 .Select(e => new SysAccessLog { OccurredAt = e.OccurredAt, SessionId = e.SessionId })
                 .ToListAsync(ct).ConfigureAwait(false);
@@ -124,12 +134,13 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
         var subject = userId.ToString("D");
         var operations = (await unitOfWork.ConnectionFor(typeof(AuditRecord)).Queryable<AuditRecord>()
                 .Where(r => r.PrincipalId == subject && r.Timestamp >= since)
+                .WhereIF(impersonating && tenant != null, r => r.TenantId == tenant)
                 .Select(r => new AuditRecord { Timestamp = r.Timestamp })
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(static r => r.Timestamp).ToList();
 
         // 在线时长：会话的起止与本人在每个会话里最后一次访问，切成逐日秒数（4.x 同口径）
-        var spans = sessions.FirstOrDefault() is { } history ? await history.ListAsync(userId, since, ct).ConfigureAwait(false) : [];
+        var spans = !impersonating && sessions.FirstOrDefault() is { } history ? await history.ListAsync(userId, since, ct).ConfigureAwait(false) : [];
         var lastAccess = accessRows.Where(static e => e.SessionId.HasValue)
             .GroupBy(static e => e.SessionId!.Value)
             .ToDictionary(static g => g.Key, static g => g.Max(static e => Instant(e.OccurredAt)));

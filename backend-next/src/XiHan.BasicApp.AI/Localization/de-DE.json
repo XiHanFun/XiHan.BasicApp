@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "Für das OpenAI-kompatible Protokoll ist kein Modell-Provider installiert.",
   "ai.query.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
   "ai.query.sort_unsupported": "Sortieren nach '{field}' wird nicht unterstützt.",
+  "ai.provider.secret_required": "Geben Sie das Geheimnis nach dem Ändern der Verbindungsadresse erneut ein: Das alte Geheimnis wird nicht an eine neue Adresse gesendet.",
   "openapi.groups.ai.name": "KI",
   "openapi.groups.ai.description": "Modellanbieter, Prompts, Wissensbasis und Assistenten.",
   "openapi.tags.ai_providers.name": "KI-Anbieter",

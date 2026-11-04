@@ -254,6 +254,8 @@
   "auth.reset_password.title": "비밀번호 재설정",
   "auth.reset_password.description": "재설정 코드로 새 비밀번호를 설정합니다. 계정의 모든 세션이 취소됩니다.",
   "identity.user.system_account": "시스템 기본 계정에서는 이 작업을 수행할 수 없습니다.",
+  "identity.user.super_admin_password_missing": "슈퍼 관리자의 초기 비밀번호가 설정되지 않았습니다(BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "연락처는 비밀번호 찾기에 쓰이므로 다른 사람의 이메일이나 휴대폰 번호를 변경하려면 비밀번호 재설정 권한이 필요합니다.",
   "users.login_policy.title": "사용자 로그인 정책 조회",
   "users.login_policy.description": "사용자의 다중 기기 로그인 허용 여부와 최대 기기 수를 확인합니다.",
   "users.set_login_policy.title": "사용자 로그인 정책 설정",

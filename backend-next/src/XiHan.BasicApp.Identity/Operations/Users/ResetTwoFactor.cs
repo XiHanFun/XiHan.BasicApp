@@ -35,6 +35,7 @@ public sealed class ResetTwoFactor(IRepository<SysUser, Guid> users, IRepository
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var (targets, failed) = await UserBatch.ResolveAsync(users, request.Ids, context, rejectSelf: true).ConfigureAwait(false);
+        UserBatch.ExcludeSystemAccounts(targets, failed);
         var succeeded = new List<Guid>(targets.Count);
         foreach (var user in targets)
         {

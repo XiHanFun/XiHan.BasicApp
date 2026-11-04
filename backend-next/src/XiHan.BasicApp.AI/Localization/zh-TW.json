@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "沒有裝配 OpenAI 相容協定的模型 Provider。",
   "ai.query.filter_unsupported": "不支援篩選 '{field} {operator}'。",
   "ai.query.sort_unsupported": "不支援依 '{field}' 排序。",
+  "ai.provider.secret_required": "改了連線位址要重新填寫金鑰：舊金鑰不會發往新位址。",
   "openapi.groups.ai.name": "AI",
   "openapi.groups.ai.description": "模型供應商、提示詞、知識庫與助手。",
   "openapi.tags.ai_providers.name": "AI 供應商",

@@ -51,6 +51,22 @@ public sealed class SelfServiceAccountTests : IDisposable
         return (response.StatusCode, json);
     }
 
+    private static async Task<JsonElement> VerificationRecordAsync(BasicAppTestServer server, string token)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            var rows = (await SendAsync(server, HttpMethod.Post, "/api/emails:list", new { page = new { index = 1, size = 10 } }, token)).Body.GetProperty("items").EnumerateArray().ToList();
+            var settled = rows.Find(static e => e.GetProperty("status").GetString() == "Success");
+            if (settled.ValueKind != JsonValueKind.Undefined || attempt >= 100)
+            {
+                Assert.NotEqual(JsonValueKind.Undefined, settled.ValueKind);
+                return settled;
+            }
+
+            await Task.Delay(50);
+        }
+    }
+
     private async Task<EmailEnvelope> MailToAsync(string to)
     {
         for (var attempt = 0; attempt < 100 && !_email.Sent.Any(m => m.To == to); attempt++)
@@ -131,6 +147,19 @@ public sealed class SelfServiceAccountTests : IDisposable
         var mail = await MailToAsync("ann@example.com");
         Assert.Contains(Code, mail.Body, StringComparison.Ordinal);
         Assert.Contains("找回密码", mail.Subject + mail.Body, StringComparison.Ordinal);
+
+        // 发送记录不留码：响应不带正文、库里也清空、不能重发。码等于账号的钥匙，读记录的权限不能拿它接管账号
+        var record = await VerificationRecordAsync(server, platform);
+        Assert.Equal(JsonValueKind.Null, record.GetProperty("content").ValueKind);
+        Assert.DoesNotContain(Code, record.ToString(), StringComparison.Ordinal);
+        Assert.Equal("NOTIFICATION_CONFLICT_008", (await SendAsync(server, HttpMethod.Post, "/api/emails:resend", new { ids = new[] { record.GetProperty("id").GetString() } }, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
+        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(_database.ConnectionString))
+        {
+            await connection.OpenAsync(TestContext.Current.CancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT content FROM sys_email WHERE business_type = 'identity.verification'";
+            Assert.Equal(string.Empty, Convert.ToString(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken), System.Globalization.CultureInfo.InvariantCulture));
+        }
         Assert.DoesNotContain(_email.Sent, m => m.To == "nobody@example.com");
 
         // 密码不合格先拒绝、不消费码；码错不行；码对即重设，旧密码与旧会话都失效

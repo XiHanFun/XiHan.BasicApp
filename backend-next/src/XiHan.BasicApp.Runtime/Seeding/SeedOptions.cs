@@ -24,14 +24,6 @@ public sealed record SeedOptions
     public const string SuperAdminUserName = "superadmin";
 
     /// <summary>
-    /// 超级管理员的缺省初始密码
-    /// </summary>
-    /// <remarks>
-    /// 沿用 4.x；部署时用配置覆盖并在首次登录后修改
-    /// </remarks>
-    public const string DefaultSuperAdminPassword = "SuperAdmin@123";
-
-    /// <summary>
     /// 是否执行演示数据种子（号段 900）
     /// </summary>
     public bool EnableDemoData { get; init; }
@@ -40,9 +32,9 @@ public sealed record SeedOptions
     /// 超级管理员的初始密码
     /// </summary>
     /// <remarks>
-    /// 只在账号不存在、首次写入时使用
+    /// 只在账号不存在、首次写入时使用；这时没配就失败，不落一个公开的缺省密码。开发环境的配置文件里写了 <c>SuperAdmin@123</c>
     /// </remarks>
-    public string SuperAdminPassword { get; init; } = DefaultSuperAdminPassword;
+    public string? SuperAdminPassword { get; init; }
 
     /// <summary>
     /// 从配置读取

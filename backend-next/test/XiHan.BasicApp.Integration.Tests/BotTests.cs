@@ -72,11 +72,12 @@ public sealed class BotTests : IDisposable
 
         Assert.Equal("NOTIFICATION_VALIDATION_011", (await SendAsync(server, HttpMethod.Post, "/api/bot-configs", new { code = "bad", name = "Bad", provider = "Lark", webhookUrl = "https://oapi.dingtalk.com/robot/send?access_token=x" }, platform)).Body.GetProperty("code").GetString());
 
-        // 每个服务商的第一个即缺省；密钥不回显；缺省的不能删、停用或换服务商
+        // 每个服务商的第一个即缺省；密钥与地址里的令牌不回显；缺省的不能删、停用或换服务商
         var ding = await CreatedAsync(server, "/api/bot-configs", new { code = "ding", name = "Ding", provider = "DingTalk", webhookUrl = "https://oapi.dingtalk.com/robot/send?access_token=one", secret = "SEC-secret-1", keyword = "XiHan" }, platform);
         Assert.True(ding.GetProperty("isDefault").GetBoolean());
         Assert.True(ding.GetProperty("hasSecret").GetBoolean());
         Assert.DoesNotContain("SEC-secret-1", ding.ToString(), StringComparison.Ordinal);
+        Assert.Equal("https://oapi.dingtalk.com/***", ding.GetProperty("webhookUrl").GetString());
         var dingId = ding.GetProperty("id").GetString()!;
         var ding2 = await CreatedAsync(server, "/api/bot-configs", new { code = "ding2", name = "Ding 2", provider = "DingTalk", webhookUrl = "https://oapi.dingtalk.com/robot/send?access_token=two" }, platform);
         Assert.False(ding2.GetProperty("isDefault").GetBoolean());
@@ -85,6 +86,9 @@ public sealed class BotTests : IDisposable
         Assert.Equal("NOTIFICATION_CONFLICT_005", (await SendAsync(server, HttpMethod.Delete, $"/api/bot-configs?ids={dingId}", null, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
         Assert.Equal("NOTIFICATION_CONFLICT_005", (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{dingId}", new { name = "Ding", provider = "DingTalk", webhookUrl = "https://oapi.dingtalk.com/robot/send?access_token=one", isEnabled = false }, platform)).Body.GetProperty("code").GetString());
         Assert.Equal("NOTIFICATION_CONFLICT_005", (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{dingId}", new { name = "Ding", provider = "Lark", webhookUrl = "https://open.feishu.cn/open-apis/bot/v2/hook/x" }, platform)).Body.GetProperty("code").GetString());
+
+        // 交回遮过的地址即保留原地址（后面的发送用的还是它）
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{dingId}", new { name = "Ding", provider = "DingTalk", webhookUrl = "https://oapi.dingtalk.com/***", keyword = "XiHan" }, platform)).Status);
 
         // 修改不填密钥即保留；设缺省只换同一服务商的
         var (updatedStatus, updated) = await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{dingId}", new { name = "Ding renamed", provider = "DingTalk", webhookUrl = "https://oapi.dingtalk.com/robot/send?access_token=one", keyword = "XiHan" }, platform);

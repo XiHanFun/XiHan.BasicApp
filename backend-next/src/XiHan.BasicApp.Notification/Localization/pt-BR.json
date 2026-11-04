@@ -141,6 +141,7 @@
   "notification.template.invalid": "O modelo é inválido: {detail}",
   "notification.email.address_invalid": "O endereço de e-mail {address} não é válido.",
   "notification.sms_config.template_map_invalid": "O mapa de modelos deve ser um objeto JSON (código do modelo → ID do provedor).",
+  "notification.channel.secret_required": "Informe o segredo novamente após alterar o endereço de conexão: o segredo antigo não é enviado para um novo endereço.",
   "notification.channels.invalid": "Os canais de entrega devem incluir as mensagens internas.",
   "notification.template.missing": "Não há modelo {code} ativo disponível.",
   "notification.channel.unavailable": "Não há configuração {kind} padrão ativa.",

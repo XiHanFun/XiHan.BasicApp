@@ -110,18 +110,8 @@ public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
 
         if (config.IsEncrypted && !request.IsEncrypted)
         {
-            if (provided is not null)
-            {
-                return (provided, Maybe.Some(provided));
-            }
-
-            var current = values.PlaintextOf(config);
-            if (!current.TryGetValue(out var decrypted))
-            {
-                return current.Error!;
-            }
-
-            return (decrypted.TryGetValue(out var text) ? text : null, decrypted);
+            // 不给新值就清空：解密落库等于只有改权限的人也能在响应与差异日志里读到明文
+            return provided is not null ? (provided, Maybe.Some(provided)) : (null, Maybe.None<string>());
         }
 
         return (provided, Maybe.From(provided));

@@ -98,6 +98,11 @@ public static class AIErrors
     public const string AssistantToolUnavailable = "AI_VALIDATION_106";
 
     /// <summary>
+    /// 改了提供商的地址要重新填写密钥
+    /// </summary>
+    public const string ProviderSecretRequired = "AI_VALIDATION_107";
+
+    /// <summary>
     /// 提供商的 API 密钥解不开
     /// </summary>
     public const string ProviderSecretUnreadable = "AI_UNAVAILABLE_101";

@@ -141,6 +141,7 @@
   "notification.template.invalid": "템플릿에 오류가 있습니다: {detail}",
   "notification.email.address_invalid": "메일 주소 {address}의 형식이 올바르지 않습니다.",
   "notification.sms_config.template_map_invalid": "템플릿 매핑은 JSON 객체(템플릿 코드 → 사업자 템플릿 ID)여야 합니다.",
+  "notification.channel.secret_required": "연결 주소를 변경하면 비밀 값을 다시 입력해야 합니다. 이전 비밀 값은 새 주소로 전송되지 않습니다.",
   "notification.channels.invalid": "전달 채널에는 사이트 내 메시지가 포함되어야 합니다.",
   "notification.template.missing": "사용할 수 있는 템플릿 {code}이(가) 없습니다.",
   "notification.channel.unavailable": "사용할 수 있는 기본 {kind} 설정이 없습니다.",

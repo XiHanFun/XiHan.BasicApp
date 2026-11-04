@@ -28,6 +28,14 @@ public sealed class CodeGenerationOptions
     public bool EnableGenerateToProject { get; init; }
 
     /// <summary>
+    /// 是否开放 SQLite 数据源
+    /// </summary>
+    /// <remarks>
+    /// 缺省关：SQLite 的「地址」是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件
+    /// </remarks>
+    public bool AllowSqliteDataSource { get; init; }
+
+    /// <summary>
     /// 后端根目录
     /// </summary>
     /// <remarks>
@@ -60,8 +68,10 @@ public sealed class CodeGenerationOptions
         ArgumentNullException.ThrowIfNull(configuration);
         var section = configuration.GetSection(Section);
         var enabled = section[nameof(EnableGenerateToProject)];
+        var sqlite = section[nameof(AllowSqliteDataSource)];
         return new CodeGenerationOptions
         {
+            AllowSqliteDataSource = sqlite is not null && (bool.TryParse(sqlite, out var allowed) ? allowed : throw new ArgumentException($"'{Section}:{nameof(AllowSqliteDataSource)}' must be 'true' or 'false', but was '{sqlite}'.")),
             EnableGenerateToProject = enabled is not null && (bool.TryParse(enabled, out var value) ? value : throw new ArgumentException($"'{Section}:{nameof(EnableGenerateToProject)}' must be 'true' or 'false', but was '{enabled}'.")),
             BackendRootPath = section[nameof(BackendRootPath)] is { Length: > 0 } backend ? backend : null,
             FrontendRootPath = section[nameof(FrontendRootPath)] is { Length: > 0 } frontend ? frontend : null,

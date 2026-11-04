@@ -159,6 +159,12 @@ public sealed class UpdateAiProvider(IRepository<SysAiProvider, Guid> providers,
             return found.Error!;
         }
 
+        // 留空的密钥保留旧值，但不能跟着改过的地址走：只有改配置权限的人也能把它发到自己的服务器
+        if (provider.ApiKey is not null && string.IsNullOrEmpty(request.ApiKey) && !string.Equals(provider.Endpoint, AiProviderService.Trimmed(request.Endpoint), StringComparison.OrdinalIgnoreCase))
+        {
+            return Error.Validation(AIErrors.ProviderSecretRequired, AIMessages.ProviderSecretRequired);
+        }
+
         // 带上读到的并发戳：与当前行不同即由仓储报冲突
         provider.ConcurrencyStamp = request.ConcurrencyStamp;
         provider.Name = request.Name.Trim();

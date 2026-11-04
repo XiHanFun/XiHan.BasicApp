@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Redefinir senha",
   "auth.reset_password.description": "Definir uma nova senha com o código. Todas as sessões da conta são revogadas.",
   "identity.user.system_account": "Esta é uma conta interna do sistema, portanto esta ação não é permitida.",
+  "identity.user.super_admin_password_missing": "A senha inicial do superadministrador não está configurada (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Os dados de contato permitem recuperar a senha, então alterar o e-mail ou o telefone de outra pessoa exige a permissão de redefinir senhas.",
   "users.login_policy.title": "Obter a política de login de um usuário",
   "users.login_policy.description": "Mostra se um usuário pode entrar em vários dispositivos e em quantos.",
   "users.set_login_policy.title": "Definir a política de login de um usuário",

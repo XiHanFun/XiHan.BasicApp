@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "OpenAI 호환 프로토콜의 모델 Provider가 구성되어 있지 않습니다.",
   "ai.query.filter_unsupported": "필터 '{field} {operator}'은(는) 지원하지 않습니다.",
   "ai.query.sort_unsupported": "'{field}' 기준 정렬은 지원하지 않습니다.",
+  "ai.provider.secret_required": "연결 주소를 변경하면 비밀 값을 다시 입력해야 합니다. 이전 비밀 값은 새 주소로 전송되지 않습니다.",
   "openapi.groups.ai.name": "AI",
   "openapi.groups.ai.description": "모델 제공업체, 프롬프트, 지식 베이스와 어시스턴트.",
   "openapi.tags.ai_providers.name": "AI 제공업체",

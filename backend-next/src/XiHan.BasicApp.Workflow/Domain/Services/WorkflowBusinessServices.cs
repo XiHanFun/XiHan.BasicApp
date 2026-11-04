@@ -180,7 +180,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
             pending[instance.Id] = list;
         }
 
-        var names = await lookup.NamesAsync(pending.Values.SelectMany(static t => t).Select(static t => t.AssigneeId), context.CancellationToken).ConfigureAwait(false);
+        var names = await lookup.NamesAsync(pending.Values.SelectMany(static t => t).Select(static t => t.AssigneeId), context).ConfigureAwait(false);
         foreach (var (businessId, instance) in latest)
         {
             var waiting = pending.GetValueOrDefault(instance.Id) ?? [];

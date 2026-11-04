@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "Read zero-code runtime data",
   "permissions.codegeneration.codegen_runtime.read.description": "View the data of an enabled table configuration read-only, without generating any code.",
   "codegeneration.runtime.table_disabled": "Table configuration '{name}' is disabled and cannot be opened in the zero-code runtime.",
-  "codegeneration.runtime.read_failed": "Could not read the data of table '{table}': {reason}"
+  "codegeneration.runtime.read_failed": "Could not read the data of table '{table}': {reason}",
+  "codegeneration.runtime.table_reserved": "\"{table}\" belongs to the application itself. The zero-code runtime does not read it.",
+  "codegeneration.datasource.secret_required": "Enter the secret again after changing the connection address: the old secret is not sent to a new address.",
+  "codegeneration.datasource.sqlite_disabled": "SQLite data sources are not enabled (BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "The outbound address policy does not allow connecting to {host}. Allow internal databases under XiHan:Security:Outbound.",
+  "codegeneration.table.rename_rejected": "The table name of a configuration cannot be changed. Import the other table instead."
 }

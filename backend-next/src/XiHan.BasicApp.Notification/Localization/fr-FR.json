@@ -141,6 +141,7 @@
   "notification.template.invalid": "Le modèle est invalide : {detail}",
   "notification.email.address_invalid": "L’adresse e-mail {address} n’est pas valide.",
   "notification.sms_config.template_map_invalid": "La table des modèles doit être un objet JSON (code du modèle → identifiant du fournisseur).",
+  "notification.channel.secret_required": "Saisissez à nouveau le secret après avoir modifié l’adresse de connexion : l’ancien secret n’est pas envoyé à une nouvelle adresse.",
   "notification.channels.invalid": "Les canaux de diffusion doivent inclure les messages internes.",
   "notification.template.missing": "Aucun modèle {code} activé n’est disponible.",
   "notification.channel.unavailable": "Aucune configuration {kind} par défaut activée n’est disponible.",

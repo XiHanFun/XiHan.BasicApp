@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Reset password",
   "auth.reset_password.description": "Set a new password with the reset code. All sessions of the account are revoked.",
   "identity.user.system_account": "This is a built-in system account, so this action is not allowed.",
+  "identity.user.super_admin_password_missing": "The super administrator's initial password is not configured (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Contact details can be used to recover a password, so changing someone else's email or phone number requires the reset-password permission.",
   "users.login_policy.title": "Get a user's login policy",
   "users.login_policy.description": "See whether a user may sign in on several devices and how many.",
   "users.set_login_policy.title": "Set a user's login policy",

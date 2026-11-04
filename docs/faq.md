@@ -55,7 +55,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 初始超级管理员账号是什么？
 
-`superadmin` / `SuperAdmin@123`，由 `seed` 写入；密码可用 `BasicApp:Seed:SuperAdminPassword` 改掉。首次登录后请修改密码。
+开发环境是 `superadmin` / `SuperAdmin@123`，由 `seed` 写入，写在 `appsettings.Development.json` 的 `BasicApp:Seed:SuperAdminPassword`。别的环境必须配这一项，否则 `seed` 失败。首次登录后请修改密码。
 
 ### 命令行调用登录接口时如何处理验证码？
 

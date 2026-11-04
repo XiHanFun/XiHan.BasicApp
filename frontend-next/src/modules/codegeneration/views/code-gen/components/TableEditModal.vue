@@ -286,7 +286,7 @@ async function handleSubmit() {
         <XhFieldRoot :invalid="!!fieldError('tableName')" required>
           <XhFieldLabel>{{ t('codegeneration.code_gen.table_edit.form_table_name') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="form.tableName" name="tableName" clearable />
+            <XInput v-model:value="form.tableName" name="tableName" disabled />
           </XhFieldControl>
           <XhFieldErrorText v-if="fieldError('tableName')">
             {{ fieldError('tableName') }}

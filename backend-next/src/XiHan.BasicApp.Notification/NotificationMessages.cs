@@ -536,6 +536,11 @@ public static class NotificationMessages
     public const string ChannelUnavailable = "notification.channel.unavailable";
 
     /// <summary>
+    /// 改了通道的地址要重新填写密钥
+    /// </summary>
+    public const string ChannelSecretRequired = "notification.channel.secret_required";
+
+    /// <summary>
     /// 标题不能只有空白
     /// </summary>
     public const string TitleBlank = "notification.notification.title_blank";

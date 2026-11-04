@@ -126,6 +126,31 @@ public static class CodeGenerationErrors
     public const string ProjectWriteRejected = "CODEGENERATION_VALIDATION_010";
 
     /// <summary>
+    /// 表配置的表名不能改
+    /// </summary>
+    public const string TableRenameRejected = "CODEGENERATION_VALIDATION_011";
+
+    /// <summary>
+    /// 数据源的目标地址被出站地址策略拒绝
+    /// </summary>
+    public const string DataSourceTargetDenied = "CODEGENERATION_VALIDATION_012";
+
+    /// <summary>
+    /// 没有开放 SQLite 数据源
+    /// </summary>
+    public const string SqliteSourceDisabled = "CODEGENERATION_VALIDATION_013";
+
+    /// <summary>
+    /// 改了数据源的地址要重新填写口令
+    /// </summary>
+    public const string DataSourceSecretRequired = "CODEGENERATION_VALIDATION_014";
+
+    /// <summary>
+    /// 零代码运行时不读应用自己的表
+    /// </summary>
+    public const string RuntimeTableReserved = "CODEGENERATION_VALIDATION_015";
+
+    /// <summary>
     /// 数据源的口令或连接串解不开
     /// </summary>
     public const string SecretUnreadable = "CODEGENERATION_UNAVAILABLE_001";

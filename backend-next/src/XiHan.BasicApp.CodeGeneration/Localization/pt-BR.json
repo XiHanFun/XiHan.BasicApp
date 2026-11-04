@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "Ver dados do runtime sem código",
   "permissions.codegeneration.codegen_runtime.read.description": "Ver somente leitura os dados de uma configuração de tabela ativa, sem gerar código.",
   "codegeneration.runtime.table_disabled": "A configuração de tabela '{name}' está desativada e não pode ser aberta no runtime sem código.",
-  "codegeneration.runtime.read_failed": "Não foi possível ler os dados da tabela '{table}': {reason}"
+  "codegeneration.runtime.read_failed": "Não foi possível ler os dados da tabela '{table}': {reason}",
+  "codegeneration.runtime.table_reserved": "\"{table}\" pertence à própria aplicação. O runtime sem código não a lê.",
+  "codegeneration.datasource.secret_required": "Informe o segredo novamente após alterar o endereço de conexão: o segredo antigo não é enviado para um novo endereço.",
+  "codegeneration.datasource.sqlite_disabled": "As fontes de dados SQLite não estão habilitadas (BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "A política de endereços de saída não permite conectar a {host}. Libere bancos internos em XiHan:Security:Outbound.",
+  "codegeneration.table.rename_rejected": "O nome da tabela de uma configuração não pode ser alterado. Importe a outra tabela."
 }

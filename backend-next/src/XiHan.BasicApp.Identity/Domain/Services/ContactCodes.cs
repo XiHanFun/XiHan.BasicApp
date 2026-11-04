@@ -39,7 +39,7 @@ public sealed class ContactCodes(VerificationCodes codes, IEnumerable<IMessageSe
     /// <summary>
     /// 发件箱记录的业务类型
     /// </summary>
-    public const string BusinessType = "identity.verification";
+    public const string BusinessType = MessageBusinessTypes.Verification;
 
     /// <summary>
     /// 签发一个验证码并发出去

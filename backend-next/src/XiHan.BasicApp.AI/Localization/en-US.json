@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "No model provider for the OpenAI-compatible protocol is installed.",
   "ai.query.filter_unsupported": "Filtering on '{field} {operator}' is not supported.",
   "ai.query.sort_unsupported": "Sorting by '{field}' is not supported.",
+  "ai.provider.secret_required": "Enter the secret again after changing the connection address: the old secret is not sent to a new address.",
   "openapi.groups.ai.name": "AI",
   "openapi.groups.ai.description": "Model providers, prompts, the knowledge base and assistants.",
   "openapi.tags.ai_providers.name": "AI providers",

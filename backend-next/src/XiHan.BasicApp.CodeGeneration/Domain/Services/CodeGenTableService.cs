@@ -163,7 +163,7 @@ public sealed class CodeGenTableService(
             return Error.Conflict(CodeGenerationErrors.DataSourceDisabled, CodeGenerationMessages.DataSourceDisabled, MessageArguments.Of(("name", source.SourceName)));
         }
 
-        var definition = dataSources.DefinitionOf(source);
+        var definition = await dataSources.DefinitionOfAsync(source, cancellationToken).ConfigureAwait(false);
         return definition.TryGetValue(out var defined) ? new CodeGenTableSource(source.Id, defined, source.DatabaseType) : definition.Error!;
     }
 

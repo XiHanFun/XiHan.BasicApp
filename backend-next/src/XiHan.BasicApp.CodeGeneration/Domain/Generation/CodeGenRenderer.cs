@@ -5,6 +5,7 @@ using Scriban;
 using Scriban.Runtime;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Services;
+using XiHan.BasicApp.Runtime.Templates;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
@@ -31,7 +32,12 @@ public static class CodeGenRenderer
     public static IReadOnlyList<string> Validate(string? source)
     {
         var template = Template.Parse(source ?? string.Empty);
-        return template.HasErrors ? [.. template.Messages.Select(static m => m.ToString())] : [];
+        if (template.HasErrors)
+        {
+            return [.. template.Messages.Select(static m => m.ToString())];
+        }
+
+        return TemplateLimits.IsTooDeep(template) ? ["The template is nested too deeply."] : [];
     }
 
     /// <summary>
@@ -50,6 +56,11 @@ public static class CodeGenRenderer
         if (template.HasErrors)
         {
             throw new InvalidOperationException(string.Join("; ", template.Messages.Select(static m => m.ToString())));
+        }
+
+        if (TemplateLimits.IsTooDeep(template))
+        {
+            throw new InvalidOperationException("The template is nested too deeply.");
         }
 
         // 模板里赋的变量落在最上面这一层，不带到下一份模板

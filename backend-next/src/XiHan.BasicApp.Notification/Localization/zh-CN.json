@@ -141,6 +141,7 @@
   "notification.template.invalid": "模板有误：{detail}",
   "notification.email.address_invalid": "邮件地址 {address} 格式不正确。",
   "notification.sms_config.template_map_invalid": "模板映射须是 JSON 对象（模板编码 → 服务商模板 ID）。",
+  "notification.channel.secret_required": "改了连接地址要重新填写密钥：旧密钥不会发往新地址。",
   "notification.channels.invalid": "投递渠道须包含站内信。",
   "notification.template.missing": "没有可用的模板 {code}。",
   "notification.channel.unavailable": "没有可用的 {kind} 配置。",

@@ -294,6 +294,11 @@ public static class AIMessages
     /// </summary>
     public const string SortUnsupported = "ai.query.sort_unsupported";
 
+    /// <summary>
+    /// 改了提供商的地址要重新填写密钥
+    /// </summary>
+    public const string ProviderSecretRequired = "ai.provider.secret_required";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AIMessages)));
 
     /// <summary>

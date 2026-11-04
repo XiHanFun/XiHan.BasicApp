@@ -91,7 +91,8 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         // 群机器人的 Webhook 是用户填的地址（两侧都能配），客户端名取传输类的类型名
         foreach (var bot in new[] { nameof(DingTalkBotTransport), nameof(LarkBotTransport), nameof(WeComBotTransport) })
         {
-            context.Services.AddHttpClient(bot).UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));
+            // 不记请求日志：飞书的令牌在路径里，缺省的日志处理器只遮查询串
+            context.Services.AddHttpClient(bot).RemoveAllLoggers().UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));
         }
 
         context.Services.AddScoped<MessageTemplateService>();

@@ -72,7 +72,7 @@ public sealed class ListTasks(IWorkflowTaskService tasks, IWorkflowEngine engine
             }
         }
 
-        var starters = await lookup.NamesAsync(page.Items.Select(static t => t.StarterId), context.CancellationToken).ConfigureAwait(false);
+        var starters = await lookup.NamesAsync(page.Items.Select(static t => t.StarterId), context).ConfigureAwait(false);
         var items = new List<WorkflowTaskResponse>(page.Items.Count);
         foreach (var task in page.Items)
         {

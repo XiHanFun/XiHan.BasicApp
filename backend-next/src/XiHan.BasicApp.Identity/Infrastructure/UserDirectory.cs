@@ -40,6 +40,23 @@ public sealed class UserDirectory(SqlSugarUnitOfWork unitOfWork, IEnumerable<ITe
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<Guid, UserSummary>> FindInSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, UserSummary>();
+        }
+
+        var rows = await unitOfWork.ConnectionFor(typeof(SysUser)).Queryable<SysUser>().Where(u => ids.Contains(u.Id)).ToListAsync(cancellationToken).ConfigureAwait(false);
+        var visible = await InSideAsync(side, ids, cancellationToken).ConfigureAwait(false);
+        return rows
+            .Where(u => string.Equals(u.HomeTenantId, side, StringComparison.Ordinal) || visible.Contains(u.Id))
+            .ToDictionary(static u => u.Id, static u => new UserSummary(u.Id, u.UserName, u.DisplayName, u.Email, u.PhoneNumber));
+    }
+
+    /// <inheritdoc />
     public Task<IReadOnlySet<Guid>> ActiveInSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
         => VisibleInSideAsync(side, userIds, activeOnly: true, cancellationToken);
 

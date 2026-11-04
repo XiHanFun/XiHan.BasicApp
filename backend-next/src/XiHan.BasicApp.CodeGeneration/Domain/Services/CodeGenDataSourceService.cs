@@ -1,9 +1,13 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Data.Common;
 using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.Runtime.Security;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.DataSources;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -24,8 +28,13 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// <param name="tables">表配置仓储</param>
 /// <param name="secrets">密钥保护</param>
 /// <param name="registry">框架的运行时数据源</param>
-public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, Guid> dataSources, IRepository<SysCodeGenTable, Guid> tables, ISecretProtector secrets, DataSourceRegistry registry)
+/// <param name="outbound">出站地址策略</param>
+/// <param name="outboundOptions">出站地址策略的配置（放行的主机）</param>
+/// <param name="options">代码生成配置</param>
+public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, Guid> dataSources, IRepository<SysCodeGenTable, Guid> tables, ISecretProtector secrets, DataSourceRegistry registry, OutboundAddressPolicy outbound, OutboundAddressOptions outboundOptions, CodeGenerationOptions options)
 {
+    private static readonly string[] _hostKeys = ["Host", "Server", "Data Source", "DataSource", "Address", "Addr", "Network Address"];
+
     /// <summary>
     /// 口令的加密用途
     /// </summary>
@@ -143,15 +152,112 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
     /// 数据源的连接定义
     /// </summary>
     /// <param name="source">数据源</param>
-    /// <returns>定义；口令或连接串解不开为失败</returns>
-    public Result<DataSourceDefinition> DefinitionOf(SysCodeGenDataSource source)
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义；口令或连接串解不开、目标地址不被允许为失败</returns>
+    public async Task<Result<DataSourceDefinition>> DefinitionOfAsync(SysCodeGenDataSource source, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
         var connection = ConnectionStringOf(source);
-        return connection.TryGetValue(out var text)
-            ? new DataSourceDefinition(RegistryName(source.Id), DatabaseTypeName(source.DatabaseType), text)
-            : connection.Error!;
+        if (!connection.TryGetValue(out var text))
+        {
+            return connection.Error!;
+        }
+
+        var target = await CheckTargetAsync(source, text, cancellationToken).ConfigureAwait(false);
+        return target.IsSuccess ? new DataSourceDefinition(RegistryName(source.Id), DatabaseTypeName(source.DatabaseType), text) : target.Error!;
     }
+
+    /// <summary>
+    /// 数据源的目标过出站地址策略
+    /// </summary>
+    /// <remarks>
+    /// 连接由驱动发起，用不上策略的连接回调，所以这里先按连接串里的主机解析后判（附加参数也能写主机，判的是拼好的连接串）。
+    /// 驱动会再解析一次，DNS 重绑定的窗口还在；这里防的是把内网地址直接填进来
+    /// </remarks>
+    private async Task<Result> CheckTargetAsync(SysCodeGenDataSource source, string connection, CancellationToken cancellationToken)
+    {
+        if (source.DatabaseType == CodeGenDatabaseType.Sqlite)
+        {
+            return options.AllowSqliteDataSource ? Result.Success() : Error.Validation(CodeGenerationErrors.SqliteSourceDisabled, CodeGenerationMessages.SqliteSourceDisabled);
+        }
+
+        var builder = new DbConnectionStringBuilder();
+        try
+        {
+            builder.ConnectionString = connection;
+        }
+        catch (ArgumentException)
+        {
+            return Denied(source.Host);
+        }
+
+        var hosts = _hostKeys.Where(builder.ContainsKey).SelectMany(key => HostsIn(Convert.ToString(builder[key], CultureInfo.InvariantCulture))).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (hosts.Count == 0)
+        {
+            return Denied(source.Host);
+        }
+
+        foreach (var host in hosts)
+        {
+            if (outboundOptions.AllowedHosts.Contains(host, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            IPAddress[] resolved;
+            try
+            {
+                resolved = IPAddress.TryParse(host, out var literal) ? [literal] : await Dns.GetHostAddressesAsync(host, cancellationToken).ConfigureAwait(false);
+            }
+            catch (SocketException)
+            {
+                continue;
+            }
+
+            if (resolved.Any(address => !outbound.IsAllowed(address)))
+            {
+                return Denied(host);
+            }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// 从连接串的主机项取主机名
+    /// </summary>
+    /// <remarks>
+    /// 各驱动的写法：<c>a,b</c>（PostgreSQL 多主机）、<c>host,1433</c> 与 <c>tcp:host\实例</c>（SQL Server）、<c>host:1521/库</c>（Oracle）、<c>[::1]</c>
+    /// </remarks>
+    private static IEnumerable<string> HostsIn(string? value)
+    {
+        foreach (var part in (value ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (part.All(char.IsAsciiDigit))
+            {
+                continue;
+            }
+
+            var host = part.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase) ? part[4..] : part;
+            if (IPAddress.TryParse(host, out _))
+            {
+                yield return host;
+                continue;
+            }
+
+            if (host.StartsWith('['))
+            {
+                yield return host[1..host.IndexOf(']', StringComparison.Ordinal)];
+                continue;
+            }
+
+            var end = host.IndexOfAny([':', '/', '\\']);
+            yield return end < 0 ? host : host[..end];
+        }
+    }
+
+    private static Error Denied(string host)
+        => Error.Validation(CodeGenerationErrors.DataSourceTargetDenied, CodeGenerationMessages.DataSourceTargetDenied, MessageArguments.Of(("host", host)));
 
     /// <summary>
     /// 按定义连上数据源
@@ -174,7 +280,7 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
             return Error.Conflict(CodeGenerationErrors.DataSourceDisabled, CodeGenerationMessages.DataSourceDisabled, MessageArguments.Of(("name", source.SourceName)));
         }
 
-        var definition = DefinitionOf(source);
+        var definition = await DefinitionOfAsync(source, cancellationToken).ConfigureAwait(false);
         if (!definition.TryGetValue(out var defined))
         {
             return definition.Error!;

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Domain.Services;
 
@@ -366,8 +367,10 @@ public sealed record EmailRecordResponse(Guid Id, string ToEmail, string Subject
     public static EmailRecordResponse From(SysEmail e)
     {
         ArgumentNullException.ThrowIfNull(e);
-        return new(e.Id, e.ToEmail, e.Subject, e.Content, e.IsHtml, e.TemplateCode, e.Status, e.Attempts, e.MaxAttempts, e.NextAttemptAt, e.SentAt, e.ErrorMessage, e.ConfigId, e.SenderId, e.ReceiverId, e.BusinessType, e.BusinessId, e.CreatedAt);
+        return new(e.Id, e.ToEmail, e.Subject, IsSecret(e.BusinessType) ? null : e.Content, e.IsHtml, e.TemplateCode, e.Status, e.Attempts, e.MaxAttempts, e.NextAttemptAt, e.SentAt, e.ErrorMessage, e.ConfigId, e.SenderId, e.ReceiverId, e.BusinessType, e.BusinessId, e.CreatedAt);
     }
+
+    private static bool IsSecret(string? businessType) => string.Equals(businessType, MessageBusinessTypes.Verification, StringComparison.Ordinal);
 }
 
 /// <summary>
@@ -402,8 +405,10 @@ public sealed record SmsRecordResponse(Guid Id, string ToPhone, string Content, 
     public static SmsRecordResponse From(SysSms s)
     {
         ArgumentNullException.ThrowIfNull(s);
-        return new(s.Id, s.ToPhone, s.Content, s.TemplateCode, s.TemplateParams, s.Provider, s.ProviderMessageId, s.Status, s.Attempts, s.MaxAttempts, s.NextAttemptAt, s.SentAt, s.ErrorMessage, s.ConfigId, s.SenderId, s.ReceiverId, s.BusinessType, s.BusinessId, s.CreatedAt);
+        return new(s.Id, s.ToPhone, IsSecret(s.BusinessType) ? string.Empty : s.Content, s.TemplateCode, IsSecret(s.BusinessType) ? null : s.TemplateParams, s.Provider, s.ProviderMessageId, s.Status, s.Attempts, s.MaxAttempts, s.NextAttemptAt, s.SentAt, s.ErrorMessage, s.ConfigId, s.SenderId, s.ReceiverId, s.BusinessType, s.BusinessId, s.CreatedAt);
     }
+
+    private static bool IsSecret(string? businessType) => string.Equals(businessType, MessageBusinessTypes.Verification, StringComparison.Ordinal);
 }
 
 /// <summary>

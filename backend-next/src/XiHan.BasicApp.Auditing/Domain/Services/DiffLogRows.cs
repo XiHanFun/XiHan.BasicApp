@@ -25,7 +25,11 @@ public static class DiffLogRows
     /// </summary>
     public const string Masked = "***";
 
-    private static readonly string[] _sensitive = ["password", "hash", "secret", "token", "salt"];
+    private static readonly string[] _sensitive = ["password", "hash", "secret", "token", "salt", "api_key", "connection_string", "webhook_url"];
+
+    private const string EncryptedColumn = "is_encrypted";
+
+    private const string EncryptedValueColumn = "value";
 
     private const string SoftDeleteColumn = "is_deleted";
 
@@ -106,9 +110,14 @@ public static class DiffLogRows
     /// <remarks>
     /// 没有这一列为空；布尔、0 / 1 与文本都认（各库读回的类型不同）
     /// </remarks>
-    private static bool? IsSoftDeleted(DiffLogTableInfo? row)
+    private static bool? IsSoftDeleted(DiffLogTableInfo? row) => IsFlagSet(row, SoftDeleteColumn);
+
+    /// <summary>
+    /// 这一行的布尔列
+    /// </summary>
+    private static bool? IsFlagSet(DiffLogTableInfo? row, string name)
     {
-        var column = row?.Columns.FirstOrDefault(static c => string.Equals(c.ColumnName, SoftDeleteColumn, StringComparison.OrdinalIgnoreCase));
+        var column = row?.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, name, StringComparison.OrdinalIgnoreCase));
         return column?.Value switch
         {
             null or DBNull => null,
@@ -124,6 +133,7 @@ public static class DiffLogRows
 
     private static string Json(DiffLogTableInfo row)
     {
+        var encrypted = IsFlagSet(row, EncryptedColumn) == true;
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream))
         {
@@ -131,7 +141,7 @@ public static class DiffLogRows
             foreach (var column in row.Columns)
             {
                 writer.WritePropertyName(column.ColumnName);
-                if (IsSensitive(column.ColumnName) && column.Value is not null)
+                if ((IsSensitive(column.ColumnName) || (encrypted && string.Equals(column.ColumnName, EncryptedValueColumn, StringComparison.OrdinalIgnoreCase))) && column.Value is not null)
                 {
                     writer.WriteStringValue(Masked);
                     continue;

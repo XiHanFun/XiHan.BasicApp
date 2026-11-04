@@ -75,7 +75,10 @@ public sealed class WorkflowLookup(IUserDirectory users, IWorkflowDefinitionCata
     /// <summary>
     /// 一批引擎用户 ID 的显示名（不是用户 ID 的、查不到的不在结果里）
     /// </summary>
-    public async Task<IReadOnlyDictionary<string, string>> NamesAsync(IEnumerable<string?> engineUsers, CancellationToken cancellationToken)
+    /// <remarks>
+    /// 只查这一侧看得见的用户：受理人规则可以写任意 ID，别的租户的人不能因此查到名字
+    /// </remarks>
+    public async Task<IReadOnlyDictionary<string, string>> NamesAsync(IEnumerable<string?> engineUsers, InvocationContext context)
     {
         var ids = engineUsers.Select(WorkflowIds.UserOf).OfType<Guid>().Distinct().ToList();
         if (ids.Count == 0)
@@ -83,7 +86,7 @@ public sealed class WorkflowLookup(IUserDirectory users, IWorkflowDefinitionCata
             return new Dictionary<string, string>(StringComparer.Ordinal);
         }
 
-        var found = await users.FindAsync(ids, cancellationToken).ConfigureAwait(false);
+        var found = await users.FindInSideAsync(SideRows.SideOf(context), ids, context.CancellationToken).ConfigureAwait(false);
         return found.Values.ToDictionary(static u => WorkflowIds.ToEngineUser(u.Id), static u => u.DisplayName, StringComparer.Ordinal);
     }
 

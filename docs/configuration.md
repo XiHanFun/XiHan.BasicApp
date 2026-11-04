@@ -258,7 +258,7 @@
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知 |
-| `SuperAdminPassword` | 空 = `SuperAdmin@123` | `superadmin` 的初始密码，部署前改掉 |
+| `SuperAdminPassword` | 空，`appsettings.Development.json` 写的是 `SuperAdmin@123` | `superadmin` 的初始密码；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
 
 ## `BasicApp:Modules`
 
@@ -292,6 +292,7 @@
 | --- | --- | --- |
 | `TablePrefixes` | `sys_` | 导入表时推断类名去掉的表名前缀，逗号分隔、取最长的匹配（5.x 是 `CodeGeneration:TablePrefixes`，缺省 `Sys_,Saas_`） |
 | `EnableGenerateToProject` | `false` | 允许「生成到项目」；打开了也只在 Development 生效（宿主的 `appsettings.Development.json` 打开） |
+| `AllowSqliteDataSource` | `false`，`appsettings.Development.json` 写的是 `true` | 是否开放 SQLite 数据源。SQLite 的「地址」是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件 |
 | `BackendRootPath` | 无 | 写进项目时后端的根目录（含 `src/` 的 `backend-next`），相对宿主的内容根目录；开发配置是 `../..` |
 | `FrontendRootPath` | 无 | 写进项目时前端的根目录（含 `package.json` 的 `frontend-next`），相对宿主的内容根目录；开发配置是 `../../../frontend-next` |
 

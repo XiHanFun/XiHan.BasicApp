@@ -30,6 +30,15 @@ public interface IUserDirectory
     Task<IReadOnlyDictionary<Guid, UserSummary>> FindAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
 
     /// <summary>
+    /// 按 ID 取这一侧看得见的用户（已删除的注册地用户也在，历史记录要显示名字）
+    /// </summary>
+    /// <param name="side">一侧</param>
+    /// <param name="userIds">用户 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>查到的用户；别的租户的 ID 不在结果里</returns>
+    Task<IReadOnlyDictionary<Guid, UserSummary>> FindInSideAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
+
+    /// <summary>
     /// 一侧可见的在用账号
     /// </summary>
     /// <remarks>

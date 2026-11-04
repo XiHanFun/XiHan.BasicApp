@@ -24,6 +24,11 @@ public interface IMessageRecord
     MessageSendStatus Status { get; set; }
 
     /// <summary>
+    /// 业务类型
+    /// </summary>
+    string? BusinessType { get; }
+
+    /// <summary>
     /// 已尝试的次数
     /// </summary>
     int Attempts { get; set; }

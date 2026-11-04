@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "ゼロコード実行時のデータを閲覧",
   "permissions.codegeneration.codegen_runtime.read.description": "有効なテーブル設定のデータを読み取り専用で表示します（コードは生成しません）。",
   "codegeneration.runtime.table_disabled": "テーブル設定「{name}」は無効のため、ゼロコード実行時では開けません。",
-  "codegeneration.runtime.read_failed": "テーブル「{table}」のデータを読み取れません：{reason}"
+  "codegeneration.runtime.read_failed": "テーブル「{table}」のデータを読み取れません：{reason}",
+  "codegeneration.runtime.table_reserved": "「{table}」はアプリケーション自体のテーブルのため、ノーコードランタイムでは読み取りません。",
+  "codegeneration.datasource.secret_required": "接続先を変更した場合はシークレットを再入力してください。以前のシークレットは新しい接続先に送信されません。",
+  "codegeneration.datasource.sqlite_disabled": "SQLite データソースは有効になっていません（BasicApp:CodeGeneration:AllowSqliteDataSource）。",
+  "codegeneration.datasource.target_denied": "送信先アドレスポリシーにより {host} には接続できません。内部データベースは XiHan:Security:Outbound で許可してください。",
+  "codegeneration.table.rename_rejected": "テーブル設定のテーブル名は変更できません。別のテーブルを使うには再度インポートしてください。"
 }

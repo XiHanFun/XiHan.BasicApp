@@ -109,8 +109,13 @@ public sealed class AIProvidersTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
         Assert.True(updatedBody.GetProperty("hasApiKey").GetBoolean());
         Assert.Equal("chat-b", updatedBody.GetProperty("chatModel").GetString());
-        var (stale, _) = await SendAsync(server, HttpMethod.Put, $"/api/ai-providers/{main}", Json(new { concurrencyStamp = mainAfter.GetProperty("concurrencyStamp").GetString(), name = "Main", chatModel = "chat-c", vendor = "OpenAI" }), admin);
+        var (stale, _) = await SendAsync(server, HttpMethod.Put, $"/api/ai-providers/{main}", Json(new { concurrencyStamp = mainAfter.GetProperty("concurrencyStamp").GetString(), name = "Main", chatModel = "chat-c", vendor = "OpenAI", endpoint = FakeOpenAIHandler.Endpoint }), admin);
         Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+
+        // 改了地址要重新填密钥：留空的旧密钥不能跟着发到新地址
+        var (moved, movedBody) = await SendAsync(server, HttpMethod.Put, $"/api/ai-providers/{main}", Json(new { concurrencyStamp = updatedBody.GetProperty("concurrencyStamp").GetString(), name = "Main", chatModel = "chat-b", vendor = "DeepSeek", endpoint = "https://attacker.example/v1", order = 5 }), admin);
+        Assert.Equal(HttpStatusCode.BadRequest, moved.StatusCode);
+        Assert.Equal("AI_VALIDATION_107", movedBody.GetProperty("code").GetString());
 
         // 启停带并发戳；停用的不能设为缺省
         var (disabled, disabledBody) = await SendAsync(server, HttpMethod.Post, $"/api/ai-providers/{main}:set-status", Json(new { concurrencyStamp = updatedBody.GetProperty("concurrencyStamp").GetString(), status = "Disabled" }), admin);

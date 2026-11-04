@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "Daten der No-Code-Laufzeit lesen",
   "permissions.codegeneration.codegen_runtime.read.description": "Zeigt die Daten einer aktiven Tabellenkonfiguration schreibgeschützt an, ohne Code zu erzeugen.",
   "codegeneration.runtime.table_disabled": "Die Tabellenkonfiguration „{name}“ ist deaktiviert und in der No-Code-Laufzeit nicht zugänglich.",
-  "codegeneration.runtime.read_failed": "Die Daten der Tabelle „{table}“ konnten nicht gelesen werden: {reason}"
+  "codegeneration.runtime.read_failed": "Die Daten der Tabelle „{table}“ konnten nicht gelesen werden: {reason}",
+  "codegeneration.runtime.table_reserved": "„{table}“ gehört zur Anwendung selbst. Die No-Code-Laufzeit liest sie nicht.",
+  "codegeneration.datasource.secret_required": "Geben Sie das Geheimnis nach dem Ändern der Verbindungsadresse erneut ein: Das alte Geheimnis wird nicht an eine neue Adresse gesendet.",
+  "codegeneration.datasource.sqlite_disabled": "SQLite-Datenquellen sind nicht aktiviert (BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "Die Richtlinie für ausgehende Adressen erlaubt keine Verbindung zu {host}. Interne Datenbanken unter XiHan:Security:Outbound freigeben.",
+  "codegeneration.table.rename_rejected": "Der Tabellenname einer Konfiguration kann nicht geändert werden. Importieren Sie stattdessen die andere Tabelle."
 }

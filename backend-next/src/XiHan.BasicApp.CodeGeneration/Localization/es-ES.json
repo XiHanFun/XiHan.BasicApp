@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "Ver datos del tiempo de ejecución sin código",
   "permissions.codegeneration.codegen_runtime.read.description": "Ver en solo lectura los datos de una configuración de tabla activa, sin generar código.",
   "codegeneration.runtime.table_disabled": "La configuración de tabla '{name}' está desactivada y no se puede abrir en el tiempo de ejecución sin código.",
-  "codegeneration.runtime.read_failed": "No se pudieron leer los datos de la tabla '{table}': {reason}"
+  "codegeneration.runtime.read_failed": "No se pudieron leer los datos de la tabla '{table}': {reason}",
+  "codegeneration.runtime.table_reserved": "\"{table}\" pertenece a la propia aplicación. El runtime sin código no la lee.",
+  "codegeneration.datasource.secret_required": "Vuelva a introducir el secreto después de cambiar la dirección de conexión: el secreto anterior no se envía a una dirección nueva.",
+  "codegeneration.datasource.sqlite_disabled": "Los orígenes de datos SQLite no están habilitados (BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "La política de direcciones salientes no permite conectar con {host}. Permita las bases internas en XiHan:Security:Outbound.",
+  "codegeneration.table.rename_rejected": "El nombre de tabla de una configuración no se puede cambiar. Importe la otra tabla."
 }

@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "Не установлен поставщик моделей для OpenAI-совместимого протокола.",
   "ai.query.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
   "ai.query.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
+  "ai.provider.secret_required": "После изменения адреса подключения введите секрет заново: старый секрет не отправляется на новый адрес.",
   "openapi.groups.ai.name": "ИИ",
   "openapi.groups.ai.description": "Поставщики моделей, промпты, база знаний и ассистенты.",
   "openapi.tags.ai_providers.name": "Поставщики ИИ",

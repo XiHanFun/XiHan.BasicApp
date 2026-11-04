@@ -254,6 +254,8 @@
   "auth.reset_password.title": "パスワードの再設定",
   "auth.reset_password.description": "再設定コードで新しいパスワードを設定します。アカウントのすべてのセッションを失効させます。",
   "identity.user.system_account": "システム組み込みアカウントではこの操作を実行できません。",
+  "identity.user.super_admin_password_missing": "スーパー管理者の初期パスワードが設定されていません（BasicApp:Seed:SuperAdminPassword）。",
+  "identity.user.contact_change_not_permitted": "連絡先はパスワードの再設定に使えるため、他のユーザーのメールアドレスや電話番号を変更するにはパスワードのリセット権限が必要です。",
   "users.login_policy.title": "ユーザーのログインポリシーを取得",
   "users.login_policy.description": "ユーザーが複数端末でログインできるか、最大台数を確認します。",
   "users.set_login_policy.title": "ユーザーのログインポリシーを設定",

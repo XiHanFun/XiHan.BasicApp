@@ -4,9 +4,11 @@
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Queries;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -50,10 +52,15 @@ internal static class MySessions
     /// <summary>
     /// 本人未吊销、未过期的会话
     /// </summary>
-    public static async Task<List<SysUserSession>> ActiveAsync(IRepository<SysUserSession, Guid> sessions, TimeProvider clock, Guid userId, CancellationToken cancellationToken)
+    public static async Task<List<SysUserSession>> ActiveAsync(IRepository<SysUserSession, Guid> sessions, TimeProvider clock, Guid userId, InvocationContext context)
     {
         var now = clock.GetUtcNow();
-        return [.. await sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue && s.RefreshExpiresAt > now)), cancellationToken).ConfigureAwait(false)];
+        var security = context.GetSecurity();
+        var rows = await sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue && s.RefreshExpiresAt > now)), context.CancellationToken).ConfigureAwait(false);
+        // 模仿态只看这一侧：被模仿的账号可能还是别的租户的成员，那边的会话与地址发起人看不得，也吊销不了
+        return security.Principal.ClaimValues(IdentityClaims.Actor).Any()
+            ? [.. rows.Where(s => string.Equals(s.ActiveTenantId, security.Tenant?.Id, StringComparison.Ordinal))]
+            : [.. rows];
     }
 
     /// <summary>
@@ -104,7 +111,7 @@ public sealed class ListMySessions(IRepository<SysUser, Guid> users, UserAccount
             return subject.Error!;
         }
 
-        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context.CancellationToken).ConfigureAwait(false);
+        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context).ConfigureAwait(false);
         return MySessions.Project(rows, SessionQueries.CurrentSessionOf(context));
     }
 }
@@ -141,7 +148,7 @@ public sealed class RevokeMySession(IRepository<SysUser, Guid> users, UserAccoun
         }
 
         var current = SessionQueries.CurrentSessionOf(context);
-        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context.CancellationToken).ConfigureAwait(false);
+        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context).ConfigureAwait(false);
         var target = rows.Find(s => s.Id == request.SessionId);
         if (target is null)
         {
@@ -189,7 +196,7 @@ public sealed class RevokeMyOtherSessions(IRepository<SysUser, Guid> users, User
         }
 
         var current = SessionQueries.CurrentSessionOf(context);
-        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context.CancellationToken).ConfigureAwait(false);
+        var rows = await MySessions.ActiveAsync(sessions, clock, found.User.Id, context).ConfigureAwait(false);
         var started = await MySessions.ImpersonatingAsync(sessions, clock, found.User.Id, context.CancellationToken).ConfigureAwait(false);
         var targets = rows.Concat(started).Where(s => s.Id != current).DistinctBy(static s => s.Id).ToList();
         if (targets.Count > 0)

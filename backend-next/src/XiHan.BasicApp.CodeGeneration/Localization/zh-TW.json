@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "檢視零程式碼執行時資料",
   "permissions.codegeneration.codegen_runtime.read.description": "依啟用的表設定唯讀檢視資料，不產生任何程式碼。",
   "codegeneration.runtime.table_disabled": "表設定「{name}」已停用，零程式碼執行時不能存取。",
-  "codegeneration.runtime.read_failed": "讀不出表「{table}」的資料：{reason}"
+  "codegeneration.runtime.read_failed": "讀不出表「{table}」的資料：{reason}",
+  "codegeneration.runtime.table_reserved": "「{table}」是應用自己的資料表，零程式碼執行階段不讀取。",
+  "codegeneration.datasource.secret_required": "改了連線位址要重新填寫金鑰：舊金鑰不會發往新位址。",
+  "codegeneration.datasource.sqlite_disabled": "沒有開放 SQLite 資料來源（BasicApp:CodeGeneration:AllowSqliteDataSource）。",
+  "codegeneration.datasource.target_denied": "出站位址策略不允許連線 {host}，內網資料庫要在 XiHan:Security:Outbound 放行。",
+  "codegeneration.table.rename_rejected": "表配置的表名不能改，要換表請重新匯入。"
 }

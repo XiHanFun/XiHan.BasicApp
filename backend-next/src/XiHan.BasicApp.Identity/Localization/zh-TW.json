@@ -254,6 +254,8 @@
   "auth.reset_password.title": "重設密碼",
   "auth.reset_password.description": "用找回密碼收到的驗證碼設新密碼：設好後撤銷這個帳號的全部會話。",
   "identity.user.system_account": "系統內建帳號不能執行這個操作。",
+  "identity.user.super_admin_password_missing": "沒有設定超級管理員的初始密碼（BasicApp:Seed:SuperAdminPassword）。",
+  "identity.user.contact_change_not_permitted": "聯絡方式可以用來找回密碼，修改別人的電子郵件或手機號碼需要重設密碼的權限。",
   "users.login_policy.title": "檢視使用者的登入策略",
   "users.login_policy.description": "檢視使用者是否允許多端登入、最多幾台裝置。",
   "users.set_login_policy.title": "設定使用者的登入策略",

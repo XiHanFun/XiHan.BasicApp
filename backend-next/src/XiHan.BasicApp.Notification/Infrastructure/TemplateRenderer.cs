@@ -5,6 +5,7 @@ using System.Net;
 using Scriban;
 using Scriban.Runtime;
 using Scriban.Syntax;
+using XiHan.BasicApp.Runtime.Templates;
 
 namespace XiHan.BasicApp.Notification.Infrastructure;
 
@@ -13,12 +14,15 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 方案 5.11。变量写成双花括号包住的变量名，4.x 的写法照样可用
-/// 不给模板加载器（不能引入别的文件），循环与递归设上限；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签
+/// 不给模板加载器（不能引入别的文件），循环与递归设上限，语法树限深（<see cref="TemplateLimits"/>），一次渲染最多 5 秒；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签
 /// </remarks>
 internal static class TemplateRenderer
 {
     private const int LoopLimit = 1000;
     private const int RecursiveLimit = 20;
+    private const string TooDeep = "The template is nested too deeply.";
+    private static readonly TimeSpan _renderTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _regexTimeout = TimeSpan.FromMilliseconds(100);
 
     /// <summary>
     /// 检查模板语法
@@ -28,7 +32,12 @@ internal static class TemplateRenderer
     public static string? SyntaxError(string? source)
     {
         var template = Template.Parse(source ?? string.Empty);
-        return template.HasErrors ? string.Join("; ", template.Messages.Select(static m => m.ToString())) : null;
+        if (template.HasErrors)
+        {
+            return string.Join("; ", template.Messages.Select(static m => m.ToString()));
+        }
+
+        return TemplateLimits.IsTooDeep(template) ? TooDeep : null;
     }
 
     /// <summary>
@@ -50,13 +59,20 @@ internal static class TemplateRenderer
             return false;
         }
 
+        if (TemplateLimits.IsTooDeep(template))
+        {
+            error = TooDeep;
+            return false;
+        }
+
         var model = new ScriptObject();
         foreach (var (name, value) in parameters)
         {
             model.SetValue(name, html && value is not null ? WebUtility.HtmlEncode(value) : value, readOnly: false);
         }
 
-        var context = new TemplateContext { LoopLimit = LoopLimit, RecursiveLimit = RecursiveLimit, StrictVariables = false };
+        using var timeout = new CancellationTokenSource(_renderTimeout);
+        var context = new TemplateContext { LoopLimit = LoopLimit, RecursiveLimit = RecursiveLimit, StrictVariables = false, RegexTimeOut = _regexTimeout, CancellationToken = timeout.Token };
         context.PushGlobal(model);
         try
         {
@@ -67,6 +83,11 @@ internal static class TemplateRenderer
         catch (ScriptRuntimeException exception)
         {
             error = exception.Message;
+            return false;
+        }
+        catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+        {
+            error = "The template took too long to render.";
             return false;
         }
     }

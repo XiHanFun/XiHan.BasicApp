@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -281,6 +282,8 @@ public sealed partial class MessageDispatcher(
         DateTimeOffset? sentAt = result.Succeeded ? now : null;
         var error = result.Succeeded ? null : Clip(result.Error ?? "unknown", 2000);
         var id = record.Id;
+        // 验证码发送结束就不再留着（重试还要用，所以不是一入队就不存）
+        var forget = status != MessageSendStatus.Pending && string.Equals(record.BusinessType, MessageBusinessTypes.Verification, StringComparison.Ordinal);
         if (!result.Succeeded)
         {
             LogSendFailed(logger, result.Exception, typeof(T).Name, id, attempts, error);
@@ -296,6 +299,10 @@ public sealed partial class MessageDispatcher(
                 await connection.Updateable<SysEmail>()
                     .SetColumns(e => new SysEmail { Status = status, Attempts = attempts, NextAttemptAt = next, SentAt = sentAt, ErrorMessage = error, ConfigId = configId, ModifiedAt = now })
                     .Where(e => e.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
+                if (forget)
+                {
+                    await connection.Updateable<SysEmail>().SetColumns(e => new SysEmail { Content = string.Empty }).Where(e => e.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
+                }
             }
             else if (typeof(T) == typeof(SysBotMessage))
             {
@@ -309,6 +316,10 @@ public sealed partial class MessageDispatcher(
                 await connection.Updateable<SysSms>()
                     .SetColumns(s => new SysSms { Status = status, Attempts = attempts, NextAttemptAt = next, SentAt = sentAt, ErrorMessage = error, ConfigId = configId, Provider = provider, ProviderMessageId = messageId, ModifiedAt = now })
                     .Where(s => s.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
+                if (forget)
+                {
+                    await connection.Updateable<SysSms>().SetColumns(s => new SysSms { Content = string.Empty, TemplateParams = null }).Where(s => s.Id == id).ExecuteCommandAsync(ct).ConfigureAwait(false);
+                }
             }
 
             return Result.Success();

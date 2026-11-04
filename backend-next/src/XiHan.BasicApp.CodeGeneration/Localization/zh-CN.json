@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "查看零代码运行时数据",
   "permissions.codegeneration.codegen_runtime.read.description": "按启用的表配置只读查看数据，不生成任何代码。",
   "codegeneration.runtime.table_disabled": "表配置「{name}」已停用，零代码运行时不能访问。",
-  "codegeneration.runtime.read_failed": "读不出表「{table}」的数据：{reason}"
+  "codegeneration.runtime.read_failed": "读不出表「{table}」的数据：{reason}",
+  "codegeneration.runtime.table_reserved": "「{table}」是应用自己的表，零代码运行时不读。",
+  "codegeneration.datasource.secret_required": "改了连接地址要重新填写密钥：旧密钥不会发往新地址。",
+  "codegeneration.datasource.sqlite_disabled": "没有开放 SQLite 数据源（BasicApp:CodeGeneration:AllowSqliteDataSource）。",
+  "codegeneration.datasource.target_denied": "出站地址策略不允许连接 {host}，内网数据库要在 XiHan:Security:Outbound 放行。",
+  "codegeneration.table.rename_rejected": "表配置的表名不能改，要换表请重新导入。"
 }

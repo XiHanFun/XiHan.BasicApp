@@ -6,11 +6,13 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Operations.CodegenRuntime;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.Framework.Persistence.Abstractions.Schema;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
@@ -28,8 +30,26 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// <param name="tables">表配置服务</param>
 /// <param name="dataSources">数据源服务</param>
 /// <param name="unitOfWork">工作单元</param>
-public sealed class CodeGenRuntimeService(CodeGenTableService tables, CodeGenDataSourceService dataSources, SqlSugarUnitOfWork unitOfWork)
+/// <param name="entities">已登记的实体（应用自己的表）</param>
+public sealed partial class CodeGenRuntimeService(CodeGenTableService tables, CodeGenDataSourceService dataSources, SqlSugarUnitOfWork unitOfWork, IEntityCatalog entities)
 {
+    [GeneratedRegex(@"^[\p{L}\p{N}_$][\p{L}\p{N}_$ .-]*$")]
+    private static partial Regex SafeTableName();
+
+    /// <summary>
+    /// 表是不是这个实体的
+    /// </summary>
+    /// <remarks>
+    /// 分表登记的是逻辑名（如 <c>sys_access_log_{year}{month}{day}</c>），物理表按占位符之前的前缀认
+    /// </remarks>
+    private static bool IsTableOf(EntityMapping entity, string table)
+    {
+        var placeholder = entity.Table.IndexOf('{', StringComparison.Ordinal);
+        return placeholder < 0
+            ? string.Equals(entity.Table, table, StringComparison.OrdinalIgnoreCase)
+            : table.StartsWith(entity.Table[..placeholder], StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>
     /// 表结构
     /// </summary>
@@ -91,6 +111,18 @@ public sealed class CodeGenRuntimeService(CodeGenTableService tables, CodeGenDat
         if (columns.Count == 0)
         {
             return new PageResult<IReadOnlyDictionary<string, JsonElement>>([], 0, request.Page);
+        }
+
+        // 表名进 AS：SqlSugar 见到括号或引号就原样拼进 SQL，这里只放行表名该有的字符
+        if (!SafeTableName().IsMatch(table.TableName))
+        {
+            return Error.Validation(CodeGenerationErrors.RuntimeTableReserved, CodeGenerationMessages.RuntimeTableReserved, MessageArguments.Of(("table", table.TableName)));
+        }
+
+        // 主库里应用自己的表（账号、口令散列、密钥）不经零代码运行时读
+        if (table.DataSourceId is null && (await entities.ListAsync(context.CancellationToken).ConfigureAwait(false)).Any(e => IsTableOf(e, table.TableName)))
+        {
+            return Error.Validation(CodeGenerationErrors.RuntimeTableReserved, CodeGenerationMessages.RuntimeTableReserved, MessageArguments.Of(("table", table.TableName)));
         }
 
         // 按列配置逐列取（Oracle 的分页不接受 * 与行号并列），列名照原样加引号

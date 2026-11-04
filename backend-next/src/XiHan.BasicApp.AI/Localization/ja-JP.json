@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "OpenAI 互換プロトコルのモデル Provider が組み込まれていません。",
   "ai.query.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
   "ai.query.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
+  "ai.provider.secret_required": "接続先を変更した場合はシークレットを再入力してください。以前のシークレットは新しい接続先に送信されません。",
   "openapi.groups.ai.name": "AI",
   "openapi.groups.ai.description": "モデルプロバイダー、プロンプト、ナレッジベース、アシスタント。",
   "openapi.tags.ai_providers.name": "AI プロバイダー",

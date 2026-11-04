@@ -254,6 +254,8 @@
   "auth.reset_password.title": "Passwort zurücksetzen",
   "auth.reset_password.description": "Mit dem Code ein neues Passwort setzen. Alle Sitzungen des Kontos werden widerrufen.",
   "identity.user.system_account": "Dies ist ein integriertes Systemkonto, daher ist diese Aktion nicht erlaubt.",
+  "identity.user.super_admin_password_missing": "Das Anfangspasswort des Superadministrators ist nicht konfiguriert (BasicApp:Seed:SuperAdminPassword).",
+  "identity.user.contact_change_not_permitted": "Kontaktdaten können zur Passwortwiederherstellung genutzt werden. Zum Ändern der E-Mail-Adresse oder Telefonnummer einer anderen Person ist daher die Berechtigung zum Zurücksetzen des Passworts erforderlich.",
   "users.login_policy.title": "Anmelderichtlinie eines Benutzers abrufen",
   "users.login_policy.description": "Zeigt, ob sich ein Benutzer auf mehreren Geräten anmelden darf und auf wie vielen.",
   "users.set_login_policy.title": "Anmelderichtlinie eines Benutzers festlegen",

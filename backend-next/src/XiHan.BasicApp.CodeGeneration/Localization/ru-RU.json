@@ -167,5 +167,10 @@
   "permissions.codegeneration.codegen_runtime.read.name": "Просмотр данных среды без кода",
   "permissions.codegeneration.codegen_runtime.read.description": "Просмотр данных включённой настройки таблицы только для чтения, без генерации кода.",
   "codegeneration.runtime.table_disabled": "Настройка таблицы «{name}» отключена и недоступна в среде без кода.",
-  "codegeneration.runtime.read_failed": "Не удалось прочитать данные таблицы «{table}»: {reason}"
+  "codegeneration.runtime.read_failed": "Не удалось прочитать данные таблицы «{table}»: {reason}",
+  "codegeneration.runtime.table_reserved": "«{table}» принадлежит самому приложению. Среда no-code её не читает.",
+  "codegeneration.datasource.secret_required": "После изменения адреса подключения введите секрет заново: старый секрет не отправляется на новый адрес.",
+  "codegeneration.datasource.sqlite_disabled": "Источники данных SQLite не включены (BasicApp:CodeGeneration:AllowSqliteDataSource).",
+  "codegeneration.datasource.target_denied": "Политика исходящих адресов не разрешает подключение к {host}. Разрешите внутренние базы в XiHan:Security:Outbound.",
+  "codegeneration.table.rename_rejected": "Имя таблицы в конфигурации изменить нельзя. Импортируйте другую таблицу."
 }

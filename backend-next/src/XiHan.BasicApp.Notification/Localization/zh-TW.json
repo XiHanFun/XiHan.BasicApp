@@ -141,6 +141,7 @@
   "notification.template.invalid": "範本有誤：{detail}",
   "notification.email.address_invalid": "郵件地址 {address} 格式不正確。",
   "notification.sms_config.template_map_invalid": "範本對應須是 JSON 物件（範本編碼 → 服務商範本 ID）。",
+  "notification.channel.secret_required": "改了連線位址要重新填寫金鑰：舊金鑰不會發往新位址。",
   "notification.channels.invalid": "投遞管道須包含站內信。",
   "notification.template.missing": "沒有可用的範本 {code}。",
   "notification.channel.unavailable": "沒有可用的 {kind} 設定。",

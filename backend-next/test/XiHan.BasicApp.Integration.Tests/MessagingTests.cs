@@ -104,6 +104,8 @@ public sealed class MessagingTests : IDisposable
         // 模板：平台种子 9 个（4.x 的 8 个加通知的机器人消息）；语法错误与同渠道同编码拒绝
         Assert.Equal(9, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
         Assert.Equal("NOTIFICATION_VALIDATION_007", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "broken", channel = "Email", name = "Broken", content = "{{ if }}" }, platform));
+        // 语法没错、求值时撑爆线程栈的模板：保存时就拒绝
+        Assert.Equal("NOTIFICATION_VALIDATION_007", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "deep", channel = "Email", name = "Deep", content = "{{ a" + string.Concat(Enumerable.Repeat(".a", 20000)) + " }}" }, platform));
         Assert.Equal("NOTIFICATION_CONFLICT_003", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "notification-email", channel = "Email", name = "Again", content = "x" }, platform));
 
         // 渠道四种（4.x 同）：主题只留给邮件与站内通知（通知标题），HTML 只对邮件
@@ -126,6 +128,18 @@ public sealed class MessagingTests : IDisposable
         Assert.True(smtp.GetProperty("isDefault").GetBoolean());
         Assert.True(smtp.GetProperty("hasPassword").GetBoolean());
         Assert.DoesNotContain("s3cret-pass", smtp.ToString(), StringComparison.Ordinal);
+        // 口令留空即保留，但改了服务器、关了加密或不再验证书就要重填：旧口令不能跟着发到别处
+        foreach (var moved in new object[]
+        {
+            new { name = "Primary", smtpHost = "attacker.example.com", smtpPort = 465, useSsl = true, fromEmail = "noreply@example.com", userName = "noreply" },
+            new { name = "Primary", smtpHost = "smtp.example.com", smtpPort = 25, useSsl = true, fromEmail = "noreply@example.com", userName = "noreply" },
+            new { name = "Primary", smtpHost = "smtp.example.com", smtpPort = 465, useSsl = false, fromEmail = "noreply@example.com", userName = "noreply" },
+            new { name = "Primary", smtpHost = "smtp.example.com", smtpPort = 465, useSsl = true, acceptInvalidCertificate = true, fromEmail = "noreply@example.com", userName = "noreply" },
+        })
+        {
+            Assert.Equal("NOTIFICATION_VALIDATION_016", await CodeAsync(server, HttpMethod.Put, $"/api/email-configs/{smtp.GetProperty("id").GetString()}", moved, platform));
+        }
+
         var backup = await CreatedAsync(server, "/api/email-configs", new { code = "backup", name = "Backup", smtpHost = "backup.example.com", fromEmail = "backup@example.com" }, platform);
         Assert.Equal("NOTIFICATION_CONFLICT_005", (await SendAsync(server, HttpMethod.Delete, $"/api/email-configs?ids={smtp.GetProperty("id").GetString()}", null, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
         Assert.Empty((await SendAsync(server, HttpMethod.Delete, $"/api/email-configs?ids={backup}", null, platform)).Body.GetProperty("failed").EnumerateArray());

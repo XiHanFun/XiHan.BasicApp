@@ -254,6 +254,8 @@
   "auth.reset_password.title": "重设密码",
   "auth.reset_password.description": "用找回密码收到的验证码设新密码：设好后吊销这个账号的全部会话。",
   "identity.user.system_account": "系统内置账号不能执行这个操作。",
+  "identity.user.super_admin_password_missing": "没有配置超级管理员的初始密码（BasicApp:Seed:SuperAdminPassword）。",
+  "identity.user.contact_change_not_permitted": "联系方式可以用来找回密码，修改别人的邮箱或手机号需要重置密码的权限。",
   "users.login_policy.title": "查看用户的登录策略",
   "users.login_policy.description": "查看用户是否允许多端登录、最多几台设备。",
   "users.set_login_policy.title": "设置用户的登录策略",

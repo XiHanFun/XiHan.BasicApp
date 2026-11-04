@@ -23,6 +23,7 @@
   "ai.providers.kind_unavailable": "No hay ningún proveedor de modelos instalado para el protocolo compatible con OpenAI.",
   "ai.query.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
   "ai.query.sort_unsupported": "No se admite ordenar por '{field}'.",
+  "ai.provider.secret_required": "Vuelva a introducir el secreto después de cambiar la dirección de conexión: el secreto anterior no se envía a una dirección nueva.",
   "openapi.groups.ai.name": "IA",
   "openapi.groups.ai.description": "Proveedores de modelos, prompts, base de conocimiento y asistentes.",
   "openapi.tags.ai_providers.name": "Proveedores de IA",

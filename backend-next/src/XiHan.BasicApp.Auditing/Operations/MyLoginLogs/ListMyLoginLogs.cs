@@ -7,6 +7,8 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
@@ -59,15 +61,21 @@ public sealed class ListMyLoginLogs(SqlSugarUnitOfWork unitOfWork) : IOperation<
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var principal = context.GetSecurity().Principal;
+        var security = context.GetSecurity();
+        var principal = security.Principal;
         if (!Guid.TryParse(principal.Id, out var userId))
         {
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", principal.Id)));
         }
 
+        // 模仿态只看这一侧：被模仿的账号可能还是别的租户的成员，那边的记录发起人看不得
+        var side = security.Tenant?.Id ?? TenantIds.Platform;
+        var impersonating = principal.ClaimValues(IdentityClaims.Actor).Any();
+
         // 条件在分表之前施加（下推到每张月表），排序与分页在之后
         var query = unitOfWork.ConnectionFor(typeof(SysLoginLog)).Queryable<SysLoginLog>()
             .Where(e => e.UserId == userId)
+            .WhereIF(impersonating, e => e.TenantId == side)
             .SplitTable()
             .OrderBy(e => e.OccurredAt, OrderByType.Desc)
             .OrderBy(e => e.Id, OrderByType.Desc);

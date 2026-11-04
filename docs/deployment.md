@@ -32,7 +32,7 @@ dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basi
 | `XiHan__Bindings__db__value` | 平台库连接串（必需） |
 | `XiHan__Security__Jwt__Secret` | HS256 密钥，至少 32 字节（必需） |
 | `XiHan__ObjectStorage__SignedUrls__Secret` | 本地存储签名地址密钥（用本地存储时必需） |
-| `BasicApp__Seed__SuperAdminPassword` | 超级管理员初始密码，替换缺省的 `SuperAdmin@123` |
+| `BasicApp__Seed__SuperAdminPassword` | **必需（首次 `seed`）**：超级管理员初始密码 |
 | `BasicApp__DataProtection__KeysDirectory` | 数据保护密钥目录，持久化存储；多实例共享 |
 | `BasicApp__Files__LocalRootPath` | 本地存储根目录，挂持久卷 |
 | `BasicApp__OpenPlatform__Issuer` | 对外的 OIDC 签发者（反向代理后必须显式配置） |
@@ -152,7 +152,7 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 
 ## 出站地址
 
-用户填的地址（工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商、第三方登录、S3 兼容存储）缺省只能连公网。自建 MinIO、内网 Webhook、内网 SMTP 中继、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
+用户填的地址（工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商、第三方登录、S3 兼容存储、代码生成的外部数据源）缺省只能连公网。自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
 
 ## 备份与还原
 

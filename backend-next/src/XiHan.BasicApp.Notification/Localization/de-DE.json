@@ -141,6 +141,7 @@
   "notification.template.invalid": "Die Vorlage ist ungültig: {detail}",
   "notification.email.address_invalid": "Die E-Mail-Adresse {address} ist ungültig.",
   "notification.sms_config.template_map_invalid": "Die Vorlagenzuordnung muss ein JSON-Objekt sein (Vorlagencode → Anbieter-Vorlagen-ID).",
+  "notification.channel.secret_required": "Geben Sie das Geheimnis nach dem Ändern der Verbindungsadresse erneut ein: Das alte Geheimnis wird nicht an eine neue Adresse gesendet.",
   "notification.channels.invalid": "Die Zustellkanäle müssen In-App-Nachrichten enthalten.",
   "notification.template.missing": "Keine aktivierte Vorlage {code} verfügbar.",
   "notification.channel.unavailable": "Keine aktivierte Standard-{kind}-Konfiguration verfügbar.",

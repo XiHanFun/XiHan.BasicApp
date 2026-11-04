@@ -141,6 +141,7 @@
   "notification.template.invalid": "The template is invalid: {detail}",
   "notification.email.address_invalid": "Email address {address} is not valid.",
   "notification.sms_config.template_map_invalid": "The template map must be a JSON object (template code → provider template ID).",
+  "notification.channel.secret_required": "Enter the secret again after changing the connection address: the old secret is not sent to a new address.",
   "notification.channels.invalid": "Delivery channels must include in-app messages.",
   "notification.template.missing": "No enabled template {code} is available.",
   "notification.channel.unavailable": "No enabled default {kind} configuration is available.",

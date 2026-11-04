@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -31,7 +32,7 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
     public async Task<BatchResult> ResendAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {
-        var result = await ApplyAsync(records, owner, ids, notFound, static r => r.Status is MessageSendStatus.Pending or MessageSendStatus.Sending ? NotificationErrors.RecordBusy : null, static r =>
+        var result = await ApplyAsync(records, owner, ids, notFound, static r => string.Equals(r.BusinessType, MessageBusinessTypes.Verification, StringComparison.Ordinal) ? NotificationErrors.RecordNotResendable : r.Status is MessageSendStatus.Pending or MessageSendStatus.Sending ? NotificationErrors.RecordBusy : null, static r =>
         {
             r.Status = MessageSendStatus.Pending;
             r.Attempts = 0;

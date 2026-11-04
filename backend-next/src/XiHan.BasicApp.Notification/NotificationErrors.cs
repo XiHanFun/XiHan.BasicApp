@@ -75,6 +75,11 @@ public static class NotificationErrors
     public const string TelegramSettingsInvalid = "NOTIFICATION_VALIDATION_015";
 
     /// <summary>
+    /// 改了通道的地址要重新填写密钥
+    /// </summary>
+    public const string ChannelSecretRequired = "NOTIFICATION_VALIDATION_016";
+
+    /// <summary>
     /// Telegram 机器人不存在
     /// </summary>
     /// <remarks>
@@ -200,6 +205,11 @@ public static class NotificationErrors
     /// 只有排队中的记录能取消
     /// </summary>
     public const string RecordNotPending = "NOTIFICATION_CONFLICT_007";
+
+    /// <summary>
+    /// 验证码的发送记录不能重发
+    /// </summary>
+    public const string RecordNotResendable = "NOTIFICATION_CONFLICT_008";
 
     /// <summary>
     /// 模板语法错误或渲染失败

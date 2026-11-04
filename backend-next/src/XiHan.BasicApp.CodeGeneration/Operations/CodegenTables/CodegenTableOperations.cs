@@ -259,15 +259,14 @@ public sealed class UpdateCodegenTable(IRepository<SysCodeGenTable, Guid> tables
             return found.Error!;
         }
 
-        var tableName = request.TableName.Trim();
-        if (await service.TableNameTakenAsync(tableName, table.Id, context.CancellationToken).ConfigureAwait(false))
+        // 表名只来自导入与同步：运行时拿它拼查询，列配置也是这张表的
+        if (!string.Equals(request.TableName.Trim(), table.TableName, StringComparison.Ordinal))
         {
-            return Error.Conflict(CodeGenerationErrors.TableAlreadyImported, CodeGenerationMessages.TableAlreadyImported, MessageArguments.Of(("table", tableName)));
+            return Error.Validation(CodeGenerationErrors.TableRenameRejected, CodeGenerationMessages.TableRenameRejected);
         }
 
         var before = CodeGenModifiedFields.Snapshot(table, CodeGenTableService.TrackedTableFields);
         table.ConcurrencyStamp = request.ConcurrencyStamp;
-        table.TableName = tableName;
         table.TableComment = CodeGenDataSourceService.Trimmed(request.TableComment);
         table.ClassName = request.ClassName.Trim();
         table.Namespace = CodeGenDataSourceService.Trimmed(request.Namespace);

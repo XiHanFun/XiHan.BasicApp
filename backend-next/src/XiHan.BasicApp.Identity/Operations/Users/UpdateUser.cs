@@ -9,6 +9,7 @@ using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Kernel.Validation;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Identity.Operations.Users;
 
@@ -17,11 +18,13 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </summary>
 /// <remarks>
 /// <c>PUT /api/users/{id}</c>。租户主体只能改注册在本租户的用户：外部成员的账号由其注册地维护，这里按不存在回答
+/// 联系方式能用来找回密码：改别人的邮箱或手机号要同时持有重置密码的权限，系统账号的只有本人能改，不然只有这个权限的人能绕过「系统账号不能被管理员重置密码」
 /// 字段安全（方案 5.9）：交回原值、脱敏值或空值的受保护字段视为没改、保留库里的原值；改了只读字段即拒绝。邮箱格式因此在决定之后才校验（脱敏后的邮箱不像邮箱）
 /// </remarks>
 /// <param name="users">用户仓储</param>
+/// <param name="permissions">权限判定（改联系方式）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersUpdate)]
-public sealed class UpdateUser(IRepository<SysUser, Guid> users) : IOperation<UpdateUserRequest, UserResponse>
+public sealed class UpdateUser(IRepository<SysUser, Guid> users, IPermissionChecker permissions) : IOperation<UpdateUserRequest, UserResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -47,6 +50,27 @@ public sealed class UpdateUser(IRepository<SysUser, Guid> users) : IOperation<Up
         {
             var violations = new[] { new SchemaViolation("$." + IdentityFieldSecurity.Email, IdentityMessages.EmailInvalid.L()) };
             return Error.Validation(KernelErrors.RequestInvalid, KernelMessages.RequestInvalid, MessageArguments.Of(("id", Id), ("reason", violations[0].ToString()), ("errors", violations)));
+        }
+
+        var security = context.GetSecurity();
+        var contactChanged = !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase) || !string.Equals(user.PhoneNumber, phone, StringComparison.Ordinal);
+        if (contactChanged && !string.Equals(security.Principal.Id, user.Id.ToString("D"), StringComparison.OrdinalIgnoreCase))
+        {
+            if (user.IsSystemAccount)
+            {
+                return Error.Conflict(IdentityErrors.SystemAccount, IdentityMessages.SystemAccount);
+            }
+
+            var granted = await permissions.HasPermissionAsync(security, IdentityPermissions.UsersResetPassword, context.CancellationToken).ConfigureAwait(false);
+            if (!granted.TryGetValue(out var allowed))
+            {
+                return granted.Error!;
+            }
+
+            if (!allowed)
+            {
+                return Error.Denied(IdentityErrors.ContactChangeNotPermitted, IdentityMessages.ContactChangeNotPermitted);
+            }
         }
 
         user.DisplayName = displayName;
