@@ -15,13 +15,21 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <param name="LeaderUserId">负责人（本租户的用户）</param>
 /// <param name="Order">同级排序号</param>
 /// <param name="Description">说明</param>
+/// <param name="DepartmentType">部门类型</param>
+/// <param name="Phone">联系电话</param>
+/// <param name="Email">邮箱</param>
+/// <param name="Address">地址</param>
 public sealed record CreateDepartmentRequest(
     [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string Code,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
     Guid? ParentId = null,
     Guid? LeaderUserId = null,
     [Range(0, 100_000)] int Order = 0,
-    [StringLength(512)] string? Description = null);
+    [StringLength(512)] string? Description = null,
+    DepartmentType DepartmentType = DepartmentType.Department,
+    [StringLength(20)] string? Phone = null,
+    [StringLength(100)] string? Email = null,
+    [StringLength(500)] string? Address = null);
 
 /// <summary>
 /// <c>departments.get</c> 的请求
@@ -41,13 +49,21 @@ public sealed record GetDepartmentRequest(Guid Id);
 /// <param name="Order">同级排序号</param>
 /// <param name="Description">说明</param>
 /// <param name="Status">状态</param>
+/// <param name="DepartmentType">部门类型</param>
+/// <param name="Phone">联系电话；为空即清除</param>
+/// <param name="Email">邮箱；为空即清除</param>
+/// <param name="Address">地址；为空即清除</param>
 public sealed record UpdateDepartmentRequest(
     Guid Id,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
     Guid? LeaderUserId = null,
     [Range(0, 100_000)] int Order = 0,
     [StringLength(512)] string? Description = null,
-    OrganizationStatus Status = OrganizationStatus.Active);
+    OrganizationStatus Status = OrganizationStatus.Active,
+    DepartmentType DepartmentType = DepartmentType.Department,
+    [StringLength(20)] string? Phone = null,
+    [StringLength(100)] string? Email = null,
+    [StringLength(500)] string? Address = null);
 
 /// <summary>
 /// <c>departments.move</c> 的请求

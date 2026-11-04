@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证组织包的部门、岗位与归属
 /// </summary>
 /// <remarks>
-/// 部门树与闭包表（创建、移动、循环拒绝、删除受子部门 / 成员约束）、岗位（编码唯一、被引用不能删）、归属（注册地核对、主部门唯一、按部门列出带名称）、租户隔离、平台主体被拒、演示种子
+/// 部门树与闭包表（创建、移动、循环拒绝、删除受子部门 / 成员约束）、部门类型与联系方式、树的关键字搜索、岗位（编码唯一、被引用不能删）、归属（注册地核对、主部门唯一、按部门列出带名称、备注）、租户隔离、平台主体被拒、演示种子
 /// </remarks>
 public sealed class OrganizationTests : IDisposable
 {
@@ -180,6 +180,76 @@ public sealed class OrganizationTests : IDisposable
         var (other, otherBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: TestTokens.Issue("gina", "globex", "admin")));
         Assert.Equal(HttpStatusCode.OK, other.StatusCode);
         Assert.Equal(0, otherBody.GetProperty("total").GetInt64());
+    }
+
+    [Fact]
+    public async Task Departments_CarryTypeAndContacts_TreeSearchesByKeyword_MembershipsCarryARemark()
+    {
+        await using var server = await StartAsync();
+        var acme = TestTokens.Issue("alice", "acme", "admin");
+
+        // 类型缺省是部门；联系方式去掉首尾空白，空白即没有；类型写错、电话超长都是校验错误
+        var (hqCreated, hqBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", """{"code":"hq","name":"Headquarters","departmentType":"Company","phone":" 010-1000 ","email":"hq@example.com","address":"  ","description":"Main office"}""", acme));
+        Assert.Equal(HttpStatusCode.Created, hqCreated.StatusCode);
+        var hq = hqBody.GetProperty("id").GetString()!;
+        Assert.Equal(("Company", "010-1000", "hq@example.com", JsonValueKind.Null), (hqBody.GetProperty("departmentType").GetString(), hqBody.GetProperty("phone").GetString(), hqBody.GetProperty("email").GetString(), hqBody.GetProperty("address").ValueKind));
+        var (rdCreated, rdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", $$"""{"code":"rd","name":"R&D","parentId":"{{hq}}","address":"Building 7"}""", acme));
+        Assert.Equal(HttpStatusCode.Created, rdCreated.StatusCode);
+        var rd = rdBody.GetProperty("id").GetString()!;
+        Assert.Equal("Department", rdBody.GetProperty("departmentType").GetString());
+        var (mktCreated, mktBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", $$"""{"code":"mkt","name":"Marketing","parentId":"{{rd}}"}""", acme));
+        Assert.Equal(HttpStatusCode.Created, mktCreated.StatusCode);
+        var (labCreated, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", $$"""{"code":"lab","name":"Laboratory","parentId":"{{mktBody.GetProperty("id").GetString()}}","email":"LAB@example.com"}""", acme));
+        Assert.Equal(HttpStatusCode.Created, labCreated.StatusCode);
+        var (badType, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", """{"code":"x1","name":"X","departmentType":"Nonsense"}""", acme));
+        Assert.Equal(HttpStatusCode.BadRequest, badType.StatusCode);
+        var (longPhone, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", $$"""{"code":"x2","name":"X","phone":"{{new string('1', 21)}}"}""", acme));
+        Assert.Equal(HttpStatusCode.BadRequest, longPhone.StatusCode);
+
+        // 修改：整体替换，类型与联系方式都能改，为空即清除；详情带回
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/departments/{hq}", """{"name":"Headquarters","departmentType":"Headquarters","phone":"010-2000","description":"Main office"}""", acme));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        Assert.Equal(("Headquarters", "010-2000", JsonValueKind.Null), (updatedBody.GetProperty("departmentType").GetString(), updatedBody.GetProperty("phone").GetString(), updatedBody.GetProperty("email").ValueKind));
+        var (detail, detailBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/departments/{rd}", token: acme));
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        Assert.Equal("Building 7", detailBody.GetProperty("department").GetProperty("address").GetString());
+
+        // 关键字：查询串；匹配编码、名称、电话、邮箱、地址与说明，不分大小写；只留命中的部门，上级没命中的当作顶层，不补祖先；总数是命中的部门数
+        async Task<(string Roots, long Total)> SearchAsync(string keyword)
+        {
+            var (searched, searchedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/departments:tree?keyword={Uri.EscapeDataString(keyword)}", token: acme));
+            Assert.Equal(HttpStatusCode.OK, searched.StatusCode);
+            return (string.Join(',', searchedBody.GetProperty("items").EnumerateArray().Select(static n => n.GetProperty("department").GetProperty("code").GetString())), searchedBody.GetProperty("total").GetInt64());
+        }
+
+        Assert.Equal(("lab", 1L), await SearchAsync("LAB"));
+        Assert.Equal(("lab", 1L), await SearchAsync("lab@example"));
+        Assert.Equal(("hq", 1L), await SearchAsync("010-2000"));
+        Assert.Equal(("hq", 1L), await SearchAsync("main office"));
+        Assert.Equal(("rd", 1L), await SearchAsync("building"));
+        Assert.Equal(("mkt", 1L), await SearchAsync("market"));
+        // 命中的上下级之间照样成树：四个部门的名称都有 r，根只有 hq
+        Assert.Equal(("hq", 4L), await SearchAsync("r"));
+        Assert.Equal(("", 0L), await SearchAsync("no-such-department"));
+        // 全是空白等于没带关键字：整棵树
+        Assert.Equal(("hq", 4L), await SearchAsync("   "));
+
+        // 归属备注：新建带上、修改换掉、列表带回，为空即清除
+        var (bobCreated, bobBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"bob","displayName":"Bob"}""", acme));
+        Assert.Equal(HttpStatusCode.Created, bobCreated.StatusCode);
+        var (joined, joinedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/memberships", $$"""{"userId":"{{bobBody.GetProperty("id").GetString()}}","departmentId":"{{rd}}","remark":" Transferred "}""", acme));
+        Assert.Equal(HttpStatusCode.Created, joined.StatusCode);
+        Assert.Equal("Transferred", joinedBody.GetProperty("remark").GetString());
+        var membership = joinedBody.GetProperty("id").GetString()!;
+        var (remarked, remarkedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/memberships/{membership}", """{"isPrimary":true,"remark":"On loan"}""", acme));
+        Assert.Equal(HttpStatusCode.OK, remarked.StatusCode);
+        Assert.Equal("On loan", remarkedBody.GetProperty("remark").GetString());
+        var (listed, listedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/memberships:list", $$"""{"filters":[{"field":"departmentId","operator":"eq","value":"{{rd}}"}]}""", acme));
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+        Assert.Equal("On loan", Assert.Single(listedBody.GetProperty("items").EnumerateArray()).GetProperty("remark").GetString());
+        var (cleared, clearedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/memberships/{membership}", """{"isPrimary":true}""", acme));
+        Assert.Equal(HttpStatusCode.OK, cleared.StatusCode);
+        Assert.Equal(JsonValueKind.Null, clearedBody.GetProperty("remark").ValueKind);
     }
 
     [Fact]

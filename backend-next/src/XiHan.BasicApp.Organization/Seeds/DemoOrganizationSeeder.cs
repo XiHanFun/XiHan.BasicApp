@@ -68,8 +68,8 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
             .ToDictionary(static u => u.UserName, static u => u.Id, StringComparer.Ordinal);
         Guid? UserOf(string userName) => found.TryGetValue(userName, out var id) ? id : null;
 
-        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "Headquarters", Order = 0, LeaderUserId = UserOf(DemoTenantSeeder.DemoAdminUserName), Description = "Seeded when BasicApp:Seed:EnableDemoData is on." };
-        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "Research & Development", ParentId = headquarters.Id, Order = 10, LeaderUserId = UserOf("manager") };
+        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "Headquarters", DepartmentType = DepartmentType.Company, Order = 0, LeaderUserId = UserOf(DemoTenantSeeder.DemoAdminUserName), Description = "Seeded when BasicApp:Seed:EnableDemoData is on." };
+        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "Research & Development", DepartmentType = DepartmentType.Center, ParentId = headquarters.Id, Order = 10, LeaderUserId = UserOf("manager") };
         var marketing = new SysDepartment { Id = ids.NewId(), Code = "mkt", Name = "Marketing", ParentId = headquarters.Id, Order = 20 };
         var humanResources = new SysDepartment { Id = ids.NewId(), Code = "hr", Name = "Human Resources", ParentId = headquarters.Id, Order = 30 };
         foreach (var department in new[] { headquarters, engineering, marketing, humanResources })

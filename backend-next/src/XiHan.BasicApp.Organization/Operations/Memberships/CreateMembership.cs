@@ -77,6 +77,7 @@ public sealed class CreateMembership(
             JobGrade = string.IsNullOrWhiteSpace(request.JobGrade) ? null : request.JobGrade.Trim(),
             HiredAt = request.HiredAt,
             Order = request.Order,
+            Remark = string.IsNullOrWhiteSpace(request.Remark) ? null : request.Remark.Trim(),
         };
         var existing = await service.OfUserAsync(request.UserId, context.CancellationToken).ConfigureAwait(false);
         if (request.IsPrimary || existing.Count == 0)

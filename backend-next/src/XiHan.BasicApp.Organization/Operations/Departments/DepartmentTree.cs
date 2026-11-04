@@ -15,6 +15,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// </summary>
 /// <remarks>
 /// <c>GET /api/departments:tree</c>（声明只读，请求没有嵌套对象，按 ADR-0041 走 GET）。只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。一次取出当前租户全部部门与归属行，在内存里组树并数直接成员（一个租户的部门数以百计，不分页）
+/// 带关键字时只留命中的部门（不分大小写，匹配编码、名称、电话、邮箱、地址与说明）：上级没命中的当作顶层，不补上它的祖先（4.x 同）
 /// </remarks>
 /// <param name="departments">部门仓储</param>
 /// <param name="memberships">归属仓储</param>
@@ -37,14 +38,16 @@ public sealed class DepartmentTree(IRepository<SysDepartment, Guid> departments,
             return scope.Error!;
         }
 
-        var all = await departments.ListAsync(EntityQuery.All<SysDepartment>().OrderBy(static d => d.Order).OrderBy(static d => d.Name), context.CancellationToken).ConfigureAwait(false);
+        var rows = await departments.ListAsync(EntityQuery.All<SysDepartment>().OrderBy(static d => d.Order).OrderBy(static d => d.Name), context.CancellationToken).ConfigureAwait(false);
+        var keyword = request.Keyword?.Trim();
+        var all = string.IsNullOrEmpty(keyword) ? rows : rows.Where(d => Matches(d, keyword)).ToList();
         var counts = (await memberships.ListAsync(EntityQuery.All<SysUserDepartment>(), context.CancellationToken).ConfigureAwait(false))
             .GroupBy(static m => m.DepartmentId)
             .ToDictionary(static g => g.Key, static g => (long)g.Count());
         var byParent = all.GroupBy(static d => d.ParentId ?? Guid.Empty).ToDictionary(static g => g.Key, static g => g.ToList());
         var known = all.Select(static d => d.Id).ToHashSet();
 
-        // 上级已被删除（或不在本租户）的部门当作顶层展示，不丢行
+        // 上级已被删除（或不在本租户、或没被关键字命中）的部门当作顶层展示，不丢行
         List<DepartmentNode> Build(Guid parent)
         {
             if (!byParent.TryGetValue(parent, out var children))
@@ -63,5 +66,11 @@ public sealed class DepartmentTree(IRepository<SysDepartment, Guid> departments,
             .OrderBy(static d => d.Order).ThenBy(static d => d.Name, StringComparer.Ordinal)
             .Select(d => new DepartmentNode(DepartmentResponse.From(d), counts.GetValueOrDefault(d.Id), Build(d.Id)));
         return new DepartmentTreeResponse([.. roots, .. orphans], all.Count);
+    }
+
+    private static bool Matches(SysDepartment department, string keyword)
+    {
+        string?[] fields = [department.Code, department.Name, department.Phone, department.Email, department.Address, department.Description];
+        return fields.Any(field => field is not null && field.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 }

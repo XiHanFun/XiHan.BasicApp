@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Contracts.Organization;
@@ -61,6 +62,12 @@ public sealed class SysUserDepartment : TenantScopedAggregateRoot
     /// 部门内排序号
     /// </summary>
     public int Order { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    [StringLength(500)]
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 记下用户加入了部门

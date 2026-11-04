@@ -18460,6 +18460,34 @@
                       "null"
                     ],
                     "maxLength": 512
+                  },
+                  "departmentType": {
+                    "description": "\u90E8\u95E8\u7C7B\u578B",
+                    "$ref": "#/components/schemas/DepartmentType"
+                  },
+                  "phone": {
+                    "description": "\u8054\u7CFB\u7535\u8BDD",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20
+                  },
+                  "email": {
+                    "description": "\u90AE\u7BB1",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "address": {
+                    "description": "\u5730\u5740",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
                   }
                 },
                 "required": [
@@ -18493,6 +18521,10 @@
                       "description": "\u540D\u79F0",
                       "type": "string"
                     },
+                    "departmentType": {
+                      "description": "\u90E8\u95E8\u7C7B\u578B",
+                      "$ref": "#/components/schemas/DepartmentType"
+                    },
                     "parentId": {
                       "description": "\u76F4\u63A5\u4E0A\u7EA7\uFF1B\u4E3A\u7A7A\u5373\u9876\u5C42",
                       "type": [
@@ -18518,6 +18550,27 @@
                       "type": "integer",
                       "format": "int32"
                     },
+                    "phone": {
+                      "description": "\u8054\u7CFB\u7535\u8BDD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "email": {
+                      "description": "\u90AE\u7BB1",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "address": {
+                      "description": "\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "description": {
                       "description": "\u8BF4\u660E",
                       "type": [
@@ -18535,6 +18588,7 @@
                     "id",
                     "code",
                     "name",
+                    "departmentType",
                     "status",
                     "order",
                     "createdAt"
@@ -18709,6 +18763,34 @@
                   "status": {
                     "description": "\u72B6\u6001",
                     "$ref": "#/components/schemas/OrganizationStatus"
+                  },
+                  "departmentType": {
+                    "description": "\u90E8\u95E8\u7C7B\u578B",
+                    "$ref": "#/components/schemas/DepartmentType"
+                  },
+                  "phone": {
+                    "description": "\u8054\u7CFB\u7535\u8BDD\uFF1B\u4E3A\u7A7A\u5373\u6E05\u9664",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20
+                  },
+                  "email": {
+                    "description": "\u90AE\u7BB1\uFF1B\u4E3A\u7A7A\u5373\u6E05\u9664",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "address": {
+                    "description": "\u5730\u5740\uFF1B\u4E3A\u7A7A\u5373\u6E05\u9664",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
                   }
                 },
                 "required": [
@@ -18742,6 +18824,10 @@
                       "description": "\u540D\u79F0",
                       "type": "string"
                     },
+                    "departmentType": {
+                      "description": "\u90E8\u95E8\u7C7B\u578B",
+                      "$ref": "#/components/schemas/DepartmentType"
+                    },
                     "parentId": {
                       "description": "\u76F4\u63A5\u4E0A\u7EA7\uFF1B\u4E3A\u7A7A\u5373\u9876\u5C42",
                       "type": [
@@ -18767,6 +18853,27 @@
                       "type": "integer",
                       "format": "int32"
                     },
+                    "phone": {
+                      "description": "\u8054\u7CFB\u7535\u8BDD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "email": {
+                      "description": "\u90AE\u7BB1",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "address": {
+                      "description": "\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "description": {
                       "description": "\u8BF4\u660E",
                       "type": [
@@ -18784,6 +18891,7 @@
                     "id",
                     "code",
                     "name",
+                    "departmentType",
                     "status",
                     "order",
                     "createdAt"
@@ -18882,6 +18990,10 @@
                       "description": "\u540D\u79F0",
                       "type": "string"
                     },
+                    "departmentType": {
+                      "description": "\u90E8\u95E8\u7C7B\u578B",
+                      "$ref": "#/components/schemas/DepartmentType"
+                    },
                     "parentId": {
                       "description": "\u76F4\u63A5\u4E0A\u7EA7\uFF1B\u4E3A\u7A7A\u5373\u9876\u5C42",
                       "type": [
@@ -18907,6 +19019,27 @@
                       "type": "integer",
                       "format": "int32"
                     },
+                    "phone": {
+                      "description": "\u8054\u7CFB\u7535\u8BDD",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "email": {
+                      "description": "\u90AE\u7BB1",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "address": {
+                      "description": "\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "description": {
                       "description": "\u8BF4\u660E",
                       "type": [
@@ -18924,6 +19057,7 @@
                     "id",
                     "code",
                     "name",
+                    "departmentType",
                     "status",
                     "order",
                     "createdAt"
@@ -18955,15 +19089,30 @@
         "description": "The whole department tree of the current tenant with direct member counts.\n\nRequires permission organization.departments.read (Read departments).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "organization.departments.read",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "\u5173\u952E\u5B57\uFF0C\u5339\u914D\u7F16\u7801\u3001\u540D\u79F0\u3001\u7535\u8BDD\u3001\u90AE\u7BB1\u3001\u5730\u5740\u4E0E\u8BF4\u660E\uFF1B\u4E3A\u7A7A\u5373\u6574\u68F5\u6811",
+            "required": false,
+            "schema": {
+              "description": "\u5173\u952E\u5B57\uFF0C\u5339\u914D\u7F16\u7801\u3001\u540D\u79F0\u3001\u7535\u8BDD\u3001\u90AE\u7BB1\u3001\u5730\u5740\u4E0E\u8BF4\u660E\uFF1B\u4E3A\u7A7A\u5373\u6574\u68F5\u6811",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 128
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "departments.tree \u7684\u54CD\u5E94\uFF1A\u5F53\u524D\u79DF\u6237\u7684\u6574\u68F5\u90E8\u95E8\u6811",
+            "description": "departments.tree \u7684\u54CD\u5E94\uFF1A\u5F53\u524D\u79DF\u6237\u7684\u90E8\u95E8\u6811",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "DepartmentTreeResponse",
-                  "description": "departments.tree \u7684\u54CD\u5E94\uFF1A\u5F53\u524D\u79DF\u6237\u7684\u6574\u68F5\u90E8\u95E8\u6811",
+                  "description": "departments.tree \u7684\u54CD\u5E94\uFF1A\u5F53\u524D\u79DF\u6237\u7684\u90E8\u95E8\u6811",
                   "type": "object",
                   "properties": {
                     "items": {
@@ -18974,7 +19123,7 @@
                       }
                     },
                     "total": {
-                      "description": "\u90E8\u95E8\u603B\u6570",
+                      "description": "\u6811\u91CC\u7684\u90E8\u95E8\u6570\uFF08\u5E26\u5173\u952E\u5B57\u65F6\u662F\u547D\u4E2D\u7684\u90E8\u95E8\u6570\uFF09",
                       "type": "integer",
                       "format": "int64"
                     }
@@ -30658,6 +30807,14 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
                   }
                 },
                 "required": [
@@ -30755,6 +30912,13 @@
                       "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -30865,6 +31029,14 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8\uFF1B\u4E3A\u7A7A\u5373\u6E05\u9664",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
                   }
                 },
                 "required": [
@@ -30961,6 +31133,13 @@
                       "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -66151,6 +66330,10 @@
             "description": "\u540D\u79F0",
             "type": "string"
           },
+          "departmentType": {
+            "description": "\u90E8\u95E8\u7C7B\u578B",
+            "$ref": "#/components/schemas/DepartmentType"
+          },
           "parentId": {
             "description": "\u76F4\u63A5\u4E0A\u7EA7\uFF1B\u4E3A\u7A7A\u5373\u9876\u5C42",
             "type": [
@@ -66176,6 +66359,27 @@
             "type": "integer",
             "format": "int32"
           },
+          "phone": {
+            "description": "\u8054\u7CFB\u7535\u8BDD",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "description": "\u90AE\u7BB1",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "description": "\u5730\u5740",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "description": {
             "description": "\u8BF4\u660E",
             "type": [
@@ -66193,9 +66397,32 @@
           "id",
           "code",
           "name",
+          "departmentType",
           "status",
           "order",
           "createdAt"
+        ]
+      },
+      "DepartmentType": {
+        "description": "\u90E8\u95E8\u7C7B\u578B",
+        "type": "string",
+        "enum": [
+          "Department",
+          "Corporation",
+          "Headquarters",
+          "Company",
+          "Branch",
+          "Division",
+          "Center",
+          "Section",
+          "Team",
+          "Group",
+          "Project",
+          "Workgroup",
+          "Virtual",
+          "Office",
+          "Subsidiary",
+          "Other"
         ]
       },
       "DictItemResponse": {
@@ -68994,6 +69221,13 @@
             "description": "\u521B\u5EFA\u65F6\u95F4\uFF08UTC\uFF09",
             "type": "string",
             "format": "date-time"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

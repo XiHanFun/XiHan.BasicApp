@@ -11786,6 +11786,8 @@ export interface components {
             code: string;
             /** @description 名称 */
             name: string;
+            /** @description 部门类型 */
+            departmentType: components["schemas"]["DepartmentType"];
             /**
              * Format: uuid
              * @description 直接上级；为空即顶层
@@ -11803,6 +11805,12 @@ export interface components {
              * @description 同级排序号
              */
             order: number;
+            /** @description 联系电话 */
+            phone?: string | null;
+            /** @description 邮箱 */
+            email?: string | null;
+            /** @description 地址 */
+            address?: string | null;
             /** @description 说明 */
             description?: string | null;
             /**
@@ -11811,6 +11819,11 @@ export interface components {
              */
             createdAt: string;
         };
+        /**
+         * @description 部门类型
+         * @enum {string}
+         */
+        DepartmentType: "Department" | "Corporation" | "Headquarters" | "Company" | "Branch" | "Division" | "Center" | "Section" | "Team" | "Group" | "Project" | "Workgroup" | "Virtual" | "Office" | "Subsidiary" | "Other";
         /** @description 字典项的网络契约 */
         DictItemResponse: {
             /**
@@ -13128,6 +13141,8 @@ export interface components {
              * @description 创建时间（UTC）
              */
             createdAt: string;
+            /** @description 备注 */
+            remark?: string | null;
         };
         MemoryInfo: {
             /** Format: int64 */
@@ -25048,6 +25063,14 @@ export interface operations {
                     order?: number;
                     /** @description 说明 */
                     description?: string | null;
+                    /** @description 部门类型 */
+                    departmentType?: components["schemas"]["DepartmentType"];
+                    /** @description 联系电话 */
+                    phone?: string | null;
+                    /** @description 邮箱 */
+                    email?: string | null;
+                    /** @description 地址 */
+                    address?: string | null;
                 };
             };
         };
@@ -25068,6 +25091,8 @@ export interface operations {
                         code: string;
                         /** @description 名称 */
                         name: string;
+                        /** @description 部门类型 */
+                        departmentType: components["schemas"]["DepartmentType"];
                         /**
                          * Format: uuid
                          * @description 直接上级；为空即顶层
@@ -25085,6 +25110,12 @@ export interface operations {
                          * @description 同级排序号
                          */
                         order: number;
+                        /** @description 联系电话 */
+                        phone?: string | null;
+                        /** @description 邮箱 */
+                        email?: string | null;
+                        /** @description 地址 */
+                        address?: string | null;
                         /** @description 说明 */
                         description?: string | null;
                         /**
@@ -25225,6 +25256,14 @@ export interface operations {
                     description?: string | null;
                     /** @description 状态 */
                     status?: components["schemas"]["OrganizationStatus"];
+                    /** @description 部门类型 */
+                    departmentType?: components["schemas"]["DepartmentType"];
+                    /** @description 联系电话；为空即清除 */
+                    phone?: string | null;
+                    /** @description 邮箱；为空即清除 */
+                    email?: string | null;
+                    /** @description 地址；为空即清除 */
+                    address?: string | null;
                 };
             };
         };
@@ -25245,6 +25284,8 @@ export interface operations {
                         code: string;
                         /** @description 名称 */
                         name: string;
+                        /** @description 部门类型 */
+                        departmentType: components["schemas"]["DepartmentType"];
                         /**
                          * Format: uuid
                          * @description 直接上级；为空即顶层
@@ -25262,6 +25303,12 @@ export interface operations {
                          * @description 同级排序号
                          */
                         order: number;
+                        /** @description 联系电话 */
+                        phone?: string | null;
+                        /** @description 邮箱 */
+                        email?: string | null;
+                        /** @description 地址 */
+                        address?: string | null;
                         /** @description 说明 */
                         description?: string | null;
                         /**
@@ -25327,6 +25374,8 @@ export interface operations {
                         code: string;
                         /** @description 名称 */
                         name: string;
+                        /** @description 部门类型 */
+                        departmentType: components["schemas"]["DepartmentType"];
                         /**
                          * Format: uuid
                          * @description 直接上级；为空即顶层
@@ -25344,6 +25393,12 @@ export interface operations {
                          * @description 同级排序号
                          */
                         order: number;
+                        /** @description 联系电话 */
+                        phone?: string | null;
+                        /** @description 邮箱 */
+                        email?: string | null;
+                        /** @description 地址 */
+                        address?: string | null;
                         /** @description 说明 */
                         description?: string | null;
                         /**
@@ -25367,14 +25422,17 @@ export interface operations {
     };
     "departments.tree": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 关键字，匹配编码、名称、电话、邮箱、地址与说明；为空即整棵树 */
+                keyword?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description departments.tree 的响应：当前租户的整棵部门树 */
+            /** @description departments.tree 的响应：当前租户的部门树 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -25385,7 +25443,7 @@ export interface operations {
                         items: components["schemas"]["DepartmentNode"][];
                         /**
                          * Format: int64
-                         * @description 部门总数
+                         * @description 树里的部门数（带关键字时是命中的部门数）
                          */
                         total: number;
                     };
@@ -31423,6 +31481,8 @@ export interface operations {
                      * @description 部门内排序号
                      */
                     order?: number;
+                    /** @description 备注 */
+                    remark?: string | null;
                 };
             };
         };
@@ -31483,6 +31543,8 @@ export interface operations {
                          * @description 创建时间（UTC）
                          */
                         createdAt: string;
+                        /** @description 备注 */
+                        remark?: string | null;
                     };
                 };
             };
@@ -31572,6 +31634,8 @@ export interface operations {
                      * @description 部门内排序号
                      */
                     order?: number;
+                    /** @description 备注；为空即清除 */
+                    remark?: string | null;
                 };
             };
         };
@@ -31632,6 +31696,8 @@ export interface operations {
                          * @description 创建时间（UTC）
                          */
                         createdAt: string;
+                        /** @description 备注 */
+                        remark?: string | null;
                     };
                 };
             };

@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// 修改部门
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/departments/{id}</c>（名称、负责人、排序、说明、状态；上级走 <c>departments.move</c>）
+/// <c>PUT /api/departments/{id}</c>（名称、类型、负责人、排序、联系方式、说明、状态；上级走 <c>departments.move</c>）
 /// </remarks>
 /// <param name="departments">部门仓储</param>
 /// <param name="service">部门域服务</param>
@@ -48,7 +48,11 @@ public sealed class UpdateDepartment(IRepository<SysDepartment, Guid> department
 
         department.Name = request.Name.Trim();
         department.LeaderUserId = request.LeaderUserId;
+        department.DepartmentType = request.DepartmentType;
         department.Order = request.Order;
+        department.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        department.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
+        department.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
         department.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         department.Status = request.Status;
         var updated = await departments.UpdateAsync(department, context.CancellationToken).ConfigureAwait(false);

@@ -119,7 +119,8 @@ public sealed class MembershipService(
                 m.JobGrade,
                 m.HiredAt,
                 m.Order,
-                m.CreatedAt);
+                m.CreatedAt,
+                m.Remark);
         }).ToList();
     }
 }

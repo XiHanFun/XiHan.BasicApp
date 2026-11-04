@@ -61,7 +61,11 @@ public sealed class CreateDepartment(IRepository<SysDepartment, Guid> department
             Name = request.Name.Trim(),
             ParentId = request.ParentId,
             LeaderUserId = request.LeaderUserId,
+            DepartmentType = request.DepartmentType,
             Order = request.Order,
+            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+            Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
         };
         var added = await departments.AddAsync(department, context.CancellationToken).ConfigureAwait(false);

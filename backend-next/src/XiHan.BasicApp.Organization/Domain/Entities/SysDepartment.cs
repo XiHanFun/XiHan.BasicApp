@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Entities;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
@@ -23,6 +24,11 @@ public sealed class SysDepartment : TenantScopedAuditedEntity
     /// 名称
     /// </summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 部门类型
+    /// </summary>
+    public DepartmentType DepartmentType { get; set; } = DepartmentType.Department;
 
     /// <summary>
     /// 直接上级部门
@@ -49,6 +55,24 @@ public sealed class SysDepartment : TenantScopedAuditedEntity
     /// 同级排序号
     /// </summary>
     public int Order { get; set; }
+
+    /// <summary>
+    /// 联系电话
+    /// </summary>
+    [StringLength(20)]
+    public string? Phone { get; set; }
+
+    /// <summary>
+    /// 邮箱
+    /// </summary>
+    [StringLength(100)]
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 地址
+    /// </summary>
+    [StringLength(500)]
+    public string? Address { get; set; }
 
     /// <summary>
     /// 说明

@@ -156,7 +156,7 @@ export const routes = {
   'departments.delete': { method: 'DELETE', template: '/api/departments', path: [], query: ['ids'], success: 200 },
   'departments.get': { method: 'GET', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
   'departments.move': { method: 'POST', template: '/api/departments/{id}:move', path: ['id'], query: [], success: 200 },
-  'departments.tree': { method: 'GET', template: '/api/departments:tree', path: [], query: [], success: 200 },
+  'departments.tree': { method: 'GET', template: '/api/departments:tree', path: [], query: ['keyword'], success: 200 },
   'departments.update': { method: 'PUT', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
   'dict-items.create': { method: 'POST', template: '/api/dict-items', path: [], query: [], success: 201 },
   'dict-items.delete': { method: 'DELETE', template: '/api/dict-items', path: [], query: ['ids'], success: 200 },

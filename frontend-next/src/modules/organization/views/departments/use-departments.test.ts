@@ -2,22 +2,22 @@ import type { DepartmentRow } from './use-departments'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { configureRequest } from '~/request'
-import { departmentsResource, removeMembership, setPrimaryMembership, toParentOptions, useDepartmentDetail, useDepartmentEditor, useMembershipEditor } from './use-departments'
+import { departmentsResource, findDepartmentRow, removeMembership, setPrimaryMembership, toParentOptions, useDepartmentDetail, useDepartmentEditor, useMembershipEditor } from './use-departments'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
 }
 
 function department(id: string, code: string, name: string, parentId: string | null, extra: Record<string, unknown> = {}) {
-  return { id, code, name, parentId, leaderUserId: null, status: 'Active', order: 0, description: null, createdAt: '2026-10-28T00:00:00Z', ...extra }
+  return { id, code, name, departmentType: 'Department', parentId, leaderUserId: null, status: 'Active', order: 0, phone: null, email: null, address: null, description: null, createdAt: '2026-10-28T00:00:00Z', ...extra }
 }
 
 function membership(id: string, userName: string, extra: Record<string, unknown> = {}) {
-  return { id, userId: `u-${id}`, userName, displayName: userName.toUpperCase(), departmentId: 'd-2', departmentName: 'R&D', positionId: null, positionName: null, isPrimary: false, employeeNumber: null, jobGrade: null, hiredAt: null, order: 0, createdAt: '2026-10-28T00:00:00Z', ...extra }
+  return { id, userId: `u-${id}`, userName, displayName: userName.toUpperCase(), departmentId: 'd-2', departmentName: 'R&D', positionId: null, positionName: null, isPrimary: false, employeeNumber: null, jobGrade: null, hiredAt: null, order: 0, createdAt: '2026-10-28T00:00:00Z', remark: null, ...extra }
 }
 
 const hq = department('d-1', 'hq', 'Headquarters', null)
-const rd = department('d-2', 'rd', 'R&D', 'd-1', { leaderUserId: 'u-9', order: 10, description: 'Research' })
+const rd = department('d-2', 'rd', 'R&D', 'd-1', { departmentType: 'Center', leaderUserId: 'u-9', order: 10, phone: '010-1000', email: 'rd@example.com', address: 'Building 7', description: 'Research' })
 const lab = department('d-4', 'lab', 'Lab', 'd-2')
 const mkt = department('d-3', 'mkt', 'Marketing', 'd-1', { order: 20 })
 
@@ -65,17 +65,40 @@ describe('departmentsResource', () => {
     expect(handed).toBe(rows)
   })
 
-  it('部门树不接受筛选与排序：出现即报错，不发请求', async () => {
+  it('部门树只接受关键字：别的筛选与排序出现即报错，不发请求', async () => {
     const calls = record(() => json(200, treeBody))
     const resource = departmentsResource()
-    await expect(resource.tree!({ page: 1, pageSize: 20, filters: { keyword: 'rd' } })).rejects.toThrow('不接受筛选与排序')
-    await expect(resource.tree!({ page: 1, pageSize: 20, filters: {}, sorts: [{ field: 'name', order: 'asc' }] })).rejects.toThrow('不接受筛选与排序')
-    // 重置后筛选值是 null，不算条件
+    await expect(resource.tree!({ page: 1, pageSize: 20, filters: { status: 'Active' } })).rejects.toThrow('只接受关键字')
+    await expect(resource.tree!({ page: 1, pageSize: 20, filters: {}, sorts: [{ field: 'name', order: 'asc' }] })).rejects.toThrow('只接受关键字')
+    expect(calls).toHaveLength(0)
+    // 重置后筛选值是 null，全是空白也一样，都不算条件
     await resource.tree!({ page: 1, pageSize: 20, filters: { keyword: null } })
-    expect(calls).toHaveLength(1)
+    await resource.tree!({ page: 1, pageSize: 20, filters: { keyword: '   ' } })
+    expect(calls.map(c => c.url)).toEqual(['/api/departments:tree', '/api/departments:tree'])
   })
 
-  it('删除被后端逐项拒绝时带着错误码抛出；启停取当前值整体替换，负责人原样带回', async () => {
+  it('带关键字时表格只显示命中的部门，交给页面的仍是整棵树', async () => {
+    const matched = { items: [{ department: lab, memberCount: 0, children: [] }], total: 1 }
+    const calls = record(call => json(200, call.url.includes('keyword=') ? matched : treeBody))
+    let handed: DepartmentRow[] = []
+    const rows = await departmentsResource((tree) => {
+      handed = tree
+    }).tree!({ page: 1, pageSize: 20, filters: { keyword: ' lab ' } })
+    expect(calls.map(c => c.url).sort()).toEqual(['/api/departments:tree', '/api/departments:tree?keyword=lab'])
+    expect(rows.map(r => r.code)).toEqual(['lab'])
+    expect(handed.map(r => r.code)).toEqual(['hq'])
+    expect(handed[0]!.children.map(r => r.code)).toEqual(['rd', 'mkt'])
+    // 整棵树里按主键能找到被搜出来的行，子部门是全的
+    expect(findDepartmentRow(handed, 'd-2')?.children.map(r => r.code)).toEqual(['lab'])
+    expect(findDepartmentRow(handed, 'no-such')).toBeUndefined()
+
+    // 页面不要树时不多发那一次
+    const single = record(() => json(200, matched))
+    await departmentsResource().tree!({ page: 1, pageSize: 20, filters: { keyword: 'lab' } })
+    expect(single).toHaveLength(1)
+  })
+
+  it('删除被后端逐项拒绝时带着错误码抛出；启停取当前值整体替换，类型、负责人与联系方式原样带回', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
         return json(200, { succeeded: [], failed: [{ id: 'd-2', code: 'ORGANIZATION_CONFLICT_002' }] })
@@ -87,7 +110,7 @@ describe('departmentsResource', () => {
     await expect(resource.remove!('d-2')).rejects.toThrow('ORGANIZATION_CONFLICT_002')
     expect(calls[0]!.url).toBe('/api/departments?ids=d-2')
     await resource.updateStatus!('d-2', false)
-    expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/departments/d-2', body: { name: 'R&D', leaderUserId: 'u-9', order: 10, description: 'Research', status: 'Disabled' } })
+    expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/departments/d-2', body: { name: 'R&D', departmentType: 'Center', leaderUserId: 'u-9', order: 10, phone: '010-1000', email: 'rd@example.com', address: 'Building 7', description: 'Research', status: 'Disabled' } })
   })
 })
 
@@ -111,10 +134,12 @@ describe('useDepartmentEditor', () => {
     editor.startCreate('d-1')
     expect(editor.mode.value).toBe('create')
     expect(editor.form.parentId).toBe('d-1')
-    Object.assign(editor.form, { code: ' ops ', name: ' Ops ', description: '  ' })
+    // 类型缺省是部门（4.x 同）
+    expect(editor.form.departmentType).toBe('Department')
+    Object.assign(editor.form, { code: ' ops ', name: ' Ops ', description: '  ', departmentType: 'Team', phone: ' 010-2000 ', email: '  ', address: 'Floor 3' })
     expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/departments', body: { code: 'ops', name: 'Ops', parentId: 'd-1', leaderUserId: null, order: 0, description: null } })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/departments', body: { code: 'ops', name: 'Ops', departmentType: 'Team', parentId: 'd-1', leaderUserId: null, order: 0, phone: '010-2000', email: null, address: 'Floor 3', description: null } })
   })
 
   it('负责人按关键字检索用户（只认最后一次检索），新建时一并提交', async () => {
@@ -138,7 +163,7 @@ describe('useDepartmentEditor', () => {
     const editor = useDepartmentEditor(tree)
     editor.startEdit(row(rd, [row(lab)], 2), true)
     expect(editor.isEdit.value).toBe(true)
-    expect(editor.form).toMatchObject({ code: 'rd', name: 'R&D', parentId: 'd-1', leaderUserId: 'u-9', order: 10, description: 'Research', status: 'Active' })
+    expect(editor.form).toMatchObject({ code: 'rd', name: 'R&D', departmentType: 'Center', parentId: 'd-1', leaderUserId: 'u-9', order: 10, phone: '010-1000', email: 'rd@example.com', address: 'Building 7', description: 'Research', status: 'Active' })
     // 现任负责人按用户详情放进候选，与检索结果同样显示显示名与登录名
     await vi.waitFor(() => expect(editor.leaderOptions.value).toEqual([{ label: 'Leader', value: 'u-9', description: 'leader' }]))
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/users/u-9' })
@@ -150,7 +175,7 @@ describe('useDepartmentEditor', () => {
     editor.form.parentId = null
     expect(await editor.submit()).toBe(true)
     expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['PUT /api/departments/d-2', 'POST /api/departments/d-2:move'])
-    expect(calls[0]!.body).toEqual({ name: 'Research & Development', leaderUserId: 'u-9', order: 10, description: 'Research', status: 'Active' })
+    expect(calls[0]!.body).toEqual({ name: 'Research & Development', departmentType: 'Center', leaderUserId: 'u-9', order: 10, phone: '010-1000', email: 'rd@example.com', address: 'Building 7', description: 'Research', status: 'Active' })
     expect(calls[1]!.body).toEqual({ parentId: null })
 
     calls.length = 0
@@ -236,7 +261,7 @@ describe('useMembershipEditor', () => {
     expect(calls.find(c => c.url === '/api/positions:list')!.body).toMatchObject({ filters: [{ field: 'status', operator: 'eq', value: 'Active' }] })
 
     const hiredAt = Date.UTC(2026, 9, 1)
-    Object.assign(editor.form, { userId: 'u-2', positionId: 'p-1', employeeNumber: ' 0002 ', hiredAt, isPrimary: true })
+    Object.assign(editor.form, { userId: 'u-2', positionId: 'p-1', employeeNumber: ' 0002 ', hiredAt, isPrimary: true, remark: ' On loan ' })
     expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
     expect(calls.find(c => c.method === 'POST' && c.url === '/api/memberships')!.body).toEqual({
@@ -248,6 +273,7 @@ describe('useMembershipEditor', () => {
       jobGrade: null,
       hiredAt: '2026-10-01T00:00:00.000Z',
       order: 0,
+      remark: 'On loan',
     })
   })
 
@@ -259,7 +285,7 @@ describe('useMembershipEditor', () => {
   })
 
   it('编辑任职：不取用户、原岗位已停用也补进候选，主部门原样带回；字段级错误挂回字段', async () => {
-    const member = membership('m-1', 'bob', { positionId: 'p-old', positionName: 'Retired', isPrimary: true, jobGrade: 'P5', hiredAt: '2026-01-02T00:00:00Z', order: 3 })
+    const member = membership('m-1', 'bob', { positionId: 'p-old', positionName: 'Retired', isPrimary: true, jobGrade: 'P5', hiredAt: '2026-01-02T00:00:00Z', order: 3, remark: 'Transferred' })
     const calls = record((call) => {
       if (call.url === '/api/positions:list')
         return json(200, { items: [], total: 0, page: { index: 1, size: 100 } })
@@ -269,11 +295,12 @@ describe('useMembershipEditor', () => {
     await editor.startEdit(member as never, { users: true, positions: true })
     expect(calls.map(c => c.url)).toEqual(['/api/positions:list'])
     expect(editor.positionOptions.value).toEqual([{ label: 'Retired', value: 'p-old' }])
-    expect(editor.form).toMatchObject({ userId: 'u-m-1', positionId: 'p-old', jobGrade: 'P5', hiredAt: Date.UTC(2026, 0, 2), order: 3, isPrimary: true })
+    expect(editor.form).toMatchObject({ userId: 'u-m-1', positionId: 'p-old', jobGrade: 'P5', hiredAt: Date.UTC(2026, 0, 2), order: 3, isPrimary: true, remark: 'Transferred' })
 
     editor.form.jobGrade = 'P6'
+    editor.form.remark = '  '
     expect(await editor.submit()).toBe(true)
-    expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/memberships/m-1', body: { positionId: 'p-old', isPrimary: true, employeeNumber: null, jobGrade: 'P6', hiredAt: '2026-01-02T00:00:00.000Z', order: 3 } })
+    expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/memberships/m-1', body: { positionId: 'p-old', isPrimary: true, employeeNumber: null, jobGrade: 'P6', hiredAt: '2026-01-02T00:00:00.000Z', order: 3, remark: null } })
 
     record(() => json(400, { code: 'KERNEL_VALIDATION_003', status: 400, detail: 'invalid', traceId: 'x', errors: { employeeNumber: ['too long'] } }, 'application/problem+json'))
     await editor.startEdit(member as never, { users: false, positions: false })
@@ -285,12 +312,12 @@ describe('useMembershipEditor', () => {
 
 describe('成员行操作', () => {
   it('设为主部门整体替换其余字段原样；移出被拒绝时带着错误码抛出', async () => {
-    const member = membership('m-3', 'dave', { positionId: 'p-1', employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2 })
+    const member = membership('m-3', 'dave', { positionId: 'p-1', employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2, remark: 'On loan' })
     const calls = record(call => call.method === 'DELETE'
       ? json(200, { succeeded: [], failed: [{ id: 'm-3', code: 'ORGANIZATION_NOTFOUND_003' }] })
       : json(200, { ...member, isPrimary: true }))
     await setPrimaryMembership(member as never)
-    expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/memberships/m-3', body: { positionId: 'p-1', isPrimary: true, employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2 } })
+    expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/memberships/m-3', body: { positionId: 'p-1', isPrimary: true, employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2, remark: 'On loan' } })
     await expect(removeMembership('m-3')).rejects.toThrow('ORGANIZATION_NOTFOUND_003')
     expect(calls[1]!.url).toBe('/api/memberships?ids=m-3')
   })

@@ -6,17 +6,17 @@
 
 | 实体 | 说明 |
 | --- | --- |
-| `SysDepartment` | 编码（租户内唯一）、名称、上级、负责人、排序、状态、说明 |
+| `SysDepartment` | 编码（租户内唯一）、名称、类型（集团、总部、公司、部门、小组等 16 种，缺省部门）、上级、负责人、排序、状态、联系电话、邮箱、地址、说明 |
 | `SysDepartmentHierarchy` | 闭包表：每对「祖先—后代」一行，带深度 |
 
 闭包表让「部门及其下级」成为一次索引查询，数据范围的 `DepartmentAndChildren`、字段安全的部门规则、通知的定向投递都依赖它。
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `departments.tree` | `organization.departments.read` | 整棵树（`GET`，声明只读；也进 MCP / AI 工具） |
+| `departments.tree` | `organization.departments.read` | 部门树（`GET`，声明只读；也进 MCP / AI 工具）。`keyword` 不分大小写匹配编码、名称、电话、邮箱、地址与说明，只留命中的部门，上级没命中的当作顶层 |
 | `departments.get` | `organization.departments.read` | 详情 |
 | `departments.create` | `organization.departments.create` | 创建并挂到上级（为空即顶层） |
-| `departments.update` | `organization.departments.update` | 改名称、负责人、排序等 |
+| `departments.update` | `organization.departments.update` | 改名称、类型、负责人、排序、联系方式等 |
 | `departments.move` | `organization.departments.update` | 移到新上级：整棵子树重算闭包，拒绝移到自己或子孙之下 |
 | `departments.delete` | `organization.departments.delete` | 批量删除，摘除闭包行 |
 
@@ -28,13 +28,13 @@
 
 ## 部门成员
 
-`SysUserDepartment`：用户 × 部门，带岗位、是否主部门、工号、职级、入职时间（UTC）与部门内排序。
+`SysUserDepartment`：用户 × 部门，带岗位、是否主部门、工号、职级、入职时间（UTC）、部门内排序与备注。
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
 | `memberships.list` | `organization.memberships.read` | 按部门（可含下级）列成员，按数据范围收窄 |
 | `memberships.create` | `organization.memberships.create` | 用户须在当前租户（注册在这里或[外部成员](./multi-tenancy#外部成员)）；用户的第一个归属自动是主部门 |
-| `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间 |
+| `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间、备注 |
 | `memberships.delete` | `organization.memberships.delete` | 批量移出 |
 
 加入与移出部门时记领域事件 `basicapp.organization.membership-changed`（`Contracts` 的 `MembershipChanged`：用户、部门、加入还是移出、发生时间），随写入进发件箱；改岗位、主部门等不发。Chat 据此同步部门群成员，见[在线聊天](./chat#部门群同步)。
@@ -68,7 +68,7 @@ Contracts 的 `IOrganizationDirectory`（Organization 实现）给别的包按�
 
 ## 前端
 
-`src/modules/organization`：部门页是 SchemaPage 树表（成员抽屉、移动），岗位页是普通列表。成员列表显示岗位、工号、职级与入职日期（按本地日期显示）。
+`src/modules/organization`：部门页是 SchemaPage 树表（关键字搜索、成员抽屉、移动），岗位页是普通列表。成员列表显示岗位、工号、职级与入职日期（按本地日期显示）。搜索时上级部门的候选与详情里的子部门仍取整棵树。
 
 ## 下一步
 

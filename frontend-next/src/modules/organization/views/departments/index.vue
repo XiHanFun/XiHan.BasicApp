@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DepartmentRow, DepartmentStatus, MembershipOptionScope, MembershipRow } from './use-departments'
+import type { DepartmentKind, DepartmentRow, DepartmentStatus, MembershipOptionScope, MembershipRow } from './use-departments'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -9,14 +9,14 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XCom
 import { confirmDanger, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { formatDate } from '~/utils'
-import { departmentsResource, removeMembership, setPrimaryMembership, useDepartmentDetail, useDepartmentEditor, useMembershipEditor } from './use-departments'
+import { departmentsResource, findDepartmentRow, removeMembership, setPrimaryMembership, useDepartmentDetail, useDepartmentEditor, useMembershipEditor } from './use-departments'
 
 defineOptions({ name: 'OrganizationDepartmentsView' })
 
 const { t } = useI18n()
 const { hasPermission } = usePermission()
 
-// 资源取回的整棵树另存一份：上级部门的候选树由它派生，随列表刷新同步
+// 资源取回的整棵树另存一份（搜索时表格里的行不全）：上级部门的候选树与详情的子部门由它派生，随列表刷新同步
 const treeRows = ref<DepartmentRow[]>([])
 const resource = departmentsResource((rows) => {
   treeRows.value = rows
@@ -53,16 +53,42 @@ function statusTone(status: DepartmentStatus) {
 
 const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
 
-// ── 字段单一事实源（树表列；departments.tree 没有筛选与排序，故不声明搜索字段与可排序列） ──
+// 部门类型的文案键静态写出以便 i18n 门禁核对；下拉的先后照 4.x，部门是缺省值但排在中间
+const departmentTypeLabels = computed<Record<DepartmentKind, string>>(() => ({
+  Corporation: t('organization.departments.types.corporation'),
+  Headquarters: t('organization.departments.types.headquarters'),
+  Company: t('organization.departments.types.company'),
+  Branch: t('organization.departments.types.branch'),
+  Division: t('organization.departments.types.division'),
+  Center: t('organization.departments.types.center'),
+  Department: t('organization.departments.types.department'),
+  Section: t('organization.departments.types.section'),
+  Team: t('organization.departments.types.team'),
+  Group: t('organization.departments.types.group'),
+  Project: t('organization.departments.types.project'),
+  Workgroup: t('organization.departments.types.workgroup'),
+  Virtual: t('organization.departments.types.virtual'),
+  Office: t('organization.departments.types.office'),
+  Subsidiary: t('organization.departments.types.subsidiary'),
+  Other: t('organization.departments.types.other'),
+}))
+const departmentTypeOptions = computed<SelectOption[]>(() => Object.entries(departmentTypeLabels.value).map(([value, label]) => ({ label, value })))
+
+// ── 字段单一事实源（树表列；departments.tree 只接受关键字，故不声明别的搜索字段与可排序列） ──
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as DepartmentRow
 
 const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('organization.departments.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('organization.departments.keyword_placeholder'), order: 0 },
   { key: 'name', title: t('organization.departments.fields.name'), dataType: 'string', treeColumn: true, exportable: true, minWidth: 220, order: 1 },
   { key: 'code', title: t('organization.departments.fields.code'), dataType: 'string', exportable: true, minWidth: 140, order: 2 },
+  { key: 'departmentType', title: t('organization.departments.fields.type'), dataType: 'enum', options: departmentTypeOptions.value, exportable: true, render: row => departmentTypeLabels.value[asRow(row).departmentType], minWidth: 100, order: 2.5 },
   { key: 'status', title: t('organization.departments.fields.status'), dataType: 'enum', options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 90, order: 3 },
   { key: 'memberCount', title: t('organization.departments.fields.member_count'), dataType: 'number', exportable: true, width: 90, order: 4 },
+  { key: 'phone', title: t('organization.departments.fields.phone'), dataType: 'phone', exportable: true, minWidth: 130, order: 4.2 },
+  { key: 'email', title: t('organization.departments.fields.email'), dataType: 'email', exportable: true, minWidth: 180, order: 4.4 },
   { key: 'order', title: t('organization.departments.fields.order'), dataType: 'number', exportable: true, width: 80, order: 5 },
+  { key: 'address', title: t('organization.departments.fields.address'), dataType: 'text', visible: false, exportable: true, order: 5.2 },
   { key: 'description', title: t('organization.departments.fields.description'), dataType: 'text', visible: false, exportable: true, order: 5.5 },
   { key: 'createdAt', title: t('organization.departments.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
 ])
@@ -152,7 +178,10 @@ async function toggleStatus(row: DepartmentRow) {
 
 // ── 查看详情（概览 / 子部门 / 部门成员） ──
 const detailRow = computed(() => detail.row.value)
-const childRows = computed(() => detail.row.value?.children ?? [])
+const childRows = computed(() => {
+  const row = detail.row.value
+  return row ? findDepartmentRow(treeRows.value, row.id)?.children ?? row.children : []
+})
 
 function editFromDetail() {
   const row = detail.row.value
@@ -169,6 +198,7 @@ function formatNullable(value: unknown): string {
 const childColumns = computed<XDataTableColumn<DepartmentRow>[]>(() => [
   { title: t('organization.departments.fields.name'), key: 'name', minWidth: 120, ellipsis: true },
   { title: t('organization.departments.fields.code'), key: 'code', width: 120, ellipsis: true },
+  { title: t('organization.departments.fields.type'), key: 'departmentType', width: 90, render: row => departmentTypeLabels.value[row.departmentType] },
   { title: t('organization.departments.fields.status'), key: 'status', width: 80, render: row => renderTag(statusLabel(row.status), statusTone(row.status)) },
   { title: t('organization.departments.fields.member_count'), key: 'memberCount', width: 80 },
 ])
@@ -331,6 +361,10 @@ function confirmRemoveMember(member: MembershipRow) {
                   <XhDescriptionsValue>{{ detail.detail.value.department.code }}</XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('organization.departments.fields.type') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>{{ departmentTypeLabels[detail.detail.value.department.departmentType] }}</XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('organization.departments.fields.parent') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>{{ detail.detail.value.ancestors[0]?.name ?? '-' }}</XhDescriptionsValue>
                 </XhDescriptionsItem>
@@ -361,6 +395,18 @@ function confirmRemoveMember(member: MembershipRow) {
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('organization.departments.fields.child_count') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>{{ detail.detail.value.childCount }}</XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('organization.departments.fields.phone') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>{{ formatNullable(detail.detail.value.department.phone) }}</XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('organization.departments.fields.email') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>{{ formatNullable(detail.detail.value.department.email) }}</XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('organization.departments.fields.address') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>{{ formatNullable(detail.detail.value.department.address) }}</XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
                 <XhDescriptionsItem style="grid-column: span 2">
@@ -463,6 +509,15 @@ function confirmRemoveMember(member: MembershipRow) {
             {{ editor.fieldError('code') }}
           </XhFieldErrorText>
         </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('departmentType')">
+          <XhFieldLabel>{{ t('organization.departments.fields.type') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.departmentType" name="departmentType" :options="departmentTypeOptions" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('departmentType')">
+            {{ editor.fieldError('departmentType') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('parentId')">
           <XhFieldLabel>{{ t('organization.departments.fields.parent') }}</XhFieldLabel>
           <XhFieldControl>
@@ -504,6 +559,33 @@ function confirmRemoveMember(member: MembershipRow) {
           <XhFieldControl>
             <XSelect v-model:value="editor.form.status" name="status" :options="statusOptions" />
           </XhFieldControl>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('phone')">
+          <XhFieldLabel>{{ t('organization.departments.fields.phone') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.phone" name="phone" clearable autocomplete="off" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('phone')">
+            {{ editor.fieldError('phone') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('email')">
+          <XhFieldLabel>{{ t('organization.departments.fields.email') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.email" name="email" clearable autocomplete="off" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('email')">
+            {{ editor.fieldError('email') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('address')">
+          <XhFieldLabel>{{ t('organization.departments.fields.address') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.address" name="address" clearable autocomplete="off" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('address')">
+            {{ editor.fieldError('address') }}
+          </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('description')">
           <XhFieldLabel>{{ t('organization.departments.fields.description') }}</XhFieldLabel>
@@ -601,6 +683,15 @@ function confirmRemoveMember(member: MembershipRow) {
           <XhFieldControl>
             <XhSwitch v-model:checked="memberEditor.form.isPrimary" name="isPrimary" />
           </XhFieldControl>
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2" :invalid="!!memberEditor.fieldError('remark')">
+          <XhFieldLabel>{{ t('organization.departments.members.remark') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="memberEditor.form.remark" name="remark" type="textarea" :rows="2" clearable />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="memberEditor.fieldError('remark')">
+            {{ memberEditor.fieldError('remark') }}
+          </XhFieldErrorText>
         </XhFieldRoot>
         <p v-if="memberEditor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ memberEditor.submitError.value }}

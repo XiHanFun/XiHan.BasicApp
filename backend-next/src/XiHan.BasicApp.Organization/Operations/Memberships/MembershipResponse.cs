@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="HiredAt">入职时间（UTC）</param>
 /// <param name="Order">部门内排序号</param>
 /// <param name="CreatedAt">创建时间（UTC）</param>
+/// <param name="Remark">备注</param>
 public sealed record MembershipResponse(
     Guid Id,
     Guid UserId,
@@ -34,4 +35,5 @@ public sealed record MembershipResponse(
     string? JobGrade,
     DateTimeOffset? HiredAt,
     int Order,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string? Remark);

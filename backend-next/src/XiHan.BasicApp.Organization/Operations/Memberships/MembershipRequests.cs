@@ -16,6 +16,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="JobGrade">职级</param>
 /// <param name="HiredAt">入职时间（UTC）</param>
 /// <param name="Order">部门内排序号</param>
+/// <param name="Remark">备注</param>
 public sealed record CreateMembershipRequest(
     Guid UserId,
     Guid DepartmentId,
@@ -24,7 +25,8 @@ public sealed record CreateMembershipRequest(
     [StringLength(64)] string? EmployeeNumber = null,
     [StringLength(64)] string? JobGrade = null,
     DateTimeOffset? HiredAt = null,
-    [Range(0, 100_000)] int Order = 0);
+    [Range(0, 100_000)] int Order = 0,
+    [StringLength(500)] string? Remark = null);
 
 /// <summary>
 /// <c>memberships.update</c> 的请求
@@ -39,6 +41,7 @@ public sealed record CreateMembershipRequest(
 /// <param name="JobGrade">职级</param>
 /// <param name="HiredAt">入职时间（UTC）</param>
 /// <param name="Order">部门内排序号</param>
+/// <param name="Remark">备注；为空即清除</param>
 public sealed record UpdateMembershipRequest(
     Guid Id,
     Guid? PositionId = null,
@@ -46,7 +49,8 @@ public sealed record UpdateMembershipRequest(
     [StringLength(64)] string? EmployeeNumber = null,
     [StringLength(64)] string? JobGrade = null,
     DateTimeOffset? HiredAt = null,
-    [Range(0, 100_000)] int Order = 0);
+    [Range(0, 100_000)] int Order = 0,
+    [StringLength(500)] string? Remark = null);
 
 /// <summary>
 /// <c>memberships.delete</c> 的请求：集合入参

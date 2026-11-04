@@ -128,6 +128,9 @@ export type DelegationStatus = (typeof DelegationStatus)[number]
 export const DeliveryChannel = ['InApp', 'Email', 'Sms', 'Bot'] as const
 export type DeliveryChannel = (typeof DeliveryChannel)[number]
 
+export const DepartmentType = ['Department', 'Corporation', 'Headquarters', 'Company', 'Branch', 'Division', 'Center', 'Section', 'Team', 'Group', 'Project', 'Workgroup', 'Virtual', 'Office', 'Subsidiary', 'Other'] as const
+export type DepartmentType = (typeof DepartmentType)[number]
+
 export const DiffKind = ['Insert', 'Update', 'Delete', 'Restore'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
@@ -388,6 +391,7 @@ export const enums = {
   DataScope,
   DelegationStatus,
   DeliveryChannel,
+  DepartmentType,
   DiffKind,
   DriveType,
   ExportFormat,

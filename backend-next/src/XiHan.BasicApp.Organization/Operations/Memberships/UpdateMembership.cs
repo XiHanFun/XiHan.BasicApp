@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// 修改归属
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/memberships/{id}</c>（岗位、主部门、工号、职级、入职时间、排序）
+/// <c>PUT /api/memberships/{id}</c>（岗位、主部门、工号、职级、入职时间、排序、备注）
 /// </remarks>
 /// <param name="memberships">归属仓储</param>
 /// <param name="positions">岗位仓储</param>
@@ -52,6 +52,7 @@ public sealed class UpdateMembership(IRepository<SysUserDepartment, Guid> member
         membership.JobGrade = string.IsNullOrWhiteSpace(request.JobGrade) ? null : request.JobGrade.Trim();
         membership.HiredAt = request.HiredAt;
         membership.Order = request.Order;
+        membership.Remark = string.IsNullOrWhiteSpace(request.Remark) ? null : request.Remark.Trim();
         if (request.IsPrimary && !membership.IsPrimary)
         {
             var made = await service.MakePrimaryAsync(membership, context.CancellationToken).ConfigureAwait(false);

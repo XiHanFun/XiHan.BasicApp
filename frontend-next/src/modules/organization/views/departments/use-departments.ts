@@ -9,6 +9,7 @@ import { ApiError } from '~/request'
 export type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
 export type DepartmentRecord = DepartmentNode['department']
 export type DepartmentStatus = DepartmentRecord['status']
+export type DepartmentKind = DepartmentRecord['departmentType']
 export type DepartmentDetail = ResponseOf<'departments.get'>
 export type MembershipRow = ResponseOf<'memberships.list'>['items'][number]
 
@@ -27,10 +28,14 @@ export interface UserOption extends SelectOption {
 export interface DepartmentForm {
   code: string
   name: string
+  departmentType: DepartmentKind
   parentId: null | string
   /** 负责人（本租户的用户）；为空即没有 */
   leaderUserId: null | string
   order: null | number
+  phone: string
+  email: string
+  address: string
   description: string
   status: DepartmentStatus
 }
@@ -47,6 +52,7 @@ export interface MembershipForm {
   hiredAt: null | number
   order: null | number
   isPrimary: boolean
+  remark: string
 }
 
 export type MembershipEditorMode = 'create' | 'edit'
@@ -85,28 +91,53 @@ export function toParentOptions(rows: DepartmentRow[], excludeId?: string): Tree
   })
 }
 
+/** 在树里按主键找一行（搜索时表格里的行不全，详情的子部门要到整棵树里取） */
+export function findDepartmentRow(rows: readonly DepartmentRow[], id: string): DepartmentRow | undefined {
+  for (const row of rows) {
+    if (row.id === id)
+      return row
+    const found = findDepartmentRow(row.children, id)
+    if (found)
+      return found
+  }
+  return undefined
+}
+
 /**
- * SchemaPage 的资源（树形模式）：整棵树（departments.tree 一次取回、不分页）、删除与启停
- * 部门树不接受筛选与排序：查询里出现即报错，而不是静默丢掉条件。取回的树经 onTree 交给页面，供上级候选复用
+ * SchemaPage 的资源（树形模式）：部门树（departments.tree 一次取回、不分页）、删除与启停
+ * 只接受关键字（4.x 同）：别的筛选与排序一出现即报错，而不是静默丢掉条件
+ * onTree 拿到的总是整棵树（上级候选与详情的子部门都要全的），带关键字时另取一次
  */
 export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): SchemaResource<DepartmentRow> {
   return {
     tree: async (params: SchemaQueryParams) => {
-      if ((params.sorts ?? []).length > 0 || (params.conditionFilters ?? []).length > 0 || Object.values(params.filters).some(value => !isBlank(value)))
-        throw new Error('部门树（departments.tree）不接受筛选与排序：页面字段不要声明 searchable / advancedSearch / sortable')
-      const rows = toDepartmentRows((await departmentsApi.tree({})).items)
-      onTree?.(rows)
-      return rows
+      const { keyword, ...others } = params.filters
+      if ((params.sorts ?? []).length > 0 || (params.conditionFilters ?? []).length > 0 || Object.values(others).some(value => !isBlank(value)))
+        throw new Error('部门树（departments.tree）只接受关键字：页面字段不要声明别的 searchable / advancedSearch / sortable')
+      const term = typeof keyword === 'string' ? keyword.trim() : ''
+      if (term === '') {
+        const rows = toDepartmentRows((await departmentsApi.tree({})).items)
+        onTree?.(rows)
+        return rows
+      }
+      const [matched, whole] = await Promise.all([departmentsApi.tree({ keyword: term }), onTree ? departmentsApi.tree({}) : Promise.resolve(null)])
+      if (whole)
+        onTree?.(toDepartmentRows(whole.items))
+      return toDepartmentRows(matched.items)
     },
     remove: async id => failedCodes(await departmentsApi.delete({ ids: [String(id)] })),
-    // 更新是整体替换：先取当前值再只改状态（负责人原样带回）
+    // 更新是整体替换：先取当前值再只改状态（类型、负责人、联系方式原样带回）
     updateStatus: async (id, enabled) => {
       const { department } = await departmentsApi.get({ id: String(id) })
       return departmentsApi.update({
         id: department.id,
         name: department.name,
+        departmentType: department.departmentType,
         leaderUserId: department.leaderUserId ?? null,
         order: department.order,
+        phone: department.phone ?? null,
+        email: department.email ?? null,
+        address: department.address ?? null,
         description: department.description ?? null,
         status: enabled ? 'Active' : 'Disabled',
       })
@@ -115,7 +146,7 @@ export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): S
 }
 
 function emptyDepartmentForm(): DepartmentForm {
-  return { code: '', name: '', parentId: null, leaderUserId: null, order: 0, description: '', status: 'Active' }
+  return { code: '', name: '', departmentType: 'Department', parentId: null, leaderUserId: null, order: 0, phone: '', email: '', address: '', description: '', status: 'Active' }
 }
 
 /**
@@ -178,7 +209,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   function startEdit(row: DepartmentRow, leaders = false) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, parentId: row.parentId ?? null, leaderUserId: row.leaderUserId ?? null, order: row.order, description: row.description ?? '', status: row.status })
+    reset({ code: row.code, name: row.name, departmentType: row.departmentType, parentId: row.parentId ?? null, leaderUserId: row.leaderUserId ?? null, order: row.order, phone: row.phone ?? '', email: row.email ?? '', address: row.address ?? '', description: row.description ?? '', status: row.status })
     open.value = true
     if (leaders && row.leaderUserId)
       void seedLeader(row.id, row.leaderUserId)
@@ -210,8 +241,12 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
         await departmentsApi.update({
           id: current.id,
           name: form.name.trim(),
+          departmentType: form.departmentType,
           leaderUserId: form.leaderUserId,
           order: form.order ?? 0,
+          phone: blankToNull(form.phone),
+          email: blankToNull(form.email),
+          address: blankToNull(form.address),
           description: blankToNull(form.description),
           status: form.status,
         })
@@ -223,9 +258,13 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
         await departmentsApi.create({
           code: form.code.trim(),
           name: form.name.trim(),
+          departmentType: form.departmentType,
           parentId: form.parentId,
           leaderUserId: form.leaderUserId,
           order: form.order ?? 0,
+          phone: blankToNull(form.phone),
+          email: blankToNull(form.email),
+          address: blankToNull(form.address),
           description: blankToNull(form.description),
         })
       }
@@ -315,7 +354,7 @@ export function useDepartmentDetail(canReadMembers: () => boolean) {
 }
 
 function emptyMembershipForm(): MembershipForm {
-  return { userId: null, positionId: null, employeeNumber: '', jobGrade: '', hiredAt: null, order: 0, isPrimary: false }
+  return { userId: null, positionId: null, employeeNumber: '', jobGrade: '', hiredAt: null, order: 0, isPrimary: false, remark: '' }
 }
 
 function toTimestamp(value: null | string | undefined): null | number {
@@ -333,7 +372,7 @@ export interface MembershipOptionScope {
 }
 
 /**
- * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、是否主部门）与编辑任职（用户与主部门不在这里改）
+ * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、备注、是否主部门）与编辑任职（用户与主部门不在这里改）
  * 候选用户与启用中的岗位在打开时取（各前 100 条）；编辑时原岗位已停用也补进候选，免得选中值显示为空
  */
 export function useMembershipEditor() {
@@ -403,6 +442,7 @@ export function useMembershipEditor() {
       hiredAt: toTimestamp(member.hiredAt),
       order: member.order,
       isPrimary: member.isPrimary,
+      remark: member.remark ?? '',
     })
     open.value = true
     return loadOptions({ users: false, positions: scope.positions })
@@ -427,6 +467,7 @@ export function useMembershipEditor() {
           jobGrade: blankToNull(form.jobGrade),
           hiredAt: toIso(form.hiredAt),
           order: form.order ?? 0,
+          remark: blankToNull(form.remark),
         })
       }
       else {
@@ -439,6 +480,7 @@ export function useMembershipEditor() {
           jobGrade: blankToNull(form.jobGrade),
           hiredAt: toIso(form.hiredAt),
           order: form.order ?? 0,
+          remark: blankToNull(form.remark),
         })
       }
       open.value = false
@@ -473,6 +515,7 @@ export async function setPrimaryMembership(member: MembershipRow): Promise<void>
     jobGrade: member.jobGrade ?? null,
     hiredAt: member.hiredAt ?? null,
     order: member.order,
+    remark: member.remark ?? null,
   })
 }
 
