@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Tenancy.Domain.Entities;
 
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
@@ -30,6 +31,7 @@ public sealed record GetEditionRequest(Guid Id);
 /// <param name="Price">价格（两位小数）；为空不标价</param>
 /// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期</param>
 /// <param name="IsFree">是否免费套餐（免费套餐不能标价）</param>
+/// <param name="Status">状态；缺省套餐必须启用</param>
 public sealed record CreateEditionRequest(
     [Required, StringLength(32, MinimumLength = 2), RegularExpression("^[a-z][a-z0-9-]{1,31}$")] string Code,
     [Required, StringLength(64, MinimumLength = 1)] string Name,
@@ -41,13 +43,14 @@ public sealed record CreateEditionRequest(
     [Range(0, 1_000_000_000)] long? StorageLimitMb = null,
     [Range(typeof(decimal), "0", "99999999")] decimal? Price = null,
     [Range(1, 120)] int? BillingPeriodMonths = null,
-    bool IsFree = false);
+    bool IsFree = false,
+    EditionStatus Status = EditionStatus.Active);
 
 /// <summary>
 /// <c>editions.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 改名称、说明、缺省标记与排序（编码不可改，白名单走 <c>editions.set-permissions</c>）。标识由路由值 <c>{id}</c> 绑定
+/// 改名称、说明、缺省标记、排序与状态（编码不可改，白名单走 <c>editions.set-permissions</c>）。标识由路由值 <c>{id}</c> 绑定
 /// </remarks>
 /// <param name="Id">套餐主键</param>
 /// <param name="Name">名称</param>
@@ -59,6 +62,7 @@ public sealed record CreateEditionRequest(
 /// <param name="Price">价格（两位小数）；为空不标价</param>
 /// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期</param>
 /// <param name="IsFree">是否免费套餐（免费套餐不能标价）</param>
+/// <param name="Status">状态；缺省套餐必须启用，停用的套餐不能再分配给租户，已绑定的不受影响</param>
 public sealed record UpdateEditionRequest(
     Guid Id,
     [Required, StringLength(64, MinimumLength = 1)] string Name,
@@ -69,7 +73,8 @@ public sealed record UpdateEditionRequest(
     [Range(0, 1_000_000_000)] long? StorageLimitMb = null,
     [Range(typeof(decimal), "0", "99999999")] decimal? Price = null,
     [Range(1, 120)] int? BillingPeriodMonths = null,
-    bool IsFree = false);
+    bool IsFree = false,
+    EditionStatus Status = EditionStatus.Active);
 
 /// <summary>
 /// <c>editions.set-permissions</c> 的请求：整体替换白名单

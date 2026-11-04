@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "套餐 '{id}' 不存在。",
   "tenancy.edition.code_taken": "套餐編碼 '{code}' 已被佔用。",
   "tenancy.edition.in_use": "套餐 '{code}' 仍有租戶在用，不能刪除。",
+  "tenancy.edition.disabled": "套餐 '{code}' 已停用，不能再分配給租戶。",
+  "tenancy.edition.default_disabled": "預設套餐 '{code}' 必須處於啟用狀態：要停用，請先將其他啟用的套餐設為預設。",
   "tenancy.edition.permission_invalid": "權限 '{code}' 不在租戶能生效的權限目錄裡，不能放進套餐。",
   "tenancy.edition.no_default": "沒有預設套餐，開通租戶時請指定套餐。",
   "tenancy.edition.free_priced": "免費方案不能標價。",

@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// 新建套餐
 /// </summary>
 /// <remarks>
-/// <c>POST /api/editions</c>（平台侧）。编码唯一（<c>TENANCY_CONFLICT_006</c>）；白名单只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；设为缺省时清掉其余套餐的缺省标记
+/// <c>POST /api/editions</c>（平台侧）。编码唯一（<c>TENANCY_CONFLICT_006</c>）；白名单只能放租户能生效的权限（<c>TENANCY_VALIDATION_002</c>）；设为缺省时清掉其余套餐的缺省标记；缺省套餐必须启用（<c>TENANCY_CONFLICT_017</c>）
 /// </remarks>
 /// <param name="editions">套餐仓储</param>
 /// <param name="service">套餐域服务</param>
@@ -54,6 +54,11 @@ public sealed class CreateEdition(IRepository<SysEdition, Guid> editions, Editio
             return Error.Validation(TenancyErrors.FreeEditionPriced, TenancyMessages.FreeEditionPriced);
         }
 
+        if (request.IsDefault && request.Status != EditionStatus.Active)
+        {
+            return Error.Conflict(TenancyErrors.EditionDefaultDisabled, TenancyMessages.EditionDefaultDisabled, MessageArguments.Of(("code", code)));
+        }
+
         var edition = new SysEdition
         {
             Id = ids.NewId(),
@@ -61,6 +66,7 @@ public sealed class CreateEdition(IRepository<SysEdition, Guid> editions, Editio
             Name = request.Name.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             IsDefault = request.IsDefault,
+            Status = request.Status,
             Order = request.Order,
             UserLimit = request.UserLimit,
             StorageLimitMb = request.StorageLimitMb,

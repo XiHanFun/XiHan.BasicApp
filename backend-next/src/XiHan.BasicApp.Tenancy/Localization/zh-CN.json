@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "套餐 '{id}' 不存在。",
   "tenancy.edition.code_taken": "套餐编码 '{code}' 已被占用。",
   "tenancy.edition.in_use": "套餐 '{code}' 还有租户在用，不能删除。",
+  "tenancy.edition.disabled": "套餐 '{code}' 已停用，不能再分配给租户。",
+  "tenancy.edition.default_disabled": "缺省套餐 '{code}' 必须处于启用状态：要停用，先把别的启用套餐设为缺省。",
   "tenancy.edition.permission_invalid": "权限 '{code}' 不在租户能生效的权限目录里，不能放进套餐。",
   "tenancy.edition.no_default": "没有缺省套餐，开通租户时请指定套餐。",
   "tenancy.edition.free_priced": "免费套餐不能标价。",

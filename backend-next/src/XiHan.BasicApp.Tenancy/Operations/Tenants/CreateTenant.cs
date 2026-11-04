@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants</c>。写 <see cref="SysTenant"/> 并在同一工作单元里登记框架租户目录（启用）。<c>platform</c> 是保留 ID
-/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>
+/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>，已停用即 <c>TENANCY_CONFLICT_016</c>（4.x 只在下拉里滤掉）
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
@@ -49,9 +49,14 @@ public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
         Guid editionId;
         if (request.EditionId is { } requested)
         {
-            if (!(await editions.FindAsync(requested, context.CancellationToken).ConfigureAwait(false)).HasValue)
+            if (!(await editions.FindAsync(requested, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var edition))
             {
                 return Error.NotFound(TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound, MessageArguments.Of(("id", requested)));
+            }
+
+            if (edition.Status != EditionStatus.Active)
+            {
+                return Error.Conflict(TenancyErrors.EditionDisabled, TenancyMessages.EditionDisabled, MessageArguments.Of(("code", edition.Code)));
             }
 
             editionId = requested;

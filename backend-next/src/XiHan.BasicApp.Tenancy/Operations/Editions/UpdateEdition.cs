@@ -13,7 +13,8 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// 修改套餐
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/editions/{id}</c>（平台侧）。只动名称、说明、缺省标记与排序，不影响门控（白名单走 <c>editions.set-permissions</c>）
+/// <c>PUT /api/editions/{id}</c>（平台侧）。只动名称、说明、缺省标记、排序与状态，不影响门控（白名单走 <c>editions.set-permissions</c>）
+/// 启停并入这里，整体覆盖。缺省套餐必须启用（<c>TENANCY_CONFLICT_017</c>）：要停用，先把别的启用套餐设为缺省（4.x 同）
 /// </remarks>
 /// <param name="editions">套餐仓储</param>
 /// <param name="service">套餐域服务</param>
@@ -45,9 +46,15 @@ public sealed class UpdateEdition(IRepository<SysEdition, Guid> editions, Editio
             return Error.Validation(TenancyErrors.FreeEditionPriced, TenancyMessages.FreeEditionPriced);
         }
 
+        if (request.IsDefault && request.Status != EditionStatus.Active)
+        {
+            return Error.Conflict(TenancyErrors.EditionDefaultDisabled, TenancyMessages.EditionDefaultDisabled, MessageArguments.Of(("code", edition.Code)));
+        }
+
         edition.Name = request.Name.Trim();
         edition.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         edition.IsDefault = request.IsDefault;
+        edition.Status = request.Status;
         edition.Order = request.Order;
         edition.UserLimit = request.UserLimit;
         edition.StorageLimitMb = request.StorageLimitMb;

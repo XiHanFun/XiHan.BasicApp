@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "Edition '{id}' does not exist.",
   "tenancy.edition.code_taken": "Edition code '{code}' is already taken.",
   "tenancy.edition.in_use": "Edition '{code}' is still used by tenants and cannot be deleted.",
+  "tenancy.edition.disabled": "Edition '{code}' is disabled and cannot be assigned to tenants.",
+  "tenancy.edition.default_disabled": "Default edition '{code}' must stay enabled; make another enabled edition the default first.",
   "tenancy.edition.permission_invalid": "Permission '{code}' is not a tenant-side permission in the catalog and cannot be put into an edition.",
   "tenancy.edition.no_default": "There is no default edition; specify one when creating a tenant.",
   "tenancy.edition.free_priced": "A free edition cannot have a price.",

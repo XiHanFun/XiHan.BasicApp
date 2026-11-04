@@ -12,7 +12,7 @@ function problem(status: number, code: string, detail: string, errors?: Record<s
 }
 
 function edition(id: string, code: string, extra: Record<string, unknown> = {}) {
-  return { id, code, name: code, description: null, isDefault: false, order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false, ...extra }
+  return { id, code, name: code, description: null, isDefault: false, status: 'Active', order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false, ...extra }
 }
 
 /** 假翻译：键原样返回 */
@@ -71,7 +71,28 @@ describe('editionsResource', () => {
     const saved = await setDefaultEdition('e-2')
     expect(saved.isDefault).toBe(true)
     expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['GET /api/editions/e-2', 'PUT /api/editions/e-2'])
-    expect(calls[1]!.body).toEqual({ name: 'Pro', description: 'For teams', isDefault: true, order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12, isFree: false })
+    expect(calls[1]!.body).toEqual({ name: 'Pro', description: 'For teams', isDefault: true, order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12, isFree: false, status: 'Active' })
+  })
+
+  it('启停：先取当前值，再整体覆盖更新、只改状态；后端拒绝（停用缺省套餐）时带着原因抛出', async () => {
+    const pro = edition('e-2', 'pro', { name: 'Pro', description: 'For teams', order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12 })
+    let calls = record(call => call.method === 'GET'
+      ? json(200, { edition: pro, permissions: [] })
+      : json(200, { edition: { ...pro, status: 'Disabled' }, permissions: [] }))
+    await editionsResource().updateStatus!('e-2', false)
+    expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['GET /api/editions/e-2', 'PUT /api/editions/e-2'])
+    expect(calls[1]!.body).toEqual({ name: 'Pro', description: 'For teams', isDefault: false, order: 20, userLimit: 50, storageLimitMb: 2048, price: 199, billingPeriodMonths: 12, isFree: false, status: 'Disabled' })
+
+    calls = record(call => call.method === 'GET'
+      ? json(200, { edition: { ...pro, status: 'Disabled' }, permissions: [] })
+      : json(200, { edition: pro, permissions: [] }))
+    await editionsResource().updateStatus!('e-2', true)
+    expect(calls[1]!.body).toMatchObject({ status: 'Active' })
+
+    record(call => call.method === 'GET'
+      ? json(200, { edition: { ...pro, isDefault: true }, permissions: [] })
+      : problem(409, 'TENANCY_CONFLICT_017', 'default must stay enabled'))
+    await expect(editionsResource().updateStatus!('e-2', false)).rejects.toThrow('default must stay enabled')
   })
 })
 
@@ -93,22 +114,22 @@ describe('useEditionEditor', () => {
     let calls = record(() => json(201, { edition: edition('e-5', 'team'), permissions: [] }))
     const editor = useEditionEditor(t)
     editor.startCreate()
-    expect(editor.form).toMatchObject(noQuota)
-    Object.assign(editor.form, { code: ' team ', name: ' Team ', order: 30 })
+    expect(editor.form).toMatchObject({ ...noQuota, status: 'Active' })
+    Object.assign(editor.form, { code: ' team ', name: ' Team ', order: 30, status: 'Disabled' })
     expect((await editor.submit())?.id).toBe('e-5')
     expect(editor.open.value).toBe(false)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/editions' })
-    expect(calls[0]!.body).toEqual({ code: 'team', name: 'Team', description: null, isDefault: false, order: 30, ...noQuota, permissions: [] })
+    expect(calls[0]!.body).toEqual({ code: 'team', name: 'Team', description: null, isDefault: false, order: 30, ...noQuota, status: 'Disabled', permissions: [] })
 
     calls = record(() => json(200, { edition: edition('e-5', 'team', { isDefault: true }), permissions: [] }))
-    editor.startEdit(edition('e-5', 'team', { description: 'Small teams', userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1 }) as never)
+    editor.startEdit(edition('e-5', 'team', { description: 'Small teams', userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1, status: 'Disabled' }) as never)
     expect(editor.isEdit.value).toBe(true)
-    expect(editor.form).toMatchObject({ code: 'team', name: 'team', description: 'Small teams', order: 10, isDefault: false, userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1, isFree: false })
+    expect(editor.form).toMatchObject({ code: 'team', name: 'team', description: 'Small teams', order: 10, isDefault: false, status: 'Disabled', userLimit: 20, storageLimitMb: 512, price: 49.9, billingPeriodMonths: 1, isFree: false })
     editor.form.isDefault = true
     editor.form.storageLimitMb = null
     expect((await editor.submit())?.isDefault).toBe(true)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/editions/e-5' })
-    expect(calls[0]!.body).toEqual({ name: 'team', description: 'Small teams', isDefault: true, order: 10, userLimit: 20, storageLimitMb: null, price: 49.9, billingPeriodMonths: 1, isFree: false })
+    expect(calls[0]!.body).toEqual({ name: 'team', description: 'Small teams', isDefault: true, order: 10, userLimit: 20, storageLimitMb: null, price: 49.9, billingPeriodMonths: 1, isFree: false, status: 'Disabled' })
   })
 
   it('免费与价格互斥：打开免费即清空价格；标了价的免费套餐不发请求、错误挂在价格上，价格为 0 照常提交', async () => {

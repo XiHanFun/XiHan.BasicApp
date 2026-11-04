@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 种子四档套餐（免费版缺省）、租户侧权限目录、开通即绑定缺省套餐、有效权限与判定都按白名单收窄（租户管理员的 <c>*</c> 也收窄）、
-/// 改白名单与换套餐立即生效（换套餐不被提交前的门控判定回填）、不受限套餐、套餐的增改删与校验、租户主体碰不到套餐管理
+/// 改白名单与换套餐立即生效（换套餐不被提交前的门控判定回填）、不受限套餐、套餐的增改删与校验、启停（不能再分配、已绑定的不受影响、缺省必须启用）、租户主体碰不到套餐管理
 /// </remarks>
 public sealed class EditionsTests : IDisposable
 {
@@ -34,6 +34,90 @@ public sealed class EditionsTests : IDisposable
     }
 
     private static List<string?> Codes(JsonElement body, string property) => body.GetProperty(property).EnumerateArray().Select(static p => p.ValueKind == JsonValueKind.String ? p.GetString() : p.GetProperty("code").GetString()).ToList();
+
+    [Fact]
+    public async Task DisabledEditions_CannotBeAssigned_ButBoundTenantsKeepThem()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (seeded, seededBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/editions", token: superadmin));
+        Assert.Equal(HttpStatusCode.OK, seeded.StatusCode);
+        Assert.All(seededBody.GetProperty("items").EnumerateArray(), static e => Assert.Equal("Active", e.GetProperty("status").GetString()));
+        var freeId = await EditionIdAsync(server, superadmin, "free");
+        var basicId = await EditionIdAsync(server, superadmin, "basic");
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> SetStatusAsync(string id, string status, bool isDefault = false)
+        {
+            var (_, detail) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/editions/{id}", token: superadmin));
+            var edition = detail.GetProperty("edition");
+            var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/editions/{id}", JsonSerializer.Serialize(new { name = edition.GetProperty("name").GetString(), isDefault, order = edition.GetProperty("order").GetInt32(), status }), superadmin));
+            return (updated.StatusCode, updatedBody);
+        }
+
+        // 租户绑了 basic，有一个管理员；记下他的有效权限
+        var (bound, boundBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", $$"""{"tenantId":"bound","name":"Bound","editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, bound.StatusCode);
+        var boundId = boundBody.GetProperty("id").GetString()!;
+        var (initialized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{boundId}:initialize-admin", """{"userName":"admin","password":"Admin@123456"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
+        var boundAdmin = (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", "bound")).GetProperty("accessToken").GetString()!;
+        async Task<List<string?>> PermissionsAsync()
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: boundAdmin));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList();
+        }
+
+        var before = await PermissionsAsync();
+        Assert.NotEmpty(before);
+
+        // 缺省套餐必须启用：不能停用缺省的，停用的不能设为缺省，新建时也一样（缺省标记留着，什么都没改）
+        var (disableDefault, disableDefaultBody) = await SetStatusAsync(freeId, "Disabled", isDefault: true);
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_017"), (disableDefault, disableDefaultBody.GetProperty("code").GetString()));
+        var (createDisabledDefault, createDisabledDefaultBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/editions", """{"code":"odd","name":"Odd","isDefault":true,"status":"Disabled"}""", superadmin));
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_017"), (createDisabledDefault.StatusCode, createDisabledDefaultBody.GetProperty("code").GetString()));
+
+        // 新建时可以直接是停用的；停用 basic：列表带状态
+        var (createdDisabled, createdDisabledBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/editions", """{"code":"retired","name":"Retired","status":"Disabled"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, createdDisabled.StatusCode);
+        Assert.Equal("Disabled", createdDisabledBody.GetProperty("edition").GetProperty("status").GetString());
+        var retiredId = createdDisabledBody.GetProperty("edition").GetProperty("id").GetString()!;
+        var (disabled, disabledBody) = await SetStatusAsync(basicId, "Disabled");
+        Assert.Equal(HttpStatusCode.OK, disabled);
+        Assert.Equal("Disabled", disabledBody.GetProperty("edition").GetProperty("status").GetString());
+        var (setDefaultDisabled, setDefaultDisabledBody) = await SetStatusAsync(basicId, "Disabled", isDefault: true);
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_017"), (setDefaultDisabled, setDefaultDisabledBody.GetProperty("code").GetString()));
+
+        // 不能再分配：开通指定它、把别的租户换到它，都被拒绝
+        var (createOnDisabled, createOnDisabledBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", $$"""{"tenantId":"late","name":"Late","editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_016"), (createOnDisabled.StatusCode, createOnDisabledBody.GetProperty("code").GetString()));
+        var (other, otherBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"other","name":"Other"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, other.StatusCode);
+        Assert.Equal(freeId, otherBody.GetProperty("editionId").GetString());
+        var (changeToDisabled, changeToDisabledBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{otherBody.GetProperty("id").GetString()}:change-edition", $$"""{"editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_016"), (changeToDisabled.StatusCode, changeToDisabledBody.GetProperty("code").GetString()));
+
+        // 已绑定的不受影响：权限照旧，留在原来的套餐上不算分配；换走之后就回不来了
+        Assert.Equal(before, await PermissionsAsync());
+        var (keep, keepBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{boundId}:change-edition", $$"""{"editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, keep.StatusCode);
+        Assert.Equal(basicId, keepBody.GetProperty("editionId").GetString());
+        var (leave, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{boundId}:change-edition", $$"""{"editionId":"{{freeId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, leave.StatusCode);
+        var (comeBack, comeBackBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{boundId}:change-edition", $$"""{"editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal((HttpStatusCode.Conflict, "TENANCY_CONFLICT_016"), (comeBack.StatusCode, comeBackBody.GetProperty("code").GetString()));
+
+        // 重新启用即可再分配；停用的 retired 从没被用过，照常能删
+        var (enabled, _) = await SetStatusAsync(basicId, "Active");
+        Assert.Equal(HttpStatusCode.OK, enabled);
+        var (changeBack, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{boundId}:change-edition", $$"""{"editionId":"{{basicId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, changeBack.StatusCode);
+        var (removed, removedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/editions?ids={retiredId}", token: superadmin));
+        Assert.Equal(HttpStatusCode.OK, removed.StatusCode);
+        Assert.Equal(1, removedBody.GetProperty("succeeded").GetArrayLength());
+    }
 
     [Fact]
     public async Task Editions_GateTenantPermissions_AndFollowChangesImmediately()

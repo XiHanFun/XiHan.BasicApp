@@ -12042,7 +12042,14 @@ export interface components {
             billingPeriodMonths?: number | null;
             /** @description 是否免费套餐（免费套餐不能标价） */
             isFree: boolean;
+            /** @description 状态 */
+            status: components["schemas"]["EditionStatus"];
         };
+        /**
+         * @description 套餐的启停状态
+         * @enum {string}
+         */
+        EditionStatus: "Active" | "Disabled";
         /** @description 一个邮件配置（密码不回显） */
         EmailConfigResponse: {
             /**
@@ -26365,6 +26372,8 @@ export interface operations {
                     billingPeriodMonths?: number | null;
                     /** @description 是否免费套餐（免费套餐不能标价） */
                     isFree?: boolean;
+                    /** @description 状态；缺省套餐必须启用 */
+                    status?: components["schemas"]["EditionStatus"];
                 };
             };
         };
@@ -26518,6 +26527,8 @@ export interface operations {
                     billingPeriodMonths?: number | null;
                     /** @description 是否免费套餐（免费套餐不能标价） */
                     isFree?: boolean;
+                    /** @description 状态；缺省套餐必须启用，停用的套餐不能再分配给租户，已绑定的不受影响 */
+                    status?: components["schemas"]["EditionStatus"];
                 };
             };
         };

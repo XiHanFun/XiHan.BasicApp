@@ -815,6 +815,7 @@ CREATE TABLE IF NOT EXISTS "sys_edition" (
     "name" character varying(512) NOT NULL,
     "description" character varying(512) DEFAULT NULL::character varying NULL,
     "is_default" boolean DEFAULT false NOT NULL,
+    "status" integer DEFAULT 0 NOT NULL,
     "order" integer DEFAULT 0 NOT NULL,
     "user_limit" integer NULL,
     "storage_limit_mb" bigint NULL,

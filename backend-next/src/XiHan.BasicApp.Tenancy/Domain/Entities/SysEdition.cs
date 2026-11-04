@@ -37,9 +37,17 @@ public sealed class SysEdition : AppAuditedEntity
     /// 是否新租户的缺省套餐
     /// </summary>
     /// <remarks>
-    /// 设为缺省时其余套餐的缺省标记被清掉
+    /// 设为缺省时其余套餐的缺省标记被清掉；缺省套餐必须启用
     /// </remarks>
     public bool IsDefault { get; set; }
+
+    /// <summary>
+    /// 状态
+    /// </summary>
+    /// <remarks>
+    /// 停用的套餐不能再分配给租户（开通或换套餐），已绑定的租户照旧按它的白名单与配额（4.x 同）
+    /// </remarks>
+    public EditionStatus Status { get; set; } = EditionStatus.Active;
 
     /// <summary>
     /// 排序号

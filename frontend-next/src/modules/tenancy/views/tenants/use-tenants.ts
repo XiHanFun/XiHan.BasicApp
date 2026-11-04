@@ -194,6 +194,13 @@ export function useEditionOptions() {
 }
 
 /**
+ * 弹窗下拉能选的套餐：停用的不能再分配（4.x 同），只有租户当前绑着的那个还留在下拉里，否则选中值显示不出名字
+ */
+export function selectableEditions(editions: readonly EditionOption[], currentId: null | string | undefined): EditionOption[] {
+  return editions.filter(e => e.status === 'Active' || e.id === currentId)
+}
+
+/**
  * 弹窗里上限留空时沿用的套餐：选了即所选；开通时没选即缺省套餐，编辑时没选即没有套餐（null，不限）
  * 所选不在选项里、或开通时没有缺省套餐为 undefined（说不出沿用多少）
  */

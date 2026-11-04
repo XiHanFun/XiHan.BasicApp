@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import type { EditionRow } from './use-editions'
+import type { EditionRow, EditionStatus } from './use-editions'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
+import type { SelectOption } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatPrice } from '../subscription/subscription'
@@ -61,6 +62,13 @@ function storageLimitText(row: EditionRow): string {
   return row.storageLimitMb === null || row.storageLimitMb === undefined ? t('tenancy.editions.unlimited') : t('tenancy.editions.storage_mb', { size: row.storageLimitMb })
 }
 
+// 状态值是契约字面量，文案键静态写出以便 i18n 门禁核对
+function statusLabel(status: EditionStatus): string {
+  return status === 'Disabled' ? t('tenancy.editions.status_disabled') : t('tenancy.editions.status_active')
+}
+
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'code', title: t('tenancy.editions.fields.code'), dataType: 'string', exportable: true, minWidth: 140, order: 1 },
   { key: 'name', title: t('tenancy.editions.fields.name'), dataType: 'string', exportable: true, render: row => renderName(asRow(row)), minWidth: 180, order: 2 },
@@ -70,6 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'storageLimitMb', title: t('tenancy.editions.fields.storage_limit'), dataType: 'number', exportable: true, render: row => storageLimitText(asRow(row)), width: 120, order: 6 },
   { key: 'isFree', title: t('tenancy.editions.fields.is_free'), dataType: 'boolean', exportable: true, render: row => renderTag(asRow(row).isFree ? t('common.statuses.yes') : t('common.statuses.no'), asRow(row).isFree ? 'success' : 'neutral'), width: 86, order: 7 },
   { key: 'isDefault', title: t('tenancy.editions.fields.is_default'), dataType: 'boolean', exportable: true, render: row => (asRow(row).isDefault ? renderTag(t('tenancy.editions.default_badge'), 'warning') : '-'), width: 100, order: 8 },
+  { key: 'status', title: t('tenancy.editions.fields.status'), dataType: 'enum', options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 8.5 },
   { key: 'permissionCount', title: t('tenancy.editions.fields.permissions'), dataType: 'number', exportable: true, width: 100, order: 9 },
   { key: 'tenantCount', title: t('tenancy.editions.fields.tenants'), dataType: 'number', exportable: true, width: 100, order: 10 },
   { key: 'order', title: t('tenancy.editions.fields.order'), dataType: 'number', exportable: true, width: 80, order: 11 },
@@ -83,12 +92,15 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'tenancy.editions.read',
   batchRemovable: true,
   removePermission: 'tenancy.editions.delete',
+  statusPermission: 'tenancy.editions.update',
   rowKey: 'id',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
     { key: 'create', title: t('tenancy.editions.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'tenancy.editions.create' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenancy.editions.update' },
+    { key: 'enable', title: t('tenancy.editions.actions.enable'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.editions.enable_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Disabled', permission: 'tenancy.editions.update' },
+    { key: 'disable', title: t('tenancy.editions.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:pause', confirm: true, confirmText: row => t('tenancy.editions.disable_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Active', permission: 'tenancy.editions.update' },
     { key: 'set-default', title: t('tenancy.editions.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('tenancy.editions.set_default_confirm', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'tenancy.editions.update' },
     { key: 'permissions', title: t('tenancy.editions.actions.permissions'), scope: 'row', icon: 'lucide:shield-check', permission: 'tenancy.editions.read' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'tenancy.editions.delete' },
@@ -105,6 +117,14 @@ function onAction(payload: SchemaActionPayload) {
     case 'edit':
       if (row)
         editor.startEdit(row)
+      break
+    case 'enable':
+      if (row)
+        void toggleStatus(row, true)
+      break
+    case 'disable':
+      if (row)
+        void toggleStatus(row, false)
       break
     case 'set-default':
       if (row)
@@ -131,6 +151,17 @@ async function onSubmit() {
   // 新套餐的白名单是空的（什么都不放行）：建好接着勾选
   if (creating && canEditWhitelist.value)
     void whitelist.start(saved)
+}
+
+async function toggleStatus(row: EditionRow, enabled: boolean) {
+  try {
+    await resource.updateStatus?.(row.id, enabled)
+    toast.success(enabled ? t('tenancy.editions.enabled') : t('tenancy.editions.disabled'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.status_failed'))
+  }
 }
 
 async function setDefault(row: EditionRow) {
@@ -265,6 +296,16 @@ async function saveWhitelist() {
           <XhFieldControl>
             <XhSwitch v-model:checked="editor.form.isDefault" name="isDefault" />
           </XhFieldControl>
+        </XhFieldRoot>
+        <!-- 状态只在新建时选（4.x 同），之后走行操作的启用 / 停用 -->
+        <XhFieldRoot v-if="!editor.isEdit.value" :invalid="!!editor.fieldError('status')">
+          <XhFieldLabel>{{ t('tenancy.editions.fields.status') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.status" name="status" :options="statusOptions" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('status')">
+            {{ editor.fieldError('status') }}
+          </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('order')">
           <XhFieldLabel>{{ t('tenancy.editions.fields.order') }}</XhFieldLabel>

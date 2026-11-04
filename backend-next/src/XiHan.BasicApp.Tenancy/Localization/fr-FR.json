@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "L'édition '{id}' n'existe pas.",
   "tenancy.edition.code_taken": "Le code d'édition '{code}' est déjà pris.",
   "tenancy.edition.in_use": "L'édition '{code}' est encore utilisée par des locataires et ne peut pas être supprimée.",
+  "tenancy.edition.disabled": "L’édition « {code} » est désactivée et ne peut pas être attribuée aux locataires.",
+  "tenancy.edition.default_disabled": "L’édition par défaut « {code} » doit rester activée ; définissez d’abord une autre édition activée par défaut.",
   "tenancy.edition.permission_invalid": "La permission '{code}' n'est pas une permission côté locataire du catalogue et ne peut pas entrer dans une édition.",
   "tenancy.edition.no_default": "Il n'y a pas d'édition par défaut ; indiquez-en une à la création d'un locataire.",
   "tenancy.edition.free_priced": "Une édition gratuite ne peut pas avoir de prix.",

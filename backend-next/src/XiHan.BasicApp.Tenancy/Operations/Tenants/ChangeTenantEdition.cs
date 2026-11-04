@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants/{id}:change-edition</c>（平台侧，<c>tenancy.tenants.update</c>）
-/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算
+/// 套餐须存在（<c>TENANCY_NOTFOUND_004</c>），换到已停用的套餐即 <c>TENANCY_CONFLICT_016</c>（留在原来那个停用的套餐上不算分配）；写入后失效该租户的门控缓存，其用户的有效权限随即按新白名单计算
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
@@ -51,6 +51,11 @@ public sealed class ChangeTenantEdition(IRepository<SysTenant, Guid> tenants, Te
             if (!(await editions.FindAsync(editionId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var edition))
             {
                 return Error.NotFound(TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound, MessageArguments.Of(("id", editionId)));
+            }
+
+            if (edition.Status != EditionStatus.Active && tenant.EditionId != editionId)
+            {
+                return Error.Conflict(TenancyErrors.EditionDisabled, TenancyMessages.EditionDisabled, MessageArguments.Of(("code", edition.Code)));
             }
 
             editionCode = edition.Code;

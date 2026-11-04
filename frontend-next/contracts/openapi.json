@@ -20956,6 +20956,10 @@
                   "isFree": {
                     "description": "\u662F\u5426\u514D\u8D39\u5957\u9910\uFF08\u514D\u8D39\u5957\u9910\u4E0D\u80FD\u6807\u4EF7\uFF09",
                     "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u72B6\u6001\uFF1B\u7F3A\u7701\u5957\u9910\u5FC5\u987B\u542F\u7528",
+                    "$ref": "#/components/schemas/EditionStatus"
                   }
                 },
                 "required": [
@@ -21177,6 +21181,10 @@
                   "isFree": {
                     "description": "\u662F\u5426\u514D\u8D39\u5957\u9910\uFF08\u514D\u8D39\u5957\u9910\u4E0D\u80FD\u6807\u4EF7\uFF09",
                     "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u72B6\u6001\uFF1B\u7F3A\u7701\u5957\u9910\u5FC5\u987B\u542F\u7528\uFF0C\u505C\u7528\u7684\u5957\u9910\u4E0D\u80FD\u518D\u5206\u914D\u7ED9\u79DF\u6237\uFF0C\u5DF2\u7ED1\u5B9A\u7684\u4E0D\u53D7\u5F71\u54CD",
+                    "$ref": "#/components/schemas/EditionStatus"
                   }
                 },
                 "required": [
@@ -66841,6 +66849,10 @@
           "isFree": {
             "description": "\u662F\u5426\u514D\u8D39\u5957\u9910\uFF08\u514D\u8D39\u5957\u9910\u4E0D\u80FD\u6807\u4EF7\uFF09",
             "type": "boolean"
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/EditionStatus"
           }
         },
         "required": [
@@ -66852,7 +66864,16 @@
           "permissionCount",
           "tenantCount",
           "createdAt",
-          "isFree"
+          "isFree",
+          "status"
+        ]
+      },
+      "EditionStatus": {
+        "description": "\u5957\u9910\u7684\u542F\u505C\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
         ]
       },
       "EmailConfigResponse": {

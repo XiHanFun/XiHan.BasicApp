@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "Edition '{id}' existiert nicht.",
   "tenancy.edition.code_taken": "Der Editionscode '{code}' ist bereits vergeben.",
   "tenancy.edition.in_use": "Edition '{code}' wird noch von Mandanten genutzt und kann nicht gelöscht werden.",
+  "tenancy.edition.disabled": "Edition '{code}' ist deaktiviert und kann keinen Mandanten zugewiesen werden.",
+  "tenancy.edition.default_disabled": "Die Standardedition '{code}' muss aktiviert bleiben; machen Sie zuerst eine andere aktivierte Edition zum Standard.",
   "tenancy.edition.permission_invalid": "Die Berechtigung '{code}' ist keine mandantenseitige Berechtigung im Katalog und kann nicht in eine Edition aufgenommen werden.",
   "tenancy.edition.no_default": "Es gibt keine Standardedition; geben Sie beim Anlegen eines Mandanten eine an.",
   "tenancy.edition.free_priced": "Eine kostenlose Edition kann keinen Preis haben.",

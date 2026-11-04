@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// <param name="BillingPeriodMonths">计费周期（月）；为空不标周期</param>
 /// <param name="IsFree">是否免费套餐（免费套餐不能标价）</param>
 /// <param name="CreatedAt">创建时间（UTC）</param>
+/// <param name="Status">状态</param>
 public sealed record EditionResponse(
     Guid Id,
     string Code,
@@ -37,7 +38,8 @@ public sealed record EditionResponse(
     long? StorageLimitMb,
     decimal? Price,
     int? BillingPeriodMonths,
-    bool IsFree)
+    bool IsFree,
+    EditionStatus Status)
 {
     /// <summary>
     /// 由实体与计数投影
@@ -45,7 +47,7 @@ public sealed record EditionResponse(
     public static EditionResponse From(SysEdition edition, int permissionCount, int tenantCount)
     {
         ArgumentNullException.ThrowIfNull(edition);
-        return new EditionResponse(edition.Id, edition.Code, edition.Name, edition.Description, edition.IsDefault, edition.Order, permissionCount, tenantCount, edition.CreatedAt, edition.UserLimit, edition.StorageLimitMb, edition.Price, edition.BillingPeriodMonths, edition.IsFree);
+        return new EditionResponse(edition.Id, edition.Code, edition.Name, edition.Description, edition.IsDefault, edition.Order, permissionCount, tenantCount, edition.CreatedAt, edition.UserLimit, edition.StorageLimitMb, edition.Price, edition.BillingPeriodMonths, edition.IsFree, edition.Status);
     }
 }
 

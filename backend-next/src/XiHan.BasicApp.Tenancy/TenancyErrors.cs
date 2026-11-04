@@ -170,4 +170,14 @@ public static class TenancyErrors
     /// 租户是共库，没有独立库可初始化
     /// </summary>
     public const string NotIsolated = "TENANCY_VALIDATION_009";
+
+    /// <summary>
+    /// 套餐已停用，不能再分配给租户
+    /// </summary>
+    public const string EditionDisabled = "TENANCY_CONFLICT_016";
+
+    /// <summary>
+    /// 缺省套餐必须启用
+    /// </summary>
+    public const string EditionDefaultDisabled = "TENANCY_CONFLICT_017";
 }

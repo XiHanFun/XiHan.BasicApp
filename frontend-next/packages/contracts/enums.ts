@@ -137,6 +137,9 @@ export type DiffKind = (typeof DiffKind)[number]
 export const DriveType = ['Unknown', 'NoRootDirectory', 'Removable', 'Fixed', 'Network', 'CDRom', 'Ram'] as const
 export type DriveType = (typeof DriveType)[number]
 
+export const EditionStatus = ['Active', 'Disabled'] as const
+export type EditionStatus = (typeof EditionStatus)[number]
+
 export const ExportFormat = ['Csv', 'Xlsx'] as const
 export type ExportFormat = (typeof ExportFormat)[number]
 
@@ -394,6 +397,7 @@ export const enums = {
   DepartmentType,
   DiffKind,
   DriveType,
+  EditionStatus,
   ExportFormat,
   ExportScope,
   ExportTaskStatus,

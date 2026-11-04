@@ -276,6 +276,22 @@ public static class TenancyMessages
     public const string EditionInUse = "tenancy.edition.in_use";
 
     /// <summary>
+    /// 套餐已停用，不能再分配给租户
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>
+    /// </remarks>
+    public const string EditionDisabled = "tenancy.edition.disabled";
+
+    /// <summary>
+    /// 缺省套餐必须启用
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>
+    /// </remarks>
+    public const string EditionDefaultDisabled = "tenancy.edition.default_disabled";
+
+    /// <summary>
     /// 白名单里的权限不是租户能生效的
     /// </summary>
     /// <remarks>

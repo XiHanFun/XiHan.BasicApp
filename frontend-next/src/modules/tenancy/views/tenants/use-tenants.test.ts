@@ -2,7 +2,7 @@ import type { EditionOption } from './use-tenants'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { canInitializeAdmin, canInitializeDatabase, databaseConfiguration, inheritedEdition, initializeTenantDatabase, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, storageUsage, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, databaseConfiguration, inheritedEdition, initializeTenantDatabase, isMemberExpired, isMemberInEffect, isOwnerCandidate, ownerCandidates, seatUsage, selectableEditions, storageUsage, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -26,7 +26,7 @@ function quota(tenantId: string, extra: Record<string, unknown> = {}) {
 }
 
 function edition(id: string, extra: Partial<EditionOption> = {}): EditionOption {
-  return { id, code: id, name: id, description: null, isDefault: false, order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false, ...extra }
+  return { id, code: id, name: id, description: null, isDefault: false, status: 'Active', order: 10, permissionCount: 0, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z', userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false, ...extra }
 }
 
 const MB = 1024 * 1024
@@ -146,6 +146,14 @@ describe('配额用量', () => {
     expect(calls).toHaveLength(1)
     expect(audit.items.value).toEqual([])
     expect(audit.error.value).toBe('denied')
+  })
+})
+
+describe('selectableEditions', () => {
+  it('停用的套餐不进下拉，只有租户当前绑着的那个留着', () => {
+    const editions = [edition('e-1'), edition('e-2', { status: 'Disabled' }), edition('e-3', { status: 'Disabled' })]
+    expect(selectableEditions(editions, null).map(e => e.id)).toEqual(['e-1'])
+    expect(selectableEditions(editions, 'e-3').map(e => e.id)).toEqual(['e-1', 'e-3'])
   })
 })
 

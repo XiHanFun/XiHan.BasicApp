@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "エディション '{id}' は存在しません。",
   "tenancy.edition.code_taken": "エディションコード '{code}' は既に使われています。",
   "tenancy.edition.in_use": "エディション '{code}' はテナントが利用中のため削除できません。",
+  "tenancy.edition.disabled": "エディション '{code}' は無効化されているため、テナントに割り当てできません。",
+  "tenancy.edition.default_disabled": "既定のエディション '{code}' は有効である必要があります。無効化するには、先に別の有効なエディションを既定にしてください。",
   "tenancy.edition.permission_invalid": "権限 '{code}' はテナントで有効な権限カタログにないため、エディションに入れられません。",
   "tenancy.edition.no_default": "既定エディションがありません。テナント作成時にエディションを指定してください。",
   "tenancy.edition.free_priced": "無料プランには価格を設定できません。",

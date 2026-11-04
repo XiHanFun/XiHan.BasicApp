@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "La edición '{id}' no existe.",
   "tenancy.edition.code_taken": "El código de edición '{code}' ya está en uso.",
   "tenancy.edition.in_use": "La edición '{code}' aún la usan inquilinos y no se puede eliminar.",
+  "tenancy.edition.disabled": "La edición '{code}' está desactivada y no se puede asignar a inquilinos.",
+  "tenancy.edition.default_disabled": "La edición predeterminada '{code}' debe seguir activada; primero haga predeterminada otra edición activada.",
   "tenancy.edition.permission_invalid": "El permiso '{code}' no es un permiso del lado del inquilino del catálogo y no puede incluirse en una edición.",
   "tenancy.edition.no_default": "No hay edición predeterminada; indica una al crear un inquilino.",
   "tenancy.edition.free_priced": "Una edición gratuita no puede tener precio.",

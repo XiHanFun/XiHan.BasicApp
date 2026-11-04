@@ -52,6 +52,8 @@
   "tenancy.edition.not_found": "에디션 '{id}'이(가) 존재하지 않습니다.",
   "tenancy.edition.code_taken": "에디션 코드 '{code}'은(는) 이미 사용 중입니다.",
   "tenancy.edition.in_use": "에디션 '{code}'은(는) 테넌트가 사용 중이라 삭제할 수 없습니다.",
+  "tenancy.edition.disabled": "에디션 '{code}'은(는) 비활성화되어 테넌트에 할당할 수 없습니다.",
+  "tenancy.edition.default_disabled": "기본 에디션 '{code}'은(는) 활성 상태여야 합니다. 비활성화하려면 먼저 다른 활성 에디션을 기본으로 설정하세요.",
   "tenancy.edition.permission_invalid": "권한 '{code}'은(는) 테넌트에서 유효한 권한 카탈로그에 없어 에디션에 넣을 수 없습니다.",
   "tenancy.edition.no_default": "기본 에디션이 없습니다. 테넌트를 만들 때 에디션을 지정하세요.",
   "tenancy.edition.free_priced": "무료 플랜에는 가격을 정할 수 없습니다.",

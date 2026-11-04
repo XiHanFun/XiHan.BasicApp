@@ -9,7 +9,7 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, 
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { canInitializeAdmin, canInitializeDatabase, DATABASE_PROVIDER_NAMES, inheritedEdition, initializeTenantDatabase, isMemberExpired, isOwnerCandidate, seatUsage, storageUsage, TENANT_DATABASE_PROVIDERS, TENANT_DATABASE_STATUSES, TENANT_ISOLATION_MODES, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
+import { canInitializeAdmin, canInitializeDatabase, DATABASE_PROVIDER_NAMES, inheritedEdition, initializeTenantDatabase, isMemberExpired, isOwnerCandidate, seatUsage, selectableEditions, storageUsage, TENANT_DATABASE_PROVIDERS, TENANT_DATABASE_STATUSES, TENANT_ISOLATION_MODES, TENANT_MEMBER_TYPES, TENANT_STATUSES, tenantsResource, tenantStatusTone, useAdminInitializer, useEditionOptions, useMemberEditor, useOwnerTransfer, useQuotaAudit, useTenantDetail, useTenantEditor, useTenantQuotas } from './use-tenants'
 
 defineOptions({ name: 'TenancyTenantsView' })
 
@@ -199,11 +199,11 @@ const connectionRequired = computed(() => choosesDatabase.value && !editor.hasCo
 const memberTypeOptions = computed<SelectOption[]>(() => TENANT_MEMBER_TYPES.map(type => ({ label: memberTypeLabel(type), value: type })))
 /** 列与导出用的套餐名 */
 const editionColumnOptions = computed<SelectOption[]>(() => editions.editions.value.map(e => ({ label: e.name, value: e.id })))
-/** 弹窗下拉：缺省套餐带标注（开通时留空即用它） */
-const editionFormOptions = computed<SelectOption[]>(() => editions.editions.value.map(e => ({
-  label: e.isDefault ? `${e.name}${t('tenancy.tenants.edition_default_suffix')}` : e.name,
-  value: e.id,
-})))
+/** 弹窗下拉：缺省套餐带标注（开通时留空即用它）；停用的只留租户当前绑着的那个，也带标注 */
+const editionFormOptions = computed<SelectOption[]>(() => selectableEditions(editions.editions.value, editor.form.editionId).map((e) => {
+  const suffix = e.isDefault ? t('tenancy.tenants.edition_default_suffix') : e.status === 'Active' ? '' : t('tenancy.tenants.edition_disabled_suffix')
+  return { label: `${e.name}${suffix}`, value: e.id }
+}))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用

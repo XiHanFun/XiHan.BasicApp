@@ -6,6 +6,7 @@ import { ApiError } from '~/request'
 import { randomString } from '~/utils'
 
 export type EditionRow = ResponseOf<'editions.list'>['items'][number]
+export type EditionStatus = EditionRow['status']
 export type EditionDetail = ResponseOf<'editions.get'>
 export type CatalogItem = ResponseOf<'permissions.list'>['items'][number]
 
@@ -21,6 +22,8 @@ export interface EditionForm {
   name: string
   description: string
   isDefault: boolean
+  /** 状态：新建时可选；编辑时原样带回（启停走行操作，4.x 同） */
+  status: EditionStatus
   order: number
   /** 席位上限；为空不限 */
   userLimit: number | null
@@ -84,7 +87,7 @@ function sameSet(left: readonly string[], right: readonly string[]): boolean {
 }
 
 /**
- * SchemaPage 的资源：分页与删除
+ * SchemaPage 的资源：分页、删除与启停（批量启停逐行调它）
  * `editions.list` 不分页、不收筛选与排序（套餐数量有限，一次全列，后端按排序号、编码排好），资源在前端按页切片；
  * 页面因此不登记搜索与排序字段，查询里一旦出现筛选或排序就报错，而不是静默丢掉条件（与 toPageRequest 同一口径）
  */
@@ -104,13 +107,18 @@ export function editionsResource(): SchemaResource<EditionRow> {
     },
     // 还有租户绑定的套餐由后端逐项拒绝（TENANCY_CONFLICT_007）
     remove: async id => failedCodes(await editionsApi.delete({ ids: [String(id)] })),
+    // 更新是整体覆盖：先取当前值再只改状态；停用缺省套餐由后端拒绝（TENANCY_CONFLICT_017）
+    updateStatus: async (id, enabled) => {
+      const { edition } = await editionsApi.get({ id: String(id) })
+      return editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: edition.isDefault, order: edition.order, ...quotaOf(edition), status: enabled ? 'Active' : 'Disabled' })
+    },
   }
 }
 
-/** 设为缺省：更新是整体覆盖，先取当前值再只改缺省标记（配额、价格与周期原样带回）；后端随之清掉其余套餐的缺省 */
+/** 设为缺省：更新是整体覆盖，先取当前值再只改缺省标记（状态、配额、价格与周期原样带回）；后端随之清掉其余套餐的缺省，停用的套餐不能设为缺省（TENANCY_CONFLICT_017） */
 export async function setDefaultEdition(id: string): Promise<EditionRow> {
   const { edition } = await editionsApi.get({ id })
-  return (await editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: true, order: edition.order, ...quotaOf(edition) })).edition
+  return (await editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: true, order: edition.order, ...quotaOf(edition), status: edition.status })).edition
 }
 
 /**
@@ -135,7 +143,7 @@ export function toWhitelistItems(catalog: readonly CatalogItem[], whitelist: rea
 }
 
 function emptyForm(): EditionForm {
-  return { code: '', name: '', description: '', isDefault: false, order: 0, userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false }
+  return { code: '', name: '', description: '', isDefault: false, status: 'Active', order: 0, userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false }
 }
 
 /**
@@ -169,7 +177,7 @@ export function useEditionEditor(t: Translate) {
   function startEdit(row: EditionRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, description: row.description ?? '', isDefault: row.isDefault, order: row.order, ...quotaOf(row) })
+    reset({ code: row.code, name: row.name, description: row.description ?? '', isDefault: row.isDefault, status: row.status, order: row.order, ...quotaOf(row) })
     open.value = true
   }
 
@@ -201,8 +209,8 @@ export function useEditionEditor(t: Translate) {
     try {
       const current = editing.value
       const saved = mode.value === 'edit' && current
-        ? await editionsApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form) })
-        : await editionsApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), permissions: [] })
+        ? await editionsApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), status: form.status })
+        : await editionsApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), status: form.status, permissions: [] })
       open.value = false
       return saved.edition
     }
