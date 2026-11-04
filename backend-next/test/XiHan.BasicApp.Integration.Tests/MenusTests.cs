@@ -35,7 +35,7 @@ public sealed class MenusTests : IDisposable
         // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位），工作台排在最前
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
-        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "identity.online-users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "tenancy.subscription", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers"], Codes(listBody.GetProperty("items")));
+        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "identity.online-users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "tenancy.subscription", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers", "custom.about"], Codes(listBody.GetProperty("items")));
         var roles = Node(listBody.GetProperty("items"), "access.roles");
         var rolesId = roles.GetProperty("id").GetString()!;
         var usersId = Node(listBody.GetProperty("items"), "identity.users").GetProperty("id").GetString()!;
@@ -82,7 +82,7 @@ public sealed class MenusTests : IDisposable
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         var menus = permissionsBody.GetProperty("menus");
-        Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "identity.online-users", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers"], Codes(menus));
+        Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "identity.online-users", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers", "custom.about"], Codes(menus));
         Assert.True(Node(menus, "identity.users").GetProperty("hidden").GetBoolean());
         var system = Node(menus, "custom.system");
         Assert.Equal("Directory", system.GetProperty("kind").GetString());
@@ -144,6 +144,118 @@ public sealed class MenusTests : IDisposable
         var (tenantSide, tenantSideBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: TestTokens.Issue("alice", "acme", "admin")));
         Assert.Equal(HttpStatusCode.Forbidden, tenantSide.StatusCode);
         Assert.Equal("SECURITY_DENIED_004", tenantSideBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task HelpCenter_IsWrittenOnce_AndTheOperatorsChangesStay()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+
+        // 目录、关于页与三个外链照 4.x：目录与外链是运营节点（标题走文案键），关于页不要权限
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var directory = Node(listBody.GetProperty("items"), "custom.about");
+        var directoryId = directory.GetProperty("id").GetString()!;
+        Assert.Equal("Directory", directory.GetProperty("kind").GetString());
+        Assert.Equal("custom", directory.GetProperty("package").GetString());
+        Assert.Equal("menu.about", directory.GetProperty("titleKey").GetString());
+        Assert.Equal(JsonValueKind.Null, directory.GetProperty("title").ValueKind);
+        Assert.Equal("lucide:info", directory.GetProperty("icon").GetString());
+        Assert.Equal(1100, directory.GetProperty("order").GetInt32());
+        Assert.Equal(["about.project", "custom.about-docs", "custom.about-github", "custom.about-gitee"], Codes(directory.GetProperty("children")));
+        var project = Node(directory.GetProperty("children"), "about.project");
+        var projectId = project.GetProperty("id").GetString()!;
+        Assert.Equal("Page", project.GetProperty("kind").GetString());
+        Assert.Equal("/about/project", project.GetProperty("route").GetString());
+        Assert.Equal("about/project/index", project.GetProperty("component").GetString());
+        Assert.Equal("menu.about_project", project.GetProperty("titleKey").GetString());
+        Assert.Equal(JsonValueKind.Null, project.GetProperty("permission").ValueKind);
+        Assert.Equal(directoryId, project.GetProperty("parentId").GetString());
+        var docs = Node(directory.GetProperty("children"), "custom.about-docs");
+        var docsId = docs.GetProperty("id").GetString()!;
+        Assert.Equal("Link", docs.GetProperty("kind").GetString());
+        Assert.Equal("https://docs.xihanfun.com", docs.GetProperty("externalUrl").GetString());
+        Assert.Equal("https://github.com/XiHanFun/XiHan.BasicApp", Node(directory.GetProperty("children"), "custom.about-github").GetProperty("externalUrl").GetString());
+        Assert.Equal("https://gitee.com/XiHanFun/XiHan.BasicApp", Node(directory.GetProperty("children"), "custom.about-gitee").GetProperty("externalUrl").GetString());
+
+        // 两侧都下发：关于页不要权限，租户主体也看得见
+        var (_, tenantBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: TestTokens.Issue("alice", "acme", "viewer")));
+        var tenantDirectory = Node(tenantBody.GetProperty("menus"), "custom.about");
+        Assert.Equal(["about.project", "custom.about-docs", "custom.about-github", "custom.about-gitee"], Codes(tenantDirectory.GetProperty("children")));
+        Assert.Contains("about.project", tenantBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
+
+        // 运营改过的留着：目录改名（标题留空也行，走文案键），外链改地址，删掉的外链不补；关于页没定制时跟着登记的目录
+        var (renamed, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{directoryId}", """{"title":"Help","icon":"lucide:life-buoy","order":5}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
+        var (repointed, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{docsId}", $$"""{"parentId":"{{directoryId}}","order":1120,"externalUrl":"https://example.com/docs"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, repointed.StatusCode);
+        var githubId = Node(directory.GetProperty("children"), "custom.about-github").GetProperty("id").GetString()!;
+        var (removed, removedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/menus?ids={githubId}", token: superadmin));
+        Assert.Equal(HttpStatusCode.OK, removed.StatusCode);
+        Assert.Equal(1, removedBody.GetProperty("succeeded").GetArrayLength());
+
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var seededDirectory = Node(afterSeed.GetProperty("items"), "custom.about");
+        Assert.Equal("Help", seededDirectory.GetProperty("title").GetString());
+        Assert.Equal("lucide:life-buoy", seededDirectory.GetProperty("icon").GetString());
+        Assert.Equal(5, seededDirectory.GetProperty("order").GetInt32());
+        Assert.Equal(["about.project", "custom.about-docs", "custom.about-gitee"], Codes(seededDirectory.GetProperty("children")));
+        Assert.Equal("https://example.com/docs", Node(seededDirectory.GetProperty("children"), "custom.about-docs").GetProperty("externalUrl").GetString());
+
+        // 标题留空即回到文案键；真正运营建的节点标题仍必填
+        var (cleared, clearedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{directoryId}", """{"icon":"lucide:info","order":1100}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, cleared.StatusCode);
+        Assert.Equal(JsonValueKind.Null, clearedBody.GetProperty("title").ValueKind);
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"plain","title":"Plain"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var (untitled, untitledBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{createdBody.GetProperty("id").GetString()}", """{"order":0}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, untitled.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_009", untitledBody.GetProperty("code").GetString());
+
+        // 关于页挪到顶层算定制，种子不挪回；恢复默认回到登记的目录
+        var (moved, movedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{projectId}", """{"order":1110}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        Assert.Equal(JsonValueKind.Null, movedBody.GetProperty("parentId").ValueKind);
+        await server.RunSeedersAsync();
+        var (_, stayed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{projectId}", token: superadmin));
+        Assert.Equal(JsonValueKind.Null, stayed.GetProperty("parentId").ValueKind);
+        var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{projectId}:reset", "{}", superadmin));
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        Assert.Equal(directoryId, resetBody.GetProperty("parentId").GetString());
+    }
+
+    [Fact]
+    public async Task HelpCenter_ThePageStaysAtTheTopLevel_WhenTheDirectoryIsDeleted()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var directory = Node(listBody.GetProperty("items"), "custom.about");
+        var children = directory.GetProperty("children");
+        var projectId = Node(children, "about.project").GetProperty("id").GetString()!;
+
+        // 目录下还有节点时删不掉：页面挪到顶层、外链删掉，目录才删得掉
+        var (moved, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{projectId}", """{"order":1110}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        string[] ids = [.. children.EnumerateArray().Where(static c => c.GetProperty("kind").GetString() == "Link").Select(static c => c.GetProperty("id").GetString()!), directory.GetProperty("id").GetString()!];
+        var (deleted, deletedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/menus?{string.Join('&', ids.Select(static id => $"ids={id}"))}", token: superadmin));
+        Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
+        Assert.Equal(4, deletedBody.GetProperty("succeeded").GetArrayLength());
+
+        // 种子再跑不补；恢复默认时目录已不在，页面留在顶层
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var codes = Codes(afterSeed.GetProperty("items"));
+        Assert.DoesNotContain("custom.about", codes);
+        Assert.Contains("about.project", codes);
+        var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{projectId}:reset", "{}", superadmin));
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        Assert.Equal(JsonValueKind.Null, resetBody.GetProperty("parentId").ValueKind);
     }
 
     [Fact]

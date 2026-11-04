@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "Clés de cache des espaces de l'application : lister, consulter, réécrire et supprimer.",
   "server.get.title": "Obtenir les informations du serveur",
   "server.get.description": "Donne le runtime et le processus, le processeur, la mémoire, les disques, les interfaces réseau, les GPU et la carte mère de l'hôte, ainsi que les derniers contrôles de santé des fournisseurs ; les champs illisibles sont nuls. Côté plateforme uniquement.",
+  "server.packages.title": "Obtenir les dépendances du backend",
+  "server.packages.description": "Donne les assemblys tiers et leurs versions directement référencés par les assemblys XiHan chargés (hors XiHan, Microsoft et System), triés par nom. Côté plateforme uniquement.",
   "permissions.maintenance.server.read.name": "Consulter le moniteur serveur",
   "permissions.maintenance.server.read.description": "Consulter le runtime, le processeur, la mémoire, les disques, le réseau, les GPU et la carte mère de l’hôte, ainsi que les contrôles de santé des fournisseurs.",
   "maintenance.server.monitor_unavailable": "Les informations d'hôte (IHostMonitor) ne sont pas installées ; le serveur ne peut pas être lu.",

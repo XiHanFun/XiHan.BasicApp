@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'например, docs',
       code_hint: 'Начинается со строчной буквы; допустимы цифры и дефисы. Сохраняется как {prefix}имя',
       title_placeholder: 'Заголовок в навигации',
-      title_override_hint: 'Оставьте пустым, чтобы использовать зарегистрированный заголовок',
+      title_override_hint: 'Оставьте пустым, чтобы использовать заголовок по умолчанию',
       badge_content_placeholder: 'напр. New / 3 (справа от пункта меню)',
       badge_type_placeholder: 'Цвет метки',
       icon_placeholder: 'Нажмите, чтобы выбрать значок',

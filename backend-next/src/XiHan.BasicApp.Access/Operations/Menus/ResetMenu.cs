@@ -52,12 +52,10 @@ public sealed class ResetMenu(IRepository<SysMenu, Guid> menus, MenuService serv
             return Error.NotFound(AccessErrors.MenuNotFound, AccessMessages.MenuNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        Guid? parentId = null;
-        if (registered.ParentCode is { } parentCode)
-        {
-            parentId = (await service.ListAsync(context.CancellationToken).ConfigureAwait(false)).FirstOrDefault(r => string.Equals(r.Code, parentCode, StringComparison.Ordinal))?.Id;
-        }
-
+        var rows = await service.ListAsync(context.CancellationToken).ConfigureAwait(false);
+        var parentId = registered.ParentCode is { } parentCode
+            ? rows.FirstOrDefault(r => string.Equals(r.Code, parentCode, StringComparison.Ordinal))?.Id
+            : MenuService.DirectoryOf(registered.Page, rows);
         MenuService.ResetPresentation(row, registered.Page, parentId);
         var updated = await menus.UpdateAsync(row, context.CancellationToken).ConfigureAwait(false);
         return updated.IsFailure ? updated.Error! : MenuResponse.From(row);

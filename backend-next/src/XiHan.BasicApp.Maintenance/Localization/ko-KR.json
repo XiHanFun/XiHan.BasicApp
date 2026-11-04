@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "애플리케이션 네임스페이스의 캐시 키: 나열, 보기, 다시 쓰기, 삭제.",
   "server.get.title": "서버 정보 가져오기",
   "server.get.description": "호스트의 런타임과 프로세스, 프로세서, 메모리, 디스크, 네트워크 인터페이스, GPU, 메인보드와 각 공급자의 최근 상태 검사를 가져옵니다. 읽을 수 없는 필드는 null입니다. 플랫폼 측 전용.",
+  "server.packages.title": "백엔드 의존성 가져오기",
+  "server.packages.description": "로드된 XiHan 어셈블리가 직접 참조하는 타사 어셈블리와 버전(XiHan, Microsoft, System 제외)을 이름순으로 가져옵니다. 플랫폼 측 전용.",
   "permissions.maintenance.server.read.name": "서버 모니터 보기",
   "permissions.maintenance.server.read.description": "호스트의 런타임, 프로세서, 메모리, 디스크, 네트워크, GPU, 메인보드와 각 공급자의 상태 검사를 조회합니다.",
   "maintenance.server.monitor_unavailable": "호스트 정보(IHostMonitor)가 설치되지 않아 서버를 읽을 수 없습니다.",

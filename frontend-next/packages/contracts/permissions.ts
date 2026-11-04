@@ -542,6 +542,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'roles.update': 'access.roles.update',
   'roles.update-member': 'access.roles.assign',
   'server.get': 'maintenance.server.read',
+  'server.packages': 'maintenance.server.read',
   'session-roles.get': 'access.session-roles.read',
   'session-roles.list': 'access.session-roles.read',
   'sessions.list': 'identity.sessions.read',

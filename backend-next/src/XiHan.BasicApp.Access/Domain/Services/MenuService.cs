@@ -120,6 +120,19 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
     /// <summary>
+    /// 顶层页面的缺省上级：登记的目录
+    /// </summary>
+    /// <returns>目录节点的主键；页面没登记目录或目录不在（运营删了）即空</returns>
+    public static Guid? DirectoryOf(PageDescriptor page, IEnumerable<SysMenu> rows)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        ArgumentNullException.ThrowIfNull(rows);
+        return page.Directory is null
+            ? null
+            : rows.FirstOrDefault(r => r.Kind == MenuKind.Directory && string.Equals(r.Code, page.Directory, StringComparison.Ordinal))?.Id;
+    }
+
+    /// <summary>
     /// 把页面节点的展示字段恢复为登记的值并清掉定制标记
     /// </summary>
     public static void ResetPresentation(SysMenu row, PageDescriptor page, Guid? parentId)

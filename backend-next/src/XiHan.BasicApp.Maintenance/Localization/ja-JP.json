@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "アプリの名前空間にあるキャッシュキー：一覧、表示、書き換え、削除。",
   "server.get.title": "サーバー情報の取得",
   "server.get.description": "ホストのランタイムとプロセス、プロセッサ、メモリ、ディスク、ネットワークインターフェイス、GPU、マザーボード、および各プロバイダーの最新のヘルスチェックを取得します。読み取れない項目は null です。プラットフォーム側のみ。",
+  "server.packages.title": "バックエンド依存関係の取得",
+  "server.packages.description": "読み込み済みの XiHan アセンブリが直接参照するサードパーティアセンブリとバージョン（XiHan、Microsoft、System を除く）を名前順で取得します。プラットフォーム側のみ。",
   "permissions.maintenance.server.read.name": "サーバー監視の閲覧",
   "permissions.maintenance.server.read.description": "ホストのランタイム、プロセッサ、メモリ、ディスク、ネットワーク、GPU、マザーボードと、各プロバイダーのヘルスチェックを閲覧します。",
   "maintenance.server.monitor_unavailable": "ホスト情報（IHostMonitor）がインストールされていないため、サーバーを読み取れません。",

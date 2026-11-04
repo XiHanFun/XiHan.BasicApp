@@ -28,6 +28,8 @@
 component: settings/configs/index  →  src/modules/settings/views/configs/index.vue
 ```
 
+壳层自带、不归任何能力包的页面在 `packages/router/views.ts` 的 `coreViews` 里逐条登记（目前只有关于页 `about/project/index` → `packages/views/_core/about/index.vue`）。
+
 - 登记了组件路径但找不到文件：控制台报错并显示 404 页（侧栏仍显示该条目，报错用于定位配置错误）；
 - 视图键全局唯一，撞键由 `pnpm modules:check` 报错；
 - `_core/*` 由 `packages/views` 的显式表解析；

@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "Cache keys of the application namespaces: list, inspect, rewrite and delete.",
   "server.get.title": "Get server information",
   "server.get.description": "Get the host runtime and process, processor, memory, disks, network interfaces, GPUs and board, plus the latest health checks of the providers; unreadable fields are null. Platform side only.",
+  "server.packages.title": "Get backend dependencies",
+  "server.packages.description": "Get the third-party assemblies and versions directly referenced by the loaded XiHan assemblies (excluding XiHan, Microsoft and System), sorted by name. Platform side only.",
   "permissions.maintenance.server.read.name": "Read server monitor",
   "permissions.maintenance.server.read.description": "View the host runtime, processor, memory, disks, network, GPUs and board, and the health checks of the providers.",
   "maintenance.server.monitor_unavailable": "Host information (IHostMonitor) is not installed, so the server cannot be read.",

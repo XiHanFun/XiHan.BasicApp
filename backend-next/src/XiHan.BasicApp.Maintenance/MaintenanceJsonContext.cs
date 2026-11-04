@@ -46,6 +46,8 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(CachePrefixDeleteResult))]
 [JsonSerializable(typeof(ServerInfoRequest))]
 [JsonSerializable(typeof(ServerInfoResponse))]
+[JsonSerializable(typeof(ServerPackagesRequest))]
+[JsonSerializable(typeof(ServerPackagesResponse))]
 [JsonSerializable(typeof(PageResult<JobRunResponse>))]
 [JsonSerializable(typeof(JobRunResponse))]
 [JsonSerializable(typeof(VersionIdRequest))]

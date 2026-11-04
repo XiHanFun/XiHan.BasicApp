@@ -7761,6 +7761,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/server:packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get backend dependencies
+         * @description Get the third-party assemblies and versions directly referenced by the loaded XiHan assemblies (excluding XiHan, Microsoft and System), sorted by name. Platform side only.
+         *
+         *     Requires permission maintenance.server.read (Read server monitor).
+         */
+        get: operations["server.packages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session-roles/{id}": {
         parameters: {
             query?: never;
@@ -13114,9 +13136,9 @@ export interface components {
             route: string;
             /** @description 组件路径（<包>/<路径>/index）；目录与外链为空 */
             component: string;
-            /** @description 标题文案键；运营节点为空 */
+            /** @description 标题文案键；运营建的节点为空 */
             titleKey: string;
-            /** @description 标题原文：运营节点必有，页面节点非空即覆盖文案键 */
+            /** @description 标题原文：运营建的节点必有，页面节点与内置节点非空即覆盖文案键 */
             title?: string | null;
             /** @description 图标 */
             icon?: string | null;
@@ -13166,9 +13188,9 @@ export interface components {
             route: string;
             /** @description 组件路径；目录与外链为空 */
             component: string;
-            /** @description 标题文案键；运营节点为空 */
+            /** @description 标题文案键；运营建的节点为空 */
             titleKey: string;
-            /** @description 标题原文（运营节点）或覆盖（页面节点） */
+            /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
             title?: string | null;
             /** @description 图标 */
             icon?: string | null;
@@ -14565,6 +14587,13 @@ export interface components {
             upgradedAt?: string | null;
             /** @description 读不到这个库的台账时的原因（其余列为空） */
             error?: string | null;
+        };
+        /** @description 一个后端依赖 */
+        ServerPackageResponse: {
+            /** @description 程序集名 */
+            packageName: string;
+            /** @description 程序集版本 */
+            packageVersion: string;
         };
         /** @description 当前会话可激活的一个角色 */
         SessionRoleItemResponse: {
@@ -31597,9 +31626,9 @@ export interface operations {
                         route: string;
                         /** @description 组件路径；目录与外链为空 */
                         component: string;
-                        /** @description 标题文案键；运营节点为空 */
+                        /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
-                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
                         title?: string | null;
                         /** @description 图标 */
                         icon?: string | null;
@@ -31718,9 +31747,9 @@ export interface operations {
                         route: string;
                         /** @description 组件路径；目录与外链为空 */
                         component: string;
-                        /** @description 标题文案键；运营节点为空 */
+                        /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
-                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
                         title?: string | null;
                         /** @description 图标 */
                         icon?: string | null;
@@ -31784,7 +31813,7 @@ export interface operations {
                      * @description 菜单主键
                      */
                     id: string;
-                    /** @description 标题：运营节点必填；页面节点为空即用登记的文案 */
+                    /** @description 标题：运营节点必填；页面节点与内置节点为空即用文案键 */
                     title?: string | null;
                     /** @description 图标，可空 */
                     icon?: string | null;
@@ -31845,9 +31874,9 @@ export interface operations {
                         route: string;
                         /** @description 组件路径；目录与外链为空 */
                         component: string;
-                        /** @description 标题文案键；运营节点为空 */
+                        /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
-                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
                         title?: string | null;
                         /** @description 图标 */
                         icon?: string | null;
@@ -31942,9 +31971,9 @@ export interface operations {
                         route: string;
                         /** @description 组件路径；目录与外链为空 */
                         component: string;
-                        /** @description 标题文案键；运营节点为空 */
+                        /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
-                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
                         title?: string | null;
                         /** @description 图标 */
                         icon?: string | null;
@@ -32041,9 +32070,9 @@ export interface operations {
                         route: string;
                         /** @description 组件路径；目录与外链为空 */
                         component: string;
-                        /** @description 标题文案键；运营节点为空 */
+                        /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
-                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        /** @description 标题原文（运营建的节点）或覆盖（页面节点与内置节点） */
                         title?: string | null;
                         /** @description 图标 */
                         icon?: string | null;
@@ -40877,6 +40906,38 @@ export interface operations {
                         board: components["schemas"]["BoardInfo"];
                         /** @description 健康项（各 Provider 自带，这里只展示） */
                         health: components["schemas"]["HealthItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "server.packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description server.packages 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 后端依赖，按名称排序 */
+                        items: components["schemas"]["ServerPackageResponse"][];
                     };
                 };
             };

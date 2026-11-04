@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "Chaves de cache dos namespaces da aplicação: listar, ver, reescrever e excluir.",
   "server.get.title": "Obter informações do servidor",
   "server.get.description": "Obtém o runtime e o processo, processador, memória, discos, interfaces de rede, GPUs e placa-mãe do host, além das últimas verificações de integridade dos provedores; campos ilegíveis são nulos. Somente na plataforma.",
+  "server.packages.title": "Obter as dependências do backend",
+  "server.packages.description": "Obtém os assemblies de terceiros e as versões referenciados diretamente pelos assemblies XiHan carregados (sem XiHan, Microsoft e System), ordenados por nome. Somente na plataforma.",
   "permissions.maintenance.server.read.name": "Ver monitor do servidor",
   "permissions.maintenance.server.read.description": "Ver o runtime, o processador, a memória, os discos, a rede, as GPUs e a placa-mãe do host, e as verificações de integridade dos provedores.",
   "maintenance.server.monitor_unavailable": "As informações do host (IHostMonitor) não estão instaladas; não é possível ler o servidor.",

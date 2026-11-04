@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "Cache-Schlüssel der Anwendungsnamensräume: auflisten, anzeigen, überschreiben und löschen.",
   "server.get.title": "Serverinformationen abrufen",
   "server.get.description": "Liefert Laufzeit und Prozess, Prozessor, Arbeitsspeicher, Datenträger, Netzwerkschnittstellen, GPUs und Mainboard des Hosts sowie die letzten Integritätsprüfungen der Anbieter; nicht lesbare Felder sind leer. Nur auf Plattformseite.",
+  "server.packages.title": "Backend-Abhängigkeiten abrufen",
+  "server.packages.description": "Liefert die von den geladenen XiHan-Assemblys direkt referenzierten Drittanbieter-Assemblys samt Version (ohne XiHan, Microsoft und System), nach Name sortiert. Nur auf Plattformseite.",
   "permissions.maintenance.server.read.name": "Servermonitor anzeigen",
   "permissions.maintenance.server.read.description": "Laufzeit, Prozessor, Arbeitsspeicher, Datenträger, Netzwerk, GPUs und Mainboard des Hosts sowie die Integritätsprüfungen der Anbieter ansehen.",
   "maintenance.server.monitor_unavailable": "Hostinformationen (IHostMonitor) sind nicht installiert; der Server kann nicht gelesen werden.",

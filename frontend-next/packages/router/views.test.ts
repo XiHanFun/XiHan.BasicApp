@@ -7,6 +7,11 @@ describe('view resolution', () => {
     expect(typeof resolveView('identity/users/index')).toBe('function')
   })
 
+  it('maps a shell page that belongs to no module to its core view', () => {
+    expect(viewKeys()).toContain('about/project/index')
+    expect(typeof resolveView('about/project/index')).toBe('function')
+  })
+
   it('fails loudly for an unknown component path', () => {
     expect(() => resolveView('identity/nope/index')).toThrow(/is not found/)
   })

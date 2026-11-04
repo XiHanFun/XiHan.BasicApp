@@ -402,6 +402,7 @@ export const routes = {
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
   'server.get': { method: 'GET', template: '/api/server', path: [], query: [], success: 200 },
+  'server.packages': { method: 'GET', template: '/api/server:packages', path: [], query: [], success: 200 },
   'session-roles.get': { method: 'GET', template: '/api/session-roles/{id}', path: ['id'], query: [], success: 200 },
   'session-roles.list': { method: 'POST', template: '/api/session-roles:list', path: [], query: [], success: 200 },
   'sessions.list': { method: 'POST', template: '/api/sessions:list', path: [], query: [], success: 200 },
@@ -1173,6 +1174,7 @@ export const roles = {
 /** 资源 `server` 的操作 */
 export const server = {
   get: (request: RequestOf<'server.get'>, options?: CallOptions) => invoke<RequestOf<'server.get'>, ResponseOf<'server.get'>>('server.get', routes['server.get'], request, options),
+  packages: (request: RequestOf<'server.packages'>, options?: CallOptions) => invoke<RequestOf<'server.packages'>, ResponseOf<'server.packages'>>('server.packages', routes['server.packages'], request, options),
 }
 
 /** 资源 `session-roles` 的操作 */

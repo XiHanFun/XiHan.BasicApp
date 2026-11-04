@@ -219,7 +219,7 @@ export default {
       code_placeholder: '例: docs',
       code_hint: '英小文字で始まり、数字とハイフンを使用可。{prefix}名前 として保存されます',
       title_placeholder: 'ナビゲーションに表示するタイトル',
-      title_override_hint: '空欄ならページ登録のタイトルを使います',
+      title_override_hint: '空欄なら既定のタイトルを使います',
       badge_content_placeholder: '例：New / 3（メニュー項目の右側に表示）',
       badge_type_placeholder: 'バッジの色',
       icon_placeholder: 'クリックしてアイコンを選択',

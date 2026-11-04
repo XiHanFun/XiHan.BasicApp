@@ -18,8 +18,8 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// <param name="ParentId">上级</param>
 /// <param name="Route">路由路径；目录与外链为空</param>
 /// <param name="Component">组件路径；目录与外链为空</param>
-/// <param name="TitleKey">标题文案键；运营节点为空</param>
-/// <param name="Title">标题原文（运营节点）或覆盖（页面节点）</param>
+/// <param name="TitleKey">标题文案键；运营建的节点为空</param>
+/// <param name="Title">标题原文（运营建的节点）或覆盖（页面节点与内置节点）</param>
 /// <param name="Icon">图标</param>
 /// <param name="Order">排序号</param>
 /// <param name="Permission">所需权限码</param>

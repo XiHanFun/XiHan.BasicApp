@@ -49,4 +49,22 @@ public static class AccessPages
     /// 全部页面
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Policies, ConstraintRules, Menus];
+
+    /// <summary>
+    /// 关于页的包段（页面码的首段）
+    /// </summary>
+    /// <remarks>
+    /// 关于页是壳层自带的页面，不归任何能力包：视图在 <c>packages/views/_core/about</c>，由 Access 代为登记进菜单
+    /// </remarks>
+    public const string AboutPackage = "about";
+
+    /// <summary>
+    /// 关于项目（登录即可见，缺省挂在帮助中心目录下）
+    /// </summary>
+    public static PageDescriptor AboutProject { get; } = new("about.project", "/about/project", "menu.about_project", "lucide:file-text", 1110, directory: BuiltInMenus.AboutDirectoryCode);
+
+    /// <summary>
+    /// 关于页的全部页面
+    /// </summary>
+    public static IReadOnlyList<PageDescriptor> About { get; } = [AboutProject];
 }

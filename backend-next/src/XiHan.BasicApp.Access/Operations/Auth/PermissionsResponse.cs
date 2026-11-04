@@ -41,8 +41,8 @@ public sealed record RoleSummary(Guid Id, string Code, string Name);
 /// <param name="Kind">种类</param>
 /// <param name="Route">路由路径；目录与外链为空</param>
 /// <param name="Component">组件路径（<c>&lt;包&gt;/&lt;路径&gt;/index</c>）；目录与外链为空</param>
-/// <param name="TitleKey">标题文案键；运营节点为空</param>
-/// <param name="Title">标题原文：运营节点必有，页面节点非空即覆盖文案键</param>
+/// <param name="TitleKey">标题文案键；运营建的节点为空</param>
+/// <param name="Title">标题原文：运营建的节点必有，页面节点与内置节点非空即覆盖文案键</param>
 /// <param name="Icon">图标</param>
 /// <param name="Order">排序号</param>
 /// <param name="Permission">所需权限码</param>

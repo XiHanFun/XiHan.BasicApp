@@ -219,7 +219,7 @@ export default {
       code_placeholder: '例如：docs',
       code_hint: '小寫字母開頭，可含數字與連字號；儲存為 {prefix}名稱',
       title_placeholder: '顯示在導覽中的標題',
-      title_override_hint: '留空即使用頁面登記的標題',
+      title_override_hint: '留空即使用預設標題',
       badge_content_placeholder: '例如：New / 3（顯示在選單項目右側）',
       badge_type_placeholder: '標籤顏色',
       icon_placeholder: '點擊選擇圖示',

@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// <remarks>
 /// 页面节点由各包的页面登记派生：<see cref="Route"/>、<see cref="Component"/>、<see cref="TitleKey"/>、<see cref="Permission"/> 归登记，
 /// 种子每次对齐；展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签、启停、徽标）运营可改，改过即 <see cref="IsCustomized"/>，种子不再覆盖，可经 <c>menus.reset</c> 恢复登记的值
-/// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰
+/// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰；内置的几个（见 <see cref="BuiltInMenus"/>）由种子只首写一次，此后与运营建的一样
 /// </remarks>
 [ActiveUniqueIndex(nameof(Code))]
 public sealed class SysMenu : AppAuditedEntity
@@ -62,10 +62,10 @@ public sealed class SysMenu : AppAuditedEntity
     public string Component { get; set; } = string.Empty;
 
     /// <summary>
-    /// 标题文案键（页面登记给的）
+    /// 标题文案键（页面登记或内置节点给的）
     /// </summary>
     /// <remarks>
-    /// 运营节点为空
+    /// 运营建的节点为空
     /// </remarks>
     public string TitleKey { get; set; } = string.Empty;
 
@@ -73,7 +73,7 @@ public sealed class SysMenu : AppAuditedEntity
     /// 标题原文
     /// </summary>
     /// <remarks>
-    /// 运营节点必填；页面节点为空即用 <see cref="TitleKey"/> 的文案，非空即覆盖
+    /// 运营建的节点必填；页面节点与内置节点为空即用 <see cref="TitleKey"/> 的文案，非空即覆盖
     /// </remarks>
     public string? Title { get; set; }
 

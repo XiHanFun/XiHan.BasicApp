@@ -19,7 +19,7 @@ public sealed partial record PageDescriptor
     /// 构造页面登记
     /// </summary>
     /// <exception cref="ArgumentException">页面码不符合 <c>&lt;包&gt;.&lt;页面&gt;</c> 文法、路由不以 <c>/</c> 开头或组件路径不是 kebab-case 时抛出</exception>
-    public PageDescriptor(string code, string route, string titleKey, string? icon = null, int order = 0, string? permission = null, IReadOnlyList<PageDescriptor>? children = null)
+    public PageDescriptor(string code, string route, string titleKey, string? icon = null, int order = 0, string? permission = null, IReadOnlyList<PageDescriptor>? children = null, string? directory = null)
     {
         ArgumentNullException.ThrowIfNull(code);
         ArgumentNullException.ThrowIfNull(route);
@@ -46,6 +46,7 @@ public sealed partial record PageDescriptor
         Order = order;
         Permission = permission;
         Children = children ?? [];
+        Directory = directory;
     }
 
     /// <summary>
@@ -85,6 +86,14 @@ public sealed partial record PageDescriptor
     /// 子页面
     /// </summary>
     public IReadOnlyList<PageDescriptor> Children { get; }
+
+    /// <summary>
+    /// 缺省所属目录的节点编码
+    /// </summary>
+    /// <remarks>
+    /// 只对顶层页面有效：没被运营定制的页面挂到这个目录下，目录不在（运营删了）即留在顶层
+    /// </remarks>
+    public string? Directory { get; }
 
     /// <summary>
     /// 组件路径：路由去前导斜杠 + <c>/index</c>

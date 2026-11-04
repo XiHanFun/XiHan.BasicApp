@@ -219,7 +219,7 @@ export default {
       code_placeholder: '예: docs',
       code_hint: '영문 소문자로 시작하고 숫자와 하이픈을 쓸 수 있어요. {prefix}이름 으로 저장돼요',
       title_placeholder: '내비게이션에 표시할 제목',
-      title_override_hint: '비워 두면 페이지 등록의 제목을 써요',
+      title_override_hint: '비워 두면 기본 제목을 써요',
       badge_content_placeholder: '예: New / 3(메뉴 항목 오른쪽에 표시)',
       badge_type_placeholder: '배지 색상',
       icon_placeholder: '클릭해서 아이콘 선택',

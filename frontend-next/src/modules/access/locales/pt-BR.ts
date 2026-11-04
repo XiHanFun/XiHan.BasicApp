@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'ex.: docs',
       code_hint: 'Começa com letra minúscula; aceita dígitos e hífens. Salvo como {prefix}nome',
       title_placeholder: 'Título exibido na navegação',
-      title_override_hint: 'Deixe vazio para usar o título registrado',
+      title_override_hint: 'Deixe vazio para usar o título padrão',
       badge_content_placeholder: 'ex.: Novo / 3 (exibido à direita do item)',
       badge_type_placeholder: 'Cor do selo',
       icon_placeholder: 'Clique para selecionar um ícone',

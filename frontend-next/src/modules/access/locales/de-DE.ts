@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'z. B. docs',
       code_hint: 'Beginnt mit Kleinbuchstaben; Ziffern und Bindestriche erlaubt. Gespeichert als {prefix}Name',
       title_placeholder: 'Titel in der Navigation',
-      title_override_hint: 'Leer lassen, um den registrierten Titel zu verwenden',
+      title_override_hint: 'Leer lassen, um den Standardtitel zu verwenden',
       badge_content_placeholder: 'z. B. Neu / 3 (rechts neben dem Menüpunkt angezeigt)',
       badge_type_placeholder: 'Badge-Farbe',
       icon_placeholder: 'Klicken, um ein Symbol auszuwählen',

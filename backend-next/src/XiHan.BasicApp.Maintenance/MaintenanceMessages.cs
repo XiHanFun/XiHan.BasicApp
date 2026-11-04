@@ -96,6 +96,11 @@ public static class MaintenanceMessages
     public const string GetServerInfoDescription = "server.get.description";
 
     /// <summary>
+    /// 操作 <c>server.packages</c> 的说明
+    /// </summary>
+    public const string GetServerPackagesDescription = "server.packages.description";
+
+    /// <summary>
     /// 操作 <c>jobs.create</c> 的说明
     /// </summary>
     public const string CreateJobDescription = "jobs.create.description";

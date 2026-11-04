@@ -146,6 +146,8 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
 
   const isEdit = computed(() => mode.value === 'edit')
   const isPage = computed(() => form.kind === 'Page')
+  /** 页面节点与内置的目录、外链带文案键：标题可留空，留空即按语言取；运营建的节点标题必填 */
+  const hasTitleKey = computed(() => !!editing.value?.titleKey)
   /** 目录只在顶层；子页面不能离开登记的父页面 */
   const parentLocked = computed(() => form.kind === 'Directory' || (editing.value !== null && isChildPage(editing.value)))
 
@@ -257,7 +259,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
     }
   }
 
-  return { open, mode, isEdit, isPage, parentLocked, editing, form, fieldError, submitError, submitting, startCreate, startEdit, changeKind, submit }
+  return { open, mode, isEdit, isPage, hasTitleKey, parentLocked, editing, form, fieldError, submitError, submitting, startCreate, startEdit, changeKind, submit }
 }
 
 /**

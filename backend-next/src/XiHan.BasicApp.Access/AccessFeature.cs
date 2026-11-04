@@ -159,6 +159,7 @@ public sealed class AccessFeature : IFeature
         // 缓存管理只开放登记过的命名空间；授权规则、指派与封禁的缓存，改写会让判定与库不一致，只许删、不许改写
         context.Services.AddCacheNamespace("access", editable: false);
         context.Services.AddPageCatalog("access", AccessPages.All);
+        context.Services.AddPageCatalog(AccessPages.AboutPackage, AccessPages.About);
         foreach (var permission in AccessPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

@@ -4,11 +4,23 @@
   "version": "6.0.0-preview.1",
   "private": true,
   "packageManager": "pnpm@11.22.0",
-  "description": "XiHan.BasicApp 6.0 管理端：契约由后端 openapi.json 生成，页面按能力包组织。",
+  "description": "XiHan BasicApp - A modern Vue3 admin management system built on XiHan.UI",
+  "keyword": [
+    "Vue",
+    "Vue3",
+    "XiHan.UI",
+    "Pinia",
+    "Vite",
+    "Tailwind CSS",
+    "TypeScript",
+    "BasicApp",
+    "XiHan"
+  ],
   "author": {
     "name": "XiHanFun"
   },
   "license": "MIT",
+  "homepage": "https://basicapp.xihanfun.com",
   "engines": {
     "node": ">=24.0.0",
     "pnpm": ">=11.0.0"

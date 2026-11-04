@@ -6,6 +6,10 @@ declare const __APP_NAME__: string
 declare const __APP_BUILD_TIME__: string
 declare const __APP_BUILD_STAMP__: string
 declare const __APP_REPOSITORY__: string
+/** 构建期解析出的前端生产依赖：包名 → 真实版本 */
+declare const __APP_DEPENDENCIES__: Record<string, string>
+/** 构建期解析出的前端开发依赖：包名 → 真实版本 */
+declare const __APP_DEV_DEPENDENCIES__: Record<string, string>
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string

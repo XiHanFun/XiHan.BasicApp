@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'e.g. docs',
       code_hint: 'Starts with a lowercase letter; digits and hyphens allowed. Saved as {prefix}name',
       title_placeholder: 'Title shown in the navigation',
-      title_override_hint: 'Leave empty to use the registered title',
+      title_override_hint: 'Leave empty to use the default title',
       badge_content_placeholder: 'e.g. New / 3 (shown at the right of the menu item)',
       badge_type_placeholder: 'Badge color',
       icon_placeholder: 'Click to select an icon',

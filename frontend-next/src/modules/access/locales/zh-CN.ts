@@ -219,7 +219,7 @@ export default {
       code_placeholder: '如：docs',
       code_hint: '小写字母开头，可含数字与连字符；保存为 {prefix}名称',
       title_placeholder: '显示在导航里的标题',
-      title_override_hint: '留空即用页面登记的标题',
+      title_override_hint: '留空即用缺省标题',
       badge_content_placeholder: '如: New / 3（显示在菜单项右侧）',
       badge_type_placeholder: '标签颜色',
       icon_placeholder: '点击选择图标',

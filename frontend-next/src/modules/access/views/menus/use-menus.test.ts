@@ -177,6 +177,23 @@ describe('useMenuEditor', () => {
     expect(calls[1]).toMatchObject({ url: '/api/menus/m-sys', body: { title: 'Platform', parentId: null, externalUrl: null, permission: null } })
   })
 
+  it('内置的目录与外链带文案键：标题可留空（留空即按语言取），运营建的节点标题必填', async () => {
+    const calls = record(() => json(200, node('m-about', 'custom.about', 'Directory')))
+    const { editor } = editorWithTree()
+    const builtIn = node('m-about', 'custom.about', 'Directory', { title: null, titleKey: 'menu.about' })
+    editor.startEdit(builtIn)
+    expect(editor.hasTitleKey.value).toBe(true)
+    expect(editor.isPage.value).toBe(false)
+    expect(editor.form.title).toBe('')
+    expect(await editor.submit()).toBe(true)
+    expect(calls[0]!.body).toMatchObject({ title: null })
+
+    editor.startEdit(node('m-sys', 'custom.system', 'Directory', { title: 'System' }))
+    expect(editor.hasTitleKey.value).toBe(false)
+    editor.startCreate()
+    expect(editor.hasTitleKey.value).toBe(false)
+  })
+
   it('字段级错误挂回字段，其余错误给整条提示，弹窗保持打开', async () => {
     record(() => json(400, { code: 'ACCESS_VALIDATION_007', status: 400, detail: 'bad url', traceId: 'x', errors: { externalUrl: ['must be http(s)'] } }, 'application/problem+json'))
     const { editor } = editorWithTree()

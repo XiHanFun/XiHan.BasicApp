@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Globalization;
+using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Maintenance.Operations.Jobs;
 using XiHan.Framework.Kernel.Hosting;
@@ -108,4 +109,76 @@ public sealed class GetServerInfo(IServiceProvider services) : IOperation<Server
         var response = new ServerInfoResponse(monitor.ReadRuntime(), monitor.ReadProcessor(), monitor.ReadMemory(), monitor.ReadDisks(), monitor.ReadNetworkInterfaces(), monitor.ReadGpus(), monitor.ReadBoard(), health);
         return ValueTask.FromResult(Result.Success(response));
     }
+}
+
+/// <summary>
+/// <c>server.packages</c> 的请求（没有参数）
+/// </summary>
+public sealed record ServerPackagesRequest;
+
+/// <summary>
+/// 一个后端依赖
+/// </summary>
+/// <param name="PackageName">程序集名</param>
+/// <param name="PackageVersion">程序集版本</param>
+public sealed record ServerPackageResponse(string PackageName, string PackageVersion);
+
+/// <summary>
+/// <c>server.packages</c> 的响应
+/// </summary>
+/// <param name="Items">后端依赖，按名称排序</param>
+public sealed record ServerPackagesResponse(IReadOnlyList<ServerPackageResponse> Items);
+
+/// <summary>
+/// 取后端依赖清单
+/// </summary>
+/// <remarks>
+/// <c>GET /api/server:packages</c>（平台侧，只有关于页用，照 4.x 的同名接口）
+/// 已加载的 <c>XiHan*</c> 程序集直接引用的第三方程序集，去掉 <c>XiHan</c>、<c>Microsoft</c>、<c>System</c> 开头的，同名取最高版本
+/// </remarks>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.ServerRead)]
+public sealed class GetServerPackages : IOperation<ServerPackagesRequest, ServerPackagesResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "server.packages";
+
+    private const string OwnPrefix = "XiHan";
+
+    /// <inheritdoc />
+    public ValueTask<Result<ServerPackagesResponse>> HandleAsync(ServerPackagesRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        if (JobViews.RequirePlatform(context) is { } denied)
+        {
+            return ValueTask.FromResult(Result.Failure<ServerPackagesResponse>(denied));
+        }
+
+        var versions = new Dictionary<string, Version>(StringComparer.Ordinal);
+        foreach (var assembly in AssemblyLoadContext.Default.Assemblies.Where(static a => a.GetName().Name?.StartsWith(OwnPrefix, StringComparison.OrdinalIgnoreCase) == true))
+        {
+            foreach (var reference in assembly.GetReferencedAssemblies())
+            {
+                if (reference.Name is not { Length: > 0 } name || reference.Version is not { } version || IsOwnOrPlatform(name))
+                {
+                    continue;
+                }
+
+                if (!versions.TryGetValue(name, out var known) || version > known)
+                {
+                    versions[name] = version;
+                }
+            }
+        }
+
+        var items = versions.OrderBy(static p => p.Key, StringComparer.Ordinal).Select(static p => new ServerPackageResponse(p.Key, p.Value.ToString())).ToList();
+        return ValueTask.FromResult(Result.Success(new ServerPackagesResponse(items)));
+    }
+
+    private static bool IsOwnOrPlatform(string name)
+        => name.StartsWith(OwnPrefix, StringComparison.OrdinalIgnoreCase)
+           || name.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase)
+           || name.StartsWith("System", StringComparison.OrdinalIgnoreCase);
 }

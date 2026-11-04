@@ -24,6 +24,8 @@
 
 Maintenance 的 `server.get`（`maintenance.server.read`，平台侧）：取自框架的 `IHostMonitor`（`Observability.Abstractions`），包括 CPU、内存、磁盘、网络、操作系统、.NET 运行时与进程信息。读不到的字段为空（区分「没有」与「为零」）；CPU 使用率与网卡速率由后台采样，启动后第一个采样间隔内为空。前端页面 `/maintenance/server`。
 
+`server.packages`（同一权限，平台侧）给关于页的后端依赖清单：已加载的 `XiHan*` 程序集直接引用的第三方程序集与版本，不含 `XiHan`、`Microsoft`、`System` 开头的，同名取最高版本。
+
 ## 链路与日志
 
 | 能力 | 6.0 做法 |

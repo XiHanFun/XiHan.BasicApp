@@ -87,6 +87,8 @@
   "openapi.tags.caches.description": "应用命名空间里的缓存键：列出、查看、改写与删除。",
   "server.get.title": "获取服务器信息",
   "server.get.description": "取服务器的运行时与进程、处理器、内存、磁盘、网卡、显卡、主板，以及各 Provider 的健康项（最近一次检查）；读不到的字段为空。只在平台侧。",
+  "server.packages.title": "获取后端依赖清单",
+  "server.packages.description": "取已加载的曦寒程序集直接引用的第三方程序集与版本（不含曦寒、Microsoft、System），按名称排序。只在平台侧。",
   "permissions.maintenance.server.read.name": "查看服务监控",
   "permissions.maintenance.server.read.description": "查看服务器的运行时、处理器、内存、磁盘、网络、显卡与主板，以及各 Provider 的健康检查。",
   "maintenance.server.monitor_unavailable": "没有装运行信息（IHostMonitor），读不到服务器信息。",

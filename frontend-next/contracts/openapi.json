@@ -31360,11 +31360,11 @@
                       "type": "string"
                     },
                     "titleKey": {
-                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
                       "type": "string"
                     },
                     "title": {
-                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
                       "type": [
                         "string",
                         "null"
@@ -31543,11 +31543,11 @@
                       "type": "string"
                     },
                     "titleKey": {
-                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
                       "type": "string"
                     },
                     "title": {
-                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
                       "type": [
                         "string",
                         "null"
@@ -31696,7 +31696,7 @@
                     "format": "uuid"
                   },
                   "title": {
-                    "description": "\u6807\u9898\uFF1A\u8FD0\u8425\u8282\u70B9\u5FC5\u586B\uFF1B\u9875\u9762\u8282\u70B9\u4E3A\u7A7A\u5373\u7528\u767B\u8BB0\u7684\u6587\u6848",
+                    "description": "\u6807\u9898\uFF1A\u8FD0\u8425\u8282\u70B9\u5FC5\u586B\uFF1B\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\u4E3A\u7A7A\u5373\u7528\u6587\u6848\u952E",
                     "type": [
                       "string",
                       "null"
@@ -31826,11 +31826,11 @@
                       "type": "string"
                     },
                     "titleKey": {
-                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
                       "type": "string"
                     },
                     "title": {
-                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
                       "type": [
                         "string",
                         "null"
@@ -32032,11 +32032,11 @@
                       "type": "string"
                     },
                     "titleKey": {
-                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
                       "type": "string"
                     },
                     "title": {
-                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
                       "type": [
                         "string",
                         "null"
@@ -32243,11 +32243,11 @@
                       "type": "string"
                     },
                     "titleKey": {
-                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
                       "type": "string"
                     },
                     "title": {
-                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
                       "type": [
                         "string",
                         "null"
@@ -49728,6 +49728,55 @@
                     "gpus",
                     "board",
                     "health"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/server:packages": {
+      "get": {
+        "operationId": "server.packages",
+        "tags": [
+          "server"
+        ],
+        "summary": "Get backend dependencies",
+        "description": "Get the third-party assemblies and versions directly referenced by the loaded XiHan assemblies (excluding XiHan, Microsoft and System), sorted by name. Platform side only.\n\nRequires permission maintenance.server.read (Read server monitor).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "maintenance.server.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "server.packages \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ServerPackagesResponse",
+                  "description": "server.packages \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u540E\u7AEF\u4F9D\u8D56\uFF0C\u6309\u540D\u79F0\u6392\u5E8F",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ServerPackageResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -68670,11 +68719,11 @@
             "type": "string"
           },
           "titleKey": {
-            "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+            "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
             "type": "string"
           },
           "title": {
-            "description": "\u6807\u9898\u539F\u6587\uFF1A\u8FD0\u8425\u8282\u70B9\u5FC5\u6709\uFF0C\u9875\u9762\u8282\u70B9\u975E\u7A7A\u5373\u8986\u76D6\u6587\u6848\u952E",
+            "description": "\u6807\u9898\u539F\u6587\uFF1A\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u5FC5\u6709\uFF0C\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\u975E\u7A7A\u5373\u8986\u76D6\u6587\u6848\u952E",
             "type": [
               "string",
               "null"
@@ -68796,11 +68845,11 @@
             "type": "string"
           },
           "titleKey": {
-            "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+            "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\u4E3A\u7A7A",
             "type": "string"
           },
           "title": {
-            "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+            "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u5EFA\u7684\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\u4E0E\u5185\u7F6E\u8282\u70B9\uFF09",
             "type": [
               "string",
               "null"
@@ -72012,6 +72061,24 @@
           "database",
           "appVersion",
           "isUpgrading"
+        ]
+      },
+      "ServerPackageResponse": {
+        "description": "\u4E00\u4E2A\u540E\u7AEF\u4F9D\u8D56",
+        "type": "object",
+        "properties": {
+          "packageName": {
+            "description": "\u7A0B\u5E8F\u96C6\u540D",
+            "type": "string"
+          },
+          "packageVersion": {
+            "description": "\u7A0B\u5E8F\u96C6\u7248\u672C",
+            "type": "string"
+          }
+        },
+        "required": [
+          "packageName",
+          "packageVersion"
         ]
       },
       "SessionRoleItemResponse": {

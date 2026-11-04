@@ -59,7 +59,7 @@ public sealed record CreateMenuRequest(
 /// 页面节点只改展示（标题覆盖、图标、排序、顶层页面的所属目录、可见、缓存、固定标签、徽标），<paramref name="ExternalUrl"/> 与 <paramref name="Permission"/> 须为空（来自页面登记）；改过即标为已定制
 /// </remarks>
 /// <param name="Id">菜单主键</param>
-/// <param name="Title">标题：运营节点必填；页面节点为空即用登记的文案</param>
+/// <param name="Title">标题：运营节点必填；页面节点与内置节点为空即用文案键</param>
 /// <param name="Icon">图标，可空</param>
 /// <param name="Order">排序号</param>
 /// <param name="ParentId">上级：规则同新建；子页面只能留在登记的父页面下</param>

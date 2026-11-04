@@ -478,12 +478,12 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
             {{ editor.fieldError('code') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <XhFieldRoot :invalid="!!editor.fieldError('title')" :required="!editor.isPage.value">
+        <XhFieldRoot :invalid="!!editor.fieldError('title')" :required="!editor.hasTitleKey.value">
           <XhFieldLabel>{{ t('access.menus.fields.title') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="editor.form.title" name="title" clearable :placeholder="editor.isPage.value && editor.editing.value ? registeredTitle(editor.editing.value) : t('access.menus.title_placeholder')" />
+            <XInput v-model:value="editor.form.title" name="title" clearable :placeholder="editor.hasTitleKey.value && editor.editing.value ? registeredTitle(editor.editing.value) : t('access.menus.title_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.isPage.value">
+          <XhFieldDescription v-if="editor.hasTitleKey.value">
             {{ t('access.menus.title_override_hint') }}
           </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('title')">

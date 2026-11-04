@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'ex. docs',
       code_hint: 'Commence par une minuscule ; chiffres et tirets autorisés. Enregistré sous {prefix}nom',
       title_placeholder: 'Titre affiché dans la navigation',
-      title_override_hint: 'Laissez vide pour utiliser le titre enregistré',
+      title_override_hint: 'Laissez vide pour utiliser le titre par défaut',
       badge_content_placeholder: 'p. ex. Nouveau / 3 (affiché à droite de l\'élément)',
       badge_type_placeholder: 'Couleur du badge',
       icon_placeholder: 'Cliquez pour choisir une icône',

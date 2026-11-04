@@ -219,7 +219,7 @@ export default {
       code_placeholder: 'p. ej. docs',
       code_hint: 'Empieza por minúscula; admite dígitos y guiones. Se guarda como {prefix}nombre',
       title_placeholder: 'Título que se muestra en la navegación',
-      title_override_hint: 'Déjelo vacío para usar el título registrado',
+      title_override_hint: 'Déjelo vacío para usar el título predeterminado',
       badge_content_placeholder: 'p. ej. Nuevo / 3 (se muestra a la derecha del elemento)',
       badge_type_placeholder: 'Color de la insignia',
       icon_placeholder: 'Haga clic para elegir un icono',
