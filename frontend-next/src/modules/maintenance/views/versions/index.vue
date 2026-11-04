@@ -13,7 +13,7 @@ import { databaseLabel, getVersion, upgradingLabel, upgradingOptions, upgradingT
 defineOptions({ name: 'MaintenanceVersionsView' })
 
 const { t } = useI18n()
-const resource = versionResource()
+const resource = versionResource(t)
 
 /** 行对象在 SchemaPage 边界为宽松类型，这里收敛回台账行 */
 const asRow = (row: unknown) => row as VersionRow
@@ -23,14 +23,15 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
   { key: 'keyword', title: t('maintenance.versions.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('maintenance.versions.keyword_placeholder'), width: 240, order: 0 },
   // 列 + 搜索
-  { key: 'database', title: t('maintenance.versions.database'), dataType: 'string', minWidth: 120, order: 1, render: row => databaseLabel(t, asRow(row).database) },
-  { key: 'appVersion', title: t('maintenance.versions.app_version'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('maintenance.versions.app_version_placeholder'), minWidth: 130, order: 2 },
-  { key: 'dbVersion', title: t('maintenance.versions.db_version'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('maintenance.versions.db_version_placeholder'), minWidth: 130, order: 3 },
+  { key: 'databaseName', title: t('maintenance.versions.database'), dataType: 'string', exportable: true, minWidth: 120, order: 1 },
+  { key: 'appVersion', title: t('maintenance.versions.app_version'), dataType: 'string', searchable: true, sortable: true, exportable: true, searchPlaceholder: t('maintenance.versions.app_version_placeholder'), minWidth: 130, order: 2 },
+  { key: 'dbVersion', title: t('maintenance.versions.db_version'), dataType: 'string', searchable: true, sortable: true, exportable: true, searchPlaceholder: t('maintenance.versions.db_version_placeholder'), minWidth: 130, order: 3 },
   {
     key: 'isUpgrading',
     title: t('maintenance.versions.upgrade_status'),
     dataType: 'enum',
     searchable: true,
+    exportable: true,
     options: upgradingOptions(t),
     searchPlaceholder: t('maintenance.versions.upgrade_status_placeholder'),
     width: 100,
@@ -39,15 +40,18 @@ const fields = computed<ListFieldSchema[]>(() => [
       ? renderTag(t('maintenance.versions.read_failed'), 'danger')
       : renderTag(upgradingLabel(t, asRow(row).isUpgrading), upgradingTone(asRow(row).isUpgrading)),
   },
-  { key: 'upgradeNode', title: t('maintenance.versions.upgrade_node'), dataType: 'string', minWidth: 140, order: 5 },
-  { key: 'upgradeStartedAt', title: t('maintenance.versions.upgrade_start_time'), dataType: 'datetime', minWidth: 170, order: 6 },
-  { key: 'upgradedAt', title: t('maintenance.versions.upgraded_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
+  { key: 'upgradeNode', title: t('maintenance.versions.upgrade_node'), dataType: 'string', exportable: true, minWidth: 140, order: 5 },
+  { key: 'upgradeStartedAt', title: t('maintenance.versions.upgrade_start_time'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
+  { key: 'upgradedAt', title: t('maintenance.versions.upgraded_time'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 7 },
+  // 读不到台账的行列表里标「读取失败」：导出没有标记，原因单独成一列，免得看成正常
+  { key: 'error', title: t('maintenance.versions.read_error'), dataType: 'string', visible: false, exportable: true, order: 8 },
 ])
 
 // 只读页：版本行由升级执行器写入并把 IsUpgrading 用作分布式锁，页面不提供任何写操作
 const schema = computed<PageSchema>(() => ({
   pageCode: 'maintenance.versions',
   pageName: t('maintenance.versions.title'),
+  exportPermission: 'maintenance.versions.read',
   rowKey: 'database',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],

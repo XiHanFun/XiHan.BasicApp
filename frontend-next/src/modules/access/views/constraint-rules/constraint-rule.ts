@@ -95,16 +95,23 @@ function failedCodes(result: { failed: { code: string }[] }): void {
     throw new Error(result.failed.map(f => f.code).join('; '))
 }
 
+/** 列表行：规则项数是列也是导出字段（导出按行里的键取值），契约只给规则项本身，这里算进行里 */
+export type ConstraintRuleListRow = ConstraintRuleRow & { itemCount: number }
+
+export function toListRow(row: ConstraintRuleRow): ConstraintRuleListRow {
+  return { ...row, itemCount: row.items.length }
+}
+
 /**
  * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停
  * 搜索按后端白名单：关键字匹配编码、名称、说明与备注；类型、目标类型、处理方式、状态多选（合成 in）
  */
-export function constraintRuleResource(): SchemaResource<ConstraintRuleRow> {
+export function constraintRuleResource(): SchemaResource<ConstraintRuleListRow> {
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await constraintRulesApi.list(toPageRequest(params, { multiples: ['type', 'targetType', 'violationAction', 'status'] })),
-      params,
-    ),
+    page: async (params: SchemaQueryParams) => {
+      const result = await constraintRulesApi.list(toPageRequest(params, { multiples: ['type', 'targetType', 'violationAction', 'status'] }))
+      return toSchemaPageResult({ ...result, items: result.items.map(toListRow) }, params)
+    },
     remove: async id => failedCodes(await constraintRulesApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => constraintRulesApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }

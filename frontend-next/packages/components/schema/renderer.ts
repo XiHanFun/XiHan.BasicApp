@@ -20,6 +20,13 @@ function toMutableOptions(
 }
 
 /**
+ * 行值 → 选项值：6.0 的布尔筛选项是后端接受的 'true' / 'false'，行里的值却是布尔，严格比较匹配不上
+ */
+function toOptionValue(raw: unknown): string | number {
+  return typeof raw === 'boolean' ? String(raw) : raw as string | number
+}
+
+/**
  * 字段脱敏：内置常用 formatter，供字段权限脱敏使用
  * S2 可由后端 FLS 规则下发，覆盖此处默认
  */
@@ -63,7 +70,7 @@ export function formatFieldText<TRow extends object>(
     case 'enum':
     case 'tag':
       return field.options
-        ? getOptionLabel(toMutableOptions(field.options), raw as string | number)
+        ? getOptionLabel(toMutableOptions(field.options), toOptionValue(raw))
         : String(raw)
     case 'percent':
       return `${raw}%`
@@ -93,7 +100,7 @@ export function renderFieldCell<TRow extends object>(
     if (raw == null) {
       return '-'
     }
-    const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
+    const label = getOptionLabel(toMutableOptions(field.options), toOptionValue(raw))
     // 登记过语气的状态字典按语气着色，其余枚举走中性
     const tone = resolveStatusTagTone(field.dictionaryCode, raw) ?? 'neutral'
     return h(XhTagRoot, { variant: 'subtle', tone }, () => h(XhTagLabel, () => label))

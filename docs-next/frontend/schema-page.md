@@ -91,7 +91,10 @@ export function configsResource(): SchemaResource<ConfigRow> {
 
 ## 导出与导入
 
-导出时，页面的导出菜单（当前页、搜索结果、全部）向后端导出中心提交任务（`export-tasks.submit`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。
+页面声明 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
+
+- 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行）。
+- 资源还实现了 `export`：导出菜单多出当前页、搜索结果、全部三项，向后端导出中心提交任务（`export-tasks.submit`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
 
 导入时，前端解析 CSV 或 XLSX 文件，按 `importable` 字段组装记录，逐行调用资源的 `create`，并记录导入历史（`import-histories.create`）。
 
