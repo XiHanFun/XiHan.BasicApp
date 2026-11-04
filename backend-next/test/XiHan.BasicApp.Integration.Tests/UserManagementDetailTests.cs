@@ -69,7 +69,7 @@ public sealed class UserManagementDetailTests : IDisposable
         var (_, profile) = await SendAsync(server, HttpMethod.Get, "/api/profile", null, own);
         Assert.Equal("换了部门", profile.GetProperty("user").GetProperty("remark").GetString());
         var (_, changed) = await SendAsync(server, HttpMethod.Put, "/api/profile", """{"displayName":"Erin Z","gender":"Male","remark":"本人写的简介"}""", own);
-        Assert.Equal("本人写的简介", changed.GetProperty("remark").GetString());
+        Assert.Equal("本人写的简介", changed.GetProperty("user").GetProperty("remark").GetString());
         var (_, seen) = await SendAsync(server, HttpMethod.Get, $"/api/users/{id}", null, tenant);
         Assert.Equal("本人写的简介", seen.GetProperty("remark").GetString());
     }

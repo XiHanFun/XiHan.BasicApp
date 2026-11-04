@@ -14425,19 +14425,6 @@ export interface components {
              * @description 登录失败锁定的截止时间；没在锁定期为 null
              */
             lockoutEndAt?: string | null;
-            /** @description 真实姓名 */
-            realName?: string | null;
-            /** @description 性别 */
-            gender: components["schemas"]["UserGender"];
-            /**
-             * Format: date-time
-             * @description 生日
-             */
-            birthday?: string | null;
-            /** @description 国家或地区 */
-            country?: string | null;
-            /** @description 个人简介 */
-            remark?: string | null;
             /**
              * Format: date-time
              * @description 最近一次本人改用户名的时间；没改过为空
@@ -38867,19 +38854,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -38971,19 +38945,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -39231,19 +39192,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -39410,19 +39358,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -39503,19 +39438,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -39721,19 +39643,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空
@@ -40203,19 +40112,6 @@ export interface operations {
                          * @description 登录失败锁定的截止时间；没在锁定期为 null
                          */
                         lockoutEndAt?: string | null;
-                        /** @description 真实姓名 */
-                        realName?: string | null;
-                        /** @description 性别 */
-                        gender: components["schemas"]["UserGender"];
-                        /**
-                         * Format: date-time
-                         * @description 生日
-                         */
-                        birthday?: string | null;
-                        /** @description 国家或地区 */
-                        country?: string | null;
-                        /** @description 个人简介 */
-                        remark?: string | null;
                         /**
                          * Format: date-time
                          * @description 最近一次本人改用户名的时间；没改过为空

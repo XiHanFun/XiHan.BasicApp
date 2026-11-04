@@ -45654,39 +45654,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -45725,7 +45692,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -45862,39 +45828,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -45933,7 +45866,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -46316,39 +46248,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -46387,7 +46286,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -46636,39 +46534,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -46707,7 +46572,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -46814,39 +46678,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -46885,7 +46716,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -47202,39 +47032,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -47273,7 +47070,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -48047,39 +47843,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "realName": {
-                      "description": "\u771F\u5B9E\u59D3\u540D",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "gender": {
-                      "description": "\u6027\u522B",
-                      "$ref": "#/components/schemas/UserGender"
-                    },
-                    "birthday": {
-                      "description": "\u751F\u65E5",
-                      "type": [
-                        "string",
-                        "null"
-                      ],
-                      "format": "date-time"
-                    },
-                    "country": {
-                      "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "remark": {
-                      "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
                     "userNameChangedAt": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
                       "type": [
@@ -48118,7 +47881,6 @@
                     "twoFactorEnabled",
                     "twoFactorMethods",
                     "failedAccessCount",
-                    "gender",
                     "emailVerified",
                     "phoneVerified"
                   ]
@@ -72164,39 +71926,6 @@
             ],
             "format": "date-time"
           },
-          "realName": {
-            "description": "\u771F\u5B9E\u59D3\u540D",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "gender": {
-            "description": "\u6027\u522B",
-            "$ref": "#/components/schemas/UserGender"
-          },
-          "birthday": {
-            "description": "\u751F\u65E5",
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "country": {
-            "description": "\u56FD\u5BB6\u6216\u5730\u533A",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "remark": {
-            "description": "\u4E2A\u4EBA\u7B80\u4ECB",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "userNameChangedAt": {
             "description": "\u6700\u8FD1\u4E00\u6B21\u672C\u4EBA\u6539\u7528\u6237\u540D\u7684\u65F6\u95F4\uFF1B\u6CA1\u6539\u8FC7\u4E3A\u7A7A",
             "type": [
@@ -72235,7 +71964,6 @@
           "twoFactorEnabled",
           "twoFactorMethods",
           "failedAccessCount",
-          "gender",
           "emailVerified",
           "phoneVerified"
         ]
