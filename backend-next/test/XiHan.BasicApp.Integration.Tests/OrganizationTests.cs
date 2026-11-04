@@ -39,7 +39,7 @@ public sealed class OrganizationTests : IDisposable
         // 平台主体即使持有 * 也进不来：组织只在租户侧
         var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: TestTokens.Issue("root", null, "root")));
         Assert.Equal(HttpStatusCode.Forbidden, platform.StatusCode);
-        Assert.Equal("ORGANIZATION_DENIED_001", platformBody.GetProperty("code").GetString());
+        Assert.Equal("SECURITY_DENIED_004", platformBody.GetProperty("code").GetString());
 
         // 用户：两个本租户用户
         var (u1, u1Body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"bob","displayName":"Bob"}""", acme));
