@@ -171,7 +171,7 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
     /// 数据源的目标过出站地址策略
     /// </summary>
     /// <remarks>
-    /// 连接由驱动发起，用不上策略的连接回调，所以这里先按连接串里的主机解析后判（附加参数也能写主机，判的是拼好的连接串）。
+    /// 连接由驱动发起，用不上策略的连接回调，所以这里先按连接串里的主机解析后判（附加参数也能写主机，判的是拼好的连接串）
     /// 驱动会再解析一次，DNS 重绑定的窗口还在；这里防的是把内网地址直接填进来
     /// </remarks>
     private async Task<Result> CheckTargetAsync(SysCodeGenDataSource source, string connection, CancellationToken cancellationToken)

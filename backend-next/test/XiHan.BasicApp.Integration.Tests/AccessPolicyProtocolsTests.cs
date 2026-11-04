@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证访问策略只管外部协议
 /// </summary>
 /// <remarks>
-/// 平台层一条拒绝策略拦下除测试客户端外的一切调用：内部调用（作业、消息处理、工作流）都没有 User-Agent。
+/// 平台层一条拒绝策略拦下除测试客户端外的一切调用：内部调用（作业、消息处理、工作流）都没有 User-Agent
 /// 它们照常运行、不写条件命中；HTTP、gRPC、MCP 照常求值，没有来源地址的 HTTP 请求也一样
 /// </remarks>
 public sealed class AccessPolicyProtocolsTests : IDisposable

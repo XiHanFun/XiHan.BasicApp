@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Runtime.Templates;
 /// 模板语法树的深度上限
 /// </summary>
 /// <remarks>
-/// Scriban 的循环与递归上限管不到成员链和嵌套表达式：<c>{{ a.a.a… }}</c> 能解析通过，求值时按语法树递归，一千多层就把线程栈撑爆，整个进程退出，接不住。
+/// Scriban 的循环与递归上限管不到成员链和嵌套表达式：<c>{{ a.a.a… }}</c> 能解析通过，求值时按语法树递归，一千多层就把线程栈撑爆，整个进程退出，接不住
 /// 模板是用户写的（消息模板租户管理员就能写），所以保存与渲染之前都要判，遍历不递归
 /// </remarks>
 public static class TemplateLimits
