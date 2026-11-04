@@ -169,6 +169,9 @@ public sealed class ChatAssistantsTests : IDisposable
         var completed = Expect(hub, ChatRealtimeMethods.ChatAssistantCompleted);
         await hub.StartAsync();
 
+        // StartAsync 在握手完成时就返回，这时服务端可能还没把连接加进用户组；调用排在 OnConnectedAsync 之后，走一个来回再发
+        await hub.InvokeAsync(ChatRealtimeMethods.JoinConversation, conversation);
+
         await SayAsync(server, conversation, "What is the refund window?", token);
         _model.Reply = "Thirty days.";
         var (replied, repliedBody) = await ReplyAsync(server, conversation, token, locale: "en-US");
@@ -298,6 +301,7 @@ public sealed class ChatAssistantsTests : IDisposable
         var completions = new ConcurrentQueue<JsonElement>();
         hub.On<JsonElement>(ChatRealtimeMethods.ChatAssistantCompleted, payload => completions.Enqueue(payload));
         await hub.StartAsync();
+        await hub.InvokeAsync(ChatRealtimeMethods.JoinConversation, conversation);
 
         // 模型不可达
         _model.Failing = true;
