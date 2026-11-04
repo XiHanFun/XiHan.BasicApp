@@ -2334,6 +2334,15 @@
    "readOnly": false
   },
   {
+   "id": "menus.set-status",
+   "http": "POST /api/menus/{id}:set-status",
+   "permission": "access.menus.update",
+   "file": "backend-next/src/XiHan.BasicApp.Access/Operations/Menus/SetMenuStatus.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": false
+  },
+  {
    "id": "menus.update",
    "http": "PUT /api/menus/{id}",
    "permission": "access.menus.update",
@@ -3581,6 +3590,15 @@
    "readOnly": true
   },
   {
+   "id": "server.packages",
+   "http": "GET /api/server:packages",
+   "permission": "maintenance.server.read",
+   "file": "backend-next/src/XiHan.BasicApp.Maintenance/Operations/Server/ServerOperations.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
    "id": "session-roles.get",
    "http": "GET /api/session-roles/{id}",
    "permission": "access.session-roles.read",
@@ -4130,6 +4148,15 @@
    "readOnly": false
   },
   {
+   "id": "users.detail",
+   "http": "GET /api/users/{id}:detail",
+   "permission": "identity.users.read",
+   "file": "backend-next/src/XiHan.BasicApp.Identity/Operations/Users/GetUserDetail.cs",
+   "expose": "Expose.Http",
+   "policy": null,
+   "readOnly": true
+  },
+  {
    "id": "users.disable",
    "http": "POST /api/users:disable",
    "permission": "identity.users.disable",
@@ -4516,6 +4543,11 @@
    "code": "access.constraint-rules",
    "route": "/access/constraint-rules",
    "titleKey": "access.constraint_rules.title"
+  },
+  {
+   "code": "about.project",
+   "route": "/about/project",
+   "titleKey": "menu.about_project"
   },
   {
    "code": "ai.assistants",
@@ -4988,15 +5020,18 @@
  ],
  "seeders": [
   "access.demo",
+  "access.demo-policies",
   "access.menus",
   "access.platform",
   "access.policies",
   "codegeneration.templates",
   "files.storage-configs",
   "identity.platform",
+  "notification.demo",
   "notification.templates",
   "organization.demo",
   "printing.demo",
+  "settings.demo",
   "tenancy.demo",
   "tenancy.editions",
   "workflow.demo"
@@ -5019,12 +5054,14 @@
   "BasicApp:CloudEvents",
   "BasicApp:CodeGeneration",
   "BasicApp:Cors",
+  "BasicApp:Database",
   "BasicApp:Files",
   "BasicApp:ForwardedHeaders",
   "BasicApp:Modules",
   "BasicApp:Notification",
   "BasicApp:Notification:Telegram",
   "BasicApp:OpenPlatform",
+  "BasicApp:Realtime:SignalR",
   "BasicApp:Schema",
   "BasicApp:Seed"
  ],
@@ -5090,6 +5127,26 @@
    "key": "InitTables"
   },
   {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "CommandTimeoutSeconds"
+  },
+  {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "Replicas:DefaultHitRate"
+  },
+  {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "Replicas:HealthCheck"
+  },
+  {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "Replicas:HealthCheckIntervalSeconds"
+  },
+  {
+   "section": "XiHan:Persistence:SqlSugar",
+   "key": "Replicas:FailureCooldownSeconds"
+  },
+  {
    "section": "XiHan:Security",
    "key": "RoleClaim"
   },
@@ -5104,6 +5161,22 @@
   {
    "section": "XiHan:Security",
    "key": "Jwt:ClockSkewSeconds"
+  },
+  {
+   "section": "XiHan:Security:Outbound",
+   "key": "AllowLoopback"
+  },
+  {
+   "section": "XiHan:Security:Outbound",
+   "key": "AllowPrivateNetwork"
+  },
+  {
+   "section": "XiHan:Security:Outbound",
+   "key": "AllowedNetworks"
+  },
+  {
+   "section": "XiHan:Security:Outbound",
+   "key": "AllowedHosts"
   },
   {
    "section": "XiHan:MultiTenancy",
@@ -5196,6 +5269,26 @@
   {
    "section": "XiHan:Kernel",
    "key": "Resilience"
+  },
+  {
+   "section": "BasicApp:Database",
+   "key": "Replicas"
+  },
+  {
+   "section": "BasicApp:Database",
+   "key": "LogSql"
+  },
+  {
+   "section": "BasicApp:Database",
+   "key": "LogSqlErrors"
+  },
+  {
+   "section": "BasicApp:Database",
+   "key": "LogSlowSql"
+  },
+  {
+   "section": "BasicApp:Database",
+   "key": "SlowSqlThresholdMilliseconds"
   },
   {
    "section": "BasicApp:ApiDocs",
@@ -5436,6 +5529,34 @@
   {
    "section": "BasicApp:Notification",
    "key": "Telegram:*"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "EnableDetailedErrors"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "KeepAliveInterval"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "ClientTimeoutInterval"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "HandshakeTimeout"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "MaximumReceiveMessageSize"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "StreamBufferCapacity"
+  },
+  {
+   "section": "BasicApp:Realtime:SignalR",
+   "key": "MaximumParallelInvocationsPerClient"
   },
   {
    "section": "BasicApp:OpenPlatform",
