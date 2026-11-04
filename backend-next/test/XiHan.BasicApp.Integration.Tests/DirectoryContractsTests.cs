@@ -149,7 +149,8 @@ public sealed class DirectoryContractsTests : IDisposable
 
         await SettingsTestHost.InvokeAsync(server, "demo", async ctx =>
         {
-            var notification = Assert.Single(await TenantScopedQuery.For<SysNotification>(ctx).ToListAsync(ctx.CancellationToken));
+            // 演示租户里另有演示通知的草稿，这里只看投递写的那一条
+            var notification = Assert.Single(await TenantScopedQuery.For<SysNotification>(ctx).Where(n => n.BusinessId == "instance-1").ToListAsync(ctx.CancellationToken));
             Assert.Equal((NotificationType.Todo, "/workflow/approvals?tab=todo", "workflow", "instance-1", true), (notification.NotificationType, notification.Link, notification.BusinessType, notification.BusinessId, notification.IsPublished));
             var inbox = await TenantScopedQuery.For<SysUserNotification>(ctx).Where(n => n.NotificationId == notification.Id).Select(static n => n.UserId).ToListAsync(ctx.CancellationToken);
             Assert.Equal(new HashSet<Guid> { people["manager"], people["lead"] }, inbox.ToHashSet());

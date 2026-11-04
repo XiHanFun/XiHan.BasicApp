@@ -7,8 +7,10 @@ using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Runtime;
+using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Services;
 using XiHan.BasicApp.Settings.Queries;
+using XiHan.BasicApp.Settings.Seeds;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Localization.Abstractions;
@@ -69,6 +71,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<DictQueries>();
         context.Services.AddScoped<NumberingRuleQueries>();
         context.Services.AddScoped<NumberingAllocationQueries>();
+        context.Services.AddSeeder<DemoDictSeeder>();
         context.Services.AddPermissionCatalog("settings", SettingsPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         SettingsFieldSecurity.Register(context.Services);

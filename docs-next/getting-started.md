@@ -60,7 +60,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 | `files.storage-configs` | 平台本地存储配置 |
 | `notification.templates` | 平台消息模板 |
 | `access.policies` | 访问策略的平台缺省 |
-| `tenancy.demo` · `organization.demo` · `access.demo` | 演示租户 `demo`、成员账号、部门、岗位与演示角色（只在 `BasicApp:Seed:EnableDemoData` 为真时，Development 缺省开） |
+| `tenancy.demo` · `organization.demo` · `access.demo` · `access.demo-policies` · `settings.demo` · `notification.demo` | 演示租户 `demo`、成员账号、部门、岗位、演示角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知（只在 `BasicApp:Seed:EnableDemoData` 为真时，Development 缺省开） |
 
 `seed --list` 只列出不执行，`seed --only identity.platform` 只跑指定的种子。
 

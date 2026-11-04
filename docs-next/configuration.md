@@ -250,7 +250,7 @@
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示租户 `demo` 及其组织数据 |
+| `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知 |
 | `SuperAdminPassword` | 空 = `SuperAdmin@123` | `superadmin` 的初始密码，部署前改掉 |
 
 ## `BasicApp:Modules`

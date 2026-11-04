@@ -153,6 +153,7 @@ public sealed class AccessFeature : IFeature
         context.Services.AddSeeder<MenuSeeder>();
         context.Services.AddSeeder<AccessPolicySeeder>();
         context.Services.AddSeeder<DemoAccessSeeder>();
+        context.Services.AddSeeder<DemoAccessPolicySeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         AccessFieldSecurity.Register(context.Services);
