@@ -95,6 +95,13 @@
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `InitTables` | `false`（Development 为 `true`） | 启动时按实体建缺表、加缺列；只用于开发，正式环境由 `Schema/` 脚本管理 |
+| `CommandTimeoutSeconds` | `300` | 语句超时（秒），正整数；写 0 或负值启动失败（5.x 是当作不覆盖） |
+| `Replicas:DefaultHitRate` | `10` | 从库没写权重时的读权重 |
+| `Replicas:HealthCheck` | `true` | 从库健康探测：周期探活，连不上的自动摘除、恢复后加回（5.x 缺省关） |
+| `Replicas:HealthCheckIntervalSeconds` | `30` | 探活间隔 |
+| `Replicas:FailureCooldownSeconds` | `120` | 摘除后多久再试 |
+
+从库本身在 [`BasicApp:Database`](#basicapp-database) 配。健康快照看 `persistence.sqlsugar.replicas`。
 
 ## `XiHan:Security`
 
@@ -192,13 +199,13 @@
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Replicas` | 空 | 平台库的从库，每项 `ConnectionString` 与可选的 `HitRate`（读权重，正整数，缺省 10）。没配即单库 |
+| `Replicas` | 空 | 平台库的从库，每项 `ConnectionString` 与可选的 `HitRate`（读权重，正整数；不写取 `XiHan:Persistence:SqlSugar:Replicas:DefaultHitRate`）。没配即单库 |
 | `LogSql` | `false` | 记录每条 SQL（日志量大，只在排查时打开） |
 | `LogSqlErrors` | `true` | 记录 SQL 错误 |
 | `LogSlowSql` | `true` | 记录慢 SQL |
 | `SlowSqlThresholdMilliseconds` | `1000` | 慢 SQL 的阈值，只影响记录，不影响语句执行 |
 
-配了从库之后，事务外的读走从库，写和事务走主库。从库有延迟时刚写完的数据可能读不到。从库只给平台库：独立库租户的连接串来自租户目录，不用这里的从库。日志只记语句，不记参数值。
+配了从库之后，只读工作单元的读走从库，会写的工作单元走主库。从库只给平台库：独立库租户读写都走它自己的主库。日志只记语句，不记参数值。要注意的见[部署文档](./deployment#读写分离)。
 
 ## `BasicApp:ApiDocs`
 

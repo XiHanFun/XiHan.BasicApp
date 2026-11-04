@@ -5,6 +5,7 @@ using System.Data.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SqlSugar;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Persistence.SqlSugar;
 
 namespace XiHan.BasicApp.Runtime.Schema;

@@ -30,6 +30,8 @@ internal static class WorkflowConformanceHosts
 
     public static async Task<WorkflowEngineHost> StartAsync(bool postgres, Action<IServiceCollection> configure, IEnumerable<KeyValuePair<string, string?>>? configuration)
     {
+        // 套件按出站地址策略的缺省校验（回环地址被拒），测试服务器放行回环是给本机 S3 与仿真端点的
+        configuration = [new("XiHan:Security:Outbound:AllowLoopback", "false"), .. configuration ?? []];
         BasicAppTestServer server;
         IDisposable? file = null;
         IAsyncDisposable? database = null;

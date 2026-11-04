@@ -57,7 +57,7 @@ public sealed class SqlSugarRuntimeTests : IDisposable
         var platform = ConfigFor(configure, SqlSugarConnections.Default, Binding(Platform));
         Assert.Equal(Platform, platform.ConnectionString);
         Assert.Equal(
-            [("Host=replica-a;Database=main", DatabaseOptions.DefaultHitRate), ("Host=replica-b;Database=main", 30)],
+            [("Host=replica-a;Database=main", 0), ("Host=replica-b;Database=main", 30)],
             platform.SlaveConnectionConfigs.Select(static r => (r.ConnectionString, r.HitRate)));
 
         // 分片绑定带着平台绑定并入的属性与租户标记：连接串是租户自己的，没有从库

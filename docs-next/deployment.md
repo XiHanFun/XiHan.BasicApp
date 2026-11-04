@@ -144,6 +144,20 @@ gRPC 端点（`Kestrel:Endpoints:Grpc`，HTTP/2）只供内部服务调用，只
 
 CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺省关）同理：只收持有 `runtime.cloud-events.deliver` 的调用方（平台的服务账号或服务角色，见[配置参考](./configuration#basicapp-cloudevents)），只开放给内网，上面的 Nginx 示例不代理它。
 
+## 读写分离
+
+平台库可以配从库（配置见 [`BasicApp:Database`](./configuration#basicapp-database) 与 [`XiHan:Persistence:SqlSugar`](./configuration#xihan-persistence-sqlsugar)）。配之前先看这几条：
+
+- **跨调用不保证读己之写**：写完马上发起的 `get`、`list` 可能读到落后的数据。比如保存之后立刻刷新列表，可能看到旧值。
+- **权限撤销生效会多一段复制延迟**：框架自己的只读工作单元也走从库，包括授予、租户目录和租约探测。
+- **探测只看连通**：落后很多但连得上的从库照常接读流量，复制延迟要另外监控。
+- **只在 PostgreSQL 上实测过**：MySQL、SQL Server、Oracle 的从库没有实测。
+- 独立库租户不配从库，读写都走它自己的主库。主库不同的连接不能共用从库，启动失败（`PERSISTENCE_VALIDATION_009`）。
+
+## 出站地址
+
+用户填的地址（工作流 `Http` 活动、群机器人 Webhook、AI 提供商、第三方登录、S3 兼容存储）缺省只能连公网。自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
+
 ## 多实例部署
 
 | 方面 | 单实例（不配连接） | 多实例 |

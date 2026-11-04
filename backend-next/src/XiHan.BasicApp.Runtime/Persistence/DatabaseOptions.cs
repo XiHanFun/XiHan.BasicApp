@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// 平台库的一个从库
 /// </summary>
 /// <param name="ConnectionString">连接串</param>
-/// <param name="HitRate">读权重，数字越大分到的读越多</param>
+/// <param name="HitRate">读权重，数字越大分到的读越多；0 即交给框架的缺省权重</param>
 public sealed record DatabaseReplica(string ConnectionString, int HitRate);
 
 /// <summary>
@@ -28,15 +28,10 @@ public sealed record DatabaseOptions
     public const string ConfigurationSection = "BasicApp:Database";
 
     /// <summary>
-    /// 从库不写权重时的读权重
-    /// </summary>
-    public const int DefaultHitRate = 10;
-
-    /// <summary>
     /// 平台库的从库
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>Replicas</c>，每项 <c>ConnectionString</c> 与可选的 <c>HitRate</c>。没配即单库。配了之后事务外的读走从库、写与事务走主库
+    /// 配置键 <c>Replicas</c>，每项 <c>ConnectionString</c> 与可选的 <c>HitRate</c>。没配即单库。配了之后只读工作单元的读走从库、会写的工作单元走主库；缺省权重与健康探测在 <c>XiHan:Persistence:SqlSugar:Replicas</c>
     /// </remarks>
     public IReadOnlyList<DatabaseReplica> Replicas { get; init; } = [];
 
@@ -88,7 +83,7 @@ public sealed record DatabaseOptions
                 throw new ArgumentException($"'{ConfigurationSection}:Replicas:{child.Key}:ConnectionString' must not be empty.");
             }
 
-            var hitRate = DefaultHitRate;
+            var hitRate = 0;
             if (child["HitRate"] is { Length: > 0 } raw && (!int.TryParse(raw, NumberStyles.None, CultureInfo.InvariantCulture, out hitRate) || hitRate <= 0))
             {
                 throw new ArgumentException($"'{ConfigurationSection}:Replicas:{child.Key}:HitRate' must be a positive integer, but was '{raw}'.");
